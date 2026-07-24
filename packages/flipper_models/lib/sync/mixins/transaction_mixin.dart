@@ -1010,6 +1010,11 @@ mixin TransactionMixin implements TransactionInterface {
     double? remainingBalance,
     bool skipDittoSync = false,
     bool deferEnsureNextPendingCart = false,
+    String? reviewedBy,
+    DateTime? reviewedAt,
+    String? handoverBy,
+    DateTime? handoverAt,
+    String? requireCurrentStatus,
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
@@ -1025,6 +1030,19 @@ mixin TransactionMixin implements TransactionInterface {
         throw ArgumentError("Transaction with ID $transactionId not found.");
       }
     }
+
+    // Guards markTicketReviewed/recordTicketHandover against double-submission
+    // races (e.g. two reviewers tapping "mark reviewed" on stale UI): no-op
+    // unless the row is still in the expected source status.
+    if (requireCurrentStatus != null &&
+        transaction.status != requireCurrentStatus) {
+      return;
+    }
+
+    if (reviewedBy != null) transaction.reviewedBy = reviewedBy;
+    if (reviewedAt != null) transaction.reviewedAt = reviewedAt;
+    if (handoverBy != null) transaction.handoverBy = handoverBy;
+    if (handoverAt != null) transaction.handoverAt = handoverAt;
 
     // Determine receipt type based on mode (or use the provided value if available)
     receiptType = isProformaMode == true
@@ -1279,6 +1297,23 @@ mixin TransactionMixin implements TransactionInterface {
       forceRealData: forceRealData,
       skipOriginalTransactionCheck: skipOriginalTransactionCheck,
       restrictToCurrentAgent: restrictToCurrentAgent,
+    );
+  }
+
+  @override
+  Stream<List<ITransaction>> reviewQueueTransactionsStream({
+    String? branchId,
+    required bool removeAdjustmentTransactions,
+    required bool forceRealData,
+    required bool skipOriginalTransactionCheck,
+  }) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).reviewQueueTransactionsStream(
+      branchId: branchId,
+      removeAdjustmentTransactions: removeAdjustmentTransactions,
+      forceRealData: forceRealData,
+      skipOriginalTransactionCheck: skipOriginalTransactionCheck,
     );
   }
 

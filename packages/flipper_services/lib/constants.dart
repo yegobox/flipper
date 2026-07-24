@@ -83,6 +83,8 @@ final features = [
   AppFeature.Driver,
   AppFeature.Stock,
   AppFeature.ShiftHistory,
+  AppFeature.TicketReview,
+  AppFeature.StockHandover,
 ];
 
 class AppFeature {
@@ -100,6 +102,11 @@ class AppFeature {
   static const String Stock = "Stock";
   /// Agent commission-only login; not shown in User Management permission matrix.
   static const String Commission = "Commission";
+  /// Ticket Review + Handover workflow: confirm declared payment landed in the
+  /// right channel before a paid ticket can proceed to handover.
+  static const String TicketReview = "TicketReview";
+  /// Ticket Review + Handover workflow: confirm an item physically left stock.
+  static const String StockHandover = "StockHandover";
 }
 
 class AccessLevel {
@@ -202,6 +209,16 @@ const String SALE = 'Sale';
 const String ORDERING = 'ordering';
 const String IN_PROGRESS = 'inProgress';
 const String COMPLETE = 'completed';
+
+/// Ticket Review + Handover workflow (opt-in per business via
+/// `Setting.enableTicketReviewWorkflow`). A fully-paid ticket lands here
+/// instead of [COMPLETE] so it stays visible in the Review Queue.
+const String PENDING_REVIEW = 'pendingReview';
+
+/// Reviewed, awaiting stock-manager handover confirmation. Visible again in
+/// the normal Tickets list until handover is recorded, at which point the
+/// ticket becomes [COMPLETE] exactly like today.
+const String AWAITING_HANDOVER = 'awaitingHandover';
 
 const List<Color> colors = [
   Colors.red,

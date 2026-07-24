@@ -257,7 +257,16 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           }
         });
       },
-      items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
+      items: <String>[
+        'Agent',
+        'Cashier',
+        'Admin',
+        'Driver',
+        // Convenience labels only — actual gating is via the per-feature
+        // Access matrix below (AppFeature.TicketReview / StockHandover).
+        'Reviewer',
+        'Stock Manager',
+      ]
           .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,

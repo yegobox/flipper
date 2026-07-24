@@ -12,8 +12,10 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
+import 'package:flipper_models/helpers/ticket_review_actions.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
@@ -638,6 +640,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                     );
                     final canCollect =
                         ref.watch(canCollectPosPaymentProvider);
+                    final canRecordHandover = ref.watch(
+                      featureAccessProvider(
+                        userId: ProxyService.box.getUserId() ?? '',
+                        featureName: AppFeature.StockHandover,
+                      ),
+                    );
                     return TicketCard(
                       key: ValueKey(ticket.id),
                       ticket: ticket,
@@ -647,9 +655,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           (ticket.status ?? '').toLowerCase() == PARKED,
                       showResume: canCollect,
                       isCollecting: _collectingTicketId == ticket.id,
+                      showRecordHandover: canRecordHandover,
                       onTap: () => _handleTicketTap(context, ticket),
                       onCollect: () =>
                           unawaited(_collectTillTicket(context, ticket)),
+                      onRecordHandover: () =>
+                          unawaited(_recordHandover(context, ticket)),
                       onDelete: () => _deleteTicket(ticket),
                       onSelectionChanged: (selected) {
                         ref
@@ -831,6 +842,58 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
       }
       return false;
+    }
+  }
+
+  /// Ticket Review + Handover workflow: stock manager confirms the item
+  /// physically left stock. Pure status/audit stamp — no stock mutation.
+  Future<void> _recordHandover(BuildContext context, ITransaction ticket) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          barrierColor: PosTokens.ink1.withValues(alpha: 0.58),
+          builder: (ctx) => AlertDialog(
+            title: const Text('Record handover'),
+            content: Text(
+              'Confirm that the item for Ticket #${ticket.reference ?? ticket.ticketName ?? ticket.id} '
+              'has physically left stock.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Confirm handover'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !mounted) return;
+
+    try {
+      await recordTicketHandover(
+        transactionId: ticket.id,
+        handoverByUserId: ProxyService.box.getUserId() ?? '',
+      );
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Handover recorded',
+          backgroundColor: Colors.green,
+        );
+      }
+    } catch (e, st) {
+      talker.error('Record handover failed: $e', st);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Failed to record handover',
+          backgroundColor: Colors.red,
+        );
+      }
     }
   }
 
@@ -1260,6 +1323,17 @@ class TicketCard extends StatelessWidget {
   final VoidCallback? onCollect;
   final bool showResume;
   final bool isCollecting;
+  /// Ticket Review + Handover workflow: shows the "Record handover" action
+  /// when true (only meaningful while `ticket.status == AWAITING_HANDOVER`;
+  /// gate this on `AppFeature.StockHandover` access at the call site).
+  final bool showRecordHandover;
+  final VoidCallback? onRecordHandover;
+  /// Ticket Review + Handover workflow: shows the "Mark as reviewed" action
+  /// when true (only meaningful while `ticket.status == PENDING_REVIEW`; gate
+  /// this on `AppFeature.TicketReview` access at the call site). Used by the
+  /// Review Queue screen.
+  final bool showMarkReviewed;
+  final VoidCallback? onMarkReviewed;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -1272,6 +1346,10 @@ class TicketCard extends StatelessWidget {
     this.onCollect,
     this.showResume = true,
     this.isCollecting = false,
+    this.showRecordHandover = false,
+    this.onRecordHandover,
+    this.showMarkReviewed = false,
+    this.onMarkReviewed,
   });
 
   Color _leftAccent() {
@@ -1567,7 +1645,65 @@ class TicketCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              if (showCollect && onCollect != null) ...[
+                              if ((ticket.status ?? '') == PENDING_REVIEW &&
+                                  showMarkReviewed &&
+                                  onMarkReviewed != null) ...[
+                                TextButton(
+                                  onPressed: onMarkReviewed,
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: const Color(0xFF7C3AED),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Mark as reviewed',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ] else if ((ticket.status ?? '') ==
+                                      AWAITING_HANDOVER &&
+                                  showRecordHandover &&
+                                  onRecordHandover != null) ...[
+                                TextButton(
+                                  onPressed: onRecordHandover,
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0D9488),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Record handover',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ] else if (showCollect && onCollect != null) ...[
                                 TextButton(
                                   onPressed: isCollecting ? null : onCollect,
                                   style: TextButton.styleFrom(

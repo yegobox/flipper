@@ -998,6 +998,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       shouldBeLoan: derived.shouldBeLoan,
     );
 
+    // Ticket Review + Handover workflow (opt-in per business): redirect a
+    // fully-paid ticket to PENDING_REVIEW instead of COMPLETE so it stays
+    // visible in the Review Queue. Only the persisted status changes here —
+    // `derived.status` is still used above/below for loan/remaining-balance
+    // math, which must not be affected by the review gate.
+    final persistedStatus = applyTicketReviewWorkflowRedirect(
+      derivedStatus: derived.status,
+      ticketReviewWorkflowEnabled:
+          ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
+              false,
+    );
+
     final commSw = Stopwatch()..start();
     final hasAgentCommissionHints =
         (transaction.attributedAgentUserId?.isNotEmpty ?? false) ||
@@ -1028,7 +1040,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final txnSw = Stopwatch()..start();
     await capella.updateTransaction(
       transaction: transaction,
-      status: derived.status,
+      status: persistedStatus,
       isLoan: derived.shouldBeLoan,
       remainingBalance: derived.remainingBalance,
       cashReceived: derived.nonCreditCashReceived,
@@ -1063,7 +1075,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
     transaction.createdAt = now;
-    transaction.status = derived.status;
+    transaction.status = persistedStatus;
     transaction.isLoan = derived.shouldBeLoan;
     transaction.remainingBalance = derived.remainingBalance;
     transaction.cashReceived = derived.nonCreditCashReceived;

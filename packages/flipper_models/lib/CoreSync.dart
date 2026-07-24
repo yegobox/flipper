@@ -2254,6 +2254,7 @@ class CoreSync extends AiStrategyImpl
     String? customerPhone,
     String? note,
     String? completionStatus,
+    String? financialCompletionStatus,
     List<TransactionItem>? preloadedLineItems,
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,

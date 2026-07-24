@@ -183,6 +183,26 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(name: 'agent_commission_amount')
   num? agentCommissionAmount;
 
+  /// Ticket Review + Handover workflow (opt-in per business). Reviewer who
+  /// confirmed the declared payment landed in the right channel.
+  @Sqlite(name: 'reviewed_by')
+  @Supabase(name: 'reviewed_by')
+  String? reviewedBy;
+
+  @Sqlite(name: 'reviewed_at')
+  @Supabase(name: 'reviewed_at')
+  DateTime? reviewedAt;
+
+  /// Stock manager who confirmed the item physically left stock. Setting
+  /// this transitions the ticket to its final `completed` status.
+  @Sqlite(name: 'handover_by')
+  @Supabase(name: 'handover_by')
+  String? handoverBy;
+
+  @Sqlite(name: 'handover_at')
+  @Supabase(name: 'handover_at')
+  DateTime? handoverAt;
+
   @Sqlite(name: 'cashier_name')
   @Supabase(name: 'cashier_name')
   String? cashierName;
@@ -269,6 +289,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.agentCommissionType,
     this.agentCommissionValue,
     this.agentCommissionAmount,
+    this.reviewedBy,
+    this.reviewedAt,
+    this.handoverBy,
+    this.handoverAt,
     this.cashierName,
     this.deviceId,
     this.dataSource,
@@ -365,6 +389,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? agentCommissionType,
     num? agentCommissionValue,
     num? agentCommissionAmount,
+    String? reviewedBy,
+    DateTime? reviewedAt,
+    String? handoverBy,
+    DateTime? handoverAt,
     String? cashierName,
     String? deviceId,
     Strategy? dataSource,
@@ -448,6 +476,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
           agentCommissionValue ?? this.agentCommissionValue,
       agentCommissionAmount:
           agentCommissionAmount ?? this.agentCommissionAmount,
+      reviewedBy: reviewedBy ?? this.reviewedBy,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      handoverBy: handoverBy ?? this.handoverBy,
+      handoverAt: handoverAt ?? this.handoverAt,
       cashierName: cashierName ?? this.cashierName,
       deviceId: deviceId ?? this.deviceId,
       dataSource: dataSource ?? this.dataSource,

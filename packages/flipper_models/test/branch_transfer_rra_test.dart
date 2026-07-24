@@ -347,7 +347,7 @@ void main() {
 
       expect(result.attempted, isTrue);
       expect(result.succeeded, isFalse);
-      expect(result.message, 'rejected');
+      expect(result.message, contains('rejected'));
       // Only the OUT call happened.
       expect(tax.order, ['io:13']);
     });
@@ -387,6 +387,26 @@ void main() {
             stockId: any(named: 'stockId'),
             ebmSynced: any(named: 'ebmSynced'),
           ));
+    });
+  });
+
+  group('userFacingBranchTransferRraFailure', () {
+    test('maps connection refused to a short customer-safe message', () {
+      const raw =
+          'Exception: Unexpected error occurred: The connection errored: '
+          'The remote computer refused the network connection '
+          'DioException [connection error]: SocketException';
+      final msg = userFacingBranchTransferRraFailure(raw);
+      expect(msg.toLowerCase(), isNot(contains('dioexception')));
+      expect(msg.toLowerCase(), isNot(contains('socketexception')));
+      expect(msg, contains('tax server'));
+    });
+
+    test('keeps short RRA business messages', () {
+      expect(
+        userFacingBranchTransferRraFailure('rejected'),
+        contains('rejected'),
+      );
     });
   });
 }

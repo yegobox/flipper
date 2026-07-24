@@ -11,7 +11,10 @@ import 'package:stacked_services/stacked_services.dart';
 
 /// Shows an in-app banner for print delegations and stock transfers.
 ///
-/// - **Mobile**: [showSimpleNotification] via outer [OverlaySupport] (works well).
+/// Banners sit at the **bottom** (aligned with snackbars) so they do not stack
+/// against the top chrome or fight POS toasts.
+///
+/// - **Mobile**: [showSimpleNotification] via outer [OverlaySupport].
 /// - **Desktop**: inserts on the navigator [Overlay] via [StackedService.navigatorKey]
 ///   so the banner paints above dashboard chrome (outer OverlaySupport is behind).
 class DelegationNotificationListener extends StatefulWidget {
@@ -211,7 +214,7 @@ class _DelegationNotificationListenerState
         ),
       ),
       background: const Color(0xFF059669),
-      position: NotificationPosition.top,
+      position: NotificationPosition.bottom,
       duration: const Duration(seconds: 8),
       leading: Icon(icon, color: Colors.white),
     );
@@ -251,14 +254,14 @@ class _DelegationBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.paddingOf(context).top;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Positioned(
-      top: topInset + 12,
+      bottom: bottomInset + 20,
       left: 16,
       right: 16,
       child: Align(
-        alignment: Alignment.topCenter,
+        alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: Material(

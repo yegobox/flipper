@@ -207,4 +207,61 @@ void main() {
       );
     });
   });
+
+  group('applyTicketReviewWorkflowRedirect', () {
+    test('passthrough when workflow disabled', () {
+      expect(
+        applyTicketReviewWorkflowRedirect(
+          derivedStatus: saleCompletionStatusComplete,
+          ticketReviewWorkflowEnabled: false,
+        ),
+        saleCompletionStatusComplete,
+      );
+    });
+
+    test('redirects completed to pendingReview when enabled', () {
+      expect(
+        applyTicketReviewWorkflowRedirect(
+          derivedStatus: saleCompletionStatusComplete,
+          ticketReviewWorkflowEnabled: true,
+        ),
+        saleCompletionStatusPendingReview,
+      );
+    });
+
+    test('never redirects parked/loan outcomes even when enabled', () {
+      expect(
+        applyTicketReviewWorkflowRedirect(
+          derivedStatus: saleCompletionStatusParked,
+          ticketReviewWorkflowEnabled: true,
+        ),
+        saleCompletionStatusParked,
+      );
+    });
+  });
+
+  group('isFinanciallySettledSaleStatus', () {
+    test('recognizes completed, pendingReview, and awaitingHandover', () {
+      expect(
+        isFinanciallySettledSaleStatus(saleCompletionStatusComplete),
+        isTrue,
+      );
+      expect(
+        isFinanciallySettledSaleStatus(saleCompletionStatusPendingReview),
+        isTrue,
+      );
+      expect(
+        isFinanciallySettledSaleStatus(saleCompletionStatusAwaitingHandover),
+        isTrue,
+      );
+    });
+
+    test('rejects parked and null', () {
+      expect(
+        isFinanciallySettledSaleStatus(saleCompletionStatusParked),
+        isFalse,
+      );
+      expect(isFinanciallySettledSaleStatus(null), isFalse);
+    });
+  });
 }

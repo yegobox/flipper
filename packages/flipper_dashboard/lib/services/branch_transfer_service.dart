@@ -4,7 +4,6 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/notifications/notification_handler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
@@ -135,7 +134,12 @@ class BranchTransferService with StockRequestApprovalLogic {
       );
     }
 
-    final approved = await approveRequest(request: request, context: context);
+    final approved = await approveRequest(
+      request: request,
+      context: context,
+      // Caller (POS) shows a single bottom success toast.
+      suppressCompletionSnackbars: true,
+    );
     if (!approved) {
       // Request stays pending; do not notify or signal cart finalization.
       throw Exception(
@@ -149,7 +153,6 @@ class BranchTransferService with StockRequestApprovalLogic {
       itemCount: clamped.length,
       sourceBranchId: sourceBranchId,
       destinationBranchId: destinationBranchId,
-      destinationBranchName: destinationBranchName ?? request.branch?.name,
     );
 
     talker.info(
@@ -159,31 +162,16 @@ class BranchTransferService with StockRequestApprovalLogic {
     return requestId;
   }
 
+  /// Destination SMS only. Source UI uses the POS bottom snackbar — do not fire
+  /// an in-app stock-transfer banner here (that was stacking on the snackbar).
   Future<void> _notifyTransferCompleted({
     required String requestId,
     required int itemCount,
     required String sourceBranchId,
     required String destinationBranchId,
-    String? destinationBranchName,
   }) async {
-    final destLabel = (destinationBranchName != null &&
-            destinationBranchName.isNotEmpty)
-        ? destinationBranchName
-        : 'destination branch';
     final itemLabel = '$itemCount item${itemCount == 1 ? '' : 's'}';
 
-    // Source device: OS + in-app banner (desktop & mobile).
-    try {
-      await NotificationHandler().showStockTransferNotification(
-        requestId: requestId,
-        title: 'Stock transferred',
-        body: 'Transferred $itemLabel to $destLabel',
-      );
-    } catch (e, s) {
-      talker.error('Source transfer notification failed', e, s);
-    }
-
-    // Destination branch: SMS when enabled (Order notification channel).
     try {
       final sourceConfig =
           await SmsNotificationService.getBranchSmsConfig(sourceBranchId);

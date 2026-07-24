@@ -35,6 +35,9 @@ class BranchTransferRraResult {
 
   final bool attempted;
   final bool succeeded;
+
+  /// Short, customer-safe explanation when [succeeded] is false.
+  /// Never contains Dio/Socket stack dumps — those stay in talker logs.
   final String? message;
 
   static const skipped = BranchTransferRraResult(
@@ -42,6 +45,44 @@ class BranchTransferRraResult {
     succeeded: true,
     message: null,
   );
+}
+
+/// Maps tax-server / network failures to a short message suitable for UI.
+///
+/// Full exception text is for logs only ([talker]); do not show [error.toString]
+/// to cashiers.
+String userFacingBranchTransferRraFailure([Object? error]) {
+  const fallback =
+      'Stock was saved locally, but tax (EBM) sync failed. '
+      'It will retry when the tax server is available.';
+  if (error == null) return fallback;
+
+  final text = error.toString().toLowerCase();
+  if (text.contains('timeout')) {
+    return 'Stock was saved locally, but the tax server timed out. '
+        'EBM sync will retry when the server is available.';
+  }
+  if (text.contains('connection') ||
+      text.contains('socket') ||
+      text.contains('refused') ||
+      text.contains('network') ||
+      text.contains('unreachable') ||
+      text.contains('failed host lookup')) {
+    return 'Stock was saved locally, but the tax server could not be reached. '
+        'EBM sync will retry when the server is available.';
+  }
+  // Already a short RRA business message (e.g. resultMsg) — keep if safe.
+  final raw = error.toString().trim();
+  if (raw.isNotEmpty &&
+      raw.length <= 120 &&
+      !raw.toLowerCase().contains('dioexception') &&
+      !raw.toLowerCase().contains('socketexception') &&
+      !raw.toLowerCase().contains('exception:') &&
+      !raw.contains('type=') &&
+      !raw.contains('errno')) {
+    return 'Stock was saved locally; EBM sync failed: $raw';
+  }
+  return fallback;
 }
 
 /// Posts RRA StockIO OUT (`13`) / IN (`04`) + dual StockMaster after a branch transfer.
@@ -104,7 +145,9 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     return BranchTransferRraResult(
       attempted: false,
       succeeded: false,
-      message: 'EBM branch codes missing for transfer',
+      message: userFacingBranchTransferRraFailure(
+        'EBM branch codes missing for transfer',
+      ),
     );
   }
 
@@ -178,9 +221,11 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
       return BranchTransferRraResult(
         attempted: true,
         succeeded: false,
-        message: outResp.resultMsg.isEmpty
-            ? 'Stock OUT to EBM failed'
-            : outResp.resultMsg,
+        message: userFacingBranchTransferRraFailure(
+          outResp.resultMsg.isEmpty
+              ? 'Stock OUT to EBM failed'
+              : outResp.resultMsg,
+        ),
       );
     }
 
@@ -218,9 +263,11 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
       return BranchTransferRraResult(
         attempted: true,
         succeeded: false,
-        message: inResp.resultMsg.isEmpty
-            ? 'Stock IN to EBM failed'
-            : inResp.resultMsg,
+        message: userFacingBranchTransferRraFailure(
+          inResp.resultMsg.isEmpty
+              ? 'Stock IN to EBM failed'
+              : inResp.resultMsg,
+        ),
       );
     }
 
@@ -285,10 +332,12 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     }
 
     if (!mastersSucceeded) {
-      return const BranchTransferRraResult(
+      return BranchTransferRraResult(
         attempted: true,
         succeeded: false,
-        message: 'EBM stock master sync incomplete',
+        message: userFacingBranchTransferRraFailure(
+          'EBM stock master sync incomplete',
+        ),
       );
     }
     return const BranchTransferRraResult(attempted: true, succeeded: true);
@@ -297,7 +346,7 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     return BranchTransferRraResult(
       attempted: true,
       succeeded: false,
-      message: e.toString(),
+      message: userFacingBranchTransferRraFailure(e),
     );
   }
 }

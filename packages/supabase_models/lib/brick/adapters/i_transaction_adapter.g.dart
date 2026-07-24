@@ -195,6 +195,22 @@ Future<ITransaction> _$ITransactionFromSupabase(
     agentCommissionAmount: data['agent_commission_amount'] == null
         ? null
         : data['agent_commission_amount'] as num?,
+    reviewedBy: data['reviewed_by'] == null
+        ? null
+        : data['reviewed_by'] as String?,
+    reviewedAt: data['reviewed_at'] == null
+        ? null
+        : data['reviewed_at'] == null
+        ? null
+        : DateTime.tryParse(data['reviewed_at'] as String),
+    handoverBy: data['handover_by'] == null
+        ? null
+        : data['handover_by'] as String?,
+    handoverAt: data['handover_at'] == null
+        ? null
+        : data['handover_at'] == null
+        ? null
+        : DateTime.tryParse(data['handover_at'] as String),
     cashierName: data['cashier_name'] == null
         ? null
         : data['cashier_name'] as String?,
@@ -276,6 +292,10 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'agent_commission_type': instance.agentCommissionType,
     'agent_commission_value': instance.agentCommissionValue,
     'agent_commission_amount': instance.agentCommissionAmount,
+    'reviewed_by': instance.reviewedBy,
+    'reviewed_at': instance.reviewedAt?.toIso8601String(),
+    'handover_by': instance.handoverBy,
+    'handover_at': instance.handoverAt?.toIso8601String(),
     'cashier_name': instance.cashierName,
     'device_id': instance.deviceId,
   };
@@ -509,6 +529,22 @@ Future<ITransaction> _$ITransactionFromSqlite(
     agentCommissionAmount: data['agent_commission_amount'] == null
         ? null
         : data['agent_commission_amount'] as num?,
+    reviewedBy: data['reviewed_by'] == null
+        ? null
+        : data['reviewed_by'] as String?,
+    reviewedAt: data['reviewed_at'] == null
+        ? null
+        : data['reviewed_at'] == null
+        ? null
+        : DateTime.tryParse(data['reviewed_at'] as String),
+    handoverBy: data['handover_by'] == null
+        ? null
+        : data['handover_by'] as String?,
+    handoverAt: data['handover_at'] == null
+        ? null
+        : data['handover_at'] == null
+        ? null
+        : DateTime.tryParse(data['handover_at'] as String),
     cashierName: data['cashier_name'] == null
         ? null
         : data['cashier_name'] as String?,
@@ -606,6 +642,10 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'agent_commission_type': instance.agentCommissionType,
     'agent_commission_value': instance.agentCommissionValue,
     'agent_commission_amount': instance.agentCommissionAmount,
+    'reviewed_by': instance.reviewedBy,
+    'reviewed_at': instance.reviewedAt?.toIso8601String(),
+    'handover_by': instance.handoverBy,
+    'handover_at': instance.handoverAt?.toIso8601String(),
     'cashier_name': instance.cashierName,
     'device_id': instance.deviceId,
   };
@@ -889,6 +929,22 @@ class ITransactionAdapter
     'agentCommissionAmount': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'agent_commission_amount',
+    ),
+    'reviewedBy': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'reviewed_by',
+    ),
+    'reviewedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'reviewed_at',
+    ),
+    'handoverBy': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'handover_by',
+    ),
+    'handoverAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'handover_at',
     ),
     'cashierName': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1324,6 +1380,30 @@ class ITransactionAdapter
       columnName: 'agent_commission_amount',
       iterable: false,
       type: num,
+    ),
+    'reviewedBy': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'reviewed_by',
+      iterable: false,
+      type: String,
+    ),
+    'reviewedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'reviewed_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'handoverBy': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'handover_by',
+      iterable: false,
+      type: String,
+    ),
+    'handoverAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'handover_at',
+      iterable: false,
+      type: DateTime,
     ),
     'cashierName': const RuntimeSqliteColumnDefinition(
       association: false,
