@@ -313,7 +313,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
       // falsely report out-of-stock on transfer/sale while qty still displays.
       final stockId = optionalString(json['stockId'] ?? json['stock_id']);
       final qtyValue = (parseNum(json['qty']) ?? 0.0).toDouble();
-      final branchIdForStock = ProxyService.box.getBranchId() ?? '';
+      // Prefer document branchId; box may be null during user switch / logout.
+      // Match Brick fromGenerator: null → ''.
+      final branchId = optionalString(json['branchId'] ?? json['branch_id']) ??
+          ProxyService.box.getBranchId() ??
+          '';
       Stock? stock;
       if (stockId != null) {
         stock = Stock(
@@ -321,24 +325,24 @@ class Variant extends OfflineFirstWithSupabaseModel {
           lastTouched: DateTime.now().toUtc(),
           rsdQty: qtyValue,
           initialStock: qtyValue,
-          branchId: branchIdForStock,
+          branchId: branchId,
           currentStock: qtyValue,
         );
-      } else if (qtyValue > 0 && branchIdForStock.isNotEmpty) {
+      } else if (qtyValue > 0 && branchId.isNotEmpty) {
         // Display-only placeholder until a real stock row is attached.
         stock = Stock(
           id: '',
           lastTouched: DateTime.now().toUtc(),
           rsdQty: qtyValue,
           initialStock: qtyValue,
-          branchId: branchIdForStock,
+          branchId: branchId,
           currentStock: qtyValue,
         );
       }
 
       return Variant(
         stock: stock,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: branchId,
         stockId: stockId,
         id: parseOrDefault<String>(json['id'], const Uuid().v4()),
         name: parseOrDefault<String>(json['name'], ''),

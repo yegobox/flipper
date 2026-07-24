@@ -646,6 +646,9 @@ mixin AuthMixin implements AuthInterface {
     print('After setting authComplete');
 
     if (stopAfterConfigure) {
+      // POS user switch skips Login Choices / default app setup, but still needs
+      // businessId + branchId on the box for shifts, variants, and Ditto queries.
+      await _persistPinSessionContext(pin);
       unawaited(_completeDittoLoginSetup());
       return user;
     }
@@ -821,6 +824,29 @@ mixin AuthMixin implements AuthInterface {
     final target = pin.businessId?.toString();
     if (target == null || target.isEmpty) return false;
     return business.id == target || business.serverId.toString() == target;
+  }
+
+  /// Writes non-empty pin business/branch ids without clearing existing box values.
+  Future<void> _persistPinSessionContext(Pin pin) async {
+    final businessId = pin.businessId?.trim();
+    if (businessId != null && businessId.isNotEmpty) {
+      talker.debug('stopAfterConfigure: setting businessId to $businessId');
+      await ProxyService.box.writeString(key: 'businessId', value: businessId);
+    } else if (ProxyService.box.getBusinessId() == null) {
+      talker.warning(
+        'stopAfterConfigure: pin has no businessId and box is empty',
+      );
+    }
+
+    final branchId = pin.branchId?.trim();
+    if (branchId != null && branchId.isNotEmpty) {
+      talker.debug('stopAfterConfigure: setting branchId to $branchId');
+      await ProxyService.box.writeString(key: 'branchId', value: branchId);
+    } else if (ProxyService.box.getBranchId() == null) {
+      talker.warning(
+        'stopAfterConfigure: pin has no branchId and box is empty',
+      );
+    }
   }
 
   List<Business> _businessesFromUser(IUser user) {

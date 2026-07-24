@@ -226,7 +226,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // payment time for those rows, only Tickets-list visibility is
         // deferred. Harmless no-op for businesses that never write them.
         final effectiveStatus = status ?? COMPLETE;
-        if (effectiveStatus == COMPLETE) {
+        // Under the deferred-completion model (workflow ON), pendingReview /
+        // awaitingHandover are PAID-but-UNSIGNED (tax + receipt land at handover),
+        // so they must NOT appear in fiscal/completed reports until they reach
+        // COMPLETE. When the workflow is off they never occur; the OR is kept for
+        // any legacy rows signed at payment time.
+        final deferReviewRows =
+            ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+        if (effectiveStatus == COMPLETE && !deferReviewRows) {
           whereClauses.add(
             '(status = :status OR status = :pendingReviewStatus OR status = :awaitingHandoverStatus)',
           );
@@ -692,7 +699,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     return ITransaction(
-      agentId: (data['agentId'] as String?) ?? ProxyService.box.getUserId()!,
+      agentId: data['agentId']?.toString() ?? ProxyService.box.getUserId()!,
       attributedAgentUserId: data['attributedAgentUserId'] as String?,
       agentCommissionType: data['agentCommissionType'] as String?,
       agentCommissionValue: parseDouble(data['agentCommissionValue']),
@@ -881,7 +888,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           // workflow's two intermediate statuses (see the analogous branch in
           // [transactions] above for the full rationale).
           final effectiveStatus = status ?? COMPLETE;
-          if (effectiveStatus == COMPLETE) {
+          // See the analogous branch in [transactions]: under deferred completion
+          // (workflow ON) pendingReview/awaitingHandover are paid-but-unsigned and
+          // must stay out of fiscal/completed reports until they reach COMPLETE.
+          final deferReviewRows =
+              ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
+                  false;
+          if (effectiveStatus == COMPLETE && !deferReviewRows) {
             whereClauses.add(
               '(status = :status OR status = :pendingReviewStatus OR status = :awaitingHandoverStatus)',
             );
@@ -2384,6 +2397,23 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final branchId = transaction.branchId ?? ProxyService.box.getBranchId()!;
     final nowIso = DateTime.now().toUtc().toIso8601String();
 
+    // Ensure peers subscribed to this branch can pull the PARKED update.
+    // Pending-cart sync alone is deviceId+PENDING and does not match parks.
+    try {
+      final preparedBranch = prepareDqlSyncSubscription(
+        'SELECT * FROM transactions WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedBranch.dql,
+        arguments: preparedBranch.arguments,
+      );
+    } catch (e, st) {
+      talker.warning(
+        'parkSaleTicketFast: branch-wide sync subscription failed: $e\n$st',
+      );
+    }
+
     if (customerId != null && customerId.isNotEmpty) {
       final otherId = await _otherParkedTicketIdForCustomer(
         customerId: customerId,
@@ -3087,6 +3117,29 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             preparedPending.dql,
             arguments: preparedPending.arguments,
           );
+
+          // Device-scoped PENDING sync alone never pulls PARKED tickets minted
+          // on another machine (different deviceId + status). Register the
+          // branch-wide transactions subscription while POS is open so peer
+          // parks replicate into this store and ticketsStream can see them.
+          final preparedBranch = prepareDqlSyncSubscription(
+            'SELECT * FROM transactions WHERE branchId = :branchId',
+            {'branchId': branchId},
+          );
+          try {
+            activeDitto.sync.registerSubscription(
+              preparedBranch.dql,
+              arguments: preparedBranch.arguments,
+            );
+            talker.debug(
+              'pendingTransaction: registered branch-wide transactions sync '
+              '(branch=$branchId) for cross-device parked/open tickets',
+            );
+          } catch (e, st) {
+            talker.warning(
+              'pendingTransaction: branch-wide transactions sync failed: $e\n$st',
+            );
+          }
 
           /// When the active cart row is completed (or otherwise leaves this
           /// query), Ditto delivers an empty [queryResult]. Ensure a new pending

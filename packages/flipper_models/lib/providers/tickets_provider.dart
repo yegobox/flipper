@@ -1,6 +1,7 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -23,8 +24,8 @@ List<ITransaction> _sortOpenTickets(List<ITransaction> tickets) {
       PARKED: 2,
       IN_PROGRESS: 1,
     };
-    final aPrio = priority[a.status] ?? 0;
-    final bPrio = priority[b.status] ?? 0;
+    final aPrio = priority[(a.status ?? '').toLowerCase()] ?? 0;
+    final bPrio = priority[(b.status ?? '').toLowerCase()] ?? 0;
     if (aPrio != bPrio) return bPrio.compareTo(aPrio);
 
     final aDate = a.createdAt ?? DateTime(1970);
@@ -41,7 +42,21 @@ List<ITransaction> _filterTicketsForRole(
   required String? agentId,
 }) {
   if (canViewAll || agentId == null || agentId.isEmpty) return tickets;
-  return tickets.where((t) => t.agentId == agentId).toList();
+  return tickets.where((t) => (t.agentId ?? '') == agentId).toList();
+}
+
+/// Wait until session box has a branch (startup / login race), matching
+/// [pendingTransactionStream].
+Future<String?> _waitForBranchId() async {
+  String? branchId = ProxyService.box.getBranchId();
+  const maxAttempts = 50;
+  var attempt = 0;
+  while ((branchId == null || branchId.isEmpty) && attempt < maxAttempts) {
+    await Future.delayed(const Duration(milliseconds: 100));
+    branchId = ProxyService.box.getBranchId();
+    attempt++;
+  }
+  return branchId;
 }
 
 /// Batch payment sums for all visible tickets (one query per stream update).
@@ -79,12 +94,24 @@ Future<Map<String, double>> _paymentSumsForTickets(
 /// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
 /// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
 /// Staff vs till filtering happens in [visibleTicketsProvider].
+///
+/// Watches [activeBranchProvider] and waits for [branchId] so the Ditto sync
+/// subscription is never registered with a null branch (which would miss
+/// cross-device parked tickets for the whole session).
 @riverpod
-Stream<List<ITransaction>> ticketsStream(Ref ref) {
-  final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
-  final branchId = ProxyService.box.getBranchId();
+Stream<List<ITransaction>> ticketsStream(Ref ref) async* {
+  // Re-subscribe when the active branch changes (startup / branch switch).
+  ref.watch(activeBranchProvider);
 
-  return capellaStrategy
+  final branchId = await _waitForBranchId();
+  if (branchId == null || branchId.isEmpty) {
+    talker.error('ticketsStream: no branchId after wait');
+    yield const <ITransaction>[];
+    return;
+  }
+
+  final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
+  yield* capellaStrategy
       .openPosTicketsTransactionsStream(
         branchId: branchId,
         removeAdjustmentTransactions: true,
@@ -104,6 +131,8 @@ Stream<List<ITransaction>> ticketsStream(Ref ref) {
 final visibleTicketsProvider = Provider<AsyncValue<List<ITransaction>>>((ref) {
   final asyncTickets = ref.watch(ticketsStreamProvider);
   final canCollect = ref.watch(canCollectPosPaymentProvider);
+  // canCollectPosPaymentProvider rebuilds on access/tenant changes and re-reads
+  // the box user id; keep agent filter in lockstep with that decision.
   final agentId = ProxyService.box.getUserId();
 
   // Till roles see the full branch queue; so do reviewers (TicketReview access)
@@ -141,11 +170,18 @@ final pendingTillTicketsCountProvider = Provider<int>((ref) {
 /// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
 /// these tickets do not appear in the normal Tickets list.
 @riverpod
-Stream<List<ITransaction>> reviewQueueStream(Ref ref) {
-  final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
-  final branchId = ProxyService.box.getBranchId();
+Stream<List<ITransaction>> reviewQueueStream(Ref ref) async* {
+  ref.watch(activeBranchProvider);
 
-  return capellaStrategy
+  final branchId = await _waitForBranchId();
+  if (branchId == null || branchId.isEmpty) {
+    talker.error('reviewQueueStream: no branchId after wait');
+    yield const <ITransaction>[];
+    return;
+  }
+
+  final capellaStrategy = ProxyService.getStrategy(Strategy.capella);
+  yield* capellaStrategy
       .reviewQueueTransactionsStream(
         branchId: branchId,
         removeAdjustmentTransactions: true,

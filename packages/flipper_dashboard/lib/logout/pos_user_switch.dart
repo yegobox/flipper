@@ -10,6 +10,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
@@ -38,6 +39,9 @@ void _refreshPosStateAfterUserSwitch(WidgetRef ref) {
   ref.invalidate(currentOpenShiftProvider);
   ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
   ref.invalidate(optimisticCartProvider);
+  // Re-bind open-ticket observers to the new agent / branch sync context.
+  ref.invalidate(ticketsStreamProvider);
+  ref.invalidate(reviewQueueStreamProvider);
   ref.read(searchStringProvider.notifier).emitString(value: 'search');
   ref.read(searchStringProvider.notifier).emitString(value: '');
 }
@@ -54,7 +58,13 @@ Pin _pinFromRecord({
   required Tenant tenant,
   required String enteredPin,
   required IPin? pinRecord,
+  required String? preservedBusinessId,
+  required String? preservedBranchId,
 }) {
+  final fallbackBusinessId =
+      tenant.businessId ?? preservedBusinessId ?? ProxyService.box.getBusinessId();
+  final fallbackBranchId =
+      preservedBranchId ?? ProxyService.box.getBranchId();
   final parsed = int.tryParse(enteredPin) ?? tenant.pin ?? 0;
   if (pinRecord != null) {
     return Pin(
@@ -62,10 +72,10 @@ Pin _pinFromRecord({
       pin: pinRecord.pin,
       businessId: pinRecord.businessId.isNotEmpty
           ? pinRecord.businessId
-          : (tenant.businessId ?? ProxyService.box.getBusinessId()),
+          : fallbackBusinessId,
       branchId: pinRecord.branchId.isNotEmpty
           ? pinRecord.branchId
-          : ProxyService.box.getBranchId(),
+          : fallbackBranchId,
       ownerName: (pinRecord.ownerName?.isNotEmpty == true)
           ? pinRecord.ownerName
           : (tenant.name ?? ''),
@@ -78,8 +88,8 @@ Pin _pinFromRecord({
   return Pin(
     userId: tenant.userId,
     pin: parsed,
-    businessId: tenant.businessId ?? ProxyService.box.getBusinessId(),
-    branchId: ProxyService.box.getBranchId(),
+    businessId: fallbackBusinessId,
+    branchId: fallbackBranchId,
     ownerName: tenant.name ?? '',
     phoneNumber: tenant.phoneNumber ?? tenant.email ?? '',
   );
@@ -171,6 +181,10 @@ Future<bool> completePosUserSwitchAfterPin({
   }
 
   final outgoingUserId = ProxyService.box.getUserId();
+  // Capture before login — stopAfterConfigure skips default app setup, and
+  // Ditto prefs merge can race; we must not lose branch/business context.
+  final preservedBusinessId = ProxyService.box.getBusinessId();
+  final preservedBranchId = ProxyService.box.getBranchId();
 
   try {
     IPin? pinRecord;
@@ -207,7 +221,19 @@ Future<bool> completePosUserSwitchAfterPin({
       tenant: tenant,
       enteredPin: enteredPin,
       pinRecord: pinRecord,
+      preservedBusinessId: preservedBusinessId,
+      preservedBranchId: preservedBranchId,
     );
+
+    if (pin.businessId == null ||
+        pin.businessId!.isEmpty ||
+        pin.branchId == null ||
+        pin.branchId!.isEmpty) {
+      throw StateError(
+        'Cannot switch user without business/branch context. '
+        'Sign out and sign in again, then retry Switch User.',
+      );
+    }
 
     final userPhone = (pin.phoneNumber != null && pin.phoneNumber!.isNotEmpty)
         ? pin.phoneNumber!
@@ -224,6 +250,16 @@ Future<bool> completePosUserSwitchAfterPin({
           flipperHttpClient: ProxyService.http,
         )
         .timeout(_kSwitchUserLoginTimeout);
+
+    // Belt-and-suspenders: ensure session context survived login merge.
+    await ProxyService.box.writeString(
+      key: 'businessId',
+      value: pin.businessId!,
+    );
+    await ProxyService.box.writeString(
+      key: 'branchId',
+      value: pin.branchId!,
+    );
 
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
 
