@@ -848,7 +848,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               overrideAlreadyPaid: overrideAlreadyPaid,
             );
             transactionWasMarkedCompleted = true;
-            schedulePostSaleStockDeduction();
+            // Ticket Review + Handover workflow: for a fully-paid sale, stock
+            // deduction (local + RRA) is deferred to the Stock Manager's
+            // handover step, alongside tax signing + receipt. Loans/parked and
+            // workflow-off sales deduct now, as before.
+            final reviewWorkflowDefersStock = (ProxyService.box.readBool(
+                      key: 'ticketReviewWorkflowEnabled',
+                    ) ??
+                    false) &&
+                !mark.wasLoan;
+            if (!reviewWorkflowDefersStock) {
+              schedulePostSaleStockDeduction();
+            }
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,

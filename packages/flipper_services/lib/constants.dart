@@ -86,6 +86,7 @@ final features = [
   AppFeature.ShiftHistory,
   AppFeature.TicketReview,
   AppFeature.StockHandover,
+  AppFeature.HideStockQuantity,
 ];
 
 class AppFeature {
@@ -111,6 +112,11 @@ class AppFeature {
   static const String TicketReview = "TicketReview";
   /// Ticket Review + Handover workflow: confirm an item physically left stock.
   static const String StockHandover = "StockHandover";
+
+  /// Opt-in privacy control (grant-to-hide): when a user HAS this grant, stock
+  /// quantities ("N in stock") are hidden from them across the POS/catalog.
+  /// Absence of the grant (the default) shows quantities as before.
+  static const String HideStockQuantity = "Hide Stock Quantity";
 }
 
 class AccessLevel {

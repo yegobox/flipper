@@ -1,5 +1,6 @@
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -30,8 +31,9 @@ final requiresOpenShiftProvider = FutureProvider.autoDispose<bool>((ref) async {
 
 /// Blocks POS Sales until an open shift exists.
 ///
-/// Only applies to Cashiers — shows an intentional full-panel CTA (not a
-/// floating startup dialog).
+/// Only applies to Cashiers who can sell — view-only staff browse without a
+/// shift, and Admins/Owners/Managers are never blocked. Shows an intentional
+/// full-panel CTA (not a floating startup dialog).
 class PosShiftGate extends ConsumerWidget {
   const PosShiftGate({super.key, required this.child});
 
@@ -53,6 +55,10 @@ class PosShiftGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // View-only staff cannot sell, so they browse the catalog without needing
+    // an open shift; the shift gate only applies to users who can transact.
+    if (!ref.watch(canSellProvider)) return child;
+
     final requiresShiftAsync = ref.watch(requiresOpenShiftProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;

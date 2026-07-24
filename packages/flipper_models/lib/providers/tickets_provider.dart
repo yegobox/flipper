@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -36,10 +37,10 @@ List<ITransaction> _sortOpenTickets(List<ITransaction> tickets) {
 
 List<ITransaction> _filterTicketsForRole(
   List<ITransaction> tickets, {
-  required bool canCollect,
+  required bool canViewAll,
   required String? agentId,
 }) {
-  if (canCollect || agentId == null || agentId.isEmpty) return tickets;
+  if (canViewAll || agentId == null || agentId.isEmpty) return tickets;
   return tickets.where((t) => t.agentId == agentId).toList();
 }
 
@@ -105,10 +106,21 @@ final visibleTicketsProvider = Provider<AsyncValue<List<ITransaction>>>((ref) {
   final canCollect = ref.watch(canCollectPosPaymentProvider);
   final agentId = ProxyService.box.getUserId();
 
+  // Till roles see the full branch queue; so do reviewers (TicketReview access)
+  // for oversight — read-only, since collecting still requires canCollect.
+  // Regular staff continue to see only their own tickets.
+  final canViewAll = canCollect ||
+      ref.watch(
+        featureViewAccessProvider(
+          userId: agentId ?? '',
+          featureName: AppFeature.TicketReview,
+        ),
+      );
+
   return asyncTickets.whenData(
     (tickets) => _filterTicketsForRole(
       tickets,
-      canCollect: canCollect,
+      canViewAll: canViewAll,
       agentId: agentId,
     ),
   );

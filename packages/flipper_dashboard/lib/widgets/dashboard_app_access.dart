@@ -27,13 +27,25 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (feature == null) return true;
 
   if (feature == 'Sales' || tile.page == 'POS' || tile.page == 'Inventory') {
-    final canSell = ref.watch(
-      featureAccessProvider(userId: uid, featureName: AppFeature.Sales),
-    );
-    final canAddProduct = ref.watch(
-      featureAccessProvider(userId: uid, featureName: AppFeature.AddProduct),
-    );
-    return canSell || canAddProduct;
+    // Browse the POS/inventory catalog under view (read+) access — selling and
+    // product-management actions inside are gated on their own edit-access
+    // (canSellProvider / admin). Includes Inventory so an Inventory grant
+    // reveals this screen (the tile is otherwise tagged feature: 'Sales').
+    return ref.watch(
+          featureViewAccessProvider(userId: uid, featureName: AppFeature.Sales),
+        ) ||
+        ref.watch(
+          featureViewAccessProvider(
+            userId: uid,
+            featureName: AppFeature.AddProduct,
+          ),
+        ) ||
+        ref.watch(
+          featureViewAccessProvider(
+            userId: uid,
+            featureName: AppFeature.Inventory,
+          ),
+        );
   }
 
   // The Tickets screen also hosts the Review Queue and Record Handover

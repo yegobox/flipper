@@ -7,6 +7,7 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_cart_sync_tap.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -30,6 +31,17 @@ class PosCartAddService {
     bool isComposite = false,
   }) {
     if (variant.id.isEmpty) return;
+
+    // Master read-only gate: without sell access the cart cannot be built, so
+    // the entire tender/park/edit flow downstream is inert. Covers every
+    // add-to-cart entry point (tile tap, "+" button, grid stepper, scanner).
+    if (!ref.read(canSellProvider)) {
+      showErrorNotification(
+        context,
+        'View-only access — you cannot add items to a sale.',
+      );
+      return;
+    }
 
     final isExpense = isOrdering;
     // Cache is warmed when checkout opens; avoid sync work on every grid tap.

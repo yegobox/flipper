@@ -17,6 +17,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -119,6 +120,26 @@ class RowItem extends StatefulHookConsumerWidget {
 class _RowItemState extends ConsumerState<RowItem>
     with Refresh, CoreMiscellaneous, SnackBarMixin {
   final _routerService = locator<RouterService>();
+
+  /// Product management (multi-select → bulk delete, edit/delete) requires an
+  /// admin-level grant — same check the per-tile edit/delete buttons use. This
+  /// gates entering multi-select so view-only/non-admin staff can't reach the
+  /// bulk-delete bar.
+  bool _canManageProducts() => ref.read(
+        featureAccessLevelProvider(
+          accessLevel: UserType.ADMIN,
+          userId: ProxyService.box.getUserId() ?? '',
+        ),
+      );
+
+  /// True when stock quantities should be hidden from this user — an opt-in
+  /// privacy grant (grant-to-hide). Absence of the grant shows quantities.
+  bool _hideStockQuantity(WidgetRef ref) => ref.watch(
+        featureViewAccessProvider(
+          userId: ProxyService.box.getUserId() ?? '',
+          featureName: AppFeature.HideStockQuantity,
+        ),
+      );
 
   String _truncateString(String text, int maxLength) {
     if (text.length <= maxLength) {
@@ -273,7 +294,9 @@ class _RowItemState extends ConsumerState<RowItem>
         currencySymbol: currency,
         priceAmount: price,
         stockVisual: visual,
-        stockLabel: posStockLabel(visual, stockValue),
+        stockLabel: _hideStockQuantity(ref)
+            ? ''
+            : posStockLabel(visual, stockValue),
         inCartQty: inCartQty,
         showSelectionBorder: isMultiSelectActive && isSelected,
         isOutOfStock: isOut,
@@ -294,7 +317,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 itemId: itemId,
               ),
         onLongPress: () {
-          if (itemId != null && !widget.isOrdering) {
+          if (itemId != null && !widget.isOrdering && _canManageProducts()) {
             ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
           }
         },
@@ -421,7 +444,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 itemId: itemId,
               ),
               onLongPress: () {
-                if (itemId != null && !widget.isOrdering) {
+                if (itemId != null && !widget.isOrdering && _canManageProducts()) {
                   ref
                       .read(selectedItemIdsProvider.notifier)
                       .toggleSelection(itemId);
@@ -567,6 +590,7 @@ class _RowItemState extends ConsumerState<RowItem>
         RepaintBoundary(
           child: Consumer(
             builder: (context, ref, child) {
+              if (_hideStockQuantity(ref)) return const SizedBox.shrink();
               final stockValue = _resolveStockValue(ref);
 
               return Text(
@@ -703,6 +727,9 @@ class _RowItemState extends ConsumerState<RowItem>
                     RepaintBoundary(
                       child: Consumer(
                         builder: (context, ref, child) {
+                          if (_hideStockQuantity(ref)) {
+                            return const SizedBox.shrink();
+                          }
                           final stockValue = _resolveStockValue(ref);
 
                           return Text(
@@ -778,7 +805,7 @@ class _RowItemState extends ConsumerState<RowItem>
             }
           : null,
       onLongPress: () {
-        if (itemId != null && !widget.isOrdering) {
+        if (itemId != null && !widget.isOrdering && _canManageProducts()) {
           ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
         }
       },
