@@ -1014,11 +1014,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // visible in the Review Queue. Only the persisted status changes here —
     // `derived.status` is still used above/below for loan/remaining-balance
     // math, which must not be affected by the review gate.
+    final ticketReviewWorkflowEnabledForMark =
+        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
+            false;
     final persistedStatus = applyTicketReviewWorkflowRedirect(
       derivedStatus: derived.status,
-      ticketReviewWorkflowEnabled:
-          ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
-              false,
+      ticketReviewWorkflowEnabled: ticketReviewWorkflowEnabledForMark,
+    );
+    talker.debug(
+      '[ticket_review_workflow] markTransactionAsCompleted: '
+      'ticketReviewWorkflowEnabled=$ticketReviewWorkflowEnabledForMark '
+      'derivedStatus=${derived.status} persistedStatus=$persistedStatus '
+      'transactionId=${transaction.id}',
     );
 
     final commSw = Stopwatch()..start();
@@ -1400,15 +1407,26 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   );
                 }
 
-                schedulePostSaleStockDeductionAndRraSync(
-                  transactionItems: transactionItems,
-                  allowSellingBelowStock: allowSellingBelowStock,
-                  isProformaOrTraining: isProformaOrTraining,
-                  transactionId: transaction.id,
-                  transaction: transaction,
-                  receiptType: receiptTypeForStock,
-                  sarTyCd: stockIoSarTyCd,
-                );
+                // Ticket Review + Handover workflow: keep parity with the cash
+                // path (`_finalStepInCompletingTransaction` above) — stock
+                // deduction (local + RRA) is deferred to the Stock Manager's
+                // handover step for a fully-paid digital-payment sale too.
+                final reviewWorkflowDefersStock = (ProxyService.box.readBool(
+                          key: 'ticketReviewWorkflowEnabled',
+                        ) ??
+                        false) &&
+                    !mark.wasLoan;
+                if (!reviewWorkflowDefersStock) {
+                  schedulePostSaleStockDeductionAndRraSync(
+                    transactionItems: transactionItems,
+                    allowSellingBelowStock: allowSellingBelowStock,
+                    isProformaOrTraining: isProformaOrTraining,
+                    transactionId: transaction.id,
+                    transaction: transaction,
+                    receiptType: receiptTypeForStock,
+                    sarTyCd: stockIoSarTyCd,
+                  );
+                }
 
                 _isProcessingPayment = false;
                 _paymentTimeout?.cancel(); // Cancel timeout on success

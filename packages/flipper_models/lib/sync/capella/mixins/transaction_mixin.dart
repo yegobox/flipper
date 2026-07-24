@@ -584,6 +584,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final query =
           'SELECT * FROM transactions WHERE ${whereClauses.join(' AND ')} ORDER BY createdAt DESC';
 
+      talker.debug(
+        '[ticket_review_workflow] reviewQueueTransactionsStream: '
+        'branchId=$branchId query="$query" arguments=$arguments',
+      );
+
       dynamic observer;
       var cancelled = false;
       var listenStarted = false;
@@ -598,6 +603,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             talker.error('Error converting review-queue transaction: $e');
           }
         }
+        talker.debug(
+          '[ticket_review_workflow] reviewQueueTransactionsStream: '
+          'raw_docs=${queryResult.items.length} converted=${transactions.length} '
+          'ids=${transactions.map((t) => t.id).toList()}',
+        );
         return transactions;
       }
 
