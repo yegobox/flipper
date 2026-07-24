@@ -26,10 +26,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:printing/printing.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
+import '../utils/order_form_pdf.dart';
 // import 'ticket_tile.dart';
 
 const Color _kLoanPurple = Color(0xFF6B4EA2);
@@ -658,11 +661,16 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       canManage: canCollect,
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
+                      isPrintingOrderForm:
+                          _printingOrderFormTicketIds.contains(ticket.id),
                       onTap: () => _handleTicketTap(context, ticket),
                       onCollect: () =>
                           unawaited(_collectTillTicket(context, ticket)),
                       onRecordHandover: () =>
                           unawaited(_recordHandover(context, ticket)),
+                      onPrintOrderForm: () => unawaited(
+                        _printReviewedTicketOrderForm(context, ticket),
+                      ),
                       onDelete: () => _deleteTicket(ticket),
                       onSelectionChanged: (selected) {
                         ref
@@ -844,6 +852,62 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
       }
       return false;
+    }
+  }
+
+  /// Tickets currently printing their post-review Order Form, so the
+  /// stepper's "Print Order Form" node can show a spinner and block re-taps.
+  final Set<String> _printingOrderFormTicketIds = {};
+
+  /// Ticket Review + Handover workflow: prints an Order Form (item names +
+  /// quantities only) once a ticket is reviewed, so stock staff can pick and
+  /// hand over the physical goods. This is NOT a receipt — it never touches
+  /// [TaxController], EBM/RRA, counters, or ticket status. The real fiscal
+  /// receipt is generated later, at handover ([finalizeTicketHandover]).
+  Future<void> _printReviewedTicketOrderForm(
+    BuildContext context,
+    ITransaction ticket,
+  ) async {
+    if (_printingOrderFormTicketIds.contains(ticket.id)) return;
+    setState(() => _printingOrderFormTicketIds.add(ticket.id));
+    try {
+      final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
+      final items = await ProxyService.getStrategy(Strategy.capella)
+          .transactionItems(
+        transactionId: ticket.id,
+        branchId: branchId,
+        active: true,
+      );
+      final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
+      if (!context.mounted) return;
+      if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
+        // Desktop: present via the same branded printer picker used for
+        // normal sale receipts (CoreViewModel.printing).
+        await CoreViewModel().printing(
+          bytes,
+          context,
+          transaction: ticket,
+          transactionItems: items,
+        );
+      } else {
+        await Printing.sharePdf(
+          bytes: bytes,
+          filename: 'order-form-${_ticketDisplayRef(ticket)}.pdf',
+        );
+      }
+    } catch (e, st) {
+      talker.error('Print reviewed-ticket order form failed: $e', st);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Failed to print order form',
+          backgroundColor: Colors.red,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _printingOrderFormTicketIds.remove(ticket.id));
+      }
     }
   }
 
@@ -1350,6 +1414,18 @@ class TicketCard extends StatelessWidget {
   final bool showMarkReviewed;
   final VoidCallback? onMarkReviewed;
 
+  /// Ticket Review + Handover workflow: tapping the "Print Order Form" step
+  /// of the Reviewed stepper prints an Order Form (item names + quantities,
+  /// not a receipt) so stock can be released. Only rendered while
+  /// `ticket.status == AWAITING_HANDOVER`; shown to any viewer (not gated on
+  /// Stock Handover access) since it does not finalize or record the
+  /// handover.
+  final VoidCallback? onPrintOrderForm;
+
+  /// Shows a spinner on the "Print Order Form" step while a print is in
+  /// flight.
+  final bool isPrintingOrderForm;
+
   /// When false, hides the selection checkbox and delete button so users
   /// without ticket-management rights (e.g. review-only or handover-only
   /// staff) get a read-only ticket row. Gate this on
@@ -1372,6 +1448,8 @@ class TicketCard extends StatelessWidget {
     this.onRecordHandover,
     this.showMarkReviewed = false,
     this.onMarkReviewed,
+    this.onPrintOrderForm,
+    this.isPrintingOrderForm = false,
     this.canManage = true,
   });
 
@@ -1496,25 +1574,33 @@ class TicketCard extends StatelessWidget {
                               ],
                               const SizedBox(width: 6),
                               Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: statusBg,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    statusLabel,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: statusFg,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
+                                child:
+                                    (ticket.status ?? '') ==
+                                            AWAITING_HANDOVER
+                                        ? _ReviewToOrderFormStepper(
+                                            onPrintOrderForm: onPrintOrderForm,
+                                            isPrinting: isPrintingOrderForm,
+                                          )
+                                        : Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: statusBg,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              statusLabel,
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                color: statusFg,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
                               ),
                             ],
                           ),
@@ -1880,5 +1966,95 @@ class TicketCard extends StatelessWidget {
     final local = date.toLocal();
     return '${local.month.toString().padLeft(2, '0')}/${local.day.toString().padLeft(2, '0')} '
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Ticket Review + Handover workflow: replaces the plain "Reviewed" status
+/// pill with a 2-step progress indicator — "Reviewed" (current, done) →
+/// "Print Order Form" (next, tappable). Printing here produces an Order Form
+/// (item names + quantities, not a receipt) so stock can be released before
+/// the real handover; it does not change ticket status or touch RRA/EBM.
+class _ReviewToOrderFormStepper extends StatelessWidget {
+  const _ReviewToOrderFormStepper({
+    required this.onPrintOrderForm,
+    required this.isPrinting,
+  });
+
+  final VoidCallback? onPrintOrderForm;
+  final bool isPrinting;
+
+  static const Color _accent = Color(0xFF0D9488);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _node(label: 'Reviewed', icon: Icons.check, done: true),
+        Container(
+          width: 14,
+          height: 2,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          color: _accent.withValues(alpha: 0.5),
+        ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: isPrinting ? null : onPrintOrderForm,
+            borderRadius: BorderRadius.circular(20),
+            child: _node(
+              label: 'Print Order Form',
+              icon: Icons.print_outlined,
+              done: false,
+              busy: isPrinting,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _node({
+    required String label,
+    required IconData icon,
+    required bool done,
+    bool busy = false,
+  }) {
+    final fg = done ? Colors.white : _accent;
+    final bg = done ? _accent : Colors.white;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _accent, width: done ? 0 : 1.2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (busy)
+            SizedBox(
+              width: 11,
+              height: 11,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.6,
+                valueColor: AlwaysStoppedAnimation<Color>(fg),
+              ),
+            )
+          else
+            Icon(icon, size: 12, color: fg),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: fg,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 }
