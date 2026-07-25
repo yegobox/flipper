@@ -1465,6 +1465,12 @@ abstract class FlipperAppLocalizations {
   /// **'Pay • {amount}'**
   String payWithAmount(String amount);
 
+  /// Payment button label when the Ticket Review + Handover workflow is enabled and the sale will be fully paid
+  ///
+  /// In en, this message translates to:
+  /// **'Send for Review • {amount}'**
+  String sendForReviewWithAmount(String amount);
+
   /// Validation error when phone number is required because TIN is missing
   ///
   /// In en, this message translates to:

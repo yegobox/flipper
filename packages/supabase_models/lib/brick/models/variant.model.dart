@@ -313,7 +313,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
       // falsely report out-of-stock on transfer/sale while qty still displays.
       final stockId = optionalString(json['stockId'] ?? json['stock_id']);
       final qtyValue = (parseNum(json['qty']) ?? 0.0).toDouble();
-      final branchIdForStock = ProxyService.box.getBranchId() ?? '';
+      // Prefer document branchId — box can be briefly null during PIN user switch.
+      final branchIdForStock = optionalString(
+            json['branchId'] ?? json['branch_id'],
+          ) ??
+          ProxyService.box.getBranchId() ??
+          '';
       Stock? stock;
       if (stockId != null) {
         stock = Stock(
@@ -338,7 +343,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
       return Variant(
         stock: stock,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: branchIdForStock.isNotEmpty
+            ? branchIdForStock
+            : (ProxyService.box.getBranchId() ?? ''),
         stockId: stockId,
         id: parseOrDefault<String>(json['id'], const Uuid().v4()),
         name: parseOrDefault<String>(json['name'], ''),

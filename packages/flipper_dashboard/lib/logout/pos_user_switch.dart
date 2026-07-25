@@ -9,6 +9,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -30,13 +31,19 @@ const String _kExcludeNoneTransactionId = '__pos_switch_user_clear_all__';
 void _invalidateAccessProviders(WidgetRef ref, String? userId) {
   if (userId == null || userId.isEmpty) return;
   ref.invalidate(allAccessesProvider(userId));
+  ref.invalidate(tenantProvider(userId));
+  ref.invalidate(
+    isAdminProvider(userId, featureName: AppFeature.Settings),
+  );
   for (final f in features) {
     ref.invalidate(userAccessesProvider(userId, featureName: f));
+    ref.invalidate(isAdminProvider(userId, featureName: f));
   }
 }
 
 void _refreshPosStateAfterUserSwitch(WidgetRef ref) {
   ref.invalidate(currentOpenShiftProvider);
+  ref.invalidate(activeBranchProvider);
   ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
   ref.invalidate(optimisticCartProvider);
   ref.read(searchStringProvider.notifier).emitString(value: 'search');
@@ -55,18 +62,22 @@ Pin _pinFromRecord({
   required Tenant tenant,
   required String enteredPin,
   required IPin? pinRecord,
+  String? fallbackBranchId,
+  String? fallbackBusinessId,
 }) {
   final parsed = int.tryParse(enteredPin) ?? tenant.pin ?? 0;
+  final boxBranchId = ProxyService.box.getBranchId() ?? fallbackBranchId;
+  final boxBusinessId = ProxyService.box.getBusinessId() ?? fallbackBusinessId;
   if (pinRecord != null) {
     return Pin(
       userId: pinRecord.userId.isNotEmpty ? pinRecord.userId : tenant.userId,
       pin: pinRecord.pin,
       businessId: pinRecord.businessId.isNotEmpty
           ? pinRecord.businessId
-          : (tenant.businessId ?? ProxyService.box.getBusinessId()),
+          : (tenant.businessId ?? boxBusinessId),
       branchId: pinRecord.branchId.isNotEmpty
           ? pinRecord.branchId
-          : ProxyService.box.getBranchId(),
+          : boxBranchId,
       ownerName: (pinRecord.ownerName?.isNotEmpty == true)
           ? pinRecord.ownerName
           : (tenant.name ?? ''),
@@ -79,8 +90,8 @@ Pin _pinFromRecord({
   return Pin(
     userId: tenant.userId,
     pin: parsed,
-    businessId: tenant.businessId ?? ProxyService.box.getBusinessId(),
-    branchId: ProxyService.box.getBranchId(),
+    businessId: tenant.businessId ?? boxBusinessId,
+    branchId: boxBranchId,
     ownerName: tenant.name ?? '',
     phoneNumber: tenant.phoneNumber ?? tenant.email ?? '',
   );
@@ -172,6 +183,10 @@ Future<bool> completePosUserSwitchAfterPin({
   }
 
   final outgoingUserId = ProxyService.box.getUserId();
+  // Capture till context before login — Ditto re-init for the incoming user
+  // can briefly clear prefs; we restore after [stopAfterConfigure] login.
+  final preservedBranchId = ProxyService.box.getBranchId();
+  final preservedBusinessId = ProxyService.box.getBusinessId();
 
   try {
     IPin? pinRecord;
@@ -208,6 +223,8 @@ Future<bool> completePosUserSwitchAfterPin({
       tenant: tenant,
       enteredPin: enteredPin,
       pinRecord: pinRecord,
+      fallbackBranchId: preservedBranchId,
+      fallbackBusinessId: preservedBusinessId,
     );
 
     final userPhone = (pin.phoneNumber != null && pin.phoneNumber!.isNotEmpty)
@@ -227,6 +244,21 @@ Future<bool> completePosUserSwitchAfterPin({
         .timeout(_kSwitchUserLoginTimeout);
 
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
+
+    // Re-assert till context after login (belt-and-suspenders with auth mixin).
+    final branchId = (pin.branchId != null && pin.branchId!.isNotEmpty)
+        ? pin.branchId!
+        : preservedBranchId;
+    final businessId = (pin.businessId != null && pin.businessId!.isNotEmpty)
+        ? pin.businessId!
+        : preservedBusinessId;
+    if (businessId != null && businessId.isNotEmpty) {
+      await ProxyService.box.writeString(key: 'businessId', value: businessId);
+    }
+    if (branchId != null && branchId.isNotEmpty) {
+      await ProxyService.box.writeString(key: 'branchId', value: branchId);
+      await ProxyService.box.writeString(key: 'branchIdString', value: branchId);
+    }
 
     final displayName = tenant.name?.trim();
     if (displayName != null && displayName.isNotEmpty) {

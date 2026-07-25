@@ -865,8 +865,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 context,
                 mark.wasLoan
                     ? "Payment recorded. Transaction parked as loan."
+                    : mark.isPendingReview
+                    ? "Sent for review"
                     : "Payment Successful",
-                backgroundColor: mark.wasLoan ? Colors.orange : Colors.green,
+                backgroundColor: mark.wasLoan
+                    ? Colors.orange
+                    : mark.isPendingReview
+                    ? Colors.blue
+                    : Colors.green,
                 showCloseButton: true,
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
@@ -966,7 +972,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   /// [overrideAlreadyPaid] is the sum of non-credit payments already persisted
   /// for this transaction (prior installments on a resumed loan/layaway). Pass 0
   /// (the default) for a fresh sale.
-  Future<({bool wasLoan, List<PaymentLineForSaleCompletion>? deferredPayments})>
+  Future<
+    ({
+      bool wasLoan,
+      bool isPendingReview,
+      List<PaymentLineForSaleCompletion>? deferredPayments,
+    })
+  >
   markTransactionAsCompleted({
     required ITransaction transaction,
     required double finalSubTotal,
@@ -1139,6 +1151,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     return (
       wasLoan: derived.shouldBeLoan,
+      isPendingReview: persistedStatus == saleCompletionStatusPendingReview,
       deferredPayments: deferPaymentPersist ? paymentsToPersist : null,
     );
   }

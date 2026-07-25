@@ -646,6 +646,9 @@ mixin AuthMixin implements AuthInterface {
     print('After setting authComplete');
 
     if (stopAfterConfigure) {
+      // POS in-app user switch uses this path and must keep till context.
+      // Ditto re-init for a new user can race prefs; re-assert from the PIN.
+      await _persistSessionContextFromPin(pin);
       unawaited(_completeDittoLoginSetup());
       return user;
     }
@@ -856,6 +859,31 @@ mixin AuthMixin implements AuthInterface {
     final branchId = branches.first['id']?.toString();
     if (branchId != null && branchId.isNotEmpty) {
       ProxyService.box.writeString(key: 'branchId', value: branchId);
+    }
+  }
+
+  /// Writes business/branch from [pin], falling back to whatever is already in
+  /// the box. Used by [stopAfterConfigure] (POS PIN user switch) so checkout
+  /// providers do not see a null branch after Ditto re-init for the new user.
+  Future<void> _persistSessionContextFromPin(Pin pin) async {
+    final businessId = (pin.businessId != null && pin.businessId!.isNotEmpty)
+        ? pin.businessId!
+        : ProxyService.box.getBusinessId();
+    if (businessId != null && businessId.isNotEmpty) {
+      await ProxyService.box.writeString(key: 'businessId', value: businessId);
+    }
+
+    final branchId = (pin.branchId != null && pin.branchId!.isNotEmpty)
+        ? pin.branchId!
+        : ProxyService.box.getBranchId();
+    if (branchId != null && branchId.isNotEmpty) {
+      await ProxyService.box.writeString(key: 'branchId', value: branchId);
+      await ProxyService.box.writeString(key: 'branchIdString', value: branchId);
+    } else {
+      talker.warning(
+        'stopAfterConfigure login: no branchId on pin or in box — '
+        'pending cart / variants may fail until a branch is selected',
+      );
     }
   }
 
@@ -1309,6 +1337,14 @@ mixin AuthMixin implements AuthInterface {
         'persistedUser=$existingUserId, requested=$userId)',
       );
       _isDittoInitialized = false;
+    }
+
+    // POS PIN user switch re-opens Ditto for a different userId. Reset setup
+    // gates so [_completeDittoLoginSetup] re-attaches the coordinator/prefs
+    // instead of no-oping on the previous session's flags.
+    if (existingUserId != null && existingUserId != userId) {
+      _dittoCoordinatorAttached = false;
+      _dittoLoginSetupComplete = false;
     }
 
     final appID = foundation.kDebugMode
