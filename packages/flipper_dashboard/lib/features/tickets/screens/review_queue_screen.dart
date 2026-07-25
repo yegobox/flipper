@@ -202,7 +202,7 @@ class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
                   ),
                   onDelete: () => showCustomSnackBarUtil(
                     context,
-                    'This ticket is paid and pending review — it cannot be deleted',
+                    ticketDeleteBlockedByReviewMessage(ticket.status),
                     backgroundColor: Colors.orange,
                   ),
                   onSelectionChanged: (_) {},

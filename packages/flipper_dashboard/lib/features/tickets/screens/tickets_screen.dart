@@ -17,6 +17,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import 'package:flipper_models/helpers/ticket_review_actions.dart';
+
 import '../widgets/tickets_list.dart';
 import 'review_queue_screen.dart';
 
@@ -98,9 +100,14 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
         !kDebugMode &&
         ProxyService.box.enableDebug() != true) {
       if (mounted) {
+        final allReviewBlocked = nonDeletableTickets.every(
+          (t) => isTicketDeleteBlockedByReviewWorkflow(t.status),
+        );
         showCustomSnackBarUtil(
           context,
-          'Selected tickets have partial payments and cannot be deleted',
+          allReviewBlocked
+              ? 'Selected tickets have been reviewed and cannot be deleted'
+              : 'Selected tickets cannot be deleted (partial payments or reviewed)',
           backgroundColor: Colors.orange,
         );
       }

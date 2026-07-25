@@ -20,7 +20,9 @@ import 'package:pdf/pdf.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flipper_models/helpers/desktop_pdf_open.dart';
 import 'package:flipper_models/widgets/printer_picker_dialog.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 // adjust if needed
 
@@ -480,6 +482,10 @@ mixin TransactionMixinOld {
     BuildContext context, {
     ITransaction? transaction,
     List<TransactionItem>? transactionItems,
+    /// When true, always show the branded picker even if a default printer
+    /// is saved or only one printer is available.
+    bool alwaysShowPicker = false,
+    String pdfFilename = 'receipt.pdf',
   }) async {
     if (Platform.isAndroid || Platform.isIOS) {
       print("can't direct pring on ios, android using direct printer.");
@@ -499,7 +505,7 @@ mixin TransactionMixinOld {
       final String? savedPrinterName = ProxyService.box.readString(
         key: 'defaultPrinter',
       );
-      if (savedPrinterName != null) {
+      if (!alwaysShowPicker && savedPrinterName != null) {
         try {
           // Find by name
           selectedPrinter = printers.firstWhere(
@@ -511,7 +517,7 @@ mixin TransactionMixinOld {
         }
       }
 
-      if (selectedPrinter == null) {
+      if (!alwaysShowPicker && selectedPrinter == null) {
         // If only one printer is available, use it by default
         if (printers.length == 1) {
           selectedPrinter = printers.first;
@@ -562,7 +568,11 @@ mixin TransactionMixinOld {
       if (bytes == null) return;
 
       if (saveAsPdf) {
-        await Printing.sharePdf(bytes: bytes, filename: 'receipt.pdf');
+        if (!kIsWeb && UniversalPlatform.isDesktop) {
+          await openPdfBytesOnDesktop(bytes: bytes, filename: pdfFilename);
+        } else {
+          await Printing.sharePdf(bytes: bytes, filename: pdfFilename);
+        }
         return;
       }
 

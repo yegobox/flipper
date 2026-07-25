@@ -12,6 +12,21 @@ import 'package:flipper_services/proxy.dart';
 /// reviewer and a stock manager racing) is a safe no-op rather than an
 /// incorrect double transition.
 
+/// Review-queue and post-review tickets are fully paid and audit-locked — they
+/// must not be deleted from the Tickets list.
+bool isTicketDeleteBlockedByReviewWorkflow(String? status) {
+  final s = status ?? '';
+  return s == PENDING_REVIEW || s == AWAITING_HANDOVER;
+}
+
+/// User-facing reason when [isTicketDeleteBlockedByReviewWorkflow] applies.
+String ticketDeleteBlockedByReviewMessage(String? status) {
+  if ((status ?? '') == AWAITING_HANDOVER) {
+    return 'This ticket has been reviewed and cannot be deleted.';
+  }
+  return 'This ticket is paid and pending review — it cannot be deleted.';
+}
+
 /// Reviewer confirms the declared payment landed in the right channel.
 /// Transitions `pendingReview` -> `awaitingHandover`.
 Future<void> markTicketReviewed({

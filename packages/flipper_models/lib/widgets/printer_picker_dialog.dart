@@ -46,6 +46,7 @@ Future<PrinterPickerResult?> showPrinterPickerDialog({
 }) {
   return showGeneralDialog<PrinterPickerResult>(
     context: context,
+    useRootNavigator: true,
     barrierLabel: 'Choose a printer',
     barrierDismissible: true,
     barrierColor: _PPColors.scrim.withValues(alpha: 0.46),

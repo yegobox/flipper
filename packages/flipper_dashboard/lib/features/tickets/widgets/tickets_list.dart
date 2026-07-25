@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/utils/ticket_handover_finalize.dart';
+import 'package:flipper_dashboard/utils/ticket_workflow_complete_launcher.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -17,6 +18,7 @@ import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
+import 'package:flipper_models/order_form_whatsapp_client.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
@@ -32,7 +34,10 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
+import '../providers/handover_staff_provider.dart';
 import '../utils/order_form_pdf.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'handover_staff_picker_panel.dart';
 // import 'ticket_tile.dart';
 
 const Color _kLoanPurple = Color(0xFF6B4EA2);
@@ -200,6 +205,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (kDebugMode || ProxyService.box.enableDebug() == true) {
       return true;
     }
+    if (isTicketDeleteBlockedByReviewWorkflow(ticket.status)) {
+      return false;
+    }
     final totalPaid = await ProxyService.getStrategy(Strategy.capella)
         .getTotalPaidForTransaction(
           transactionId: ticket.id,
@@ -212,9 +220,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   int _deletedCount = 0;
   int _totalCount = 0;
 
-  /// Id of the ticket whose Collect button is mid-resume, so its card shows a
-  /// spinner and blocks re-taps until the checkout hand-off completes.
+  /// Ticket whose WhatsApp recipient panel is open (list stays visible).
+  ITransaction? _whatsAppPickerTicket;
+
+  static const double _whatsAppPickerPanelWidth = 380;
+
+  /// Id of the ticket whose Collect / Complete button is mid-flow, so its card
+  /// shows a spinner and blocks re-taps until the hand-off completes.
   String? _collectingTicketId;
+
+  bool get _ticketReviewWorkflowEnabled =>
+      ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
 
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
@@ -262,7 +278,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (skippedTickets.isNotEmpty && mounted) {
         showCustomSnackBarUtil(
           context,
-          'Skipped ${skippedTickets.length} ticket(s) with partial payments',
+          'Skipped ${skippedTickets.length} ticket(s) that cannot be deleted '
+          '(partial payments or reviewed)',
           backgroundColor: Colors.orange,
         );
       }
@@ -335,36 +352,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 child: filterChips,
               ),
             Expanded(
-              child: Consumer(
-                builder: (context, ref, _) {
-                  final ticketsAsync = ref.watch(visibleTicketsProvider);
-                  final paymentSumsAsync = ref.watch(
-                    ticketsPaymentSumsProvider,
-                  );
-                  final paymentSums = paymentSumsAsync.hasValue
-                      ? paymentSumsAsync.requireValue
-                      : const <String, double>{};
-                  // Prefer prior list while reloading so a park/invalidate does
-                  // not blank the screen; show spinner only on first load.
-                  final tickets = ticketsAsync.value;
-                  if (tickets != null) {
-                    return _buildTicketList(
-                      context,
-                      tickets,
-                      paymentSumsByTxnId: paymentSums,
-                    );
-                  }
-                  return ticketsAsync.when(
-                    data: (data) => _buildTicketList(
-                      context,
-                      data,
-                      paymentSumsByTxnId: paymentSums,
-                    ),
-                    loading: () => _buildLoadingState(context),
-                    error: (error, stack) => _buildErrorState(error.toString()),
-                  );
-                },
-              ),
+              child: _buildTicketsPaneWithWhatsAppPicker(context),
             ),
           ],
         );
@@ -383,6 +371,109 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
       },
     );
+  }
+
+  Widget _buildTicketsPaneWithWhatsAppPicker(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final ticketsAsync = ref.watch(visibleTicketsProvider);
+        final paymentSumsAsync = ref.watch(ticketsPaymentSumsProvider);
+        final paymentSums = paymentSumsAsync.hasValue
+            ? paymentSumsAsync.requireValue
+            : const <String, double>{};
+
+        Widget ticketPane;
+        final tickets = ticketsAsync.value;
+        if (tickets != null) {
+          ticketPane = _buildTicketList(
+            context,
+            tickets,
+            paymentSumsByTxnId: paymentSums,
+          );
+        } else {
+          ticketPane = ticketsAsync.when(
+            data: (data) => _buildTicketList(
+              context,
+              data,
+              paymentSumsByTxnId: paymentSums,
+            ),
+            loading: () => _buildLoadingState(context),
+            error: (error, stack) => _buildErrorState(error.toString()),
+          );
+        }
+
+        final pickerTicket = _whatsAppPickerTicket;
+        if (pickerTicket == null) return ticketPane;
+
+        final panel = DecoratedBox(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(left: BorderSide(color: Color(0xFFE5E7EB))),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x14000000),
+                offset: Offset(-4, 0),
+                blurRadius: 16,
+              ),
+            ],
+          ),
+          child: HandoverStaffPickerPanel(
+            key: ValueKey('wa-picker-${pickerTicket.id}'),
+            ticket: pickerTicket,
+            isSending: _sendingOrderFormWhatsAppTicketIds.contains(
+              pickerTicket.id,
+            ),
+            onClose: _closeWhatsAppPicker,
+            onStaffSelected: (member) => unawaited(
+              _sendOrderFormWhatsAppTo(member, pickerTicket),
+            ),
+          ),
+        );
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final useOverlay = width <
+                PosLayoutBreakpoints.mobileLayoutMaxWidth + _whatsAppPickerPanelWidth;
+
+            if (useOverlay) {
+              final panelWidth = (width * 0.88).clamp(280.0, _whatsAppPickerPanelWidth);
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ticketPane,
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    width: panelWidth,
+                    child: panel,
+                  ),
+                ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: ticketPane),
+                SizedBox(width: _whatsAppPickerPanelWidth, child: panel),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openWhatsAppPicker(ITransaction ticket) {
+    if (_sendingOrderFormWhatsAppTicketIds.contains(ticket.id)) return;
+    setState(() => _whatsAppPickerTicket = ticket);
+  }
+
+  void _closeWhatsAppPicker() {
+    if (_whatsAppPickerTicket == null) return;
+    setState(() => _whatsAppPickerTicket = null);
   }
 
   Widget _buildLoadingState(BuildContext context) {
@@ -650,27 +741,44 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         featureName: AppFeature.StockHandover,
                       ),
                     );
+                    final reviewWorkflowOn = _ticketReviewWorkflowEnabled;
+                    final isParked =
+                        (ticket.status ?? '').toLowerCase() == PARKED;
+                    final isAwaitingHandover =
+                        (ticket.status ?? '') == AWAITING_HANDOVER;
+                    final isWhatsAppPickerActive =
+                        _whatsAppPickerTicket?.id == ticket.id;
                     return TicketCard(
                       key: ValueKey(ticket.id),
                       ticket: ticket,
                       isSelected: isSelected,
+                      isWhatsAppPickerActive: isWhatsAppPickerActive,
                       paidAmount: paymentSumsByTxnId[ticket.id] ?? 0.0,
-                      showCollect: canCollect &&
-                          (ticket.status ?? '').toLowerCase() == PARKED,
-                      showResume: canCollect,
+                      showCollect: canCollect && isParked,
+                      showComplete: reviewWorkflowOn &&
+                          canCollect &&
+                          !isParked &&
+                          !(isAwaitingHandover && canRecordHandover),
+                      showResume: !reviewWorkflowOn && canCollect,
                       canManage: canCollect,
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
                       isPrintingOrderForm:
                           _printingOrderFormTicketIds.contains(ticket.id),
+                      isSendingOrderFormWhatsApp:
+                          _sendingOrderFormWhatsAppTicketIds.contains(ticket.id),
+                      orderFormWhatsAppSent:
+                          _sentOrderFormWhatsAppTicketIds.contains(ticket.id),
                       onTap: () => _handleTicketTap(context, ticket),
                       onCollect: () =>
                           unawaited(_collectTillTicket(context, ticket)),
+                      onComplete: () =>
+                          unawaited(_completeTicket(context, ticket)),
                       onRecordHandover: () =>
                           unawaited(_recordHandover(context, ticket)),
-                      onPrintOrderForm: () => unawaited(
-                        _printReviewedTicketOrderForm(context, ticket),
-                      ),
+                      onPrintOrderForm: () =>
+                          unawaited(_printReviewedTicketOrderForm(ticket)),
+                      onSendOrderFormWhatsApp: () => _openWhatsAppPicker(ticket),
                       onDelete: () => _deleteTicket(ticket),
                       onSelectionChanged: (selected) {
                         ref
@@ -686,6 +794,31 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ],
     );
+  }
+
+  /// Ticket Review + Handover workflow: complete a ticket from the list —
+  /// reviewed tickets finalize handover; others run the same Pay path as
+  /// [QuickSellingView] (send for review when fully paid).
+  Future<void> _completeTicket(
+    BuildContext context,
+    ITransaction ticket,
+  ) async {
+    if (_collectingTicketId != null) return;
+    if (!_ticketReviewWorkflowEnabled) {
+      await _handleTicketTap(context, ticket);
+      return;
+    }
+
+    setState(() => _collectingTicketId = ticket.id);
+    try {
+      if ((ticket.status ?? '') == AWAITING_HANDOVER) {
+        await _recordHandover(context, ticket);
+        return;
+      }
+      await runTicketWorkflowCompleteFromList(context, ref, ticket);
+    } finally {
+      if (mounted) setState(() => _collectingTicketId = null);
+    }
   }
 
   /// Resume a parked ticket into settling mode for till payment collection.
@@ -859,15 +992,18 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   /// stepper's "Print Order Form" node can show a spinner and block re-taps.
   final Set<String> _printingOrderFormTicketIds = {};
 
+  /// Tickets currently sending the order form PDF via WhatsApp.
+  final Set<String> _sendingOrderFormWhatsAppTicketIds = {};
+
+  /// Tickets whose order form was successfully sent on WhatsApp this session.
+  final Set<String> _sentOrderFormWhatsAppTicketIds = {};
+
   /// Ticket Review + Handover workflow: prints an Order Form (item names +
   /// quantities only) once a ticket is reviewed, so stock staff can pick and
   /// hand over the physical goods. This is NOT a receipt — it never touches
   /// [TaxController], EBM/RRA, counters, or ticket status. The real fiscal
   /// receipt is generated later, at handover ([finalizeTicketHandover]).
-  Future<void> _printReviewedTicketOrderForm(
-    BuildContext context,
-    ITransaction ticket,
-  ) async {
+  Future<void> _printReviewedTicketOrderForm(ITransaction ticket) async {
     if (_printingOrderFormTicketIds.contains(ticket.id)) return;
     setState(() => _printingOrderFormTicketIds.add(ticket.id));
     try {
@@ -879,15 +1015,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         active: true,
       );
       final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
-      if (!context.mounted) return;
+      if (!mounted) return;
       if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
-        // Desktop: present via the same branded printer picker used for
-        // normal sale receipts (CoreViewModel.printing).
+        // Desktop: branded printer picker (always show — do not auto-skip to
+        // saved default). Use this State's context, not the list item builder.
         await CoreViewModel().printing(
           bytes,
           context,
           transaction: ticket,
           transactionItems: items,
+          alwaysShowPicker: true,
+          pdfFilename: 'order-form-${_ticketDisplayRef(ticket)}.pdf',
         );
       } else {
         await Printing.sharePdf(
@@ -911,6 +1049,75 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  /// Sends the order form PDF to the chosen staff member via WhatsApp.
+  Future<void> _sendOrderFormWhatsAppTo(
+    HandoverStaffMember recipient,
+    ITransaction ticket,
+  ) async {
+    if (_sendingOrderFormWhatsAppTicketIds.contains(ticket.id)) return;
+
+    setState(() => _sendingOrderFormWhatsAppTicketIds.add(ticket.id));
+    try {
+      final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
+      final items = await ProxyService.getStrategy(Strategy.capella)
+          .transactionItems(
+        transactionId: ticket.id,
+        branchId: branchId,
+        active: true,
+      );
+      final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
+      final refLabel = _ticketDisplayRef(ticket);
+      final customer =
+          (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+      final caption =
+          'Order form · Ticket #$refLabel · ${customer.isEmpty ? 'Walk-in' : customer}';
+
+      final dataConnectorUrl = await resolveOrderFormDataConnectorUrl();
+      final client = await createOrderFormWhatsAppClient(
+        dataConnectorUrl: dataConnectorUrl,
+      );
+      await client.sendDocument(
+        phone: recipient.phoneNumber,
+        pdfBytes: bytes,
+        filename: 'order-form-$refLabel.pdf',
+        caption: caption,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _sentOrderFormWhatsAppTicketIds.add(ticket.id);
+        _whatsAppPickerTicket = null;
+      });
+      showCustomSnackBarUtil(
+        context,
+        'Order form sent to ${recipient.displayName} on WhatsApp',
+        backgroundColor: const Color(0xFF16A34A),
+      );
+    } on OrderFormWhatsAppException catch (e) {
+      talker.error('Order form WhatsApp send failed: $e');
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          e.message,
+          backgroundColor: Colors.red,
+        );
+      }
+    } catch (e, st) {
+      talker.error('Order form WhatsApp send failed: $e', st);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Failed to send order form on WhatsApp',
+          backgroundColor: Colors.red,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sendingOrderFormWhatsAppTicketIds.remove(ticket.id));
+      }
+    }
+  }
+
   /// Ticket Review + Handover workflow: stock manager confirms the item
   /// physically left stock. Pure status/audit stamp — no stock mutation.
   Future<void> _recordHandover(BuildContext context, ITransaction ticket) async {
@@ -918,23 +1125,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         await showDialog<bool>(
           context: context,
           barrierColor: PosTokens.ink1.withValues(alpha: 0.58),
-          builder: (ctx) => AlertDialog(
-            title: const Text('Record handover'),
-            content: Text(
-              'Confirm that the item for Ticket #${ticket.reference ?? ticket.ticketName ?? ticket.id} '
-              'has physically left stock.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('Confirm handover'),
-              ),
-            ],
-          ),
+          builder: (ctx) => _RecordHandoverDialog(ticket: ticket),
         ) ??
         false;
     if (!confirmed || !mounted) return;
@@ -979,10 +1170,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   /// Delete a ticket with confirmation and loading
   Future<void> _deleteTicket(ITransaction ticket) async {
     if (!(await canDeleteTicket(ticket))) {
+      final reviewBlocked =
+          isTicketDeleteBlockedByReviewWorkflow(ticket.status);
       await _dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Error',
-        description: 'This ticket has partial payments and cannot be deleted.',
+        description: reviewBlocked
+            ? ticketDeleteBlockedByReviewMessage(ticket.status)
+            : 'This ticket has partial payments and cannot be deleted.',
         data: {'status': InfoDialogStatus.error},
       );
       return;
@@ -1111,6 +1306,223 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             child: const Text('Try Again'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RecordHandoverDialog extends StatelessWidget {
+  const _RecordHandoverDialog({required this.ticket});
+
+  final ITransaction ticket;
+
+  static const Color _handoverTeal = Color(0xFF0D9488);
+  static const Color _handoverTint = Color(0xFFE0F2F1);
+  static const Color _handoverInk = Color(0xFF115E59);
+
+  @override
+  Widget build(BuildContext context) {
+    final displayRef = _ticketDisplayRef(ticket);
+    final customer = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
+        .trim();
+    final total = (ticket.subTotal ?? 0).toCurrencyFormatted();
+    final media = MediaQuery.sizeOf(context);
+    final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
+    final reviewWorkflowOn =
+        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: PosTokens.line),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33103240),
+                offset: Offset(0, 24),
+                blurRadius: 48,
+                spreadRadius: -18,
+              ),
+              BoxShadow(
+                color: Color(0x14103240),
+                offset: Offset(0, 8),
+                blurRadius: 18,
+                spreadRadius: -8,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: _handoverTint,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.inventory_2_outlined,
+                        color: _handoverTeal,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Complete handover?',
+                            style: GoogleFonts.outfit(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                              color: PosTokens.ink1,
+                              height: 1.12,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            reviewWorkflowOn
+                                ? 'Issue the receipt and mark this ticket as completed.'
+                                : 'Confirm the item has physically left stock.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              height: 1.35,
+                              color: PosTokens.ink2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: PosTokens.surface2,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: PosTokens.line),
+                  ),
+                  child: Column(
+                    children: [
+                      _DeleteTicketDetailRow(
+                        label: 'Ticket',
+                        value: '#$displayRef',
+                      ),
+                      const SizedBox(height: 10),
+                      _DeleteTicketDetailRow(
+                        label: 'Customer',
+                        value: customer.isEmpty ? 'Walk-in' : customer,
+                      ),
+                      const SizedBox(height: 10),
+                      _DeleteTicketDetailRow(label: 'Total', value: total),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _handoverTint,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF99F6E4)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 20,
+                        color: _handoverTeal,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          reviewWorkflowOn
+                              ? 'Stock will be deducted and the fiscal receipt will be issued now.'
+                              : 'This records that the goods were handed to the customer.',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _handoverInk,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: PosTokens.ink1,
+                          side: const BorderSide(color: PosTokens.lineStrong),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        icon: const Icon(Icons.check_rounded, size: 19),
+                        label: Text(
+                          'Confirm',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _handoverTeal,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          minimumSize: const Size.fromHeight(50),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1394,12 +1806,17 @@ class _TicketListEntry {
 class TicketCard extends StatelessWidget {
   final ITransaction ticket;
   final bool isSelected;
+  final bool isWhatsAppPickerActive;
   final double paidAmount;
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final ValueChanged<bool> onSelectionChanged;
   final bool showCollect;
   final VoidCallback? onCollect;
+  /// Ticket Review + Handover workflow: replaces [showResume] when on — runs
+  /// QuickSellingView Pay completion or handover finalize from the list.
+  final bool showComplete;
+  final VoidCallback? onComplete;
   final bool showResume;
   final bool isCollecting;
   /// Ticket Review + Handover workflow: shows the "Record handover" action
@@ -1429,6 +1846,16 @@ class TicketCard extends StatelessWidget {
   /// flight.
   final bool isPrintingOrderForm;
 
+  /// Ticket Review + Handover workflow: send the order form PDF to stock
+  /// staff on WhatsApp (third stepper node).
+  final VoidCallback? onSendOrderFormWhatsApp;
+
+  /// Spinner on the WhatsApp step while a send is in flight.
+  final bool isSendingOrderFormWhatsApp;
+
+  /// True after a successful WhatsApp send this session (marks step done).
+  final bool orderFormWhatsAppSent;
+
   /// When false, hides the selection checkbox and delete button so users
   /// without ticket-management rights (e.g. review-only or handover-only
   /// staff) get a read-only ticket row. Gate this on
@@ -1439,12 +1866,15 @@ class TicketCard extends StatelessWidget {
     super.key,
     required this.ticket,
     required this.isSelected,
+    this.isWhatsAppPickerActive = false,
     required this.paidAmount,
     required this.onTap,
     required this.onDelete,
     required this.onSelectionChanged,
     this.showCollect = false,
     this.onCollect,
+    this.showComplete = false,
+    this.onComplete,
     this.showResume = true,
     this.isCollecting = false,
     this.showRecordHandover = false,
@@ -1454,6 +1884,9 @@ class TicketCard extends StatelessWidget {
     this.markReviewedLabel = 'Mark as reviewed',
     this.onPrintOrderForm,
     this.isPrintingOrderForm = false,
+    this.onSendOrderFormWhatsApp,
+    this.isSendingOrderFormWhatsApp = false,
+    this.orderFormWhatsAppSent = false,
     this.canManage = true,
   });
 
@@ -1519,6 +1952,22 @@ class TicketCard extends StatelessWidget {
     final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
     final fullyPaid = total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
     final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
+    final deleteBlockedByReview =
+        isTicketDeleteBlockedByReviewWorkflow(ticket.status);
+
+    const whatsAppPickerGreen = Color(0xFF16A34A);
+    final cardBg = isWhatsAppPickerActive
+        ? const Color(0xFFF0FDF4)
+        : isSelected
+        ? const Color(0xFFE8F1FF)
+        : Colors.white;
+    final cardBorder = isWhatsAppPickerActive
+        ? whatsAppPickerGreen
+        : isSelected
+        ? _kAccentBlue
+        : Colors.grey[300]!;
+    final cardBorderWidth =
+        isWhatsAppPickerActive || isSelected ? 1.5 : 1.0;
 
     return Material(
       color: Colors.transparent,
@@ -1527,11 +1976,11 @@ class TicketCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFE8F1FF) : Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? _kAccentBlue : Colors.grey[300]!,
-              width: isSelected ? 1.5 : 1,
+              color: cardBorder,
+              width: cardBorderWidth,
             ),
           ),
           child: ClipRRect(
@@ -1584,6 +2033,11 @@ class TicketCard extends StatelessWidget {
                                         ? _ReviewToOrderFormStepper(
                                             onPrintOrderForm: onPrintOrderForm,
                                             isPrinting: isPrintingOrderForm,
+                                            onSendWhatsApp:
+                                                onSendOrderFormWhatsApp,
+                                            isSendingWhatsApp:
+                                                isSendingOrderFormWhatsApp,
+                                            whatsAppSent: orderFormWhatsAppSent,
                                           )
                                         : Container(
                                             padding: const EdgeInsets.symmetric(
@@ -1873,6 +2327,62 @@ class TicketCard extends StatelessWidget {
                                         ),
                                 ),
                                 const SizedBox(width: 8),
+                              ] else if (showComplete && onComplete != null) ...[
+                                TextButton(
+                                  onPressed: isCollecting ? null : onComplete,
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: _kRegularGreen,
+                                    foregroundColor: Colors.white,
+                                    disabledBackgroundColor:
+                                        _kRegularGreen.withValues(alpha: 0.7),
+                                    disabledForegroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: isCollecting
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Completing…',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Text(
+                                          'Complete →',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                ),
+                                const SizedBox(width: 8),
                               ] else if (showResume) ...[
                                 _squareIconBtn(
                                   icon: Icons.play_arrow,
@@ -1882,7 +2392,7 @@ class TicketCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                               ],
-                              if (canManage)
+                              if (canManage && !deleteBlockedByReview)
                                 _squareIconBtn(
                                   icon: Icons.delete_outline,
                                   color: Colors.red[700]!,
@@ -1974,20 +2484,27 @@ class TicketCard extends StatelessWidget {
 }
 
 /// Ticket Review + Handover workflow: replaces the plain "Reviewed" status
-/// pill with a 2-step progress indicator — "Reviewed" (current, done) →
-/// "Print Order Form" (next, tappable). Printing here produces an Order Form
+/// pill with a 3-step progress indicator — "Reviewed" (done) →
+/// "Print Order Form" → "WhatsApp". Printing/sending produces an Order Form
 /// (item names + quantities, not a receipt) so stock can be released before
 /// the real handover; it does not change ticket status or touch RRA/EBM.
 class _ReviewToOrderFormStepper extends StatelessWidget {
   const _ReviewToOrderFormStepper({
     required this.onPrintOrderForm,
     required this.isPrinting,
+    required this.onSendWhatsApp,
+    required this.isSendingWhatsApp,
+    required this.whatsAppSent,
   });
 
   final VoidCallback? onPrintOrderForm;
   final bool isPrinting;
+  final VoidCallback? onSendWhatsApp;
+  final bool isSendingWhatsApp;
+  final bool whatsAppSent;
 
   static const Color _accent = Color(0xFF0D9488);
+  static const Color _whatsapp = Color(0xFF16A34A);
 
   @override
   Widget build(BuildContext context) {
@@ -1995,26 +2512,56 @@ class _ReviewToOrderFormStepper extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         _node(label: 'Reviewed', icon: Icons.check, done: true),
-        Container(
-          width: 14,
-          height: 2,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          color: _accent.withValues(alpha: 0.5),
+        _connector(),
+        _actionNode(
+          label: 'Print',
+          icon: Icons.print_outlined,
+          onTap: isPrinting ? null : onPrintOrderForm,
+          busy: isPrinting,
         ),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: isPrinting ? null : onPrintOrderForm,
-            borderRadius: BorderRadius.circular(20),
-            child: _node(
-              label: 'Print Order Form',
-              icon: Icons.print_outlined,
-              done: false,
-              busy: isPrinting,
-            ),
-          ),
+        _connector(),
+        _actionNode(
+          label: whatsAppSent ? 'Sent' : 'WhatsApp',
+          icon: whatsAppSent ? Icons.check : Icons.chat_outlined,
+          onTap: isSendingWhatsApp ? null : onSendWhatsApp,
+          busy: isSendingWhatsApp,
+          done: whatsAppSent,
+          accent: _whatsapp,
         ),
       ],
+    );
+  }
+
+  Widget _connector() {
+    return Container(
+      width: 10,
+      height: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      color: _accent.withValues(alpha: 0.5),
+    );
+  }
+
+  Widget _actionNode({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onTap,
+    bool busy = false,
+    bool done = false,
+    Color accent = _accent,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: _node(
+          label: label,
+          icon: icon,
+          done: done,
+          busy: busy,
+          accent: accent,
+        ),
+      ),
     );
   }
 
@@ -2023,15 +2570,16 @@ class _ReviewToOrderFormStepper extends StatelessWidget {
     required IconData icon,
     required bool done,
     bool busy = false,
+    Color accent = _accent,
   }) {
-    final fg = done ? Colors.white : _accent;
-    final bg = done ? _accent : Colors.white;
+    final fg = done ? Colors.white : accent;
+    final bg = done ? accent : Colors.white;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _accent, width: done ? 0 : 1.2),
+        border: Border.all(color: accent, width: done ? 0 : 1.2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2046,12 +2594,12 @@ class _ReviewToOrderFormStepper extends StatelessWidget {
               ),
             )
           else
-            Icon(icon, size: 12, color: fg),
-          const SizedBox(width: 4),
+            Icon(icon, size: 11, color: fg),
+          const SizedBox(width: 3),
           Text(
             label,
             style: GoogleFonts.outfit(
-              fontSize: 10,
+              fontSize: 9.5,
               fontWeight: FontWeight.w700,
               color: fg,
             ),
