@@ -485,101 +485,104 @@ mixin TransactionMixinOld {
       print("can't direct pring on ios, android using direct printer.");
     } else {
       final printers = await Printing.listPrinters();
-
-      if (printers.isNotEmpty) {
-        Printer? selectedPrinter;
-        bool saveAsPdf = false;
-        int copies = 1;
-
-        // Try to find default printer
-        final String? savedPrinterName = ProxyService.box.readString(
-          key: 'defaultPrinter',
+      if (printers.isEmpty) {
+        talker.info(
+          'No OS printers enumerated; showing picker with Save as PDF only.',
         );
-        if (savedPrinterName != null) {
-          try {
-            // Find by name
-            selectedPrinter = printers.firstWhere(
-              (p) => p.name == savedPrinterName,
-            );
-            talker.info("Using default printer: ${selectedPrinter.name}");
-          } catch (e) {
-            talker.warning("Default printer not found in available printers");
-          }
-        }
+      }
 
-        if (selectedPrinter == null) {
-          // If only one printer is available, use it by default
-          if (printers.length == 1) {
-            selectedPrinter = printers.first;
-            talker.info(
-              "Auto-selecting single available printer: ${selectedPrinter.name}",
-            );
+      Printer? selectedPrinter;
+      bool saveAsPdf = false;
+      int copies = 1;
+
+      // Try to find default printer
+      final String? savedPrinterName = ProxyService.box.readString(
+        key: 'defaultPrinter',
+      );
+      if (savedPrinterName != null) {
+        try {
+          // Find by name
+          selectedPrinter = printers.firstWhere(
+            (p) => p.name == savedPrinterName,
+          );
+          talker.info("Using default printer: ${selectedPrinter.name}");
+        } catch (e) {
+          talker.warning("Default printer not found in available printers");
+        }
+      }
+
+      if (selectedPrinter == null) {
+        // If only one printer is available, use it by default
+        if (printers.length == 1) {
+          selectedPrinter = printers.first;
+          talker.info(
+            "Auto-selecting single available printer: ${selectedPrinter.name}",
+          );
+          ProxyService.box.writeString(
+            key: 'defaultPrinter',
+            value: selectedPrinter.name,
+          );
+        }
+      }
+
+      if (selectedPrinter == null) {
+        // If we have context and it's mounted, ask user
+        if (context.mounted) {
+          final result = await showPrinterPickerDialog(
+            context: context,
+            printers: printers,
+            defaultPrinterName: savedPrinterName,
+            itemCount: transactionItems?.length ?? 1,
+            amount: transaction?.subTotal ?? 0,
+            currency: ProxyService.box.defaultCurrency(),
+            invoiceNumber: transaction?.invoiceNumber,
+          );
+          if (result == null) {
+            talker.info("Printer selection cancelled by user.");
+            return;
+          }
+          selectedPrinter = result.printer;
+          saveAsPdf = result.saveAsPdf;
+          copies = result.copies;
+          // Save as default if a physical printer was selected
+          if (selectedPrinter != null) {
             ProxyService.box.writeString(
               key: 'defaultPrinter',
               value: selectedPrinter.name,
             );
           }
-        }
-
-        if (selectedPrinter == null) {
-          // If we have context and it's mounted, ask user
-          if (context.mounted) {
-            final result = await showPrinterPickerDialog(
-              context: context,
-              printers: printers,
-              defaultPrinterName: savedPrinterName,
-              itemCount: transactionItems?.length ?? 1,
-              amount: transaction?.subTotal ?? 0,
-              currency: ProxyService.box.defaultCurrency(),
-              invoiceNumber: transaction?.invoiceNumber,
-            );
-            if (result == null) {
-              talker.info("Printer selection cancelled by user.");
-              return;
-            }
-            selectedPrinter = result.printer;
-            saveAsPdf = result.saveAsPdf;
-            copies = result.copies;
-            // Save as default if a physical printer was selected
-            if (selectedPrinter != null) {
-              ProxyService.box.writeString(
-                key: 'defaultPrinter',
-                value: selectedPrinter.name,
-              );
-            }
-          } else {
-            talker.warning(
-              "Cannot pick printer: Context not mounted and no default printer.",
-            );
-            return;
-          }
-        }
-
-        if (bytes == null) return;
-
-        if (saveAsPdf) {
-          await Printing.sharePdf(bytes: bytes, filename: 'receipt.pdf');
+        } else {
+          talker.warning(
+            "Cannot pick printer: Context not mounted and no default printer.",
+          );
           return;
         }
+      }
 
-        if (selectedPrinter != null) {
-          for (var i = 0; i < copies; i++) {
-            await Printing.directPrintPdf(
-              printer: selectedPrinter,
-              onLayout: (PdfPageFormat format) async => bytes,
-            );
-          }
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Sent ${copies > 1 ? '$copies copies' : '1 copy'} to ${selectedPrinter.name}',
-                ),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(milliseconds: 2400),
+      if (bytes == null) return;
+
+      if (saveAsPdf) {
+        await Printing.sharePdf(bytes: bytes, filename: 'receipt.pdf');
+        return;
+      }
+
+      if (selectedPrinter != null) {
+        for (var i = 0; i < copies; i++) {
+          await Printing.directPrintPdf(
+            printer: selectedPrinter,
+            onLayout: (PdfPageFormat format) async => bytes,
+          );
+        }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Sent ${copies > 1 ? '$copies copies' : '1 copy'} to ${selectedPrinter.name}',
               ),
-            );
-          }
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(milliseconds: 2400),
+            ),
+          );
         }
       }
     }
