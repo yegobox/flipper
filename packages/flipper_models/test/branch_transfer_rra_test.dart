@@ -243,10 +243,67 @@ void main() {
       expect(tax.order, isEmpty);
     });
 
-    test('skips + flags when a branch bhfId cannot be resolved', () async {
+    test('skips when destination branch has no EBM / is non-VAT (no tax calls)',
+        () async {
+      when(() => db.ebm(branchId: 'branchB')).thenAnswer((_) async => null);
+
+      final result = await reportBranchTransferToRra(
+        request: _request(),
+        lines: [_line()],
+        businessId: 'biz1',
+        resolveEbm: (_) async => _ebm(
+          branchId: 'branchA',
+          bhfId: '00',
+          taxServerUrl: 'https://tax.example/',
+        ),
+        nextBranchSar: (branchId) async =>
+            Sar(sarNo: 1, branchId: branchId),
+      );
+
+      expect(result.attempted, isFalse);
+      expect(result.succeeded, isTrue);
+      expect(tax.order, isEmpty);
+      verifyNever(() => db.ebm(branchId: 'branchA'));
+    });
+
+    test('skips when destination branch is explicitly non-VAT', () async {
+      when(() => db.ebm(branchId: 'branchB')).thenAnswer(
+        (_) async => _ebm(
+          branchId: 'branchB',
+          bhfId: '01',
+          vatEnabled: false,
+        ),
+      );
+
+      final result = await reportBranchTransferToRra(
+        request: _request(),
+        lines: [_line()],
+        businessId: 'biz1',
+        resolveEbm: (_) async => _ebm(
+          branchId: 'branchA',
+          bhfId: '00',
+          taxServerUrl: 'https://tax.example/',
+        ),
+        nextBranchSar: (branchId) async =>
+            Sar(sarNo: 1, branchId: branchId),
+      );
+
+      expect(result.attempted, isFalse);
+      expect(result.succeeded, isTrue);
+      expect(tax.order, isEmpty);
+    });
+
+    test('skips + flags when a VAT destination bhfId cannot be resolved',
+        () async {
       when(() => db.ebm(branchId: 'branchA'))
           .thenAnswer((_) async => _ebm(branchId: 'branchA', bhfId: '00'));
-      when(() => db.ebm(branchId: 'branchB')).thenAnswer((_) async => null);
+      when(() => db.ebm(branchId: 'branchB')).thenAnswer(
+        (_) async => _ebm(
+          branchId: 'branchB',
+          bhfId: '',
+          vatEnabled: true,
+        ),
+      );
 
       final result = await reportBranchTransferToRra(
         request: _request(),

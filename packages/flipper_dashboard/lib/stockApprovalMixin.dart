@@ -911,6 +911,15 @@ mixin StockRequestApprovalLogic {
 
       if (approvedQuantity <= 0) return null;
 
+      // Non-VAT / non-EBM destinations are local-only — no RRA StockIO / masters.
+      final destEbm = await _capella.ebm(
+        branchId: request.subBranchId!,
+        fetchRemote: false,
+      );
+      if (!destinationBranchRequiresTransferRra(destEbm)) {
+        return null;
+      }
+
       // Post-mutation reads: must reflect the stock deduction above, so these
       // are intentionally fresh (not reused from the resolved variant).
       final sourceVariant = await _capella.getVariant(

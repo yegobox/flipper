@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
+import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/constants.dart';
@@ -548,12 +549,11 @@ WHERE _id = :stockId OR id = :stockId
       canTrackingStock: true,
       lowStock: 0,
     );
-    // Ensure existing stock is synced
     await ditto.store.execute(
       "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
       arguments: {'doc': stock.toJson()},
     );
-    await repository.upsert<Stock>(stock);
+    scheduleCapellaBrickMirror(repository, stock);
     return stock;
   }
 

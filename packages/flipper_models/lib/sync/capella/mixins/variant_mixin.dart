@@ -9,6 +9,7 @@ import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_services/log_service.dart';
@@ -1151,13 +1152,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
       variant.lastTouched = DateTime.now().toUtc();
 
-      // Upsert the variant
+      // Ditto-first; Brick mirrors in the background (see capella_brick_mirror.dart).
       await ditto.store.execute(
         "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': variant.toFlipperJson()},
       );
-      final repository = Repository();
-      await repository.upsert<Variant>(variant);
+      scheduleCapellaBrickMirror(repository, variant);
 
       // Handle Stock logic for new variants or missing stock
       if (variant.stock == null && variant.itemTyCd != "3") {
@@ -1179,14 +1179,14 @@ mixin CapellaVariantMixin implements VariantInterface {
           "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': newStock.toJson()},
         );
-        await repository.upsert<Stock>(newStock);
+        scheduleCapellaBrickMirror(repository, newStock);
       } else if (variant.stock != null) {
         // Ensure existing stock is synced
         await ditto.store.execute(
           "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': variant.stock!.toJson()},
         );
-        await repository.upsert<Stock>(variant.stock!);
+        scheduleCapellaBrickMirror(repository, variant.stock!);
       }
     }
   }

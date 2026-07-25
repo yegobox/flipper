@@ -26,6 +26,7 @@ import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
+import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -875,8 +876,8 @@ class CapellaSync extends AiStrategyImpl
     // this future completes) is what removes the branch-transfer read-back race:
     // callers immediately re-read the new variant via Capella/Ditto, and the
     // Brick path only mirrored to Ditto asynchronously (unawaited coordinator).
-    // When Ditto wrote the doc, we skip the coordinator's duplicate Ditto write
-    // on the Brick upsert (skipDittoSync) — Brick still persists for Supabase.
+    // When Ditto wrote the doc, mirror to Brick in the background (skipDittoSync)
+    // so POS/transfer hot paths are not blocked on Turso/SQLite.
     final ditto = dittoService.dittoInstance;
 
     if (data is Variant) {
@@ -885,8 +886,10 @@ class CapellaSync extends AiStrategyImpl
           "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': data.toFlipperJson()},
         );
+        scheduleCapellaBrickMirror<Variant>(repository, data);
+      } else {
+        await repository.upsert<Variant>(data);
       }
-      await repository.upsert<Variant>(data, skipDittoSync: ditto != null);
       return data as T;
     }
 
@@ -896,8 +899,10 @@ class CapellaSync extends AiStrategyImpl
           "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': data.toJson()},
         );
+        scheduleCapellaBrickMirror<Stock>(repository, data);
+      } else {
+        await repository.upsert<Stock>(data);
       }
-      await repository.upsert<Stock>(data, skipDittoSync: ditto != null);
       return data as T;
     }
 
@@ -916,8 +921,10 @@ class CapellaSync extends AiStrategyImpl
             },
           },
         );
+        scheduleCapellaBrickMirror<VariantBranch>(repository, data);
+      } else {
+        await repository.upsert<VariantBranch>(data);
       }
-      await repository.upsert<VariantBranch>(data, skipDittoSync: ditto != null);
       return data as T;
     }
 

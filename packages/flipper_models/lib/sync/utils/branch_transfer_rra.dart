@@ -85,10 +85,19 @@ String userFacingBranchTransferRraFailure([Object? error]) {
   return fallback;
 }
 
+/// Whether a branch-transfer destination should post RRA StockIO / StockMaster.
+///
+/// Transfers into non-VAT / non-EBM branches are local Capella/Ditto only; the
+/// tax server has nothing to reconcile on the receiving side.
+bool destinationBranchRequiresTransferRra(Ebm? destEbm) {
+  return destEbm?.vatEnabled == true;
+}
+
 /// Posts RRA StockIO OUT (`13`) / IN (`04`) + dual StockMaster after a branch transfer.
 ///
-/// Gate is **business-scoped** EBM (any vat-enabled ebm for [businessId]). Per-branch
-/// `bhfId` still comes from each branch's ebm row.
+/// Skips when the **destination** branch is non-VAT/non-EBM. When both branches
+/// are VAT-enabled, per-branch `bhfId` comes from each branch's EBM row and
+/// business tin/URL from any vat-enabled EBM for [businessId].
 Future<BranchTransferRraResult> reportBranchTransferToRra({
   required InventoryRequest request,
   required List<BranchTransferApprovedLine> lines,
@@ -112,6 +121,17 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
     return BranchTransferRraResult.skipped;
   }
 
+  final destEbm = await ProxyService.strategy.ebm(
+    branchId: subBranchId,
+    fetchRemote: false,
+  );
+  if (!destinationBranchRequiresTransferRra(destEbm)) {
+    talker.info(
+      'BranchTransferRra: skip — destination branch $subBranchId is non-VAT/non-EBM',
+    );
+    return BranchTransferRraResult.skipped;
+  }
+
   final resolvedBusinessId =
       businessId ?? ProxyService.box.getBusinessId();
   if (resolvedBusinessId == null || resolvedBusinessId.isEmpty) {
@@ -131,9 +151,8 @@ Future<BranchTransferRraResult> reportBranchTransferToRra({
   }
 
   final sourceEbm = await ProxyService.strategy.ebm(branchId: mainBranchId);
-  final destEbm = await ProxyService.strategy.ebm(branchId: subBranchId);
-  final sourceBhfId = sourceEbm?.bhfId.trim();
   final destBhfId = destEbm?.bhfId.trim();
+  final sourceBhfId = sourceEbm?.bhfId.trim();
   if (sourceBhfId == null ||
       sourceBhfId.isEmpty ||
       destBhfId == null ||

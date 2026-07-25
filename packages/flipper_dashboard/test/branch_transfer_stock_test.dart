@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/utils/branch_transfer_stock.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_models/brick/models/stock.model.dart';
 
 void main() {
   group('isAuthenticCapellaStock', () {
