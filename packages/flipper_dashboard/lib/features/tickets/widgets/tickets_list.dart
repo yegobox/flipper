@@ -1343,12 +1343,15 @@ class TicketCard extends StatelessWidget {
   /// gate this on `AppFeature.StockHandover` access at the call site).
   final bool showRecordHandover;
   final VoidCallback? onRecordHandover;
-  /// Ticket Review + Handover workflow: shows the "Mark as reviewed" action
-  /// when true (only meaningful while `ticket.status == PENDING_REVIEW`; gate
-  /// this on `AppFeature.TicketReview` access at the call site). Used by the
-  /// Review Queue screen.
+  /// Ticket Review + Handover workflow: shows the review action when true
+  /// (only meaningful while `ticket.status == PENDING_REVIEW`). Used by the
+  /// Review Queue screen — typically opens details; approve lives in the
+  /// review sheet so reviewers check line items/payments first.
   final bool showMarkReviewed;
   final VoidCallback? onMarkReviewed;
+  /// Label for [showMarkReviewed] (default "Mark as reviewed"). Review Queue
+  /// uses "Review details" because approve is confirmed inside the sheet.
+  final String markReviewedLabel;
 
   /// When false, hides the selection checkbox and delete button so users
   /// without ticket-management rights (e.g. review-only or handover-only
@@ -1372,6 +1375,7 @@ class TicketCard extends StatelessWidget {
     this.onRecordHandover,
     this.showMarkReviewed = false,
     this.onMarkReviewed,
+    this.markReviewedLabel = 'Mark as reviewed',
     this.canManage = true,
   });
 
@@ -1689,7 +1693,7 @@ class TicketCard extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    'Mark as reviewed',
+                                    markReviewedLabel,
                                     style: GoogleFonts.outfit(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,

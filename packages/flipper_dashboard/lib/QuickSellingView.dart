@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/features/tickets/widgets/review_queue_banner.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -1461,6 +1462,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     return CustomScrollView(
       slivers: [
+        // Ticket-Review queue: reviewers see pending sign-offs at a glance
+        // without leaving the sale screen. Self-hides when empty / no access.
+        // 16px inset matches the summary card sliver below (EdgeInsets.all(16)).
+        const SliverToBoxAdapter(
+          child: ReviewQueueBanner(
+            margin: EdgeInsets.fromLTRB(16, 16, 16, 8),
+          ),
+        ),
+
         // Transaction Summary Header
         SliverToBoxAdapter(
           child: _buildTransactionSummaryCard(transactionAsyncValue, model),
@@ -2415,6 +2425,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const ReviewQueueBanner(),
         if (settling != null) _buildSettlingBanner(settling),
         _buildTopBarCheckoutSummary(
           transactionAsyncValue: transactionAsyncValue,

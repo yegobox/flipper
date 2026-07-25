@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
@@ -12,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import '../widgets/review_ticket_dialog.dart';
 import '../widgets/tickets_list.dart';
 
 /// Ticket Review + Handover workflow: reviewer-facing queue of fully-paid
@@ -19,39 +21,107 @@ import '../widgets/tickets_list.dart';
 /// right channel before they can proceed to handover. Entry point is gated
 /// on both the business's `enableTicketReviewWorkflow` setting and the
 /// current user's `AppFeature.TicketReview` access.
-class ReviewQueueScreen extends ConsumerWidget {
+///
+/// Desktop: list + right detail panel (same pattern as Customers). Mobile:
+/// bottom sheet for details so the queue isn't covered by a dialog on a
+/// small screen unnecessarily — sheet still leaves chrome for back.
+class ReviewQueueScreen extends ConsumerStatefulWidget {
   const ReviewQueueScreen({super.key});
 
-  static Future<void> _markReviewed(
-    BuildContext context,
-    ITransaction ticket,
-  ) async {
+  @override
+  ConsumerState<ReviewQueueScreen> createState() => _ReviewQueueScreenState();
+}
+
+class _ReviewQueueScreenState extends ConsumerState<ReviewQueueScreen> {
+  static const double _detailPanelWidth = 420;
+
+  /// Selected ticket for the desktop side panel; null when closed.
+  ITransaction? _selectedTicket;
+
+  bool _isWideLayout(BuildContext context) {
+    return MediaQuery.sizeOf(context).width >=
+        PosLayoutBreakpoints.mobileLayoutMaxWidth;
+  }
+
+  void _closeDetailPanel() {
+    if (!mounted) return;
+    setState(() => _selectedTicket = null);
+  }
+
+  Future<void> _markReviewed(ITransaction ticket) async {
     try {
       await markTicketReviewed(
         transactionId: ticket.id,
         reviewedByUserId: ProxyService.box.getUserId() ?? '',
       );
-      if (context.mounted) {
-        showCustomSnackBarUtil(
-          context,
-          'Ticket reviewed',
-          backgroundColor: Colors.green,
-        );
-      }
     } catch (e, st) {
       talker.error('Mark ticket reviewed failed: $e', st);
-      if (context.mounted) {
+      if (mounted) {
         showCustomSnackBarUtil(
           context,
           'Failed to mark ticket as reviewed',
           backgroundColor: Colors.red,
         );
       }
+      rethrow;
     }
   }
 
+  Future<void> _openReviewDetails(
+    ITransaction ticket, {
+    required bool canReview,
+  }) async {
+    final isWide = _isWideLayout(context);
+
+    // Desktop: side panel keeps the full queue visible while reviewing.
+    if (isWide) {
+      setState(() => _selectedTicket = ticket);
+      return;
+    }
+
+    final approved = await showReviewTicketDialog(
+      context: context,
+      ticket: ticket,
+      canReview: canReview,
+      onMarkReviewed: _markReviewed,
+    );
+    if (approved == true && mounted) {
+      showCustomSnackBarUtil(
+        context,
+        'Ticket reviewed',
+        backgroundColor: Colors.green,
+      );
+    }
+  }
+
+  void _onReviewedSuccess() {
+    _closeDetailPanel();
+    if (!mounted) return;
+    showCustomSnackBarUtil(
+      context,
+      'Ticket reviewed',
+      backgroundColor: Colors.green,
+    );
+  }
+
+  /// Drop selection if the ticket left the queue (e.g. after approve / sync).
+  ITransaction? _resolveSelected(List<ITransaction> tickets) {
+    final selected = _selectedTicket;
+    if (selected == null) return null;
+    for (final t in tickets) {
+      if (t.id == selected.id) return t;
+    }
+    // Ticket gone — clear on next frame to avoid setState during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _selectedTicket?.id == selected.id) {
+        setState(() => _selectedTicket = null);
+      }
+    });
+    return null;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final ticketsAsync = ref.watch(reviewQueueStreamProvider);
     final canReview = ref.watch(
       featureAccessProvider(
@@ -59,6 +129,7 @@ class ReviewQueueScreen extends ConsumerWidget {
         featureName: AppFeature.TicketReview,
       ),
     );
+    final isWide = _isWideLayout(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F7),
@@ -100,24 +171,35 @@ class ReviewQueueScreen extends ConsumerWidget {
               ),
             );
           }
-          return ListView.builder(
+
+          final selected = isWide ? _resolveSelected(tickets) : null;
+
+          final listPane = ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: tickets.length,
             itemBuilder: (context, index) {
               final ticket = tickets[index];
               final paid = ticket.cashReceived ?? ticket.subTotal ?? 0.0;
+              final isSelected = selected?.id == ticket.id;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: TicketCard(
                   key: ValueKey(ticket.id),
                   ticket: ticket,
-                  isSelected: false,
+                  isSelected: isSelected,
                   paidAmount: paid,
                   showResume: false,
-                  showMarkReviewed: canReview,
+                  showMarkReviewed: true,
+                  markReviewedLabel: 'Review details',
                   canManage: false,
-                  onTap: () {},
-                  onMarkReviewed: () => _markReviewed(context, ticket),
+                  onTap: () => _openReviewDetails(
+                    ticket,
+                    canReview: canReview,
+                  ),
+                  onMarkReviewed: () => _openReviewDetails(
+                    ticket,
+                    canReview: canReview,
+                  ),
                   onDelete: () => showCustomSnackBarUtil(
                     context,
                     'This ticket is paid and pending review — it cannot be deleted',
@@ -127,6 +209,44 @@ class ReviewQueueScreen extends ConsumerWidget {
                 ),
               );
             },
+          );
+
+          if (!isWide) return listPane;
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: listPane),
+              if (selected != null)
+                SizedBox(
+                  width: _detailPanelWidth,
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        left: BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x14000000),
+                          offset: Offset(-4, 0),
+                          blurRadius: 16,
+                        ),
+                      ],
+                    ),
+                    child: ReviewTicketPanel(
+                      key: ValueKey('review-panel-${selected.id}'),
+                      ticket: selected,
+                      canReview: canReview,
+                      panelMode: true,
+                      showSheetHandle: false,
+                      onDismissed: _closeDetailPanel,
+                      onReviewed: _onReviewedSuccess,
+                      onMarkReviewed: _markReviewed,
+                    ),
+                  ),
+                ),
+            ],
           );
         },
       ),
