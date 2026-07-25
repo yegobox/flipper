@@ -37,8 +37,6 @@ class EnhancedSideMenu extends ConsumerStatefulWidget {
 
 class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     with BranchSelectionMixin {
-  String? _loadingItemId;
-
   Future<bool> _verifyAdminPinIfRequired(BuildContext context) async {
     final settingsService = ProxyService.settings;
     if (!settingsService.isAdminPinEnabled) return true;
@@ -100,31 +98,9 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     ref.read(buttonIndexProvider.notifier).setIndex(2);
     await showBranchSwitchDialog(
       context: context,
-      branches: null,
-      loadingItemId: _loadingItemId,
-      setDefaultBranch: (branch) async {
-        await handleBranchSelection(
-          branch,
-          context,
-          setLoadingState: (String? id) {
-            setState(() {
-              _loadingItemId = id;
-            });
-          },
-          setDefaultBranch: _setDefaultBranch,
-          onComplete: () {
-            Navigator.of(context).pop();
-          },
-          setIsLoading: (_) {},
-        );
-      },
+      setDefaultBranch: _setDefaultBranch,
       handleBranchSelection: handleBranchSelection,
       onLogout: _signOutCurrentAgent,
-      setLoadingState: (String? id) {
-        setState(() {
-          _loadingItemId = id;
-        });
-      },
     );
   }
 

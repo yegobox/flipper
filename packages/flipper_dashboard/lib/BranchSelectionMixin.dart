@@ -268,7 +268,6 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   Future<void> showBranchSwitchDialog({
     required BuildContext context,
     List<Branch>? branches,
-    String? loadingItemId,
     required Future<void> Function(Branch branch) setDefaultBranch,
     required Future<void> Function(
       Branch branch,
@@ -280,7 +279,6 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     })
     handleBranchSelection,
     required Future<void> Function() onLogout,
-    required void Function(String? id) setLoadingState,
   }) async {
     // Check if we're already in the middle of branch navigation
     // This prevents the branch selection dialog from showing up again during navigation
@@ -294,14 +292,13 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     // Show dialog immediately without waiting for branches
     await showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
         return _BranchSwitchDialog(
           branches: branches,
-          loadingItemId: loadingItemId,
           setDefaultBranch: setDefaultBranch,
           handleBranchSelection: handleBranchSelection,
           onLogout: onLogout,
-          setLoadingState: setLoadingState,
         );
       },
     );
@@ -510,7 +507,6 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 // Move _BranchSwitchDialog and its State outside the mixin
 class _BranchSwitchDialog extends StatefulWidget {
   final List<Branch>? branches;
-  final String? loadingItemId;
   final Future<void> Function(Branch branch) setDefaultBranch;
   final Future<void> Function(
     Branch branch,
@@ -522,16 +518,13 @@ class _BranchSwitchDialog extends StatefulWidget {
   })
   handleBranchSelection;
   final Future<void> Function() onLogout;
-  final void Function(String? id) setLoadingState;
 
   const _BranchSwitchDialog({
     Key? key,
     this.branches,
-    this.loadingItemId,
     required this.setDefaultBranch,
     required this.handleBranchSelection,
     required this.onLogout,
-    required this.setLoadingState,
   }) : super(key: key);
 
   @override
@@ -539,10 +532,18 @@ class _BranchSwitchDialog extends StatefulWidget {
 }
 
 class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
-  bool _isLoading = false;
+  bool _isFetchingBranches = false;
+  bool _isSwitching = false;
+  String? _loadingBranchId;
+  String? _switchStatusMessage;
   List<Branch>? _branches;
 
+  final TextEditingController _searchController = TextEditingController();
+  final ValueNotifier<String> _searchQuery = ValueNotifier('');
+  Timer? _searchDebounce;
+
   Future<void> _handleLogoutTap() async {
+    if (_isSwitching) return;
     Navigator.of(context).pop();
     await widget.onLogout();
   }
@@ -552,11 +553,18 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
     super.initState();
     _branches = widget.branches;
 
-    // If branches weren't provided, fetch them immediately
     if (_branches == null) {
-      _isLoading = true;
+      _isFetchingBranches = true;
       _fetchBranches();
     }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    _searchQuery.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchBranches() async {
@@ -565,7 +573,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
       final businessId = ProxyService.box.getBusinessId();
 
       if (userId == null || businessId == null) {
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isFetchingBranches = false);
         return;
       }
 
@@ -577,17 +585,266 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
       if (mounted) {
         setState(() {
           _branches = branches;
-          _isLoading = false;
+          _isFetchingBranches = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isFetchingBranches = false);
       }
-      // Show error if needed
     }
+  }
+
+  void _onSearchChanged(String value) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 200), () {
+      _searchQuery.value = value;
+    });
+  }
+
+  Future<void> _selectBranch(Branch branch) async {
+    if (_isSwitching) return;
+
+    final currentBranchId = ProxyService.box.getBranchId();
+    if (branch.id == currentBranchId) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final branchName = branch.name ?? 'branch';
+    setState(() {
+      _isSwitching = true;
+      _loadingBranchId = branch.id.toString();
+      _switchStatusMessage = 'Switching to $branchName…';
+    });
+
+    await widget.handleBranchSelection(
+      branch,
+      context,
+      setLoadingState: (id) {
+        if (mounted) setState(() => _loadingBranchId = id);
+      },
+      setDefaultBranch: widget.setDefaultBranch,
+      onComplete: () {
+        if (!mounted) return;
+
+        ProxyService.box.writeBool(
+          key: 'branch_navigation_in_progress',
+          value: true,
+        );
+
+        locator<RouterService>().replaceWith(FlipperAppRoute());
+        Navigator.of(context).pop();
+
+        showCustomSnackBarUtil(
+          context,
+          'Switched to $branchName',
+          duration: const Duration(seconds: 2),
+        );
+
+        Future.delayed(const Duration(seconds: 2), () {
+          ProxyService.box.writeBool(
+            key: 'branch_navigation_in_progress',
+            value: false,
+          );
+        });
+      },
+      setIsLoading: (loading) {
+        if (!mounted) return;
+        setState(() {
+          _isSwitching = loading;
+          if (!loading) {
+            _loadingBranchId = null;
+            _switchStatusMessage = null;
+          }
+        });
+      },
+    );
+  }
+
+  TextStyle get _titleStyle => TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.5,
+    color: Theme.of(context).textTheme.titleLarge?.color,
+  );
+
+  Widget _buildHeader({bool showLogout = true}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.location_on_rounded,
+              color: Theme.of(context).primaryColor,
+              size: 26,
+            ),
+            const SizedBox(width: 10),
+            Text('Switch Branch', style: _titleStyle),
+          ],
+        ),
+        if (showLogout)
+          TextButton.icon(
+            onPressed: _isSwitching ? null : _handleLogoutTap,
+            icon: Icon(
+              Icons.logout_rounded,
+              size: 18,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            label: Text(
+              'Logout',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSwitchStatusBar() {
+    if (!_isSwitching || _switchStatusMessage == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _switchStatusMessage!,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).primaryColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranchRow({
+    required Branch branch,
+    required bool isActive,
+    required bool isLoading,
+  }) {
+    final theme = Theme.of(context);
+    final canTap = !_isSwitching && !isActive;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: canTap ? () => _selectBranch(branch) : null,
+        child: MouseRegion(
+          cursor: canTap ? SystemMouseCursors.click : SystemMouseCursors.basic,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isActive
+                  ? theme.primaryColor.withValues(alpha: 0.08)
+                  : null,
+              borderRadius: BorderRadius.circular(12),
+              border: isActive
+                  ? Border.all(
+                      color: theme.primaryColor.withValues(alpha: 0.25),
+                    )
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: isActive
+                      ? theme.primaryColor
+                      : theme.iconTheme.color?.withValues(alpha: 0.7),
+                  size: 22,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        branch.name ?? '',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: isActive
+                              ? theme.primaryColor
+                              : theme.textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      if (isActive) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Active branch',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (isLoading)
+                  SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.primaryColor,
+                      ),
+                    ),
+                  )
+                else if (isActive)
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: theme.primaryColor,
+                    size: 22,
+                  )
+                else
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: theme.iconTheme.color?.withValues(alpha: 0.45),
+                    size: 22,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -596,488 +853,151 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 8,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+        constraints: const BoxConstraints(maxHeight: 480, minWidth: 420),
         decoration: BoxDecoration(
-          color: DialogThemeData().backgroundColor,
+          color: DialogTheme.of(context).backgroundColor,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: _isLoading && _branches == null
-            ? _buildLoadingContent()
-            : _buildDialogContent(),
+        child: _isFetchingBranches && _branches == null
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildHeader(showLogout: false),
+                  const SizedBox(height: 36),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading branches…',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
+                  ),
+                ],
+              )
+            : _buildBranchListContent(),
       ),
     );
   }
 
-  Widget _buildLoadingContent() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on_rounded,
-                  color: Theme.of(context).primaryColor,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Switch Branch',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.5,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
-                  ),
-                ),
-              ],
-            ),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: _handleLogoutTap,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.logout_rounded,
-                        color: Theme.of(context).colorScheme.error,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Logout',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 40),
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(
-                'Loading branches...',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDialogContent() {
-    if (_branches == null || _branches!.isEmpty) {
+  Widget _buildBranchListContent() {
+    final branches = _branches;
+    if (branches == null || branches.isEmpty) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_rounded,
-                    color: Theme.of(context).primaryColor,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Switch Branch',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.5,
-                      color: Theme.of(context).textTheme.titleLarge?.color,
-                    ),
-                  ),
-                ],
-              ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: _handleLogoutTap,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.logout_rounded,
-                          color: Theme.of(context).colorScheme.error,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 40),
-          Center(
-            child: Text(
-              'No branches available',
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
+          _buildHeader(),
+          const SizedBox(height: 36),
+          Text(
+            'No branches available',
+            style: TextStyle(
+              fontSize: 15,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],
       );
     }
 
-    return _buildDialog(_branches!);
-  }
-
-  Widget _buildDialog(List<Branch> branches) {
-    // Add state management for search
-    final searchController = TextEditingController();
-    final searchNotifier = ValueNotifier<String>('');
-    // Get the current branch ID for comparison
     final currentBranchId = ProxyService.box.getBranchId();
+    final currentBusinessId = ProxyService.box.getBusinessId() ?? '';
 
-    Timer? _debounce;
-
-    void _onSearchChanged(String value) {
-      if (_debounce?.isActive ?? false) _debounce!.cancel();
-      _debounce = Timer(const Duration(milliseconds: 200), () {
-        searchNotifier.value = value;
-      });
-    }
-
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 8,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
-        decoration: BoxDecoration(
-          color: DialogThemeData().backgroundColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      color: Theme.of(context).primaryColor,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Switch Branch',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.5,
-                        color: Theme.of(context).textTheme.titleLarge?.color,
-                      ),
-                    ),
-                  ],
-                ),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: _handleLogoutTap,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.logout_rounded,
-                            color: Theme.of(context).colorScheme.error,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Logout',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Search box with functionality
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: TextField(
-                controller: searchController,
-                onChanged: _onSearchChanged,
-                decoration: InputDecoration(
-                  hintText: 'Search branches...',
-                  border: InputBorder.none,
-                  icon: Icon(Icons.search, color: Theme.of(context).hintColor),
-                  suffixIcon: ValueListenableBuilder<String>(
-                    valueListenable: searchNotifier,
-                    builder: (context, searchValue, _) {
-                      return searchValue.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                searchController.clear();
-                                searchNotifier.value = '';
-                              },
-                            )
-                          : const SizedBox.shrink();
-                    },
-                  ),
-                ),
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ValueListenableBuilder<String>(
-                valueListenable: searchNotifier,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeader(),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            enabled: !_isSwitching,
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            decoration: InputDecoration(
+              hintText: 'Search branches…',
+              border: InputBorder.none,
+              icon: Icon(Icons.search, color: Theme.of(context).hintColor),
+              suffixIcon: ValueListenableBuilder<String>(
+                valueListenable: _searchQuery,
                 builder: (context, searchValue, _) {
-                  final String currentBusinessId =
-                      ProxyService.box.getBusinessId() ?? "";
-                  final searchLower = searchValue.toLowerCase();
-                  final filteredBranches = branches.where((branch) {
-                    if (branch.businessId != currentBusinessId) return false;
-                    final name = branch.name?.toLowerCase() ?? '';
-                    return name.contains(searchLower);
-                  }).toList();
-
-                  if (filteredBranches.isEmpty && searchValue.isNotEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.search_off_rounded,
-                            size: 48,
-                            color: Theme.of(context).hintColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No branches found',
-                            style: TextStyle(
-                              color: Theme.of(context).hintColor,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  // Use ListView.builder for efficiency
-                  return ListView.builder(
-                    itemCount: filteredBranches.length,
-                    itemBuilder: (context, index) {
-                      final branch = filteredBranches[index];
-                      // Check if this is the current active branch
-                      final isActive = branch.id == currentBranchId;
-                      final isLoading =
-                          widget.loadingItemId == branch.id.toString();
-
-                      return Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            // Prevent multiple taps while processing
-                            if (widget.loadingItemId != null) return;
-                            showCustomSnackBarUtil(
-                              context,
-                              'Switching to ${branch.name}...',
-                              duration: const Duration(seconds: 2),
-                            );
-
-                            widget.handleBranchSelection(
-                              branch,
-                              context,
-                              setLoadingState: widget.setLoadingState,
-                              setDefaultBranch: (branch) async {
-                                // Wrap the setDefaultBranch call to prevent app reload
-                                try {
-                                  // We'll do a minimal update that won't trigger a full app reload
-                                  return Future.value();
-                                } catch (e) {
-                                  print(
-                                    'Error in modified setDefaultBranch: $e',
-                                  );
-                                  return Future.value();
-                                }
-                              },
-                              onComplete: () {
-                                // First navigate to main app route to prevent branch selection from showing again
-                                // Then close the dialog
-                                if (mounted) {
-                                  // Set a flag to indicate we're handling navigation ourselves
-                                  ProxyService.box.writeBool(
-                                    key: 'branch_navigation_in_progress',
-                                    value: true,
-                                  );
-
-                                  // Force immediate navigation to the main app route
-                                  locator<RouterService>().replaceWith(
-                                    FlipperAppRoute(),
-                                  );
-
-                                  // Close the dialog after navigation is initiated
-                                  Navigator.of(context).pop();
-
-                                  // Show feedback to the user
-                                  showCustomSnackBarUtil(
-                                    context,
-                                    'Switched to ${branch.name}',
-                                    duration: const Duration(seconds: 2),
-                                  );
-
-                                  // Clear the navigation flag after a delay
-                                  Future.delayed(
-                                    const Duration(seconds: 2),
-                                    () {
-                                      ProxyService.box.writeBool(
-                                        key: 'branch_navigation_in_progress',
-                                        value: false,
-                                      );
-                                    },
-                                  );
-                                }
-                              },
-                              setIsLoading: (_) {},
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on_rounded,
-                                  color: isActive
-                                      ? Theme.of(context).primaryColor
-                                      : Theme.of(context).iconTheme.color
-                                            ?.withValues(alpha: 0.7),
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        branch.name ?? '',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: isActive
-                                              ? FontWeight.w600
-                                              : FontWeight.normal,
-                                          color: Theme.of(
-                                            context,
-                                          ).textTheme.bodyLarge?.color,
-                                        ),
-                                      ),
-                                      if (isActive) ...[
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Active Branch',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(
-                                              context,
-                                            ).primaryColor,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                if (isLoading)
-                                  SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Theme.of(context).primaryColor,
-                                      ),
-                                    ),
-                                  )
-                                else if (isActive)
-                                  Icon(
-                                    Icons.check_circle_rounded,
-                                    color: Theme.of(context).primaryColor,
-                                    size: 24,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
+                  return searchValue.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: _isSwitching
+                              ? null
+                              : () {
+                                  _searchController.clear();
+                                  _searchQuery.value = '';
+                                },
+                        )
+                      : const SizedBox.shrink();
                 },
               ),
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: ValueListenableBuilder<String>(
+            valueListenable: _searchQuery,
+            builder: (context, searchValue, _) {
+              final searchLower = searchValue.toLowerCase();
+              final filteredBranches = branches.where((branch) {
+                if (branch.businessId != currentBusinessId) return false;
+                final name = branch.name?.toLowerCase() ?? '';
+                return name.contains(searchLower);
+              }).toList();
+
+              if (filteredBranches.isEmpty && searchValue.isNotEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.search_off_rounded,
+                        size: 44,
+                        color: Theme.of(context).hintColor,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No branches found',
+                        style: TextStyle(
+                          color: Theme.of(context).hintColor,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                itemCount: filteredBranches.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 4),
+                itemBuilder: (context, index) {
+                  final branch = filteredBranches[index];
+                  final isActive = branch.id == currentBranchId;
+                  final isLoading = _loadingBranchId == branch.id.toString();
+
+                  return _buildBranchRow(
+                    branch: branch,
+                    isActive: isActive,
+                    isLoading: isLoading,
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        _buildSwitchStatusBar(),
+      ],
     );
   }
 }

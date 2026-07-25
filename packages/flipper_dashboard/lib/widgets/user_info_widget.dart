@@ -29,7 +29,6 @@ class UserInfoWidget extends StatefulHookConsumerWidget {
 class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
     with BranchSelectionMixin {
   String _userName = 'Loading...';
-  String? _loadingItemId;
 
   @override
   void initState() {
@@ -131,31 +130,9 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
     ref.read(buttonIndexProvider.notifier).setIndex(2);
     await showBranchSwitchDialog(
       context: context,
-      branches: null,
-      loadingItemId: _loadingItemId,
-      setDefaultBranch: (branch) async {
-        await handleBranchSelection(
-          branch,
-          context,
-          setLoadingState: (String? id) {
-            setState(() {
-              _loadingItemId = id;
-            });
-          },
-          setDefaultBranch: _setDefaultBranch,
-          onComplete: () {
-            Navigator.of(context).pop();
-          },
-          setIsLoading: (_) {},
-        );
-      },
+      setDefaultBranch: _setDefaultBranch,
       handleBranchSelection: handleBranchSelection,
       onLogout: _signOut,
-      setLoadingState: (String? id) {
-        setState(() {
-          _loadingItemId = id;
-        });
-      },
     );
   }
 
