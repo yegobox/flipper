@@ -313,7 +313,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       // falsely report out-of-stock on transfer/sale while qty still displays.
       final stockId = optionalString(json['stockId'] ?? json['stock_id']);
       final qtyValue = (parseNum(json['qty']) ?? 0.0).toDouble();
-      // Prefer document branchId; box may be null during user switch / logout.
+      // Prefer document branchId — box can be briefly null during PIN user switch.
       // Match Brick fromGenerator: null → ''.
       final branchId = optionalString(json['branchId'] ?? json['branch_id']) ??
           ProxyService.box.getBranchId() ??

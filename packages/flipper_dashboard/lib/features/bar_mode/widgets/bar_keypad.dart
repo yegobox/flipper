@@ -134,8 +134,9 @@ class _BarKeypadState extends State<BarKeypad>
     final keySize = widget.mobile
         ? BarTokens.mobileKeySize
         : (widget.tight ? 76.0 : 88.0);
-    final keyGap = widget.mobile ? 12.0 : 12.0;
-    return Column(
+    const keyGap = 12.0;
+
+    final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.avatarLabel != null) ...[
@@ -239,6 +240,22 @@ class _BarKeypadState extends State<BarKeypad>
           ),
         ],
       ],
+    );
+
+    // Lock-screen panels can be slightly shorter than the preferred keypad
+    // height; scale down uniformly instead of overflowing.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedHeight) return content;
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: constraints.maxWidth,
+            child: content,
+          ),
+        );
+      },
     );
   }
 

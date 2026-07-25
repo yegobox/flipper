@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -54,14 +55,6 @@ class CircleAvatarWidget extends StatelessWidget {
   }
 }
 
-final _adminStatusProvider = FutureProvider.autoDispose((ref) async {
-  final userId = ProxyService.box.getUserId() ?? "";
-  return ProxyService.strategy.isAdmin(
-    userId: userId,
-    appFeature: AppFeature.Settings,
-  );
-});
-
 class _LoadingWidget extends StatelessWidget {
   const _LoadingWidget();
 
@@ -108,7 +101,14 @@ class _AdminButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final adminStatus = ref.watch(_adminStatusProvider);
+    // Key off the signed-in user so PIN user-switch re-evaluates Settings admin
+    // (a non-family FutureProvider would keep the previous user's cached result).
+    final userId = ProxyService.box.getUserId() ?? '';
+    if (userId.isEmpty) return const SizedBox.shrink();
+
+    final adminStatus = ref.watch(
+      isAdminProvider(userId, featureName: AppFeature.Settings),
+    );
     final connectivityStatus = ref.watch(connectivityStreamProvider);
 
     return adminStatus.when(
@@ -143,7 +143,7 @@ class _AdminButton extends ConsumerWidget {
                 backgroundColor: backgroundColor,
                 padding: EdgeInsets.zero,
               ),
-            ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+            ),
           ),
         );
       },

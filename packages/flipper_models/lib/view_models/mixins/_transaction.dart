@@ -98,6 +98,12 @@ mixin TransactionMixinOld {
           ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
       final deferForReview =
           ticketReviewWorkflowEnabled && !isLoan && shouldComplete && isFullyPaid;
+      talker.debug(
+        '[ticket_review_workflow] finalizePayment: '
+        'ticketReviewWorkflowEnabled=$ticketReviewWorkflowEnabled '
+        'isLoan=$isLoan isFullyPaid=$isFullyPaid deferForReview=$deferForReview '
+        'transactionId=${transaction.id}',
+      );
       if (deferForReview) {
         if (skipTransactionPersist) {
           // Record payment fields in memory; onComplete persists the balances.

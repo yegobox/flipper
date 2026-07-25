@@ -14,10 +14,10 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:talker/talker.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
+import 'package:flipper_models/sync/utils/ticket_reference_sequence.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
 /// Serialize pending-cart ensure for a single (branch, type, expense) slot.
@@ -591,6 +591,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final query =
           'SELECT * FROM transactions WHERE ${whereClauses.join(' AND ')} ORDER BY createdAt DESC';
 
+      talker.debug(
+        '[ticket_review_workflow] reviewQueueTransactionsStream: '
+        'branchId=$branchId query="$query" arguments=$arguments',
+      );
+
       dynamic observer;
       var cancelled = false;
       var listenStarted = false;
@@ -605,6 +610,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             talker.error('Error converting review-queue transaction: $e');
           }
         }
+        talker.debug(
+          '[ticket_review_workflow] reviewQueueTransactionsStream: '
+          'raw_docs=${queryResult.items.length} converted=${transactions.length} '
+          'ids=${transactions.map((t) => t.id).toList()}',
+        );
         return transactions;
       }
 
@@ -1175,15 +1185,19 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       // 2. Create new transaction if none exists
       final now = DateTime.now().toUtc();
-      final randomRef = randomNumber()
-          .toString(); // Assuming randomNumber() is available globally or mixed in
+      // Per-branch, best-effort sequential ticket reference (starts at 1) —
+      // distinct from this transaction's Ditto id. See [nextTicketReferenceNumber].
+      final ticketReference = (await nextTicketReferenceNumber(
+        ditto: ditto,
+        branchId: branchId,
+      )).toString();
 
       final newTransaction = ITransaction(
         agentId: agentId ?? 'unknown',
         deviceId: saleDeviceId,
         lastTouched: now,
-        reference: randomRef,
-        transactionNumber: randomRef,
+        reference: ticketReference,
+        transactionNumber: ticketReference,
         status: status,
         isExpense: isExpense,
         isIncome: !isExpense,

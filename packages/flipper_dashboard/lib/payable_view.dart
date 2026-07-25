@@ -52,6 +52,18 @@ class PayableView extends HookConsumerWidget {
   final bool cartHasItems;
   final bool sendToTillBusy;
 
+  /// Falls back to "Send for Review" (Ticket Review + Handover workflow) or
+  /// "Pay" when the caller doesn't compute its own amount-aware [wording]
+  /// (e.g. [PosDefaultView], unlike [QuickSellingView] which passes an
+  /// explicit "Pay • {amount}" / "Send for Review • {amount}" string).
+  String get _resolvedWording {
+    if (wording != null) return wording!;
+    final ticketReviewWorkflowEnabled =
+        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
+            false;
+    return ticketReviewWorkflowEnabled ? 'Send for Review' : 'Pay';
+  }
+
   /// Stacked Tickets / Pay instead of a single row.
   ///
   /// We avoid [LayoutBuilder] here: combining it with Riverpod rebuilds and
@@ -159,7 +171,7 @@ class PayableView extends HookConsumerWidget {
                     digitalPaymentEnabled: digitalPaymentEnabled,
                     transactionId: transactionId,
                     mode: mode,
-                    wording: wording ?? "Pay",
+                    wording: _resolvedWording,
                     completeTransaction: completeTransaction,
                     previewCart: previewCart,
                   )
@@ -184,7 +196,7 @@ class PayableView extends HookConsumerWidget {
                 digitalPaymentEnabled: digitalPaymentEnabled,
                 transactionId: transactionId,
                 mode: mode,
-                wording: wording ?? "Pay",
+                wording: _resolvedWording,
                 completeTransaction: completeTransaction,
                 previewCart: previewCart,
               )

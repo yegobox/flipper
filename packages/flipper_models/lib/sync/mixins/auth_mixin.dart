@@ -648,6 +648,7 @@ mixin AuthMixin implements AuthInterface {
     if (stopAfterConfigure) {
       // POS user switch skips Login Choices / default app setup, but still needs
       // businessId + branchId on the box for shifts, variants, and Ditto queries.
+      // Ditto re-init for a new user can race prefs; re-assert from the PIN.
       await _persistPinSessionContext(pin);
       unawaited(_completeDittoLoginSetup());
       return user;
@@ -826,25 +827,33 @@ mixin AuthMixin implements AuthInterface {
     return business.id == target || business.serverId.toString() == target;
   }
 
-  /// Writes non-empty pin business/branch ids without clearing existing box values.
+  /// Writes business/branch from [pin], falling back to existing box values.
+  /// Used by [stopAfterConfigure] (POS PIN user switch) so checkout providers
+  /// do not see a null branch after Ditto re-init for the new user.
   Future<void> _persistPinSessionContext(Pin pin) async {
-    final businessId = pin.businessId?.trim();
+    final businessId = (pin.businessId != null && pin.businessId!.trim().isNotEmpty)
+        ? pin.businessId!.trim()
+        : ProxyService.box.getBusinessId();
     if (businessId != null && businessId.isNotEmpty) {
       talker.debug('stopAfterConfigure: setting businessId to $businessId');
       await ProxyService.box.writeString(key: 'businessId', value: businessId);
-    } else if (ProxyService.box.getBusinessId() == null) {
+    } else {
       talker.warning(
         'stopAfterConfigure: pin has no businessId and box is empty',
       );
     }
 
-    final branchId = pin.branchId?.trim();
+    final branchId = (pin.branchId != null && pin.branchId!.trim().isNotEmpty)
+        ? pin.branchId!.trim()
+        : ProxyService.box.getBranchId();
     if (branchId != null && branchId.isNotEmpty) {
       talker.debug('stopAfterConfigure: setting branchId to $branchId');
       await ProxyService.box.writeString(key: 'branchId', value: branchId);
-    } else if (ProxyService.box.getBranchId() == null) {
+      await ProxyService.box.writeString(key: 'branchIdString', value: branchId);
+    } else {
       talker.warning(
-        'stopAfterConfigure: pin has no branchId and box is empty',
+        'stopAfterConfigure login: no branchId on pin or in box — '
+        'pending cart / variants may fail until a branch is selected',
       );
     }
   }
@@ -1335,6 +1344,14 @@ mixin AuthMixin implements AuthInterface {
         'persistedUser=$existingUserId, requested=$userId)',
       );
       _isDittoInitialized = false;
+    }
+
+    // POS PIN user switch re-opens Ditto for a different userId. Reset setup
+    // gates so [_completeDittoLoginSetup] re-attaches the coordinator/prefs
+    // instead of no-oping on the previous session's flags.
+    if (existingUserId != null && existingUserId != userId) {
+      _dittoCoordinatorAttached = false;
+      _dittoLoginSetupComplete = false;
     }
 
     final appID = foundation.kDebugMode

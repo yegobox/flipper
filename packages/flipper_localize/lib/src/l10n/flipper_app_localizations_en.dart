@@ -776,6 +776,11 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   }
 
   @override
+  String sendForReviewWithAmount(String amount) {
+    return 'Send for Review • $amount';
+  }
+
+  @override
   String get phoneRequiredWhenTinMissing =>
       'Phone number is required when customer TIN is not available';
 

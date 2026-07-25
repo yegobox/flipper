@@ -992,6 +992,15 @@
             }
         }
     },
+    "sendForReviewWithAmount": "Send for Review • {amount}",
+    "@sendForReviewWithAmount": {
+        "description": "Payment button label when the Ticket Review + Handover workflow is enabled and the sale will be fully paid",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "phoneRequiredWhenTinMissing": "Phone number is required when customer TIN is not available",
     "@phoneRequiredWhenTinMissing": {
         "description": "Validation error when phone number is required because TIN is missing"
