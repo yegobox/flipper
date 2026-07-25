@@ -870,9 +870,58 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<T?> create<T>({required T data}) {
-    // TODO: implement create
-    throw UnimplementedError();
+  FutureOr<T?> create<T>({required T data}) async {
+    // Ditto-first create. Writing the document into Ditto synchronously (before
+    // this future completes) is what removes the branch-transfer read-back race:
+    // callers immediately re-read the new variant via Capella/Ditto, and the
+    // Brick path only mirrored to Ditto asynchronously (unawaited coordinator).
+    // When Ditto wrote the doc, we skip the coordinator's duplicate Ditto write
+    // on the Brick upsert (skipDittoSync) — Brick still persists for Supabase.
+    final ditto = dittoService.dittoInstance;
+
+    if (data is Variant) {
+      if (ditto != null) {
+        await ditto.store.execute(
+          "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+          arguments: {'doc': data.toFlipperJson()},
+        );
+      }
+      await repository.upsert<Variant>(data, skipDittoSync: ditto != null);
+      return data as T;
+    }
+
+    if (data is Stock) {
+      if (ditto != null) {
+        await ditto.store.execute(
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+          arguments: {'doc': data.toJson()},
+        );
+      }
+      await repository.upsert<Stock>(data, skipDittoSync: ditto != null);
+      return data as T;
+    }
+
+    if (data is VariantBranch) {
+      if (ditto != null) {
+        await ditto.store.execute(
+          "INSERT INTO variants_branches DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+          arguments: {
+            'doc': {
+              '_id': data.id,
+              'id': data.id,
+              'variantId': data.variantId,
+              'newVariantId': data.newVariantId,
+              'sourceBranchId': data.sourceBranchId,
+              'destinationBranchId': data.destinationBranchId,
+            },
+          },
+        );
+      }
+      await repository.upsert<VariantBranch>(data, skipDittoSync: ditto != null);
+      return data as T;
+    }
+
+    throw UnimplementedError('Capella create<$T> is not supported');
   }
 
   @override
@@ -1908,9 +1957,48 @@ class CapellaSync extends AiStrategyImpl
   Future<VariantBranch?> variantBranch({
     required String variantId,
     required String destinationBranchId,
-  }) {
-    // TODO: implement variantBranch
-    throw UnimplementedError();
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      try {
+        final result = await ditto.store.execute(
+          'SELECT * FROM variants_branches '
+          'WHERE variantId = :variantId '
+          'AND destinationBranchId = :destinationBranchId LIMIT 1',
+          arguments: {
+            'variantId': variantId,
+            'destinationBranchId': destinationBranchId,
+          },
+        );
+        if (result.items.isNotEmpty) {
+          final data = Map<String, dynamic>.from(result.items.first.value);
+          return VariantBranch(
+            id: (data['id'] ?? data['_id'])?.toString(),
+            variantId: data['variantId']?.toString(),
+            newVariantId: data['newVariantId']?.toString(),
+            sourceBranchId: data['sourceBranchId']?.toString(),
+            destinationBranchId: data['destinationBranchId']?.toString(),
+          );
+        }
+      } catch (e, st) {
+        talker.warning('Capella variantBranch Ditto read failed: $e\n$st');
+      }
+    }
+
+    // Fallback: local SQLite (Brick). localOnly (not awaitRemoteWhenNoneExist)
+    // keeps the branch-transfer hot path off a Supabase round-trip; the mapping
+    // is dual-written to Ditto + Brick on create, so local is authoritative for
+    // repeat transfers from this device.
+    final local = await repository.get<VariantBranch>(
+      query: brick.Query(
+        where: [
+          brick.Where('destinationBranchId').isExactly(destinationBranchId),
+          brick.Where('variantId').isExactly(variantId),
+        ],
+      ),
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
+    return local.isEmpty ? null : local.first;
   }
 
   @override

@@ -33,6 +33,7 @@ abstract class StockInterface {
     required String productId,
     required String variantId,
     required String branchId,
+    String? id,
     required double currentStock,
     required double value,
   });

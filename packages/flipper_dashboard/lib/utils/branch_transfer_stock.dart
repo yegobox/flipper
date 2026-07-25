@@ -18,6 +18,175 @@ double onHandFromStock(Stock? stock, {double? qtyFallback}) {
   return qtyFallback ?? 0;
 }
 
+/// Tax type codes shown in the POS catalog regardless of the viewing branch's
+/// VAT setting (regulated fuel / tourism). See `posCatalogTaxTyCds`.
+const _branchVatAgnosticTaxTyCds = {'F', 'TT'};
+
+/// Resolves the tax type code a transferred variant should carry on the
+/// DESTINATION branch, so it is both visible in and taxed correctly by that
+/// branch's POS catalog.
+///
+/// The catalog filters variants by `taxTyCd IN posCatalogTaxTyCds(destVat)`:
+///   VAT-enabled  -> A, B, C, F, TT
+///   VAT-disabled -> D, F, TT
+/// A variant that simply inherits the source branch's code (e.g. VAT 'B') is
+/// otherwise invisible on a non-VAT destination. F/TT are regulated and shown
+/// on both, so they are preserved.
+String destinationTaxTyCd({
+  required String? sourceTaxTyCd,
+  required bool destVatEnabled,
+}) {
+  final code = (sourceTaxTyCd ?? '').trim().toUpperCase();
+  if (_branchVatAgnosticTaxTyCds.contains(code)) return code;
+  if (destVatEnabled) {
+    // Preserve an existing VAT-regime code; default anything else to
+    // standard-rated B (18%).
+    return (code == 'A' || code == 'B' || code == 'C') ? code : 'B';
+  }
+  // Non-VAT destination: everything collapses to the non-VAT code D.
+  return 'D';
+}
+
+/// Standard VAT percentage for a resolved [taxTyCd]: B (standard) = 18,
+/// A/C/D (exempt / zero-rated / non-VAT) = 0. F/TT are regulated, so their
+/// existing rate is kept ([fallback]).
+double? destinationTaxPercentage({required String taxTyCd, num? fallback}) {
+  switch (taxTyCd) {
+    case 'B':
+      return 18.0;
+    case 'A':
+    case 'C':
+    case 'D':
+      return 0.0;
+    default:
+      return fallback?.toDouble();
+  }
+}
+
+/// POS catalog Ditto query excludes import/purchase workflow statuses. Branch
+/// transfers copy the source [Variant] verbatim, so those fields can hide an
+/// otherwise valid destination row from the product grid entirely.
+void prepareDestinationVariantForPosCatalog(Variant variant) {
+  variant.imptItemSttsCd = null;
+  variant.pchsSttsCd = null;
+}
+
+/// Mirrors Capella POS catalog filters (see [CapellaVariantMixin.variants]).
+/// Useful when a raw `SELECT * FROM variants WHERE branchId = …` finds a row
+/// but the product grid does not.
+bool variantPassesPosCatalogFilters(
+  Variant variant, {
+  required bool destVatEnabled,
+}) {
+  const blockedImport = {'2', '4'};
+  const blockedPurchase = {'01', '04'};
+  const blockedNames = {'Cash In', 'Cash Out', 'Utility', 'Custom Amount'};
+
+  final name = variant.name.trim();
+  if (blockedNames.contains(name)) return false;
+
+  final import = variant.imptItemSttsCd?.trim();
+  if (import != null && import.isNotEmpty && blockedImport.contains(import)) {
+    return false;
+  }
+
+  final purchase = variant.pchsSttsCd?.trim();
+  if (purchase != null &&
+      purchase.isNotEmpty &&
+      blockedPurchase.contains(purchase)) {
+    return false;
+  }
+
+  final taxTyCds = destVatEnabled
+      ? const ['A', 'B', 'C', 'F', 'TT']
+      : const ['D', 'F', 'TT'];
+  final tax = variant.taxTyCd?.trim().toUpperCase();
+  if (tax == null || tax.isEmpty || !taxTyCds.contains(tax)) return false;
+
+  return true;
+}
+
+/// Stable Capella stock document id for a branch-transfer destination variant.
+/// Survives missing [Variant.stockId] on the variant row so repeat transfers
+/// increment the same stock doc instead of minting orphans.
+String destinationTransferStockId(String destVariantId) =>
+    '$destVariantId-transfer-stock';
+
+/// Adds [approvedQuantity] to destination on-hand, reading the current Ditto
+/// stock row first (never trusting embedded [Variant.stock] / [Variant.qty]).
+Future<Stock> applyDestinationStockDelta({
+  required Variant destVariant,
+  required String destinationBranchId,
+  required int approvedQuantity,
+}) async {
+  if (approvedQuantity < 1) {
+    throw ArgumentError.value(approvedQuantity, 'approvedQuantity');
+  }
+
+  final capella = ProxyService.getStrategy(Strategy.capella);
+  final candidateStockIds = <String>[];
+  void addCandidate(String? raw) {
+    final id = raw?.trim();
+    if (id == null || id.isEmpty) return;
+    if (!candidateStockIds.contains(id)) candidateStockIds.add(id);
+  }
+
+  addCandidate(destVariant.stockId);
+  addCandidate(destinationTransferStockId(destVariant.id));
+
+  Stock? resolved;
+  for (final stockId in candidateStockIds) {
+    final fetched = await capella.getStockById(id: stockId);
+    if (isAuthenticCapellaStock(fetched)) {
+      resolved = fetched;
+      break;
+    }
+  }
+
+  final now = DateTime.now().toUtc();
+  final unitPrice =
+      (destVariant.retailPrice ?? destVariant.supplyPrice ?? 0).toDouble();
+
+  if (resolved != null) {
+    final base = resolved.currentStock ?? 0;
+    final newQty = base + approvedQuantity;
+    await capella.updateStock(
+      stockId: resolved.id,
+      currentStock: newQty,
+      rsdQty: newQty,
+      value: newQty * unitPrice,
+      lastTouched: now,
+      ebmSynced: false,
+    );
+    resolved
+      ..currentStock = newQty
+      ..rsdQty = newQty
+      ..value = newQty * unitPrice
+      ..lastTouched = now;
+    talker.info(
+      'Branch transfer stock increment: variant=${destVariant.id} '
+      'stockId=${resolved.id} $base + $approvedQuantity = $newQty',
+    );
+    return resolved;
+  }
+
+  final qty = approvedQuantity.toDouble();
+  final created = await capella.saveStock(
+    id: destinationTransferStockId(destVariant.id),
+    rsdQty: qty,
+    currentStock: qty,
+    value: qty * unitPrice,
+    productId: destVariant.productId!,
+    variantId: destVariant.id,
+    branchId: destinationBranchId,
+  );
+  talker.info(
+    'Branch transfer stock create: variant=${destVariant.id} '
+    'stockId=${created.id} qty=$qty',
+  );
+  return created;
+}
+
 /// Resolved Capella on-hand for one transfer line (variant + stock docs).
 class TransferOnHand {
   const TransferOnHand({

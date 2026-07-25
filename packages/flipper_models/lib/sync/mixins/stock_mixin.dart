@@ -181,11 +181,12 @@ mixin StockMixin implements StockInterface {
     required String productId,
     required String variantId,
     required String branchId,
+    String? id,
     required double currentStock,
     required double value,
   }) async {
     final stock = Stock(
-      id: const Uuid().v4(),
+      id: id ?? const Uuid().v4(),
       lastTouched: DateTime.now().toUtc(),
       branchId: branchId,
       currentStock: currentStock,

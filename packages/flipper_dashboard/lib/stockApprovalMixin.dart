@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/utils/branch_transfer_stock.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -160,7 +161,7 @@ mixin StockRequestApprovalLogic {
     try {
       _showLoadingDialog(context);
 
-      await ProxyService.strategy.updateStockRequestItem(
+      await _capella.updateStockRequestItem(
         requestId: request.id,
         transactionItemId: item.id,
         quantityRequested: newQuantity,
@@ -198,7 +199,12 @@ mixin StockRequestApprovalLogic {
       _showLoadingDialog(context);
       loadingVisible = true;
 
-      final canApprove = await _canApproveItem(item: item);
+      // Resolve once and reuse for the eligibility check and the approval.
+      final Variant? variant = await _capella.getVariant(
+        id: item.variantId!,
+      );
+
+      final canApprove = await _canApproveItem(item: item, variant: variant);
       if (!canApprove) {
         loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         if (context.mounted) {
@@ -211,9 +217,6 @@ mixin StockRequestApprovalLogic {
         return;
       }
 
-      final Variant? variant = await _capella.getVariant(
-        id: item.variantId!,
-      );
       if (variant == null) {
         loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         if (context.mounted) {
@@ -248,6 +251,7 @@ mixin StockRequestApprovalLogic {
         item: item,
         approvedQuantity: approvedQuantity,
         request: request,
+        requestedVariant: variant,
       );
 
       // Re-fetch the request to get updated embedded items
@@ -293,15 +297,20 @@ mixin StockRequestApprovalLogic {
     return requested < 1 ? 0 : requested;
   }
 
-  Future<bool> _canApproveItem({required TransactionItem item}) async {
-    final Variant? variant = await _capella.getVariant(
+  /// [variant] lets callers pass an already-resolved variant to avoid a
+  /// redundant Capella round-trip; when null it is fetched.
+  Future<bool> _canApproveItem({
+    required TransactionItem item,
+    Variant? variant,
+  }) async {
+    final Variant? v = variant ?? await _capella.getVariant(
       id: item.variantId!,
     );
 
-    final availableStock = variant?.stock?.currentStock;
-    if (variant == null ||
+    final availableStock = v?.stock?.currentStock;
+    if (v == null ||
         availableStock == null ||
-        (variant.stock?.branchId.trim().isEmpty ?? true)) {
+        (v.stock?.branchId.trim().isEmpty ?? true)) {
       return false;
     }
 
@@ -328,7 +337,7 @@ mixin StockRequestApprovalLogic {
       // If the item is already fully approved, we don't need to do anything
       if ((item.quantityApproved ?? 0) >= requested) {
         // Heal DB
-        await ProxyService.strategy.updateStockRequestItem(
+        await _capella.updateStockRequestItem(
           requestId: request.id,
           transactionItemId: item.id,
           quantityApproved: item.quantityApproved ?? requested,
@@ -336,12 +345,19 @@ mixin StockRequestApprovalLogic {
         return const _ItemApprovalResult(ok: true);
       }
 
-      if (await _canApproveItem(item: item)) {
+      // Resolve the source variant once and thread it through validation and
+      // approval. Previously each stage re-fetched the same variant (~5 Capella
+      // round-trips per line item); the post-mutation reads that must reflect
+      // the stock deduction stay fresh below.
+      final sourceVariant = await _capella.getVariant(id: item.variantId!);
+
+      if (await _canApproveItem(item: item, variant: sourceVariant)) {
         final line = await _approveItem(
           item: item,
           subBranchId: subBranchId,
           request: request,
           sourceBranchId: sourceBranchId,
+          variant: sourceVariant,
         );
         return _ItemApprovalResult(ok: true, line: line);
       }
@@ -357,16 +373,17 @@ mixin StockRequestApprovalLogic {
     required String subBranchId,
     required String sourceBranchId,
     required InventoryRequest request,
+    Variant? variant,
   }) async {
     try {
-      final Variant? variant = await _capella.getVariant(
+      final Variant? v = variant ?? await _capella.getVariant(
         id: item.variantId!,
       );
-      if (variant == null) {
+      if (v == null) {
         throw Exception('Variant not found');
       }
 
-      final double availableStock = variant.stock?.currentStock ?? 0;
+      final double availableStock = v.stock?.currentStock ?? 0;
       final int requestedQuantity = _requestedQty(item);
       final int approvedQuantity = availableStock >= requestedQuantity
           ? requestedQuantity
@@ -377,6 +394,7 @@ mixin StockRequestApprovalLogic {
         item: item,
         approvedQuantity: approvedQuantity,
         request: request,
+        requestedVariant: v,
       );
       item.quantityApproved = approvedQuantity;
       item.quantityRequested ??= requestedQuantity;
@@ -388,18 +406,15 @@ mixin StockRequestApprovalLogic {
   }
 
   Future<Stock> _createNewStockForSharedVariant({
-    required TransactionItem item,
     required Variant variant,
     required String destinationBranchId,
+    required int approvedQuantity,
   }) async {
     try {
-      return await _capella.saveStock(
-        rsdQty: item.quantityRequested!.toDouble(),
-        currentStock: item.quantityRequested!.toDouble(),
-        value: (item.quantityRequested! * variant.retailPrice!).toDouble(),
-        productId: variant.productId!,
-        variantId: variant.id, // use the new variant's ID
-        branchId: destinationBranchId, // Use the destination branch ID
+      return await applyDestinationStockDelta(
+        destVariant: variant,
+        destinationBranchId: destinationBranchId,
+        approvedQuantity: approvedQuantity,
       );
     } catch (e, s) {
       talker.error('Error creating new stock for shared variant', e, s);
@@ -461,7 +476,7 @@ mixin StockRequestApprovalLogic {
     bool suppressCompletionSnackbars = false,
   }) async {
     try {
-      await ProxyService.strategy.updateStockRequest(
+      await _capella.updateStockRequest(
         stockRequestId: request.id,
         updatedAt: DateTime.now().toUtc(),
         status: isFullyApproved
@@ -647,7 +662,7 @@ mixin StockRequestApprovalLogic {
               itemBuilder: (context, index) {
                 final TransactionItem item = items[index];
                 return FutureBuilder<Variant?>(
-                  future: ProxyService.strategy.getVariant(id: item.variantId!),
+                  future: _capella.getVariant(id: item.variantId!),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return CircularProgressIndicator(); // Or some loading indicator
@@ -857,13 +872,14 @@ mixin StockRequestApprovalLogic {
     required TransactionItem item,
     required int approvedQuantity,
     required InventoryRequest request,
+    Variant? requestedVariant,
   }) async {
     try {
-      final Variant? requestedVariant = await _capella.getVariant(
+      final Variant? reqVariant = requestedVariant ?? await _capella.getVariant(
         id: item.variantId!,
       );
 
-      if (requestedVariant == null) {
+      if (reqVariant == null) {
         talker.error('Variant not found for ID: ${item.variantId!}');
         throw Exception('Variant not found');
       }
@@ -872,19 +888,21 @@ mixin StockRequestApprovalLogic {
       final destVariant = await _handleVariantAndStockInternal(
         item: item,
         request: request,
-        variant: requestedVariant,
+        variant: reqVariant,
         approvedQuantity: approvedQuantity,
       );
 
-      // Then update the main branch stock
+      // Then update the main branch stock. Source stock is unchanged until this
+      // call, so the already-resolved variant is safe to reuse here.
       await _updateMainBranchStock(
-        variantId: requestedVariant.id,
+        variantId: reqVariant.id,
         approvedQuantity: approvedQuantity,
         isDeducting: true,
+        variant: reqVariant,
       );
 
       // Finally update the embedded transaction item in the request
-      await ProxyService.strategy.updateStockRequestItem(
+      await _capella.updateStockRequestItem(
         requestId: request.id,
         transactionItemId: item.id,
         ignoreForReport: false,
@@ -893,8 +911,10 @@ mixin StockRequestApprovalLogic {
 
       if (approvedQuantity <= 0) return null;
 
+      // Post-mutation reads: must reflect the stock deduction above, so these
+      // are intentionally fresh (not reused from the resolved variant).
       final sourceVariant = await _capella.getVariant(
-        id: requestedVariant.id,
+        id: reqVariant.id,
       );
       final destFresh = await _capella.getVariant(
         id: destVariant.id,
@@ -922,10 +942,25 @@ mixin StockRequestApprovalLogic {
     required int approvedQuantity,
   }) async {
     variant.isShared = true;
-    await ProxyService.strategy.updateVariant(updatables: [variant]);
+    await _capella.updateVariant(updatables: [variant]);
+
+    // The destination branch's POS catalog filters variants by a tax-code set
+    // derived from ITS VAT setting. A transferred variant that keeps the source
+    // branch's code is invisible (and mis-taxed) when the branches' VAT regimes
+    // differ, so resolve the destination VAT status and re-code accordingly.
+    // Local-first to stay off the network for the operator's own branch.
+    var destEbm = await ProxyService.strategy.ebm(
+      branchId: request.subBranchId!,
+      fetchRemote: false,
+    );
+    destEbm ??= await ProxyService.strategy.ebm(
+      branchId: request.subBranchId!,
+      fetchRemote: true,
+    );
+    final bool destVatEnabled = destEbm?.vatEnabled ?? false;
 
     // Check if this variant has already been ordered by this branch
-    VariantBranch? existingVariantBranch = await ProxyService.strategy
+    VariantBranch? existingVariantBranch = await _capella
         .variantBranch(
           variantId: variant.id,
           destinationBranchId: request.subBranchId!,
@@ -937,33 +972,43 @@ mixin StockRequestApprovalLogic {
         id: existingVariantBranch.newVariantId,
       );
       if (existingVariant != null) {
-        // Update the existing variant's stock if it exists
-        if (existingVariant.stock != null &&
-            existingVariant.stock!.branchId.trim().isNotEmpty) {
-          await _capella.updateStock(
-            stockId: existingVariant.stock!.id,
-            currentStock:
-                existingVariant.stock!.currentStock! + approvedQuantity,
-            value:
-                (existingVariant.stock!.currentStock! + approvedQuantity) *
-                existingVariant.retailPrice!,
-            rsdQty: existingVariant.stock!.currentStock! + approvedQuantity,
-            lastTouched: DateTime.now().toUtc(),
-            ebmSynced: false,
-          );
-        } else {
-          // Create new stock for the existing variant if it doesn't have one
-          final stock = await _createNewStockForSharedVariant(
-            item: item,
-            variant: existingVariant,
-            destinationBranchId: request.subBranchId!,
-          );
-          existingVariant.stock = stock;
-          existingVariant.stockId = stock.id;
-          await ProxyService.strategy.updateVariant(
-            updatables: [existingVariant],
+        prepareDestinationVariantForPosCatalog(existingVariant);
+
+        // Heal tax coding for the destination VAT regime — variants created by
+        // an earlier transfer (before this fix) may carry the source branch's
+        // code, keeping them hidden on the destination until re-transferred.
+        final healCode = destinationTaxTyCd(
+          sourceTaxTyCd: existingVariant.taxTyCd,
+          destVatEnabled: destVatEnabled,
+        );
+        if (existingVariant.taxTyCd != healCode) {
+          existingVariant.taxTyCd = healCode;
+          existingVariant.taxName = healCode;
+          existingVariant.taxPercentage = destinationTaxPercentage(
+            taxTyCd: healCode,
+            fallback: existingVariant.taxPercentage,
           );
         }
+        // Increment destination on-hand from Ditto truth (variant.stock / qty
+        // placeholders must not be used — they caused repeat transfers to reset
+        // or skip qty when stockId was missing on the variant document).
+        final stock = await applyDestinationStockDelta(
+          destVariant: existingVariant,
+          destinationBranchId: request.subBranchId!,
+          approvedQuantity: approvedQuantity,
+        );
+        existingVariant.stock = stock;
+        existingVariant.stockId = stock.id;
+        // Persist tax/import/purchase heals + stockId link for POS catalog.
+        await _capella.updateVariant(updatables: [existingVariant]);
+        talker.info(
+          'Branch transfer CREATE(existing): destVariant=${existingVariant.id} '
+          'name="${existingVariant.name}" branchId=${existingVariant.branchId} '
+          'taxTyCd=${existingVariant.taxTyCd} '
+          'stockId=${existingVariant.stockId} '
+          'destBranchId=${request.subBranchId} destVatEnabled=$destVatEnabled '
+          'stock.currentStock=${existingVariant.stock?.currentStock}',
+        );
         return existingVariant;
       }
     }
@@ -972,14 +1017,29 @@ mixin StockRequestApprovalLogic {
     final String newVariantId = const Uuid().v4();
     final String newModrId = const Uuid().v4().substring(0, 5);
 
+    // Re-code the new destination variant for the destination VAT regime so it
+    // passes that branch's POS catalog taxTyCd filter (and taxes correctly).
+    final destTaxTyCd = destinationTaxTyCd(
+      sourceTaxTyCd: variant.taxTyCd,
+      destVatEnabled: destVatEnabled,
+    );
+    final now = DateTime.now().toUtc();
     final newVariant = variant.copyWith(
       id: newVariantId,
       modrId: newModrId,
       isShared: true,
       branchId: request.subBranchId!,
+      taxTyCd: destTaxTyCd,
+      taxName: destTaxTyCd,
+      taxPercentage: destinationTaxPercentage(
+        taxTyCd: destTaxTyCd,
+        fallback: variant.taxPercentage,
+      ),
+      lastTouched: now,
     );
+    prepareDestinationVariantForPosCatalog(newVariant);
 
-    final createdVariant = await ProxyService.strategy.create<Variant>(
+    final createdVariant = await _capella.create<Variant>(
       data: newVariant,
     );
     if (createdVariant == null) {
@@ -988,18 +1048,18 @@ mixin StockRequestApprovalLogic {
 
     // Create stock for the new variant
     final stock = await _createNewStockForSharedVariant(
-      item: item,
-      variant: newVariant,
+      variant: createdVariant,
       destinationBranchId: request.branch!.id,
+      approvedQuantity: approvedQuantity,
     );
 
     // Update the variant with the new stock
     createdVariant.stock = stock;
     createdVariant.stockId = stock.id;
-    await ProxyService.strategy.updateVariant(updatables: [createdVariant]);
+    await _capella.updateVariant(updatables: [createdVariant]);
 
     // Create the variant branch mapping
-    Branch? sourceBranch = await ProxyService.strategy.branch(
+    Branch? sourceBranch = await _capella.branch(
       serverId: request.mainBranchId!,
     );
     if (sourceBranch == null) {
@@ -1013,7 +1073,15 @@ mixin StockRequestApprovalLogic {
       destinationBranchId: request.branch!.id,
     );
 
-    await ProxyService.strategy.create<VariantBranch>(data: variantBranch);
+    await _capella.create<VariantBranch>(data: variantBranch);
+
+    talker.info(
+      'Branch transfer CREATE(new): destVariant=${createdVariant.id} '
+      'name="${createdVariant.name}" branchId=${createdVariant.branchId} '
+      'taxTyCd=${createdVariant.taxTyCd} stockId=${createdVariant.stockId} '
+      'destBranchId=${request.subBranchId} destVatEnabled=$destVatEnabled '
+      'stock.branchId=${stock.branchId} stock.currentStock=${stock.currentStock}',
+    );
 
     return createdVariant;
   }
@@ -1022,27 +1090,28 @@ mixin StockRequestApprovalLogic {
     required String variantId,
     required int approvedQuantity,
     required bool isDeducting,
+    Variant? variant,
   }) async {
     try {
-      final Variant? variant = await _capella.getVariant(
+      final Variant? v = variant ?? await _capella.getVariant(
         id: variantId,
       );
 
-      if (variant?.stock == null ||
-          variant!.stock!.branchId.trim().isEmpty) {
+      if (v?.stock == null ||
+          v!.stock!.branchId.trim().isEmpty) {
         talker.error('Stock not found for variant: $variantId');
         throw Exception('Stock not found');
       }
 
-      final double currentStock = variant.stock!.currentStock!;
+      final double currentStock = v.stock!.currentStock!;
       final double updatedStock = isDeducting
           ? (currentStock - approvedQuantity.toDouble())
           : (currentStock + approvedQuantity.toDouble());
 
       await _capella.updateStock(
-        stockId: variant.stock!.id,
+        stockId: v.stock!.id,
         currentStock: updatedStock,
-        value: updatedStock * variant.retailPrice!,
+        value: updatedStock * v.retailPrice!,
         rsdQty: updatedStock,
         lastTouched: DateTime.now().toUtc(),
         ebmSynced: false,

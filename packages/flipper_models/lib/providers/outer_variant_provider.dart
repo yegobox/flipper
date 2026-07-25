@@ -84,8 +84,12 @@ class OuterVariants extends _$OuterVariants {
       '(pref=${prefIpp ?? 'null'}, default=$_defaultPageSize, max=$_maxPageSize)',
     );
 
-    // Shared with home pre-warm ([warmMobilePosForCheckout] reads [ebmVatEnabledProvider]).
-    _isVatEnabled = await ref.watch(ebmVatEnabledProvider.future);
+    // VAT regime MUST follow the branch this provider is displaying, not the
+    // ambient getBranchId(). ebmVatEnabledProvider reads getBranchId() and is
+    // keepAlive, so after a branch switch the catalog would keep the previous
+    // branch's tax-code set — filtering out items (e.g. cross-VAT transfers)
+    // that are correctly coded for THIS branch. Resolve VAT for [branchId].
+    _isVatEnabled = await _resolveBranchVatEnabled(branchId);
 
     _currentSearch = ref.read(searchStringProvider);
 
@@ -112,6 +116,23 @@ class OuterVariants extends _$OuterVariants {
     _lastCachedPage = 0;
 
     return _flattenContiguousPages();
+  }
+
+  /// VAT status for the branch being displayed (local-first; one remote retry
+  /// only if the branch has no local EBM row yet). Keeps the catalog's tax-code
+  /// filter aligned with [branchId] rather than the ambient current branch.
+  Future<bool> _resolveBranchVatEnabled(String branchId) async {
+    if (branchId.isEmpty) return false;
+    try {
+      var ebm =
+          await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: false);
+      ebm ??=
+          await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+      return ebm?.vatEnabled ?? false;
+    } catch (e) {
+      talker.warning('OuterVariants: VAT lookup failed for $branchId: $e');
+      return false;
+    }
   }
 
   /// Search updates without re-running [build] (keeps current grid visible).
@@ -174,6 +195,10 @@ class OuterVariants extends _$OuterVariants {
 
     final taxTyCds = posCatalogTaxTyCds(vatEnabled: _isVatEnabled);
     final currentScanMode = ref.read(scanningModeProvider);
+    talker.info(
+      'OuterVariants: query branchId=$branchId vatEnabled=$_isVatEnabled '
+      'taxTyCds=$taxTyCds search="$searchString"',
+    );
 
     final paged = await ProxyService.getStrategy(Strategy.capella).variants(
       name: searchString.toLowerCase(),
