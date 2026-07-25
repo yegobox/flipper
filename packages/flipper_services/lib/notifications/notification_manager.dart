@@ -147,5 +147,7 @@ Future<void> notificationCallback(NotificationResponse response) async {
     case NotificationResponseType.selectedNotificationAction:
       notificationResponseStream.add(response);
       break;
+    case NotificationResponseType.notificationDismissed:
+      break;
   }
 }

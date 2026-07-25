@@ -48,7 +48,7 @@ dependencies:
   google_fonts: ^6.1.0
   shared_preferences: ^2.5.2
   # newrelic_mobile: ^1.1.12
-  flutter_local_notifications: ^22.0.1
+  flutter_local_notifications: ^22.2.0
  
   window_manager: ^0.5.1
   launcher_entry: ^0.1.1
