@@ -2171,24 +2171,32 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                 .toCurrencyFormatted(
                                   symbol: ProxyService.box.defaultCurrency(),
                                 );
-                            final ticketReviewWorkflowEnabled =
-                                ProxyService.box.readBool(
-                                  key: 'ticketReviewWorkflowEnabled',
-                                ) ??
-                                false;
-                            final payWording =
-                                (_remainingBalance(alreadyPaid, payments) > 0)
-                                ? context.flipperL10n.recordPaymentWithAmount(
-                                    paymentAmount,
-                                  )
-                                : ticketReviewWorkflowEnabled
-                                ? context.flipperL10n
-                                      .sendForReviewWithAmount(dueAmount)
-                                : context.flipperL10n.payWithAmount(dueAmount);
-                            return PayableView(
-                              transactionId:
-                                  transactionAsyncValue.value?.id ?? "",
-                              wording: payWording,
+                            // Listen so Admin → Ticket Review toggle flips
+                            // Pay / Send for Review without leaving checkout.
+                            return ListenableBuilder(
+                              listenable: ProxyService.settings,
+                              builder: (context, _) {
+                                final ticketReviewWorkflowEnabled =
+                                    ProxyService
+                                        .settings
+                                        .enableTicketReviewWorkflow;
+                                final payWording =
+                                    (_remainingBalance(alreadyPaid, payments) >
+                                        0)
+                                    ? context.flipperL10n
+                                          .recordPaymentWithAmount(
+                                            paymentAmount,
+                                          )
+                                    : ticketReviewWorkflowEnabled
+                                    ? context.flipperL10n
+                                          .sendForReviewWithAmount(dueAmount)
+                                    : context.flipperL10n.payWithAmount(
+                                        dueAmount,
+                                      );
+                                return PayableView(
+                                  transactionId:
+                                      transactionAsyncValue.value?.id ?? "",
+                                  wording: payWording,
                               mode: SellingMode.forSelling,
                               canCollectPayment:
                                   ref.watch(canCollectPosPaymentProvider),
@@ -2280,6 +2288,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                 ref.read(toggleProvider.notifier).state = false;
                               },
                               digitalPaymentEnabled: digitalPaymentEnabled,
+                            );
+                              },
                             );
                           },
                         ),

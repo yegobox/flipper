@@ -58,10 +58,9 @@ class PayableView extends HookConsumerWidget {
   /// explicit "Pay • {amount}" / "Send for Review • {amount}" string).
   String get _resolvedWording {
     if (wording != null) return wording!;
-    final ticketReviewWorkflowEnabled =
-        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
-            false;
-    return ticketReviewWorkflowEnabled ? 'Send for Review' : 'Pay';
+    return ProxyService.settings.enableTicketReviewWorkflow
+        ? 'Send for Review'
+        : 'Pay';
   }
 
   /// Stacked Tickets / Pay instead of a single row.
@@ -111,26 +110,32 @@ class PayableView extends HookConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final body = _useVerticalCheckoutBar(
-          context,
-          constraints: constraints,
-        )
-            ? _buildVerticalLayout(
-                context,
-                ref,
-                ticketsVisible,
-                pendingCount,
-              )
-            : _buildHorizontalLayout(
-                context,
-                ref,
-                ticketsVisible,
-                pendingCount,
-              );
+        // Rebuild Pay / Send for Review when Admin toggles Ticket Review.
+        return ListenableBuilder(
+          listenable: ProxyService.settings,
+          builder: (context, _) {
+            final body = _useVerticalCheckoutBar(
+              context,
+              constraints: constraints,
+            )
+                ? _buildVerticalLayout(
+                    context,
+                    ref,
+                    ticketsVisible,
+                    pendingCount,
+                  )
+                : _buildHorizontalLayout(
+                    context,
+                    ref,
+                    ticketsVisible,
+                    pendingCount,
+                  );
 
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
-          child: body,
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
+              child: body,
+            );
+          },
         );
       },
     );

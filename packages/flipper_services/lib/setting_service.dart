@@ -123,6 +123,15 @@ class SettingsService with ListenableServiceMixin {
         lastTouched: DateTime.now().toUtc(),
       );
 
+      if (map.containsKey('enableTicketReviewWorkflow')) {
+        _enableTicketReviewWorkflow.value =
+            map['enableTicketReviewWorkflow'] as bool;
+        await ProxyService.box.writeBool(
+          key: 'ticketReviewWorkflowEnabled',
+          value: map['enableTicketReviewWorkflow'] as bool,
+        );
+      }
+
       await ProxyService.getStrategy(
         Strategy.capella,
       ).patchSettings(setting: newSetting);
@@ -307,11 +316,17 @@ class SettingsService with ListenableServiceMixin {
     required bool enabled,
     required String businessId,
   }) async {
+    // Apply locally first so Pay / Send-for-Review labels and payment paths
+    // update immediately (they listen to / read SettingsService).
+    _enableTicketReviewWorkflow.value = enabled;
+    await ProxyService.box.writeBool(
+      key: 'ticketReviewWorkflowEnabled',
+      value: enabled,
+    );
+    notifyListeners();
     await updateSettings(
       map: {'enableTicketReviewWorkflow': enabled, 'businessId': businessId},
     );
-    _enableTicketReviewWorkflow.value = enabled;
-    notifyListeners();
   }
 
   Future<void> setAdminPin({

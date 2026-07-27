@@ -97,7 +97,7 @@ mixin TransactionMixinOld {
       // behave exactly as today. When the setting is OFF this branch is skipped
       // and completion is byte-identical to before.
       final ticketReviewWorkflowEnabled =
-          ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+          ProxyService.settings.enableTicketReviewWorkflow;
       final deferForReview =
           ticketReviewWorkflowEnabled && !isLoan && shouldComplete && isFullyPaid;
       talker.debug(
@@ -883,8 +883,7 @@ mixin TransactionMixinOld {
       final persistedCompletionStatus = applyTicketReviewWorkflowRedirect(
         derivedStatus: derivedCompletion.status,
         ticketReviewWorkflowEnabled:
-            ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
-                false,
+            ProxyService.settings.enableTicketReviewWorkflow,
       );
 
       // NOTE: do NOT mutate transaction.isLoan here. Setting it before

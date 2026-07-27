@@ -232,7 +232,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // COMPLETE. When the workflow is off they never occur; the OR is kept for
         // any legacy rows signed at payment time.
         final deferReviewRows =
-            ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+            ProxyService.settings.enableTicketReviewWorkflow;
         if (effectiveStatus == COMPLETE && !deferReviewRows) {
           whereClauses.add(
             '(status = :status OR status = :pendingReviewStatus OR status = :awaitingHandoverStatus)',
@@ -902,8 +902,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           // (workflow ON) pendingReview/awaitingHandover are paid-but-unsigned and
           // must stay out of fiscal/completed reports until they reach COMPLETE.
           final deferReviewRows =
-              ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
-                  false;
+              ProxyService.settings.enableTicketReviewWorkflow;
           if (effectiveStatus == COMPLETE && !deferReviewRows) {
             whereClauses.add(
               '(status = :status OR status = :pendingReviewStatus OR status = :awaitingHandoverStatus)',

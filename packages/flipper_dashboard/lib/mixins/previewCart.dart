@@ -852,10 +852,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             // deduction (local + RRA) is deferred to the Stock Manager's
             // handover step, alongside tax signing + receipt. Loans/parked and
             // workflow-off sales deduct now, as before.
-            final reviewWorkflowDefersStock = (ProxyService.box.readBool(
-                      key: 'ticketReviewWorkflowEnabled',
-                    ) ??
-                    false) &&
+            final reviewWorkflowDefersStock =
+                ProxyService.settings.enableTicketReviewWorkflow &&
                 !mark.wasLoan;
             if (!reviewWorkflowDefersStock) {
               schedulePostSaleStockDeduction();
@@ -1027,8 +1025,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // `derived.status` is still used above/below for loan/remaining-balance
     // math, which must not be affected by the review gate.
     final ticketReviewWorkflowEnabledForMark =
-        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ??
-            false;
+        ProxyService.settings.enableTicketReviewWorkflow;
     final persistedStatus = applyTicketReviewWorkflowRedirect(
       derivedStatus: derived.status,
       ticketReviewWorkflowEnabled: ticketReviewWorkflowEnabledForMark,
@@ -1424,10 +1421,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 // path (`_finalStepInCompletingTransaction` above) — stock
                 // deduction (local + RRA) is deferred to the Stock Manager's
                 // handover step for a fully-paid digital-payment sale too.
-                final reviewWorkflowDefersStock = (ProxyService.box.readBool(
-                          key: 'ticketReviewWorkflowEnabled',
-                        ) ??
-                        false) &&
+                final reviewWorkflowDefersStock =
+                    ProxyService.settings.enableTicketReviewWorkflow &&
                     !mark.wasLoan;
                 if (!reviewWorkflowDefersStock) {
                   schedulePostSaleStockDeductionAndRraSync(

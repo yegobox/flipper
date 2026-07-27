@@ -230,7 +230,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   String? _collectingTicketId;
 
   bool get _ticketReviewWorkflowEnabled =>
-      ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+      ProxyService.settings.enableTicketReviewWorkflow;
 
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
@@ -1136,7 +1136,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // the ticket stays in awaitingHandover so nothing is lost and the user
     // can retry. When the workflow is off, the sale was already finalized at Pay.
     final reviewWorkflowOn =
-        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+        ProxyService.settings.enableTicketReviewWorkflow;
     try {
       if (reviewWorkflowOn) {
         await finalizeTicketHandover(context: context, ticket: ticket);
@@ -1329,7 +1329,7 @@ class _RecordHandoverDialog extends StatelessWidget {
     final media = MediaQuery.sizeOf(context);
     final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
     final reviewWorkflowOn =
-        ProxyService.box.readBool(key: 'ticketReviewWorkflowEnabled') ?? false;
+        ProxyService.settings.enableTicketReviewWorkflow;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
