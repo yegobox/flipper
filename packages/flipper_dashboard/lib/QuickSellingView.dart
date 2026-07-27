@@ -22,6 +22,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
+import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/park_transaction_provider.dart';
@@ -263,7 +264,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   /// Transaction the checkout is acting on: the till ticket being settled (once
-  /// its row has loaded), else the operator's own active pending cart.
+  /// its row has loaded), else the pending cart that owns the on-screen lines.
   ITransaction? _activeCheckoutTransaction() {
     final isExpense = ProxyService.box.isOrdering() ?? false;
     final settling = ref.read(settlingTillTicketProvider);
@@ -272,9 +273,50 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ref.read(transactionByIdProvider(settling.transactionId)).value;
       if (ticket != null) return ticket;
     }
-    return ref
-        .read(pendingTransactionStreamProvider(isExpense: isExpense))
-        .value;
+    return _pendingCartMatchingDisplay(
+      isExpense: isExpense,
+      streamed: ref
+          .read(pendingTransactionStreamProvider(isExpense: isExpense))
+          .value,
+      cached: readCachedPendingCartTransactionWidget(ref, isExpense: isExpense),
+    );
+  }
+
+  /// Prefer the pending row that owns [posCartDisplayItemsProvider] lines so
+  /// Send-for-Review never targets a freshly minted empty twin (see log
+  /// displayTxnIds ≠ completion txn).
+  ITransaction? _pendingCartMatchingDisplay({
+    required bool isExpense,
+    required ITransaction? streamed,
+    required ITransaction? cached,
+  }) {
+    final displayTxnIds = ref
+        .read(posCartDisplayItemsProvider)
+        .map((i) => i.transactionId)
+        .whereType<String>()
+        .where(
+          (id) =>
+              id.isNotEmpty && !OptimisticCartBootstrap.isBootstrap(id),
+        )
+        .toSet();
+    if (displayTxnIds.length == 1) {
+      final id = displayTxnIds.single;
+      if (streamed != null && streamed.id == id) return streamed;
+      if (cached != null && cached.id == id) return cached;
+    }
+    // Empty cart: prefer primed cache so Txn ID flips with "Sent for review"
+    // before the Ditto stream drops the just-sent ticket.
+    if (cached != null &&
+        cached.id.isNotEmpty &&
+        cached.status == PENDING) {
+      return cached;
+    }
+    if (streamed != null &&
+        streamed.id.isNotEmpty &&
+        streamed.status == PENDING) {
+      return streamed;
+    }
+    return null;
   }
 
   double _calculateTotal({List<TransactionItem>? items}) {
@@ -445,18 +487,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// Invoice number + current pending cart transaction id.
   ///
   /// **Note:** [highestCounterProvider] is the next invoice sequence, not the
-  /// Ditto transaction `_id`. The **Txn ID** label is the live pending cart from
-  /// [pendingTransactionStreamProvider].
+  /// Ditto transaction `_id`. The **Txn ID** label matches the cart / Pay target.
   Widget _buildCheckoutHeaderMeta({required String branchId}) {
     final isExpense = ProxyService.box.isOrdering() ?? false;
     // Prefer the till ticket being settled so the header matches the settling
     // banner; otherwise show the operator's own pending cart.
     final settling = ref.watch(settlingTillTicketProvider);
+    final cachedPending =
+        ref.watch(cachedPendingCartTransactionProvider(isExpense));
+    final streamedPending = ref
+        .watch(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value;
     final pendingTxn = (settling != null && settling.transactionId.isNotEmpty)
         ? ref.watch(transactionByIdProvider(settling.transactionId)).value
-        : ref
-            .watch(pendingTransactionStreamProvider(isExpense: isExpense))
-            .value;
+        : _pendingCartMatchingDisplay(
+            isExpense: isExpense,
+            streamed: streamedPending,
+            cached: cachedPending,
+          );
     final txnId = pendingTxn?.id;
     final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
 
@@ -1042,18 +1090,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
 
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
-    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
     resetDigitalReceiptToggle(ref);
 
     if (!mounted) {
+      ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
       return;
     }
 
-    // Empty the cart immediately so the operator can start the next sale
-    // without waiting for the stream/pending providers below to reconcile.
-    // Suppress at the provider source so every consumer (list, totals, badges)
-    // clears in the same frame; also drop the mixin's in-widget line cache.
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final branchId = ProxyService.box.getBranchId() ?? '0';
+
+    // Empty the cart *before* clearing [transactionCompleting] so grid taps
+    // stay blocked until the old ticket is suppressed.
+    //
+    // Do NOT clear the pending-cart cache first — markTransactionAsCompleted
+    // already wrote the next pending id there. Clearing creates a gap where the
+    // header falls back to the stale stream row (old Txn ID).
     ref.read(suppressedCartTransactionIdProvider.notifier).state =
         transaction.id;
     clearCartLinesOptimistically();
@@ -1061,16 +1114,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ref
         .read(optimisticCartProvider.notifier)
         .clearForTransaction(transaction.id);
-    clearCachedPendingCartTransactionWidget(
-      ref,
-      isExpense: ProxyService.box.isOrdering() ?? false,
-    );
 
     // Clear stale cart items for the completed transaction.
     ref.invalidate(
       transactionItemsStreamProvider(
         transactionId: transaction.id,
-        branchId: ProxyService.box.getBranchId() ?? '0',
+        branchId: branchId,
       ),
     );
 
@@ -1086,15 +1135,63 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     widget.customerPhoneNumberController.clear();
     ref.read(customerNameControllerProvider).clear();
 
-    ref.invalidate(
-      pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false,
-      ),
-    );
+    // Reuse the next pending already primed during mark when present;
+    // otherwise mint/resolve one so Txn ID still updates before unlock.
+    final cachedNext =
+        readCachedPendingCartTransactionWidget(ref, isExpense: isExpense);
+    ITransaction? nextPending =
+        (cachedNext != null &&
+            cachedNext.id.isNotEmpty &&
+            cachedNext.id != transaction.id &&
+            cachedNext.status == PENDING)
+        ? cachedNext
+        : null;
+    if (nextPending == null) {
+      try {
+        nextPending = await ProxyService.getStrategy(Strategy.capella)
+            .manageTransaction(
+          transactionType:
+              isExpense ? TransactionType.purchase : TransactionType.sale,
+          isExpense: isExpense,
+          branchId: branchId,
+        );
+      } catch (e, s) {
+        tv_talk.talker.error(
+          'Failed to prime next pending cart after sale completion',
+          e,
+          s,
+        );
+      }
+    }
+    if (nextPending != null &&
+        nextPending.id.isNotEmpty &&
+        nextPending.id != transaction.id &&
+        nextPending.status == PENDING) {
+      writeCachedPendingCartTransactionWidget(
+        ref,
+        isExpense: isExpense,
+        transaction: nextPending,
+      );
+      ref
+          .read(optimisticCartProvider.notifier)
+          .bindPendingTransaction(nextPending.id);
+      if (ref.read(suppressedCartTransactionIdProvider) == transaction.id) {
+        ref.read(suppressedCartTransactionIdProvider.notifier).state = null;
+      }
+    } else {
+      clearCachedPendingCartTransactionWidget(ref, isExpense: isExpense);
+    }
 
     if (ref.read(previewingCart)) {
       ref.read(previewingCart.notifier).state = false;
     }
+
+    if (mounted) {
+      setState(() {});
+      await WidgetsBinding.instance.endOfFrame;
+    }
+
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
   }
 
   Future<void> _clearTransferCart(
@@ -1312,11 +1409,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       widget.receivedAmountController.text = formatTenderAmount(totalPaid);
     });
 
+    final isExpense = ProxyService.box.isOrdering() ?? false;
     final basePendingTransaction = ref.watch(
-      pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false,
-      ),
+      pendingTransactionStreamProvider(isExpense: isExpense),
     );
+    final cachedPending =
+        ref.watch(cachedPendingCartTransactionProvider(isExpense));
     // While settling a queued till ticket, drive the whole checkout (summary,
     // payment init, and — critically — completion) from that ticket rather than
     // the collector's own pending cart. Fall back to the pending cart until the
@@ -1325,9 +1423,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final settlingTxn = settlingTicket == null
         ? null
         : ref.watch(transactionByIdProvider(settlingTicket.transactionId)).value;
-    final transactionAsyncValue = settlingTxn != null
+    // Rebuild when cart lines change so Pay tracks the txn that owns them.
+    ref.watch(posCartDisplayItemsProvider);
+    final matched = settlingTxn != null
+        ? null
+        : _pendingCartMatchingDisplay(
+            isExpense: isExpense,
+            streamed: basePendingTransaction.value,
+            cached: cachedPending,
+          );
+    final AsyncValue<ITransaction> transactionAsyncValue = settlingTxn != null
         ? AsyncValue<ITransaction>.data(settlingTxn)
-        : basePendingTransaction;
+        : (matched != null
+            ? AsyncValue<ITransaction>.data(matched)
+            : basePendingTransaction);
     final attachedCustomerId = transactionAsyncValue.value?.customerId;
     if (attachedCustomerId != null && attachedCustomerId.isNotEmpty) {
       ref.watch(attachedCustomerProvider(attachedCustomerId));

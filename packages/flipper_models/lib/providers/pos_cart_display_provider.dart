@@ -7,6 +7,7 @@ import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -192,10 +193,19 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   final mergeTxnId = ref.watch(posCartMergeTxnIdProvider(isExpense));
   final pinnedTxnId = ref.watch(pinnedPosCartTransactionIdProvider);
   final branchId = ProxyService.box.getBranchId() ?? '0';
+  final cachedPending =
+      readCachedPendingCartTransaction(ref, isExpense: isExpense);
+  // Prefer the pending cart's own branch (where saveTransactionItem wrote
+  // lines). Using only the box branch made the stream show rows while a
+  // branch-scoped completion poll for transaction.branchId returned [].
+  final cachedBranch = cachedPending?.branchId?.trim();
   final mergeBranchId = pinnedTxnId != null && pinnedTxnId.isNotEmpty
-      ? (readCachedPendingCartTransaction(ref, isExpense: isExpense)?.branchId ??
-          branchId)
-      : branchId;
+      ? (cachedBranch != null && cachedBranch.isNotEmpty
+          ? cachedBranch
+          : branchId)
+      : (cachedBranch != null && cachedBranch.isNotEmpty
+          ? cachedBranch
+          : branchId);
 
   final txnIdForMerge = (pendingId != null && pendingId.isNotEmpty)
       ? pendingId
@@ -527,15 +537,26 @@ void clearPinnedPosCartTransactionWidget(WidgetRef ref) {
 }
 
 /// Synchronous txn id for grid tap (no stream subscription).
+///
+/// Only returns a **pending** cart id. After Send-for-Review / Pay the stream
+/// can briefly still hold the just-completed (or `pendingReview`) row; tapping
+/// into that id orphans lines off the next empty cart.
 String? readPosCartTransactionIdFast(Ref ref, {required bool isExpense}) {
-  final cacheId = readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id;
-  if (cacheId != null && cacheId.isNotEmpty) return cacheId;
+  final cached = readCachedPendingCartTransaction(ref, isExpense: isExpense);
+  if (cached != null &&
+      cached.id.isNotEmpty &&
+      cached.status == PENDING) {
+    return cached.id;
+  }
 
-  final streamId = ref
+  final streamTxn = ref
       .read(pendingTransactionStreamProvider(isExpense: isExpense))
-      .value
-      ?.id;
-  if (streamId != null && streamId.isNotEmpty) return streamId;
+      .value;
+  if (streamTxn != null &&
+      streamTxn.id.isNotEmpty &&
+      streamTxn.status == PENDING) {
+    return streamTxn.id;
+  }
 
   final optId = ref.read(optimisticCartProvider).activeTransactionId;
   if (optId != null &&

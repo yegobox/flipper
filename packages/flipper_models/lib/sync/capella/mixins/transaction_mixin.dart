@@ -5,7 +5,6 @@ import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/transaction_query_helpers.dart';
@@ -103,32 +102,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }) async {
     final lock = _lockForPendingCartScope(branchId, transactionType, isExpense);
     await lock.synchronized(() async {
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) return;
-
-      final saleDeviceId = await resolveSaleDeviceId();
-      final agentId = ProxyService.box.getUserId();
-      final args = <String, dynamic>{
-        'branchId': branchId,
-        'status': PENDING,
-        'transactionType': transactionType,
-        'isExpense': isExpense,
-        'deviceId': saleDeviceId,
-      };
-      var pendingQuery =
-          "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND transactionType = :transactionType AND isExpense = :isExpense AND deviceId = :deviceId";
-      if (agentId != null) {
-        pendingQuery += " AND agentId = :agentId";
-        args['agentId'] = agentId;
-      }
-      pendingQuery += " ORDER BY createdAt DESC";
-
-      final result = await ditto.store.execute(pendingQuery, arguments: args);
-      if (result.items.isNotEmpty) {
-        final data = Map<String, dynamic>.from(result.items.first.value);
-        final txn = _convertFromDittoDocument(data);
-        if (txn.status == PENDING) return;
-      }
+      final existing = await _findPendingCartUnlocked(
+        branchId: branchId,
+        transactionType: transactionType,
+        isExpense: isExpense,
+      );
+      if (existing != null) return;
 
       talker.warning(
         'No local pending row found for branch=$branchId '
@@ -137,13 +116,49 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'yet, this mints a second transaction id and orphans any cart lines '
         'already optimistically added against the old one.',
       );
-      await manageTransaction(
+      // Unlocked body — we already hold [_lockForPendingCartScope].
+      await _findOrCreateTransactionUnlocked(
         transactionType: transactionType,
         isExpense: isExpense,
         branchId: branchId,
         status: PENDING,
       );
     });
+  }
+
+  /// Look up the device/agent pending cart without creating. Caller must hold
+  /// [_lockForPendingCartScope] when used around a create.
+  Future<ITransaction?> _findPendingCartUnlocked({
+    required String branchId,
+    required String transactionType,
+    required bool isExpense,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return null;
+
+    final saleDeviceId = await resolveSaleDeviceId();
+    final agentId = ProxyService.box.getUserId();
+    final args = <String, dynamic>{
+      'branchId': branchId,
+      'status': PENDING,
+      'transactionType': transactionType,
+      'isExpense': isExpense,
+      'deviceId': saleDeviceId,
+    };
+    var pendingQuery =
+        "SELECT * FROM transactions WHERE branchId = :branchId AND status = :status AND transactionType = :transactionType AND isExpense = :isExpense AND deviceId = :deviceId";
+    if (agentId != null) {
+      pendingQuery += " AND agentId = :agentId";
+      args['agentId'] = agentId;
+    }
+    pendingQuery += " ORDER BY createdAt DESC";
+
+    final result = await ditto.store.execute(pendingQuery, arguments: args);
+    if (result.items.isEmpty) return null;
+    final data = Map<String, dynamic>.from(result.items.first.value);
+    final txn = _convertFromDittoDocument(data);
+    if (txn.status != PENDING) return null;
+    return txn;
   }
 
   @override
@@ -1146,6 +1161,44 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String status = PENDING,
     bool includeSubTotalCheck = false,
   }) async {
+    // Pending POS carts must be unique per device/agent scope. Serialize find-
+    // or-create with [_ensureNextPendingCartIfNeeded] so Send-for-Review /
+    // stream-empty handlers cannot mint two pending ids in a race.
+    if (status == PENDING) {
+      final lock =
+          _lockForPendingCartScope(branchId, transactionType, isExpense);
+      return lock.synchronized(
+        () => _findOrCreateTransactionUnlocked(
+          transactionType: transactionType,
+          isExpense: isExpense,
+          branchId: branchId,
+          shiftId: shiftId,
+          status: status,
+          includeSubTotalCheck: includeSubTotalCheck,
+        ),
+      );
+    }
+    return _findOrCreateTransactionUnlocked(
+      transactionType: transactionType,
+      isExpense: isExpense,
+      branchId: branchId,
+      shiftId: shiftId,
+      status: status,
+      includeSubTotalCheck: includeSubTotalCheck,
+    );
+  }
+
+  /// Find-or-create implementation. For [PENDING], callers that already hold
+  /// [_lockForPendingCartScope] must call this directly; everyone else goes
+  /// through [manageTransaction].
+  Future<ITransaction?> _findOrCreateTransactionUnlocked({
+    required String transactionType,
+    required bool isExpense,
+    required String branchId,
+    String? shiftId,
+    String status = PENDING,
+    bool includeSubTotalCheck = false,
+  }) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) return null;
@@ -1177,7 +1230,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final data = Map<String, dynamic>.from(result.items.first.value);
         final txn = _convertFromDittoDocument(data);
         // Robustness: ensure we don't accidentally return a completed transaction
-        if (txn.status == PENDING) {
+        if (txn.status == status) {
           return txn;
         }
       }
@@ -1219,34 +1272,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments: {'doc': _transactionToMap(newTransaction)},
       );
 
-      // Background Sync (Fire-and-forget)
-      _backgroundSync(
-        (strategy) => strategy.manageTransaction(
-          transactionType: transactionType,
-          isExpense: isExpense,
-          branchId: branchId,
-          shiftId: shiftId,
-          status: status,
-          includeSubTotalCheck: includeSubTotalCheck,
-        ),
-      );
+      // Do NOT background-sync manageTransaction here. cloudSync's
+      // manageTransaction mints a *new* Brick UUID when it does not see the
+      // Capella/Ditto pending row yet; that second PENDING can sync back into
+      // Ditto and flip the checkout Txn ID (1 → 2) after Send-for-Review / Pay.
+      // Capella is the sole writer for POS pending carts.
 
       return newTransaction;
     } catch (e, s) {
       talker.error('Error in manageTransaction: $e', s);
       return null;
-    }
-  }
-
-  /// Helper for firing background sync operations safely
-  void _backgroundSync(
-    Future<dynamic> Function(dynamic strategy) operation,
-  ) async {
-    try {
-      final strategy = ProxyService.getStrategy(Strategy.cloudSync);
-      await operation(strategy);
-    } catch (e, s) {
-      talker.warning('Background sync failed: $e', s);
     }
   }
 
@@ -2141,20 +2176,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             newStatus != null &&
             newStatus != PENDING &&
             transaction != null) {
-          final branchId = transaction.branchId;
-          final tt = transaction.transactionType;
-          if (branchId != null &&
-              branchId.isNotEmpty &&
-              tt != null &&
-              _isPosCartTransactionType(tt)) {
-            unawaited(
-              _ensureNextPendingCartIfNeeded(
-                branchId: branchId,
-                transactionType: tt,
-                isExpense: transaction.isExpense ?? false,
-              ),
-            );
-          }
+          // Caller primes next pending (markTransactionAsCompleted →
+          // manageTransaction). Do not unawaited-ensure here — that raced the
+          // caller and minted a twin PENDING / flipped Txn ID.
         } else if (priorRowForEnsure != null) {
           final priorRow = priorRowForEnsure;
           Future<void> ensureNextCart() async {

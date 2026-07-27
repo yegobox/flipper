@@ -10,6 +10,7 @@ import 'package:flipper_models/providers/pos_cart_sync_tap.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,6 +41,12 @@ class PosCartAddService {
         context,
         'View-only access — you cannot add items to a sale.',
       );
+      return;
+    }
+
+    // While Send-for-Review / Pay is finishing, the old ticket is still the
+    // cached pending id. Reject taps so lines are not attached to it.
+    if (ProxyService.box.readBool(key: 'transactionCompleting') ?? false) {
       return;
     }
 

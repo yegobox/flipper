@@ -39,6 +39,7 @@ import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -54,20 +55,15 @@ import 'package:supabase_models/brick/repository.dart';
 
 /// Fetches transaction items for the given transaction ID.
 ///
-/// Reads with the transaction's own branch so a till ticket collected from the
-/// queue resolves against the branch its line items were saved in (matches the
-/// scoped read in [posCartDisplayItemsProvider]); falls back to the active
-/// branch for a normal in-branch cart.
+/// Scoped by [transaction.id] only. Do not also filter by branch here — the
+/// cart stream can show rows while a branch-scoped one-shot returns [] when
+/// [ITransaction.branchId] disagrees with the box branch (common after a
+/// freshly minted pending cart), which blocked Pay with "Cart is still saving".
 Future<List<TransactionItem>> _getTransactionItems({
   required ITransaction transaction,
 }) async {
-  final branchId =
-      (transaction.branchId != null && transaction.branchId!.isNotEmpty)
-          ? transaction.branchId!
-          : ProxyService.box.getBranchId()!;
   final items = await ProxyService.getStrategy(Strategy.capella)
       .transactionItems(
-        branchId: branchId,
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
@@ -84,27 +80,62 @@ Map<String, double> _checkoutCartQtyByVariant(WidgetRef ref) {
   );
 }
 
+/// Non-ghost checkout lines already bound to [transactionId] (from the live cart
+/// stream). Prefer these when a one-shot Ditto read lags or is mis-scoped.
+List<TransactionItem> _displayPersistedLinesForTxn(
+  WidgetRef ref,
+  String transactionId,
+) {
+  return ref
+      .read(posCartDisplayItemsProvider)
+      .where(
+        (i) =>
+            !OptimisticCartIds.isOptimistic(i.id) &&
+            i.transactionId == transactionId &&
+            i.active != false,
+      )
+      .toList();
+}
+
 /// Waits until Ditto line qtys match what checkout displays (authoritative read).
+///
+/// Returns:
+/// - matching lines when UI and Ditto agree (or UI has real stream rows)
+/// - `[]` when the cart is empty (caller should not say "still saving")
+/// - `null` when the cart shows lines that never appear in Capella in time
 Future<List<TransactionItem>?> _pollPersistedCartForDisplay({
   required WidgetRef ref,
   required ITransaction transaction,
   required String transactionId,
 }) async {
+  final cartNotifier = ref.read(optimisticCartProvider.notifier);
+
+  // Snapshot immediately — do not spin for 8s on an empty cart.
+  final initialCheckoutQty = _checkoutCartQtyByVariant(ref);
+  final dittoFirst = await _getTransactionItems(transaction: transaction);
+  if (initialCheckoutQty.isEmpty) {
+    if (dittoFirst.isNotEmpty) {
+      cartNotifier.reconcileFromPersistedItems(
+        transactionId: transactionId,
+        items: dittoFirst,
+      );
+      return dittoFirst;
+    }
+    return const <TransactionItem>[];
+  }
+
   final deadline = DateTime.now().add(
     const Duration(milliseconds: _cartPersistMaxWaitMs),
   );
-  final cartNotifier = ref.read(optimisticCartProvider.notifier);
 
-  while (DateTime.now().isBefore(deadline)) {
+  List<TransactionItem> ditto = dittoFirst;
+  while (true) {
     final checkoutQty = _checkoutCartQtyByVariant(ref);
     if (checkoutQty.isEmpty) {
-      await Future<void>.delayed(
-        const Duration(milliseconds: _cartPersistPollMs),
-      );
-      continue;
+      // Cart cleared while we waited (e.g. twin-txn / suppress race).
+      return const <TransactionItem>[];
     }
 
-    final ditto = await _getTransactionItems(transaction: transaction);
     cartNotifier.reconcileFromPersistedItems(
       transactionId: transactionId,
       items: ditto,
@@ -117,9 +148,27 @@ Future<List<TransactionItem>?> _pollPersistedCartForDisplay({
       return ditto;
     }
 
+    final displayLines = _displayPersistedLinesForTxn(ref, transactionId);
+    if (displayLines.isNotEmpty) {
+      final displayQty = saleLineQtyByVariantId(
+        saleCartQtyRowsFromTransactionItems(displayLines),
+      );
+      if (saleLineQtyMapsMatch(checkoutQty, displayQty)) {
+        talker.warning(
+          'Sale completion: Ditto one-shot qty mismatch for txn=$transactionId '
+          '(dittoVariants=${dittoQty.length}, displayVariants=${displayQty.length}); '
+          'using live cart stream rows',
+        );
+        return displayLines;
+      }
+    }
+
+    if (!DateTime.now().isBefore(deadline)) break;
+
     await Future<void>.delayed(
       const Duration(milliseconds: _cartPersistPollMs),
     );
+    ditto = await _getTransactionItems(transaction: transaction);
   }
   return null;
 }
@@ -636,18 +685,38 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         final hasPending = ref
             .read(optimisticCartProvider.notifier)
             .hasPendingFor(transactionId);
-        final hasGhosts = ref
-            .read(posCartDisplayItemsProvider)
-            .any((i) => OptimisticCartIds.isOptimistic(i.id));
+        final displayItems = ref.read(posCartDisplayItemsProvider);
+        final hasGhosts =
+            displayItems.any((i) => OptimisticCartIds.isOptimistic(i.id));
         final checkoutQty = _checkoutCartQtyByVariant(ref);
+        final displayTxnIds = displayItems
+            .map((i) => i.transactionId)
+            .whereType<String>()
+            .toSet();
         talker.warning(
           'Sale completion blocked: cart not fully persisted txn=$transactionId '
-          'pending=$hasPending ghosts=$hasGhosts checkoutVariants=${checkoutQty.length}',
+          'pending=$hasPending ghosts=$hasGhosts checkoutVariants=${checkoutQty.length} '
+          'displayTxnIds=$displayTxnIds displayCount=${displayItems.length}',
         );
         if (mounted && context.mounted) {
           showCustomSnackBarUtil(
             context,
-            'Cart is still saving. Wait a moment and tap Pay again.',
+            'Cart is still saving. Wait a moment and try again.',
+            backgroundColor: Colors.orange,
+            showCloseButton: true,
+          );
+        }
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        return false;
+      }
+      if (persistedCart.isEmpty) {
+        talker.warning(
+          'Sale completion blocked: empty cart for transaction $transactionId',
+        );
+        if (mounted && context.mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Add items to the cart before sending for review.',
             backgroundColor: Colors.orange,
             showCloseButton: true,
           );
@@ -672,7 +741,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (mounted && context.mounted) {
           showCustomSnackBarUtil(
             context,
-            'Cart is still saving. Wait a moment and tap Pay again.',
+            'Add items to the cart before sending for review.',
             backgroundColor: Colors.orange,
             showCloseButton: true,
           );
@@ -858,6 +927,30 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (!reviewWorkflowDefersStock) {
               schedulePostSaleStockDeduction();
             }
+            final deferredPayments = mark.deferredPayments;
+            if (deferredPayments != null && deferredPayments.isNotEmpty) {
+              unawaited(
+                _persistSalePaymentLines(
+                  capella: capella,
+                  transactionId: transaction.id,
+                  payments: deferredPayments,
+                ),
+              );
+            }
+            _clearSaleCustomerContextAfterSale();
+            // Empty the cart and drop the completing lock *before* snackbar /
+            // stopLoading. Otherwise the operator can tap products onto the
+            // just-sent ticket while the old cart is still on screen.
+            try {
+              await _invokeCompleteTransactionCallback(completeTransaction);
+            } catch (e, s) {
+              talker.error('Error in completeTransaction callback: $e', s);
+            }
+            // Let the checkout header rebuild with the new cached Txn ID before
+            // the toast paints — otherwise the message appears on the old id.
+            if (mounted) {
+              await WidgetsBinding.instance.endOfFrame;
+            }
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
@@ -874,22 +967,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 showCloseButton: true,
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
-            }
-            final deferredPayments = mark.deferredPayments;
-            if (deferredPayments != null && deferredPayments.isNotEmpty) {
-              unawaited(
-                _persistSalePaymentLines(
-                  capella: capella,
-                  transactionId: transaction.id,
-                  payments: deferredPayments,
-                ),
-              );
-            }
-            _clearSaleCustomerContextAfterSale();
-            try {
-              await _invokeCompleteTransactionCallback(completeTransaction);
-            } catch (e, s) {
-              talker.error('Error in completeTransaction callback: $e', s);
             }
             _resetDigitalReceiptToggleAfterSale();
           },
@@ -1089,6 +1166,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       receiptPrinted: transaction.receiptPrinted,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
+      // Caller primes the next pending below via manageTransaction. Skipping
+      // updateTransaction's unawaited ensure avoids a parallel mint.
       deferEnsureNextPendingCart: true,
     );
     talker.debug(
@@ -1128,22 +1207,43 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       'defer_payments=$deferPaymentPersist',
     );
 
+    // Prime the next pending *during* mark (receipt / payment UI still up) so
+    // after cart clear the header can flip Txn ID with no extra Capella wait.
+    // Safe while old lines remain: Pay/header prefer display-owned txn ids.
     if (mounted) {
-      void refreshPendingCartProviders() {
-        ref.invalidate(
-          pendingTransactionStreamProvider(
-            isExpense: ProxyService.box.isOrdering() ?? false,
-          ),
-        );
-        ref.read(pendingCartSaleSessionProvider.notifier).state =
-            ref.read(pendingCartSaleSessionProvider) + 1;
+      final isExpense = ProxyService.box.isOrdering() ?? false;
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null && branchId.isNotEmpty) {
+        try {
+          final nextPending = await capella.manageTransaction(
+            transactionType: isExpense
+                ? TransactionType.purchase
+                : TransactionType.sale,
+            isExpense: isExpense,
+            branchId: branchId,
+          );
+          if (nextPending != null &&
+              nextPending.id.isNotEmpty &&
+              nextPending.id != transaction.id &&
+              nextPending.status == PENDING) {
+            writeCachedPendingCartTransactionWidget(
+              ref,
+              isExpense: isExpense,
+              transaction: nextPending,
+            );
+            ref
+                .read(optimisticCartProvider.notifier)
+                .bindPendingTransaction(nextPending.id);
+          }
+        } catch (e, s) {
+          talker.error(
+            'markTransactionAsCompleted: failed to prime next pending cart: $e',
+            s,
+          );
+        }
       }
-
-      if (deferPaymentPersist) {
-        unawaited(Future.microtask(refreshPendingCartProviders));
-      } else {
-        refreshPendingCartProviders();
-      }
+      ref.read(pendingCartSaleSessionProvider.notifier).state =
+          ref.read(pendingCartSaleSessionProvider) + 1;
     }
 
     return (
@@ -1440,15 +1540,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 _paymentTimeout?.cancel(); // Cancel timeout on success
 
                 _clearSaleCustomerContextAfterSale();
-                unawaited(() async {
-                  try {
-                    await _invokeCompleteTransactionCallback(
-                      completeTransaction,
-                    );
-                  } catch (e) {
-                    talker.error("Error in completeTransaction callback: $e");
-                  }
-                }());
+                // Await cart clear so taps cannot land on the paid ticket while
+                // the old lines are still visible (same race as cash path).
+                try {
+                  await _invokeCompleteTransactionCallback(
+                    completeTransaction,
+                  );
+                } catch (e) {
+                  talker.error("Error in completeTransaction callback: $e");
+                }
                 _resetDigitalReceiptToggleAfterSale();
 
                 talker.info(

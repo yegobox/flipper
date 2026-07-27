@@ -15,6 +15,7 @@ class PreviewSaleButton extends ConsumerWidget {
     required this.digitalPaymentEnabled,
     required this.transactionId,
     this.icon,
+    this.enabled = true,
   });
 
   final CompleteTransaction? completeTransaction;
@@ -24,6 +25,7 @@ class PreviewSaleButton extends ConsumerWidget {
   final IconData? icon;
   final bool digitalPaymentEnabled;
   final String transactionId;
+  final bool enabled;
 
   Future<void> _handleButtonPress(
     WidgetRef ref, {
@@ -88,7 +90,8 @@ class PreviewSaleButton extends ConsumerWidget {
                     key: const Key("PaymentButton"),
                     color: const Color(0xFF2563EB),
                     text: wording,
-                    onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                    onPressed: (!enabled ||
+                            (payButtonLoading[ButtonType.pay] ?? false))
                         ? null
                         : () => _handleButtonPress(
                             ref,
@@ -102,7 +105,8 @@ class PreviewSaleButton extends ConsumerWidget {
                     color: const Color(0xFF2563EB),
                     key: const Key("PaymentButton"),
                     icon: icon!,
-                    onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                    onPressed: (!enabled ||
+                            (payButtonLoading[ButtonType.pay] ?? false))
                         ? null
                         : () => _handleButtonPress(
                             ref,
@@ -124,11 +128,13 @@ class PreviewSaleButton extends ConsumerWidget {
                       key: const Key("ImmediateCompletionButton"),
                       color: Colors.green,
                       text: 'Complete Now',
-                      onPressed: () => _handleButtonPress(
-                        ref,
-                        immediateCompletion: true,
-                        buttonType: ButtonType.completeNow,
-                      ),
+                      onPressed: !enabled
+                          ? null
+                          : () => _handleButtonPress(
+                                ref,
+                                immediateCompletion: true,
+                                buttonType: ButtonType.completeNow,
+                              ),
                     )
                   : FlipperIconButton(
                       width: double.infinity,
@@ -138,11 +144,13 @@ class PreviewSaleButton extends ConsumerWidget {
                       height: 64,
                       key: const Key("ImmediateCompletionButton"),
                       text: 'Complete Now',
-                      onPressed: () => _handleButtonPress(
-                        ref,
-                        immediateCompletion: true,
-                        buttonType: ButtonType.completeNow,
-                      ),
+                      onPressed: !enabled
+                          ? null
+                          : () => _handleButtonPress(
+                                ref,
+                                immediateCompletion: true,
+                                buttonType: ButtonType.completeNow,
+                              ),
                       icon: icon!,
                     ),
             ),

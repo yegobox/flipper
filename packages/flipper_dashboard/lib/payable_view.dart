@@ -179,6 +179,7 @@ class PayableView extends HookConsumerWidget {
                     wording: _resolvedWording,
                     completeTransaction: completeTransaction,
                     previewCart: previewCart,
+                    enabled: cartHasItems,
                   )
                 : _sendToTillButton(context),
           ),
@@ -204,6 +205,7 @@ class PayableView extends HookConsumerWidget {
                 wording: _resolvedWording,
                 completeTransaction: completeTransaction,
                 previewCart: previewCart,
+                enabled: cartHasItems,
               )
             : _sendToTillButton(context),
       );

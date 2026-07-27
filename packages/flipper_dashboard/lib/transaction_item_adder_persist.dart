@@ -151,12 +151,21 @@ Future<bool> persistItemToTransaction({
     }
 
     final freshPending = ref.read(pendingProv).value;
-    if (freshPending == null ||
-        freshPending.id != pendingTransaction.id ||
-        freshPending.status != PENDING) {
-      rollbackStaleAddAttempt();
-      itemAddAbortedStale = true;
-      return;
+    final streamMatchesTarget = freshPending != null &&
+        freshPending.id == pendingTransaction.id &&
+        freshPending.status == PENDING;
+
+    if (!streamMatchesTarget) {
+      // After Send-for-Review / Pay the pending stream can briefly still hold
+      // the completed ticket (or loading). Rolling back here made the first
+      // tap on the new cart appear then vanish. Trust the PENDING cart this
+      // add was resolved against when it is still pending.
+      if (pendingTransaction.status != PENDING ||
+          pendingTransaction.id.isEmpty) {
+        rollbackStaleAddAttempt();
+        itemAddAbortedStale = true;
+        return;
+      }
     }
 
     final stock = cachedStock;

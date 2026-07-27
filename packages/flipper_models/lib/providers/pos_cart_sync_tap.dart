@@ -1,8 +1,6 @@
-import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Wall-clock budget for tap → cart line visible in Riverpod (no Capella/Ditto I/O).
@@ -30,13 +28,9 @@ void applyPosCartTapSync({
   var txnId = resolvedPendingTxnId ??
       readPosCartTransactionIdFast(ref, isExpense: isExpense);
   if (txnId == null || txnId.isEmpty) {
-    txnId =
-        readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id ??
-            ref
-                .read(pendingTransactionStreamProvider(isExpense: isExpense))
-                .value
-                ?.id ??
-            OptimisticCartBootstrap.txnId;
+    // Prefer bootstrap over a stale non-pending stream row (e.g. just-sent
+    // review ticket) so lines bind to the next real pending via merge.
+    txnId = OptimisticCartBootstrap.txnId;
   }
 
   // Single notifier update — avoids bind + epoch double-invalidation.
