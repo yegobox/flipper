@@ -311,6 +311,8 @@ class _CollapsedHeader extends StatelessWidget {
               child: Text(
                 lineTotalText,
                 textAlign: TextAlign.end,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: PosTokens.posMonoStyle(
                   Theme.of(context).textTheme,
                   fontSize: 14.5,

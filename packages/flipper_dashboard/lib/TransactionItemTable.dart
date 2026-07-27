@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_expanded_line.dart';
@@ -580,7 +581,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       valueListenable: _lineQtyListenable(item),
       builder: (context, displayQty, _) {
         final currency = ProxyService.box.defaultCurrency();
-        final unitFormatted = formatNumber(item.price.toDouble());
+        final unitFormatted = _formatCartMoney(item.price.toDouble());
         final qtyFormatted = _formatQty(displayQty);
         final stock = item.stock?.currentStock;
         String? stockHint;
@@ -746,7 +747,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           child: Align(
             alignment: Alignment.center,
             child: Text(
-              formatNumber(item.price.toDouble()),
+              _formatCartMoney(item.price.toDouble()),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -1346,7 +1347,19 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final price = _settingsService.isCurrencyDecimal
         ? lineNet.roundToTwoDecimalPlaces()
         : lineNet.roundToDouble();
-    return formatNumber(price);
+    return _formatCartMoney(price);
+  }
+
+  /// Money shown in the cart must be exact so a line total ties out with
+  /// (qty × unit price) — e.g. 27 × 250 reads as `6,750`, not the misleading
+  /// `6.8K` that `formatNumber` produced by rounding 6.75K up. Only genuinely
+  /// large values (≥ 1M) are abbreviated to keep the compact row from
+  /// overflowing; the global [formatNumber] stays abbreviated for dashboards
+  /// and gauges where compactness is the point.
+  String _formatCartMoney(num value) {
+    if (value.abs() >= 1000000) return formatNumber(value.toDouble());
+    final pattern = _settingsService.isCurrencyDecimal ? '#,##0.00' : '#,##0';
+    return NumberFormat(pattern).format(value);
   }
 
   ValueNotifier<double> _lineQtyListenable(TransactionItem item) {
