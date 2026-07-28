@@ -18,7 +18,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get supplyPrice => 'Ikiranguzo';
 
   @override
-  String get currentSale => 'Igurishwa ryubu';
+  String get currentSale => 'Igurisha rigezweho';
 
   @override
   String get currentStock => 'Ububiko buriho';
@@ -63,7 +63,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get addWorkSpace => 'Ongeramo aho gukorera';
 
   @override
-  String get addMembers => 'Ongeramo abanyamuryango';
+  String get addMembers => 'Ongeramo abakozi';
 
   @override
   String get logOut => 'Sohoka';
@@ -116,7 +116,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   }
 
   @override
-  String get error => 'Error';
+  String get error => 'Ikosa';
 
   @override
   String get pickFromContacts => 'Hitamo muri kontaki';
@@ -140,490 +140,495 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String paymentTitle(Object paymentType) {
-    return 'Payment: $paymentType';
+    return 'Ubwishyu: $paymentType';
   }
 
   @override
-  String get digitalReceipt => 'Digital Receipt';
+  String get digitalReceipt => 'Inyemezabwishyu ya elegitoroniki';
 
   @override
-  String get needDigitalReceipt => 'Do you need a digital receipt?';
+  String get needDigitalReceipt => 'Ukeneye inyemezabwishyu ya elegitoroniki?';
 
   @override
-  String get purchaseCode => 'Purchase Code';
+  String get purchaseCode => 'Kode y\'ubugure';
 
   @override
-  String get pleaseEnterPurchaseCode => 'Please enter a purchase code';
+  String get pleaseEnterPurchaseCode => 'Nyamuneka andika kode y\'ubugure';
 
   @override
-  String get submit => 'Submit';
+  String get submit => 'Ohereza';
 
   @override
-  String get done => 'Done';
+  String get done => 'Byarangiye';
 
   @override
-  String get receipt => 'Receipt';
+  String get receipt => 'Inyemezabwishyu';
 
   @override
-  String get addNote => 'Add Note';
+  String get addNote => 'Ongeramo inyandiko';
 
   @override
   String get generatingReceiptWait =>
-      'Please wait we are generating the receipt';
+      'Nyamuneka tegereza, turi gutegura inyemezabwishyu';
 
   @override
-  String get poweredBy => 'Powered By';
+  String get poweredBy => 'Bikorwa na';
 
   @override
-  String get returnToHome => 'Return to Home';
+  String get returnToHome => 'Subira ahabanza';
 
   @override
-  String get personalGoals => 'Personal goals';
+  String get personalGoals => 'Intego bwite';
 
   @override
-  String get selectBranchToManageGoals => 'Select a branch to manage goals.';
+  String get selectBranchToManageGoals =>
+      'Hitamo ishami ryo gucungiramo intego.';
 
   @override
   String couldNotLoadGoals(Object error) {
-    return 'Could not load goals\n$error';
+    return 'Ntibyashobotse kuzana intego\n$error';
   }
 
   @override
-  String get personalGoalsEyebrow => 'PERSONAL GOALS';
+  String get personalGoalsEyebrow => 'INTEGO BWITE';
 
   @override
   String totalReservedAcrossGoals(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count goals',
-      one: '1 goal',
+      other: 'intego $count',
+      one: 'intego 1',
     );
-    return 'Total reserved across $_temp0';
+    return 'Byose byabitswe kuri $_temp0';
   }
 
   @override
-  String get savedThisMonth => 'Saved this month';
+  String get savedThisMonth => 'Byazigamwe uku kwezi';
 
   @override
   String onTrackCount(Object count) {
-    return '$count on track';
+    return '$count biri ku murongo';
   }
 
   @override
-  String get goalsProgressing => 'Goals progressing';
+  String get goalsProgressing => 'Intego zitera imbere';
 
   @override
-  String get allGoals => 'All goals';
+  String get allGoals => 'Intego zose';
 
   @override
   String get personalGoalsProfitGrowth =>
-      'Flipper quietly grows each goal from your profits.';
+      'Flipper yongera buhoro kuri intego zawe ikuyeko inyungu zawe.';
 
   @override
-  String get searchProducts => 'Search products…';
+  String get searchProducts => 'Shakisha ibicuruzwa…';
 
   @override
-  String get clearSelection => 'Clear selection';
+  String get clearSelection => 'Kuraho ibyatoranyijwe';
 
   @override
   String itemsSelected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items selected',
-      one: '1 item selected',
+      other: 'ibicuruzwa $count byatoranyijwe',
+      one: 'igicuruzwa 1 cyatoranyijwe',
     );
     return '$_temp0';
   }
 
   @override
   String get cannotDeleteVariantWithStockRemaining =>
-      'Cannot delete variant with stock remaining.';
+      'Ntushobora gusiba igicuruzwa kikiri mu bubiko.';
 
   @override
-  String get deleteMultipleItems => 'Delete Multiple Items';
+  String get deleteMultipleItems => 'Siba ibicuruzwa byinshi';
 
   @override
   String deleteItemsConfirmation(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: 'ibicuruzwa $count',
+      one: 'igicuruzwa 1',
     );
-    return 'Are you sure you want to delete $_temp0? This action cannot be undone.';
+    return 'Uremeza ko ushaka gusiba $_temp0? Iki gikorwa ntigisubizwa inyuma.';
   }
 
   @override
-  String get refreshProducts => 'Refresh products';
+  String get refreshProducts => 'Vugurura ibicuruzwa';
 
   @override
   String get productsSyncingHint =>
-      'If you just opened the app, products may still be syncing — tap refresh.';
+      'Niba uhereye kufungura porogaramu, ibicuruzwa bishobora kuba biracyahuzwa — kanda vugurura.';
 
   @override
-  String get errorLoadingProducts => 'Error loading products';
+  String get errorLoadingProducts => 'Ikosa mu kuzana ibicuruzwa';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Ongera ugerageze';
 
   @override
-  String get noStockDataAvailable => 'No stock data available';
+  String get noStockDataAvailable => 'Nta makuru y\'ububiko ahari';
 
   @override
-  String get cash => 'Cash';
+  String get cash => 'Amafaranga';
 
   @override
-  String get credit => 'Credit';
+  String get credit => 'Inguzanyo';
 
   @override
-  String get momoPayerPhone => 'MoMo payer phone';
+  String get momoPayerPhone => 'Telefoni y\'uwishyura kuri MoMo';
 
   @override
   String get momoPaymentRequestHint =>
-      'We will send a payment request to this number when you tap Charge.';
+      'Tuzohereza ubusabe bw\'ubwishyu kuri iyi nimero iyo ukanze Kwishyuza.';
 
   @override
-  String get exact => 'Exact';
+  String get exact => 'Nyayo';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'Emeza';
 
   @override
-  String get numberOfPayments => 'Number of Payments';
+  String get numberOfPayments => 'Umubare w\'ubwishyu';
 
   @override
-  String get applyDiscountCode => 'Apply Discount Code';
+  String get applyDiscountCode => 'Koresha kode y\'igabanuka';
 
   @override
-  String get discountCode => 'Discount Code';
+  String get discountCode => 'Kode y\'igabanuka';
 
   @override
-  String get validatingCode => 'Validating code...';
+  String get validatingCode => 'Turi kugenzura kode...';
 
   @override
-  String get createAccount => 'Create Account';
+  String get createAccount => 'Fungura konti';
 
   @override
-  String get signIn => 'SIGN IN';
+  String get signIn => 'INJIRA';
 
   @override
   String get setDeviceTimeAutomatic =>
-      'Please set your device time to automatic';
+      'Nyamuneka shyira isaha y\'igikoresho cyawe ku buryo bwikora';
 
   @override
-  String get continueWithPhone => 'Continue with Phone';
+  String get continueWithPhone => 'Komeza ukoresheje telefoni';
 
   @override
-  String get continueWithGoogle => 'Continue with Google';
+  String get continueWithGoogle => 'Komeza ukoresheje Google';
 
   @override
-  String get continueWithMicrosoft => 'Continue with Microsoft';
+  String get continueWithMicrosoft => 'Komeza ukoresheje Microsoft';
 
   @override
-  String get continueWithApple => 'Continue with Apple';
+  String get continueWithApple => 'Komeza ukoresheje Apple';
 
   @override
-  String get or => 'OR';
+  String get or => 'CYANGWA';
 
   @override
-  String get pinLogin => 'PIN Login';
+  String get pinLogin => 'Injira ukoresheje PIN';
 
   @override
-  String get languagesTitle => 'Languages';
+  String get languagesTitle => 'Indimi';
 
   @override
-  String get english => 'English';
+  String get english => 'Icyongereza';
 
   @override
-  String get kinyarwanda => 'Kinyarwanda';
+  String get kinyarwanda => 'Ikinyarwanda';
 
   @override
-  String get swahili => 'Swahili';
+  String get swahili => 'Igiswahili';
 
   @override
-  String get settings => 'Settings';
+  String get settings => 'Igenamiterere';
 
   @override
-  String get home => 'Home';
+  String get home => 'Ahabanza';
 
   @override
-  String get sales => 'Sales';
+  String get sales => 'Ibyagurishijwe';
 
   @override
-  String get inventory => 'Inventory';
+  String get inventory => 'Ububiko';
 
   @override
-  String get more => 'More';
+  String get more => 'Ibindi';
 
   @override
-  String get scanQr => 'Scan QR';
+  String get scanQr => 'Sikana QR';
 
   @override
-  String get dashboard => 'Dashboard';
+  String get dashboard => 'Imbonerahamwe';
 
   @override
-  String get noUser => 'No User';
+  String get noUser => 'Nta mukoresha';
 
   @override
-  String get pleaseLogInToContinue => 'Please log in to continue';
+  String get pleaseLogInToContinue => 'Nyamuneka injira kugira ngo ukomeze';
 
   @override
-  String get loadingBusinesses => 'Loading businesses...';
+  String get loadingBusinesses => 'Turi kuzana ubucuruzi...';
 
   @override
-  String get errorLoadingBusinesses => 'Error loading businesses';
+  String get errorLoadingBusinesses => 'Ikosa mu kuzana ubucuruzi';
 
   @override
-  String get noBusinesses => 'No Businesses';
+  String get noBusinesses => 'Nta bucuruzi buhari';
 
   @override
-  String get createFirstBusiness => 'Create your first business to get started';
+  String get createFirstBusiness =>
+      'Fungura ubucuruzi bwawe bwa mbere kugira ngo utangire';
 
   @override
-  String get signOut => 'Sign Out';
+  String get signOut => 'Sohoka';
 
   @override
-  String get phoneNumber => 'Phone Number';
+  String get phoneNumber => 'Nimero ya telefoni';
 
   @override
-  String get sendingCode => 'Sending code...';
+  String get sendingCode => 'Turi kohereza kode...';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Komeza';
 
   @override
-  String get enterSixDigitCodeSentTo => 'Enter the 6-digit code sent to ';
+  String get enterSixDigitCodeSentTo =>
+      'Andika kode y\'imibare 6 yoherejwe kuri ';
 
   @override
-  String get codeExpiredTapToResend => 'Code Expired - Tap to Resend';
+  String get codeExpiredTapToResend =>
+      'Kode yarangiye - Kanda wongere kuyohereza';
 
   @override
-  String get resendCode => 'Resend Code';
+  String get resendCode => 'Ongera wohereze kode';
 
   @override
-  String get resendCodeIn => 'Resend code in ';
+  String get resendCodeIn => 'Ongera wohereze kode mu ';
 
   @override
-  String get seconds => 'seconds';
+  String get seconds => 'amasegonda';
 
   @override
-  String get verifying => 'Verifying...';
+  String get verifying => 'Turi kugenzura...';
 
   @override
-  String get verifyCode => 'Verify Code';
+  String get verifyCode => 'Genzura kode';
 
   @override
-  String get troubleSigningIn => 'Trouble Signing In?';
+  String get troubleSigningIn => 'Ufite ikibazo cyo kwinjira?';
 
   @override
   String get troubleSigningInHelp =>
-      'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.';
+      'Niba ufite ikibazo cyo kwinjira, reba neza ko PIN yawe na OTP (niba ikenewe) ari byo.\n\nKu bufasha bwinshi, nyamuneka vugana n\'itsinda ry\'ubufasha.';
 
   @override
-  String get ok => 'OK';
+  String get ok => 'Yego';
 
   @override
-  String get welcomeBack => 'Welcome back';
+  String get welcomeBack => 'Murakaza neza';
 
   @override
-  String get tinNumber => 'TIN Number';
+  String get tinNumber => 'Nimero ya TIN';
 
   @override
-  String get validate => 'Validate';
+  String get validate => 'Genzura';
 
   @override
-  String get uploadPdfWithTin => 'Upload PDF with TIN';
+  String get uploadPdfWithTin => 'Ohereza PDF irimo TIN';
 
   @override
-  String get enterTinOrUpload => 'Enter TIN number or tap the upload icon';
+  String get enterTinOrUpload =>
+      'Andika nimero ya TIN cyangwa kanda ikimenyetso cyo kohereza';
 
   @override
-  String get addEmail => 'Add Email';
+  String get addEmail => 'Ongeramo imeyili';
 
   @override
-  String get emailAdded => 'Email added';
+  String get emailAdded => 'Imeyili yongewemo';
 
   @override
-  String get updateSettings => 'Update Settings';
+  String get updateSettings => 'Vugurura igenamiterere';
 
   @override
-  String get invite => 'Invite';
+  String get invite => 'Tumira';
 
   @override
-  String get sendRequest => 'Send Request';
+  String get sendRequest => 'Ohereza ubusabe';
 
   @override
-  String get preferences => 'Preferences';
+  String get preferences => 'Ibyo uhitamo';
 
   @override
-  String get accessibility => 'Accessibility';
+  String get accessibility => 'Uburyo bworoshye bwo gukoresha';
 
   @override
-  String get language => 'Language';
+  String get language => 'Ururimi';
 
   @override
-  String get reports => 'Reports';
+  String get reports => 'Raporo';
 
   @override
-  String get enableReport => 'Enable Report';
+  String get enableReport => 'Emeza raporo';
 
   @override
-  String get backups => 'BackUps';
+  String get backups => 'Amakopi y\'ingoboka';
 
   @override
-  String get addBackup => 'Add Backup';
+  String get addBackup => 'Ongeramo ikopi y\'ingoboka';
 
   @override
-  String get restoreData => 'Restore Data';
+  String get restoreData => 'Garura amakuru';
 
   @override
-  String get dataRestored => 'Data restored';
+  String get dataRestored => 'Amakuru yagaruwe';
 
   @override
-  String get errorRestoringBackup => 'Error Restoring backup';
+  String get errorRestoringBackup => 'Ikosa mu kugarura ikopi y\'ingoboka';
 
   @override
-  String get transactionIdCopiedToClipboard =>
-      'Transaction ID copied to clipboard';
+  String get transactionIdCopiedToClipboard => 'ID y\'igurisha yakoporowe';
 
   @override
-  String get transactionIdShortLabel => 'Txn ID: ';
+  String get transactionIdShortLabel => 'ID y\'igurisha: ';
 
   @override
-  String get invoiceNumberLabel => 'Invoice No: ';
+  String get invoiceNumberLabel => 'Nimero ya fagitire: ';
 
   @override
-  String get parkSaleAsTicket => 'Park this sale as a ticket';
+  String get parkSaleAsTicket => 'Bika iri gurisha nk\'itike';
 
   @override
-  String get saveTicketAction => 'Save ticket';
+  String get saveTicketAction => 'Bika itike';
 
   @override
-  String get remainingBalanceLabel => 'Remaining Balance: ';
+  String get remainingBalanceLabel => 'Amafaranga asigaye: ';
 
   @override
-  String get amountToChangeLabel => 'Amount to Change: ';
+  String get amountToChangeLabel => 'Amafaranga yo kugarura: ';
 
   @override
-  String get allApps => 'All apps';
+  String get allApps => 'Porogaramu zose';
 
   @override
-  String get sell => 'Sell';
+  String get sell => 'Gurisha';
 
   @override
-  String get quickSell => 'Quick Sell';
+  String get quickSell => 'Gurisha vuba';
 
   @override
-  String get invoices => 'Invoices';
+  String get invoices => 'Fagitire';
 
   @override
-  String get pricing => 'Pricing';
+  String get pricing => 'Ibiciro';
 
   @override
-  String get payments => 'Payments';
+  String get payments => 'Ubwishyu';
 
   @override
-  String get manage => 'Manage';
+  String get manage => 'Cunga';
 
   @override
-  String get purchases => 'Purchases';
+  String get purchases => 'Ibyaguzwe';
 
   @override
-  String get customers => 'Customers';
+  String get customers => 'Abakiriya';
 
   @override
-  String get leads => 'Leads';
+  String get leads => 'Abakiriya bashoboka';
 
   @override
-  String get insights => 'Insights';
+  String get insights => 'Isesengura';
 
   @override
-  String get dailyReports => 'Daily Reports';
+  String get dailyReports => 'Raporo za buri munsi';
 
   @override
-  String get commissions => 'Commissions';
+  String get commissions => 'Komisiyo';
 
   @override
-  String get production => 'Production';
+  String get production => 'Umusaruro';
 
   @override
-  String get business => 'Business';
+  String get business => 'Ubucuruzi';
 
   @override
-  String get servicesHub => 'Services hub';
+  String get servicesHub => 'Ihuriro ry\'serivisi';
 
   @override
-  String get goals => 'Goals';
+  String get goals => 'Intego';
 
   @override
-  String get aiChat => 'AI Chat';
+  String get aiChat => 'Ikiganiro na AI';
 
   @override
-  String get errorLoadingTransactionView => 'Error loading transaction view';
+  String get errorLoadingTransactionView => 'Ikosa mu kwerekana igurisha';
 
   @override
-  String get customer => 'Customer';
+  String get customer => 'Umukiriya';
 
   @override
-  String get payment => 'Payment';
+  String get payment => 'Ubwishyu';
 
   @override
-  String get delivery => 'Delivery';
+  String get delivery => 'Itangwa';
 
   @override
-  String get transactionSummary => 'Transaction summary';
+  String get transactionSummary => 'Incamake y\'igurisha';
 
   @override
   String get transactionSummaryHint =>
-      'Shows the total amount and transaction ID for the current sale';
+      'Yerekana amafaranga yose na ID y\'igurisha rigezweho';
 
   @override
-  String get totalAmount => 'Total Amount';
+  String get totalAmount => 'Amafaranga yose';
 
   @override
   String get cannotDeletePartialPaymentItems =>
-      'Cannot delete items from a transaction with partial payments';
+      'Ntushobora gusiba ibicuruzwa mu gurisha rifite ubwishyu bw\'igice';
 
   @override
-  String get deleteAllItems => 'Delete All Items';
+  String get deleteAllItems => 'Siba ibicuruzwa byose';
 
   @override
   String get confirmRemoveAllTransactionItems =>
-      'Are you sure you want to remove all items from this transaction?';
+      'Uremeza ko ushaka gukura ibicuruzwa byose muri iri gurisha?';
 
   @override
-  String get deleteAll => 'Delete All';
+  String get deleteAll => 'Siba byose';
 
   @override
-  String get allItemsRemovedSuccessfully => 'All items removed successfully';
+  String get allItemsRemovedSuccessfully => 'Ibicuruzwa byose byakuweho neza';
 
   @override
   String errorRemovingItems(String error) {
-    return 'Error removing items: $error';
+    return 'Ikosa mu gukura ibicuruzwa: $error';
   }
 
   @override
-  String get noItemsAdded => 'No items added';
+  String get noItemsAdded => 'Nta gicuruzwa cyongewemo';
 
   @override
-  String get tapAddFirstItem => 'Tap the + button to add your first item';
+  String get tapAddFirstItem =>
+      'Kanda buto ya + kugira ngo wongeremo igicuruzwa cya mbere';
 
   @override
   String cartItemCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: 'ibicuruzwa $count',
+      one: 'igicuruzwa 1',
     );
     return '$_temp0';
   }
 
   @override
   String itemSemanticLabel(String itemName) {
-    return 'Item: $itemName';
+    return 'Igicuruzwa: $itemName';
   }
 
   @override
@@ -632,290 +637,591 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
     String unitPrice,
     String subtotal,
   ) {
-    return 'Quantity: $quantity, Unit price: $unitPrice, Subtotal: $subtotal';
+    return 'Ingano: $quantity, Igiciro cy\'igice: $unitPrice, Igiteranyo: $subtotal';
   }
 
   @override
-  String get removeItem => 'Remove item';
+  String get removeItem => 'Kuraho igicuruzwa';
 
   @override
-  String get unitPrice => 'Unit Price';
+  String get unitPrice => 'Igiciro cy\'igice';
 
   @override
-  String get decreaseQuantityByOne => 'Decrease quantity by 1';
+  String get decreaseQuantityByOne => 'Gabanya ingano ku 1';
 
   @override
-  String get increaseQuantityByOne => 'Increase quantity by 1';
+  String get increaseQuantityByOne => 'Ongera ingano ku 1';
 
   @override
-  String get subtotal => 'Subtotal';
+  String get subtotal => 'Igiteranyo';
 
   @override
-  String get deliveryDate => 'Delivery Date';
+  String get deliveryDate => 'Itariki y\'itangwa';
 
   @override
   String get transactionSummaryPaymentActions =>
-      'Transaction summary and payment actions';
+      'Incamake y\'igurisha n\'ibikorwa by\'ubwishyu';
 
   @override
   String completeSaleTotalHint(String total) {
-    return 'Complete sale with total amount $total';
+    return 'Rangiza igurisha ku mafaranga yose $total';
   }
 
   @override
   String errorWithValue(String error) {
-    return 'Error: $error';
+    return 'Ikosa: $error';
   }
 
   @override
   String confirmRemoveItemFromTransaction(String itemName) {
-    return 'Are you sure you want to remove \"$itemName\" from this transaction?';
+    return 'Uremeza ko ushaka gukura \"$itemName\" muri iri gurisha?';
   }
 
   @override
-  String get remove => 'Remove';
+  String get remove => 'Kuraho';
 
   @override
   String get cannotModifyPartialPaymentItems =>
-      'Cannot modify items in a transaction with partial payments';
+      'Ntushobora guhindura ibicuruzwa mu gurisha rifite ubwishyu bw\'igice';
 
   @override
-  String get failedToRemoveItem => 'Failed to remove item';
+  String get failedToRemoveItem => 'Gukura igicuruzwa ntibyakunze';
 
   @override
-  String get failedToUpdateItemQuantity => 'Failed to update item quantity';
+  String get failedToUpdateItemQuantity =>
+      'Guhindura ingano y\'igicuruzwa ntibyakunze';
 
   @override
-  String get transactionItemsList => 'Transaction items list';
+  String get transactionItemsList => 'Urutonde rw\'ibicuruzwa by\'igurisha';
 
   @override
   String get transactionItemsListHint =>
-      'List of items in the current transaction with quantities and prices';
+      'Urutonde rw\'ibicuruzwa biri mu gurisha rigezweho hamwe n\'ingano n\'ibiciro';
 
   @override
-  String get deliveryNote => 'Delivery Note';
+  String get deliveryNote => 'Inyandiko y\'itangwa';
 
   @override
-  String get deliveryNoteSemantic => 'Delivery note';
+  String get deliveryNoteSemantic => 'Inyandiko y\'itangwa';
 
   @override
-  String get deliveryNoteHint => 'Add any special instructions for delivery';
+  String get deliveryNoteHint => 'Ongeramo amabwiriza yihariye yo gutanga';
 
   @override
   String get deliveryInstructionsHint =>
-      'Enter any special instructions for delivery';
+      'Andika amabwiriza yihariye yo gutanga';
 
   @override
-  String get discount => 'Discount';
+  String get discount => 'Igabanuka';
 
   @override
-  String get pleaseEnterValidNumber => 'Please enter a valid number';
+  String get pleaseEnterValidNumber => 'Nyamuneka andika umubare wemewe';
 
   @override
-  String get discountRangeError => 'Discount must be between 0 and 100';
+  String get discountRangeError => 'Igabanuka rigomba kuba hagati ya 0 na 100';
 
   @override
-  String get digitalReceiptTitle => 'Digital receipt';
+  String get digitalReceiptTitle => 'Inyemezabwishyu ya elegitoroniki';
 
   @override
   String get digitalReceiptSmsSubtitle =>
-      'Send receipt by SMS instead of opening a PDF';
+      'Ohereza inyemezabwishyu kuri SMS aho kufungura PDF';
 
   @override
   String receivedAmountInCurrency(String currency) {
-    return 'Received amount in $currency';
+    return 'Amafaranga yakiriwe mu $currency';
   }
 
   @override
-  String get receivedAmountHint =>
-      'Enter the amount received from the customer';
+  String get receivedAmountHint => 'Andika amafaranga yakiriwe ku mukiriya';
 
   @override
-  String get receivedAmount => 'Received Amount';
+  String get receivedAmount => 'Amafaranga yakiriwe';
 
   @override
-  String get pleaseEnterReceivedAmount => 'Please enter received amount';
+  String get pleaseEnterReceivedAmount =>
+      'Nyamuneka andika amafaranga yakiriwe';
 
   @override
-  String get customerName => 'Customer name';
+  String get customerName => 'Izina ry\'umukiriya';
 
   @override
-  String get customerNameHint => 'Enter the full name of the customer';
+  String get customerNameHint => 'Andika amazina yuzuye y\'umukiriya';
 
   @override
-  String get pleaseEnterCustomerName => 'Please enter customer name';
+  String get pleaseEnterCustomerName => 'Nyamuneka andika izina ry\'umukiriya';
 
   @override
-  String get customerPhoneNumber => 'Customer phone number';
+  String get customerPhoneNumber => 'Nimero ya telefoni y\'umukiriya';
 
   @override
   String get customerPhoneNumberHint =>
-      'Enter the customer\'s phone number for contact and billing purposes';
+      'Andika nimero ya telefoni y\'umukiriya yo kuvugana no kwishyuza';
 
   @override
-  String get items => 'Items';
+  String get items => 'Ibicuruzwa';
 
   @override
-  String get transactionId => 'Transaction ID';
+  String get transactionId => 'ID y\'igurisha';
 
   @override
-  String get amountPaid => 'Amount Paid';
+  String get amountPaid => 'Amafaranga yishyuwe';
 
   @override
-  String get remainingBalance => 'Remaining Balance';
+  String get remainingBalance => 'Amafaranga asigaye';
 
   @override
   String recordPaymentWithAmount(String amount) {
-    return 'Record Payment • $amount';
+    return 'Andika ubwishyu • $amount';
   }
 
   @override
   String payWithAmount(String amount) {
-    return 'Pay • $amount';
+    return 'Ishyura • $amount';
   }
 
   @override
   String sendForReviewWithAmount(String amount) {
-    return 'Send for Review • $amount';
+    return 'Ohereza kugenzurwa • $amount';
   }
 
   @override
   String get phoneRequiredWhenTinMissing =>
-      'Phone number is required when customer TIN is not available';
+      'Nimero ya telefoni irakenewe iyo TIN y\'umukiriya itaboneka';
 
   @override
-  String get invalidNumber => 'Invalid Number';
+  String get invalidNumber => 'Umubare utemewe';
 
   @override
-  String get back => 'Back';
+  String get back => 'Subira inyuma';
 
   @override
-  String get managementDashboard => 'Management Dashboard';
+  String get managementDashboard => 'Imbonerahamwe y\'ubuyobozi';
 
   @override
-  String get quickActions => 'Quick Actions';
+  String get quickActions => 'Ibikorwa byihuse';
 
   @override
-  String get posDefault => 'POS Default';
+  String get posDefault => 'POS y\'ibanze';
 
   @override
-  String get setPosAsDefaultApp => 'Set POS as default app';
+  String get setPosAsDefaultApp => 'Shyira POS nka porogaramu y\'ibanze';
 
   @override
-  String get ordersDefault => 'Orders Default';
+  String get ordersDefault => 'Ibyatumijwe by\'ibanze';
 
   @override
-  String get setOrdersAsDefaultApp => 'Set Orders as default app';
+  String get setOrdersAsDefaultApp =>
+      'Shyira Ibyatumijwe nka porogaramu y\'ibanze';
 
   @override
-  String get accountManagement => 'Account Management';
+  String get accountManagement => 'Icungamakonti';
 
   @override
-  String get userManagement => 'User Management';
+  String get userManagement => 'Icungabakoresha';
 
   @override
-  String get manageUsersAndPermissions => 'Manage users and permissions';
+  String get manageUsersAndPermissions =>
+      'Cunga abakoresha n\'uburenganzira bwabo';
 
   @override
-  String get branchManagement => 'Branch Management';
+  String get branchManagement => 'Icungamashami';
 
   @override
-  String get manageBranchLocations => 'Manage Branch (Locations)';
+  String get manageBranchLocations => 'Cunga amashami (ahantu)';
 
   @override
-  String get financialControls => 'Financial Controls';
+  String get financialControls => 'Igenzura ry\'imari';
 
   @override
-  String get taxSettings => 'Tax Settings';
+  String get taxSettings => 'Igenamiterere ry\'imisoro';
 
   @override
-  String get configureTaxRulesAndRates => 'Configure tax rules and rates';
+  String get configureTaxRulesAndRates =>
+      'Shyiraho amategeko n\'ibipimo by\'imisoro';
 
   @override
-  String get ebmSettings => 'EBM Settings';
+  String get ebmSettings => 'Igenamiterere rya EBM';
 
   @override
   String get electronicBillingMachineSettings =>
-      'Electronic Billing Machine settings';
+      'Igenamiterere ry\'imashini ya fagitire ya elegitoroniki';
 
   @override
-  String get smsConfiguration => 'SMS Configuration';
+  String get smsConfiguration => 'Igenamiterere rya SMS';
 
   @override
-  String get enableSmsNotifications => 'Enable SMS Notifications';
+  String get enableSmsNotifications => 'Emeza ubutumwa bwa SMS';
 
   @override
-  String get systemSettings => 'System Settings';
+  String get systemSettings => 'Igenamiterere rya sisitemu';
 
   @override
-  String get debugMode => 'Debug Mode';
+  String get debugMode => 'Uburyo bwo kugenzura amakosa';
 
   @override
-  String get enableDebugFeatures => 'Enable debug features';
+  String get enableDebugFeatures => 'Emeza ibikorwa byo kugenzura amakosa';
 
   @override
-  String get forceUpdate => 'Force Update';
+  String get forceUpdate => 'Hatira ivugurura';
 
   @override
-  String get forceUpdateAllData => 'Force update all data';
+  String get forceUpdateAllData => 'Hatira ivugurura ry\'amakuru yose';
 
   @override
-  String get taxService => 'Tax Service';
+  String get taxService => 'Serivisi y\'imisoro';
 
   @override
-  String get toggleTaxService => 'Toggle tax service';
+  String get toggleTaxService => 'Hindura serivisi y\'imisoro';
 
   @override
-  String get savedDiscount => 'Saved discount';
+  String get savedDiscount => 'Igabanuka ryabitswe';
 
   @override
-  String get createDiscount => 'Create Discount';
+  String get createDiscount => 'Kora igabanuka';
 
   @override
-  String get nameCannotBeNull => 'Name can not be null';
+  String get nameCannotBeNull => 'Izina ntirishobora kuba ubusa';
 
   @override
-  String get amountCannotBeNull => 'Amount can not be null';
+  String get amountCannotBeNull => 'Amafaranga ntashobora kuba ubusa';
 
   @override
-  String get name => 'Name';
+  String get name => 'Izina';
 
   @override
   String saveTransactionTitle(String transactionType) {
-    return 'Save $transactionType transaction';
+    return 'Bika igurisha rya $transactionType';
   }
 
   @override
-  String get confirmSaveTransaction =>
-      'Are you sure you want to save this transaction?';
+  String get confirmSaveTransaction => 'Uremeza ko ushaka kubika iri gurisha?';
 
   @override
-  String get categoryMustBeSelected => 'A category must be selected';
+  String get categoryMustBeSelected => 'Icyiciro kigomba gutoranywa';
 
   @override
-  String get confirmLogout => 'Confirm Logout';
+  String get confirmLogout => 'Emeza gusohoka';
 
   @override
-  String get confirmLogoutMessage => 'Are you sure you want to log out?';
+  String get confirmLogoutMessage => 'Uremeza ko ushaka gusohoka?';
 
   @override
-  String get refundReason => 'Refund Reason';
+  String get refundReason => 'Impamvu y\'isubizwa ry\'amafaranga';
 
   @override
-  String get waitForApproval => 'Wait for Approval';
+  String get waitForApproval => 'Tegereza kwemezwa';
 
   @override
-  String get approved => 'Approved';
+  String get approved => 'Byemejwe';
 
   @override
-  String get cancelRequested => 'Cancel Requested';
+  String get cancelRequested => 'Hasabwe guhagarika';
 
   @override
-  String get canceled => 'Canceled';
+  String get canceled => 'Byahagaritswe';
 
   @override
-  String get refunded => 'Refunded';
+  String get refunded => 'Amafaranga yasubijwe';
 
   @override
-  String get transferred => 'Transferred';
+  String get transferred => 'Byimuriwe';
+
+  @override
+  String get appLanguage => 'Ururimi rwa porogaramu';
+
+  @override
+  String get chooseAppLanguage => 'Hitamo ururimi Flipper ikoresha';
+
+  @override
+  String get selectLanguage => 'Hitamo ururimi';
+
+  @override
+  String get languageAppliesEverywhere =>
+      'Bikoreshwa ku mapaji yose ya porogaramu.';
+
+  @override
+  String get useDeviceLanguage => 'Koresha ururimi rw\'igikoresho';
+
+  @override
+  String get automatic => 'Byikora';
+
+  @override
+  String get french => 'Igifaransa';
+
+  @override
+  String get accountAndFinancial => 'Konti n\'imari';
+
+  @override
+  String get adminProfile => 'Umwirondoro w\'umuyobozi';
+
+  @override
+  String get smsNotifications => 'Ubutumwa bwa SMS';
+
+  @override
+  String get close => 'Funga';
+
+  @override
+  String get refresh => 'Vugurura';
+
+  @override
+  String get adminEmailHint => 'urugero: admin@flipper.rw';
+
+  @override
+  String get displayName => 'Izina rigaragara';
+
+  @override
+  String get editName => 'Hindura izina';
+
+  @override
+  String get paymentMethods => 'Uburyo bw\'ubwishyu';
+
+  @override
+  String get managePaymentOptions => 'Cunga amahitamo y\'ubwishyu';
+
+  @override
+  String get enterPhoneNumber => 'Andika nimero ya telefoni';
+
+  @override
+  String get enableOrderNotifications => 'Emeza ubutumwa bw\'ibyatumijwe';
+
+  @override
+  String get receiveSmsNotificationsForOrders =>
+      'Kwakira ubutumwa bwa SMS ku byatumijwe';
+
+  @override
+  String get enableDebuggingFeatures => 'Emeza ibikorwa byo kugenzura amakosa';
+
+  @override
+  String get ebm => 'EBM';
+
+  @override
+  String get reinitializeEbm => 'Ongera utangize EBM';
+
+  @override
+  String get manageTaxServiceStatus => 'Cunga imiterere ya serivisi y\'imisoro';
+
+  @override
+  String get hydrateData => 'Zana amakuru';
+
+  @override
+  String get refreshAllLocalData =>
+      'Vugurura amakuru yose yo kuri iki gikoresho';
+
+  @override
+  String get assetDownload => 'Ikuramo ry\'amashusho';
+
+  @override
+  String get manageImageDownloads => 'Cunga ikuramo ry\'amashusho';
+
+  @override
+  String get autoAddSearch => 'Kwongeramo byikora';
+
+  @override
+  String get autoAddItemsWhenOneMatch =>
+      'Ongeramo igicuruzwa byikora iyo kimwe gusa kibonetse';
+
+  @override
+  String get userLogging => 'Kwandika ibikorwa by\'abakoresha';
+
+  @override
+  String get enableExtensiveUserLogging =>
+      'Emeza kwandika birambuye ibikorwa by\'abakoresha';
+
+  @override
+  String get priceQtyAdjustment => 'Guhuza igiciro n\'ingano';
+
+  @override
+  String get autoAdjustQtyOnPriceChange =>
+      'Hindura ingano byikora iyo igiciro cyahindutse';
+
+  @override
+  String get decimals => 'Ibice by\'umubare';
+
+  @override
+  String get enableFractionalPricing => 'Emeza ibiciro bifite ibice';
+
+  @override
+  String get ticketReviewAndHandover => 'Igenzura n\'ishyikirizwa ry\'itike';
+
+  @override
+  String get administratorPin => 'PIN y\'umuyobozi';
+
+  @override
+  String get resetAdministratorPin => 'Subizaho PIN y\'umuyobozi';
+
+  @override
+  String get updateHighSecurityPin =>
+      'Vugurura PIN yawe y\'imibare 4 ifite umutekano uhanitse';
+
+  @override
+  String get flipperSettingsTitle => 'Igenamiterere rya Flipper';
+
+  @override
+  String get common => 'Bisanzwe';
+
+  @override
+  String get environment => 'Aho bikorera';
+
+  @override
+  String get local => 'Kuri iki gikoresho';
+
+  @override
+  String get account => 'Konti';
+
+  @override
+  String get email => 'Imeyili';
+
+  @override
+  String get security => 'Umutekano';
+
+  @override
+  String get sendDailyReport => 'Ohereza raporo ya buri munsi';
+
+  @override
+  String get onlinePrint => 'Icapa kuri interineti';
+
+  @override
+  String get managePrintSettings => 'Cunga igenamiterere ry\'icapa';
+
+  @override
+  String get enableExtensiveLogging => 'Emeza kwandika birambuye';
+
+  @override
+  String get backgroundSync => 'Guhuza mu nyuma';
+
+  @override
+  String get syncDataInBackground => 'Huza amakuru mu nyuma';
+
+  @override
+  String get closeShift => 'Soza igihe cy\'akazi';
+
+  @override
+  String get startNewShift => 'Tangira igihe gishya cy\'akazi';
+
+  @override
+  String get checkSubscription => 'Genzura ifatabuguzi';
+
+  @override
+  String couldNotCheckSubscription(String error) {
+    return 'Ntibyashobotse kugenzura ifatabuguzi: $error';
+  }
+
+  @override
+  String get chooseYourDefaultApp => 'Hitamo porogaramu yawe y\'ibanze';
+
+  @override
+  String get accountSettings => 'Igenamiterere rya konti';
+
+  @override
+  String get switchAccount => 'Hindura konti';
+
+  @override
+  String continueToBranch(String branchName) {
+    return 'Komeza kuri $branchName';
+  }
+
+  @override
+  String get openShift => 'Tangira igihe cy\'akazi';
+
+  @override
+  String get checkingPaymentStatus => 'Turi kugenzura imiterere y\'ubwishyu…';
+
+  @override
+  String get refreshAfterCustomerPays =>
+      'Vugurura nyuma y\'uko umukiriya yishyuye';
+
+  @override
+  String get branch => 'ishami';
+
+  @override
+  String get totalItems => 'Ibicuruzwa byose';
+
+  @override
+  String get expiredItems => 'Ibicuruzwa byarengeje igihe';
+
+  @override
+  String get lowStockItems => 'Ibicuruzwa bike mu bubiko';
+
+  @override
+  String get pendingOrders => 'Ibyatumijwe bitegereje';
+
+  @override
+  String get viewAll => 'Reba byose';
+
+  @override
+  String get idLabel => 'ID';
+
+  @override
+  String get item => 'Igicuruzwa';
+
+  @override
+  String get category => 'Icyiciro';
+
+  @override
+  String get quantity => 'Ingano';
+
+  @override
+  String get location => 'Ahantu';
+
+  @override
+  String get expiredOn => 'Yarengeje igihe ku';
+
+  @override
+  String get actions => 'Ibikorwa';
+
+  @override
+  String get allExpiredItems => 'Ibicuruzwa byose byarengeje igihe';
+
+  @override
+  String get goHomeQuestion => 'Urashaka kujya ahabanza?';
+
+  @override
+  String get searchProductsOrScan => 'Shakisha ibicuruzwa cyangwa sikana…';
+
+  @override
+  String get clear => 'Kuraho';
+
+  @override
+  String get addProductAction => 'Ongeramo igicuruzwa';
+
+  @override
+  String get help => 'Ubufasha';
+
+  @override
+  String get customerManagement => 'Icungabakiriya';
+
+  @override
+  String get searchCustomersByNameOrPhone =>
+      'Shakisha abakiriya ku izina cyangwa telefoni';
+
+  @override
+  String get clearSearch => 'Kuraho ishakisha';
+
+  @override
+  String get add => 'Ongeramo';
+
+  @override
+  String get editCustomer => 'Hindura umukiriya';
+
+  @override
+  String get deleteCustomer => 'Siba umukiriya';
+
+  @override
+  String get customerActions => 'Ibikorwa ku mukiriya';
+
+  @override
+  String get phone => 'Telefoni';
+
+  @override
+  String get tin => 'TIN';
+
+  @override
+  String get invoice => 'Fagitire';
+
+  @override
+  String get txnId => 'ID y\'igurisha';
+
+  @override
+  String get addCustomer => 'Ongeramo umukiriya';
 }

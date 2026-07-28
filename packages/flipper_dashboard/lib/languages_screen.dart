@@ -1,84 +1,68 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/providers/locale_provider.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_settings_ui/flutter_settings_ui.dart';
-import 'package:stacked/stacked.dart';
-import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class LanguagesScreen extends StatefulWidget {
-  const LanguagesScreen({Key? key}) : super(key: key);
+/// Standalone language picker reached from Flipper Settings.
+///
+/// Shares [appLocaleProvider] with Admin Control's [LanguageSettingsCard] so
+/// both entry points read and write the same persisted choice.
+class LanguagesScreen extends ConsumerWidget {
+  const LanguagesScreen({super.key});
 
   @override
-  _LanguagesScreenState createState() => _LanguagesScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
+    final routerService = locator<RouterService>();
+    final chosenLocale = ref.watch(appLocaleProvider);
+    final effectiveCode = ref.watch(effectiveLanguageCodeProvider);
 
-class _LanguagesScreenState extends State<LanguagesScreen> {
-  int languageIndex = 0;
-  final _routerService = locator<RouterService>();
-  @override
-  Widget build(BuildContext context) {
-    return ViewModelBuilder<SettingViewModel>.reactive(
-      viewModelBuilder: () => SettingViewModel(),
-      onViewModelReady: (model) {
-        model.getSetting();
-      },
-      builder: (context, model, child) {
-        return Scaffold(
-          appBar: CustomAppBar(
-            onPop: () {
-              _routerService.pop();
-            },
-            title: FLocalization.of(context).languagesTitle,
-            showActionButton: false,
-            onActionButtonClicked: () async {
-              _routerService.pop();
-            },
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 55,
-          ),
-          body: SettingsList(
-            sections: [
-              SettingsSection(
-                tiles: [
-                  SettingsTile(
-                    title: Text(FLocalization.of(context).english),
-                    trailing: trailingWidget(model.defaultLanguage == 'en'),
-                    onPressed: (BuildContext context) {
-                      model.setLanguage('en');
-                      model.updateSettings(map: {'defaultLanguage': 'en'});
-                    },
+    return Scaffold(
+      appBar: CustomAppBar(
+        onPop: routerService.pop,
+        title: l10n.languagesTitle,
+        showActionButton: false,
+        onActionButtonClicked: () async => routerService.pop(),
+        icon: Icons.close,
+        multi: 3,
+        bottomSpacer: 55,
+      ),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            tiles: [
+              for (final language in kSelectableLanguages)
+                SettingsTile(
+                  // Endonym first so speakers can find their language even
+                  // while the app is still showing another one.
+                  title: Text(language.nativeName),
+                  description: Text(languageDisplayName(l10n, language.code)),
+                  trailing: _trailingWidget(
+                    chosenLocale?.languageCode == language.code,
                   ),
-                  SettingsTile(
-                    title: Text(FLocalization.of(context).kinyarwanda),
-                    trailing: trailingWidget(model.defaultLanguage == 'rw'),
-                    onPressed: (BuildContext context) {
-                      model.setLanguage('rw');
-                      model.updateSettings(map: {'defaultLanguage': 'rw'});
-                    },
-                  ),
-                  SettingsTile(
-                    title: Text(FLocalization.of(context).swahili),
-                    trailing: trailingWidget(model.defaultLanguage == 'sw'),
-                    onPressed: (BuildContext context) {
-                      model.setLanguage('sw');
-                      model.updateSettings(map: {'defaultLanguage': 'sw'});
-                    },
-                  ),
-                ],
+                  onPressed: (_) => ref
+                      .read(appLocaleProvider.notifier)
+                      .setLanguage(language.code),
+                ),
+              SettingsTile(
+                title: Text(l10n.useDeviceLanguage),
+                description: Text(languageDisplayName(l10n, effectiveCode)),
+                trailing: _trailingWidget(chosenLocale == null),
+                onPressed: (_) =>
+                    ref.read(appLocaleProvider.notifier).useDeviceLanguage(),
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget trailingWidget(bool checked) {
-    return (checked)
-        ? const Icon(Icons.check, color: Colors.blue)
-        : const Icon(null);
-  }
+  Widget _trailingWidget(bool checked) => checked
+      ? const Icon(Icons.check, color: Colors.blue)
+      : const SizedBox.shrink();
 }

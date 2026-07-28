@@ -1185,5 +1185,395 @@
     "transferred": "Transferred",
     "@transferred": {
         "description": "Refund status reason"
+    },
+    "appLanguage": "App Language",
+    "@appLanguage": {
+        "description": "Admin Control tile title for the app language setting"
+    },
+    "chooseAppLanguage": "Choose the language Flipper uses",
+    "@chooseAppLanguage": {
+        "description": "Subtitle of the app language tile"
+    },
+    "selectLanguage": "Select Language",
+    "@selectLanguage": {
+        "description": "Title of the language picker sheet"
+    },
+    "languageAppliesEverywhere": "Applies to every screen in the app.",
+    "@languageAppliesEverywhere": {
+        "description": "Explains the scope of the language choice"
+    },
+    "useDeviceLanguage": "Use device language",
+    "@useDeviceLanguage": {
+        "description": "Option to follow the device language instead of an explicit choice"
+    },
+    "automatic": "Automatic",
+    "@automatic": {
+        "description": "Tag shown when the language follows the device"
+    },
+    "french": "French",
+    "@french": {
+        "description": "The French language"
+    },
+    "accountAndFinancial": "Account & financial",
+    "@accountAndFinancial": {
+        "description": "Admin Control section header"
+    },
+    "adminProfile": "Admin profile",
+    "@adminProfile": {
+        "description": "Admin Control section header"
+    },
+    "smsNotifications": "SMS notifications",
+    "@smsNotifications": {
+        "description": "Admin Control section header"
+    },
+    "close": "Close",
+    "@close": {
+        "description": "Close a screen or dialog"
+    },
+    "refresh": "Refresh",
+    "@refresh": {
+        "description": "Reload the current data"
+    },
+    "adminEmailHint": "e.g. admin@flipper.rw",
+    "@adminEmailHint": {
+        "description": "Placeholder for the admin email field"
+    },
+    "displayName": "Display name",
+    "@displayName": {
+        "description": "Label for the admin display name field"
+    },
+    "editName": "Edit name",
+    "@editName": {
+        "description": "Tooltip for editing the admin display name"
+    },
+    "paymentMethods": "Payment Methods",
+    "@paymentMethods": {
+        "description": "Admin Control card title"
+    },
+    "managePaymentOptions": "Manage payment options",
+    "@managePaymentOptions": {
+        "description": "Admin Control card subtitle"
+    },
+    "enterPhoneNumber": "Enter phone number",
+    "@enterPhoneNumber": {
+        "description": "Placeholder for a phone number field"
+    },
+    "enableOrderNotifications": "Enable Order Notifications",
+    "@enableOrderNotifications": {
+        "description": "SMS setting title"
+    },
+    "receiveSmsNotificationsForOrders": "Receive SMS notifications for orders",
+    "@receiveSmsNotificationsForOrders": {
+        "description": "SMS setting subtitle"
+    },
+    "enableDebuggingFeatures": "Enable debugging features",
+    "@enableDebuggingFeatures": {
+        "description": "Debug mode subtitle"
+    },
+    "ebm": "EBM",
+    "@ebm": {
+        "description": "Electronic Billing Machine, kept as an acronym"
+    },
+    "reinitializeEbm": "Re-initialize EBM",
+    "@reinitializeEbm": {
+        "description": "Admin action to re-register the tax device"
+    },
+    "manageTaxServiceStatus": "Manage tax service status",
+    "@manageTaxServiceStatus": {
+        "description": "Tax service subtitle"
+    },
+    "hydrateData": "Hydrate Data",
+    "@hydrateData": {
+        "description": "Admin action to re-download all local data"
+    },
+    "refreshAllLocalData": "Refresh all local data",
+    "@refreshAllLocalData": {
+        "description": "Hydrate data subtitle"
+    },
+    "assetDownload": "Asset Download",
+    "@assetDownload": {
+        "description": "Admin toggle for downloading product images"
+    },
+    "manageImageDownloads": "Manage image downloads",
+    "@manageImageDownloads": {
+        "description": "Asset download subtitle"
+    },
+    "autoAddSearch": "Auto-Add Search",
+    "@autoAddSearch": {
+        "description": "Admin toggle title"
+    },
+    "autoAddItemsWhenOneMatch": "Auto-add items when 1 match",
+    "@autoAddItemsWhenOneMatch": {
+        "description": "Auto-add search subtitle"
+    },
+    "userLogging": "User Logging",
+    "@userLogging": {
+        "description": "Admin toggle title"
+    },
+    "enableExtensiveUserLogging": "Enable extensive user logging",
+    "@enableExtensiveUserLogging": {
+        "description": "User logging subtitle"
+    },
+    "priceQtyAdjustment": "Price-Qty Adj",
+    "@priceQtyAdjustment": {
+        "description": "Short admin toggle title for price/quantity adjustment"
+    },
+    "autoAdjustQtyOnPriceChange": "Auto-adjust qty on price change",
+    "@autoAdjustQtyOnPriceChange": {
+        "description": "Price-quantity adjustment subtitle"
+    },
+    "decimals": "Decimals",
+    "@decimals": {
+        "description": "Admin toggle title for fractional pricing"
+    },
+    "enableFractionalPricing": "Enable fractional pricing",
+    "@enableFractionalPricing": {
+        "description": "Decimals subtitle"
+    },
+    "ticketReviewAndHandover": "Ticket Review + Handover",
+    "@ticketReviewAndHandover": {
+        "description": "Admin toggle title"
+    },
+    "administratorPin": "Administrator PIN",
+    "@administratorPin": {
+        "description": "Admin security section title"
+    },
+    "resetAdministratorPin": "Reset Administrator PIN",
+    "@resetAdministratorPin": {
+        "description": "Admin security action"
+    },
+    "updateHighSecurityPin": "Update your high-security 4-digit PIN",
+    "@updateHighSecurityPin": {
+        "description": "Reset administrator PIN subtitle"
+    },
+    "flipperSettingsTitle": "Flipper Settings",
+    "@flipperSettingsTitle": {
+        "description": "Title of the settings screen"
+    },
+    "common": "Common",
+    "@common": {
+        "description": "Settings section header"
+    },
+    "environment": "Environment",
+    "@environment": {
+        "description": "Settings row showing which backend the app talks to"
+    },
+    "local": "Local",
+    "@local": {
+        "description": "Value of the environment setting"
+    },
+    "account": "Account",
+    "@account": {
+        "description": "Settings section header"
+    },
+    "email": "Email",
+    "@email": {
+        "description": "Settings row for the account email"
+    },
+    "security": "Security",
+    "@security": {
+        "description": "Settings section header"
+    },
+    "sendDailyReport": "Send daily report",
+    "@sendDailyReport": {
+        "description": "Settings toggle for the daily report email"
+    },
+    "onlinePrint": "Online Print",
+    "@onlinePrint": {
+        "description": "Drawer setting title"
+    },
+    "managePrintSettings": "Manage print settings",
+    "@managePrintSettings": {
+        "description": "Online print subtitle"
+    },
+    "enableExtensiveLogging": "Enable extensive logging",
+    "@enableExtensiveLogging": {
+        "description": "User logging subtitle in the drawer"
+    },
+    "backgroundSync": "Background Sync",
+    "@backgroundSync": {
+        "description": "Drawer setting title"
+    },
+    "syncDataInBackground": "Sync data in background",
+    "@syncDataInBackground": {
+        "description": "Background sync subtitle"
+    },
+    "closeShift": "Close Shift",
+    "@closeShift": {
+        "description": "Ends the current cashier shift"
+    },
+    "startNewShift": "Start New Shift",
+    "@startNewShift": {
+        "description": "Begins a new cashier shift"
+    },
+    "checkSubscription": "Check subscription",
+    "@checkSubscription": {
+        "description": "Re-checks the business subscription status"
+    },
+    "couldNotCheckSubscription": "Could not check subscription: {error}",
+    "@couldNotCheckSubscription": {
+        "description": "Shown when the subscription check fails",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "chooseYourDefaultApp": "Choose Your Default App",
+    "@chooseYourDefaultApp": {
+        "description": "Title of the default app chooser"
+    },
+    "accountSettings": "Account settings",
+    "@accountSettings": {
+        "description": "Menu entry opening account settings"
+    },
+    "switchAccount": "Switch account",
+    "@switchAccount": {
+        "description": "Menu entry for signing in as someone else"
+    },
+    "continueToBranch": "Continue to {branchName}",
+    "@continueToBranch": {
+        "description": "Confirms the branch the user is entering",
+        "placeholders": {
+            "branchName": {
+                "type": "String"
+            }
+        }
+    },
+    "openShift": "Open Shift",
+    "@openShift": {
+        "description": "Starts a cashier shift"
+    },
+    "checkingPaymentStatus": "Checking payment status…",
+    "@checkingPaymentStatus": {
+        "description": "Shown while the subscription payment check runs"
+    },
+    "refreshAfterCustomerPays": "Refresh after customer pays",
+    "@refreshAfterCustomerPays": {
+        "description": "Subtitle of the check subscription row"
+    },
+    "branch": "branch",
+    "@branch": {
+        "description": "Generic word for a branch, used as a fallback when the branch name is unknown"
+    },
+    "totalItems": "Total Items",
+    "@totalItems": {
+        "description": "Inventory summary card title"
+    },
+    "expiredItems": "Expired Items",
+    "@expiredItems": {
+        "description": "Inventory summary card title"
+    },
+    "lowStockItems": "Low Stock Items",
+    "@lowStockItems": {
+        "description": "Inventory summary card title"
+    },
+    "pendingOrders": "Pending Orders",
+    "@pendingOrders": {
+        "description": "Inventory summary card title"
+    },
+    "viewAll": "View All",
+    "@viewAll": {
+        "description": "Opens the full list"
+    },
+    "idLabel": "ID",
+    "@idLabel": {
+        "description": "Table column header for a record identifier"
+    },
+    "item": "Item",
+    "@item": {
+        "description": "Table column header"
+    },
+    "category": "Category",
+    "@category": {
+        "description": "Table column header"
+    },
+    "quantity": "Quantity",
+    "@quantity": {
+        "description": "Table column header"
+    },
+    "location": "Location",
+    "@location": {
+        "description": "Table column header"
+    },
+    "expiredOn": "Expired On",
+    "@expiredOn": {
+        "description": "Table column header for the expiry date"
+    },
+    "actions": "Actions",
+    "@actions": {
+        "description": "Table column header for row actions"
+    },
+    "allExpiredItems": "All Expired Items",
+    "@allExpiredItems": {
+        "description": "Dialog title listing every expired item"
+    },
+    "goHomeQuestion": "Do you want to go home?",
+    "@goHomeQuestion": {
+        "description": "Confirms leaving the checkout screen"
+    },
+    "searchProductsOrScan": "Search products or scan…",
+    "@searchProductsOrScan": {
+        "description": "POS search field placeholder"
+    },
+    "clear": "Clear",
+    "@clear": {
+        "description": "Clears the current input"
+    },
+    "addProductAction": "Add product",
+    "@addProductAction": {
+        "description": "Tooltip for adding a single product"
+    },
+    "help": "Help",
+    "@help": {
+        "description": "Opens help for the current screen"
+    },
+    "customerManagement": "Customer management",
+    "@customerManagement": {
+        "description": "Customers screen subtitle"
+    },
+    "searchCustomersByNameOrPhone": "Search customers by name or phone",
+    "@searchCustomersByNameOrPhone": {
+        "description": "Customer search placeholder"
+    },
+    "clearSearch": "Clear search",
+    "@clearSearch": {
+        "description": "Clears the search field"
+    },
+    "add": "Add",
+    "@add": {
+        "description": "Generic add action"
+    },
+    "editCustomer": "Edit customer",
+    "@editCustomer": {
+        "description": "Tooltip for editing a customer"
+    },
+    "deleteCustomer": "Delete customer",
+    "@deleteCustomer": {
+        "description": "Tooltip for deleting a customer"
+    },
+    "customerActions": "Customer actions",
+    "@customerActions": {
+        "description": "Semantic label for the customer row actions"
+    },
+    "phone": "Phone",
+    "@phone": {
+        "description": "Table column header for a phone number"
+    },
+    "tin": "TIN",
+    "@tin": {
+        "description": "Taxpayer Identification Number, kept as an acronym"
+    },
+    "invoice": "Invoice",
+    "@invoice": {
+        "description": "Label above the invoice number in checkout"
+    },
+    "txnId": "Txn ID",
+    "@txnId": {
+        "description": "Short label above the transaction identifier"
+    },
+    "addCustomer": "Add customer",
+    "@addCustomer": {
+        "description": "Tooltip for attaching a customer to the sale"
     }
 }

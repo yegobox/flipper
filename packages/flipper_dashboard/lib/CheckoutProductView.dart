@@ -26,6 +26,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -133,7 +134,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     onWillPop(
       context: context,
       navigationPurpose: NavigationPurpose.home,
-      message: 'Do you want to go home?',
+      message: context.flipperL10n.goHomeQuestion,
     );
   }
 
@@ -1072,7 +1073,7 @@ class _CheckoutPosProductSearchState
         decoration: InputDecoration(
           filled: true,
           fillColor: PosTokens.surface2,
-          hintText: 'Search products or scan…',
+          hintText: context.flipperL10n.searchProductsOrScan,
           hintStyle: const TextStyle(
             color: PosTokens.ink3,
             fontWeight: FontWeight.w500,
@@ -1111,7 +1112,7 @@ class _CheckoutPosProductSearchState
               ? IconButton(
                   onPressed: _clearSearch,
                   icon: const Icon(Icons.close_rounded, color: PosTokens.ink3),
-                  tooltip: 'Clear',
+                  tooltip: context.flipperL10n.clear,
                 )
               : Consumer(
                   builder: (context, ref, _) {
@@ -1123,7 +1124,7 @@ class _CheckoutPosProductSearchState
                         Icons.add_rounded,
                         color: PosTokens.blue,
                       ),
-                      tooltip: 'Add product',
+                      tooltip: context.flipperL10n.addProductAction,
                     ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]);
                   },
                 ),
@@ -1139,7 +1140,7 @@ class _CheckoutPosProductSearchState
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFE8E8ED),
-        hintText: 'Search products...',
+        hintText: context.flipperL10n.searchProducts,
         hintStyle: TextStyle(
           color: scheme.onSurfaceVariant.withValues(alpha: 0.85),
           fontWeight: FontWeight.w500,
@@ -1186,7 +1187,7 @@ class _CheckoutPosProductSearchState
                   FluentIcons.dismiss_24_regular,
                   color: scheme.onSurfaceVariant,
                 ),
-                tooltip: 'Clear',
+                tooltip: context.flipperL10n.clear,
               )
             : Consumer(
                 builder: (context, ref, _) {
@@ -1198,7 +1199,7 @@ class _CheckoutPosProductSearchState
                       FluentIcons.add_20_regular,
                       color: scheme.onSurfaceVariant,
                     ),
-                    tooltip: 'Add product',
+                    tooltip: context.flipperL10n.addProductAction,
                   ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]);
                 },
               ),

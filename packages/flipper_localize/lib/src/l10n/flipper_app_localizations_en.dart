@@ -919,4 +919,295 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get transferred => 'Transferred';
+
+  @override
+  String get appLanguage => 'App Language';
+
+  @override
+  String get chooseAppLanguage => 'Choose the language Flipper uses';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get languageAppliesEverywhere => 'Applies to every screen in the app.';
+
+  @override
+  String get useDeviceLanguage => 'Use device language';
+
+  @override
+  String get automatic => 'Automatic';
+
+  @override
+  String get french => 'French';
+
+  @override
+  String get accountAndFinancial => 'Account & financial';
+
+  @override
+  String get adminProfile => 'Admin profile';
+
+  @override
+  String get smsNotifications => 'SMS notifications';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get adminEmailHint => 'e.g. admin@flipper.rw';
+
+  @override
+  String get displayName => 'Display name';
+
+  @override
+  String get editName => 'Edit name';
+
+  @override
+  String get paymentMethods => 'Payment Methods';
+
+  @override
+  String get managePaymentOptions => 'Manage payment options';
+
+  @override
+  String get enterPhoneNumber => 'Enter phone number';
+
+  @override
+  String get enableOrderNotifications => 'Enable Order Notifications';
+
+  @override
+  String get receiveSmsNotificationsForOrders =>
+      'Receive SMS notifications for orders';
+
+  @override
+  String get enableDebuggingFeatures => 'Enable debugging features';
+
+  @override
+  String get ebm => 'EBM';
+
+  @override
+  String get reinitializeEbm => 'Re-initialize EBM';
+
+  @override
+  String get manageTaxServiceStatus => 'Manage tax service status';
+
+  @override
+  String get hydrateData => 'Hydrate Data';
+
+  @override
+  String get refreshAllLocalData => 'Refresh all local data';
+
+  @override
+  String get assetDownload => 'Asset Download';
+
+  @override
+  String get manageImageDownloads => 'Manage image downloads';
+
+  @override
+  String get autoAddSearch => 'Auto-Add Search';
+
+  @override
+  String get autoAddItemsWhenOneMatch => 'Auto-add items when 1 match';
+
+  @override
+  String get userLogging => 'User Logging';
+
+  @override
+  String get enableExtensiveUserLogging => 'Enable extensive user logging';
+
+  @override
+  String get priceQtyAdjustment => 'Price-Qty Adj';
+
+  @override
+  String get autoAdjustQtyOnPriceChange => 'Auto-adjust qty on price change';
+
+  @override
+  String get decimals => 'Decimals';
+
+  @override
+  String get enableFractionalPricing => 'Enable fractional pricing';
+
+  @override
+  String get ticketReviewAndHandover => 'Ticket Review + Handover';
+
+  @override
+  String get administratorPin => 'Administrator PIN';
+
+  @override
+  String get resetAdministratorPin => 'Reset Administrator PIN';
+
+  @override
+  String get updateHighSecurityPin => 'Update your high-security 4-digit PIN';
+
+  @override
+  String get flipperSettingsTitle => 'Flipper Settings';
+
+  @override
+  String get common => 'Common';
+
+  @override
+  String get environment => 'Environment';
+
+  @override
+  String get local => 'Local';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get sendDailyReport => 'Send daily report';
+
+  @override
+  String get onlinePrint => 'Online Print';
+
+  @override
+  String get managePrintSettings => 'Manage print settings';
+
+  @override
+  String get enableExtensiveLogging => 'Enable extensive logging';
+
+  @override
+  String get backgroundSync => 'Background Sync';
+
+  @override
+  String get syncDataInBackground => 'Sync data in background';
+
+  @override
+  String get closeShift => 'Close Shift';
+
+  @override
+  String get startNewShift => 'Start New Shift';
+
+  @override
+  String get checkSubscription => 'Check subscription';
+
+  @override
+  String couldNotCheckSubscription(String error) {
+    return 'Could not check subscription: $error';
+  }
+
+  @override
+  String get chooseYourDefaultApp => 'Choose Your Default App';
+
+  @override
+  String get accountSettings => 'Account settings';
+
+  @override
+  String get switchAccount => 'Switch account';
+
+  @override
+  String continueToBranch(String branchName) {
+    return 'Continue to $branchName';
+  }
+
+  @override
+  String get openShift => 'Open Shift';
+
+  @override
+  String get checkingPaymentStatus => 'Checking payment status…';
+
+  @override
+  String get refreshAfterCustomerPays => 'Refresh after customer pays';
+
+  @override
+  String get branch => 'branch';
+
+  @override
+  String get totalItems => 'Total Items';
+
+  @override
+  String get expiredItems => 'Expired Items';
+
+  @override
+  String get lowStockItems => 'Low Stock Items';
+
+  @override
+  String get pendingOrders => 'Pending Orders';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get idLabel => 'ID';
+
+  @override
+  String get item => 'Item';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get expiredOn => 'Expired On';
+
+  @override
+  String get actions => 'Actions';
+
+  @override
+  String get allExpiredItems => 'All Expired Items';
+
+  @override
+  String get goHomeQuestion => 'Do you want to go home?';
+
+  @override
+  String get searchProductsOrScan => 'Search products or scan…';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get addProductAction => 'Add product';
+
+  @override
+  String get help => 'Help';
+
+  @override
+  String get customerManagement => 'Customer management';
+
+  @override
+  String get searchCustomersByNameOrPhone =>
+      'Search customers by name or phone';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get editCustomer => 'Edit customer';
+
+  @override
+  String get deleteCustomer => 'Delete customer';
+
+  @override
+  String get customerActions => 'Customer actions';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get tin => 'TIN';
+
+  @override
+  String get invoice => 'Invoice';
+
+  @override
+  String get txnId => 'Txn ID';
+
+  @override
+  String get addCustomer => 'Add customer';
 }

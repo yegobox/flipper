@@ -118,7 +118,7 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   }
 
   @override
-  String get error => 'Error';
+  String get error => 'Erreur';
 
   @override
   String get pickFromContacts => 'Choisir dans les contacts';
@@ -143,201 +143,202 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String paymentTitle(Object paymentType) {
-    return 'Payment: $paymentType';
+    return 'Paiement : $paymentType';
   }
 
   @override
-  String get digitalReceipt => 'Digital Receipt';
+  String get digitalReceipt => 'Reçu numérique';
 
   @override
-  String get needDigitalReceipt => 'Do you need a digital receipt?';
+  String get needDigitalReceipt => 'Avez-vous besoin d\'un reçu numérique ?';
 
   @override
-  String get purchaseCode => 'Purchase Code';
+  String get purchaseCode => 'Code d\'achat';
 
   @override
-  String get pleaseEnterPurchaseCode => 'Please enter a purchase code';
+  String get pleaseEnterPurchaseCode => 'Veuillez saisir un code d\'achat';
 
   @override
-  String get submit => 'Submit';
+  String get submit => 'Envoyer';
 
   @override
-  String get done => 'Done';
+  String get done => 'Terminé';
 
   @override
-  String get receipt => 'Receipt';
+  String get receipt => 'Reçu';
 
   @override
-  String get addNote => 'Add Note';
+  String get addNote => 'Ajouter une note';
 
   @override
   String get generatingReceiptWait =>
-      'Please wait we are generating the receipt';
+      'Veuillez patienter, nous générons le reçu';
 
   @override
-  String get poweredBy => 'Powered By';
+  String get poweredBy => 'Propulsé par';
 
   @override
-  String get returnToHome => 'Return to Home';
+  String get returnToHome => 'Retour à l\'accueil';
 
   @override
-  String get personalGoals => 'Personal goals';
+  String get personalGoals => 'Objectifs personnels';
 
   @override
-  String get selectBranchToManageGoals => 'Select a branch to manage goals.';
+  String get selectBranchToManageGoals =>
+      'Sélectionnez une succursale pour gérer les objectifs.';
 
   @override
   String couldNotLoadGoals(Object error) {
-    return 'Could not load goals\n$error';
+    return 'Impossible de charger les objectifs\n$error';
   }
 
   @override
-  String get personalGoalsEyebrow => 'PERSONAL GOALS';
+  String get personalGoalsEyebrow => 'OBJECTIFS PERSONNELS';
 
   @override
   String totalReservedAcrossGoals(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count goals',
-      one: '1 goal',
+      other: '$count objectifs',
+      one: '1 objectif',
     );
-    return 'Total reserved across $_temp0';
+    return 'Total réservé sur $_temp0';
   }
 
   @override
-  String get savedThisMonth => 'Saved this month';
+  String get savedThisMonth => 'Épargné ce mois-ci';
 
   @override
   String onTrackCount(Object count) {
-    return '$count on track';
+    return '$count en bonne voie';
   }
 
   @override
-  String get goalsProgressing => 'Goals progressing';
+  String get goalsProgressing => 'Objectifs en progression';
 
   @override
-  String get allGoals => 'All goals';
+  String get allGoals => 'Tous les objectifs';
 
   @override
   String get personalGoalsProfitGrowth =>
-      'Flipper quietly grows each goal from your profits.';
+      'Flipper fait discrètement croître chaque objectif à partir de vos bénéfices.';
 
   @override
-  String get searchProducts => 'Search products…';
+  String get searchProducts => 'Rechercher des produits…';
 
   @override
-  String get clearSelection => 'Clear selection';
+  String get clearSelection => 'Effacer la sélection';
 
   @override
   String itemsSelected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items selected',
-      one: '1 item selected',
+      other: '$count articles sélectionnés',
+      one: '1 article sélectionné',
     );
     return '$_temp0';
   }
 
   @override
   String get cannotDeleteVariantWithStockRemaining =>
-      'Cannot delete variant with stock remaining.';
+      'Impossible de supprimer une variante qui a encore du stock.';
 
   @override
-  String get deleteMultipleItems => 'Delete Multiple Items';
+  String get deleteMultipleItems => 'Supprimer plusieurs articles';
 
   @override
   String deleteItemsConfirmation(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: '$count articles',
+      one: '1 article',
     );
-    return 'Are you sure you want to delete $_temp0? This action cannot be undone.';
+    return 'Voulez-vous vraiment supprimer $_temp0 ? Cette action est irréversible.';
   }
 
   @override
-  String get refreshProducts => 'Refresh products';
+  String get refreshProducts => 'Actualiser les produits';
 
   @override
   String get productsSyncingHint =>
-      'If you just opened the app, products may still be syncing — tap refresh.';
+      'Si vous venez d\'ouvrir l\'application, les produits sont peut-être encore en cours de synchronisation — appuyez sur actualiser.';
 
   @override
-  String get errorLoadingProducts => 'Error loading products';
+  String get errorLoadingProducts => 'Erreur lors du chargement des produits';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Réessayer';
 
   @override
-  String get noStockDataAvailable => 'No stock data available';
+  String get noStockDataAvailable => 'Aucune donnée de stock disponible';
 
   @override
-  String get cash => 'Cash';
+  String get cash => 'Espèces';
 
   @override
-  String get credit => 'Credit';
+  String get credit => 'Crédit';
 
   @override
-  String get momoPayerPhone => 'MoMo payer phone';
+  String get momoPayerPhone => 'Téléphone du payeur MoMo';
 
   @override
   String get momoPaymentRequestHint =>
-      'We will send a payment request to this number when you tap Charge.';
+      'Nous enverrons une demande de paiement à ce numéro lorsque vous appuierez sur Facturer.';
 
   @override
   String get exact => 'Exact';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'Confirmer';
 
   @override
-  String get numberOfPayments => 'Number of Payments';
+  String get numberOfPayments => 'Nombre de paiements';
 
   @override
-  String get applyDiscountCode => 'Apply Discount Code';
+  String get applyDiscountCode => 'Appliquer un code de remise';
 
   @override
-  String get discountCode => 'Discount Code';
+  String get discountCode => 'Code de remise';
 
   @override
-  String get validatingCode => 'Validating code...';
+  String get validatingCode => 'Validation du code...';
 
   @override
-  String get createAccount => 'Create Account';
+  String get createAccount => 'Créer un compte';
 
   @override
-  String get signIn => 'SIGN IN';
+  String get signIn => 'SE CONNECTER';
 
   @override
   String get setDeviceTimeAutomatic =>
-      'Please set your device time to automatic';
+      'Veuillez régler l\'heure de votre appareil sur automatique';
 
   @override
-  String get continueWithPhone => 'Continue with Phone';
+  String get continueWithPhone => 'Continuer avec le téléphone';
 
   @override
-  String get continueWithGoogle => 'Continue with Google';
+  String get continueWithGoogle => 'Continuer avec Google';
 
   @override
-  String get continueWithMicrosoft => 'Continue with Microsoft';
+  String get continueWithMicrosoft => 'Continuer avec Microsoft';
 
   @override
-  String get continueWithApple => 'Continue with Apple';
+  String get continueWithApple => 'Continuer avec Apple';
 
   @override
-  String get or => 'OR';
+  String get or => 'OU';
 
   @override
-  String get pinLogin => 'PIN Login';
+  String get pinLogin => 'Connexion par PIN';
 
   @override
-  String get languagesTitle => 'Languages';
+  String get languagesTitle => 'Langues';
 
   @override
-  String get english => 'English';
+  String get english => 'Anglais';
 
   @override
   String get kinyarwanda => 'Kinyarwanda';
@@ -346,204 +347,209 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get swahili => 'Swahili';
 
   @override
-  String get settings => 'Settings';
+  String get settings => 'Paramètres';
 
   @override
-  String get home => 'Home';
+  String get home => 'Accueil';
 
   @override
-  String get sales => 'Sales';
+  String get sales => 'Ventes';
 
   @override
-  String get inventory => 'Inventory';
+  String get inventory => 'Stock';
 
   @override
-  String get more => 'More';
+  String get more => 'Plus';
 
   @override
-  String get scanQr => 'Scan QR';
+  String get scanQr => 'Scanner le QR';
 
   @override
-  String get dashboard => 'Dashboard';
+  String get dashboard => 'Tableau de bord';
 
   @override
-  String get noUser => 'No User';
+  String get noUser => 'Aucun utilisateur';
 
   @override
-  String get pleaseLogInToContinue => 'Please log in to continue';
+  String get pleaseLogInToContinue => 'Veuillez vous connecter pour continuer';
 
   @override
-  String get loadingBusinesses => 'Loading businesses...';
+  String get loadingBusinesses => 'Chargement des entreprises...';
 
   @override
-  String get errorLoadingBusinesses => 'Error loading businesses';
+  String get errorLoadingBusinesses =>
+      'Erreur lors du chargement des entreprises';
 
   @override
-  String get noBusinesses => 'No Businesses';
+  String get noBusinesses => 'Aucune entreprise';
 
   @override
-  String get createFirstBusiness => 'Create your first business to get started';
+  String get createFirstBusiness =>
+      'Créez votre première entreprise pour commencer';
 
   @override
-  String get signOut => 'Sign Out';
+  String get signOut => 'Se déconnecter';
 
   @override
-  String get phoneNumber => 'Phone Number';
+  String get phoneNumber => 'Numéro de téléphone';
 
   @override
-  String get sendingCode => 'Sending code...';
+  String get sendingCode => 'Envoi du code...';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Continuer';
 
   @override
-  String get enterSixDigitCodeSentTo => 'Enter the 6-digit code sent to ';
+  String get enterSixDigitCodeSentTo =>
+      'Saisissez le code à 6 chiffres envoyé au ';
 
   @override
-  String get codeExpiredTapToResend => 'Code Expired - Tap to Resend';
+  String get codeExpiredTapToResend => 'Code expiré - Appuyez pour renvoyer';
 
   @override
-  String get resendCode => 'Resend Code';
+  String get resendCode => 'Renvoyer le code';
 
   @override
-  String get resendCodeIn => 'Resend code in ';
+  String get resendCodeIn => 'Renvoyer le code dans ';
 
   @override
-  String get seconds => 'seconds';
+  String get seconds => 'secondes';
 
   @override
-  String get verifying => 'Verifying...';
+  String get verifying => 'Vérification...';
 
   @override
-  String get verifyCode => 'Verify Code';
+  String get verifyCode => 'Vérifier le code';
 
   @override
-  String get troubleSigningIn => 'Trouble Signing In?';
+  String get troubleSigningIn => 'Problème de connexion ?';
 
   @override
   String get troubleSigningInHelp =>
-      'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.';
+      'Si vous avez des difficultés à vous connecter, vérifiez que votre PIN et votre OTP (le cas échéant) sont corrects.\n\nPour toute aide supplémentaire, contactez le support.';
 
   @override
   String get ok => 'OK';
 
   @override
-  String get welcomeBack => 'Welcome back';
+  String get welcomeBack => 'Bon retour';
 
   @override
-  String get tinNumber => 'TIN Number';
+  String get tinNumber => 'Numéro TIN';
 
   @override
-  String get validate => 'Validate';
+  String get validate => 'Valider';
 
   @override
-  String get uploadPdfWithTin => 'Upload PDF with TIN';
+  String get uploadPdfWithTin => 'Téléverser un PDF avec le TIN';
 
   @override
-  String get enterTinOrUpload => 'Enter TIN number or tap the upload icon';
+  String get enterTinOrUpload =>
+      'Saisissez le numéro TIN ou appuyez sur l\'icône de téléversement';
 
   @override
-  String get addEmail => 'Add Email';
+  String get addEmail => 'Ajouter un e-mail';
 
   @override
-  String get emailAdded => 'Email added';
+  String get emailAdded => 'E-mail ajouté';
 
   @override
-  String get updateSettings => 'Update Settings';
+  String get updateSettings => 'Mettre à jour les paramètres';
 
   @override
-  String get invite => 'Invite';
+  String get invite => 'Inviter';
 
   @override
-  String get sendRequest => 'Send Request';
+  String get sendRequest => 'Envoyer la demande';
 
   @override
-  String get preferences => 'Preferences';
+  String get preferences => 'Préférences';
 
   @override
-  String get accessibility => 'Accessibility';
+  String get accessibility => 'Accessibilité';
 
   @override
-  String get language => 'Language';
+  String get language => 'Langue';
 
   @override
-  String get reports => 'Reports';
+  String get reports => 'Rapports';
 
   @override
-  String get enableReport => 'Enable Report';
+  String get enableReport => 'Activer le rapport';
 
   @override
-  String get backups => 'BackUps';
+  String get backups => 'Sauvegardes';
 
   @override
-  String get addBackup => 'Add Backup';
+  String get addBackup => 'Ajouter une sauvegarde';
 
   @override
-  String get restoreData => 'Restore Data';
+  String get restoreData => 'Restaurer les données';
 
   @override
-  String get dataRestored => 'Data restored';
+  String get dataRestored => 'Données restaurées';
 
   @override
-  String get errorRestoringBackup => 'Error Restoring backup';
+  String get errorRestoringBackup =>
+      'Erreur lors de la restauration de la sauvegarde';
 
   @override
   String get transactionIdCopiedToClipboard =>
-      'Transaction ID copied to clipboard';
+      'ID de transaction copié dans le presse-papiers';
 
   @override
-  String get transactionIdShortLabel => 'Txn ID: ';
+  String get transactionIdShortLabel => 'ID transaction : ';
 
   @override
-  String get invoiceNumberLabel => 'Invoice No: ';
+  String get invoiceNumberLabel => 'N° de facture : ';
 
   @override
-  String get parkSaleAsTicket => 'Park this sale as a ticket';
+  String get parkSaleAsTicket => 'Mettre cette vente en attente comme ticket';
 
   @override
-  String get saveTicketAction => 'Save ticket';
+  String get saveTicketAction => 'Enregistrer le ticket';
 
   @override
-  String get remainingBalanceLabel => 'Remaining Balance: ';
+  String get remainingBalanceLabel => 'Solde restant : ';
 
   @override
-  String get amountToChangeLabel => 'Amount to Change: ';
+  String get amountToChangeLabel => 'Montant à rendre : ';
 
   @override
-  String get allApps => 'All apps';
+  String get allApps => 'Toutes les applications';
 
   @override
-  String get sell => 'Sell';
+  String get sell => 'Vendre';
 
   @override
-  String get quickSell => 'Quick Sell';
+  String get quickSell => 'Vente rapide';
 
   @override
-  String get invoices => 'Invoices';
+  String get invoices => 'Factures';
 
   @override
-  String get pricing => 'Pricing';
+  String get pricing => 'Tarifs';
 
   @override
-  String get payments => 'Payments';
+  String get payments => 'Paiements';
 
   @override
-  String get manage => 'Manage';
+  String get manage => 'Gérer';
 
   @override
-  String get purchases => 'Purchases';
+  String get purchases => 'Achats';
 
   @override
-  String get customers => 'Customers';
+  String get customers => 'Clients';
 
   @override
-  String get leads => 'Leads';
+  String get leads => 'Prospects';
 
   @override
-  String get insights => 'Insights';
+  String get insights => 'Analyses';
 
   @override
-  String get dailyReports => 'Daily Reports';
+  String get dailyReports => 'Rapports quotidiens';
 
   @override
   String get commissions => 'Commissions';
@@ -552,81 +558,84 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get production => 'Production';
 
   @override
-  String get business => 'Business';
+  String get business => 'Entreprise';
 
   @override
-  String get servicesHub => 'Services hub';
+  String get servicesHub => 'Espace services';
 
   @override
-  String get goals => 'Goals';
+  String get goals => 'Objectifs';
 
   @override
-  String get aiChat => 'AI Chat';
+  String get aiChat => 'Chat IA';
 
   @override
-  String get errorLoadingTransactionView => 'Error loading transaction view';
+  String get errorLoadingTransactionView =>
+      'Erreur lors du chargement de la transaction';
 
   @override
-  String get customer => 'Customer';
+  String get customer => 'Client';
 
   @override
-  String get payment => 'Payment';
+  String get payment => 'Paiement';
 
   @override
-  String get delivery => 'Delivery';
+  String get delivery => 'Livraison';
 
   @override
-  String get transactionSummary => 'Transaction summary';
+  String get transactionSummary => 'Récapitulatif de la transaction';
 
   @override
   String get transactionSummaryHint =>
-      'Shows the total amount and transaction ID for the current sale';
+      'Affiche le montant total et l\'ID de la vente en cours';
 
   @override
-  String get totalAmount => 'Total Amount';
+  String get totalAmount => 'Montant total';
 
   @override
   String get cannotDeletePartialPaymentItems =>
-      'Cannot delete items from a transaction with partial payments';
+      'Impossible de supprimer des articles d\'une transaction avec paiements partiels';
 
   @override
-  String get deleteAllItems => 'Delete All Items';
+  String get deleteAllItems => 'Supprimer tous les articles';
 
   @override
   String get confirmRemoveAllTransactionItems =>
-      'Are you sure you want to remove all items from this transaction?';
+      'Voulez-vous vraiment retirer tous les articles de cette transaction ?';
 
   @override
-  String get deleteAll => 'Delete All';
+  String get deleteAll => 'Tout supprimer';
 
   @override
-  String get allItemsRemovedSuccessfully => 'All items removed successfully';
+  String get allItemsRemovedSuccessfully =>
+      'Tous les articles ont été retirés avec succès';
 
   @override
   String errorRemovingItems(String error) {
-    return 'Error removing items: $error';
+    return 'Erreur lors du retrait des articles : $error';
   }
 
   @override
-  String get noItemsAdded => 'No items added';
+  String get noItemsAdded => 'Aucun article ajouté';
 
   @override
-  String get tapAddFirstItem => 'Tap the + button to add your first item';
+  String get tapAddFirstItem =>
+      'Appuyez sur le bouton + pour ajouter votre premier article';
 
   @override
   String cartItemCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: '$count articles',
+      one: '1 article',
     );
     return '$_temp0';
   }
 
   @override
   String itemSemanticLabel(String itemName) {
-    return 'Item: $itemName';
+    return 'Article : $itemName';
   }
 
   @override
@@ -635,290 +644,595 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
     String unitPrice,
     String subtotal,
   ) {
-    return 'Quantity: $quantity, Unit price: $unitPrice, Subtotal: $subtotal';
+    return 'Quantité : $quantity, Prix unitaire : $unitPrice, Sous-total : $subtotal';
   }
 
   @override
-  String get removeItem => 'Remove item';
+  String get removeItem => 'Retirer l\'article';
 
   @override
-  String get unitPrice => 'Unit Price';
+  String get unitPrice => 'Prix unitaire';
 
   @override
-  String get decreaseQuantityByOne => 'Decrease quantity by 1';
+  String get decreaseQuantityByOne => 'Diminuer la quantité de 1';
 
   @override
-  String get increaseQuantityByOne => 'Increase quantity by 1';
+  String get increaseQuantityByOne => 'Augmenter la quantité de 1';
 
   @override
-  String get subtotal => 'Subtotal';
+  String get subtotal => 'Sous-total';
 
   @override
-  String get deliveryDate => 'Delivery Date';
+  String get deliveryDate => 'Date de livraison';
 
   @override
   String get transactionSummaryPaymentActions =>
-      'Transaction summary and payment actions';
+      'Récapitulatif de la transaction et actions de paiement';
 
   @override
   String completeSaleTotalHint(String total) {
-    return 'Complete sale with total amount $total';
+    return 'Finaliser la vente pour un total de $total';
   }
 
   @override
   String errorWithValue(String error) {
-    return 'Error: $error';
+    return 'Erreur : $error';
   }
 
   @override
   String confirmRemoveItemFromTransaction(String itemName) {
-    return 'Are you sure you want to remove \"$itemName\" from this transaction?';
+    return 'Voulez-vous vraiment retirer « $itemName » de cette transaction ?';
   }
 
   @override
-  String get remove => 'Remove';
+  String get remove => 'Retirer';
 
   @override
   String get cannotModifyPartialPaymentItems =>
-      'Cannot modify items in a transaction with partial payments';
+      'Impossible de modifier les articles d\'une transaction avec paiements partiels';
 
   @override
-  String get failedToRemoveItem => 'Failed to remove item';
+  String get failedToRemoveItem => 'Échec du retrait de l\'article';
 
   @override
-  String get failedToUpdateItemQuantity => 'Failed to update item quantity';
+  String get failedToUpdateItemQuantity =>
+      'Échec de la mise à jour de la quantité';
 
   @override
-  String get transactionItemsList => 'Transaction items list';
+  String get transactionItemsList => 'Liste des articles de la transaction';
 
   @override
   String get transactionItemsListHint =>
-      'List of items in the current transaction with quantities and prices';
+      'Liste des articles de la transaction en cours avec quantités et prix';
 
   @override
-  String get deliveryNote => 'Delivery Note';
+  String get deliveryNote => 'Bon de livraison';
 
   @override
-  String get deliveryNoteSemantic => 'Delivery note';
+  String get deliveryNoteSemantic => 'Bon de livraison';
 
   @override
-  String get deliveryNoteHint => 'Add any special instructions for delivery';
+  String get deliveryNoteHint =>
+      'Ajoutez des instructions particulières pour la livraison';
 
   @override
   String get deliveryInstructionsHint =>
-      'Enter any special instructions for delivery';
+      'Saisissez des instructions particulières pour la livraison';
 
   @override
-  String get discount => 'Discount';
+  String get discount => 'Remise';
 
   @override
-  String get pleaseEnterValidNumber => 'Please enter a valid number';
+  String get pleaseEnterValidNumber => 'Veuillez saisir un nombre valide';
 
   @override
-  String get discountRangeError => 'Discount must be between 0 and 100';
+  String get discountRangeError =>
+      'La remise doit être comprise entre 0 et 100';
 
   @override
-  String get digitalReceiptTitle => 'Digital receipt';
+  String get digitalReceiptTitle => 'Reçu numérique';
 
   @override
   String get digitalReceiptSmsSubtitle =>
-      'Send receipt by SMS instead of opening a PDF';
+      'Envoyer le reçu par SMS au lieu d\'ouvrir un PDF';
 
   @override
   String receivedAmountInCurrency(String currency) {
-    return 'Received amount in $currency';
+    return 'Montant reçu en $currency';
   }
 
   @override
-  String get receivedAmountHint =>
-      'Enter the amount received from the customer';
+  String get receivedAmountHint => 'Saisissez le montant reçu du client';
 
   @override
-  String get receivedAmount => 'Received Amount';
+  String get receivedAmount => 'Montant reçu';
 
   @override
-  String get pleaseEnterReceivedAmount => 'Please enter received amount';
+  String get pleaseEnterReceivedAmount => 'Veuillez saisir le montant reçu';
 
   @override
-  String get customerName => 'Customer name';
+  String get customerName => 'Nom du client';
 
   @override
-  String get customerNameHint => 'Enter the full name of the customer';
+  String get customerNameHint => 'Saisissez le nom complet du client';
 
   @override
-  String get pleaseEnterCustomerName => 'Please enter customer name';
+  String get pleaseEnterCustomerName => 'Veuillez saisir le nom du client';
 
   @override
-  String get customerPhoneNumber => 'Customer phone number';
+  String get customerPhoneNumber => 'Numéro de téléphone du client';
 
   @override
   String get customerPhoneNumberHint =>
-      'Enter the customer\'s phone number for contact and billing purposes';
+      'Saisissez le numéro de téléphone du client pour le contact et la facturation';
 
   @override
-  String get items => 'Items';
+  String get items => 'Articles';
 
   @override
-  String get transactionId => 'Transaction ID';
+  String get transactionId => 'ID de transaction';
 
   @override
-  String get amountPaid => 'Amount Paid';
+  String get amountPaid => 'Montant payé';
 
   @override
-  String get remainingBalance => 'Remaining Balance';
+  String get remainingBalance => 'Solde restant';
 
   @override
   String recordPaymentWithAmount(String amount) {
-    return 'Record Payment • $amount';
+    return 'Enregistrer le paiement • $amount';
   }
 
   @override
   String payWithAmount(String amount) {
-    return 'Pay • $amount';
+    return 'Payer • $amount';
   }
 
   @override
   String sendForReviewWithAmount(String amount) {
-    return 'Send for Review • $amount';
+    return 'Envoyer pour révision • $amount';
   }
 
   @override
   String get phoneRequiredWhenTinMissing =>
-      'Phone number is required when customer TIN is not available';
+      'Le numéro de téléphone est requis lorsque le TIN du client n\'est pas disponible';
 
   @override
-  String get invalidNumber => 'Invalid Number';
+  String get invalidNumber => 'Nombre invalide';
 
   @override
-  String get back => 'Back';
+  String get back => 'Retour';
 
   @override
-  String get managementDashboard => 'Management Dashboard';
+  String get managementDashboard => 'Tableau de bord de gestion';
 
   @override
-  String get quickActions => 'Quick Actions';
+  String get quickActions => 'Actions rapides';
 
   @override
-  String get posDefault => 'POS Default';
+  String get posDefault => 'PDV par défaut';
 
   @override
-  String get setPosAsDefaultApp => 'Set POS as default app';
+  String get setPosAsDefaultApp =>
+      'Définir le PDV comme application par défaut';
 
   @override
-  String get ordersDefault => 'Orders Default';
+  String get ordersDefault => 'Commandes par défaut';
 
   @override
-  String get setOrdersAsDefaultApp => 'Set Orders as default app';
+  String get setOrdersAsDefaultApp =>
+      'Définir Commandes comme application par défaut';
 
   @override
-  String get accountManagement => 'Account Management';
+  String get accountManagement => 'Gestion des comptes';
 
   @override
-  String get userManagement => 'User Management';
+  String get userManagement => 'Gestion des utilisateurs';
 
   @override
-  String get manageUsersAndPermissions => 'Manage users and permissions';
+  String get manageUsersAndPermissions =>
+      'Gérer les utilisateurs et les autorisations';
 
   @override
-  String get branchManagement => 'Branch Management';
+  String get branchManagement => 'Gestion des succursales';
 
   @override
-  String get manageBranchLocations => 'Manage Branch (Locations)';
+  String get manageBranchLocations => 'Gérer les succursales (emplacements)';
 
   @override
-  String get financialControls => 'Financial Controls';
+  String get financialControls => 'Contrôles financiers';
 
   @override
-  String get taxSettings => 'Tax Settings';
+  String get taxSettings => 'Paramètres fiscaux';
 
   @override
-  String get configureTaxRulesAndRates => 'Configure tax rules and rates';
+  String get configureTaxRulesAndRates =>
+      'Configurer les règles et taux de taxe';
 
   @override
-  String get ebmSettings => 'EBM Settings';
+  String get ebmSettings => 'Paramètres EBM';
 
   @override
   String get electronicBillingMachineSettings =>
-      'Electronic Billing Machine settings';
+      'Paramètres de la machine de facturation électronique';
 
   @override
-  String get smsConfiguration => 'SMS Configuration';
+  String get smsConfiguration => 'Configuration SMS';
 
   @override
-  String get enableSmsNotifications => 'Enable SMS Notifications';
+  String get enableSmsNotifications => 'Activer les notifications SMS';
 
   @override
-  String get systemSettings => 'System Settings';
+  String get systemSettings => 'Paramètres système';
 
   @override
-  String get debugMode => 'Debug Mode';
+  String get debugMode => 'Mode débogage';
 
   @override
-  String get enableDebugFeatures => 'Enable debug features';
+  String get enableDebugFeatures => 'Activer les fonctions de débogage';
 
   @override
-  String get forceUpdate => 'Force Update';
+  String get forceUpdate => 'Forcer la mise à jour';
 
   @override
-  String get forceUpdateAllData => 'Force update all data';
+  String get forceUpdateAllData =>
+      'Forcer la mise à jour de toutes les données';
 
   @override
-  String get taxService => 'Tax Service';
+  String get taxService => 'Service fiscal';
 
   @override
-  String get toggleTaxService => 'Toggle tax service';
+  String get toggleTaxService => 'Activer/désactiver le service fiscal';
 
   @override
-  String get savedDiscount => 'Saved discount';
+  String get savedDiscount => 'Remise enregistrée';
 
   @override
-  String get createDiscount => 'Create Discount';
+  String get createDiscount => 'Créer une remise';
 
   @override
-  String get nameCannotBeNull => 'Name can not be null';
+  String get nameCannotBeNull => 'Le nom ne peut pas être vide';
 
   @override
-  String get amountCannotBeNull => 'Amount can not be null';
+  String get amountCannotBeNull => 'Le montant ne peut pas être vide';
 
   @override
-  String get name => 'Name';
+  String get name => 'Nom';
 
   @override
   String saveTransactionTitle(String transactionType) {
-    return 'Save $transactionType transaction';
+    return 'Enregistrer la transaction $transactionType';
   }
 
   @override
   String get confirmSaveTransaction =>
-      'Are you sure you want to save this transaction?';
+      'Voulez-vous vraiment enregistrer cette transaction ?';
 
   @override
-  String get categoryMustBeSelected => 'A category must be selected';
+  String get categoryMustBeSelected => 'Une catégorie doit être sélectionnée';
 
   @override
-  String get confirmLogout => 'Confirm Logout';
+  String get confirmLogout => 'Confirmer la déconnexion';
 
   @override
-  String get confirmLogoutMessage => 'Are you sure you want to log out?';
+  String get confirmLogoutMessage => 'Voulez-vous vraiment vous déconnecter ?';
 
   @override
-  String get refundReason => 'Refund Reason';
+  String get refundReason => 'Motif du remboursement';
 
   @override
-  String get waitForApproval => 'Wait for Approval';
+  String get waitForApproval => 'En attente d\'approbation';
 
   @override
-  String get approved => 'Approved';
+  String get approved => 'Approuvé';
 
   @override
-  String get cancelRequested => 'Cancel Requested';
+  String get cancelRequested => 'Annulation demandée';
 
   @override
-  String get canceled => 'Canceled';
+  String get canceled => 'Annulé';
 
   @override
-  String get refunded => 'Refunded';
+  String get refunded => 'Remboursé';
 
   @override
-  String get transferred => 'Transferred';
+  String get transferred => 'Transféré';
+
+  @override
+  String get appLanguage => 'Langue de l\'application';
+
+  @override
+  String get chooseAppLanguage => 'Choisissez la langue utilisée par Flipper';
+
+  @override
+  String get selectLanguage => 'Choisir la langue';
+
+  @override
+  String get languageAppliesEverywhere =>
+      'S\'applique à tous les écrans de l\'application.';
+
+  @override
+  String get useDeviceLanguage => 'Utiliser la langue de l\'appareil';
+
+  @override
+  String get automatic => 'Automatique';
+
+  @override
+  String get french => 'Français';
+
+  @override
+  String get accountAndFinancial => 'Compte et finances';
+
+  @override
+  String get adminProfile => 'Profil administrateur';
+
+  @override
+  String get smsNotifications => 'Notifications SMS';
+
+  @override
+  String get close => 'Fermer';
+
+  @override
+  String get refresh => 'Actualiser';
+
+  @override
+  String get adminEmailHint => 'ex. admin@flipper.rw';
+
+  @override
+  String get displayName => 'Nom affiché';
+
+  @override
+  String get editName => 'Modifier le nom';
+
+  @override
+  String get paymentMethods => 'Moyens de paiement';
+
+  @override
+  String get managePaymentOptions => 'Gérer les options de paiement';
+
+  @override
+  String get enterPhoneNumber => 'Saisissez le numéro de téléphone';
+
+  @override
+  String get enableOrderNotifications =>
+      'Activer les notifications de commande';
+
+  @override
+  String get receiveSmsNotificationsForOrders =>
+      'Recevoir des notifications SMS pour les commandes';
+
+  @override
+  String get enableDebuggingFeatures => 'Activer les fonctions de débogage';
+
+  @override
+  String get ebm => 'EBM';
+
+  @override
+  String get reinitializeEbm => 'Réinitialiser l\'EBM';
+
+  @override
+  String get manageTaxServiceStatus => 'Gérer l\'état du service fiscal';
+
+  @override
+  String get hydrateData => 'Recharger les données';
+
+  @override
+  String get refreshAllLocalData => 'Actualiser toutes les données locales';
+
+  @override
+  String get assetDownload => 'Téléchargement des images';
+
+  @override
+  String get manageImageDownloads => 'Gérer le téléchargement des images';
+
+  @override
+  String get autoAddSearch => 'Ajout automatique';
+
+  @override
+  String get autoAddItemsWhenOneMatch =>
+      'Ajouter automatiquement quand un seul résultat correspond';
+
+  @override
+  String get userLogging => 'Journalisation utilisateur';
+
+  @override
+  String get enableExtensiveUserLogging =>
+      'Activer la journalisation détaillée des utilisateurs';
+
+  @override
+  String get priceQtyAdjustment => 'Ajust. prix-quantité';
+
+  @override
+  String get autoAdjustQtyOnPriceChange =>
+      'Ajuster la quantité automatiquement au changement de prix';
+
+  @override
+  String get decimals => 'Décimales';
+
+  @override
+  String get enableFractionalPricing => 'Activer les prix fractionnaires';
+
+  @override
+  String get ticketReviewAndHandover => 'Révision et transfert de ticket';
+
+  @override
+  String get administratorPin => 'PIN administrateur';
+
+  @override
+  String get resetAdministratorPin => 'Réinitialiser le PIN administrateur';
+
+  @override
+  String get updateHighSecurityPin =>
+      'Mettez à jour votre PIN de haute sécurité à 4 chiffres';
+
+  @override
+  String get flipperSettingsTitle => 'Paramètres Flipper';
+
+  @override
+  String get common => 'Général';
+
+  @override
+  String get environment => 'Environnement';
+
+  @override
+  String get local => 'Cet appareil';
+
+  @override
+  String get account => 'Compte';
+
+  @override
+  String get email => 'E-mail';
+
+  @override
+  String get security => 'Sécurité';
+
+  @override
+  String get sendDailyReport => 'Envoyer le rapport quotidien';
+
+  @override
+  String get onlinePrint => 'Impression en ligne';
+
+  @override
+  String get managePrintSettings => 'Gérer les paramètres d\'impression';
+
+  @override
+  String get enableExtensiveLogging => 'Activer la journalisation détaillée';
+
+  @override
+  String get backgroundSync => 'Synchronisation en arrière-plan';
+
+  @override
+  String get syncDataInBackground => 'Synchroniser les données en arrière-plan';
+
+  @override
+  String get closeShift => 'Clôturer le service';
+
+  @override
+  String get startNewShift => 'Démarrer un nouveau service';
+
+  @override
+  String get checkSubscription => 'Vérifier l\'abonnement';
+
+  @override
+  String couldNotCheckSubscription(String error) {
+    return 'Impossible de vérifier l\'abonnement : $error';
+  }
+
+  @override
+  String get chooseYourDefaultApp => 'Choisissez votre application par défaut';
+
+  @override
+  String get accountSettings => 'Paramètres du compte';
+
+  @override
+  String get switchAccount => 'Changer de compte';
+
+  @override
+  String continueToBranch(String branchName) {
+    return 'Continuer vers $branchName';
+  }
+
+  @override
+  String get openShift => 'Ouvrir le service';
+
+  @override
+  String get checkingPaymentStatus => 'Vérification du statut de paiement…';
+
+  @override
+  String get refreshAfterCustomerPays =>
+      'Actualiser après le paiement du client';
+
+  @override
+  String get branch => 'succursale';
+
+  @override
+  String get totalItems => 'Total des articles';
+
+  @override
+  String get expiredItems => 'Articles périmés';
+
+  @override
+  String get lowStockItems => 'Articles en stock faible';
+
+  @override
+  String get pendingOrders => 'Commandes en attente';
+
+  @override
+  String get viewAll => 'Voir tout';
+
+  @override
+  String get idLabel => 'ID';
+
+  @override
+  String get item => 'Article';
+
+  @override
+  String get category => 'Catégorie';
+
+  @override
+  String get quantity => 'Quantité';
+
+  @override
+  String get location => 'Emplacement';
+
+  @override
+  String get expiredOn => 'Périmé le';
+
+  @override
+  String get actions => 'Actions';
+
+  @override
+  String get allExpiredItems => 'Tous les articles périmés';
+
+  @override
+  String get goHomeQuestion => 'Voulez-vous revenir à l\'accueil ?';
+
+  @override
+  String get searchProductsOrScan => 'Rechercher un produit ou scanner…';
+
+  @override
+  String get clear => 'Effacer';
+
+  @override
+  String get addProductAction => 'Ajouter un produit';
+
+  @override
+  String get help => 'Aide';
+
+  @override
+  String get customerManagement => 'Gestion des clients';
+
+  @override
+  String get searchCustomersByNameOrPhone =>
+      'Rechercher un client par nom ou téléphone';
+
+  @override
+  String get clearSearch => 'Effacer la recherche';
+
+  @override
+  String get add => 'Ajouter';
+
+  @override
+  String get editCustomer => 'Modifier le client';
+
+  @override
+  String get deleteCustomer => 'Supprimer le client';
+
+  @override
+  String get customerActions => 'Actions client';
+
+  @override
+  String get phone => 'Téléphone';
+
+  @override
+  String get tin => 'TIN';
+
+  @override
+  String get invoice => 'Facture';
+
+  @override
+  String get txnId => 'ID transaction';
+
+  @override
+  String get addCustomer => 'Ajouter un client';
 }

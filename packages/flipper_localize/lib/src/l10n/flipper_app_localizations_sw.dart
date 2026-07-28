@@ -9,16 +9,16 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   FlipperAppLocalizationsSw([String locale = 'sw']) : super(locale);
 
   @override
-  String get save => 'Okoa';
+  String get save => 'Hifadhi';
 
   @override
-  String get retailPrice => 'Retail price';
+  String get retailPrice => 'Bei';
 
   @override
-  String get supplyPrice => 'Supply Price';
+  String get supplyPrice => 'Bei ya mzabuni';
 
   @override
-  String get currentSale => 'Uujuzi wa sasa';
+  String get currentSale => 'Mauzo ya sasa';
 
   @override
   String get currentStock => 'Hisa ya sasa';
@@ -30,7 +30,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get tickets => 'Tiketi';
 
   @override
-  String get charge => 'Malipo';
+  String get charge => 'Toza';
 
   @override
   String get productName => 'Jina la bidhaa';
@@ -42,38 +42,37 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get options => 'Chaguzi';
 
   @override
-  String get saveTicket =>
-      'huwezi kuokoa tikiti bila kuongeza dokezo kwa tikiti';
+  String get saveTicket => 'Hauwezi kuhifadhi tiketi bila kuongeza dokezo';
 
   @override
   String get productNotFound => 'Bidhaa haijapatikana';
 
   @override
-  String get noPayable => 'Hakuna malipo yoyote yanayopatikana';
+  String get noPayable => 'Hakuna malipo yanayohitajika';
 
   @override
   String get delete => 'Futa';
 
   @override
-  String get addTomenu => 'Menu';
+  String get addTomenu => 'Menyu';
 
   @override
-  String get edit => 'Edit';
+  String get edit => 'Hariri';
 
   @override
-  String get addWorkSpace => 'Add WorkSpace';
+  String get addWorkSpace => 'Ongeza eneo la kazi';
 
   @override
-  String get addMembers => 'Add Members';
+  String get addMembers => 'Ongeza wanachama';
 
   @override
-  String get logOut => 'Ondoka';
+  String get logOut => 'Toka';
 
   @override
   String get syncCounter => 'Sawazisha kaunta';
 
   @override
-  String get resetTransaction => 'Weka Muamala Upya';
+  String get resetTransaction => 'Weka muamala upya';
 
   @override
   String get resetTransactionQuestion => 'Weka muamala upya?';
@@ -100,7 +99,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Ruhusa ya anwani inahitajika ili kuchagua anwani';
 
   @override
-  String get permissionRequired => 'Ruhusa Inahitajika';
+  String get permissionRequired => 'Ruhusa inahitajika';
 
   @override
   String get contactsPermissionDeniedSettings =>
@@ -110,7 +109,7 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get cancel => 'Ghairi';
 
   @override
-  String get openSettings => 'Fungua Mipangilio';
+  String get openSettings => 'Fungua mipangilio';
 
   @override
   String errorMessage(Object error) {
@@ -118,19 +117,19 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   }
 
   @override
-  String get error => 'Error';
+  String get error => 'Hitilafu';
 
   @override
   String get pickFromContacts => 'Chagua kutoka kwa anwani';
 
   @override
-  String get linkDevice => 'Unganisha Kifaa';
+  String get linkDevice => 'Unganisha kifaa';
 
   @override
   String get useFlipperOnOtherDevices => 'Tumia Flipper kwenye vifaa vingine';
 
   @override
-  String get linkADevice => 'Unganisha Kifaa';
+  String get linkADevice => 'Unganisha kifaa';
 
   @override
   String pinCode(Object pin) {
@@ -142,490 +141,496 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String paymentTitle(Object paymentType) {
-    return 'Payment: $paymentType';
+    return 'Malipo: $paymentType';
   }
 
   @override
-  String get digitalReceipt => 'Digital Receipt';
+  String get digitalReceipt => 'Risiti ya kidijitali';
 
   @override
-  String get needDigitalReceipt => 'Do you need a digital receipt?';
+  String get needDigitalReceipt => 'Unahitaji risiti ya kidijitali?';
 
   @override
-  String get purchaseCode => 'Purchase Code';
+  String get purchaseCode => 'Kodi ya ununuzi';
 
   @override
-  String get pleaseEnterPurchaseCode => 'Please enter a purchase code';
+  String get pleaseEnterPurchaseCode => 'Tafadhali weka kodi ya ununuzi';
 
   @override
-  String get submit => 'Submit';
+  String get submit => 'Tuma';
 
   @override
-  String get done => 'Done';
+  String get done => 'Imekamilika';
 
   @override
-  String get receipt => 'Receipt';
+  String get receipt => 'Risiti';
 
   @override
-  String get addNote => 'Add Note';
+  String get addNote => 'Ongeza dokezo';
 
   @override
-  String get generatingReceiptWait =>
-      'Please wait we are generating the receipt';
+  String get generatingReceiptWait => 'Tafadhali subiri, tunatengeneza risiti';
 
   @override
-  String get poweredBy => 'Powered By';
+  String get poweredBy => 'Inaendeshwa na';
 
   @override
-  String get returnToHome => 'Return to Home';
+  String get returnToHome => 'Rudi mwanzo';
 
   @override
-  String get personalGoals => 'Personal goals';
+  String get personalGoals => 'Malengo binafsi';
 
   @override
-  String get selectBranchToManageGoals => 'Select a branch to manage goals.';
+  String get selectBranchToManageGoals => 'Chagua tawi ili kusimamia malengo.';
 
   @override
   String couldNotLoadGoals(Object error) {
-    return 'Could not load goals\n$error';
+    return 'Haikuweza kupakia malengo\n$error';
   }
 
   @override
-  String get personalGoalsEyebrow => 'PERSONAL GOALS';
+  String get personalGoalsEyebrow => 'MALENGO BINAFSI';
 
   @override
   String totalReservedAcrossGoals(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count goals',
-      one: '1 goal',
+      other: 'malengo $count',
+      one: 'lengo 1',
     );
-    return 'Total reserved across $_temp0';
+    return 'Jumla iliyowekwa akiba katika $_temp0';
   }
 
   @override
-  String get savedThisMonth => 'Saved this month';
+  String get savedThisMonth => 'Iliyowekwa akiba mwezi huu';
 
   @override
   String onTrackCount(Object count) {
-    return '$count on track';
+    return '$count yanaendelea vizuri';
   }
 
   @override
-  String get goalsProgressing => 'Goals progressing';
+  String get goalsProgressing => 'Malengo yanaendelea';
 
   @override
-  String get allGoals => 'All goals';
+  String get allGoals => 'Malengo yote';
 
   @override
   String get personalGoalsProfitGrowth =>
-      'Flipper quietly grows each goal from your profits.';
+      'Flipper hukuza kila lengo kimya kimya kutoka kwa faida yako.';
 
   @override
-  String get searchProducts => 'Search products…';
+  String get searchProducts => 'Tafuta bidhaa…';
 
   @override
-  String get clearSelection => 'Clear selection';
+  String get clearSelection => 'Ondoa uteuzi';
 
   @override
   String itemsSelected(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items selected',
-      one: '1 item selected',
+      other: 'bidhaa $count zimechaguliwa',
+      one: 'bidhaa 1 imechaguliwa',
     );
     return '$_temp0';
   }
 
   @override
   String get cannotDeleteVariantWithStockRemaining =>
-      'Cannot delete variant with stock remaining.';
+      'Haiwezi kufuta bidhaa ambayo bado ina hisa.';
 
   @override
-  String get deleteMultipleItems => 'Delete Multiple Items';
+  String get deleteMultipleItems => 'Futa bidhaa nyingi';
 
   @override
   String deleteItemsConfirmation(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: 'bidhaa $count',
+      one: 'bidhaa 1',
     );
-    return 'Are you sure you want to delete $_temp0? This action cannot be undone.';
+    return 'Una hakika unataka kufuta $_temp0? Kitendo hiki hakiwezi kutenduliwa.';
   }
 
   @override
-  String get refreshProducts => 'Refresh products';
+  String get refreshProducts => 'Onyesha bidhaa upya';
 
   @override
   String get productsSyncingHint =>
-      'If you just opened the app, products may still be syncing — tap refresh.';
+      'Ikiwa umefungua programu hivi punde, bidhaa zinaweza kuwa bado zinasawazishwa — gusa onyesha upya.';
 
   @override
-  String get errorLoadingProducts => 'Error loading products';
+  String get errorLoadingProducts => 'Hitilafu wakati wa kupakia bidhaa';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Jaribu tena';
 
   @override
-  String get noStockDataAvailable => 'No stock data available';
+  String get noStockDataAvailable => 'Hakuna data ya hisa inayopatikana';
 
   @override
-  String get cash => 'Cash';
+  String get cash => 'Fedha taslimu';
 
   @override
-  String get credit => 'Credit';
+  String get credit => 'Mkopo';
 
   @override
-  String get momoPayerPhone => 'MoMo payer phone';
+  String get momoPayerPhone => 'Simu ya mlipaji wa MoMo';
 
   @override
   String get momoPaymentRequestHint =>
-      'We will send a payment request to this number when you tap Charge.';
+      'Tutatuma ombi la malipo kwa nambari hii utakapogusa Toza.';
 
   @override
-  String get exact => 'Exact';
+  String get exact => 'Kamili';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'Thibitisha';
 
   @override
-  String get numberOfPayments => 'Number of Payments';
+  String get numberOfPayments => 'Idadi ya malipo';
 
   @override
-  String get applyDiscountCode => 'Apply Discount Code';
+  String get applyDiscountCode => 'Tumia kodi ya punguzo';
 
   @override
-  String get discountCode => 'Discount Code';
+  String get discountCode => 'Kodi ya punguzo';
 
   @override
-  String get validatingCode => 'Validating code...';
+  String get validatingCode => 'Tunathibitisha kodi...';
 
   @override
-  String get createAccount => 'Create Account';
+  String get createAccount => 'Fungua akaunti';
 
   @override
-  String get signIn => 'SIGN IN';
+  String get signIn => 'INGIA';
 
   @override
   String get setDeviceTimeAutomatic =>
-      'Please set your device time to automatic';
+      'Tafadhali weka saa ya kifaa chako kwa hali ya kiotomatiki';
 
   @override
-  String get continueWithPhone => 'Continue with Phone';
+  String get continueWithPhone => 'Endelea na simu';
 
   @override
-  String get continueWithGoogle => 'Continue with Google';
+  String get continueWithGoogle => 'Endelea na Google';
 
   @override
-  String get continueWithMicrosoft => 'Continue with Microsoft';
+  String get continueWithMicrosoft => 'Endelea na Microsoft';
 
   @override
-  String get continueWithApple => 'Continue with Apple';
+  String get continueWithApple => 'Endelea na Apple';
 
   @override
-  String get or => 'OR';
+  String get or => 'AU';
 
   @override
-  String get pinLogin => 'PIN Login';
+  String get pinLogin => 'Ingia kwa PIN';
 
   @override
-  String get languagesTitle => 'Languages';
+  String get languagesTitle => 'Lugha';
 
   @override
-  String get english => 'English';
+  String get english => 'Kiingereza';
 
   @override
   String get kinyarwanda => 'Kinyarwanda';
 
   @override
-  String get swahili => 'Swahili';
+  String get swahili => 'Kiswahili';
 
   @override
-  String get settings => 'Settings';
+  String get settings => 'Mipangilio';
 
   @override
-  String get home => 'Home';
+  String get home => 'Mwanzo';
 
   @override
-  String get sales => 'Sales';
+  String get sales => 'Mauzo';
 
   @override
-  String get inventory => 'Inventory';
+  String get inventory => 'Hisa';
 
   @override
-  String get more => 'More';
+  String get more => 'Zaidi';
 
   @override
-  String get scanQr => 'Scan QR';
+  String get scanQr => 'Changanua QR';
 
   @override
-  String get dashboard => 'Dashboard';
+  String get dashboard => 'Dashibodi';
 
   @override
-  String get noUser => 'No User';
+  String get noUser => 'Hakuna mtumiaji';
 
   @override
-  String get pleaseLogInToContinue => 'Please log in to continue';
+  String get pleaseLogInToContinue => 'Tafadhali ingia ili kuendelea';
 
   @override
-  String get loadingBusinesses => 'Loading businesses...';
+  String get loadingBusinesses => 'Tunapakia biashara...';
 
   @override
-  String get errorLoadingBusinesses => 'Error loading businesses';
+  String get errorLoadingBusinesses => 'Hitilafu wakati wa kupakia biashara';
 
   @override
-  String get noBusinesses => 'No Businesses';
+  String get noBusinesses => 'Hakuna biashara';
 
   @override
-  String get createFirstBusiness => 'Create your first business to get started';
+  String get createFirstBusiness => 'Fungua biashara yako ya kwanza ili kuanza';
 
   @override
-  String get signOut => 'Sign Out';
+  String get signOut => 'Toka';
 
   @override
-  String get phoneNumber => 'Phone Number';
+  String get phoneNumber => 'Nambari ya simu';
 
   @override
-  String get sendingCode => 'Sending code...';
+  String get sendingCode => 'Tunatuma kodi...';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Endelea';
 
   @override
-  String get enterSixDigitCodeSentTo => 'Enter the 6-digit code sent to ';
+  String get enterSixDigitCodeSentTo =>
+      'Weka kodi ya tarakimu 6 iliyotumwa kwa ';
 
   @override
-  String get codeExpiredTapToResend => 'Code Expired - Tap to Resend';
+  String get codeExpiredTapToResend =>
+      'Kodi imeisha muda - Gusa ili kutuma tena';
 
   @override
-  String get resendCode => 'Resend Code';
+  String get resendCode => 'Tuma kodi tena';
 
   @override
-  String get resendCodeIn => 'Resend code in ';
+  String get resendCodeIn => 'Tuma kodi tena baada ya ';
 
   @override
-  String get seconds => 'seconds';
+  String get seconds => 'sekunde';
 
   @override
-  String get verifying => 'Verifying...';
+  String get verifying => 'Tunathibitisha...';
 
   @override
-  String get verifyCode => 'Verify Code';
+  String get verifyCode => 'Thibitisha kodi';
 
   @override
-  String get troubleSigningIn => 'Trouble Signing In?';
+  String get troubleSigningIn => 'Una tatizo la kuingia?';
 
   @override
   String get troubleSigningInHelp =>
-      'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.';
+      'Ikiwa una tatizo la kuingia, hakikisha PIN yako na OTP (ikiwa inahitajika) ni sahihi.\n\nKwa msaada zaidi, tafadhali wasiliana na timu ya usaidizi.';
 
   @override
-  String get ok => 'OK';
+  String get ok => 'Sawa';
 
   @override
-  String get welcomeBack => 'Welcome back';
+  String get welcomeBack => 'Karibu tena';
 
   @override
-  String get tinNumber => 'TIN Number';
+  String get tinNumber => 'Nambari ya TIN';
 
   @override
-  String get validate => 'Validate';
+  String get validate => 'Thibitisha';
 
   @override
-  String get uploadPdfWithTin => 'Upload PDF with TIN';
+  String get uploadPdfWithTin => 'Pakia PDF yenye TIN';
 
   @override
-  String get enterTinOrUpload => 'Enter TIN number or tap the upload icon';
+  String get enterTinOrUpload =>
+      'Weka nambari ya TIN au gusa aikoni ya kupakia';
 
   @override
-  String get addEmail => 'Add Email';
+  String get addEmail => 'Ongeza barua pepe';
 
   @override
-  String get emailAdded => 'Email added';
+  String get emailAdded => 'Barua pepe imeongezwa';
 
   @override
-  String get updateSettings => 'Update Settings';
+  String get updateSettings => 'Sasisha mipangilio';
 
   @override
-  String get invite => 'Invite';
+  String get invite => 'Karibisha';
 
   @override
-  String get sendRequest => 'Send Request';
+  String get sendRequest => 'Tuma ombi';
 
   @override
-  String get preferences => 'Preferences';
+  String get preferences => 'Mapendeleo';
 
   @override
-  String get accessibility => 'Accessibility';
+  String get accessibility => 'Ufikivu';
 
   @override
-  String get language => 'Language';
+  String get language => 'Lugha';
 
   @override
-  String get reports => 'Reports';
+  String get reports => 'Ripoti';
 
   @override
-  String get enableReport => 'Enable Report';
+  String get enableReport => 'Wezesha ripoti';
 
   @override
-  String get backups => 'BackUps';
+  String get backups => 'Nakala rudufu';
 
   @override
-  String get addBackup => 'Add Backup';
+  String get addBackup => 'Ongeza nakala rudufu';
 
   @override
-  String get restoreData => 'Restore Data';
+  String get restoreData => 'Rejesha data';
 
   @override
-  String get dataRestored => 'Data restored';
+  String get dataRestored => 'Data imerejeshwa';
 
   @override
-  String get errorRestoringBackup => 'Error Restoring backup';
+  String get errorRestoringBackup =>
+      'Hitilafu wakati wa kurejesha nakala rudufu';
 
   @override
   String get transactionIdCopiedToClipboard =>
-      'Transaction ID copied to clipboard';
+      'Kitambulisho cha muamala kimenakiliwa';
 
   @override
-  String get transactionIdShortLabel => 'Txn ID: ';
+  String get transactionIdShortLabel => 'Kitambulisho: ';
 
   @override
-  String get invoiceNumberLabel => 'Invoice No: ';
+  String get invoiceNumberLabel => 'Nambari ya ankara: ';
 
   @override
-  String get parkSaleAsTicket => 'Park this sale as a ticket';
+  String get parkSaleAsTicket => 'Hifadhi mauzo haya kama tiketi';
 
   @override
-  String get saveTicketAction => 'Save ticket';
+  String get saveTicketAction => 'Hifadhi tiketi';
 
   @override
-  String get remainingBalanceLabel => 'Remaining Balance: ';
+  String get remainingBalanceLabel => 'Salio lililobaki: ';
 
   @override
-  String get amountToChangeLabel => 'Amount to Change: ';
+  String get amountToChangeLabel => 'Kiasi cha kurudisha: ';
 
   @override
-  String get allApps => 'All apps';
+  String get allApps => 'Programu zote';
 
   @override
-  String get sell => 'Sell';
+  String get sell => 'Uza';
 
   @override
-  String get quickSell => 'Quick Sell';
+  String get quickSell => 'Uza haraka';
 
   @override
-  String get invoices => 'Invoices';
+  String get invoices => 'Ankara';
 
   @override
-  String get pricing => 'Pricing';
+  String get pricing => 'Bei';
 
   @override
-  String get payments => 'Payments';
+  String get payments => 'Malipo';
 
   @override
-  String get manage => 'Manage';
+  String get manage => 'Simamia';
 
   @override
-  String get purchases => 'Purchases';
+  String get purchases => 'Manunuzi';
 
   @override
-  String get customers => 'Customers';
+  String get customers => 'Wateja';
 
   @override
-  String get leads => 'Leads';
+  String get leads => 'Wateja watarajiwa';
 
   @override
-  String get insights => 'Insights';
+  String get insights => 'Uchanganuzi';
 
   @override
-  String get dailyReports => 'Daily Reports';
+  String get dailyReports => 'Ripoti za kila siku';
 
   @override
-  String get commissions => 'Commissions';
+  String get commissions => 'Kamisheni';
 
   @override
-  String get production => 'Production';
+  String get production => 'Uzalishaji';
 
   @override
-  String get business => 'Business';
+  String get business => 'Biashara';
 
   @override
-  String get servicesHub => 'Services hub';
+  String get servicesHub => 'Kituo cha huduma';
 
   @override
-  String get goals => 'Goals';
+  String get goals => 'Malengo';
 
   @override
-  String get aiChat => 'AI Chat';
+  String get aiChat => 'Mazungumzo ya AI';
 
   @override
-  String get errorLoadingTransactionView => 'Error loading transaction view';
+  String get errorLoadingTransactionView =>
+      'Hitilafu wakati wa kupakia muamala';
 
   @override
-  String get customer => 'Customer';
+  String get customer => 'Mteja';
 
   @override
-  String get payment => 'Payment';
+  String get payment => 'Malipo';
 
   @override
-  String get delivery => 'Delivery';
+  String get delivery => 'Uwasilishaji';
 
   @override
-  String get transactionSummary => 'Transaction summary';
+  String get transactionSummary => 'Muhtasari wa muamala';
 
   @override
   String get transactionSummaryHint =>
-      'Shows the total amount and transaction ID for the current sale';
+      'Huonyesha kiasi jumla na kitambulisho cha muamala wa sasa';
 
   @override
-  String get totalAmount => 'Total Amount';
+  String get totalAmount => 'Kiasi jumla';
 
   @override
   String get cannotDeletePartialPaymentItems =>
-      'Cannot delete items from a transaction with partial payments';
+      'Haiwezi kufuta bidhaa kutoka muamala wenye malipo ya sehemu';
 
   @override
-  String get deleteAllItems => 'Delete All Items';
+  String get deleteAllItems => 'Futa bidhaa zote';
 
   @override
   String get confirmRemoveAllTransactionItems =>
-      'Are you sure you want to remove all items from this transaction?';
+      'Una hakika unataka kuondoa bidhaa zote kutoka muamala huu?';
 
   @override
-  String get deleteAll => 'Delete All';
+  String get deleteAll => 'Futa zote';
 
   @override
-  String get allItemsRemovedSuccessfully => 'All items removed successfully';
+  String get allItemsRemovedSuccessfully =>
+      'Bidhaa zote zimeondolewa kwa mafanikio';
 
   @override
   String errorRemovingItems(String error) {
-    return 'Error removing items: $error';
+    return 'Hitilafu wakati wa kuondoa bidhaa: $error';
   }
 
   @override
-  String get noItemsAdded => 'No items added';
+  String get noItemsAdded => 'Hakuna bidhaa iliyoongezwa';
 
   @override
-  String get tapAddFirstItem => 'Tap the + button to add your first item';
+  String get tapAddFirstItem =>
+      'Gusa kitufe cha + ili kuongeza bidhaa yako ya kwanza';
 
   @override
   String cartItemCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count items',
-      one: '1 item',
+      other: 'bidhaa $count',
+      one: 'bidhaa 1',
     );
     return '$_temp0';
   }
 
   @override
   String itemSemanticLabel(String itemName) {
-    return 'Item: $itemName';
+    return 'Bidhaa: $itemName';
   }
 
   @override
@@ -634,290 +639,586 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
     String unitPrice,
     String subtotal,
   ) {
-    return 'Quantity: $quantity, Unit price: $unitPrice, Subtotal: $subtotal';
+    return 'Kiasi: $quantity, Bei ya kimoja: $unitPrice, Jumla ndogo: $subtotal';
   }
 
   @override
-  String get removeItem => 'Remove item';
+  String get removeItem => 'Ondoa bidhaa';
 
   @override
-  String get unitPrice => 'Unit Price';
+  String get unitPrice => 'Bei ya kimoja';
 
   @override
-  String get decreaseQuantityByOne => 'Decrease quantity by 1';
+  String get decreaseQuantityByOne => 'Punguza kiasi kwa 1';
 
   @override
-  String get increaseQuantityByOne => 'Increase quantity by 1';
+  String get increaseQuantityByOne => 'Ongeza kiasi kwa 1';
 
   @override
-  String get subtotal => 'Subtotal';
+  String get subtotal => 'Jumla ndogo';
 
   @override
-  String get deliveryDate => 'Delivery Date';
+  String get deliveryDate => 'Tarehe ya uwasilishaji';
 
   @override
   String get transactionSummaryPaymentActions =>
-      'Transaction summary and payment actions';
+      'Muhtasari wa muamala na hatua za malipo';
 
   @override
   String completeSaleTotalHint(String total) {
-    return 'Complete sale with total amount $total';
+    return 'Kamilisha mauzo kwa kiasi jumla $total';
   }
 
   @override
   String errorWithValue(String error) {
-    return 'Error: $error';
+    return 'Hitilafu: $error';
   }
 
   @override
   String confirmRemoveItemFromTransaction(String itemName) {
-    return 'Are you sure you want to remove \"$itemName\" from this transaction?';
+    return 'Una hakika unataka kuondoa \"$itemName\" kutoka muamala huu?';
   }
 
   @override
-  String get remove => 'Remove';
+  String get remove => 'Ondoa';
 
   @override
   String get cannotModifyPartialPaymentItems =>
-      'Cannot modify items in a transaction with partial payments';
+      'Haiwezi kubadilisha bidhaa katika muamala wenye malipo ya sehemu';
 
   @override
-  String get failedToRemoveItem => 'Failed to remove item';
+  String get failedToRemoveItem => 'Imeshindwa kuondoa bidhaa';
 
   @override
-  String get failedToUpdateItemQuantity => 'Failed to update item quantity';
+  String get failedToUpdateItemQuantity =>
+      'Imeshindwa kusasisha kiasi cha bidhaa';
 
   @override
-  String get transactionItemsList => 'Transaction items list';
+  String get transactionItemsList => 'Orodha ya bidhaa za muamala';
 
   @override
   String get transactionItemsListHint =>
-      'List of items in the current transaction with quantities and prices';
+      'Orodha ya bidhaa katika muamala wa sasa pamoja na kiasi na bei';
 
   @override
-  String get deliveryNote => 'Delivery Note';
+  String get deliveryNote => 'Dokezo la uwasilishaji';
 
   @override
-  String get deliveryNoteSemantic => 'Delivery note';
+  String get deliveryNoteSemantic => 'Dokezo la uwasilishaji';
 
   @override
-  String get deliveryNoteHint => 'Add any special instructions for delivery';
+  String get deliveryNoteHint => 'Ongeza maelekezo maalum ya uwasilishaji';
 
   @override
   String get deliveryInstructionsHint =>
-      'Enter any special instructions for delivery';
+      'Weka maelekezo maalum ya uwasilishaji';
 
   @override
-  String get discount => 'Discount';
+  String get discount => 'Punguzo';
 
   @override
-  String get pleaseEnterValidNumber => 'Please enter a valid number';
+  String get pleaseEnterValidNumber => 'Tafadhali weka nambari sahihi';
 
   @override
-  String get discountRangeError => 'Discount must be between 0 and 100';
+  String get discountRangeError => 'Punguzo linapaswa kuwa kati ya 0 na 100';
 
   @override
-  String get digitalReceiptTitle => 'Digital receipt';
+  String get digitalReceiptTitle => 'Risiti ya kidijitali';
 
   @override
   String get digitalReceiptSmsSubtitle =>
-      'Send receipt by SMS instead of opening a PDF';
+      'Tuma risiti kwa SMS badala ya kufungua PDF';
 
   @override
   String receivedAmountInCurrency(String currency) {
-    return 'Received amount in $currency';
+    return 'Kiasi kilichopokelewa kwa $currency';
   }
 
   @override
   String get receivedAmountHint =>
-      'Enter the amount received from the customer';
+      'Weka kiasi kilichopokelewa kutoka kwa mteja';
 
   @override
-  String get receivedAmount => 'Received Amount';
+  String get receivedAmount => 'Kiasi kilichopokelewa';
 
   @override
-  String get pleaseEnterReceivedAmount => 'Please enter received amount';
+  String get pleaseEnterReceivedAmount =>
+      'Tafadhali weka kiasi kilichopokelewa';
 
   @override
-  String get customerName => 'Customer name';
+  String get customerName => 'Jina la mteja';
 
   @override
-  String get customerNameHint => 'Enter the full name of the customer';
+  String get customerNameHint => 'Weka jina kamili la mteja';
 
   @override
-  String get pleaseEnterCustomerName => 'Please enter customer name';
+  String get pleaseEnterCustomerName => 'Tafadhali weka jina la mteja';
 
   @override
-  String get customerPhoneNumber => 'Customer phone number';
+  String get customerPhoneNumber => 'Nambari ya simu ya mteja';
 
   @override
   String get customerPhoneNumberHint =>
-      'Enter the customer\'s phone number for contact and billing purposes';
+      'Weka nambari ya simu ya mteja kwa mawasiliano na malipo';
 
   @override
-  String get items => 'Items';
+  String get items => 'Bidhaa';
 
   @override
-  String get transactionId => 'Transaction ID';
+  String get transactionId => 'Kitambulisho cha muamala';
 
   @override
-  String get amountPaid => 'Amount Paid';
+  String get amountPaid => 'Kiasi kilicholipwa';
 
   @override
-  String get remainingBalance => 'Remaining Balance';
+  String get remainingBalance => 'Salio lililobaki';
 
   @override
   String recordPaymentWithAmount(String amount) {
-    return 'Record Payment • $amount';
+    return 'Rekodi malipo • $amount';
   }
 
   @override
   String payWithAmount(String amount) {
-    return 'Pay • $amount';
+    return 'Lipa • $amount';
   }
 
   @override
   String sendForReviewWithAmount(String amount) {
-    return 'Send for Review • $amount';
+    return 'Tuma kwa ukaguzi • $amount';
   }
 
   @override
   String get phoneRequiredWhenTinMissing =>
-      'Phone number is required when customer TIN is not available';
+      'Nambari ya simu inahitajika ikiwa TIN ya mteja haipatikani';
 
   @override
-  String get invalidNumber => 'Invalid Number';
+  String get invalidNumber => 'Nambari si sahihi';
 
   @override
-  String get back => 'Back';
+  String get back => 'Rudi';
 
   @override
-  String get managementDashboard => 'Management Dashboard';
+  String get managementDashboard => 'Dashibodi ya usimamizi';
 
   @override
-  String get quickActions => 'Quick Actions';
+  String get quickActions => 'Hatua za haraka';
 
   @override
-  String get posDefault => 'POS Default';
+  String get posDefault => 'POS chaguo-msingi';
 
   @override
-  String get setPosAsDefaultApp => 'Set POS as default app';
+  String get setPosAsDefaultApp => 'Weka POS kama programu chaguo-msingi';
 
   @override
-  String get ordersDefault => 'Orders Default';
+  String get ordersDefault => 'Oda chaguo-msingi';
 
   @override
-  String get setOrdersAsDefaultApp => 'Set Orders as default app';
+  String get setOrdersAsDefaultApp => 'Weka Oda kama programu chaguo-msingi';
 
   @override
-  String get accountManagement => 'Account Management';
+  String get accountManagement => 'Usimamizi wa akaunti';
 
   @override
-  String get userManagement => 'User Management';
+  String get userManagement => 'Usimamizi wa watumiaji';
 
   @override
-  String get manageUsersAndPermissions => 'Manage users and permissions';
+  String get manageUsersAndPermissions => 'Simamia watumiaji na ruhusa';
 
   @override
-  String get branchManagement => 'Branch Management';
+  String get branchManagement => 'Usimamizi wa matawi';
 
   @override
-  String get manageBranchLocations => 'Manage Branch (Locations)';
+  String get manageBranchLocations => 'Simamia matawi (maeneo)';
 
   @override
-  String get financialControls => 'Financial Controls';
+  String get financialControls => 'Udhibiti wa fedha';
 
   @override
-  String get taxSettings => 'Tax Settings';
+  String get taxSettings => 'Mipangilio ya kodi';
 
   @override
-  String get configureTaxRulesAndRates => 'Configure tax rules and rates';
+  String get configureTaxRulesAndRates => 'Sanidi kanuni na viwango vya kodi';
 
   @override
-  String get ebmSettings => 'EBM Settings';
+  String get ebmSettings => 'Mipangilio ya EBM';
 
   @override
   String get electronicBillingMachineSettings =>
-      'Electronic Billing Machine settings';
+      'Mipangilio ya mashine ya ankara ya kielektroniki';
 
   @override
-  String get smsConfiguration => 'SMS Configuration';
+  String get smsConfiguration => 'Usanidi wa SMS';
 
   @override
-  String get enableSmsNotifications => 'Enable SMS Notifications';
+  String get enableSmsNotifications => 'Wezesha arifa za SMS';
 
   @override
-  String get systemSettings => 'System Settings';
+  String get systemSettings => 'Mipangilio ya mfumo';
 
   @override
-  String get debugMode => 'Debug Mode';
+  String get debugMode => 'Hali ya utatuzi';
 
   @override
-  String get enableDebugFeatures => 'Enable debug features';
+  String get enableDebugFeatures => 'Wezesha vipengele vya utatuzi';
 
   @override
-  String get forceUpdate => 'Force Update';
+  String get forceUpdate => 'Lazimisha usasishaji';
 
   @override
-  String get forceUpdateAllData => 'Force update all data';
+  String get forceUpdateAllData => 'Lazimisha usasishaji wa data yote';
 
   @override
-  String get taxService => 'Tax Service';
+  String get taxService => 'Huduma ya kodi';
 
   @override
-  String get toggleTaxService => 'Toggle tax service';
+  String get toggleTaxService => 'Badilisha huduma ya kodi';
 
   @override
-  String get savedDiscount => 'Saved discount';
+  String get savedDiscount => 'Punguzo lililohifadhiwa';
 
   @override
-  String get createDiscount => 'Create Discount';
+  String get createDiscount => 'Unda punguzo';
 
   @override
-  String get nameCannotBeNull => 'Name can not be null';
+  String get nameCannotBeNull => 'Jina haliwezi kuwa tupu';
 
   @override
-  String get amountCannotBeNull => 'Amount can not be null';
+  String get amountCannotBeNull => 'Kiasi hakiwezi kuwa tupu';
 
   @override
-  String get name => 'Name';
+  String get name => 'Jina';
 
   @override
   String saveTransactionTitle(String transactionType) {
-    return 'Save $transactionType transaction';
+    return 'Hifadhi muamala wa $transactionType';
   }
 
   @override
   String get confirmSaveTransaction =>
-      'Are you sure you want to save this transaction?';
+      'Una hakika unataka kuhifadhi muamala huu?';
 
   @override
-  String get categoryMustBeSelected => 'A category must be selected';
+  String get categoryMustBeSelected => 'Kundi linapaswa kuchaguliwa';
 
   @override
-  String get confirmLogout => 'Confirm Logout';
+  String get confirmLogout => 'Thibitisha kutoka';
 
   @override
-  String get confirmLogoutMessage => 'Are you sure you want to log out?';
+  String get confirmLogoutMessage => 'Una hakika unataka kutoka?';
 
   @override
-  String get refundReason => 'Refund Reason';
+  String get refundReason => 'Sababu ya kurejesha fedha';
 
   @override
-  String get waitForApproval => 'Wait for Approval';
+  String get waitForApproval => 'Subiri idhini';
 
   @override
-  String get approved => 'Approved';
+  String get approved => 'Imeidhinishwa';
 
   @override
-  String get cancelRequested => 'Cancel Requested';
+  String get cancelRequested => 'Ombi la kughairi';
 
   @override
-  String get canceled => 'Canceled';
+  String get canceled => 'Imeghairiwa';
 
   @override
-  String get refunded => 'Refunded';
+  String get refunded => 'Fedha imerejeshwa';
 
   @override
-  String get transferred => 'Transferred';
+  String get transferred => 'Imehamishwa';
+
+  @override
+  String get appLanguage => 'Lugha ya programu';
+
+  @override
+  String get chooseAppLanguage => 'Chagua lugha ambayo Flipper inatumia';
+
+  @override
+  String get selectLanguage => 'Chagua lugha';
+
+  @override
+  String get languageAppliesEverywhere =>
+      'Inatumika kwa kila skrini ya programu.';
+
+  @override
+  String get useDeviceLanguage => 'Tumia lugha ya kifaa';
+
+  @override
+  String get automatic => 'Kiotomatiki';
+
+  @override
+  String get french => 'Kifaransa';
+
+  @override
+  String get accountAndFinancial => 'Akaunti na fedha';
+
+  @override
+  String get adminProfile => 'Wasifu wa msimamizi';
+
+  @override
+  String get smsNotifications => 'Arifa za SMS';
+
+  @override
+  String get close => 'Funga';
+
+  @override
+  String get refresh => 'Onyesha upya';
+
+  @override
+  String get adminEmailHint => 'mfano: admin@flipper.rw';
+
+  @override
+  String get displayName => 'Jina la kuonyesha';
+
+  @override
+  String get editName => 'Hariri jina';
+
+  @override
+  String get paymentMethods => 'Njia za malipo';
+
+  @override
+  String get managePaymentOptions => 'Simamia chaguzi za malipo';
+
+  @override
+  String get enterPhoneNumber => 'Weka nambari ya simu';
+
+  @override
+  String get enableOrderNotifications => 'Wezesha arifa za oda';
+
+  @override
+  String get receiveSmsNotificationsForOrders => 'Pokea arifa za SMS kwa oda';
+
+  @override
+  String get enableDebuggingFeatures => 'Wezesha vipengele vya utatuzi';
+
+  @override
+  String get ebm => 'EBM';
+
+  @override
+  String get reinitializeEbm => 'Anzisha EBM upya';
+
+  @override
+  String get manageTaxServiceStatus => 'Simamia hali ya huduma ya kodi';
+
+  @override
+  String get hydrateData => 'Pakia data';
+
+  @override
+  String get refreshAllLocalData => 'Onyesha upya data yote ya kifaa';
+
+  @override
+  String get assetDownload => 'Upakuaji wa picha';
+
+  @override
+  String get manageImageDownloads => 'Simamia upakuaji wa picha';
+
+  @override
+  String get autoAddSearch => 'Ongeza kiotomatiki';
+
+  @override
+  String get autoAddItemsWhenOneMatch =>
+      'Ongeza bidhaa kiotomatiki ikiwa moja tu inalingana';
+
+  @override
+  String get userLogging => 'Kumbukumbu za watumiaji';
+
+  @override
+  String get enableExtensiveUserLogging =>
+      'Wezesha kumbukumbu za kina za watumiaji';
+
+  @override
+  String get priceQtyAdjustment => 'Kurekebisha bei na kiasi';
+
+  @override
+  String get autoAdjustQtyOnPriceChange =>
+      'Rekebisha kiasi kiotomatiki bei ikibadilika';
+
+  @override
+  String get decimals => 'Desimali';
+
+  @override
+  String get enableFractionalPricing => 'Wezesha bei za sehemu';
+
+  @override
+  String get ticketReviewAndHandover => 'Ukaguzi na kuhamisha tiketi';
+
+  @override
+  String get administratorPin => 'PIN ya msimamizi';
+
+  @override
+  String get resetAdministratorPin => 'Weka upya PIN ya msimamizi';
+
+  @override
+  String get updateHighSecurityPin =>
+      'Sasisha PIN yako ya tarakimu 4 ya usalama wa juu';
+
+  @override
+  String get flipperSettingsTitle => 'Mipangilio ya Flipper';
+
+  @override
+  String get common => 'Ya kawaida';
+
+  @override
+  String get environment => 'Mazingira';
+
+  @override
+  String get local => 'Kifaa hiki';
+
+  @override
+  String get account => 'Akaunti';
+
+  @override
+  String get email => 'Barua pepe';
+
+  @override
+  String get security => 'Usalama';
+
+  @override
+  String get sendDailyReport => 'Tuma ripoti ya kila siku';
+
+  @override
+  String get onlinePrint => 'Uchapishaji mtandaoni';
+
+  @override
+  String get managePrintSettings => 'Simamia mipangilio ya uchapishaji';
+
+  @override
+  String get enableExtensiveLogging => 'Wezesha kumbukumbu za kina';
+
+  @override
+  String get backgroundSync => 'Usawazishaji wa nyuma';
+
+  @override
+  String get syncDataInBackground => 'Sawazisha data chinichini';
+
+  @override
+  String get closeShift => 'Funga zamu';
+
+  @override
+  String get startNewShift => 'Anzisha zamu mpya';
+
+  @override
+  String get checkSubscription => 'Angalia usajili';
+
+  @override
+  String couldNotCheckSubscription(String error) {
+    return 'Haikuweza kuangalia usajili: $error';
+  }
+
+  @override
+  String get chooseYourDefaultApp => 'Chagua programu yako chaguo-msingi';
+
+  @override
+  String get accountSettings => 'Mipangilio ya akaunti';
+
+  @override
+  String get switchAccount => 'Badilisha akaunti';
+
+  @override
+  String continueToBranch(String branchName) {
+    return 'Endelea kwa $branchName';
+  }
+
+  @override
+  String get openShift => 'Anzisha zamu';
+
+  @override
+  String get checkingPaymentStatus => 'Tunaangalia hali ya malipo…';
+
+  @override
+  String get refreshAfterCustomerPays => 'Onyesha upya baada ya mteja kulipa';
+
+  @override
+  String get branch => 'tawi';
+
+  @override
+  String get totalItems => 'Bidhaa zote';
+
+  @override
+  String get expiredItems => 'Bidhaa zilizoisha muda';
+
+  @override
+  String get lowStockItems => 'Bidhaa zenye hisa ndogo';
+
+  @override
+  String get pendingOrders => 'Oda zinazosubiri';
+
+  @override
+  String get viewAll => 'Tazama zote';
+
+  @override
+  String get idLabel => 'ID';
+
+  @override
+  String get item => 'Bidhaa';
+
+  @override
+  String get category => 'Kundi';
+
+  @override
+  String get quantity => 'Kiasi';
+
+  @override
+  String get location => 'Mahali';
+
+  @override
+  String get expiredOn => 'Iliisha muda';
+
+  @override
+  String get actions => 'Vitendo';
+
+  @override
+  String get allExpiredItems => 'Bidhaa zote zilizoisha muda';
+
+  @override
+  String get goHomeQuestion => 'Unataka kwenda mwanzo?';
+
+  @override
+  String get searchProductsOrScan => 'Tafuta bidhaa au changanua…';
+
+  @override
+  String get clear => 'Ondoa';
+
+  @override
+  String get addProductAction => 'Ongeza bidhaa';
+
+  @override
+  String get help => 'Msaada';
+
+  @override
+  String get customerManagement => 'Usimamizi wa wateja';
+
+  @override
+  String get searchCustomersByNameOrPhone => 'Tafuta wateja kwa jina au simu';
+
+  @override
+  String get clearSearch => 'Ondoa utafutaji';
+
+  @override
+  String get add => 'Ongeza';
+
+  @override
+  String get editCustomer => 'Hariri mteja';
+
+  @override
+  String get deleteCustomer => 'Futa mteja';
+
+  @override
+  String get customerActions => 'Vitendo vya mteja';
+
+  @override
+  String get phone => 'Simu';
+
+  @override
+  String get tin => 'TIN';
+
+  @override
+  String get invoice => 'Ankara';
+
+  @override
+  String get txnId => 'ID ya muamala';
+
+  @override
+  String get addCustomer => 'Ongeza mteja';
 }

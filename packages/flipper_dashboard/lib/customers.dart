@@ -12,6 +12,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -77,7 +78,7 @@ class CustomersState extends ConsumerState<Customers> {
           // Shared CustomAppBar so the close button matches the rest of the app
           // (circular outlined AppBarRoundIconButton, e.g. Cash Book).
           appBar: CustomAppBar(
-            title: 'Customers',
+            title: context.flipperL10n.customers,
             barBackgroundColor: PosTokens.surface,
             // Do not invalidate pendingTransactionStream here — that tears
             // down the Capella observer and can spawn a new empty cart,
@@ -85,7 +86,7 @@ class CustomersState extends ConsumerState<Customers> {
             onPop: () => _routerService.pop(),
             customTrailingWidget: AppBarRoundIconButton(
               icon: Icons.help_outline,
-              tooltip: 'Help',
+              tooltip: context.flipperL10n.help,
               onPressed: () => _showHelpDialog(context, isWide),
             ),
           ),
@@ -205,7 +206,7 @@ class CustomersState extends ConsumerState<Customers> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Customer management'),
+        title: Text(context.flipperL10n.customerManagement),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,7 +298,7 @@ class CustomersState extends ConsumerState<Customers> {
         controller: _searchController,
         style: const TextStyle(fontSize: 15, color: PosTokens.ink1),
         decoration: InputDecoration(
-          hintText: 'Search customers by name or phone',
+          hintText: context.flipperL10n.searchCustomersByNameOrPhone,
           hintStyle: const TextStyle(color: PosTokens.ink4, fontSize: 15),
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -325,7 +326,7 @@ class CustomersState extends ConsumerState<Customers> {
                     color: PosTokens.ink3,
                     size: 20,
                   ),
-                  tooltip: 'Clear search',
+                  tooltip: context.flipperL10n.clearSearch,
                   onPressed: () {
                     _searchController.clear();
                     _onSearchChanged('');
@@ -582,7 +583,7 @@ class CustomersState extends ConsumerState<Customers> {
                     backgroundColor: PosTokens.loss,
                     foregroundColor: Colors.white,
                     icon: Icons.delete_outline,
-                    label: 'Delete',
+                    label: context.flipperL10n.delete,
                   ),
                   SlidableAction(
                     onPressed: (_) {
@@ -597,7 +598,7 @@ class CustomersState extends ConsumerState<Customers> {
                     backgroundColor: PosTokens.blue,
                     foregroundColor: Colors.white,
                     icon: Icons.edit_outlined,
-                    label: 'Edit',
+                    label: context.flipperL10n.edit,
                   ),
                 ],
               ),
@@ -613,7 +614,7 @@ class CustomersState extends ConsumerState<Customers> {
                       backgroundColor: PosTokens.gain,
                       foregroundColor: Colors.white,
                       icon: Icons.person_add_alt_1_outlined,
-                      label: 'Add',
+                      label: context.flipperL10n.add,
                     ),
                   if (isSelected)
                     SlidableAction(
@@ -628,7 +629,7 @@ class CustomersState extends ConsumerState<Customers> {
                       backgroundColor: PosTokens.warnAmber,
                       foregroundColor: Colors.white,
                       icon: Icons.person_remove_outlined,
-                      label: 'Remove',
+                      label: context.flipperL10n.remove,
                     ),
                 ],
               ),
@@ -648,7 +649,7 @@ class CustomersState extends ConsumerState<Customers> {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          tooltip: 'Edit customer',
+          tooltip: context.flipperL10n.editCustomer,
           onPressed: isSaleActionBusy
               ? null
               : () => _openCustomerForm(
@@ -695,7 +696,7 @@ class CustomersState extends ConsumerState<Customers> {
             color: isSelected ? PosTokens.warnAmber : PosTokens.gain,
           ),
         IconButton(
-          tooltip: 'Delete customer',
+          tooltip: context.flipperL10n.deleteCustomer,
           onPressed: isSaleActionBusy
               ? null
               : () => _confirmDeleteCustomer(customer, model),
@@ -728,7 +729,7 @@ class CustomersState extends ConsumerState<Customers> {
     }
 
     return PopupMenuButton<_CustomerAction>(
-      tooltip: 'Customer actions',
+      tooltip: context.flipperL10n.customerActions,
       icon: const Icon(Icons.more_vert_rounded, color: PosTokens.ink3),
       onSelected: (action) {
         switch (action) {
@@ -1251,14 +1252,14 @@ class _DeleteCustomerDialog extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _DeleteCustomerDetailRow(label: 'Name', value: name),
+                        _DeleteCustomerDetailRow(label: context.flipperL10n.name, value: name),
                         if (phone.isNotEmpty) ...[
                           const SizedBox(height: 10),
-                          _DeleteCustomerDetailRow(label: 'Phone', value: phone),
+                          _DeleteCustomerDetailRow(label: context.flipperL10n.phone, value: phone),
                         ],
                         if (tin.isNotEmpty) ...[
                           const SizedBox(height: 10),
-                          _DeleteCustomerDetailRow(label: 'TIN', value: tin),
+                          _DeleteCustomerDetailRow(label: context.flipperL10n.tin, value: tin),
                         ],
                       ],
                     ),

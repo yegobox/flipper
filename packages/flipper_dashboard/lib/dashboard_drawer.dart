@@ -445,7 +445,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           const ModernShiftTile(),
           const SizedBox(height: 12),
           Text(
-            'SETTINGS',
+            context.flipperL10n.settings.toUpperCase(),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -456,8 +456,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           const SizedBox(height: 12),
           _ModernMenuRow(
             iconSvg: DashboardQuickAccessSvgs.drawerOnlinePrintSyncIcon(),
-            title: 'Online Print',
-            subtitle: 'Manage print settings',
+            title: context.flipperL10n.onlinePrint,
+            subtitle: context.flipperL10n.managePrintSettings,
             onTap: () {
               Navigator.pop(context); // Close the drawer
               showModalBottomSheet(
@@ -569,8 +569,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           const SizedBox(height: 12),
           _ModernSwitchRow(
             iconSvg: DashboardQuickAccessSvgs.drawerUserLoggingFileIcon(),
-            title: 'User Logging',
-            subtitle: 'Enable extensive logging',
+            title: context.flipperL10n.userLogging,
+            subtitle: context.flipperL10n.enableExtensiveLogging,
             value: userLoggingEnabled,
             onChanged: (value) async {
               await ProxyService.box.setUserLoggingEnabled(value);
@@ -583,8 +583,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
           _ModernSwitchRow(
             iconSvg:
                 DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
-            title: 'Background Sync',
-            subtitle: 'Sync data in background',
+            title: context.flipperL10n.backgroundSync,
+            subtitle: context.flipperL10n.syncDataInBackground,
             value: backgroundSyncEnabled,
             onChanged: (value) async {
               await ProxyService.box.writeBool(
@@ -1007,7 +1007,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isShiftOpen ? 'Close Shift' : 'Open Shift',
+                            isShiftOpen ? context.flipperL10n.closeShift : context.flipperL10n.openShift,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -1064,7 +1064,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
     if (isShiftOpen && shift != null) {
       final dialogResponse = await dialogService.showCustomDialog(
         variant: DialogType.closeShift,
-        title: 'Close Shift',
+        title: context.flipperL10n.closeShift,
         data: {
           'openingBalance': shift.openingBalance,
           'cashSales': shift.cashSales,
@@ -1096,7 +1096,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
 
       final response = await dialogService.showCustomDialog(
         variant: DialogType.startShift,
-        title: 'Start New Shift',
+        title: context.flipperL10n.startNewShift,
       );
       if (response != null && response.confirmed) {
         // StartShiftDialog already persisted the shift in Ditto.
@@ -1120,10 +1120,10 @@ class _CheckSubscriptionDrawerRow extends ConsumerWidget {
 
     return _ModernMenuRow(
       iconSvg: DashboardQuickAccessSvgs.drawerUserLoggingFileIcon(),
-      title: 'Check subscription',
+      title: context.flipperL10n.checkSubscription,
       subtitle: verificationState.isLoading
-          ? 'Checking payment status…'
-          : 'Refresh after customer pays',
+          ? context.flipperL10n.checkingPaymentStatus
+          : context.flipperL10n.refreshAfterCustomerPays,
       onTap: verificationState.isLoading
           ? () {}
           : () async {
@@ -1142,7 +1142,7 @@ class _CheckSubscriptionDrawerRow extends ConsumerWidget {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Could not check subscription: $e'),
+                    content: Text(context.flipperL10n.couldNotCheckSubscription(e.toString())),
                   ),
                 );
               }

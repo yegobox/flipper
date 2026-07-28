@@ -3,6 +3,7 @@ import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -680,7 +681,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         ),
         if (branches.isNotEmpty)
           FlipperGradientButton(
-            text: 'Continue to ${selectedBranch?.name ?? 'branch'}',
+            text: context.flipperL10n.continueToBranch(
+              selectedBranch?.name ?? context.flipperL10n.branch,
+            ),
             icon: Icons.arrow_outward_rounded,
             isLoading: _loadingItemId == branchToContinue?.id.toString(),
             onPressed: branchToContinue == null
@@ -692,6 +695,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _handleBusinessSelection(Business business) async {
+    final l10n = context.flipperL10n;
     // Do not clear branchId here: it widens a race with Ditto-backed prefs merge
     // (attachDittoPersistence) and leaves getBranchId() null while business loads.
     // setDefaultBranch / setDefaultBusiness overwrites when the user picks a branch.
@@ -747,7 +751,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             final dialogService = locator<DialogService>();
             final response = await dialogService.showCustomDialog(
               variant: DialogType.appChoice,
-              title: 'Choose Your Default App',
+              title: l10n.chooseYourDefaultApp,
             );
             if (response?.confirmed != true || response?.data == null) {
               setState(() {
@@ -822,6 +826,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     Branch branch,
     BuildContext context,
   ) async {
+    final l10n = context.flipperL10n;
     final isMobile =
         Theme.of(context).platform == TargetPlatform.android ||
         Theme.of(context).platform == TargetPlatform.iOS;
@@ -849,7 +854,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           final dialogService = locator<DialogService>();
           final response = await dialogService.showCustomDialog(
             variant: DialogType.appChoice,
-            title: 'Choose Your Default App',
+            title: l10n.chooseYourDefaultApp,
           );
 
           if (response?.confirmed == true && response?.data != null) {
@@ -1412,13 +1417,13 @@ class _DesktopAccountMenu extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           const Divider(height: 1, color: _SelTokens.line),
-          const _DesktopAccountMenuRow(
+          _DesktopAccountMenuRow(
             icon: Icons.person_outline_rounded,
-            label: 'Account settings',
+            label: context.flipperL10n.accountSettings,
           ),
-          const _DesktopAccountMenuRow(
+          _DesktopAccountMenuRow(
             icon: Icons.group_outlined,
-            label: 'Switch account',
+            label: context.flipperL10n.switchAccount,
           ),
           const Divider(height: 1, color: _SelTokens.line),
           _DesktopAccountMenuRow(

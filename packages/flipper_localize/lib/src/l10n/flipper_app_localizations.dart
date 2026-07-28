@@ -1740,6 +1740,576 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Transferred'**
   String get transferred;
+
+  /// Admin Control tile title for the app language setting
+  ///
+  /// In en, this message translates to:
+  /// **'App Language'**
+  String get appLanguage;
+
+  /// Subtitle of the app language tile
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the language Flipper uses'**
+  String get chooseAppLanguage;
+
+  /// Title of the language picker sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Select Language'**
+  String get selectLanguage;
+
+  /// Explains the scope of the language choice
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to every screen in the app.'**
+  String get languageAppliesEverywhere;
+
+  /// Option to follow the device language instead of an explicit choice
+  ///
+  /// In en, this message translates to:
+  /// **'Use device language'**
+  String get useDeviceLanguage;
+
+  /// Tag shown when the language follows the device
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get automatic;
+
+  /// The French language
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get french;
+
+  /// Admin Control section header
+  ///
+  /// In en, this message translates to:
+  /// **'Account & financial'**
+  String get accountAndFinancial;
+
+  /// Admin Control section header
+  ///
+  /// In en, this message translates to:
+  /// **'Admin profile'**
+  String get adminProfile;
+
+  /// Admin Control section header
+  ///
+  /// In en, this message translates to:
+  /// **'SMS notifications'**
+  String get smsNotifications;
+
+  /// Close a screen or dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// Reload the current data
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// Placeholder for the admin email field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. admin@flipper.rw'**
+  String get adminEmailHint;
+
+  /// Label for the admin display name field
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get displayName;
+
+  /// Tooltip for editing the admin display name
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get editName;
+
+  /// Admin Control card title
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get paymentMethods;
+
+  /// Admin Control card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Manage payment options'**
+  String get managePaymentOptions;
+
+  /// Placeholder for a phone number field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter phone number'**
+  String get enterPhoneNumber;
+
+  /// SMS setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Order Notifications'**
+  String get enableOrderNotifications;
+
+  /// SMS setting subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Receive SMS notifications for orders'**
+  String get receiveSmsNotificationsForOrders;
+
+  /// Debug mode subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enable debugging features'**
+  String get enableDebuggingFeatures;
+
+  /// Electronic Billing Machine, kept as an acronym
+  ///
+  /// In en, this message translates to:
+  /// **'EBM'**
+  String get ebm;
+
+  /// Admin action to re-register the tax device
+  ///
+  /// In en, this message translates to:
+  /// **'Re-initialize EBM'**
+  String get reinitializeEbm;
+
+  /// Tax service subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Manage tax service status'**
+  String get manageTaxServiceStatus;
+
+  /// Admin action to re-download all local data
+  ///
+  /// In en, this message translates to:
+  /// **'Hydrate Data'**
+  String get hydrateData;
+
+  /// Hydrate data subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh all local data'**
+  String get refreshAllLocalData;
+
+  /// Admin toggle for downloading product images
+  ///
+  /// In en, this message translates to:
+  /// **'Asset Download'**
+  String get assetDownload;
+
+  /// Asset download subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Manage image downloads'**
+  String get manageImageDownloads;
+
+  /// Admin toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Add Search'**
+  String get autoAddSearch;
+
+  /// Auto-add search subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-add items when 1 match'**
+  String get autoAddItemsWhenOneMatch;
+
+  /// Admin toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'User Logging'**
+  String get userLogging;
+
+  /// User logging subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enable extensive user logging'**
+  String get enableExtensiveUserLogging;
+
+  /// Short admin toggle title for price/quantity adjustment
+  ///
+  /// In en, this message translates to:
+  /// **'Price-Qty Adj'**
+  String get priceQtyAdjustment;
+
+  /// Price-quantity adjustment subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-adjust qty on price change'**
+  String get autoAdjustQtyOnPriceChange;
+
+  /// Admin toggle title for fractional pricing
+  ///
+  /// In en, this message translates to:
+  /// **'Decimals'**
+  String get decimals;
+
+  /// Decimals subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Enable fractional pricing'**
+  String get enableFractionalPricing;
+
+  /// Admin toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket Review + Handover'**
+  String get ticketReviewAndHandover;
+
+  /// Admin security section title
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator PIN'**
+  String get administratorPin;
+
+  /// Admin security action
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Administrator PIN'**
+  String get resetAdministratorPin;
+
+  /// Reset administrator PIN subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Update your high-security 4-digit PIN'**
+  String get updateHighSecurityPin;
+
+  /// Title of the settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Flipper Settings'**
+  String get flipperSettingsTitle;
+
+  /// Settings section header
+  ///
+  /// In en, this message translates to:
+  /// **'Common'**
+  String get common;
+
+  /// Settings row showing which backend the app talks to
+  ///
+  /// In en, this message translates to:
+  /// **'Environment'**
+  String get environment;
+
+  /// Value of the environment setting
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get local;
+
+  /// Settings section header
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// Settings row for the account email
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// Settings section header
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// Settings toggle for the daily report email
+  ///
+  /// In en, this message translates to:
+  /// **'Send daily report'**
+  String get sendDailyReport;
+
+  /// Drawer setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Online Print'**
+  String get onlinePrint;
+
+  /// Online print subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Manage print settings'**
+  String get managePrintSettings;
+
+  /// User logging subtitle in the drawer
+  ///
+  /// In en, this message translates to:
+  /// **'Enable extensive logging'**
+  String get enableExtensiveLogging;
+
+  /// Drawer setting title
+  ///
+  /// In en, this message translates to:
+  /// **'Background Sync'**
+  String get backgroundSync;
+
+  /// Background sync subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Sync data in background'**
+  String get syncDataInBackground;
+
+  /// Ends the current cashier shift
+  ///
+  /// In en, this message translates to:
+  /// **'Close Shift'**
+  String get closeShift;
+
+  /// Begins a new cashier shift
+  ///
+  /// In en, this message translates to:
+  /// **'Start New Shift'**
+  String get startNewShift;
+
+  /// Re-checks the business subscription status
+  ///
+  /// In en, this message translates to:
+  /// **'Check subscription'**
+  String get checkSubscription;
+
+  /// Shown when the subscription check fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check subscription: {error}'**
+  String couldNotCheckSubscription(String error);
+
+  /// Title of the default app chooser
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Your Default App'**
+  String get chooseYourDefaultApp;
+
+  /// Menu entry opening account settings
+  ///
+  /// In en, this message translates to:
+  /// **'Account settings'**
+  String get accountSettings;
+
+  /// Menu entry for signing in as someone else
+  ///
+  /// In en, this message translates to:
+  /// **'Switch account'**
+  String get switchAccount;
+
+  /// Confirms the branch the user is entering
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to {branchName}'**
+  String continueToBranch(String branchName);
+
+  /// Starts a cashier shift
+  ///
+  /// In en, this message translates to:
+  /// **'Open Shift'**
+  String get openShift;
+
+  /// Shown while the subscription payment check runs
+  ///
+  /// In en, this message translates to:
+  /// **'Checking payment status…'**
+  String get checkingPaymentStatus;
+
+  /// Subtitle of the check subscription row
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh after customer pays'**
+  String get refreshAfterCustomerPays;
+
+  /// Generic word for a branch, used as a fallback when the branch name is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'branch'**
+  String get branch;
+
+  /// Inventory summary card title
+  ///
+  /// In en, this message translates to:
+  /// **'Total Items'**
+  String get totalItems;
+
+  /// Inventory summary card title
+  ///
+  /// In en, this message translates to:
+  /// **'Expired Items'**
+  String get expiredItems;
+
+  /// Inventory summary card title
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock Items'**
+  String get lowStockItems;
+
+  /// Inventory summary card title
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Orders'**
+  String get pendingOrders;
+
+  /// Opens the full list
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// Table column header for a record identifier
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get idLabel;
+
+  /// Table column header
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get item;
+
+  /// Table column header
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// Table column header
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantity;
+
+  /// Table column header
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get location;
+
+  /// Table column header for the expiry date
+  ///
+  /// In en, this message translates to:
+  /// **'Expired On'**
+  String get expiredOn;
+
+  /// Table column header for row actions
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get actions;
+
+  /// Dialog title listing every expired item
+  ///
+  /// In en, this message translates to:
+  /// **'All Expired Items'**
+  String get allExpiredItems;
+
+  /// Confirms leaving the checkout screen
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to go home?'**
+  String get goHomeQuestion;
+
+  /// POS search field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search products or scan…'**
+  String get searchProductsOrScan;
+
+  /// Clears the current input
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// Tooltip for adding a single product
+  ///
+  /// In en, this message translates to:
+  /// **'Add product'**
+  String get addProductAction;
+
+  /// Opens help for the current screen
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
+
+  /// Customers screen subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Customer management'**
+  String get customerManagement;
+
+  /// Customer search placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search customers by name or phone'**
+  String get searchCustomersByNameOrPhone;
+
+  /// Clears the search field
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// Generic add action
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// Tooltip for editing a customer
+  ///
+  /// In en, this message translates to:
+  /// **'Edit customer'**
+  String get editCustomer;
+
+  /// Tooltip for deleting a customer
+  ///
+  /// In en, this message translates to:
+  /// **'Delete customer'**
+  String get deleteCustomer;
+
+  /// Semantic label for the customer row actions
+  ///
+  /// In en, this message translates to:
+  /// **'Customer actions'**
+  String get customerActions;
+
+  /// Table column header for a phone number
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phone;
+
+  /// Taxpayer Identification Number, kept as an acronym
+  ///
+  /// In en, this message translates to:
+  /// **'TIN'**
+  String get tin;
+
+  /// Label above the invoice number in checkout
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get invoice;
+
+  /// Short label above the transaction identifier
+  ///
+  /// In en, this message translates to:
+  /// **'Txn ID'**
+  String get txnId;
+
+  /// Tooltip for attaching a customer to the sale
+  ///
+  /// In en, this message translates to:
+  /// **'Add customer'**
+  String get addCustomer;
 }
 
 class _FlipperAppLocalizationsDelegate

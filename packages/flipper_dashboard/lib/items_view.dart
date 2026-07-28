@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -185,7 +186,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
       childAspectRatio: 1.5,
       children: [
         _buildSummaryCard(
-          title: 'Total Items',
+          title: context.flipperL10n.totalItems,
           value: '1,580',
           icon: Icons.inventory,
           color: Colors.blue,
@@ -193,7 +194,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
           isPositive: true,
         ),
         _buildSummaryCard(
-          title: 'Expired Items',
+          title: context.flipperL10n.expiredItems,
           value: '${_expiredItems.length}',
           icon: Icons.warning_amber,
           color: Colors.red,
@@ -201,7 +202,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
           isPositive: false,
         ),
         _buildSummaryCard(
-          title: 'Low Stock Items',
+          title: context.flipperL10n.lowStockItems,
           value: '21',
           icon: Icons.trending_down,
           color: Colors.orange,
@@ -209,7 +210,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
           isPositive: true,
         ),
         _buildSummaryCard(
-          title: 'Pending Orders',
+          title: context.flipperL10n.pendingOrders,
           value: '12',
           icon: Icons.shopping_cart,
           color: Colors.green,
@@ -327,7 +328,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                     // Handle view all
                     _showExpiredItemsDialog(context);
                   },
-                  child: const Text('View All'),
+                  child: Text(context.flipperL10n.viewAll),
                 ),
               ],
             ),
@@ -342,14 +343,14 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                       .surfaceContainerHighest
                       .withValues(alpha: 0.3),
                 ),
-                columns: const [
-                  DataColumn(label: Text('ID')),
-                  DataColumn(label: Text('Item')),
-                  DataColumn(label: Text('Category')),
-                  DataColumn(label: Text('Quantity')),
-                  DataColumn(label: Text('Location')),
-                  DataColumn(label: Text('Expired On')),
-                  DataColumn(label: Text('Actions')),
+                columns: [
+                  DataColumn(label: Text(context.flipperL10n.idLabel)),
+                  DataColumn(label: Text(context.flipperL10n.item)),
+                  DataColumn(label: Text(context.flipperL10n.category)),
+                  DataColumn(label: Text(context.flipperL10n.quantity)),
+                  DataColumn(label: Text(context.flipperL10n.location)),
+                  DataColumn(label: Text(context.flipperL10n.expiredOn)),
+                  DataColumn(label: Text(context.flipperL10n.actions)),
                 ],
                 rows: _expiredItems.map((item) {
                   return DataRow(
@@ -402,7 +403,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('All Expired Items'),
+          title: Text(context.flipperL10n.allExpiredItems),
           content: SingleChildScrollView(
             child: Column(
               children: _expiredItems.map((item) {
@@ -416,7 +417,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Close'),
+              child: Text(context.flipperL10n.close),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -447,7 +448,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Close'),
+              child: Text(context.flipperL10n.close),
               onPressed: () {
                 Navigator.of(context).pop();
               },

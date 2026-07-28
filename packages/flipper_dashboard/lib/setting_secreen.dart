@@ -1,5 +1,8 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/providers/locale_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
 import 'languages_screen.dart';
@@ -29,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPop: () {
               _routerService.pop();
             },
-            title: 'Flipper Settings',
+            title: context.flipperL10n.flipperSettingsTitle,
             showActionButton: false,
             onActionButtonClicked: () async {
               _routerService.pop();
@@ -38,22 +41,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
             multi: 3,
             bottomSpacer: 50,
           ),
-          body: buildSettingsList(model: model),
+          body: buildSettingsList(context: context, model: model),
         );
       },
       viewModelBuilder: () => SettingViewModel(),
     );
   }
 
-  Widget buildSettingsList({required SettingViewModel model}) {
+  Widget buildSettingsList({
+    required BuildContext context,
+    required SettingViewModel model,
+  }) {
+    final l10n = context.flipperL10n;
     return SettingsList(
       sections: [
         SettingsSection(
-          title: Text('Common'),
+          title: Text(l10n.common),
           tiles: [
             SettingsTile(
-              title: Text('Language'),
-              description: Text('English'),
+              title: Text(l10n.language),
+              // Reflects the language actually in effect rather than a fixed
+              // label, so this row never contradicts Admin Control.
+              description: Consumer(
+                builder: (context, ref, _) => Text(
+                  languageDisplayName(
+                    l10n,
+                    ref.watch(effectiveLanguageCodeProvider),
+                  ),
+                ),
+              ),
               leading: const Icon(Icons.language),
               onPressed: (context) {
                 Navigator.of(context).push(MaterialPageRoute(
@@ -62,17 +78,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             SettingsTile(
-              title: Text('Environment'),
-              description: Text('Local'),
+              title: Text(l10n.environment),
+              description: Text(l10n.local),
               leading: const Icon(Icons.cloud_queue),
             ),
           ],
         ),
         SettingsSection(
-          title: Text('Account'),
+          title: Text(l10n.account),
           tiles: [
             SettingsTile(
-              title: Text('Email'),
+              title: Text(l10n.email),
               leading: const Icon(Icons.email),
               onPressed: (context) {
                 showEmailModal();
@@ -81,10 +97,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         SettingsSection(
-          title: Text('Security'),
+          title: Text(l10n.security),
           tiles: [
             SettingsTile.switchTile(
-              title: Text('Send daily report'),
+              title: Text(l10n.sendDailyReport),
               leading: const Icon(Icons.analytics),
               initialValue: model.kSetting.sendDailReport,
               onToggle: (bool value) {

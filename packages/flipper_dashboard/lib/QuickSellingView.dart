@@ -8,7 +8,6 @@ import 'package:flipper_dashboard/features/tickets/widgets/review_queue_banner.d
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
-import 'package:flipper_dashboard/widgets/pos_quick_cash_row.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -394,41 +393,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  /// Keeps the received-amount field, payment methods, and cash-received box
-  /// key in sync. Programmatic controller writes do not fire [onChanged], so
-  /// quick-cash and similar paths must call this instead of only setting text.
-  void _applyReceivedAmount(double amount, {String? transactionId}) {
-    final text = formatTenderAmount(amount);
-
-    if (!tenderAmountsMatch(widget.receivedAmountController.text, amount)) {
-      widget.receivedAmountController.text = text;
-    }
-
-    ProxyService.box.writeDouble(key: 'getCashReceived', value: amount);
-
-    final payments = ref.read(paymentMethodsProvider);
-    if (payments.isEmpty) return;
-
-    final payment = payments[0];
-    if (payment.controller.text != text) {
-      payment.controller.text = text;
-    }
-    if ((payment.amount - amount).abs() <= 0.01) return;
-
-    ref
-        .read(paymentMethodsProvider.notifier)
-        .updatePaymentMethod(
-          0,
-          Payment(
-            amount: amount,
-            method: payment.method,
-            id: payment.id,
-            controller: payment.controller,
-          ),
-          transactionId: transactionId,
-        );
-  }
-
   Widget _buildInvoiceNumber() {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
@@ -512,14 +476,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildCheckoutMetaColumn(
-          label: 'Invoice',
+          label: context.flipperL10n.invoice,
           value: 'No. $highestInvoiceNumber',
           valueKey: const Key('invoice-number-text'),
         ),
         if (txnId != null && txnId.isNotEmpty) ...[
           const SizedBox(width: 24),
           _buildCheckoutMetaColumn(
-            label: 'Txn ID',
+            label: context.flipperL10n.txnId,
             value: _shortTransactionId(txnId),
             valueKey: const Key('pending-transaction-id-text'),
             tooltip: txnId,
@@ -1005,7 +969,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return KeyEventResult.ignored;
   }
 
-  /// Enter on amount must skip quick-cash chips and land on customer name.
+  /// Enter on the amount field lands on customer name.
   void _focusCustomerNameAfterAmount() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -2718,7 +2682,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         ),
                         const SizedBox(width: 6),
                         Tooltip(
-                          message: 'Close',
+                          message: context.flipperL10n.close,
                           child: Material(
                             color: const Color(0xFFFDECEC),
                             borderRadius: BorderRadius.circular(9),
@@ -2756,7 +2720,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: 'Add customer',
+                  message: context.flipperL10n.addCustomer,
                   child: Material(
                     color: PosLayoutBreakpoints.posAccentBlue
                         .withValues(alpha: 0.12),
@@ -3088,26 +3052,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               _buildReceivedAmountField(
                 transactionId: transactionId,
                 alreadyPaid: alreadyPaid,
-              ),
-              const SizedBox(height: 10.0),
-              Consumer(
-                builder: (context, ref, _) {
-                  ref.watch(posCartPaymentRefreshSignalProvider);
-                  final total = _calculateTotal();
-                  return ExcludeFocus(
-                    child: PosQuickCashRow(
-                      exactAmount: total,
-                      enabled: total > 0,
-                      onSelect: (amount) {
-                        _applyReceivedAmount(
-                          amount,
-                          transactionId: transactionId,
-                        );
-                        setState(() {});
-                      },
-                    ),
-                  );
-                },
               ),
               const SizedBox(height: 10.0),
               _buildPaymentRow(isOrdering, transactionId, alreadyPaid),

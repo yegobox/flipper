@@ -125,6 +125,9 @@ abstract final class AdminDashboardSvgs {
   static const String paymentMethods =
       '''<svg viewBox="0 0 24 24" fill="none" $_xmlns><rect x="1" y="4" width="22" height="16" rx="2" stroke="#7C3AED" stroke-width="1.6" stroke-linecap="round"/><line x1="1" y1="10" x2="23" y2="10" stroke="#7C3AED" stroke-width="1.6" stroke-linecap="round"/></svg>''';
 
+  static const String appLanguage =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns><circle cx="12" cy="12" r="9.5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/><path d="M2.5 12h19" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/><path d="M12 2.5c2.6 2.6 3.9 6 3.9 9.5s-1.3 6.9-3.9 9.5c-2.6-2.6-3.9-6-3.9-9.5S9.4 5.1 12 2.5z" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>''';
+
   static const String smsPhone =
       '''<svg viewBox="0 0 24 24" fill="none" $_xmlns><path d="M3 2h3l1.5 3.5L6 7a9 9 0 004 4l1.5-1.5L15 11v3a1 1 0 01-1 1A13 13 0 012 3a1 1 0 011-1z" stroke="#0D9488" stroke-width="1.6" stroke-linecap="round"/></svg>''';
 

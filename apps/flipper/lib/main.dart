@@ -13,6 +13,7 @@ import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_models/providers/provider_perf_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/providers/locale_provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flipper_ai_feature/flipper_ai_feature.dart' show initLocalAi;
 import 'package:flipper_dashboard/features/delegations/delegation_notification_listener.dart';
@@ -27,7 +28,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -408,33 +408,44 @@ class _FlipperAppState extends State<FlipperApp> {
     return FlipperTheme.light(allowRuntimeFontFetching: false);
   }
 
-  Widget _buildMaterialApp(BuildContext context, Locale? locale) {
-    return MaterialApp.router(
-      key: const ValueKey('flipper_material_app'),
-      debugShowCheckedModeBanner: false,
-      title: 'flipper',
-      theme: _theme,
-      localizationsDelegates: const [
-        FlipperLocalizationsDelegate(),
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        FlipperCountryLocalizationsDelegate(),
-      ],
-      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
-      // Locale must be captured during [build], not inside a post-frame setState
-      // (DevicePreview.locale uses Provider.of listen:true).
-      locale: locale ?? const Locale('en'),
-      themeMode: ThemeMode.system,
-      routerDelegate: _routerDelegate,
-      routeInformationParser: _routeInformationParser,
-      builder: (context, child) {
-        final app = DevicePreview.appBuilder(context, child);
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.noScaling,
-          ),
-          child: app,
+  Widget _buildMaterialApp(BuildContext context, Locale? devicePreviewLocale) {
+    // [Consumer] keeps the locale reactive even though the enclosing
+    // [_DevicePreviewOverlaySafeHost] caches this widget across frames — only
+    // the MaterialApp subtree rebuilds when the admin switches language.
+    return Consumer(
+      builder: (context, ref, _) {
+        final chosenLocale = ref.watch(appLocaleProvider);
+        return MaterialApp.router(
+          key: const ValueKey('flipper_material_app'),
+          debugShowCheckedModeBanner: false,
+          title: 'flipper',
+          theme: _theme,
+          localizationsDelegates: const [
+            // Includes fallbacks for locales flutter_localizations has no
+            // bundle for (Kinyarwanda), so MaterialLocalizations is never null.
+            ...FlipperLocalizationDelegates.delegates,
+            FlipperCountryLocalizationsDelegate(),
+          ],
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+          // The language picked in Admin Control wins; with no explicit choice
+          // fall through to DevicePreview (debug) and then the device language.
+          // DevicePreview's locale must be captured during [build], not inside a
+          // post-frame setState (DevicePreview.locale uses Provider.of listen:true).
+          locale: chosenLocale ??
+              devicePreviewLocale ??
+              Locale(resolveDeviceLanguageCode()),
+          themeMode: ThemeMode.system,
+          routerDelegate: _routerDelegate,
+          routeInformationParser: _routeInformationParser,
+          builder: (context, child) {
+            final app = DevicePreview.appBuilder(context, child);
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.noScaling,
+              ),
+              child: app,
+            );
+          },
         );
       },
     );

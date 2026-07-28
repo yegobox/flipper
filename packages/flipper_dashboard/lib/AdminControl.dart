@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
@@ -1136,7 +1138,7 @@ class _AdminControlState extends State<AdminControl> {
               style: _adminAppBarCircleIconStyle(),
               onPressed: () => navigator.navigateTo(FlipperAppRoute()),
               icon: const Icon(Icons.close, size: 22),
-              tooltip: 'Close',
+              tooltip: context.flipperL10n.close,
             ),
             title: Text(
               'Management Dashboard',
@@ -1157,14 +1159,14 @@ class _AdminControlState extends State<AdminControl> {
                       _loadProfileUserFromSupabase();
                     }
                   },
-                  itemBuilder: (context) => const [
+                  itemBuilder: (context) => [
                     PopupMenuItem(
                       value: 'refresh',
                       child: Row(
                         children: [
-                          Icon(Icons.refresh),
-                          SizedBox(width: 8),
-                          Text('Refresh'),
+                          const Icon(Icons.refresh),
+                          const SizedBox(width: 8),
+                          Text(context.flipperL10n.refresh),
                         ],
                       ),
                     ),
@@ -1224,7 +1226,7 @@ class _AdminControlState extends State<AdminControl> {
       autofocus: true,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        hintText: 'e.g. admin@flipper.rw',
+        hintText: context.flipperL10n.adminEmailHint,
         hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
@@ -1323,7 +1325,7 @@ class _AdminControlState extends State<AdminControl> {
       autofocus: true,
       textCapitalization: TextCapitalization.words,
       decoration: InputDecoration(
-        hintText: 'Display name',
+        hintText: context.flipperL10n.displayName,
         hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
@@ -1519,7 +1521,7 @@ class _AdminControlState extends State<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'Admin profile', _kAdminBarBlue),
+        _adminSectionHeader(context, context.flipperL10n.adminProfile, _kAdminBarBlue),
         const SizedBox(height: 4),
         Container(
           decoration: _adminCardDecoration(),
@@ -1568,7 +1570,7 @@ class _AdminControlState extends State<AdminControl> {
                 ),
               ),
               IconButton(
-                tooltip: 'Edit name',
+                tooltip: context.flipperL10n.editName,
                 onPressed: () => _startInlineNameEdit(),
                 icon: Icon(
                   Icons.edit_outlined,
@@ -1767,13 +1769,13 @@ class _AdminControlState extends State<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'Quick actions', _kAdminBarBlue),
+        _adminSectionHeader(context, context.flipperL10n.quickActions, _kAdminBarBlue),
         Row(
           children: [
             Expanded(
               child: SwitchSettingsCard(
-                title: 'POS Default',
-                subtitle: 'Set POS as default app',
+                title: context.flipperL10n.posDefault,
+                subtitle: context.flipperL10n.setPosAsDefaultApp,
                 leading: _adminLeadingSvg(
                   AdminDashboardSvgs.posDefault,
                   _kAdminBarBlue.withValues(alpha: 0.1),
@@ -1785,8 +1787,8 @@ class _AdminControlState extends State<AdminControl> {
             const SizedBox(width: 16),
             Expanded(
               child: SwitchSettingsCard(
-                title: 'Orders Default',
-                subtitle: 'Set Orders as default app',
+                title: context.flipperL10n.ordersDefault,
+                subtitle: context.flipperL10n.setOrdersAsDefaultApp,
                 leading: _adminLeadingSvg(
                   AdminDashboardSvgs.ordersDefault,
                   const Color(0xFF16A34A).withValues(alpha: 0.1),
@@ -1801,11 +1803,31 @@ class _AdminControlState extends State<AdminControl> {
     );
   }
 
+  Widget _buildPreferencesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.preferences,
+          _kAdminBarPurple,
+        ),
+        const LanguageSettingsCard(),
+      ],
+    );
+  }
+
   Widget _buildMainSections(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'Account & financial', _kAdminBarBlue),
+        _buildPreferencesSection(context),
+        const SizedBox(height: 28),
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.accountAndFinancial,
+          _kAdminBarBlue,
+        ),
         const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1817,8 +1839,8 @@ class _AdminControlState extends State<AdminControl> {
                   // _adminSubSectionHeader('Account management', _kAdminBarBlue),
                   const SizedBox(height: 16),
                   SettingsCard(
-                    title: 'User Management',
-                    subtitle: 'Manage users and permissions',
+                    title: context.flipperL10n.userManagement,
+                    subtitle: context.flipperL10n.manageUsersAndPermissions,
                     leading: _adminLeadingSvg(
                       AdminDashboardSvgs.userManagement,
                       _kAdminBarBlue.withValues(alpha: 0.1),
@@ -1832,8 +1854,8 @@ class _AdminControlState extends State<AdminControl> {
                   ),
                   const SizedBox(height: 12),
                   SettingsCard(
-                    title: 'Branch Management',
-                    subtitle: 'Manage branch locations',
+                    title: context.flipperL10n.branchManagement,
+                    subtitle: context.flipperL10n.manageBranchLocations,
                     leading: _adminLeadingSvg(
                       AdminDashboardSvgs.branchManagement,
                       _kAdminBarTeal.withValues(alpha: 0.1),
@@ -1851,13 +1873,13 @@ class _AdminControlState extends State<AdminControl> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _adminSubSectionHeader(
-                    'Financial controls',
+                    context.flipperL10n.financialControls,
                     _kAdminBarOrange,
                   ),
                   const SizedBox(height: 16),
                   SettingsCard(
-                    title: 'Tax Settings',
-                    subtitle: 'Configure tax rules and rates',
+                    title: context.flipperL10n.taxSettings,
+                    subtitle: context.flipperL10n.configureTaxRulesAndRates,
                     leading: _adminLeadingSvg(
                       AdminDashboardSvgs.taxSettings,
                       _kAdminBarOrange.withValues(alpha: 0.12),
@@ -1873,8 +1895,8 @@ class _AdminControlState extends State<AdminControl> {
                   ),
                   const SizedBox(height: 12),
                   SettingsCard(
-                    title: 'Payment Methods',
-                    subtitle: 'Manage payment options',
+                    title: context.flipperL10n.paymentMethods,
+                    subtitle: context.flipperL10n.managePaymentOptions,
                     leading: _adminLeadingSvg(
                       AdminDashboardSvgs.paymentMethods,
                       _kAdminBarPurple.withValues(alpha: 0.1),
@@ -1906,7 +1928,7 @@ class _AdminControlState extends State<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'SMS notifications', _kAdminBarTeal),
+        _adminSectionHeader(context, context.flipperL10n.smsNotifications, _kAdminBarTeal),
         Container(
           decoration: _adminCardDecoration(),
           child: Column(
@@ -1953,7 +1975,7 @@ class _AdminControlState extends State<AdminControl> {
                         focusNode: _smsPhoneFocusNode,
                         style: GoogleFonts.outfit(fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'Enter phone number',
+                          hintText: context.flipperL10n.enterPhoneNumber,
                           hintStyle: GoogleFonts.outfit(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -2008,8 +2030,8 @@ class _AdminControlState extends State<AdminControl> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: _AdminSwitchRow(
-                  title: 'Enable Order Notifications',
-                  subtitle: 'Receive SMS notifications for orders',
+                  title: context.flipperL10n.enableOrderNotifications,
+                  subtitle: context.flipperL10n.receiveSmsNotificationsForOrders,
                   leading: _adminLeadingSvg(
                     AdminDashboardSvgs.enableNotifications,
                     const Color(0xFF16A34A).withValues(alpha: 0.1),
@@ -2029,7 +2051,7 @@ class _AdminControlState extends State<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'System settings', _kAdminBarSlate),
+        _adminSectionHeader(context, context.flipperL10n.systemSettings, _kAdminBarSlate),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -2040,8 +2062,8 @@ class _AdminControlState extends State<AdminControl> {
           children: [
             if (kDebugMode)
               SwitchSettingsCard(
-                title: 'Debug Mode',
-                subtitle: 'Enable debugging features',
+                title: context.flipperL10n.debugMode,
+                subtitle: context.flipperL10n.enableDebuggingFeatures,
                 leading: _adminLeadingSvg(
                   AdminDashboardSvgs.debugMode,
                   _kAdminBarOrange.withValues(alpha: 0.12),
@@ -2050,8 +2072,8 @@ class _AdminControlState extends State<AdminControl> {
                 onChanged: enableDebugFunc,
               ),
             SwitchSettingsCard(
-              title: 'EBM',
-              subtitle: 'Re-initialize EBM',
+              title: context.flipperL10n.ebm,
+              subtitle: context.flipperL10n.reinitializeEbm,
               leading: _adminLeadingSvg(
                 AdminDashboardSvgs.ebm,
                 _kAdminBarTeal.withValues(alpha: 0.1),
@@ -2062,8 +2084,8 @@ class _AdminControlState extends State<AdminControl> {
               },
             ),
             SwitchSettingsCard(
-              title: 'Tax Service',
-              subtitle: 'Manage tax service status',
+              title: context.flipperL10n.taxService,
+              subtitle: context.flipperL10n.manageTaxServiceStatus,
               leading: _adminLeadingSvg(
                 AdminDashboardSvgs.taxService,
                 _kAdminBarPurple.withValues(alpha: 0.1),
@@ -2072,8 +2094,8 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleTaxService,
             ),
             SwitchSettingsCard(
-              title: 'Hydrate Data',
-              subtitle: 'Refresh all local data',
+              title: context.flipperL10n.hydrateData,
+              subtitle: context.flipperL10n.refreshAllLocalData,
               leading: _adminLeadingSvg(
                 AdminDashboardSvgs.hydrateData,
                 _kAdminBarRed.withValues(alpha: 0.1),
@@ -2082,8 +2104,8 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleForceUPSERT,
             ),
             SwitchSettingsCard(
-              title: 'Asset Download',
-              subtitle: 'Manage image downloads',
+              title: context.flipperL10n.assetDownload,
+              subtitle: context.flipperL10n.manageImageDownloads,
               leading: _adminLeadingSvg(
                 AdminDashboardSvgs.assetDownload,
                 _kAdminBarBlue.withValues(alpha: 0.1),
@@ -2092,8 +2114,8 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleDownload,
             ),
             SwitchSettingsCard(
-              title: 'Auto-Add Search',
-              subtitle: 'Auto-add items when 1 match',
+              title: context.flipperL10n.autoAddSearch,
+              subtitle: context.flipperL10n.autoAddItemsWhenOneMatch,
               leading: _adminLeadingSvg(
                 AdminDashboardSvgs.autoAddSearch,
                 const Color(0xFFEC4899).withValues(alpha: 0.1),
@@ -2102,8 +2124,8 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleAutoAddSearch,
             ),
             SwitchSettingsCard(
-              title: 'User Logging',
-              subtitle: 'Enable extensive user logging',
+              title: context.flipperL10n.userLogging,
+              subtitle: context.flipperL10n.enableExtensiveUserLogging,
               leading: _adminLeadingSvg(
                 AdminDashboardSvgs.userLogging,
                 const Color(0xFF6366F1).withValues(alpha: 0.12),
@@ -2115,8 +2137,8 @@ class _AdminControlState extends State<AdminControl> {
               listenable: settingsService,
               builder: (context, child) {
                 return SwitchSettingsCard(
-                  title: 'Price-Qty Adj',
-                  subtitle: 'Auto-adjust qty on price change',
+                  title: context.flipperL10n.priceQtyAdjustment,
+                  subtitle: context.flipperL10n.autoAdjustQtyOnPriceChange,
                   leading: _adminLeadingSvg(
                     AdminDashboardSvgs.priceQtyAdjustment,
                     _kAdminBarRed.withValues(alpha: 0.1),
@@ -2130,8 +2152,8 @@ class _AdminControlState extends State<AdminControl> {
               listenable: settingsService,
               builder: (context, child) {
                 return SwitchSettingsCard(
-                  title: 'Decimals',
-                  subtitle: 'Enable fractional pricing',
+                  title: context.flipperL10n.decimals,
+                  subtitle: context.flipperL10n.enableFractionalPricing,
                   leading: _adminLeadingSvg(
                     AdminDashboardSvgs.decimalsCurrency,
                     const Color(0xFF16A34A).withValues(alpha: 0.1),
@@ -2145,7 +2167,7 @@ class _AdminControlState extends State<AdminControl> {
               listenable: settingsService,
               builder: (context, child) {
                 return SwitchSettingsCard(
-                  title: 'Ticket Review + Handover',
+                  title: context.flipperL10n.ticketReviewAndHandover,
                   subtitle:
                       'Require reviewer sign-off and stock-manager handover '
                       'before a paid ticket is fully completed',
@@ -2342,7 +2364,7 @@ class _AdminControlState extends State<AdminControl> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: _AdminSwitchRow(
-                      title: 'Administrator PIN',
+                      title: context.flipperL10n.administratorPin,
                       subtitle:
                           'Secure sensitive actions like deleting or editing products',
                       leading: _adminLeadingSvg(
@@ -2414,8 +2436,8 @@ class _AdminControlState extends State<AdminControl> {
                               AdminDashboardSvgs.resetAdministratorPin,
                               _kAdminBarBlue.withValues(alpha: 0.1),
                             ),
-                            title: 'Reset Administrator PIN',
-                            subtitle: 'Update your high-security 4-digit PIN',
+                            title: context.flipperL10n.resetAdministratorPin,
+                            subtitle: context.flipperL10n.updateHighSecurityPin,
                           ),
                         ),
                       ),
