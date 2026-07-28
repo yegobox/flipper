@@ -1057,7 +1057,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     else
                       const SizedBox(width: 16),
                     const SizedBox(width: 8),
-                    Text(option.localizedLabel(context.flipperL10n)),
+                    Flexible(
+                      child: Text(
+                        option.localizedLabel(context.flipperL10n),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
               );
