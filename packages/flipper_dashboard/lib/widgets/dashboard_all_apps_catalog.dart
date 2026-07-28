@@ -40,6 +40,13 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         icon: FluentIcons.book_24_regular,
         color: Color(0xFF2563EB),
       ),
+      DashboardAllAppTile(
+        page: 'Credits',
+        label: 'Credits',
+        icon: FluentIcons.wallet_credit_card_24_regular,
+        color: Color(0xFFF59E0B),
+        feature: 'Credits',
+      ),
     ],
   ),
   DashboardAllAppSection(

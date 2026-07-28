@@ -155,6 +155,9 @@ class AppIconsGrid extends ConsumerWidget {
       if (app['feature'] == 'Orders') return true;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;
+      // See dashboardAppTileVisible: 'Credits' is an account-level top-up with
+      // no Access grant behind it, so it must not go through featureAccess.
+      if (app['feature'] == 'Credits') return true;
       if (app['feature'] == 'AgentCommission') return showCommission;
       final feature = app['feature'] as String;
       // The Tickets screen also hosts the Review Queue and Record Handover

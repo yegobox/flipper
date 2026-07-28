@@ -18,6 +18,10 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (tile.feature == 'Orders') return true;
   if (tile.feature == 'ServicesGigs') return true;
   if (tile.feature == 'Settings') return true;
+  // Credits is an account-level MoMo top-up, not a staff permission. It is not
+  // in [AppFeature] and no code path grants an Access row for it, so gating it
+  // on featureAccessProvider hid the tile from everyone. Always visible.
+  if (tile.feature == 'Credits') return true;
   if (tile.feature == 'AgentCommission') {
     return ref.watch(showAgentCommissionNavProvider);
   }
