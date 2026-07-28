@@ -961,6 +961,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         return 'Price ↑';
       case ProductSortOption.priceHighToLow:
         return 'Price ↓';
+      case ProductSortOption.stockOut:
+        return 'Stock out';
       case ProductSortOption.eventDateOldToNew:
         return 'Date ↑';
       case ProductSortOption.eventDateNewToOld:
@@ -1082,6 +1084,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return currentSearch.isEmpty;
   }
 
+  /// Effective on-hand stock for a variant: prefer the attached stock's
+  /// current quantity, falling back to the display-only [Variant.qty].
+  double _effectiveStock(Variant v) => v.stock?.currentStock ?? v.qty ?? 0;
+
   List<Variant> _sortVariants(List<Variant> variants, WidgetRef ref) {
     final sortOption = ref.watch(productSortProvider);
 
@@ -1120,6 +1126,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       case ProductSortOption.priceHighToLow:
         sortedVariants.sort(
           (a, b) => (b.retailPrice ?? 0).compareTo(a.retailPrice ?? 0),
+        );
+        break;
+      case ProductSortOption.stockOut:
+        // Surface out-of-stock (and lowest) items first by sorting on the
+        // effective on-hand stock ascending.
+        sortedVariants.sort(
+          (a, b) => _effectiveStock(a).compareTo(_effectiveStock(b)),
         );
         break;
       case ProductSortOption.eventDateOldToNew:

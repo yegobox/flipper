@@ -83,7 +83,7 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
             ),
             decoration: BoxDecoration(
               color: PosTokens.surface,
-              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+              borderRadius: PosTokens.cardRadius,
               border: Border.all(
                 color: widget.showSelectionBorder
                     ? PosTokens.blue

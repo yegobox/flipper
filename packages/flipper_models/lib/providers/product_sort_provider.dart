@@ -9,6 +9,7 @@ enum ProductSortOption {
   latest('Sort by latest'),
   priceLowToHigh('Sort by price: low to high'),
   priceHighToLow('Sort by price: high to low'),
+  stockOut('Sort by stock out'),
   eventDateOldToNew('Sort by event date: Old to New'),
   eventDateNewToOld('Sort by event date: New to Old');
 

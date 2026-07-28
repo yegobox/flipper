@@ -47,8 +47,18 @@ abstract final class PosTokens {
   static const double cartPanelWidth = 460;
   static const double productThumbHeight = 104;
   static const double gridGap = 14;
+  static const double radiusLg = 10;
   static const double radiusMd = 14;
   static const double radiusSm = 10;
+
+  /// Catalog card shape: softer, rounder top so the colored thumb corners
+  /// don't read as sharp, with the standard radius on the bottom.
+  static const BorderRadius cardRadius = BorderRadius.only(
+    topLeft: Radius.circular(radiusLg),
+    topRight: Radius.circular(radiusLg),
+    bottomLeft: Radius.circular(radiusMd),
+    bottomRight: Radius.circular(radiusMd),
+  );
   static const double searchFieldHeight = 50;
   static const double scanButtonSize = 50;
   static const double payButtonHeight = 58;
