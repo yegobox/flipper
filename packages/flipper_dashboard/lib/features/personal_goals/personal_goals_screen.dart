@@ -43,12 +43,12 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     if (branchId == null || branchId.isEmpty) {
       return Scaffold(
         appBar: CustomAppBar(
-          title: FLocalization.of(context).personalGoals,
+          title: context.flipperL10n.personalGoals,
           barBackgroundColor: _pageBg,
           onPop: () => Navigator.of(context).maybePop(),
         ),
         body: Center(
-          child: Text(FLocalization.of(context).selectBranchToManageGoals),
+          child: Text(context.flipperL10n.selectBranchToManageGoals),
         ),
       );
     }
@@ -58,7 +58,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
     return Scaffold(
       backgroundColor: _pageBg,
       appBar: CustomAppBar(
-        title: FLocalization.of(context).personalGoals,
+        title: context.flipperL10n.personalGoals,
         barBackgroundColor: _pageBg,
         onPop: () => Navigator.of(context).maybePop(),
       ),
@@ -66,7 +66,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
         data: (goals) => _buildBody(context, branchId, goals),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) =>
-            Center(child: Text(FLocalization.of(context).couldNotLoadGoals(e))),
+            Center(child: Text(context.flipperL10n.couldNotLoadGoals(e))),
       ),
     );
   }
@@ -93,7 +93,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
           Text(
-            FLocalization.of(context).personalGoalsEyebrow,
+            context.flipperL10n.personalGoalsEyebrow,
             style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -112,7 +112,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            FLocalization.of(context).totalReservedAcrossGoals(goals.length),
+            context.flipperL10n.totalReservedAcrossGoals(goals.length),
             style: GoogleFonts.outfit(
               fontSize: 14,
               color: Colors.grey.shade600,
@@ -127,22 +127,22 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
                 child: _SummaryCard(
                   title: formatRwfCompact(0),
                   titleColor: _purple,
-                  subtitle: FLocalization.of(context).savedThisMonth,
+                  subtitle: context.flipperL10n.savedThisMonth,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _SummaryCard(
-                  title: FLocalization.of(context).onTrackCount(onTrack),
+                  title: context.flipperL10n.onTrackCount(onTrack),
                   titleColor: Colors.black87,
-                  subtitle: FLocalization.of(context).goalsProgressing,
+                  subtitle: context.flipperL10n.goalsProgressing,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
           Text(
-            FLocalization.of(context).allGoals,
+            context.flipperL10n.allGoals,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -151,7 +151,7 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            FLocalization.of(context).personalGoalsProfitGrowth,
+            context.flipperL10n.personalGoalsProfitGrowth,
             style: GoogleFonts.outfit(
               fontSize: 13,
               color: Colors.grey.shade600,

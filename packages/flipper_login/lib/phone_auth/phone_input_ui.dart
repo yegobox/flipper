@@ -162,7 +162,7 @@ class PhoneInputUI extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: InputDecoration(
-                            labelText: FLocalization.of(context).phoneNumber,
+                            labelText: context.flipperL10n.phoneNumber,
                             hintText: '783054874 (without leading 0)',
                             hintStyle: GoogleFonts.poppins(
                               color: Colors.grey.withValues(alpha: 0.5),
@@ -252,12 +252,12 @@ class PhoneInputUI extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 18),
-                      Text(FLocalization.of(context).sendingCode,
+                      Text(context.flipperL10n.sendingCode,
                           style: GoogleFonts.poppins(
                               fontSize: 16, fontWeight: FontWeight.w600)),
                     ],
                   )
-                : Text(FLocalization.of(context).continueAction,
+                : Text(context.flipperL10n.continueAction,
                     style: GoogleFonts.poppins(
                         fontSize: 18, fontWeight: FontWeight.w600)),
           ),

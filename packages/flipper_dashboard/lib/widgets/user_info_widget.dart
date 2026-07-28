@@ -343,7 +343,7 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
               Icon(Icons.logout, color: Colors.grey.shade800, size: 20),
               const SizedBox(width: 10),
               Text(
-                FLocalization.of(context).logOut,
+                context.flipperL10n.logOut,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,

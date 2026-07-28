@@ -51,9 +51,9 @@ void inviteMembers({required BuildContext context}) {
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                   title: Row(
-                    children: [Text(FLocalization.of(context).invite)],
+                    children: [Text(context.flipperL10n.invite)],
                   ),
-                  trailing: Text(FLocalization.of(context).sendRequest),
+                  trailing: Text(context.flipperL10n.sendRequest),
                 ),
                 SizedBox(
                   height: 200,
@@ -82,7 +82,7 @@ void preferences({
 }) {
   bottomSheetBuilder(
     header: header(
-      title: FLocalization.of(context).preferences,
+      title: context.flipperL10n.preferences,
       context: context,
     ),
     context: context,
@@ -91,18 +91,18 @@ void preferences({
         if (ProxyService.remoteConfig.isAccessiblityFeatureAvailable())
           ListTile(
             leading: const Icon(Ionicons.search),
-            title: Text(FLocalization.of(context).accessibility),
+            title: Text(context.flipperL10n.accessibility),
             trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           ),
         ListTile(
           leading: const Icon(Ionicons.language),
-          title: Text(FLocalization.of(context).language),
+          title: Text(context.flipperL10n.language),
           trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
             bottomSheetBuilder(
               context: context,
               header: header(
-                title: FLocalization.of(context).language,
+                title: context.flipperL10n.language,
                 context: context,
               ),
               body: ViewModelBuilder<SettingViewModel>.reactive(
@@ -114,7 +114,7 @@ void preferences({
                   return Column(
                     children: [
                       SettingsTile(
-                        title: Text(FLocalization.of(context).english),
+                        title: Text(context.flipperL10n.english),
                         trailing: trailingWidget(model.defaultLanguage == 'en'),
                         onPressed: (BuildContext context) {
                           model.setLanguage('en');
@@ -122,7 +122,7 @@ void preferences({
                         },
                       ),
                       SettingsTile(
-                        title: Text(FLocalization.of(context).kinyarwanda),
+                        title: Text(context.flipperL10n.kinyarwanda),
                         trailing: trailingWidget(model.defaultLanguage == 'rw'),
                         onPressed: (BuildContext context) {
                           model.setLanguage('rw');
@@ -130,7 +130,7 @@ void preferences({
                         },
                       ),
                       SettingsTile(
-                        title: Text(FLocalization.of(context).swahili),
+                        title: Text(context.flipperL10n.swahili),
                         trailing: trailingWidget(model.defaultLanguage == 'sw'),
                         onPressed: (BuildContext context) {
                           model.setLanguage('sw');
@@ -146,12 +146,12 @@ void preferences({
         ),
         ListTile(
           leading: const Icon(Ionicons.keypad),
-          title: Text(FLocalization.of(context).reports),
+          title: Text(context.flipperL10n.reports),
           trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
             bottomSheetBuilder(
               header: header(
-                title: FLocalization.of(context).reports,
+                title: context.flipperL10n.reports,
                 context: context,
               ),
               context: context,
@@ -166,7 +166,7 @@ void preferences({
                   return Column(
                     children: [
                       SettingsTile.switchTile(
-                        title: Text(FLocalization.of(context).enableReport),
+                        title: Text(context.flipperL10n.enableReport),
                         initialValue: model.kSetting.sendDailReport,
                         onToggle: (bool value) {
                           // model.enableDailyReport((message) {
@@ -199,26 +199,26 @@ void preferences({
         if (ProxyService.remoteConfig.isBackupAvailable())
           ListTile(
             leading: const Icon(Ionicons.sync),
-            title: Text(FLocalization.of(context).backups),
+            title: Text(context.flipperL10n.backups),
             trailing: const Icon(FluentIcons.arrow_forward_20_regular),
             onTap: () {
               bottomSheetBuilder(
                 context: context,
                 header: header(
-                  title: FLocalization.of(context).addBackup,
+                  title: context.flipperL10n.addBackup,
                   context: context,
                 ),
                 body: Column(
                   children: [
                     ListTile(
                       leading: const Icon(Ionicons.cloud_download),
-                      title: Text(FLocalization.of(context).restoreData),
+                      title: Text(context.flipperL10n.restoreData),
                       trailing: const Icon(Ionicons.happy),
                       onTap: () {
                         model.restoreBackUp((callback) {
                           if (callback == 1) {
                             showSimpleNotification(
-                              Text(FLocalization.of(context).dataRestored),
+                              Text(context.flipperL10n.dataRestored),
                               background: Colors.green,
                               position: NotificationPosition.bottom,
                             );
@@ -226,7 +226,7 @@ void preferences({
                           if (callback == 2) {
                             showSimpleNotification(
                               Text(
-                                FLocalization.of(context).errorRestoringBackup,
+                                context.flipperL10n.errorRestoringBackup,
                               ),
                               background: Colors.red,
                               position: NotificationPosition.bottom,
@@ -373,7 +373,7 @@ void addMemberBottomSheet({
 }) {
   bottomSheetBuilder(
     header: header(
-      title: FLocalization.of(context).addMembers,
+      title: context.flipperL10n.addMembers,
       context: context,
     ),
     context: context,
@@ -412,7 +412,7 @@ void addMemberBottomSheet({
 void addWorkSpace({required BuildContext context}) {
   bottomSheetBuilder(
     header: header(
-      title: FLocalization.of(context).addWorkSpace,
+      title: context.flipperL10n.addWorkSpace,
       context: context,
     ),
     context: context,

@@ -22,7 +22,7 @@ class SettingPage extends StatelessWidget {
               onPop: () async {
                 _routerService.pop();
               },
-              title: FLocalization.of(context).settings,
+              title: context.flipperL10n.settings,
               disableButton: false,
               showActionButton: false,
             ),

@@ -67,7 +67,7 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
                               child: Row(
                                 children: [
                                   Text(
-                                    FLocalization.of(context).currentSale,
+                                    context.flipperL10n.currentSale,
                                     style: Theme.of(context)
                                         .textTheme
                                         .headlineMedium!

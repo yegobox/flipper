@@ -268,7 +268,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
               children: [
                 _PayChip(
                   semanticId: MaestroIds.mposPaymentCash,
-                  label: FLocalization.of(context).cash,
+                  label: context.flipperL10n.cash,
                   icon: Icons.payments_outlined,
                   selected: _chip == MposPayChip.cash,
                   onTap: () => _selectChip(MposPayChip.cash),
@@ -284,7 +284,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 const SizedBox(width: 9),
                 _PayChip(
                   semanticId: MaestroIds.mposPaymentCredit,
-                  label: FLocalization.of(context).credit,
+                  label: context.flipperL10n.credit,
                   icon: Icons.account_balance_wallet_outlined,
                   selected: _chip == MposPayChip.credit,
                   onTap: () => _selectChip(MposPayChip.credit),
@@ -299,7 +299,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    FLocalization.of(context).momoPayerPhone,
+                    context.flipperL10n.momoPayerPhone,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -355,7 +355,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    FLocalization.of(context).momoPaymentRequestHint,
+                    context.flipperL10n.momoPaymentRequestHint,
                     style: TextStyle(fontSize: 12, color: PosTokens.ink3),
                   ),
                 ],
@@ -433,7 +433,7 @@ class _MposPaymentSectionState extends ConsumerState<MposPaymentSection>
                     children: [
                       _QuickCash(
                         semanticId: MaestroIds.mposPaymentQuickExact,
-                        label: FLocalization.of(context).exact,
+                        label: context.flipperL10n.exact,
                         selected: tender.round() == widget.totalPayable.round(),
                         onTap: () => _setTender(widget.totalPayable),
                       ),

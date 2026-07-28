@@ -576,7 +576,7 @@ class _AuthState extends State<Auth> {
                                 _isLoading ? null : _handlePhoneNumberLogin,
                             icon: Icon(Icons.phone, size: 20),
                             label: Text(
-                                FLocalization.of(context).continueWithPhone,
+                                context.flipperL10n.continueWithPhone,
                                 style: AppStyles.buttonText),
                           ),
                         ),
@@ -588,7 +588,7 @@ class _AuthState extends State<Auth> {
                           key: Key("googleLogin"),
                           onPressed: _isLoading ? null : _handleGoogleLogin,
                           iconPath: 'assets/google.svg',
-                          text: FLocalization.of(context).continueWithGoogle,
+                          text: context.flipperL10n.continueWithGoogle,
                         ),
 
                         SizedBox(height: 16),
@@ -598,7 +598,7 @@ class _AuthState extends State<Auth> {
                           key: Key("microsoftLogin"),
                           onPressed: _isLoading ? null : _handleMicrosoftLogin,
                           iconPath: 'assets/microsoft.svg',
-                          text: FLocalization.of(context).continueWithMicrosoft,
+                          text: context.flipperL10n.continueWithMicrosoft,
                         ),
 
                         SizedBox(height: 16),
@@ -614,7 +614,7 @@ class _AuthState extends State<Auth> {
                               painter: AppleLogoPainter(color: Colors.black),
                             ),
                           ),
-                          text: FLocalization.of(context).continueWithApple,
+                          text: context.flipperL10n.continueWithApple,
                         ),
 
                         SizedBox(height: 24),
@@ -626,7 +626,7 @@ class _AuthState extends State<Auth> {
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
-                                FLocalization.of(context).or,
+                                context.flipperL10n.or,
                                 style: TextStyle(color: AppColors.textLight),
                               ),
                             ),
@@ -644,7 +644,7 @@ class _AuthState extends State<Auth> {
                             style: AppButtons.outlinedButton,
                             onPressed: _isLoading ? null : _handlePinLogin,
                             icon: Icon(Icons.pin_outlined, size: 20),
-                            label: Text(FLocalization.of(context).pinLogin,
+                            label: Text(context.flipperL10n.pinLogin,
                                 style: AppStyles.secondaryButtonText),
                           ),
                         ),

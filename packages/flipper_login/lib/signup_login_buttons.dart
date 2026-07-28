@@ -54,12 +54,12 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                 key: const Key('createAccountButton'),
                 padding: const EdgeInsets.only(left: 18, right: 18, top: 0),
                 child: BoxButton(
-                  title: FLocalization.of(context).createAccount,
+                  title: context.flipperL10n.createAccount,
                   onTap: () {
                     if (!widget.isSystemTimeSet) {
                       showSimpleNotification(
                           Text(
-                              FLocalization.of(context).setDeviceTimeAutomatic),
+                              context.flipperL10n.setDeviceTimeAutomatic),
                           background: Colors.green,
                           duration: const Duration(minutes: 2));
                     } else {
@@ -79,11 +79,11 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                       width: double.infinity,
                       height: 50,
                       child: BoxButton.outline(
-                        title: FLocalization.of(context).signIn,
+                        title: context.flipperL10n.signIn,
                         onTap: () {
                           if (!widget.isSystemTimeSet) {
                             showSimpleNotification(
-                                Text(FLocalization.of(context)
+                                Text(context.flipperL10n
                                     .setDeviceTimeAutomatic),
                                 background: Colors.green,
                                 duration: const Duration(minutes: 2));

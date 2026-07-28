@@ -132,7 +132,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
               // Always show confirmation + shift handling before logout.
               dialogService.showCustomDialog(
                 variant: DialogType.logOut,
-                title: FLocalization.of(context).logOut,
+                title: context.flipperL10n.logOut,
               );
             }
             if (value == 'personal') {
@@ -161,7 +161,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
                   const Icon(Icons.logout, color: Colors.black),
                   const SizedBox(width: 8),
                   Text(
-                    FLocalization.of(context).logOut,
+                    context.flipperL10n.logOut,
                     style: primaryTextStyle,
                   ),
                 ],
@@ -174,7 +174,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
                   const Icon(Icons.sync, color: Colors.black),
                   const SizedBox(width: 8),
                   Text(
-                    FLocalization.of(context).syncCounter,
+                    context.flipperL10n.syncCounter,
                     style: primaryTextStyle,
                   ),
                 ],
@@ -214,7 +214,7 @@ class PMobile extends HookConsumerWidget {
         if (value == 'logOut') {
           dialogService.showCustomDialog(
             variant: DialogType.logOut,
-            title: FLocalization.of(context).logOut,
+            title: context.flipperL10n.logOut,
           );
         }
         if (value == 'personal') {
@@ -241,7 +241,7 @@ class PMobile extends HookConsumerWidget {
             children: [
               const Icon(Icons.logout, color: Colors.black),
               const SizedBox(width: 8),
-              Text(FLocalization.of(context).logOut, style: primaryTextStyle),
+              Text(context.flipperL10n.logOut, style: primaryTextStyle),
             ],
           ),
         ),

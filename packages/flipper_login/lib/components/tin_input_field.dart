@@ -142,7 +142,7 @@ class _TinInputFieldState extends State<TinInputField> {
         TextFieldBlocBuilder(
           textFieldBloc: widget.tinNumberBloc,
           decoration: InputDecoration(
-            labelText: FLocalization.of(context).tinNumber,
+            labelText: context.flipperL10n.tinNumber,
             labelStyle: const TextStyle(
               color: Colors.black87,
               fontSize: 14,
@@ -190,7 +190,7 @@ class _TinInputFieldState extends State<TinInputField> {
                                   Color(0xFF0078D4)),
                             ),
                           )
-                        : Text(FLocalization.of(context).validate,
+                        : Text(context.flipperL10n.validate,
                             style:
                                 const TextStyle(fontWeight: FontWeight.w600)),
                   );
@@ -208,7 +208,7 @@ class _TinInputFieldState extends State<TinInputField> {
                             color: Colors.black87,
                           ),
                     onPressed: _isLoading ? null : _pickAndProcessPdf,
-                    tooltip: FLocalization.of(context).uploadPdfWithTin,
+                    tooltip: context.flipperL10n.uploadPdfWithTin,
                   );
                 }
               },
@@ -234,7 +234,7 @@ class _TinInputFieldState extends State<TinInputField> {
               borderSide: const BorderSide(color: Colors.red),
             ),
             errorText: _errorText,
-            hintText: FLocalization.of(context).enterTinOrUpload,
+            hintText: context.flipperL10n.enterTinOrUpload,
             hintStyle: TextStyle(
               color: Colors.grey[400],
               fontSize: 14,

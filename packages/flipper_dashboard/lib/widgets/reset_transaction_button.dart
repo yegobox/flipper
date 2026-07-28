@@ -43,15 +43,13 @@ class ResetTransactionButton extends ConsumerWidget {
             color: Colors.red,
             size: 20,
           ),
-          tooltip: FLocalization.of(context).resetTransaction,
+          tooltip: context.flipperL10n.resetTransaction,
           onPressed: () async {
             final dialogService = locator<DialogService>();
             final response = await dialogService.showCustomDialog(
               variant: DialogType.info,
-              title: FLocalization.of(context).resetTransactionQuestion,
-              description: FLocalization.of(
-                context,
-              ).resetTransactionDescription,
+              title: context.flipperL10n.resetTransactionQuestion,
+              description: context.flipperL10n.resetTransactionDescription,
               data: {'status': InfoDialogStatus.warning},
             );
 
@@ -100,7 +98,7 @@ class ResetTransactionButton extends ConsumerWidget {
           children: [
             const Icon(Icons.check_circle_outline, color: Colors.white),
             const SizedBox(width: 8),
-            Text(FLocalization.of(context).transactionResetSuccessfully),
+            Text(context.flipperL10n.transactionResetSuccessfully),
           ],
         ),
         backgroundColor: Colors.green[600],
@@ -118,7 +116,7 @@ class ResetTransactionButton extends ConsumerWidget {
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 8),
-            Text(FLocalization.of(context).errorResettingTransaction(error)),
+            Text(context.flipperL10n.errorResettingTransaction(error)),
           ],
         ),
         backgroundColor: Colors.red[600],

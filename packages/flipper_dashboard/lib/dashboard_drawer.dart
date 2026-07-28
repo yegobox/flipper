@@ -311,7 +311,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
             children: [
               Expanded(
                 child: _QuickActionCard(
-                  title: FLocalization.of(context).scanQr,
+                  title: context.flipperL10n.scanQr,
                   iconSvg: DashboardQuickAccessSvgs.drawerScanQrIcon(),
                   titleColor: const Color(0xFF2563EB),
                   onTap: () {
@@ -331,7 +331,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
               const SizedBox(width: 12),
               Expanded(
                 child: _QuickActionCard(
-                  title: FLocalization.of(context).dashboard,
+                  title: context.flipperL10n.dashboard,
                   iconSvg: DashboardQuickAccessSvgs.drawerDashboardIconGreen(),
                   titleColor: const Color(0xFF16A34A),
                   onTap: () {
@@ -351,8 +351,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
     if (userId == null) {
       return _buildEmptyState(
         icon: Icons.error_outline_rounded,
-        title: FLocalization.of(context).noUser,
-        subtitle: FLocalization.of(context).pleaseLogInToContinue,
+        title: context.flipperL10n.noUser,
+        subtitle: context.flipperL10n.pleaseLogInToContinue,
       );
     }
 
@@ -370,13 +370,13 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
       builder: (context, businessSnapshot) {
         if (businessSnapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState(
-            FLocalization.of(context).loadingBusinesses,
+            context.flipperL10n.loadingBusinesses,
           );
         }
 
         if (businessSnapshot.hasError) {
           return _buildErrorState(
-            FLocalization.of(context).errorLoadingBusinesses,
+            context.flipperL10n.errorLoadingBusinesses,
             businessSnapshot.error.toString(),
             () => (context as Element).markNeedsBuild(),
           );
@@ -386,8 +386,8 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
         if (businesses.isEmpty) {
           return _buildEmptyState(
             icon: Icons.business_outlined,
-            title: FLocalization.of(context).noBusinesses,
-            subtitle: FLocalization.of(context).createFirstBusiness,
+            title: context.flipperL10n.noBusinesses,
+            subtitle: context.flipperL10n.createFirstBusiness,
           );
         }
 
@@ -753,14 +753,14 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
         top: false,
         child: _ModernBaseRow(
           iconSvg: DashboardQuickAccessSvgs.drawerSignOutIcon(),
-          title: FLocalization.of(context).signOut,
+          title: context.flipperL10n.signOut,
           titleColor: const Color(0xFFDC2626),
           subtitle: null,
           trailing: const SizedBox(width: 14, height: 14),
           onTap: () {
             locator<DialogService>().showCustomDialog(
               variant: DialogType.logOut,
-              title: FLocalization.of(context).signOut,
+              title: context.flipperL10n.signOut,
             );
           },
         ),

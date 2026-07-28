@@ -38,7 +38,7 @@ class Devices extends ConsumerWidget {
           onPop: () async {
             _routerService.pop();
           },
-          title: FLocalization.of(context).linkDevice,
+          title: context.flipperL10n.linkDevice,
           disableButton: false,
           showActionButton: false,
         ),
@@ -51,7 +51,7 @@ class Devices extends ConsumerWidget {
               ),
             ),
             Text(
-              FLocalization.of(context).useFlipperOnOtherDevices,
+              context.flipperL10n.useFlipperOnOtherDevices,
               style: GoogleFonts.outfit(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w500,
@@ -64,7 +64,7 @@ class Devices extends ConsumerWidget {
               height: 40,
               child: OutlinedButton(
                 child: Text(
-                  FLocalization.of(context).linkADevice,
+                  context.flipperL10n.linkADevice,
                   style: GoogleFonts.outfit(
                     fontSize: 16.0,
                     fontWeight: FontWeight.w500,
@@ -116,7 +116,7 @@ class Devices extends ConsumerWidget {
                 height: 40,
                 child: OutlinedButton(
                   child: Text(
-                    FLocalization.of(context).pinCode(pin ?? ''),
+                    context.flipperL10n.pinCode(pin ?? ''),
                     style: GoogleFonts.outfit(
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,
@@ -151,7 +151,7 @@ class Devices extends ConsumerWidget {
             ),
             SizedBox(height: 10),
             Text(
-              FLocalization.of(context).listOfConnectedDevices,
+              context.flipperL10n.listOfConnectedDevices,
               style: GoogleFonts.outfit(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w500,
@@ -176,7 +176,7 @@ class Devices extends ConsumerWidget {
                           onPressed: () {
                             _dialogService.showCustomDialog(
                               variant: DialogType.logOut,
-                              title: FLocalization.of(context).logOut,
+                              title: context.flipperL10n.logOut,
                               data: deviceList[index],
                             );
                             ref.refresh(deviceListProvider);
@@ -191,7 +191,7 @@ class Devices extends ConsumerWidget {
                 return CircularProgressIndicator();
               },
               error: (error, stackTrace) {
-                return Text(FLocalization.of(context).errorMessage(error));
+                return Text(context.flipperL10n.errorMessage(error));
               },
             ),
           ],

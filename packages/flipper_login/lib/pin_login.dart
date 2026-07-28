@@ -514,12 +514,12 @@ class _PinLoginState extends State<PinLogin>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(FLocalization.of(context).troubleSigningIn),
-          content: Text(FLocalization.of(context).troubleSigningInHelp),
+          title: Text(context.flipperL10n.troubleSigningIn),
+          content: Text(context.flipperL10n.troubleSigningInHelp),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(FLocalization.of(context).ok),
+              child: Text(context.flipperL10n.ok),
             ),
           ],
         );

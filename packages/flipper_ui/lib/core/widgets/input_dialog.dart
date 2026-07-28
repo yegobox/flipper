@@ -125,11 +125,11 @@ class InputDialog extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(FLocalization.of(context).cancel),
+            child: Text(context.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: Text(FLocalization.of(context).confirm),
+            child: Text(context.flipperL10n.confirm),
           ),
         ],
       ),

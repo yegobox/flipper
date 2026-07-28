@@ -300,7 +300,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 child: isMobileLayout
                     ? SearchFieldWidget(
                         controller: linked,
-                        hintText: FLocalization.of(context).searchProducts,
+                        hintText: context.flipperL10n.searchProducts,
                         densePadding: true,
                         showNoticesButton: false,
                         showOrderButton: false,
@@ -308,7 +308,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       )
                     : PosCatalogSearchRow(
                         controller: linked,
-                        hintText: FLocalization.of(context).searchProducts,
+                        hintText: context.flipperL10n.searchProducts,
                       ),
               ),
             ],
@@ -338,17 +338,17 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             onPressed: () {
               ref.read(selectedItemIdsProvider.notifier).clearSelection();
             },
-            tooltip: FLocalization.of(context).clearSelection,
+            tooltip: context.flipperL10n.clearSelection,
           ),
           const SizedBox(width: 8),
           Text(
-            FLocalization.of(context).itemsSelected(selectedIds.length),
+            context.flipperL10n.itemsSelected(selectedIds.length),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const Spacer(),
           TextButton.icon(
             icon: const Icon(Icons.delete_outline),
-            label: Text(FLocalization.of(context).delete),
+            label: Text(context.flipperL10n.delete),
             style: TextButton.styleFrom(foregroundColor: colorScheme.error),
             onPressed: () =>
                 _showBulkDeleteConfirmation(context, model, selectedIds),
@@ -382,10 +382,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           final dialogService = locator<DialogService>();
           dialogService.showCustomDialog(
             variant: DialogType.info,
-            title: FLocalization.of(context).error,
-            description: FLocalization.of(
-              context,
-            ).cannotDeleteVariantWithStockRemaining,
+            title: context.flipperL10n.error,
+            description: context.flipperL10n.cannotDeleteVariantWithStockRemaining,
             data: {'status': InfoDialogStatus.error},
           );
           return;
@@ -408,13 +406,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final dialogService = locator<DialogService>();
     final response = await dialogService.showCustomDialog(
       variant: DialogType.info,
-      title: FLocalization.of(context).deleteMultipleItems,
-      description: FLocalization.of(
-        context,
-      ).deleteItemsConfirmation(selectedIds.length),
+      title: context.flipperL10n.deleteMultipleItems,
+      description: context.flipperL10n.deleteItemsConfirmation(selectedIds.length),
       data: {
         'status': InfoDialogStatus.warning,
-        'mainButtonText': FLocalization.of(context).delete,
+        'mainButtonText': context.flipperL10n.delete,
       },
     );
 
@@ -508,7 +504,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           if (hasBranch) ...[
                             const SizedBox(height: 8),
                             Text(
-                              FLocalization.of(context).productsSyncingHint,
+                              context.flipperL10n.productsSyncingHint,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
@@ -526,7 +522,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                 FluentIcons.arrow_sync_20_filled,
                               ),
                               label: Text(
-                                FLocalization.of(context).refreshProducts,
+                                context.flipperL10n.refreshProducts,
                               ),
                             ),
                           ],
@@ -558,7 +554,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        FLocalization.of(context).errorLoadingProducts,
+                        context.flipperL10n.errorLoadingProducts,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                           fontWeight: FontWeight.w500,
@@ -580,7 +576,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           ),
                         ),
                         icon: const Icon(FluentIcons.arrow_sync_20_filled),
-                        label: Text(FLocalization.of(context).retry),
+                        label: Text(context.flipperL10n.retry),
                       ),
                     ],
                   ),
@@ -937,7 +933,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   ) {
     final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
     return variants.isEmpty
-        ? Center(child: Text(FLocalization.of(context).noStockDataAvailable))
+        ? Center(child: Text(context.flipperL10n.noStockDataAvailable))
         : DataView(
             workBookKey: workBookKey,
             onTapRowShowRefundModal: false,

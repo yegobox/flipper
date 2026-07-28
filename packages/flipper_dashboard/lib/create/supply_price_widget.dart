@@ -20,7 +20,7 @@ class SupplyPrice extends StatelessWidget {
               enabled: true,
               border: const OutlineInputBorder(),
               // suffixIcon: const Icon(FluentIcons.money_24_regular),
-              hintText: FLocalization.of(context).supplyPrice),
+              hintText: context.flipperL10n.supplyPrice),
           keyboardType: TextInputType.number,
         ),
       ),

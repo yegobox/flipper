@@ -263,7 +263,7 @@ class PayableView extends HookConsumerWidget {
         alignment: Alignment.center,
         children: [
           Text(
-            FLocalization.of(context).tickets,
+            context.flipperL10n.tickets,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

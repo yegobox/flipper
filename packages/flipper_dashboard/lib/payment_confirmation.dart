@@ -57,9 +57,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           child: Scaffold(
             appBar: CustomAppBar(
               isDividerVisible: false,
-              title: FLocalization.of(
-                context,
-              ).paymentTitle(widget.transaction.paymentType ?? ''),
+              title: context.flipperL10n.paymentTitle(widget.transaction.paymentType ?? ''),
               icon: Icons.close,
               onPop: () => _routerService.clearStackAndShow(FlipperAppRoute()),
             ),
@@ -82,7 +80,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         builder: (BuildContext context) {
           final double height = MediaQuery.of(context).size.height * 0.8;
           return AlertDialog(
-            title: Text(FLocalization.of(context).digitalReceipt),
+            title: Text(context.flipperL10n.digitalReceipt),
             content: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: height),
               child: Form(
@@ -90,15 +88,15 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Text(FLocalization.of(context).needDigitalReceipt),
+                    Text(context.flipperL10n.needDigitalReceipt),
                     TextFormField(
                       controller: _controller,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: FLocalization.of(context).purchaseCode,
+                        labelText: context.flipperL10n.purchaseCode,
                       ),
                       validator: (value) => value?.isEmpty ?? true
-                          ? FLocalization.of(context).pleaseEnterPurchaseCode
+                          ? context.flipperL10n.pleaseEnterPurchaseCode
                           : null,
                       onFieldSubmitted: (value) {},
                       onSaved: (value) {},
@@ -109,7 +107,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             ),
             actions: <Widget>[
               BoxButton(
-                title: FLocalization.of(context).submit,
+                title: context.flipperL10n.submit,
                 busy: _busy,
                 onTap: () async {
                   if (_formKey.currentState?.validate() ?? false) {
@@ -126,7 +124,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 },
               ),
               TextButton(
-                child: Text(FLocalization.of(context).cancel),
+                child: Text(context.flipperL10n.cancel),
                 onPressed: () async {
                   await handleReceiptGeneration(filterType: FilterType.NS);
                 },
@@ -177,7 +175,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 ),
                 const SizedBox(height: 51),
                 Text(
-                  FLocalization.of(context).done,
+                  context.flipperL10n.done,
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w400,
                     fontSize: 20,
@@ -232,16 +230,16 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                     filterType: FilterType.NS,
                   );
                 } else {
-                  toast(FLocalization.of(context).generatingReceiptWait);
+                  toast(context.flipperL10n.generatingReceiptWait);
                 }
               },
-              label: FLocalization.of(context).receipt,
+              label: context.flipperL10n.receipt,
               color: Colors.green,
               sideColor: Colors.green,
             ),
             buildOutlinedButton(
               onPressed: () {},
-              label: FLocalization.of(context).addNote,
+              label: context.flipperL10n.addNote,
               color: Colors.black,
               sideColor: Color(0xFF4CAF50),
             ),
@@ -299,7 +297,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(FLocalization.of(context).poweredBy),
+        Text(context.flipperL10n.poweredBy),
         const SizedBox(width: 30),
         SizedBox(
           height: 21,
@@ -328,7 +326,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             model.handlingConfirm = true;
             _routerService.clearStackAndShow(FlipperAppRoute());
           },
-          title: FLocalization.of(context).returnToHome,
+          title: context.flipperL10n.returnToHome,
         ),
       ),
     );

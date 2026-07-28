@@ -73,7 +73,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                       height: 60,
                       child: !model.updateStart
                           ? BoxButton(
-                              title: FLocalization.of(context).addEmail,
+                              title: context.flipperL10n.addEmail,
                               onTap: () async {
                                 if (_formKey.currentState!.validate()) {
                                   bool updated = await model.updateSettings(
@@ -82,7 +82,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                   if (updated) {
                                     showSimpleNotification(
                                       Text(
-                                          FLocalization.of(context).emailAdded),
+                                          context.flipperL10n.emailAdded),
                                       background: Colors.green,
                                       position: NotificationPosition.bottom,
                                     );
@@ -99,7 +99,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                 height: 60,
                                 child: BoxButton(
                                   title:
-                                      FLocalization.of(context).updateSettings,
+                                      context.flipperL10n.updateSettings,
                                   busy: true,
                                 ),
                               ),

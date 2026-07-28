@@ -84,7 +84,7 @@ class ContactPickerButton extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          FLocalization.of(context).selectedContactHasNoPhoneNumber,
+          context.flipperL10n.selectedContactHasNoPhoneNumber,
         ),
         backgroundColor: Colors.orange,
       ),
@@ -94,7 +94,7 @@ class ContactPickerButton extends StatelessWidget {
   void _showPermissionRequiredSnackbar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(FLocalization.of(context).contactsPermissionRequired),
+        content: Text(context.flipperL10n.contactsPermissionRequired),
         backgroundColor: Colors.orange,
       ),
     );
@@ -104,21 +104,21 @@ class ContactPickerButton extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(FLocalization.of(context).permissionRequired),
+        title: Text(context.flipperL10n.permissionRequired),
         content: Text(
-          FLocalization.of(context).contactsPermissionDeniedSettings,
+          context.flipperL10n.contactsPermissionDeniedSettings,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(FLocalization.of(context).cancel),
+            child: Text(context.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               FlutterContacts.permissions.openSettings();
             },
-            child: Text(FLocalization.of(context).openSettings),
+            child: Text(context.flipperL10n.openSettings),
           ),
         ],
       ),
@@ -128,7 +128,7 @@ class ContactPickerButton extends StatelessWidget {
   void _showErrorSnackbar(BuildContext context, String error) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(FLocalization.of(context).errorMessage(error)),
+        content: Text(context.flipperL10n.errorMessage(error)),
         backgroundColor: Colors.red,
       ),
     );
@@ -141,7 +141,7 @@ class ContactPickerButton extends StatelessWidget {
     return IconButton(
       icon: Icon(icon),
       iconSize: 22,
-      tooltip: tooltip ?? FLocalization.of(context).pickFromContacts,
+      tooltip: tooltip ?? context.flipperL10n.pickFromContacts,
       onPressed: () => _pickContact(context),
       style: IconButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,

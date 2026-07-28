@@ -48,13 +48,13 @@ class DashboardMobileBottomNav extends ConsumerWidget {
               children: [
                 _NavItem(
                   icon: FluentIcons.home_24_regular,
-                  label: FLocalization.of(context).home,
+                  label: context.flipperL10n.home,
                   selected: activeTab == DashboardMobileTab.home,
                   onTap: () => onTabSelected(DashboardMobileTab.home),
                 ),
                 _NavItem(
                   icon: FluentIcons.cart_24_regular,
-                  label: FLocalization.of(context).sales,
+                  label: context.flipperL10n.sales,
                   selected: activeTab == DashboardMobileTab.sales,
                   onTap: () async {
                     onTabSelected(DashboardMobileTab.sales);
@@ -68,7 +68,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                 const SizedBox(width: 72),
                 _NavItem(
                   icon: FluentIcons.box_24_regular,
-                  label: FLocalization.of(context).inventory,
+                  label: context.flipperL10n.inventory,
                   selected: activeTab == DashboardMobileTab.inventory,
                   onTap: () async {
                     onTabSelected(DashboardMobileTab.inventory);
@@ -81,7 +81,7 @@ class DashboardMobileBottomNav extends ConsumerWidget {
                 ),
                 _NavItem(
                   icon: FluentIcons.grid_24_regular,
-                  label: FLocalization.of(context).more,
+                  label: context.flipperL10n.more,
                   selected: activeTab == DashboardMobileTab.more,
                   onTap: () async {
                     onTabSelected(DashboardMobileTab.more);

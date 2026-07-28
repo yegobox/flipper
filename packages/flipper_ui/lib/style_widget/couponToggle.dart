@@ -37,7 +37,7 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(FLocalization.of(context).numberOfPayments),
+            Text(context.flipperL10n.numberOfPayments),
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,
@@ -58,7 +58,7 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: CustomizableTextField(
-              wording: FLocalization.of(context).numberOfPayments,
+              wording: context.flipperL10n.numberOfPayments,
               controller: paymentController,
               validateState: numberOfPaymentState,
               onCouponChanged: _onNumberOfPaymentChanged,
@@ -112,7 +112,7 @@ class CouponToggle extends HookConsumerWidget {
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(FLocalization.of(context).applyDiscountCode),
+                child: Text(context.flipperL10n.applyDiscountCode),
               ),
             ),
             Switch(
@@ -141,7 +141,7 @@ class CouponToggle extends HookConsumerWidget {
                   controller: couponController,
                   validateState: couponValidationState,
                   onCouponChanged: _onCouponChanged,
-                  wording: FLocalization.of(context).discountCode,
+                  wording: context.flipperL10n.discountCode,
                 ),
                 if (isValidating == true)
                   Padding(
@@ -155,7 +155,7 @@ class CouponToggle extends HookConsumerWidget {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          FLocalization.of(context).validatingCode,
+                          context.flipperL10n.validatingCode,
                           style:
                               TextStyle(fontSize: 12, color: Colors.grey[600]),
                         ),
