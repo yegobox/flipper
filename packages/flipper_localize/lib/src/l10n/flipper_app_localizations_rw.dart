@@ -1224,4 +1224,331 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String get addCustomer => 'Ongeramo umukiriya';
+
+  @override
+  String get sortDefault => 'Uko bisanzwe bitondekanye';
+
+  @override
+  String get sortByPopularity => 'Tondeka ukurikije icyamamare';
+
+  @override
+  String get sortByAverageRating => 'Tondeka ukurikije amanota rusange';
+
+  @override
+  String get sortByLatest => 'Tondeka ukurikije ibya vuba';
+
+  @override
+  String get sortByPriceLowToHigh =>
+      'Tondeka ukurikije igiciro: gito ku kinini';
+
+  @override
+  String get sortByPriceHighToLow =>
+      'Tondeka ukurikije igiciro: kinini ku gito';
+
+  @override
+  String get sortByStockOut => 'Tondeka ukurikije ububiko bwashize';
+
+  @override
+  String get sortByEventDateOldToNew =>
+      'Tondeka ukurikije itariki: isaza ku nshya';
+
+  @override
+  String get sortByEventDateNewToOld =>
+      'Tondeka ukurikije itariki: inshya ku isaza';
+
+  @override
+  String get sortCompactLatest => 'Ibya vuba';
+
+  @override
+  String get sortCompactDefault => 'Bisanzwe';
+
+  @override
+  String get sortCompactPopular => 'Bikunzwe';
+
+  @override
+  String get sortCompactRating => 'Amanota';
+
+  @override
+  String get sortCompactPrice => 'Igiciro';
+
+  @override
+  String get sortCompactStockOut => 'Ububiko bwashize';
+
+  @override
+  String get sortCompactDate => 'Itariki';
+
+  @override
+  String showingRangeOfResults(String start, String end, String total) {
+    return 'Byerekanwe $start–$end kuri $total';
+  }
+
+  @override
+  String pageOfPages(String current, String total) {
+    return 'Ipaji $current kuri $total';
+  }
+
+  @override
+  String loadedOfProducts(String loaded, String total) {
+    return 'Ibicuruzwa $loaded kuri $total';
+  }
+
+  @override
+  String get noProductsYet => 'Nta bicuruzwa birahari';
+
+  @override
+  String get noBranchSelected => 'Nta shami ryatoranyijwe';
+
+  @override
+  String get productsRefreshedForNewBranch =>
+      'Ibicuruzwa byavuguruwe ku ishami rishya';
+
+  @override
+  String deletedItemsCount(int count) {
+    return 'Ibicuruzwa $count byasibwe';
+  }
+
+  @override
+  String inStockCount(String count) {
+    return '$count mu bubiko';
+  }
+
+  @override
+  String leftInStockCount(String count) {
+    return 'Hasigaye $count mu bubiko';
+  }
+
+  @override
+  String get stockLow => 'Bike';
+
+  @override
+  String get stockOutBadge => 'Byashize';
+
+  @override
+  String get mode => 'Uburyo';
+
+  @override
+  String get sale => 'Igurisha';
+
+  @override
+  String get transfer => 'Kwimura';
+
+  @override
+  String get searchCustomer => 'Shakisha umukiriya';
+
+  @override
+  String get pay => 'Ishyura';
+
+  @override
+  String get noItemsYet => 'Nta gicuruzwa kirahari';
+
+  @override
+  String get tapProductToStartSale => 'Kanda igicuruzwa utangire kugurisha';
+
+  @override
+  String grandTotalWithItems(String itemLabel) {
+    return 'Igiteranyo cyose · $itemLabel';
+  }
+
+  @override
+  String get defaultPrice => 'Igiciro gisanzwe';
+
+  @override
+  String pricePerUnitEach(String currency, String price) {
+    return '$currency $price kuri kimwe';
+  }
+
+  @override
+  String get deleteItem => 'Siba igicuruzwa';
+
+  @override
+  String get editDetails => 'Hindura ibisobanuro';
+
+  @override
+  String get enterQuantity => 'Andika ingano';
+
+  @override
+  String get invalidQuantity => 'Ingano itemewe';
+
+  @override
+  String get enterPrice => 'Andika igiciro';
+
+  @override
+  String get invalidPrice => 'Igiciro kitemewe';
+
+  @override
+  String get confirmDelete => 'Emeza isibwa';
+
+  @override
+  String confirmRemoveNamedItem(String itemName) {
+    return 'Uremeza ko ushaka gukuraho \"$itemName\"?';
+  }
+
+  @override
+  String errorDeletingItems(String error) {
+    return 'Ikosa mu gusiba ibicuruzwa: $error';
+  }
+
+  @override
+  String errorDeletingItem(String error) {
+    return 'Ikosa mu gusiba igicuruzwa: $error';
+  }
+
+  @override
+  String get failedToDeleteItem => 'Gusiba igicuruzwa ntibyakunze';
+
+  @override
+  String get failedToUpdateItem => 'Guhindura igicuruzwa ntibyakunze';
+
+  @override
+  String skuLabel(String sku) {
+    return 'SKU: $sku';
+  }
+
+  @override
+  String bcdLabel(String barcode) {
+    return 'BCD: $barcode';
+  }
+
+  @override
+  String get split => 'Gabanya';
+
+  @override
+  String get splitAcrossAnotherMethod =>
+      'Gabanya ubu bwishyu ukoresheje ubundi buryo';
+
+  @override
+  String get allPaymentTypesInUse =>
+      'Uburyo bwose bw\'ubwishyu burakoreshwa — kuraho bumwe kugira ngo wongere ubundi';
+
+  @override
+  String get allPaymentTypesAdded =>
+      'Uburyo bwose bw\'ubwishyu bwamaze kongerwamo. Kuraho bumwe kugira ngo wongere ubundi.';
+
+  @override
+  String get pleaseEnterAnAmount => 'Nyamuneka andika umubare w’amafaranga';
+
+  @override
+  String get cashReceived => 'Amafaranga yakiriwe';
+
+  @override
+  String get amount => 'Umubare w\'amafaranga';
+
+  @override
+  String get removeThisPayment => 'Kuraho ubu bwishyu';
+
+  @override
+  String get tapSplitToPayWithMoreThanOneMethod =>
+      'Kanda Gabanya kugira ngo wishyure ukoresheje uburyo burenze bumwe';
+
+  @override
+  String get tapSplitToAddMethod => 'Kanda Gabanya wongeremo ubundi buryo';
+
+  @override
+  String invoiceNumberValue(String number) {
+    return 'No. $number';
+  }
+
+  @override
+  String tenderedAmount(String amount) {
+    return 'Yatanzwe $amount';
+  }
+
+  @override
+  String paymentCollectedTotal(String total) {
+    return 'Ubwishyu bwakiriwe · $total';
+  }
+
+  @override
+  String get viewOnlyCannotTransferStock =>
+      'Ufite uburenganzira bwo kureba gusa — ntushobora kwimura ibicuruzwa.';
+
+  @override
+  String get selectDestinationBranch => 'Hitamo ishami rigenewe';
+
+  @override
+  String get currentBranchIsMissing => 'Ishami rigezweho ntiriboneka';
+
+  @override
+  String get addItemsBeforeTransferring =>
+      'Ongeramo ibicuruzwa mbere yo kwimura';
+
+  @override
+  String transferredItemsToBranch(int count, String branch) {
+    return 'Ibicuruzwa $count byimuriwe kuri $branch';
+  }
+
+  @override
+  String get transferFailed => 'Kwimura ntibyakunze';
+
+  @override
+  String get failedToClearCart => 'Gusiba agatebo ntibyakunze';
+
+  @override
+  String get paymentsCollectedAtTill =>
+      'Ubwishyu bukirwa ku kasi. Ohereza iri tumizwa iyo ryiteguye — umuyobozi ni we uzakira ubwishyu.';
+
+  @override
+  String sentToTillTicket(String reference) {
+    return 'Byoherejwe ku kasi — Itike #$reference';
+  }
+
+  @override
+  String failedToSendToTill(String error) {
+    return 'Kohereza ku kasi ntibyakunze: $error';
+  }
+
+  @override
+  String collectingPaymentForTicket(
+    String reference,
+    String name,
+    String minutes,
+  ) {
+    return 'Kwakira ubwishyu bwa #$reference · byoherejwe na $name · hashize iminota $minutes';
+  }
+
+  @override
+  String get returningEllipsis => 'Turasubira…';
+
+  @override
+  String get backToNewSale => 'Subira ku igurisha rishya';
+
+  @override
+  String get paymentCashCredit => 'Amafaranga / Inguzanyo';
+
+  @override
+  String get paymentBankCheck => 'Sheki ya banki';
+
+  @override
+  String get paymentDebitCreditCard => 'Ikarita ya banki';
+
+  @override
+  String get paymentMobileMoney => 'Amafaranga kuri telefoni';
+
+  @override
+  String get paymentMtnMomo => 'MTN MoMo';
+
+  @override
+  String get paymentAirtelMoney => 'Airtel Money';
+
+  @override
+  String get paymentOther => 'Ibindi';
+
+  @override
+  String get sendForReview => 'Ohereza kugenzurwa';
+
+  @override
+  String get previewCart => 'Reba agatebo';
+
+  @override
+  String previewCartWithCount(int count) {
+    return 'Reba agatebo ($count)';
+  }
+
+  @override
+  String get placeOrder => 'Tanga itumizwa';
+
+  @override
+  String confirmRemoveAllItemsCount(int count) {
+    return 'Uremeza ko ushaka gukura ibicuruzwa $count byose muri iri gurisha?';
+  }
 }

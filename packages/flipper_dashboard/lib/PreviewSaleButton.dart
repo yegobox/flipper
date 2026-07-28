@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_ui/style_widget/button.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
@@ -10,7 +11,7 @@ class PreviewSaleButton extends ConsumerWidget {
     super.key,
     this.completeTransaction,
     this.previewCart,
-    this.wording = 'Pay',
+    this.wording,
     required this.mode,
     required this.digitalPaymentEnabled,
     required this.transactionId,
@@ -20,7 +21,8 @@ class PreviewSaleButton extends ConsumerWidget {
 
   final CompleteTransaction? completeTransaction;
   final PreviewCart? previewCart;
-  final String wording;
+  /// Null resolves to the localized "Pay" label at build time.
+  final String? wording;
   final SellingMode mode;
   final IconData? icon;
   final bool digitalPaymentEnabled;
@@ -89,7 +91,7 @@ class PreviewSaleButton extends ConsumerWidget {
                     height: 64,
                     key: const Key("PaymentButton"),
                     color: const Color(0xFF2563EB),
-                    text: wording,
+                    text: wording ?? context.flipperL10n.pay,
                     onPressed: (!enabled ||
                             (payButtonLoading[ButtonType.pay] ?? false))
                         ? null

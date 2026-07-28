@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_dashboard/product_sort_labels.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -225,7 +226,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             ScaffoldMessenger.of(context).clearSnackBars();
             showCustomSnackBarUtil(
               context,
-              'Products refreshed for new branch',
+              context.flipperL10n.productsRefreshedForNewBranch,
               duration: const Duration(seconds: 2),
             );
           }
@@ -441,7 +442,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       if (context.mounted) {
         showCustomSnackBarUtil(
           context,
-          'Successfully deleted ${selectedIds.length} items',
+          context.flipperL10n.deletedItemsCount(selectedIds.length),
         );
       }
     }
@@ -491,8 +492,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           const SizedBox(height: 16),
                           Text(
                             hasBranch
-                                ? 'No products yet'
-                                : 'No branch selected',
+                                ? context.flipperL10n.noProductsYet
+                                : context.flipperL10n.noBranchSelected,
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Theme.of(
@@ -636,7 +637,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     final totalText = total.toString();
                     if (isMobileLayout) {
                       return Text(
-                        '$loadedCount of $totalText products',
+                        context.flipperL10n.loadedOfProducts(
+                          loadedCount.toString(),
+                          totalText,
+                        ),
                         style: const TextStyle(
                           color: PosTokens.ink3,
                           fontWeight: FontWeight.w600,
@@ -652,7 +656,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                         ? total
                         : ((_currentPage + 1) * ipp);
                     return Text(
-                      'Showing $start–$end of $totalText results',
+                      context.flipperL10n.showingRangeOfResults(
+                        start.toString(),
+                        end.toString(),
+                        totalText,
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium,
                       overflow: TextOverflow.ellipsis,
                     );
@@ -809,7 +817,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 ),
                 if (!isMobileLayout)
                   Text(
-                    'Page ${_currentPage + 1} of $estimatedTotalPages',
+                    context.flipperL10n.pageOfPages(
+                      (_currentPage + 1).toString(),
+                      estimatedTotalPages.toString(),
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: const Color(0xFF64748B),
                       fontWeight: FontWeight.w500,
@@ -947,28 +958,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           );
   }
 
-  String _compactSortLabel(ProductSortOption option) {
-    switch (option) {
-      case ProductSortOption.latest:
-        return 'Latest';
-      case ProductSortOption.defaultSorting:
-        return 'Default';
-      case ProductSortOption.popularity:
-        return 'Popular';
-      case ProductSortOption.averageRating:
-        return 'Rating';
-      case ProductSortOption.priceLowToHigh:
-        return 'Price ↑';
-      case ProductSortOption.priceHighToLow:
-        return 'Price ↓';
-      case ProductSortOption.stockOut:
-        return 'Stock out';
-      case ProductSortOption.eventDateOldToNew:
-        return 'Date ↑';
-      case ProductSortOption.eventDateNewToOld:
-        return 'Date ↓';
-    }
-  }
 
   Widget _paginationSideButton({
     required BuildContext context,
@@ -1012,9 +1001,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Consumer(
       builder: (context, ref, _) {
         final currentSort = ref.watch(productSortProvider);
+        final l10n = context.flipperL10n;
         final label = compact
-            ? _compactSortLabel(currentSort)
-            : currentSort.label;
+            ? currentSort.compactLabel(l10n)
+            : currentSort.localizedLabel(l10n);
         return PopupMenuButton<ProductSortOption>(
           child: Container(
             padding: EdgeInsets.symmetric(
@@ -1067,7 +1057,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     else
                       const SizedBox(width: 16),
                     const SizedBox(width: 8),
-                    Text(option.label),
+                    Text(option.localizedLabel(context.flipperL10n)),
                   ],
                 ),
               );

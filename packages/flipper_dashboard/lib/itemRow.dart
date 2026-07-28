@@ -18,6 +18,7 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -594,7 +595,7 @@ class _RowItemState extends ConsumerState<RowItem>
               final stockValue = _resolveStockValue(ref);
 
               return Text(
-                '$stockValue in stock',
+                context.flipperL10n.inStockCount(stockValue.toString()),
                 style: textTheme.bodySmall?.copyWith(
                   color: stockValue > 0 ? Colors.green[700] : Colors.red[700],
                   fontSize: 10,
@@ -733,7 +734,7 @@ class _RowItemState extends ConsumerState<RowItem>
                           final stockValue = _resolveStockValue(ref);
 
                           return Text(
-                            '$stockValue in stock',
+                            context.flipperL10n.inStockCount(stockValue.toString()),
                             style: textTheme.bodySmall?.copyWith(
                               color: stockValue > 0
                                   ? Colors.green[700]

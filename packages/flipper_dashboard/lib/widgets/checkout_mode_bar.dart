@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -27,7 +28,7 @@ class CheckoutModeBar extends ConsumerWidget {
       child: Row(
         children: [
           Text(
-            'Mode',
+            context.flipperL10n.mode,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: PosTokens.ink3,
               fontWeight: FontWeight.w700,
@@ -46,7 +47,7 @@ class CheckoutModeBar extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _ModePill(
-                  label: 'Sale',
+                  label: context.flipperL10n.sale,
                   selected: mode == CheckoutCartMode.sale,
                   onTap: () {
                     ref.read(checkoutCartModeProvider.notifier).state =
@@ -54,7 +55,7 @@ class CheckoutModeBar extends ConsumerWidget {
                   },
                 ),
                 _ModePill(
-                  label: 'Transfer',
+                  label: context.flipperL10n.transfer,
                   selected: mode == CheckoutCartMode.transfer,
                   onTap: () {
                     ref.read(checkoutCartModeProvider.notifier).state =

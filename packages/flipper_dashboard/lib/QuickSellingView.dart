@@ -477,7 +477,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       children: [
         _buildCheckoutMetaColumn(
           label: context.flipperL10n.invoice,
-          value: 'No. $highestInvoiceNumber',
+          value: context.flipperL10n.invoiceNumberValue(highestInvoiceNumber.toString()),
           valueKey: const Key('invoice-number-text'),
         ),
         if (txnId != null && txnId.isNotEmpty) ...[
@@ -652,7 +652,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         if (tendered > 0) ...[
                           const SizedBox(height: 3),
                           Text(
-                            'Tendered ${tendered.toCurrencyFormatted(symbol: currency)}',
+                            context.flipperL10n.tenderedAmount(
+                  tendered.toCurrencyFormatted(symbol: currency),
+                ),
                             style: const TextStyle(
                               fontSize: 12,
                               color: PosTokens.ink3,
@@ -1033,7 +1035,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       if (mounted) {
         showSuccessNotification(
           context,
-          'Payment collected · $total',
+          context.flipperL10n.paymentCollectedTotal(total),
         );
       }
     }
@@ -1181,7 +1183,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     } catch (e, s) {
       tv_talk.talker.error('Failed to clear transfer cart', e, s);
       if (mounted) {
-        showErrorNotification(context, 'Failed to clear cart');
+        showErrorNotification(context, context.flipperL10n.failedToClearCart);
       }
     }
   }
@@ -1192,7 +1194,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if (!ref.read(canSellProvider)) {
       showErrorNotification(
         context,
-        'View-only access — you cannot transfer stock.',
+        context.flipperL10n.viewOnlyCannotTransferStock,
       );
       return;
     }
@@ -1201,18 +1203,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if (txn == null) return;
     final dest = ref.read(transferDestinationBranchProvider);
     if (dest == null) {
-      showErrorNotification(context, 'Select a destination branch');
+      showErrorNotification(context, context.flipperL10n.selectDestinationBranch);
       return;
     }
     final sourceId = ProxyService.box.getBranchId();
     if (sourceId == null || sourceId.isEmpty) {
-      showErrorNotification(context, 'Current branch is missing');
+      showErrorNotification(context, context.flipperL10n.currentBranchIsMissing);
       return;
     }
 
     final items = ref.read(posCartDisplayItemsProvider);
     if (items.isEmpty) {
-      showErrorNotification(context, 'Add items before transferring');
+      showErrorNotification(context, context.flipperL10n.addItemsBeforeTransferring);
       return;
     }
 
@@ -1235,7 +1237,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       final destName = dest.name ?? 'branch';
       showSuccessNotification(
         context,
-        'Transferred ${items.length} item(s) to $destName',
+        context.flipperL10n.transferredItemsToBranch(items.length, destName),
       );
 
       ref.read(checkoutCartModeProvider.notifier).state =
@@ -1249,7 +1251,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           context,
           e is StateError || e is Exception
               ? e.toString().replaceFirst(RegExp(r'^Exception: '), '')
-              : 'Transfer failed',
+              : context.flipperL10n.transferFailed,
         );
       }
     } finally {
@@ -3059,8 +3061,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                 child: Text(
-                  'Payments are collected at the till. Send this order once '
-                  "it's ready — a manager will collect payment.",
+                  context.flipperL10n.paymentsCollectedAtTill,
                   style: TextStyle(
                     fontSize: 12.5,
                     color: Colors.grey[600],
@@ -3640,7 +3641,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       if (mounted) {
         showSuccessNotification(
           context,
-          'Sent to till — Ticket #$displayRef',
+          context.flipperL10n.sentToTillTicket(displayRef),
         );
       }
     } catch (e, st) {
@@ -3648,7 +3649,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       if (mounted) {
         showErrorNotification(
           context,
-          'Failed to send to till: $e',
+          context.flipperL10n.failedToSendToTill(e.toString()),
         );
       }
     } finally {
@@ -3717,8 +3718,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             children: [
               Expanded(
                 child: Text(
-                  'Collecting payment for #${settling.displayRef} · '
-                  'sent by ${settling.creatorName} · $mins min ago',
+                  context.flipperL10n.collectingPaymentForTicket(
+                    settling.displayRef,
+                    settling.creatorName,
+                    mins.toString(),
+                  ),
                   style: const TextStyle(
                     color: Color(0xFF1D4ED8),
                     fontSize: 12.5,
@@ -3741,8 +3745,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 child: _backToNewSaleBusy
                     ? Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          SizedBox(
+                        children: [
+                          const SizedBox(
                             width: 12,
                             height: 12,
                             child: CircularProgressIndicator(
@@ -3752,9 +3756,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                               ),
                             ),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
-                            'Returning…',
+                            context.flipperL10n.returningEllipsis,
                             style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
@@ -3762,8 +3766,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           ),
                         ],
                       )
-                    : const Text(
-                        '✕ Back to new sale',
+                    : Text(
+                        '✕ ${context.flipperL10n.backToNewSale}',
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,

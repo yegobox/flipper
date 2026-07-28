@@ -4,6 +4,8 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_dashboard/payment_method_labels.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -219,7 +221,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     if (!_hasUnusedPaymentType()) {
       showErrorNotification(
         context,
-        'All payment types are already added. Remove one to add another.',
+        context.flipperL10n.allPaymentTypesAdded,
       );
       return;
     }
@@ -242,8 +244,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     final accent = PosLayoutBreakpoints.posAccentBlue;
     return Tooltip(
       message: canAdd
-          ? 'Split this payment across another method'
-          : 'All payment types are in use — remove one to add another',
+          ? context.flipperL10n.splitAcrossAnotherMethod
+          : context.flipperL10n.allPaymentTypesInUse,
       child: Material(
         color: canAdd ? PosTokens.blueTint : PosTokens.surface2,
         borderRadius: BorderRadius.circular(999),
@@ -268,7 +270,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                 ),
                 const SizedBox(width: 3),
                 Text(
-                  'Split',
+                  context.flipperL10n.split,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -429,10 +431,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
   String? _validateAmount(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter an amount';
+      return context.flipperL10n.pleaseEnterAnAmount;
     }
     if (double.tryParse(value) == null) {
-      return 'Please enter a valid number';
+      return context.flipperL10n.pleaseEnterValidNumber;
     }
     return null;
   }
@@ -485,7 +487,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      value,
+                      paymentMethodDisplayName(context.flipperL10n, value),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(
@@ -508,7 +510,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                     SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        value,
+                        paymentMethodDisplayName(context.flipperL10n, value),
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 14),
                       ),
@@ -553,7 +555,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           ),
           Expanded(
             child: Semantics(
-              label: payment.method == 'CASH' ? 'Cash received' : 'Amount',
+              label: payment.method == 'CASH'
+                  ? context.flipperL10n.cashReceived
+                  : context.flipperL10n.amount,
               child: TextFormField(
                 controller: payment.controller,
                 textAlign: TextAlign.right,
@@ -598,7 +602,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   /// Remove control — only rendered for the rows that can be removed.
   Widget _buildRemoveButton(int index, {required String transactionId}) {
     return Tooltip(
-      message: 'Remove this payment',
+      message: context.flipperL10n.removeThisPayment,
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(8),
@@ -704,7 +708,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           ),
         if (isMobile) const SizedBox(width: 4),
         Text(
-          'Payments',
+          context.flipperL10n.payments,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: -0.2,
@@ -791,7 +795,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
               Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 2, left: 2),
                 child: Text(
-                  'Tap Split to pay with more than one method',
+                  context.flipperL10n.tapSplitToPayWithMoreThanOneMethod,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -823,7 +827,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                'Tap Split to add a method',
+                context.flipperL10n.tapSplitToAddMethod,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),

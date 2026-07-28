@@ -1210,4 +1210,326 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
 
   @override
   String get addCustomer => 'Add customer';
+
+  @override
+  String get sortDefault => 'Default sorting';
+
+  @override
+  String get sortByPopularity => 'Sort by popularity';
+
+  @override
+  String get sortByAverageRating => 'Sort by average rating';
+
+  @override
+  String get sortByLatest => 'Sort by latest';
+
+  @override
+  String get sortByPriceLowToHigh => 'Sort by price: low to high';
+
+  @override
+  String get sortByPriceHighToLow => 'Sort by price: high to low';
+
+  @override
+  String get sortByStockOut => 'Sort by stock out';
+
+  @override
+  String get sortByEventDateOldToNew => 'Sort by event date: Old to New';
+
+  @override
+  String get sortByEventDateNewToOld => 'Sort by event date: New to Old';
+
+  @override
+  String get sortCompactLatest => 'Latest';
+
+  @override
+  String get sortCompactDefault => 'Default';
+
+  @override
+  String get sortCompactPopular => 'Popular';
+
+  @override
+  String get sortCompactRating => 'Rating';
+
+  @override
+  String get sortCompactPrice => 'Price';
+
+  @override
+  String get sortCompactStockOut => 'Stock out';
+
+  @override
+  String get sortCompactDate => 'Date';
+
+  @override
+  String showingRangeOfResults(String start, String end, String total) {
+    return 'Showing $start–$end of $total results';
+  }
+
+  @override
+  String pageOfPages(String current, String total) {
+    return 'Page $current of $total';
+  }
+
+  @override
+  String loadedOfProducts(String loaded, String total) {
+    return '$loaded of $total products';
+  }
+
+  @override
+  String get noProductsYet => 'No products yet';
+
+  @override
+  String get noBranchSelected => 'No branch selected';
+
+  @override
+  String get productsRefreshedForNewBranch =>
+      'Products refreshed for new branch';
+
+  @override
+  String deletedItemsCount(int count) {
+    return 'Deleted $count items';
+  }
+
+  @override
+  String inStockCount(String count) {
+    return '$count in stock';
+  }
+
+  @override
+  String leftInStockCount(String count) {
+    return '$count left in stock';
+  }
+
+  @override
+  String get stockLow => 'Low';
+
+  @override
+  String get stockOutBadge => 'Out';
+
+  @override
+  String get mode => 'Mode';
+
+  @override
+  String get sale => 'Sale';
+
+  @override
+  String get transfer => 'Transfer';
+
+  @override
+  String get searchCustomer => 'Search Customer';
+
+  @override
+  String get pay => 'Pay';
+
+  @override
+  String get noItemsYet => 'No items yet';
+
+  @override
+  String get tapProductToStartSale => 'Tap a product to start a sale';
+
+  @override
+  String grandTotalWithItems(String itemLabel) {
+    return 'Grand Total · $itemLabel';
+  }
+
+  @override
+  String get defaultPrice => 'Default price';
+
+  @override
+  String pricePerUnitEach(String currency, String price) {
+    return '$currency $price each';
+  }
+
+  @override
+  String get deleteItem => 'Delete item';
+
+  @override
+  String get editDetails => 'Edit details';
+
+  @override
+  String get enterQuantity => 'Enter quantity';
+
+  @override
+  String get invalidQuantity => 'Invalid quantity';
+
+  @override
+  String get enterPrice => 'Enter price';
+
+  @override
+  String get invalidPrice => 'Invalid price';
+
+  @override
+  String get confirmDelete => 'Confirm Delete';
+
+  @override
+  String confirmRemoveNamedItem(String itemName) {
+    return 'Are you sure you want to remove \"$itemName\"?';
+  }
+
+  @override
+  String errorDeletingItems(String error) {
+    return 'Error deleting items: $error';
+  }
+
+  @override
+  String errorDeletingItem(String error) {
+    return 'Error deleting item: $error';
+  }
+
+  @override
+  String get failedToDeleteItem => 'Failed to delete item';
+
+  @override
+  String get failedToUpdateItem => 'Failed to update item';
+
+  @override
+  String skuLabel(String sku) {
+    return 'SKU: $sku';
+  }
+
+  @override
+  String bcdLabel(String barcode) {
+    return 'BCD: $barcode';
+  }
+
+  @override
+  String get split => 'Split';
+
+  @override
+  String get splitAcrossAnotherMethod =>
+      'Split this payment across another method';
+
+  @override
+  String get allPaymentTypesInUse =>
+      'All payment types are in use — remove one to add another';
+
+  @override
+  String get allPaymentTypesAdded =>
+      'All payment types are already added. Remove one to add another.';
+
+  @override
+  String get pleaseEnterAnAmount => 'Please enter an amount';
+
+  @override
+  String get cashReceived => 'Cash received';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get removeThisPayment => 'Remove this payment';
+
+  @override
+  String get tapSplitToPayWithMoreThanOneMethod =>
+      'Tap Split to pay with more than one method';
+
+  @override
+  String get tapSplitToAddMethod => 'Tap Split to add a method';
+
+  @override
+  String invoiceNumberValue(String number) {
+    return 'No. $number';
+  }
+
+  @override
+  String tenderedAmount(String amount) {
+    return 'Tendered $amount';
+  }
+
+  @override
+  String paymentCollectedTotal(String total) {
+    return 'Payment collected · $total';
+  }
+
+  @override
+  String get viewOnlyCannotTransferStock =>
+      'View-only access — you cannot transfer stock.';
+
+  @override
+  String get selectDestinationBranch => 'Select a destination branch';
+
+  @override
+  String get currentBranchIsMissing => 'Current branch is missing';
+
+  @override
+  String get addItemsBeforeTransferring => 'Add items before transferring';
+
+  @override
+  String transferredItemsToBranch(int count, String branch) {
+    return 'Transferred $count item(s) to $branch';
+  }
+
+  @override
+  String get transferFailed => 'Transfer failed';
+
+  @override
+  String get failedToClearCart => 'Failed to clear cart';
+
+  @override
+  String get paymentsCollectedAtTill =>
+      'Payments are collected at the till. Send this order once it\'s ready — a manager will collect payment.';
+
+  @override
+  String sentToTillTicket(String reference) {
+    return 'Sent to till — Ticket #$reference';
+  }
+
+  @override
+  String failedToSendToTill(String error) {
+    return 'Failed to send to till: $error';
+  }
+
+  @override
+  String collectingPaymentForTicket(
+    String reference,
+    String name,
+    String minutes,
+  ) {
+    return 'Collecting payment for #$reference · sent by $name · $minutes min ago';
+  }
+
+  @override
+  String get returningEllipsis => 'Returning…';
+
+  @override
+  String get backToNewSale => 'Back to new sale';
+
+  @override
+  String get paymentCashCredit => 'Cash / Credit';
+
+  @override
+  String get paymentBankCheck => 'Bank check';
+
+  @override
+  String get paymentDebitCreditCard => 'Debit & credit card';
+
+  @override
+  String get paymentMobileMoney => 'Mobile money';
+
+  @override
+  String get paymentMtnMomo => 'MTN MoMo';
+
+  @override
+  String get paymentAirtelMoney => 'Airtel Money';
+
+  @override
+  String get paymentOther => 'Other';
+
+  @override
+  String get sendForReview => 'Send for Review';
+
+  @override
+  String get previewCart => 'Preview Cart';
+
+  @override
+  String previewCartWithCount(int count) {
+    return 'Preview Cart ($count)';
+  }
+
+  @override
+  String get placeOrder => 'Place order';
+
+  @override
+  String confirmRemoveAllItemsCount(int count) {
+    return 'Are you sure you want to remove all $count items from this transaction?';
+  }
 }

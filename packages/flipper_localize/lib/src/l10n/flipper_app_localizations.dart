@@ -2310,6 +2310,544 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Add customer'**
   String get addCustomer;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Default sorting'**
+  String get sortDefault;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by popularity'**
+  String get sortByPopularity;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by average rating'**
+  String get sortByAverageRating;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by latest'**
+  String get sortByLatest;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by price: low to high'**
+  String get sortByPriceLowToHigh;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by price: high to low'**
+  String get sortByPriceHighToLow;
+
+  /// Catalog sort option, lowest stock first
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by stock out'**
+  String get sortByStockOut;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by event date: Old to New'**
+  String get sortByEventDateOldToNew;
+
+  /// Catalog sort option
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by event date: New to Old'**
+  String get sortByEventDateNewToOld;
+
+  /// Compact sort chip label
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get sortCompactLatest;
+
+  /// Compact sort chip label
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get sortCompactDefault;
+
+  /// Compact sort chip label
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get sortCompactPopular;
+
+  /// Compact sort chip label
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get sortCompactRating;
+
+  /// Compact sort chip label, paired with an arrow
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get sortCompactPrice;
+
+  /// Compact sort chip label
+  ///
+  /// In en, this message translates to:
+  /// **'Stock out'**
+  String get sortCompactStockOut;
+
+  /// Compact sort chip label, paired with an arrow
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get sortCompactDate;
+
+  /// Pagination summary above the product grid
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {start}–{end} of {total} results'**
+  String showingRangeOfResults(String start, String end, String total);
+
+  /// Pagination footer
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String pageOfPages(String current, String total);
+
+  /// Progress while the catalog loads
+  ///
+  /// In en, this message translates to:
+  /// **'{loaded} of {total} products'**
+  String loadedOfProducts(String loaded, String total);
+
+  /// Empty catalog state
+  ///
+  /// In en, this message translates to:
+  /// **'No products yet'**
+  String get noProductsYet;
+
+  /// Shown when no branch is active
+  ///
+  /// In en, this message translates to:
+  /// **'No branch selected'**
+  String get noBranchSelected;
+
+  /// Confirms the catalog reloaded after a branch switch
+  ///
+  /// In en, this message translates to:
+  /// **'Products refreshed for new branch'**
+  String get productsRefreshedForNewBranch;
+
+  /// Confirms a bulk delete
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {count} items'**
+  String deletedItemsCount(int count);
+
+  /// Stock line on a product card
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in stock'**
+  String inStockCount(String count);
+
+  /// Remaining stock hint on a cart line
+  ///
+  /// In en, this message translates to:
+  /// **'{count} left in stock'**
+  String leftInStockCount(String count);
+
+  /// Badge on a product card with little stock left
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get stockLow;
+
+  /// Badge on a product card with no stock
+  ///
+  /// In en, this message translates to:
+  /// **'Out'**
+  String get stockOutBadge;
+
+  /// Label of the Sale/Transfer toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get mode;
+
+  /// Sale mode in the checkout toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Sale'**
+  String get sale;
+
+  /// Stock transfer mode in the checkout toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transfer;
+
+  /// Customer search placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Search Customer'**
+  String get searchCustomer;
+
+  /// Completes the sale
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get pay;
+
+  /// Empty cart state
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet'**
+  String get noItemsYet;
+
+  /// Empty cart hint
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a product to start a sale'**
+  String get tapProductToStartSale;
+
+  /// Cart footer total
+  ///
+  /// In en, this message translates to:
+  /// **'Grand Total · {itemLabel}'**
+  String grandTotalWithItems(String itemLabel);
+
+  /// Marks a cart line using the unmodified price
+  ///
+  /// In en, this message translates to:
+  /// **'Default price'**
+  String get defaultPrice;
+
+  /// Per-unit price on a cart line
+  ///
+  /// In en, this message translates to:
+  /// **'{currency} {price} each'**
+  String pricePerUnitEach(String currency, String price);
+
+  /// Tooltip on a cart line delete button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item'**
+  String get deleteItem;
+
+  /// Opens the cart line editor
+  ///
+  /// In en, this message translates to:
+  /// **'Edit details'**
+  String get editDetails;
+
+  /// Quantity field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter quantity'**
+  String get enterQuantity;
+
+  /// Quantity validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid quantity'**
+  String get invalidQuantity;
+
+  /// Price field placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter price'**
+  String get enterPrice;
+
+  /// Price validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid price'**
+  String get invalidPrice;
+
+  /// Delete confirmation dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Delete'**
+  String get confirmDelete;
+
+  /// Delete confirmation body for one cart line
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove \"{itemName}\"?'**
+  String confirmRemoveNamedItem(String itemName);
+
+  /// Bulk delete failure
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting items: {error}'**
+  String errorDeletingItems(String error);
+
+  /// Single delete failure
+  ///
+  /// In en, this message translates to:
+  /// **'Error deleting item: {error}'**
+  String errorDeletingItem(String error);
+
+  /// Single delete failure toast
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete item'**
+  String get failedToDeleteItem;
+
+  /// Cart line update failure
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update item'**
+  String get failedToUpdateItem;
+
+  /// Stock keeping unit shown under a cart line
+  ///
+  /// In en, this message translates to:
+  /// **'SKU: {sku}'**
+  String skuLabel(String sku);
+
+  /// Barcode shown under a product or cart line
+  ///
+  /// In en, this message translates to:
+  /// **'BCD: {barcode}'**
+  String bcdLabel(String barcode);
+
+  /// Splits the payment across several methods
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get split;
+
+  /// Tooltip on the split button
+  ///
+  /// In en, this message translates to:
+  /// **'Split this payment across another method'**
+  String get splitAcrossAnotherMethod;
+
+  /// Shown when every payment method is already on the sale
+  ///
+  /// In en, this message translates to:
+  /// **'All payment types are in use — remove one to add another'**
+  String get allPaymentTypesInUse;
+
+  /// Blocks adding a further payment method
+  ///
+  /// In en, this message translates to:
+  /// **'All payment types are already added. Remove one to add another.'**
+  String get allPaymentTypesAdded;
+
+  /// Payment amount validation
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an amount'**
+  String get pleaseEnterAnAmount;
+
+  /// Label of the tendered-cash field
+  ///
+  /// In en, this message translates to:
+  /// **'Cash received'**
+  String get cashReceived;
+
+  /// Generic amount field label
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// Tooltip on a payment row remove button
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this payment'**
+  String get removeThisPayment;
+
+  /// Hint under the payments list
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Split to pay with more than one method'**
+  String get tapSplitToPayWithMoreThanOneMethod;
+
+  /// Compact hint under the payments list
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Split to add a method'**
+  String get tapSplitToAddMethod;
+
+  /// Invoice number shown in the checkout header
+  ///
+  /// In en, this message translates to:
+  /// **'No. {number}'**
+  String invoiceNumberValue(String number);
+
+  /// Cash handed over by the customer
+  ///
+  /// In en, this message translates to:
+  /// **'Tendered {amount}'**
+  String tenderedAmount(String amount);
+
+  /// Confirms a till collection
+  ///
+  /// In en, this message translates to:
+  /// **'Payment collected · {total}'**
+  String paymentCollectedTotal(String total);
+
+  /// Blocks a transfer for view-only roles
+  ///
+  /// In en, this message translates to:
+  /// **'View-only access — you cannot transfer stock.'**
+  String get viewOnlyCannotTransferStock;
+
+  /// Transfer validation
+  ///
+  /// In en, this message translates to:
+  /// **'Select a destination branch'**
+  String get selectDestinationBranch;
+
+  /// Transfer validation
+  ///
+  /// In en, this message translates to:
+  /// **'Current branch is missing'**
+  String get currentBranchIsMissing;
+
+  /// Transfer validation
+  ///
+  /// In en, this message translates to:
+  /// **'Add items before transferring'**
+  String get addItemsBeforeTransferring;
+
+  /// Confirms an outgoing branch transfer
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred {count} item(s) to {branch}'**
+  String transferredItemsToBranch(int count, String branch);
+
+  /// Outgoing transfer failure toast
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer failed'**
+  String get transferFailed;
+
+  /// Cart reset failure toast
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear cart'**
+  String get failedToClearCart;
+
+  /// Explains the till workflow to staff without collect rights
+  ///
+  /// In en, this message translates to:
+  /// **'Payments are collected at the till. Send this order once it\'s ready — a manager will collect payment.'**
+  String get paymentsCollectedAtTill;
+
+  /// Confirms a park-to-till
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to till — Ticket #{reference}'**
+  String sentToTillTicket(String reference);
+
+  /// Park-to-till failure
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send to till: {error}'**
+  String failedToSendToTill(String error);
+
+  /// Banner shown while settling a colleague’s parked ticket
+  ///
+  /// In en, this message translates to:
+  /// **'Collecting payment for #{reference} · sent by {name} · {minutes} min ago'**
+  String collectingPaymentForTicket(
+    String reference,
+    String name,
+    String minutes,
+  );
+
+  /// Shown while leaving the settling flow
+  ///
+  /// In en, this message translates to:
+  /// **'Returning…'**
+  String get returningEllipsis;
+
+  /// Leaves the settling flow
+  ///
+  /// In en, this message translates to:
+  /// **'Back to new sale'**
+  String get backToNewSale;
+
+  /// Payment method display name
+  ///
+  /// In en, this message translates to:
+  /// **'Cash / Credit'**
+  String get paymentCashCredit;
+
+  /// Payment method display name
+  ///
+  /// In en, this message translates to:
+  /// **'Bank check'**
+  String get paymentBankCheck;
+
+  /// Payment method display name
+  ///
+  /// In en, this message translates to:
+  /// **'Debit & credit card'**
+  String get paymentDebitCreditCard;
+
+  /// Payment method display name
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile money'**
+  String get paymentMobileMoney;
+
+  /// Payment method display name, brand kept as-is
+  ///
+  /// In en, this message translates to:
+  /// **'MTN MoMo'**
+  String get paymentMtnMomo;
+
+  /// Payment method display name, brand kept as-is
+  ///
+  /// In en, this message translates to:
+  /// **'Airtel Money'**
+  String get paymentAirtelMoney;
+
+  /// Payment method display name
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get paymentOther;
+
+  /// Checkout button when ticket review is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Send for Review'**
+  String get sendForReview;
+
+  /// Checkout button that opens the cart preview
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Cart'**
+  String get previewCart;
+
+  /// Cart preview button with the item count
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Cart ({count})'**
+  String previewCartWithCount(int count);
+
+  /// Submits an order in the ordering flow
+  ///
+  /// In en, this message translates to:
+  /// **'Place order'**
+  String get placeOrder;
+
+  /// Bulk-remove confirmation naming the item count
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove all {count} items from this transaction?'**
+  String confirmRemoveAllItemsCount(int count);
 }
 
 class _FlipperAppLocalizationsDelegate

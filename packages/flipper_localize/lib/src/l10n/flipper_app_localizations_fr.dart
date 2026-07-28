@@ -1235,4 +1235,329 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get addCustomer => 'Ajouter un client';
+
+  @override
+  String get sortDefault => 'Tri par défaut';
+
+  @override
+  String get sortByPopularity => 'Trier par popularité';
+
+  @override
+  String get sortByAverageRating => 'Trier par note moyenne';
+
+  @override
+  String get sortByLatest => 'Trier par plus récent';
+
+  @override
+  String get sortByPriceLowToHigh => 'Trier par prix : croissant';
+
+  @override
+  String get sortByPriceHighToLow => 'Trier par prix : décroissant';
+
+  @override
+  String get sortByStockOut => 'Trier par rupture de stock';
+
+  @override
+  String get sortByEventDateOldToNew => 'Trier par date : ancienne à récente';
+
+  @override
+  String get sortByEventDateNewToOld => 'Trier par date : récente à ancienne';
+
+  @override
+  String get sortCompactLatest => 'Récent';
+
+  @override
+  String get sortCompactDefault => 'Défaut';
+
+  @override
+  String get sortCompactPopular => 'Populaire';
+
+  @override
+  String get sortCompactRating => 'Note';
+
+  @override
+  String get sortCompactPrice => 'Prix';
+
+  @override
+  String get sortCompactStockOut => 'Rupture';
+
+  @override
+  String get sortCompactDate => 'Date';
+
+  @override
+  String showingRangeOfResults(String start, String end, String total) {
+    return 'Affichage de $start–$end sur $total résultats';
+  }
+
+  @override
+  String pageOfPages(String current, String total) {
+    return 'Page $current sur $total';
+  }
+
+  @override
+  String loadedOfProducts(String loaded, String total) {
+    return '$loaded produits sur $total';
+  }
+
+  @override
+  String get noProductsYet => 'Aucun produit pour le moment';
+
+  @override
+  String get noBranchSelected => 'Aucune succursale sélectionnée';
+
+  @override
+  String get productsRefreshedForNewBranch =>
+      'Produits actualisés pour la nouvelle succursale';
+
+  @override
+  String deletedItemsCount(int count) {
+    return '$count articles supprimés';
+  }
+
+  @override
+  String inStockCount(String count) {
+    return '$count en stock';
+  }
+
+  @override
+  String leftInStockCount(String count) {
+    return 'Il reste $count en stock';
+  }
+
+  @override
+  String get stockLow => 'Faible';
+
+  @override
+  String get stockOutBadge => 'Épuisé';
+
+  @override
+  String get mode => 'Mode';
+
+  @override
+  String get sale => 'Vente';
+
+  @override
+  String get transfer => 'Transfert';
+
+  @override
+  String get searchCustomer => 'Rechercher un client';
+
+  @override
+  String get pay => 'Payer';
+
+  @override
+  String get noItemsYet => 'Aucun article pour le moment';
+
+  @override
+  String get tapProductToStartSale =>
+      'Appuyez sur un produit pour démarrer une vente';
+
+  @override
+  String grandTotalWithItems(String itemLabel) {
+    return 'Total général · $itemLabel';
+  }
+
+  @override
+  String get defaultPrice => 'Prix par défaut';
+
+  @override
+  String pricePerUnitEach(String currency, String price) {
+    return '$currency $price chacun';
+  }
+
+  @override
+  String get deleteItem => 'Supprimer l\'article';
+
+  @override
+  String get editDetails => 'Modifier les détails';
+
+  @override
+  String get enterQuantity => 'Saisir la quantité';
+
+  @override
+  String get invalidQuantity => 'Quantité invalide';
+
+  @override
+  String get enterPrice => 'Saisir le prix';
+
+  @override
+  String get invalidPrice => 'Prix invalide';
+
+  @override
+  String get confirmDelete => 'Confirmer la suppression';
+
+  @override
+  String confirmRemoveNamedItem(String itemName) {
+    return 'Voulez-vous vraiment retirer « $itemName » ?';
+  }
+
+  @override
+  String errorDeletingItems(String error) {
+    return 'Erreur lors de la suppression des articles : $error';
+  }
+
+  @override
+  String errorDeletingItem(String error) {
+    return 'Erreur lors de la suppression de l\'article : $error';
+  }
+
+  @override
+  String get failedToDeleteItem => 'Échec de la suppression de l\'article';
+
+  @override
+  String get failedToUpdateItem => 'Échec de la mise à jour de l\'article';
+
+  @override
+  String skuLabel(String sku) {
+    return 'SKU : $sku';
+  }
+
+  @override
+  String bcdLabel(String barcode) {
+    return 'BCD : $barcode';
+  }
+
+  @override
+  String get split => 'Diviser';
+
+  @override
+  String get splitAcrossAnotherMethod =>
+      'Diviser ce paiement sur un autre moyen';
+
+  @override
+  String get allPaymentTypesInUse =>
+      'Tous les moyens de paiement sont utilisés — retirez-en un pour en ajouter un autre';
+
+  @override
+  String get allPaymentTypesAdded =>
+      'Tous les moyens de paiement sont déjà ajoutés. Retirez-en un pour en ajouter un autre.';
+
+  @override
+  String get pleaseEnterAnAmount => 'Veuillez saisir un montant';
+
+  @override
+  String get cashReceived => 'Espèces reçues';
+
+  @override
+  String get amount => 'Montant';
+
+  @override
+  String get removeThisPayment => 'Retirer ce paiement';
+
+  @override
+  String get tapSplitToPayWithMoreThanOneMethod =>
+      'Appuyez sur Diviser pour payer avec plusieurs moyens';
+
+  @override
+  String get tapSplitToAddMethod => 'Appuyez sur Diviser pour ajouter un moyen';
+
+  @override
+  String invoiceNumberValue(String number) {
+    return 'N° $number';
+  }
+
+  @override
+  String tenderedAmount(String amount) {
+    return 'Remis $amount';
+  }
+
+  @override
+  String paymentCollectedTotal(String total) {
+    return 'Paiement encaissé · $total';
+  }
+
+  @override
+  String get viewOnlyCannotTransferStock =>
+      'Accès en lecture seule — vous ne pouvez pas transférer de stock.';
+
+  @override
+  String get selectDestinationBranch =>
+      'Sélectionnez une succursale de destination';
+
+  @override
+  String get currentBranchIsMissing => 'La succursale actuelle est introuvable';
+
+  @override
+  String get addItemsBeforeTransferring =>
+      'Ajoutez des articles avant de transférer';
+
+  @override
+  String transferredItemsToBranch(int count, String branch) {
+    return '$count article(s) transféré(s) vers $branch';
+  }
+
+  @override
+  String get transferFailed => 'Le transfert a échoué';
+
+  @override
+  String get failedToClearCart => 'Échec de la réinitialisation du panier';
+
+  @override
+  String get paymentsCollectedAtTill =>
+      'Les paiements sont encaissés à la caisse. Envoyez cette commande dès qu\'elle est prête — un responsable encaissera.';
+
+  @override
+  String sentToTillTicket(String reference) {
+    return 'Envoyé à la caisse — Ticket #$reference';
+  }
+
+  @override
+  String failedToSendToTill(String error) {
+    return 'Échec de l\'envoi à la caisse : $error';
+  }
+
+  @override
+  String collectingPaymentForTicket(
+    String reference,
+    String name,
+    String minutes,
+  ) {
+    return 'Encaissement de #$reference · envoyé par $name · il y a $minutes min';
+  }
+
+  @override
+  String get returningEllipsis => 'Retour…';
+
+  @override
+  String get backToNewSale => 'Retour à une nouvelle vente';
+
+  @override
+  String get paymentCashCredit => 'Espèces / Crédit';
+
+  @override
+  String get paymentBankCheck => 'Chèque bancaire';
+
+  @override
+  String get paymentDebitCreditCard => 'Carte bancaire';
+
+  @override
+  String get paymentMobileMoney => 'Argent mobile';
+
+  @override
+  String get paymentMtnMomo => 'MTN MoMo';
+
+  @override
+  String get paymentAirtelMoney => 'Airtel Money';
+
+  @override
+  String get paymentOther => 'Autre';
+
+  @override
+  String get sendForReview => 'Envoyer pour révision';
+
+  @override
+  String get previewCart => 'Aperçu du panier';
+
+  @override
+  String previewCartWithCount(int count) {
+    return 'Aperçu du panier ($count)';
+  }
+
+  @override
+  String get placeOrder => 'Passer la commande';
+
+  @override
+  String confirmRemoveAllItemsCount(int count) {
+    return 'Voulez-vous vraiment retirer les $count articles de cette transaction ?';
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -109,16 +110,22 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
                           child: _InCartPill(qty: widget.inCartQty),
                         ),
                       if (widget.stockVisual == PosStockVisual.low)
-                        const Positioned(
+                        Positioned(
                           top: 8,
                           right: 8,
-                          child: _StockBadge(label: 'Low', isLow: true),
+                          child: _StockBadge(
+                            label: context.flipperL10n.stockLow,
+                            isLow: true,
+                          ),
                         ),
                       if (widget.stockVisual == PosStockVisual.out)
-                        const Positioned(
+                        Positioned(
                           top: 8,
                           right: 8,
-                          child: _StockBadge(label: 'Out', isLow: false),
+                          child: _StockBadge(
+                            label: context.flipperL10n.stockOutBadge,
+                            isLow: false,
+                          ),
                         ),
                     ],
                   ),

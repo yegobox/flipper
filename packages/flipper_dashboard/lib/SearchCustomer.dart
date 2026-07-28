@@ -8,6 +8,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -464,7 +465,7 @@ class _SearchInputWithDropdownState
           }
         },
         decoration: InputDecoration(
-          hintText: 'Search Customer',
+          hintText: context.flipperL10n.searchCustomer,
           prefixIcon: Icon(
             Icons.search,
             color: PosLayoutBreakpoints.posAccentBlue,

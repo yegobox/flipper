@@ -1221,4 +1221,326 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get addCustomer => 'Ongeza mteja';
+
+  @override
+  String get sortDefault => 'Mpangilio wa kawaida';
+
+  @override
+  String get sortByPopularity => 'Panga kwa umaarufu';
+
+  @override
+  String get sortByAverageRating => 'Panga kwa wastani wa ukadiriaji';
+
+  @override
+  String get sortByLatest => 'Panga kwa vipya zaidi';
+
+  @override
+  String get sortByPriceLowToHigh => 'Panga kwa bei: chini kwenda juu';
+
+  @override
+  String get sortByPriceHighToLow => 'Panga kwa bei: juu kwenda chini';
+
+  @override
+  String get sortByStockOut => 'Panga kwa hisa iliyoisha';
+
+  @override
+  String get sortByEventDateOldToNew => 'Panga kwa tarehe: kuanzia ya zamani';
+
+  @override
+  String get sortByEventDateNewToOld => 'Panga kwa tarehe: kuanzia ya karibuni';
+
+  @override
+  String get sortCompactLatest => 'Vipya';
+
+  @override
+  String get sortCompactDefault => 'Kawaida';
+
+  @override
+  String get sortCompactPopular => 'Maarufu';
+
+  @override
+  String get sortCompactRating => 'Ukadiriaji';
+
+  @override
+  String get sortCompactPrice => 'Bei';
+
+  @override
+  String get sortCompactStockOut => 'Hisa imeisha';
+
+  @override
+  String get sortCompactDate => 'Tarehe';
+
+  @override
+  String showingRangeOfResults(String start, String end, String total) {
+    return 'Inaonyesha $start–$end kati ya $total';
+  }
+
+  @override
+  String pageOfPages(String current, String total) {
+    return 'Ukurasa $current kati ya $total';
+  }
+
+  @override
+  String loadedOfProducts(String loaded, String total) {
+    return 'Bidhaa $loaded kati ya $total';
+  }
+
+  @override
+  String get noProductsYet => 'Hakuna bidhaa bado';
+
+  @override
+  String get noBranchSelected => 'Hakuna tawi lililochaguliwa';
+
+  @override
+  String get productsRefreshedForNewBranch =>
+      'Bidhaa zimeonyeshwa upya kwa tawi jipya';
+
+  @override
+  String deletedItemsCount(int count) {
+    return 'Bidhaa $count zimefutwa';
+  }
+
+  @override
+  String inStockCount(String count) {
+    return '$count kwenye hisa';
+  }
+
+  @override
+  String leftInStockCount(String count) {
+    return 'Zimebaki $count kwenye hisa';
+  }
+
+  @override
+  String get stockLow => 'Chini';
+
+  @override
+  String get stockOutBadge => 'Imeisha';
+
+  @override
+  String get mode => 'Hali';
+
+  @override
+  String get sale => 'Mauzo';
+
+  @override
+  String get transfer => 'Kuhamisha';
+
+  @override
+  String get searchCustomer => 'Tafuta mteja';
+
+  @override
+  String get pay => 'Lipa';
+
+  @override
+  String get noItemsYet => 'Hakuna bidhaa bado';
+
+  @override
+  String get tapProductToStartSale => 'Gusa bidhaa ili kuanza mauzo';
+
+  @override
+  String grandTotalWithItems(String itemLabel) {
+    return 'Jumla kuu · $itemLabel';
+  }
+
+  @override
+  String get defaultPrice => 'Bei ya kawaida';
+
+  @override
+  String pricePerUnitEach(String currency, String price) {
+    return '$currency $price kila moja';
+  }
+
+  @override
+  String get deleteItem => 'Futa bidhaa';
+
+  @override
+  String get editDetails => 'Hariri maelezo';
+
+  @override
+  String get enterQuantity => 'Weka kiasi';
+
+  @override
+  String get invalidQuantity => 'Kiasi si sahihi';
+
+  @override
+  String get enterPrice => 'Weka bei';
+
+  @override
+  String get invalidPrice => 'Bei si sahihi';
+
+  @override
+  String get confirmDelete => 'Thibitisha kufuta';
+
+  @override
+  String confirmRemoveNamedItem(String itemName) {
+    return 'Una hakika unataka kuondoa \"$itemName\"?';
+  }
+
+  @override
+  String errorDeletingItems(String error) {
+    return 'Hitilafu wakati wa kufuta bidhaa: $error';
+  }
+
+  @override
+  String errorDeletingItem(String error) {
+    return 'Hitilafu wakati wa kufuta bidhaa: $error';
+  }
+
+  @override
+  String get failedToDeleteItem => 'Imeshindwa kufuta bidhaa';
+
+  @override
+  String get failedToUpdateItem => 'Imeshindwa kusasisha bidhaa';
+
+  @override
+  String skuLabel(String sku) {
+    return 'SKU: $sku';
+  }
+
+  @override
+  String bcdLabel(String barcode) {
+    return 'BCD: $barcode';
+  }
+
+  @override
+  String get split => 'Gawanya';
+
+  @override
+  String get splitAcrossAnotherMethod =>
+      'Gawanya malipo haya kwa njia nyingine';
+
+  @override
+  String get allPaymentTypesInUse =>
+      'Njia zote za malipo zinatumika — ondoa moja ili kuongeza nyingine';
+
+  @override
+  String get allPaymentTypesAdded =>
+      'Njia zote za malipo zimeongezwa. Ondoa moja ili kuongeza nyingine.';
+
+  @override
+  String get pleaseEnterAnAmount => 'Tafadhali weka kiasi';
+
+  @override
+  String get cashReceived => 'Fedha zilizopokelewa';
+
+  @override
+  String get amount => 'Kiasi';
+
+  @override
+  String get removeThisPayment => 'Ondoa malipo haya';
+
+  @override
+  String get tapSplitToPayWithMoreThanOneMethod =>
+      'Gusa Gawanya ili kulipa kwa njia zaidi ya moja';
+
+  @override
+  String get tapSplitToAddMethod => 'Gusa Gawanya ili kuongeza njia';
+
+  @override
+  String invoiceNumberValue(String number) {
+    return 'Na. $number';
+  }
+
+  @override
+  String tenderedAmount(String amount) {
+    return 'Zilizotolewa $amount';
+  }
+
+  @override
+  String paymentCollectedTotal(String total) {
+    return 'Malipo yamekusanywa · $total';
+  }
+
+  @override
+  String get viewOnlyCannotTransferStock =>
+      'Ruhusa ya kutazama tu — hauwezi kuhamisha hisa.';
+
+  @override
+  String get selectDestinationBranch => 'Chagua tawi lengwa';
+
+  @override
+  String get currentBranchIsMissing => 'Tawi la sasa halipatikani';
+
+  @override
+  String get addItemsBeforeTransferring => 'Ongeza bidhaa kabla ya kuhamisha';
+
+  @override
+  String transferredItemsToBranch(int count, String branch) {
+    return 'Bidhaa $count zimehamishiwa $branch';
+  }
+
+  @override
+  String get transferFailed => 'Kuhamisha kumeshindwa';
+
+  @override
+  String get failedToClearCart => 'Imeshindwa kufuta kikapu';
+
+  @override
+  String get paymentsCollectedAtTill =>
+      'Malipo yanakusanywa kwenye kaunta. Tuma oda hii ikiwa tayari — meneja atakusanya malipo.';
+
+  @override
+  String sentToTillTicket(String reference) {
+    return 'Imetumwa kwenye kaunta — Tiketi #$reference';
+  }
+
+  @override
+  String failedToSendToTill(String error) {
+    return 'Imeshindwa kutuma kwenye kaunta: $error';
+  }
+
+  @override
+  String collectingPaymentForTicket(
+    String reference,
+    String name,
+    String minutes,
+  ) {
+    return 'Kukusanya malipo ya #$reference · imetumwa na $name · dakika $minutes zilizopita';
+  }
+
+  @override
+  String get returningEllipsis => 'Tunarudi…';
+
+  @override
+  String get backToNewSale => 'Rudi kwa mauzo mapya';
+
+  @override
+  String get paymentCashCredit => 'Fedha / Mkopo';
+
+  @override
+  String get paymentBankCheck => 'Hundi ya benki';
+
+  @override
+  String get paymentDebitCreditCard => 'Kadi ya benki';
+
+  @override
+  String get paymentMobileMoney => 'Pesa ya simu';
+
+  @override
+  String get paymentMtnMomo => 'MTN MoMo';
+
+  @override
+  String get paymentAirtelMoney => 'Airtel Money';
+
+  @override
+  String get paymentOther => 'Nyingine';
+
+  @override
+  String get sendForReview => 'Tuma kwa ukaguzi';
+
+  @override
+  String get previewCart => 'Kagua kikapu';
+
+  @override
+  String previewCartWithCount(int count) {
+    return 'Kagua kikapu ($count)';
+  }
+
+  @override
+  String get placeOrder => 'Weka oda';
+
+  @override
+  String confirmRemoveAllItemsCount(int count) {
+    return 'Una hakika unataka kuondoa bidhaa zote $count kutoka muamala huu?';
+  }
 }

@@ -2,19 +2,20 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'product_sort_provider.g.dart';
 
+/// Display names live in `app_en.arb` and are resolved by the
+/// `ProductSortOptionLabels` extension in `flipper_dashboard`, since this
+/// package has no `flipper_localize` dependency and a const enum field cannot
+/// resolve a locale.
 enum ProductSortOption {
-  defaultSorting('Default sorting'),
-  popularity('Sort by popularity'),
-  averageRating('Sort by average rating'),
-  latest('Sort by latest'),
-  priceLowToHigh('Sort by price: low to high'),
-  priceHighToLow('Sort by price: high to low'),
-  stockOut('Sort by stock out'),
-  eventDateOldToNew('Sort by event date: Old to New'),
-  eventDateNewToOld('Sort by event date: New to Old');
-
-  const ProductSortOption(this.label);
-  final String label;
+  defaultSorting,
+  popularity,
+  averageRating,
+  latest,
+  priceLowToHigh,
+  priceHighToLow,
+  stockOut,
+  eventDateOldToNew,
+  eventDateNewToOld,
 }
 
 @riverpod

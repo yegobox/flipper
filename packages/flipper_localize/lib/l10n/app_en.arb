@@ -1575,5 +1575,495 @@
     "addCustomer": "Add customer",
     "@addCustomer": {
         "description": "Tooltip for attaching a customer to the sale"
+    },
+    "sortDefault": "Default sorting",
+    "@sortDefault": {
+        "description": "Catalog sort option"
+    },
+    "sortByPopularity": "Sort by popularity",
+    "@sortByPopularity": {
+        "description": "Catalog sort option"
+    },
+    "sortByAverageRating": "Sort by average rating",
+    "@sortByAverageRating": {
+        "description": "Catalog sort option"
+    },
+    "sortByLatest": "Sort by latest",
+    "@sortByLatest": {
+        "description": "Catalog sort option"
+    },
+    "sortByPriceLowToHigh": "Sort by price: low to high",
+    "@sortByPriceLowToHigh": {
+        "description": "Catalog sort option"
+    },
+    "sortByPriceHighToLow": "Sort by price: high to low",
+    "@sortByPriceHighToLow": {
+        "description": "Catalog sort option"
+    },
+    "sortByStockOut": "Sort by stock out",
+    "@sortByStockOut": {
+        "description": "Catalog sort option, lowest stock first"
+    },
+    "sortByEventDateOldToNew": "Sort by event date: Old to New",
+    "@sortByEventDateOldToNew": {
+        "description": "Catalog sort option"
+    },
+    "sortByEventDateNewToOld": "Sort by event date: New to Old",
+    "@sortByEventDateNewToOld": {
+        "description": "Catalog sort option"
+    },
+    "sortCompactLatest": "Latest",
+    "@sortCompactLatest": {
+        "description": "Compact sort chip label"
+    },
+    "sortCompactDefault": "Default",
+    "@sortCompactDefault": {
+        "description": "Compact sort chip label"
+    },
+    "sortCompactPopular": "Popular",
+    "@sortCompactPopular": {
+        "description": "Compact sort chip label"
+    },
+    "sortCompactRating": "Rating",
+    "@sortCompactRating": {
+        "description": "Compact sort chip label"
+    },
+    "sortCompactPrice": "Price",
+    "@sortCompactPrice": {
+        "description": "Compact sort chip label, paired with an arrow"
+    },
+    "sortCompactStockOut": "Stock out",
+    "@sortCompactStockOut": {
+        "description": "Compact sort chip label"
+    },
+    "sortCompactDate": "Date",
+    "@sortCompactDate": {
+        "description": "Compact sort chip label, paired with an arrow"
+    },
+    "showingRangeOfResults": "Showing {start}–{end} of {total} results",
+    "@showingRangeOfResults": {
+        "description": "Pagination summary above the product grid",
+        "placeholders": {
+            "start": {
+                "type": "String"
+            },
+            "end": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "pageOfPages": "Page {current} of {total}",
+    "@pageOfPages": {
+        "description": "Pagination footer",
+        "placeholders": {
+            "current": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "loadedOfProducts": "{loaded} of {total} products",
+    "@loadedOfProducts": {
+        "description": "Progress while the catalog loads",
+        "placeholders": {
+            "loaded": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "noProductsYet": "No products yet",
+    "@noProductsYet": {
+        "description": "Empty catalog state"
+    },
+    "noBranchSelected": "No branch selected",
+    "@noBranchSelected": {
+        "description": "Shown when no branch is active"
+    },
+    "productsRefreshedForNewBranch": "Products refreshed for new branch",
+    "@productsRefreshedForNewBranch": {
+        "description": "Confirms the catalog reloaded after a branch switch"
+    },
+    "deletedItemsCount": "Deleted {count} items",
+    "@deletedItemsCount": {
+        "description": "Confirms a bulk delete",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "inStockCount": "{count} in stock",
+    "@inStockCount": {
+        "description": "Stock line on a product card",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "leftInStockCount": "{count} left in stock",
+    "@leftInStockCount": {
+        "description": "Remaining stock hint on a cart line",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "stockLow": "Low",
+    "@stockLow": {
+        "description": "Badge on a product card with little stock left"
+    },
+    "stockOutBadge": "Out",
+    "@stockOutBadge": {
+        "description": "Badge on a product card with no stock"
+    },
+    "mode": "Mode",
+    "@mode": {
+        "description": "Label of the Sale/Transfer toggle"
+    },
+    "sale": "Sale",
+    "@sale": {
+        "description": "Sale mode in the checkout toggle"
+    },
+    "transfer": "Transfer",
+    "@transfer": {
+        "description": "Stock transfer mode in the checkout toggle"
+    },
+    "searchCustomer": "Search Customer",
+    "@searchCustomer": {
+        "description": "Customer search placeholder"
+    },
+    "pay": "Pay",
+    "@pay": {
+        "description": "Completes the sale"
+    },
+    "noItemsYet": "No items yet",
+    "@noItemsYet": {
+        "description": "Empty cart state"
+    },
+    "tapProductToStartSale": "Tap a product to start a sale",
+    "@tapProductToStartSale": {
+        "description": "Empty cart hint"
+    },
+    "grandTotalWithItems": "Grand Total · {itemLabel}",
+    "@grandTotalWithItems": {
+        "description": "Cart footer total",
+        "placeholders": {
+            "itemLabel": {
+                "type": "String"
+            }
+        }
+    },
+    "defaultPrice": "Default price",
+    "@defaultPrice": {
+        "description": "Marks a cart line using the unmodified price"
+    },
+    "pricePerUnitEach": "{currency} {price} each",
+    "@pricePerUnitEach": {
+        "description": "Per-unit price on a cart line",
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "price": {
+                "type": "String"
+            }
+        }
+    },
+    "deleteItem": "Delete item",
+    "@deleteItem": {
+        "description": "Tooltip on a cart line delete button"
+    },
+    "editDetails": "Edit details",
+    "@editDetails": {
+        "description": "Opens the cart line editor"
+    },
+    "enterQuantity": "Enter quantity",
+    "@enterQuantity": {
+        "description": "Quantity field placeholder"
+    },
+    "invalidQuantity": "Invalid quantity",
+    "@invalidQuantity": {
+        "description": "Quantity validation error"
+    },
+    "enterPrice": "Enter price",
+    "@enterPrice": {
+        "description": "Price field placeholder"
+    },
+    "invalidPrice": "Invalid price",
+    "@invalidPrice": {
+        "description": "Price validation error"
+    },
+    "confirmDelete": "Confirm Delete",
+    "@confirmDelete": {
+        "description": "Delete confirmation dialog title"
+    },
+    "confirmRemoveNamedItem": "Are you sure you want to remove \"{itemName}\"?",
+    "@confirmRemoveNamedItem": {
+        "description": "Delete confirmation body for one cart line",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
+    "errorDeletingItems": "Error deleting items: {error}",
+    "@errorDeletingItems": {
+        "description": "Bulk delete failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "errorDeletingItem": "Error deleting item: {error}",
+    "@errorDeletingItem": {
+        "description": "Single delete failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToDeleteItem": "Failed to delete item",
+    "@failedToDeleteItem": {
+        "description": "Single delete failure toast"
+    },
+    "failedToUpdateItem": "Failed to update item",
+    "@failedToUpdateItem": {
+        "description": "Cart line update failure"
+    },
+    "skuLabel": "SKU: {sku}",
+    "@skuLabel": {
+        "description": "Stock keeping unit shown under a cart line",
+        "placeholders": {
+            "sku": {
+                "type": "String"
+            }
+        }
+    },
+    "bcdLabel": "BCD: {barcode}",
+    "@bcdLabel": {
+        "description": "Barcode shown under a product or cart line",
+        "placeholders": {
+            "barcode": {
+                "type": "String"
+            }
+        }
+    },
+    "split": "Split",
+    "@split": {
+        "description": "Splits the payment across several methods"
+    },
+    "splitAcrossAnotherMethod": "Split this payment across another method",
+    "@splitAcrossAnotherMethod": {
+        "description": "Tooltip on the split button"
+    },
+    "allPaymentTypesInUse": "All payment types are in use — remove one to add another",
+    "@allPaymentTypesInUse": {
+        "description": "Shown when every payment method is already on the sale"
+    },
+    "allPaymentTypesAdded": "All payment types are already added. Remove one to add another.",
+    "@allPaymentTypesAdded": {
+        "description": "Blocks adding a further payment method"
+    },
+    "pleaseEnterAnAmount": "Please enter an amount",
+    "@pleaseEnterAnAmount": {
+        "description": "Payment amount validation"
+    },
+    "cashReceived": "Cash received",
+    "@cashReceived": {
+        "description": "Label of the tendered-cash field"
+    },
+    "amount": "Amount",
+    "@amount": {
+        "description": "Generic amount field label"
+    },
+    "removeThisPayment": "Remove this payment",
+    "@removeThisPayment": {
+        "description": "Tooltip on a payment row remove button"
+    },
+    "tapSplitToPayWithMoreThanOneMethod": "Tap Split to pay with more than one method",
+    "@tapSplitToPayWithMoreThanOneMethod": {
+        "description": "Hint under the payments list"
+    },
+    "tapSplitToAddMethod": "Tap Split to add a method",
+    "@tapSplitToAddMethod": {
+        "description": "Compact hint under the payments list"
+    },
+    "invoiceNumberValue": "No. {number}",
+    "@invoiceNumberValue": {
+        "description": "Invoice number shown in the checkout header",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "tenderedAmount": "Tendered {amount}",
+    "@tenderedAmount": {
+        "description": "Cash handed over by the customer",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "paymentCollectedTotal": "Payment collected · {total}",
+    "@paymentCollectedTotal": {
+        "description": "Confirms a till collection",
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "viewOnlyCannotTransferStock": "View-only access — you cannot transfer stock.",
+    "@viewOnlyCannotTransferStock": {
+        "description": "Blocks a transfer for view-only roles"
+    },
+    "selectDestinationBranch": "Select a destination branch",
+    "@selectDestinationBranch": {
+        "description": "Transfer validation"
+    },
+    "currentBranchIsMissing": "Current branch is missing",
+    "@currentBranchIsMissing": {
+        "description": "Transfer validation"
+    },
+    "addItemsBeforeTransferring": "Add items before transferring",
+    "@addItemsBeforeTransferring": {
+        "description": "Transfer validation"
+    },
+    "transferredItemsToBranch": "Transferred {count} item(s) to {branch}",
+    "@transferredItemsToBranch": {
+        "description": "Confirms an outgoing branch transfer",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
+    "transferFailed": "Transfer failed",
+    "@transferFailed": {
+        "description": "Outgoing transfer failure toast"
+    },
+    "failedToClearCart": "Failed to clear cart",
+    "@failedToClearCart": {
+        "description": "Cart reset failure toast"
+    },
+    "paymentsCollectedAtTill": "Payments are collected at the till. Send this order once it's ready — a manager will collect payment.",
+    "@paymentsCollectedAtTill": {
+        "description": "Explains the till workflow to staff without collect rights"
+    },
+    "sentToTillTicket": "Sent to till — Ticket #{reference}",
+    "@sentToTillTicket": {
+        "description": "Confirms a park-to-till",
+        "placeholders": {
+            "reference": {
+                "type": "String"
+            }
+        }
+    },
+    "failedToSendToTill": "Failed to send to till: {error}",
+    "@failedToSendToTill": {
+        "description": "Park-to-till failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "collectingPaymentForTicket": "Collecting payment for #{reference} · sent by {name} · {minutes} min ago",
+    "@collectingPaymentForTicket": {
+        "description": "Banner shown while settling a colleague’s parked ticket",
+        "placeholders": {
+            "reference": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            },
+            "minutes": {
+                "type": "String"
+            }
+        }
+    },
+    "returningEllipsis": "Returning…",
+    "@returningEllipsis": {
+        "description": "Shown while leaving the settling flow"
+    },
+    "backToNewSale": "Back to new sale",
+    "@backToNewSale": {
+        "description": "Leaves the settling flow"
+    },
+    "paymentCashCredit": "Cash / Credit",
+    "@paymentCashCredit": {
+        "description": "Payment method display name"
+    },
+    "paymentBankCheck": "Bank check",
+    "@paymentBankCheck": {
+        "description": "Payment method display name"
+    },
+    "paymentDebitCreditCard": "Debit & credit card",
+    "@paymentDebitCreditCard": {
+        "description": "Payment method display name"
+    },
+    "paymentMobileMoney": "Mobile money",
+    "@paymentMobileMoney": {
+        "description": "Payment method display name"
+    },
+    "paymentMtnMomo": "MTN MoMo",
+    "@paymentMtnMomo": {
+        "description": "Payment method display name, brand kept as-is"
+    },
+    "paymentAirtelMoney": "Airtel Money",
+    "@paymentAirtelMoney": {
+        "description": "Payment method display name, brand kept as-is"
+    },
+    "paymentOther": "Other",
+    "@paymentOther": {
+        "description": "Payment method display name"
+    },
+    "sendForReview": "Send for Review",
+    "@sendForReview": {
+        "description": "Checkout button when ticket review is enabled"
+    },
+    "previewCart": "Preview Cart",
+    "@previewCart": {
+        "description": "Checkout button that opens the cart preview"
+    },
+    "previewCartWithCount": "Preview Cart ({count})",
+    "@previewCartWithCount": {
+        "description": "Cart preview button with the item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "placeOrder": "Place order",
+    "@placeOrder": {
+        "description": "Submits an order in the ordering flow"
+    },
+    "confirmRemoveAllItemsCount": "Are you sure you want to remove all {count} items from this transaction?",
+    "@confirmRemoveAllItemsCount": {
+        "description": "Bulk-remove confirmation naming the item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -315,7 +316,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${_visibleTransactionItems.length} item${_visibleTransactionItems.length > 1 ? 's' : ''}',
+                    context.flipperL10n.cartItemCount(
+                      _visibleTransactionItems.length,
+                    ),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -331,7 +334,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                         color: Colors.red.shade600,
                       ),
                     label: Text(
-                      'Delete All',
+                      context.flipperL10n.deleteAll,
                       style: TextStyle(
                         color: Colors.red.shade600,
                         fontWeight: FontWeight.w600,
@@ -414,7 +417,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
           SizedBox(height: gapAfterIcon),
           Text(
-            'No items yet',
+            context.flipperL10n.noItemsYet,
             style: TextStyle(
               fontSize: titleSize,
               fontWeight: FontWeight.w600,
@@ -423,7 +426,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
           SizedBox(height: gapBeforeSubtitle),
           Text(
-            'Tap a product to start a sale',
+            context.flipperL10n.tapProductToStartSale,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: compact ? 13 : 14,
@@ -587,17 +590,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         String? stockHint;
         if (stock != null) {
           final n = stock is int ? stock : stock.floor();
-          stockHint = '$n left in stock';
+          stockHint = context.flipperL10n.leftInStockCount(n.toString());
         }
         final retail = item.retailPrice ?? item.price;
         final priceHint = (item.price - retail).abs() < 0.01
-            ? 'Default price'
+            ? context.flipperL10n.defaultPrice
             : null;
 
         return PosCartExpandedLine(
           name: _getItemName(item),
           currency: currency,
-          unitPriceText: '$currency $unitFormatted each',
+          unitPriceText: context.flipperL10n.pricePerUnitEach(currency, unitFormatted),
           lineTotalText: _lineTotalText(item, displayQty),
           qtyText: qtyFormatted,
           subtotalDetailText: '$qtyFormatted × $currency $unitFormatted',
@@ -729,7 +732,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Delete item',
+                tooltip: context.flipperL10n.deleteItem,
                 onPressed: isSaving
                     ? null
                     : () => _showDeleteConfirmation(item, isOrdering),
@@ -877,7 +880,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 ? Colors.grey[400]
                 : PosLayoutBreakpoints.posAccentBlue,
           ),
-          tooltip: 'Edit details',
+          tooltip: context.flipperL10n.editDetails,
         ),
         if (isSaving)
           SizedBox(
@@ -924,7 +927,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         final compact = compactWidth || _useCompactExpandedControls;
         final containerPadding = compact ? 12.0 : 16.0;
         final quantityColumn = _buildExpandedFieldColumn(
-          label: 'Quantity',
+          label: context.flipperL10n.quantity,
           field: _buildPrecisionQuantityField(
             item,
             isOrdering,
@@ -932,7 +935,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
         );
         final priceColumn = _buildExpandedFieldColumn(
-          label: 'Unit Price',
+          label: context.flipperL10n.unitPrice,
           field: _buildModernPriceField(item, isOrdering, compact: compact),
         );
 
@@ -1004,9 +1007,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         _updateQuantityFromTextField(item, value, isOrdering);
       },
       validator: (value) {
-        if (value == null || value.isEmpty) return 'Enter quantity';
+        if (value == null || value.isEmpty) return context.flipperL10n.enterQuantity;
         final parsed = double.tryParse(value);
-        if (parsed == null || parsed < 0) return 'Invalid quantity';
+        if (parsed == null || parsed < 0) return context.flipperL10n.invalidQuantity;
         return null;
       },
     );
@@ -1088,9 +1091,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         _updatePriceFromTextField(item, value, isOrdering);
       },
       validator: (value) {
-        if (value == null || value.isEmpty) return 'Enter price';
+        if (value == null || value.isEmpty) return context.flipperL10n.enterPrice;
         final parsed = double.tryParse(value);
-        if (parsed == null || parsed < 0) return 'Invalid price';
+        if (parsed == null || parsed < 0) return context.flipperL10n.invalidPrice;
         return null;
       },
     );
@@ -1098,7 +1101,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Widget _buildModernSummary() {
     final count = _visibleTransactionItems.length;
-    final itemLabel = count == 1 ? '1 item' : '$count items';
+    final itemLabel = context.flipperL10n.cartItemCount(count);
     final currency = ProxyService.box.defaultCurrency();
 
     return Container(
@@ -1111,7 +1114,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            'Grand Total · $itemLabel',
+            context.flipperL10n.grandTotalWithItems(itemLabel),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -1150,18 +1153,20 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 children: [
                   Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
                   const SizedBox(width: 8),
-                  const Text('Delete All Items'),
+                  Text(context.flipperL10n.deleteAllItems),
                 ],
               ),
               content: Text(
-                'Are you sure you want to remove all ${_visibleTransactionItems.length} items from this transaction?',
+                context.flipperL10n.confirmRemoveAllItemsCount(
+                  _visibleTransactionItems.length,
+                ),
               ),
               actions: [
                 TextButton(
                   onPressed: isDeleting
                       ? null
                       : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(context.flipperL10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isDeleting
@@ -1190,7 +1195,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Delete All'),
+                      : Text(context.flipperL10n.deleteAll),
                 ),
               ],
             );
@@ -1236,7 +1241,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       }
       return true;
     } catch (e, s) {
-      talker.error('Error deleting items: $e', s);
+      talker.error(context.flipperL10n.errorDeletingItems(e.toString()), s);
       setState(() {
         for (final item in itemsToDelete) {
           _optimisticallyDeletedItemIds.remove(item.id);
@@ -1270,18 +1275,18 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 children: [
                   Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
                   const SizedBox(width: 8),
-                  const Text('Confirm Delete'),
+                  Text(context.flipperL10n.confirmDelete),
                 ],
               ),
               content: Text(
-                'Are you sure you want to remove "${_getItemName(item)}"?',
+                context.flipperL10n.confirmRemoveNamedItem(_getItemName(item)),
               ),
               actions: [
                 TextButton(
                   onPressed: isDeleting
                       ? null
                       : () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(context.flipperL10n.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isDeleting
@@ -1310,7 +1315,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Delete'),
+                      : Text(context.flipperL10n.delete),
                 ),
               ],
             );
@@ -1328,9 +1333,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   /// Grey subtitle under the line name (BCD preferred, else SKU).
   String? _lineItemInventoryLabel(TransactionItem item) {
     final bcd = item.bcd?.trim();
-    if (bcd != null && bcd.isNotEmpty) return 'BCD: $bcd';
+    if (bcd != null && bcd.isNotEmpty) return context.flipperL10n.bcdLabel(bcd);
     final sku = item.sku?.trim();
-    if (sku != null && sku.isNotEmpty) return 'SKU: $sku';
+    if (sku != null && sku.isNotEmpty) return context.flipperL10n.skuLabel(sku);
     return null;
   }
 
@@ -1508,7 +1513,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       } catch (e) {
         if (mounted) {
           setState(() {
-            _itemErrors[itemId] = 'Failed to update item';
+            _itemErrors[itemId] = context.flipperL10n.failedToUpdateItem;
           });
           if (explicitTargetQty == null &&
               variantId.isNotEmpty &&
@@ -1598,7 +1603,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       } catch (e) {
         if (mounted) {
           setState(() {
-            _itemErrors[item.id] = 'Failed to update item';
+            _itemErrors[item.id] = context.flipperL10n.failedToUpdateItem;
             if (optimisticDelta != null) {
               _rollbackOptimisticQty(item, optimisticDelta);
             }
@@ -1692,7 +1697,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       );
     } else if (!_quantityFieldHasFocus(item.id)) {
       setState(() {
-        _itemErrors[item.id] = 'Invalid quantity';
+        _itemErrors[item.id] = context.flipperL10n.invalidQuantity;
         _quantityControllers[item.id]?.text = _formatQty(_displayQtyFor(item));
         _hasItemChanged[item.id] = false;
       });
@@ -1760,7 +1765,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       }
     } else {
       setState(() {
-        _itemErrors[item.id] = 'Invalid price';
+        _itemErrors[item.id] = context.flipperL10n.invalidPrice;
         _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
         _hasItemChanged[item.id] = false;
       });
@@ -1816,10 +1821,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
       return true;
     } catch (e, s) {
-      talker.error('Error deleting item: $e', s);
+      talker.error(context.flipperL10n.errorDeletingItem(e.toString()), s);
       setState(() {
         _optimisticallyDeletedItemIds.remove(item.id);
-        _itemErrors[item.id] = 'Failed to delete item';
+        _itemErrors[item.id] = context.flipperL10n.failedToDeleteItem;
       });
       return false;
     } finally {

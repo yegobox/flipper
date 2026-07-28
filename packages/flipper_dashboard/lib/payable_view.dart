@@ -56,11 +56,12 @@ class PayableView extends HookConsumerWidget {
   /// "Pay" when the caller doesn't compute its own amount-aware [wording]
   /// (e.g. [PosDefaultView], unlike [QuickSellingView] which passes an
   /// explicit "Pay • {amount}" / "Send for Review • {amount}" string).
-  String get _resolvedWording {
+  String _resolvedWording(BuildContext context) {
     if (wording != null) return wording!;
+    final l10n = context.flipperL10n;
     return ProxyService.settings.enableTicketReviewWorkflow
-        ? 'Send for Review'
-        : 'Pay';
+        ? l10n.sendForReview
+        : l10n.pay;
   }
 
   /// Stacked Tickets / Pay instead of a single row.
@@ -176,7 +177,7 @@ class PayableView extends HookConsumerWidget {
                     digitalPaymentEnabled: digitalPaymentEnabled,
                     transactionId: transactionId,
                     mode: mode,
-                    wording: _resolvedWording,
+                    wording: _resolvedWording(context),
                     completeTransaction: completeTransaction,
                     previewCart: previewCart,
                     enabled: cartHasItems,
@@ -202,7 +203,7 @@ class PayableView extends HookConsumerWidget {
                 digitalPaymentEnabled: digitalPaymentEnabled,
                 transactionId: transactionId,
                 mode: mode,
-                wording: _resolvedWording,
+                wording: _resolvedWording(context),
                 completeTransaction: completeTransaction,
                 previewCart: previewCart,
                 enabled: cartHasItems,

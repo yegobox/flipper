@@ -127,7 +127,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             posCartDisplayItemsForTransaction(items, transactionId).length,
       ),
     );
-    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+    return count > 0
+        ? context.flipperL10n.previewCartWithCount(count)
+        : context.flipperL10n.previewCart;
   }
 
   void _confirmExitToHome(BuildContext context) {

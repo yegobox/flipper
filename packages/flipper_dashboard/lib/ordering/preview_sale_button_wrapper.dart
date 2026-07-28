@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/view_models/ordering_view_model.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -27,10 +28,10 @@ class PreviewSaleButtonWrapper extends ConsumerWidget {
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
     final isPreviewing = ref.watch(previewingCart);
     final buttonText = isPreviewing
-        ? "Place order"
+        ? context.flipperL10n.placeOrder
         : orderCount > 0
-        ? "Preview Cart ($orderCount)"
-        : "Preview Cart";
+        ? context.flipperL10n.previewCartWithCount(orderCount)
+        : context.flipperL10n.previewCart;
 
     return Container(
       width: 350,
