@@ -1597,6 +1597,18 @@ abstract class FlipperAppLocalizations {
   /// **'Enable SMS Notifications'**
   String get enableSmsNotifications;
 
+  /// WhatsApp notification toggle title
+  ///
+  /// In en, this message translates to:
+  /// **'Enable WhatsApp Notifications'**
+  String get enableWhatsappNotifications;
+
+  /// WhatsApp notification toggle subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Receive WhatsApp notifications for orders and digital receipt PDFs'**
+  String get receiveWhatsappNotificationsForOrders;
+
   /// System settings section title
   ///
   /// In en, this message translates to:

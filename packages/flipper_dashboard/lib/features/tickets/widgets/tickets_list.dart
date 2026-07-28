@@ -1073,6 +1073,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           'Order form · Ticket #$refLabel · ${customer.isEmpty ? 'Walk-in' : customer}';
 
       final dataConnectorUrl = await resolveOrderFormDataConnectorUrl();
+      if (dataConnectorUrl == null || dataConnectorUrl.trim().isEmpty) {
+        throw OrderFormWhatsAppException(
+          'Ebm.dataConnectorUrl is not configured (taxServerUrl is not used for WhatsApp)',
+        );
+      }
       final client = await createOrderFormWhatsAppClient(
         dataConnectorUrl: dataConnectorUrl,
       );

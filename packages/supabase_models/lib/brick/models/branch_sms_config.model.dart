@@ -13,12 +13,16 @@ class BranchSmsConfig extends OfflineFirstWithSupabaseModel {
 
   final String branchId;
   String? smsPhoneNumber;
-  bool enableOrderNotification;
+  bool enableSms;
+  bool enableWhatsapp;
 
   BranchSmsConfig({
     String? id,
     required this.branchId,
     this.smsPhoneNumber,
-    this.enableOrderNotification = false,
+    this.enableSms = false,
+    this.enableWhatsapp = false,
   }) : id = id ?? const Uuid().v4();
+
+  bool get hasAnyChannelEnabled => enableSms || enableWhatsapp;
 }

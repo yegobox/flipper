@@ -854,6 +854,13 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get enableSmsNotifications => 'Wezesha arifa za SMS';
 
   @override
+  String get enableWhatsappNotifications => 'Wezesha arifa za WhatsApp';
+
+  @override
+  String get receiveWhatsappNotificationsForOrders =>
+      'Pokea arifa za WhatsApp kwa oda na risiti za PDF';
+
+  @override
   String get systemSettings => 'Mipangilio ya mfumo';
 
   @override

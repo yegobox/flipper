@@ -1085,6 +1085,14 @@
     "@enableSmsNotifications": {
         "description": "SMS notification toggle title"
     },
+    "enableWhatsappNotifications": "Enable WhatsApp Notifications",
+    "@enableWhatsappNotifications": {
+        "description": "WhatsApp notification toggle title"
+    },
+    "receiveWhatsappNotificationsForOrders": "Receive WhatsApp notifications for orders and digital receipt PDFs",
+    "@receiveWhatsappNotificationsForOrders": {
+        "description": "WhatsApp notification toggle subtitle"
+    },
     "systemSettings": "System Settings",
     "@systemSettings": {
         "description": "System settings section title"

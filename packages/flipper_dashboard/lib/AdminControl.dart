@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
+import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -132,14 +134,14 @@ Widget _adminLeadingSvg(String svg, Color backgroundTint) {
   );
 }
 
-class AdminControl extends StatefulWidget {
+class AdminControl extends ConsumerStatefulWidget {
   const AdminControl({super.key});
 
   @override
-  State<AdminControl> createState() => _AdminControlState();
+  ConsumerState<AdminControl> createState() => _AdminControlState();
 }
 
-class _AdminControlState extends State<AdminControl> {
+class _AdminControlState extends ConsumerState<AdminControl> {
   final navigator = locator<RouterService>();
   bool isPosDefault = false;
   bool isOrdersDefault = true;
@@ -150,6 +152,7 @@ class _AdminControlState extends State<AdminControl> {
   bool switchToCloudSync = false;
   String? smsPhoneNumber;
   bool enableSmsNotification = false;
+  bool enableWhatsappNotification = false;
   bool enableAutoAddSearch = false;
   late final TextEditingController phoneController;
   late final FocusNode _smsPhoneFocusNode;
@@ -210,7 +213,11 @@ class _AdminControlState extends State<AdminControl> {
     return cleanPhone;
   }
 
-  Future<void> _updateSmsConfig({String? phone, bool? enable}) async {
+  Future<void> _updateSmsConfig({
+    String? phone,
+    bool? enableSms,
+    bool? enableWhatsapp,
+  }) async {
     if (phone != null && phone.isNotEmpty) {
       if (!_isValidPhoneNumber(phone)) {
         setState(() {
@@ -226,12 +233,23 @@ class _AdminControlState extends State<AdminControl> {
       await SmsNotificationService.updateBranchSmsConfig(
         branchId: ProxyService.box.getBranchId()!,
         smsPhoneNumber: phone,
-        enableNotification: enable,
+        enableSms: enableSms,
+        enableWhatsapp: enableWhatsapp,
       );
+
+      if (!mounted) return;
+
+      // branchSmsNotificationsEnabledProvider caches for the life of the app,
+      // and it gates the POS digital-receipt toggle. Without this the checkout
+      // screen keeps the stale value until a full restart.
+      ref.invalidate(branchSmsNotificationsEnabledProvider);
 
       setState(() {
         if (phone != null) smsPhoneNumber = phone;
-        if (enable != null) enableSmsNotification = enable;
+        if (enableSms != null) enableSmsNotification = enableSms;
+        if (enableWhatsapp != null) {
+          enableWhatsappNotification = enableWhatsapp;
+        }
         phoneError = null;
       });
     } catch (e) {
@@ -865,7 +883,8 @@ class _AdminControlState extends State<AdminControl> {
       if (config != null) {
         setState(() {
           smsPhoneNumber = config.smsPhoneNumber;
-          enableSmsNotification = config.enableOrderNotification;
+          enableSmsNotification = config.enableSms;
+          enableWhatsappNotification = config.enableWhatsapp;
           phoneController.text = config.smsPhoneNumber ?? '';
         });
       }
@@ -2030,14 +2049,30 @@ class _AdminControlState extends State<AdminControl> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: _AdminSwitchRow(
-                  title: context.flipperL10n.enableOrderNotifications,
+                  title: context.flipperL10n.enableSmsNotifications,
                   subtitle: context.flipperL10n.receiveSmsNotificationsForOrders,
                   leading: _adminLeadingSvg(
                     AdminDashboardSvgs.enableNotifications,
                     const Color(0xFF16A34A).withValues(alpha: 0.1),
                   ),
                   value: enableSmsNotification,
-                  onChanged: (value) => _updateSmsConfig(enable: value),
+                  onChanged: (value) => _updateSmsConfig(enableSms: value),
+                ),
+              ),
+              Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: _AdminSwitchRow(
+                  title: context.flipperL10n.enableWhatsappNotifications,
+                  subtitle:
+                      context.flipperL10n.receiveWhatsappNotificationsForOrders,
+                  leading: _adminLeadingSvg(
+                    AdminDashboardSvgs.enableNotifications,
+                    const Color(0xFF25D366).withValues(alpha: 0.12),
+                  ),
+                  value: enableWhatsappNotification,
+                  onChanged: (value) =>
+                      _updateSmsConfig(enableWhatsapp: value),
                 ),
               ),
             ],

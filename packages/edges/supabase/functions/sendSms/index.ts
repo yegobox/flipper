@@ -137,12 +137,13 @@ async function processPendingSMS() {
     console.log("Starting to process pending SMS messages...");
 
     try {
-        // Fetch pending messages, including branch_id
-        const { data, error } = await supabase
+        // Fetch pending messages; skip WhatsApp audit rows (delivered via OpenWA).
+        // Legacy SMS rows may have message_source null or 'ai'.
+        const { data: pendingRows, error } = await supabase
             .from('messages')
-            .select('id, text, phone_number, delivered, branch_id')
+            .select('id, text, phone_number, delivered, branch_id, message_source')
             .eq('delivered', false)
-            .limit(10);
+            .limit(20);
 
         if (error) {
             console.error("Error fetching pending SMS:", error);
@@ -153,6 +154,10 @@ async function processPendingSMS() {
                 error: `Database fetch error: ${error.message}`
             };
         }
+
+        const data = (pendingRows ?? []).filter(
+            (row) => row.message_source !== 'whatsapp',
+        ).slice(0, 10);
 
         console.log(`Found ${data.length} pending SMS messages to process`);
 

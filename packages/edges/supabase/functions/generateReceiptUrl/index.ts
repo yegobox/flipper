@@ -111,6 +111,8 @@ async function queueReceiptSms(
       text: messageText,
       phone_number: phone,
       branch_id: branchUuid,
+      message_source: "sms",
+      message_type: "text",
     })
     .select("id")
     .single();

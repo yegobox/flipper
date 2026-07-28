@@ -237,9 +237,21 @@ class _AdminScreenContent extends StatelessWidget {
                 const SizedBox(height: 16),
                 SwitchListTile.adaptive(
                   title: Text(context.flipperL10n.enableSmsNotifications),
+                  subtitle: Text(
+                    context.flipperL10n.receiveSmsNotificationsForOrders,
+                  ),
                   value: controller.enableSmsNotification,
                   onChanged: (value) =>
-                      controller.updateSmsConfig(enable: value),
+                      controller.updateSmsConfig(enableSms: value),
+                ),
+                SwitchListTile.adaptive(
+                  title: Text(context.flipperL10n.enableWhatsappNotifications),
+                  subtitle: Text(
+                    context.flipperL10n.receiveWhatsappNotificationsForOrders,
+                  ),
+                  value: controller.enableWhatsappNotification,
+                  onChanged: (value) =>
+                      controller.updateSmsConfig(enableWhatsapp: value),
                 ),
               ],
             ),

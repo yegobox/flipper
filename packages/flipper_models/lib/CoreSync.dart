@@ -2182,12 +2182,11 @@ class CoreSync extends AiStrategyImpl
             id: transactionId,
             branchId: ProxyService.box.getBranchId()!,
           );
+      final fileNameWithExtension = '$fileName.pdf';
       if (iTransaction != null) {
         /// never update transaction status here or any other properties
         /// first get transaction as it might be updated by other means
         ///
-        final fileNameWithExtension = fileName + ".pdf";
-
         iTransaction.receiptFileName = fileNameWithExtension;
 
         await ProxyService.getStrategy(Strategy.capella).updateTransaction(
@@ -2208,6 +2207,20 @@ class CoreSync extends AiStrategyImpl
             customerPhone: iTransaction.customerPhone,
             alternatePhone: iTransaction.currentSaleCustomerPhoneNumber,
             alreadySent: iTransaction.isDigitalReceiptGenerated,
+            pdfData: pdfData,
+          ),
+        );
+      } else {
+        talker.warning(
+          'digital receipt: upload ok but Capella transaction $transactionId '
+          'not found — still attempting send with PDF only',
+        );
+        unawaited(
+          DigitalReceiptService.maybeSendAfterUpload(
+            transactionId: transactionId,
+            branchId: branchId,
+            receiptFileName: fileNameWithExtension,
+            pdfData: pdfData,
           ),
         );
       }

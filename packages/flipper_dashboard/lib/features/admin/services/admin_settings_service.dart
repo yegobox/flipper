@@ -64,7 +64,8 @@ class AdminSettingsService {
       if (config != null) {
         return {
           'smsPhoneNumber': config.smsPhoneNumber,
-          'enableOrderNotification': config.enableOrderNotification,
+          'enableSms': config.enableSms,
+          'enableWhatsapp': config.enableWhatsapp,
         };
       }
       return null;
@@ -76,12 +77,14 @@ class AdminSettingsService {
 
   static Future<void> updateSmsConfig({
     required String phone,
-    required bool enable,
+    required bool enableSms,
+    required bool enableWhatsapp,
   }) async {
     await SmsNotificationService.updateBranchSmsConfig(
       branchId: ProxyService.box.getBranchId()!,
       smsPhoneNumber: phone,
-      enableNotification: enable,
+      enableSms: enableSms,
+      enableWhatsapp: enableWhatsapp,
     );
   }
 

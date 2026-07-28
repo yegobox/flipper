@@ -854,6 +854,13 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get enableSmsNotifications => 'Emeza ubutumwa bwa SMS';
 
   @override
+  String get enableWhatsappNotifications => 'Emeza ubutumwa bwa WhatsApp';
+
+  @override
+  String get receiveWhatsappNotificationsForOrders =>
+      'Kwakira ubutumwa bwa WhatsApp ku byatumijwe n\'inyemezabwishyu PDF';
+
+  @override
   String get systemSettings => 'Igenamiterere rya sisitemu';
 
   @override

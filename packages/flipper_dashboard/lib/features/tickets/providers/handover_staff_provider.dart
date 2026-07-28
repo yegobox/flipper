@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/data_connector_url.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -130,14 +131,5 @@ String? _normalizeHandoverPhone(String? raw) {
 }
 
 /// Resolves data-connector URL from cached EBM/box settings.
-Future<String?> resolveOrderFormDataConnectorUrl() async {
-  try {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId != null && branchId.isNotEmpty) {
-      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-      final url = ebm?.dataConnectorUrl?.trim();
-      if (url != null && url.isNotEmpty) return url;
-    }
-  } catch (_) {}
-  return ProxyService.box.readString(key: 'dataConnectorUrl');
-}
+Future<String?> resolveOrderFormDataConnectorUrl() =>
+    resolveEbmDataConnectorUrl();

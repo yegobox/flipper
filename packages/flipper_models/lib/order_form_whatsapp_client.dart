@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flipper_models/bulk_rra_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:http/http.dart' as http;
 
@@ -12,8 +11,8 @@ class OrderFormWhatsAppClient {
     required this.baseUrl,
     http.Client? httpClient,
     this.logHttp = true,
-  })  : _http = httpClient ?? http.Client(),
-        _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+  }) : _http = httpClient ?? http.Client(),
+       _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;
   final http.Client _http;
@@ -21,6 +20,20 @@ class OrderFormWhatsAppClient {
   final bool logHttp;
 
   static const _jsonHeaders = {'Content-Type': 'application/json'};
+
+  Future<OrderFormWhatsAppSendResult> sendText({
+    required String phone,
+    required String text,
+  }) async {
+    final uri = Uri.parse('${_base}api/whatsapp/send-text');
+    final body = <String, dynamic>{'phone': phone, 'text': text};
+    return _post(
+      uri: uri,
+      body: body,
+      logBody: '{"phone":"$phone","text":"…"}',
+      operation: 'WhatsApp send-text',
+    );
+  }
 
   Future<OrderFormWhatsAppSendResult> sendDocument({
     required String phone,
@@ -33,16 +46,31 @@ class OrderFormWhatsAppClient {
       'phone': phone,
       'pdf_base64': base64Encode(pdfBytes),
       'filename': filename,
-      if (caption != null && caption.trim().isNotEmpty) 'caption': caption.trim(),
+      if (caption != null && caption.trim().isNotEmpty)
+        'caption': caption.trim(),
     };
+    return _post(
+      uri: uri,
+      body: body,
+      logBody: '{"phone":"$phone","filename":"$filename","pdf_base64":"…"}',
+      operation: 'WhatsApp send-document',
+    );
+  }
+
+  Future<OrderFormWhatsAppSendResult> _post({
+    required Uri uri,
+    required Map<String, dynamic> body,
+    required String logBody,
+    required String operation,
+  }) async {
     final encodedBody = jsonEncode(body);
 
     if (logHttp) {
       DataConnectorHttpLog.request(
         method: 'POST',
         uri: uri,
-        body: '{"phone":"$phone","filename":"$filename","pdf_base64":"…"}',
-        operation: 'order form WhatsApp',
+        body: logBody,
+        operation: operation,
       );
     }
 
@@ -61,7 +89,7 @@ class OrderFormWhatsAppClient {
         statusCode: response.statusCode,
         body: response.body,
         elapsed: started.elapsed,
-        operation: 'order form WhatsApp',
+        operation: operation,
       );
     }
 
@@ -70,7 +98,8 @@ class OrderFormWhatsAppClient {
       if (decoded is Map) {
         return OrderFormWhatsAppSendResult(
           ok: decoded['ok'] == true,
-          messageId: decoded['message_id']?.toString() ??
+          messageId:
+              decoded['message_id']?.toString() ??
               decoded['messageId']?.toString(),
         );
       }
@@ -102,11 +131,18 @@ class OrderFormWhatsAppException implements Exception {
   String toString() => message;
 }
 
+/// Creates a WhatsApp client aimed at data-connector OpenWA routes.
+///
+/// [dataConnectorUrl] must be [Ebm.dataConnectorUrl] (not [Ebm.taxServerUrl]).
 Future<OrderFormWhatsAppClient> createOrderFormWhatsAppClient({
-  String? dataConnectorUrl,
+  required String dataConnectorUrl,
 }) async {
-  final base = await resolveDataConnectorBaseUrl(
-    dataConnectorUrl: dataConnectorUrl,
-  );
+  final trimmed = dataConnectorUrl.trim();
+  if (trimmed.isEmpty) {
+    throw OrderFormWhatsAppException(
+      'Ebm.dataConnectorUrl is required for WhatsApp (do not use taxServerUrl)',
+    );
+  }
+  final base = trimmed.endsWith('/') ? trimmed : '$trimmed/';
   return OrderFormWhatsAppClient(baseUrl: base);
 }

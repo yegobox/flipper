@@ -12,6 +12,7 @@ class AdminController extends ChangeNotifier {
   bool _switchToCloudSync = false;
   String? _smsPhoneNumber;
   bool _enableSmsNotification = false;
+  bool _enableWhatsappNotification = false;
   String? _phoneError;
 
   // Getters
@@ -24,6 +25,7 @@ class AdminController extends ChangeNotifier {
   bool get switchToCloudSync => _switchToCloudSync;
   String? get smsPhoneNumber => _smsPhoneNumber;
   bool get enableSmsNotification => _enableSmsNotification;
+  bool get enableWhatsappNotification => _enableWhatsappNotification;
   String? get phoneError => _phoneError;
 
   AdminController() {
@@ -48,7 +50,8 @@ class AdminController extends ChangeNotifier {
     final config = await AdminSettingsService.loadSmsConfig();
     if (config != null) {
       _smsPhoneNumber = config['smsPhoneNumber'];
-      _enableSmsNotification = config['enableOrderNotification'];
+      _enableSmsNotification = config['enableSms'] == true;
+      _enableWhatsappNotification = config['enableWhatsapp'] == true;
       notifyListeners();
     }
   }
@@ -95,7 +98,11 @@ class AdminController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateSmsConfig({String? phone, bool? enable}) async {
+  Future<void> updateSmsConfig({
+    String? phone,
+    bool? enableSms,
+    bool? enableWhatsapp,
+  }) async {
     if (phone != null && phone.isNotEmpty) {
       if (!AdminSettingsService.isValidPhoneNumber(phone)) {
         _phoneError =
@@ -109,11 +116,13 @@ class AdminController extends ChangeNotifier {
     try {
       await AdminSettingsService.updateSmsConfig(
         phone: phone ?? _smsPhoneNumber ?? '',
-        enable: enable ?? _enableSmsNotification,
+        enableSms: enableSms ?? _enableSmsNotification,
+        enableWhatsapp: enableWhatsapp ?? _enableWhatsappNotification,
       );
 
       if (phone != null) _smsPhoneNumber = phone;
-      if (enable != null) _enableSmsNotification = enable;
+      if (enableSms != null) _enableSmsNotification = enableSms;
+      if (enableWhatsapp != null) _enableWhatsappNotification = enableWhatsapp;
       _phoneError = null;
       notifyListeners();
     } catch (e) {

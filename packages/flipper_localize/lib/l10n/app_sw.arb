@@ -248,6 +248,8 @@
     "electronicBillingMachineSettings": "Mipangilio ya mashine ya ankara ya kielektroniki",
     "smsConfiguration": "Usanidi wa SMS",
     "enableSmsNotifications": "Wezesha arifa za SMS",
+    "enableWhatsappNotifications": "Wezesha arifa za WhatsApp",
+    "receiveWhatsappNotificationsForOrders": "Pokea arifa za WhatsApp kwa oda na risiti za PDF",
     "systemSettings": "Mipangilio ya mfumo",
     "debugMode": "Hali ya utatuzi",
     "enableDebugFeatures": "Wezesha vipengele vya utatuzi",

@@ -4,15 +4,18 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Whether the active branch has SMS notifications enabled in admin settings.
+/// Whether the active branch has SMS and/or WhatsApp notifications enabled.
 final branchSmsNotificationsEnabledProvider = FutureProvider<bool>((ref) async {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null || branchId.isEmpty) return false;
-  final config = await SmsNotificationService.getBranchSmsConfig(branchId);
-  return config?.enableOrderNotification ?? false;
+  final config = await SmsNotificationService.getBranchSmsConfig(
+    branchId,
+    forceRemote: true,
+  );
+  return config?.hasAnyChannelEnabled ?? false;
 });
 
-/// Quick-selling checkout: when true, receipt is sent digitally (SMS) instead of opening a PDF.
+/// Quick-selling checkout: when true, receipt is sent digitally instead of opening a PDF.
 final digitalReceiptToggleProvider = StateProvider<bool>((ref) => false);
 
 /// Resets the digital receipt toggle for the next sale (default: off).
