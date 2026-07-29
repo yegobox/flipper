@@ -487,9 +487,24 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  List<TransactionItem> get _visibleTransactionItems => _linesForTable
-      .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
-      .toList();
+  List<TransactionItem> get _visibleTransactionItems {
+    final lines = _linesForTable;
+    // A ghost id only means "hidden until the provider catches up", so it must
+    // not outlive the line leaving the cart. [_removeUnusedControllers] cannot be
+    // trusted for this: it sweeps [_quantityControllers], which rows create
+    // lazily, and it only runs from the table builder — totals and completion
+    // hints read this getter too. It matters most on resume, where a parked
+    // ticket's lines come back with the *same* ids that
+    // [clearCartLinesOptimistically] hid when it was parked (the next sale gets
+    // fresh ids, which is why completion never showed this).
+    if (_optimisticallyDeletedItemIds.isNotEmpty) {
+      final ids = lines.map((line) => line.id).toSet();
+      _optimisticallyDeletedItemIds.removeWhere((id) => !ids.contains(id));
+    }
+    return lines
+        .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
+        .toList();
+  }
 
   /// Instantly empties the visible cart when a sale completes, before the async
   /// provider invalidations in completion reconcile [posCartDisplayItemsProvider]

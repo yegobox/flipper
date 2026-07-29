@@ -124,6 +124,63 @@ void main() {
     },
   );
 
+  // Park / send-to-till also runs [clearCartLinesOptimistically], and a resumed
+  // ticket comes back with the *same* line ids — unlike the next sale, which
+  // gets fresh ones. The ghost-delete ids must therefore be released when the
+  // cart drains, or resuming the ticket renders an empty cart in
+  // QuickSellingView while every provider correctly resolves to it.
+  testWidgets(
+    "a resumed ticket's lines reappear after park cleared them optimistically",
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          posCartDisplayItemsProvider
+              .overrideWith((ref) => ref.watch(_cartSourceProvider)),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final harnessKey = GlobalKey<CartHarnessState>();
+
+      container.read(_cartSourceProvider.notifier).state = [
+        _line('a'),
+        _line('b'),
+      ];
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: _CartHarness(key: harnessKey),
+        ),
+      );
+      expect(find.text('count:2'), findsOneWidget);
+
+      // Operator sends the cart to the till: the lines are hidden at once.
+      harnessKey.currentState!.clearCartLinesOptimistically();
+      await tester.pump();
+      expect(find.text('count:0'), findsOneWidget);
+
+      // The parked ticket leaves the cart (suppression / next pending cart).
+      container.read(_cartSourceProvider.notifier).state = const [];
+      await tester.pump();
+      expect(find.text('count:0'), findsOneWidget);
+
+      // Resume: the very same lines resolve as the cart again.
+      container.read(_cartSourceProvider.notifier).state = [
+        _line('a'),
+        _line('b'),
+      ];
+      await tester.pump();
+
+      expect(
+        find.text('count:2'),
+        findsOneWidget,
+        reason: 'the resumed ticket must render its lines, not stay filtered by '
+            'the ghost ids from when it was parked',
+      );
+    },
+  );
+
   testWidgets('clearCartLinesOptimistically is a no-op on an empty cart',
       (tester) async {
     final container = ProviderContainer(

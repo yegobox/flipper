@@ -248,6 +248,8 @@
     "electronicBillingMachineSettings": "Paramètres de la machine de facturation électronique",
     "smsConfiguration": "Configuration SMS",
     "enableSmsNotifications": "Activer les notifications SMS",
+    "enableWhatsappNotifications": "Activer les notifications WhatsApp",
+    "receiveWhatsappNotificationsForOrders": "Recevoir des notifications WhatsApp pour les commandes et les reçus PDF",
     "systemSettings": "Paramètres système",
     "debugMode": "Mode débogage",
     "enableDebugFeatures": "Activer les fonctions de débogage",

@@ -248,6 +248,8 @@
     "electronicBillingMachineSettings": "Igenamiterere ry'imashini ya fagitire ya elegitoroniki",
     "smsConfiguration": "Igenamiterere rya SMS",
     "enableSmsNotifications": "Emeza ubutumwa bwa SMS",
+    "enableWhatsappNotifications": "Emeza ubutumwa bwa WhatsApp",
+    "receiveWhatsappNotificationsForOrders": "Kwakira ubutumwa bwa WhatsApp ku byatumijwe n'inyemezabwishyu PDF",
     "systemSettings": "Igenamiterere rya sisitemu",
     "debugMode": "Uburyo bwo kugenzura amakosa",
     "enableDebugFeatures": "Emeza ibikorwa byo kugenzura amakosa",

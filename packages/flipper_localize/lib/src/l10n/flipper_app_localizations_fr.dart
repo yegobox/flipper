@@ -863,6 +863,13 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get enableSmsNotifications => 'Activer les notifications SMS';
 
   @override
+  String get enableWhatsappNotifications => 'Activer les notifications WhatsApp';
+
+  @override
+  String get receiveWhatsappNotificationsForOrders =>
+      'Recevoir des notifications WhatsApp pour les commandes et les reçus PDF';
+
+  @override
   String get systemSettings => 'Paramètres système';
 
   @override

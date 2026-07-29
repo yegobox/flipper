@@ -1,12 +1,36 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/order_form_whatsapp_client.dart';
+import 'package:flipper_services/data_connector_url.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
 
-/// Queues and invokes [generateReceiptUrl] after a receipt PDF is in S3.
+/// Meta 24h opt-in prompt for POS (QR / wa.me) when a receipt is queued.
+class WhatsAppOptInPrompt {
+  const WhatsAppOptInPrompt({
+    required this.phone,
+    this.chatUrl,
+    this.qrPngBase64,
+    this.queueId,
+  });
+
+  final String phone;
+  final String? chatUrl;
+  final String? qrPngBase64;
+  final String? queueId;
+}
+
+/// Queues and delivers digital receipts after a receipt PDF is in S3.
+///
+/// SMS goes through [generateReceiptUrl] + [sendSms]. WhatsApp sends the PDF
+/// via data-connector `send-document` (OpenWA or Meta) and audits a `messages` row.
 class DigitalReceiptService {
   DigitalReceiptService._();
 
@@ -16,11 +40,19 @@ class DigitalReceiptService {
   /// In-memory queue — [LocalStorage] only allows fixed keys, so per-transaction
   /// `pending_digital_receipt_*` box writes were silently dropped.
   static final Map<String, bool> _pendingSmsByTransactionId = {};
+  static final Set<String> _whatsAppSentTransactionIds = {};
+
+  static final StreamController<WhatsAppOptInPrompt> _optInPromptController =
+      StreamController<WhatsAppOptInPrompt>.broadcast();
+
+  /// Fired when Meta queues a receipt outside the 24h window (show QR on POS).
+  static Stream<WhatsAppOptInPrompt> get optInPromptStream =>
+      _optInPromptController.stream;
 
   static Future<void> queueSmsAfterReceiptUpload(String transactionId) async {
     if (transactionId.isEmpty) return;
     _pendingSmsByTransactionId[transactionId] = true;
-    talker.info('digital receipt: queued SMS for transaction $transactionId');
+    talker.info('digital receipt: queued for transaction $transactionId');
   }
 
   static bool isQueuedForSms(String transactionId) {
@@ -28,11 +60,98 @@ class DigitalReceiptService {
     return _pendingSmsByTransactionId[transactionId] == true;
   }
 
-  static bool _isQueuedForSms(String transactionId) => isQueuedForSms(transactionId);
+  static bool _isQueuedForSms(String transactionId) =>
+      isQueuedForSms(transactionId);
 
   static void _clearQueuedForSms(String transactionId) {
     if (transactionId.isEmpty) return;
     _pendingSmsByTransactionId.remove(transactionId);
+  }
+
+  /// Sends WhatsApp PDF immediately when bytes are ready (does **not** need S3).
+  ///
+  /// Amplify upload often fails locally (`IdentityPool not found`); WhatsApp
+  /// must not wait on that. SMS short-link still runs from [maybeSendAfterUpload]
+  /// after a successful upload.
+  static Future<void> sendWhatsAppWhenPdfReady({
+    required String transactionId,
+    required String branchId,
+    required String receiptFileName,
+    required Uint8List pdfData,
+    String? customerPhone,
+    String? alternatePhone,
+  }) async {
+    talker.info(
+      'digital receipt: sendWhatsAppWhenPdfReady tx=$transactionId '
+      'file=$receiptFileName bytes=${pdfData.length}',
+    );
+    if (!_isQueuedForSms(transactionId)) {
+      talker.debug(
+        'digital receipt: WhatsApp early-send skipped — not queued for $transactionId',
+      );
+      return;
+    }
+    if (_whatsAppSentTransactionIds.contains(transactionId)) {
+      talker.info('digital receipt: WhatsApp already sent for $transactionId');
+      return;
+    }
+
+    try {
+      final config = await SmsNotificationService.getBranchSmsConfig(
+        branchId,
+        forceRemote: true,
+      );
+      if (config?.enableWhatsapp != true) {
+        talker.info(
+          'digital receipt: WhatsApp early-send skipped — enableWhatsapp=false',
+        );
+        return;
+      }
+
+      final smsBranchId = await _resolveSmsBranchId(branchId);
+      if (smsBranchId == null) {
+        talker.warning(
+          'digital receipt: WhatsApp early-send skipped — no smsBranchId',
+        );
+        return;
+      }
+
+      final phoneSource = _firstNonEmpty(customerPhone, alternatePhone) ??
+          config?.smsPhoneNumber;
+      if (phoneSource == null || phoneSource.trim().isEmpty) {
+        talker.warning(
+          'digital receipt: WhatsApp early-send skipped — no phone',
+        );
+        return;
+      }
+      final phone = _normalizePhoneForSms(phoneSource);
+      if (phone == null) {
+        talker.warning(
+          'digital receipt: WhatsApp early-send skipped — invalid phone "$phoneSource"',
+        );
+        return;
+      }
+
+      final ok = await _sendWhatsAppReceiptPdf(
+        branchId: branchId,
+        phone: phone,
+        receiptFileName: receiptFileName,
+        pdfData: pdfData,
+        whatsappProvider: config?.whatsappProvider,
+      );
+      if (ok) {
+        _whatsAppSentTransactionIds.add(transactionId);
+        talker.info(
+          'digital receipt: WhatsApp early-send ok for $transactionId',
+        );
+      }
+    } catch (e, s) {
+      talker.error(
+        'digital receipt: sendWhatsAppWhenPdfReady failed: $e',
+        e,
+        s,
+      );
+    }
   }
 
   static Future<void> maybeSendAfterUpload({
@@ -42,6 +161,7 @@ class DigitalReceiptService {
     String? customerPhone,
     String? alternatePhone,
     bool? alreadySent,
+    Uint8List? pdfData,
   }) async {
     talker.info(
       'digital receipt: maybeSendAfterUpload tx=$transactionId file=$receiptFileName',
@@ -63,22 +183,35 @@ class DigitalReceiptService {
       }
 
       final rawPhone = _firstNonEmpty(customerPhone, alternatePhone);
-      if (rawPhone == null) {
+      final config = await SmsNotificationService.getBranchSmsConfig(
+        branchId,
+        forceRemote: true,
+      );
+      // Prefer customer phone; fall back to branch notification phone from settings.
+      final phoneSource = rawPhone ?? config?.smsPhoneNumber;
+      if (phoneSource == null || phoneSource.trim().isEmpty) {
         talker.warning(
-          'digital receipt: skipped — no customerPhone on transaction $transactionId',
+          'digital receipt: skipped — no customerPhone and no branch '
+          'smsPhoneNumber for transaction $transactionId',
         );
         return;
+      }
+      if (rawPhone == null) {
+        talker.info(
+          'digital receipt: using branch smsPhoneNumber $phoneSource '
+          '(no customer phone on transaction)',
+        );
       }
 
-      final phone = _normalizePhoneForSms(rawPhone);
+      final phone = _normalizePhoneForSms(phoneSource);
       if (phone == null) {
         talker.warning(
-          'digital receipt: skipped — invalid phone "$rawPhone" on $transactionId',
+          'digital receipt: skipped — invalid phone "$phoneSource" on $transactionId',
         );
         return;
       }
-      if (phone != rawPhone.replaceAll(RegExp(r'\D'), '')) {
-        talker.info('digital receipt: normalized phone $rawPhone → $phone');
+      if (phone != phoneSource.replaceAll(RegExp(r'\D'), '')) {
+        talker.info('digital receipt: normalized phone $phoneSource → $phone');
       }
 
       talker.info(
@@ -93,33 +226,73 @@ class DigitalReceiptService {
       }
       talker.info('digital receipt: smsBranchId=$smsBranchId');
 
+      final enableSms = config?.enableSms ?? false;
+      final enableWhatsapp = config?.enableWhatsapp ?? false;
       talker.info(
-        'digital receipt: invoking generateReceiptUrl for $transactionId '
-        'file=$receiptFileName phone=$phone',
+        'digital receipt: channels enableSms=$enableSms enableWhatsapp=$enableWhatsapp',
       );
-      final result = await requestReceiptLink(
-        branchId: branchId,
-        receiptFileName: receiptFileName,
-        phoneNumber: phone,
-        transactionId: transactionId,
-        smsBranchId: smsBranchId,
-      );
-
-      if (result == null) {
+      if (!enableSms && !enableWhatsapp) {
         talker.warning(
-          'digital receipt: generateReceiptUrl returned no link for $transactionId '
-          '(see warnings above for status/body)',
+          'digital receipt: skipped — no channel enabled for branch $branchId',
         );
         return;
       }
 
-      final shortUrlId = result.shortUrlId;
-      talker.info(
-        'digital receipt: short link $shortUrlId queued — '
-        'message_id=${result.messageId ?? "n/a"}',
-      );
+      var anySuccess = false;
 
-      await _invokeSendSms();
+      if (enableSms) {
+        talker.info(
+          'digital receipt: SMS path for $transactionId '
+          'file=$receiptFileName phone=$phone',
+        );
+        final result = await requestReceiptLink(
+          branchId: branchId,
+          receiptFileName: receiptFileName,
+          phoneNumber: phone,
+          transactionId: transactionId,
+          smsBranchId: smsBranchId,
+          sendSms: true,
+        );
+        if (result != null) {
+          talker.info(
+            'digital receipt: short link ${result.shortUrlId} queued — '
+            'message_id=${result.messageId ?? "n/a"}',
+          );
+          await _invokeSendSms();
+          anySuccess = true;
+        } else {
+          talker.warning(
+            'digital receipt: generateReceiptUrl returned no link for $transactionId',
+          );
+        }
+      }
+
+      if (enableWhatsapp &&
+          !_whatsAppSentTransactionIds.contains(transactionId)) {
+        final waOk = await _sendWhatsAppReceiptPdf(
+          branchId: branchId,
+          phone: phone,
+          receiptFileName: receiptFileName,
+          pdfData: pdfData,
+          whatsappProvider: config?.whatsappProvider,
+        );
+        if (waOk) {
+          _whatsAppSentTransactionIds.add(transactionId);
+          anySuccess = true;
+        }
+      } else if (enableWhatsapp) {
+        anySuccess = true;
+        talker.info(
+          'digital receipt: WhatsApp already sent earlier for $transactionId',
+        );
+      }
+
+      if (!anySuccess) {
+        talker.warning(
+          'digital receipt: no channel succeeded for $transactionId',
+        );
+        return;
+      }
 
       try {
         final strategy = ProxyService.getStrategy(Strategy.capella);
@@ -144,6 +317,112 @@ class DigitalReceiptService {
       );
     } finally {
       _clearQueuedForSms(transactionId);
+      _whatsAppSentTransactionIds.remove(transactionId);
+    }
+  }
+
+  static Future<bool> _sendWhatsAppReceiptPdf({
+    required String branchId,
+    required String phone,
+    required String receiptFileName,
+    Uint8List? pdfData,
+    int? whatsappProvider,
+  }) async {
+    if (pdfData == null || pdfData.isEmpty) {
+      talker.warning(
+        'digital receipt: WhatsApp skipped — no PDF bytes for $receiptFileName',
+      );
+      return false;
+    }
+
+    final charged =
+        await SmsNotificationService.deductSmsCredits(branchId: branchId);
+    if (!charged) {
+      talker.warning(
+        'digital receipt: WhatsApp skipped — insufficient credits for $branchId',
+      );
+      return false;
+    }
+
+    try {
+      final dataConnectorUrl = await resolveEbmDataConnectorUrl();
+      if (dataConnectorUrl == null || dataConnectorUrl.isEmpty) {
+        talker.warning(
+          'digital receipt: WhatsApp skipped — Ebm.dataConnectorUrl is not set '
+          '(taxServerUrl is not used)',
+        );
+        return false;
+      }
+      final provider = WhatsAppChannel.toApiProvider(whatsappProvider);
+      final client = await createOrderFormWhatsAppClient(
+        dataConnectorUrl: dataConnectorUrl,
+        defaultProvider: provider,
+      );
+      talker.info(
+        'digital receipt: POST ${client.baseUrl}api/whatsapp/send-document '
+        'provider=$provider phone=$phone file=$receiptFileName',
+      );
+      final result = await client.sendDocument(
+        phone: phone,
+        pdfBytes: pdfData,
+        filename: receiptFileName,
+        caption: 'Your digital receipt',
+        provider: provider,
+      );
+
+      if (result.needsOptIn) {
+        talker.info(
+          'digital receipt: Meta opt-in required (queued=${result.queued} '
+          'queue_id=${result.queueId})',
+        );
+        if (!_optInPromptController.isClosed) {
+          _optInPromptController.add(
+            WhatsAppOptInPrompt(
+              phone: phone,
+              chatUrl: result.chatUrl,
+              qrPngBase64: result.qrPngBase64,
+              queueId: result.queueId,
+            ),
+          );
+        }
+        await SmsNotificationService.createMessage(
+          text:
+              'Digital receipt PDF queued (awaiting WhatsApp opt-in): $receiptFileName',
+          phoneNumber: phone,
+          branchId: branchId,
+          messageSource: 'whatsapp',
+          messageType: 'document',
+          delivered: false,
+          whatsappMessageId: result.queueId,
+        );
+        // Queued server-side — treat as handled so we do not re-send.
+        return true;
+      }
+
+      await SmsNotificationService.createMessage(
+        text: 'Digital receipt PDF: $receiptFileName',
+        phoneNumber: phone,
+        branchId: branchId,
+        messageSource: 'whatsapp',
+        messageType: 'document',
+        delivered: true,
+        whatsappMessageId: result.messageId,
+      );
+      talker.info(
+        'digital receipt: WhatsApp PDF sent message_id=${result.messageId}',
+      );
+      return result.ok;
+    } catch (e, s) {
+      talker.error('digital receipt: WhatsApp PDF send failed: $e', e, s);
+      await SmsNotificationService.createMessage(
+        text: 'Digital receipt PDF: $receiptFileName',
+        phoneNumber: phone,
+        branchId: branchId,
+        messageSource: 'whatsapp',
+        messageType: 'document',
+        delivered: false,
+      );
+      return false;
     }
   }
 

@@ -579,29 +579,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     try {
       debugPrint('Upserting: ${instance.toString()}');
-      try {
-        if (instance is ITransaction) {
-          instance.items ??= [];
+      if (instance is ITransaction) {
+        instance.items ??= [];
+      }
+      if (instance is TransactionItem) {
+        debugPrint('We got item to save: ${instance.toString()}');
+      }
+      instance = await super.upsert(instance, policy: policy, query: query);
+      // Counters are Capella-only in Ditto; never push SQLite/Supabase rows.
+      if (!skipDittoSync && instance is! Counter) {
+        if (instance is Stock) {
+          debugPrint('New Current Stock: ${instance.currentStock}');
         }
         if (instance is TransactionItem) {
           debugPrint('We got item to save: ${instance.toString()}');
         }
-        instance = await super.upsert(instance, policy: policy, query: query);
-        // Counters are Capella-only in Ditto; never push SQLite/Supabase rows.
-        if (!skipDittoSync && instance is! Counter) {
-          if (instance is Stock) {
-            debugPrint('New Current Stock: ${instance.currentStock}');
-          }
-          if (instance is TransactionItem) {
-            debugPrint('We got item to save: ${instance.toString()}');
-          }
+        try {
           unawaited(
             DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
           );
+        } catch (e, stackTrace) {
+          _logger.warning(
+              'Error notifying Ditto of local change: $e', stackTrace);
         }
-      } catch (e, stackTrace) {
-        _logger.warning(
-            'Error notifying Ditto of local change: $e', stackTrace);
       }
 
       return instance;

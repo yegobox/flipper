@@ -592,12 +592,12 @@ class _ChannelCard extends StatelessWidget {
             height: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isData ? FloTheme.blueTint : FloTheme.waTint,
+              color: FloTheme.blueTint,
               borderRadius: BorderRadius.circular(11),
             ),
             child: isData
                 ? FloIcons.database(size: 21, color: FloTheme.blue)
-                : FloIcons.whatsApp(size: 21, color: FloTheme.waDeep),
+                : FloIcons.whatsApp(size: 21, color: FloTheme.blueDeep),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -656,20 +656,9 @@ class _ChannelCard extends StatelessWidget {
                       height: 34,
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFF25BD60), FloTheme.waDeep],
-                        ),
+                        gradient: FloTheme.gradBtn,
                         borderRadius: BorderRadius.circular(10),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x990E8A47),
-                            blurRadius: 18,
-                            offset: Offset(0, 8),
-                            spreadRadius: -8,
-                          ),
-                        ],
+                        boxShadow: const [FloTheme.shBlue],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

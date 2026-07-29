@@ -51,10 +51,12 @@ import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
 import 'package:flipper_dashboard/widgets/checkout_mode_bar.dart';
 import 'package:flipper_dashboard/widgets/checkout_transfer_branch_row.dart';
 import 'package:flipper_dashboard/widgets/checkout_transfer_footer.dart';
+import 'package:flipper_dashboard/widgets/whatsapp_meta_opt_in_dialog.dart';
 import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_dashboard/services/branch_transfer_service.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
+import 'package:flipper_services/digital_receipt_service.dart';
 
 /// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
 String _qsvPendingLabel(AsyncValue<ITransaction> v) {
@@ -733,6 +735,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Store initial branch ID to detect changes
     _currentBranchId = ProxyService.box.getBranchId();
+
+    // Meta WhatsApp: when receipt is queued outside 24h window, show opt-in QR.
+    _whatsAppOptInSub = DigitalReceiptService.optInPromptStream.listen((prompt) {
+      if (!mounted || _whatsAppOptInDialogShowing) return;
+      _whatsAppOptInDialogShowing = true;
+      showWhatsAppMetaOptInDialog(context, prompt).whenComplete(() {
+        _whatsAppOptInDialogShowing = false;
+      });
+    });
   }
 
   void _onDiscountChanged() {
@@ -895,6 +906,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Track current branch ID to detect branch changes
   String? _currentBranchId;
+  StreamSubscription<WhatsAppOptInPrompt>? _whatsAppOptInSub;
+  bool _whatsAppOptInDialogShowing = false;
 
   /// Collapsed = Search Customer; expanded = Name + Phone (swap, not stack).
   bool _customerFieldsExpanded = false;
@@ -992,6 +1005,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   void dispose() {
     widget.discountController.removeListener(_onDiscountChanged);
+    _whatsAppOptInSub?.cancel();
     _customerNamePersistTimer?.cancel();
     _customerPhonePersistTimer?.cancel();
     _receivedAmountSyncTimer?.cancel();
@@ -1075,6 +1089,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // header falls back to the stale stream row (old Txn ID).
     ref.read(suppressedCartTransactionIdProvider.notifier).state =
         transaction.id;
+    // Resuming a parked ticket pins the cart to it (primePosCartForTransaction),
+    // and that pin outranks the pending-cart cache. Left set, the cart resolves
+    // straight back to this now-completed sale's still-active lines as soon as
+    // suppression is released below — and stays that way until the app restarts,
+    // since the pin provider is never disposed. The settling branch above clears
+    // its own pin; this covers a plain resume (no till-settling session).
+    clearPinnedPosCartTransactionIfWidget(ref, transactionId: transaction.id);
     clearCartLinesOptimistically();
 
     ref
@@ -1141,7 +1162,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref
           .read(optimisticCartProvider.notifier)
           .bindPendingTransaction(nextPending.id);
-      if (ref.read(suppressedCartTransactionIdProvider) == transaction.id) {
+      // Only release suppression once nothing still resolves the cart to the
+      // completed sale. A pin surviving here would outrank [nextPending] in the
+      // cache, so the sold lines would come straight back.
+      final stillPinnedToSold =
+          ref.read(pinnedPosCartTransactionIdProvider) == transaction.id;
+      if (!stillPinnedToSold &&
+          ref.read(suppressedCartTransactionIdProvider) == transaction.id) {
         ref.read(suppressedCartTransactionIdProvider.notifier).state = null;
       }
     } else {
@@ -3570,6 +3597,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final txn =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
         transaction;
+    var parked = false;
     // transaction.subTotal is a persisted/streamed snapshot that can lag
     // behind optimistic cart edits and discounts — pass the live sale total
     // (same source the checkout screen renders) so the dialog never shows a
@@ -3578,7 +3606,76 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       context: context,
       transaction: txn,
       displayAmount: totalAfterDiscountAndShipping,
+      onParked: () => parked = true,
     );
+    if (!parked || !mounted) return;
+
+    // Unlike mobile checkout — which navigates away to the tickets list right
+    // after parking — this view stays put, so the handed-off lines must be
+    // cleared locally. parkSaleTicketFast mints the replacement pending cart
+    // unawaited, so waiting on the pending stream leaves the parked ticket
+    // rendered as the cart for as long as Ditto takes to reconcile.
+    final settling = ref.read(settlingTillTicketProvider);
+    if (settling != null) {
+      // A settling session scopes posCartDisplayItemsProvider straight to the
+      // ticket's item stream, which outranks every clear below.
+      ref.read(settlingTillTicketProvider.notifier).state = null;
+      clearPinnedPosCartTransactionIfWidget(
+        ref,
+        transactionId: settling.transactionId,
+      );
+    }
+    _clearCartAfterTicketHandoff(txn);
+    if (ref.read(previewingCart)) {
+      ref.read(previewingCart.notifier).state = false;
+    }
+    setState(() {});
+  }
+
+  /// Same-frame local reset for a cart that just left this device — parked as a
+  /// ticket or sent to the till. The pending-cart cache, the resume pin and the
+  /// optimistic ghosts all still point at [transaction] after the park lands in
+  /// Ditto, so without this the cart keeps rendering the handed-off lines (and
+  /// the next sale inherits its customer and tender fields).
+  void _clearCartAfterTicketHandoff(ITransaction transaction) {
+    ref.read(suppressedCartTransactionIdProvider.notifier).state =
+        transaction.id;
+    // A resumed ticket handed off again leaves its pin behind. Since the pin
+    // wins over the (just-cleared) cache, the suppression above would then
+    // blank *every* later cart too — new taps write to the next pending id
+    // while the display still resolves the suppressed, pinned one.
+    clearPinnedPosCartTransactionIfWidget(ref, transactionId: transaction.id);
+    clearCartLinesOptimistically();
+    ref
+        .read(optimisticCartProvider.notifier)
+        .clearForTransaction(transaction.id);
+    clearCachedPendingCartTransactionWidget(
+      ref,
+      isExpense: false,
+    );
+    ref.invalidate(
+      transactionItemsStreamProvider(
+        transactionId: transaction.id,
+        branchId: ProxyService.box.getBranchId() ?? '0',
+      ),
+    );
+    _lastAutoSetAmount = 0.0;
+    _lastPaymentInitTransactionId = null;
+    _cachedNonCreditPaid = null;
+    ref.invalidate(paymentMethodsProvider);
+    widget.receivedAmountController.clear();
+    widget.discountController.clear();
+    // Clear customer details too, so the next sale does not inherit the
+    // handed-off ticket's customer. Name/phone live in controllers + persisted
+    // box keys (mirrors _collapseCustomerFields).
+    ref.read(customerNameControllerProvider).clear();
+    widget.customerPhoneNumberController.clear();
+    ProxyService.box.writeString(key: 'customerName', value: '');
+    ProxyService.box.writeString(
+      key: 'currentSaleCustomerPhoneNumber',
+      value: '',
+    );
+    ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
   }
 
   Future<void> _sendCartToTill(ITransaction transaction) async {
@@ -3604,39 +3701,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             customerId: transaction.customerId,
           );
 
-      ref.read(suppressedCartTransactionIdProvider.notifier).state =
-          transaction.id;
-      clearCartLinesOptimistically();
-      ref
-          .read(optimisticCartProvider.notifier)
-          .clearForTransaction(transaction.id);
-      clearCachedPendingCartTransactionWidget(
-        ref,
-        isExpense: false,
-      );
-      ref.invalidate(
-        transactionItemsStreamProvider(
-          transactionId: transaction.id,
-          branchId: ProxyService.box.getBranchId() ?? '0',
-        ),
-      );
-      _lastAutoSetAmount = 0.0;
-      _lastPaymentInitTransactionId = null;
-      _cachedNonCreditPaid = null;
-      ref.invalidate(paymentMethodsProvider);
-      widget.receivedAmountController.clear();
-      widget.discountController.clear();
-      // Clear customer details too, so the next sale does not inherit the sent
-      // ticket's customer. Name/phone live in controllers + persisted box keys
-      // (mirrors _collapseCustomerFields).
-      ref.read(customerNameControllerProvider).clear();
-      widget.customerPhoneNumberController.clear();
-      ProxyService.box.writeString(key: 'customerName', value: '');
-      ProxyService.box.writeString(
-        key: 'currentSaleCustomerPhoneNumber',
-        value: '',
-      );
-      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      _clearCartAfterTicketHandoff(transaction);
 
       if (mounted) {
         showSuccessNotification(

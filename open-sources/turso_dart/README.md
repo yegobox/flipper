@@ -7,8 +7,12 @@ Android builds pass `-Wl,-z,max-page-size=16384` (and `common-page-size`) so
 4 KB alignment, which Google Play rejects for apps targeting API 35+.
 
 Patch:
-- `rust/.cargo/config.toml` — linker flags for Android Cargo target triples only
-  (safe for web: those triples are never used, and the hook must not read
-  `input.config.code` which is null on web).
+
+- `hook/build.dart` — sets `CARGO_TARGET_*_LINUX_ANDROID_RUSTFLAGS` for the
+  three Android triples. Required because `native_toolchain_rust` invokes
+  `cargo` with `--manifest-path` and does not `cd` into `rust/`, so Cargo never
+  loads `rust/.cargo/config.toml` (config discovery is cwd-based).
+- `rust/.cargo/config.toml` — same flags for local `cd rust && cargo build
+  --target …` workflows; not used by the Flutter native-assets hook.
 
 Remove this fork when upstream publishes a 16 KB-aligned release.

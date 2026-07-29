@@ -1,6 +1,6 @@
 name: turso_dart
 description: "Dart binding for the new-gen Turso (Flipper fork: Android 16KB ELF alignment)"
-version: 0.1.0
+version: 0.1.0+flipper.1
 repository: https://github.com/dikatok/turso_dart
 topics: [turso, sqlite, database, local, sync]
 publish_to: none

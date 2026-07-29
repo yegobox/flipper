@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:logging/logging.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:supabase_models/brick/databasePath.dart';
+import 'package:supabase_models/brick/repository/turso_preflight_repair.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
@@ -116,6 +117,8 @@ class PlatformHelpers {
     final DatabaseFactory factory;
     if (AppSecrets.tursoCloudSyncEnabled) {
       final localFile = File(localPath);
+      // Fix known BranchSmsConfig temp-rebuild corruption before Turso opens.
+      repairTursoMigrationCorruptionIfNeeded(localPath);
       if (TursoReplicaPaths.hasOrphanedSyncMetadata(localPath)) {
         _logger.warning(
           'Removing orphaned Turso sync metadata for $localPath '
@@ -147,6 +150,7 @@ class PlatformHelpers {
       );
     } else {
       _logger.info('Using local Turso for main Brick database');
+      repairTursoMigrationCorruptionIfNeeded(localPath);
       factory = tursoDatabaseFactory();
     }
 

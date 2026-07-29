@@ -353,22 +353,22 @@ class Business extends OfflineFirstWithSupabaseModel {
     }
   }
 
-  /// Set WhatsApp phone number ID in messaging channels
+  /// Set WhatsApp phone number ID in messaging channels.
+  ///
+  /// Mutates this instance in place — [copyWith] drops several Business fields
+  /// (email, tax flags, bhfId, …), so it must not be used for this update.
   Business setWhatsAppPhoneNumberId(String? phoneNumberId) {
     Map<String, dynamic> channels = {};
 
-    // Parse existing channels if any
     if (messagingChannels != null && messagingChannels!.isNotEmpty) {
       try {
         channels =
             Map<String, dynamic>.from(jsonDecode(messagingChannels!) as Map);
-      } catch (e) {
-        // If parsing fails, start with empty map
+      } catch (_) {
         channels = {};
       }
     }
 
-    // Update or remove WhatsApp config
     if (phoneNumberId == null || phoneNumberId.isEmpty) {
       channels.remove('whatsapp');
     } else {
@@ -379,9 +379,19 @@ class Business extends OfflineFirstWithSupabaseModel {
       };
     }
 
-    // Return updated business
-    return copyWith(
-      messagingChannels: channels.isEmpty ? '{}' : jsonEncode(channels),
-    );
+    messagingChannels = channels.isEmpty ? '{}' : jsonEncode(channels);
+    return this;
+  }
+
+  /// Parsed messaging channels map (empty if unset / invalid).
+  Map<String, dynamic> messagingChannelsMap() {
+    if (messagingChannels == null || messagingChannels!.isEmpty) {
+      return {};
+    }
+    try {
+      return Map<String, dynamic>.from(jsonDecode(messagingChannels!) as Map);
+    } catch (_) {
+      return {};
+    }
   }
 }
