@@ -47,6 +47,12 @@ class ReviewQueueBanner extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Hooks must run unconditionally and in a stable order, so `useState` comes
+    // before the early returns below — placed after them, the hook count changed
+    // between builds every time access flipped or the queue emptied/refilled,
+    // which silently discarded the expanded/collapsed state.
+    final expanded = useState(false);
+
     final canView = ref.watch(
       featureViewAccessProvider(
         userId: ProxyService.box.getUserId() ?? '',
@@ -61,7 +67,6 @@ class ReviewQueueBanner extends HookConsumerWidget {
         ref.watch(reviewQueueStreamProvider).value ?? const <ITransaction>[];
     if (tickets.isEmpty) return const SizedBox.shrink();
 
-    final expanded = useState(false);
     final count = tickets.length;
 
     return Container(

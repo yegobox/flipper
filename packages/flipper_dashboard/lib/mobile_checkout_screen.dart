@@ -30,8 +30,10 @@ import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
@@ -80,6 +82,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   double? _cachedNonCreditPaid;
   bool _sendToTillBusy = false;
   bool _backToNewSaleBusy = false;
+  /// Set when settling was cleared after a successful re-park or payment so
+  /// [dispose] does not try to re-park again.
+  bool _settlingLeaveHandled = false;
 
   String get _transactionId => widget.transaction.id;
 
@@ -115,12 +120,48 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     final container = _container;
     if (container != null) {
       clearPinnedPosCartTransactionContainer(container);
-      // Leaving the dedicated checkout ends any till-settling session so the
-      // operator's next cart is not scoped to the collected ticket
-      // (posCartDisplayItemsProvider keys off settlingTillTicketProvider).
-      container.read(settlingTillTicketProvider.notifier).state = null;
+      // Never clear settling without re-parking — that left a PENDING till
+      // ticket invisible on the Tickets list after a system back / swipe-away.
+      final settling = container.read(settlingTillTicketProvider);
+      if (settling != null && !_settlingLeaveHandled) {
+        unawaited(_reparkSettlingViaContainer(container, settling));
+      }
     }
     super.dispose();
+  }
+
+  /// Re-park a settling ticket after this route is gone (no [ref] / snackbars).
+  Future<void> _reparkSettlingViaContainer(
+    ProviderContainer container,
+    SettlingTillTicket settling,
+  ) async {
+    try {
+      final branchId = settling.branchId ?? _branchId;
+      final txn = settling.ticketSnapshot ??
+          await ProxyService.getStrategy(Strategy.capella).getTransaction(
+            id: settling.transactionId,
+            branchId: branchId,
+          );
+      if (txn != null &&
+          (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
+        await ParkTransactionService.park(
+          ticketName: (settling.ticketName ?? '').trim().isNotEmpty
+              ? settling.ticketName!.trim()
+              : 'Till · ${settling.displayRef}',
+          ticketNote: settling.ticketNote ?? 'Sent to till for payment',
+          transaction: txn,
+          customerId: txn.customerId,
+        );
+      }
+      container.read(settlingTillTicketProvider.notifier).state = null;
+      _settlingLeaveHandled = true;
+    } catch (e, st) {
+      tv_talk.talker.error(
+        'Mobile checkout dispose re-park failed (settling kept): $e',
+        st,
+      );
+      // Keep settlingTillTicketProvider set so the next POS surface can recover.
+    }
   }
 
   @override
@@ -146,9 +187,23 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
   Future<void> _showParkDialog() async {
     var parked = false;
-    final txn =
-        ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
-        widget.transaction;
+    // Bind the on-screen sale — settling snapshot first, else the same id as
+    // this checkout route. Unconditionally reading the pending stream parked
+    // the collector's empty twin while settling (desktop had the same bug).
+    final settling = ref.read(settlingTillTicketProvider);
+    final streamedPending =
+        ref.read(pendingTransactionStreamProvider(isExpense: false)).value;
+    final ITransaction txn;
+    if (settling != null &&
+        settling.transactionId.isNotEmpty &&
+        settling.ticketSnapshot != null) {
+      txn = settling.ticketSnapshot!;
+    } else if (streamedPending != null &&
+        streamedPending.id == widget.transaction.id) {
+      txn = streamedPending;
+    } else {
+      txn = widget.transaction;
+    }
     // transaction.subTotal is a persisted/streamed snapshot that can lag
     // behind optimistic cart edits — pass the live sale total (same
     // calculateTransactionTotal source the checkout screen renders in
@@ -166,6 +221,12 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       onParked: () => parked = true,
     );
     if (!parked || !mounted) return;
+
+    if (settling != null && settling.transactionId == txn.id) {
+      _settlingLeaveHandled = true;
+      ref.read(settlingTillTicketProvider.notifier).state = null;
+      clearPinnedPosCartTransactionWidget(ref);
+    }
 
     final rootNav = Navigator.of(context, rootNavigator: true);
     if (rootNav.canPop()) {
@@ -305,6 +366,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         return;
       }
 
+      _settlingLeaveHandled = true;
       ref.read(settlingTillTicketProvider.notifier).state = null;
       clearPinnedPosCartTransactionWidget(ref);
       ref.invalidate(oldProvider.paymentMethodsProvider);
@@ -582,6 +644,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
     if (!mounted) return;
     if (wasSettling) {
+      _settlingLeaveHandled = true;
       ref.read(settlingTillTicketProvider.notifier).state = null;
       // Unwind the resume pin/cache and suppress the ticket's now-completed
       // lines so the operator's next cart starts empty instead of resolving
@@ -957,7 +1020,14 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       );
     }
 
-    return Scaffold(
+    return PopScope(
+      canPop: settling == null || _settlingLeaveHandled,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || settling == null || _settlingLeaveHandled) return;
+        if (_backToNewSaleBusy) return;
+        await _backToNewSaleFromSettling();
+      },
+      child: Scaffold(
       backgroundColor: MposTokens.bg,
       body: SafeArea(
         bottom: false,
@@ -1293,6 +1363,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           },
         ),
       ),
+    ),
     );
   }
 }
