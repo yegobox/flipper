@@ -1170,7 +1170,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // and that pin outranks the pending-cart cache. Left set, the cart resolves
     // straight back to this now-completed sale's still-active lines as soon as
     // suppression is released below — and stays that way until the app restarts,
-    // since the pin provider is never disposed.
+    // since the pin provider is never disposed. The settling branch above clears
+    // its own pin; this covers a plain resume (no till-settling session).
     clearPinnedPosCartTransactionIfWidget(ref, transactionId: soldId);
     clearCartLinesOptimistically();
 

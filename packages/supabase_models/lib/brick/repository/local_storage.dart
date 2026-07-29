@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_models/brick/databasePath.dart';
+import 'package:supabase_models/brick/repository/legacy_preferences_migration.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
@@ -385,11 +386,24 @@ class SharedPreferenceStorage implements LocalStorage {
         await Directory(directory).create(recursive: true);
       }
 
-      // Set the file paths with version number
-      _filePath = path.join(
-          directory, '${_kPreferencesKey}_v$_kPreferencesVersion.json');
-      _backupFilePath = path.join(
-          directory, '${_kPreferencesBackupKey}_v$_kPreferencesVersion.json');
+      // Stable file paths — NOT versioned by dbVersion. A versioned filename
+      // here previously meant every unrelated dbVersion bump silently reset
+      // all local preferences (session, tokens, encryptionKey) to empty; see
+      // [migrateLegacyPreferencesFileIfNeeded].
+      _filePath = path.join(directory, '$_kPreferencesKey.json');
+      _backupFilePath = path.join(directory, '$_kPreferencesBackupKey.json');
+
+      // One-time migration from the old `_v<dbVersion>.json` naming scheme.
+      await migrateLegacyPreferencesFileIfNeeded(
+        directory: directory,
+        baseName: _kPreferencesKey,
+        targetFileName: path.basename(_filePath),
+      );
+      await migrateLegacyPreferencesFileIfNeeded(
+        directory: directory,
+        baseName: _kPreferencesBackupKey,
+        targetFileName: path.basename(_backupFilePath),
+      );
 
       // Load preferences from file
       await _loadPreferences();
@@ -405,15 +419,13 @@ class SharedPreferenceStorage implements LocalStorage {
       if (isTestEnv) {
         try {
           final tempDir = Directory.systemTemp;
-          _filePath = path.join(tempDir.path,
-              '${_kPreferencesKey}_v${_kPreferencesVersion}_test.json');
-          _backupFilePath = path.join(tempDir.path,
-              '${_kPreferencesBackupKey}_v${_kPreferencesVersion}_test.json');
+          _filePath = path.join(tempDir.path, '${_kPreferencesKey}_test.json');
+          _backupFilePath = path.join(
+              tempDir.path, '${_kPreferencesBackupKey}_test.json');
         } catch (pathError) {
           // Fallback to hardcoded paths if even temp directory fails
-          _filePath = '${_kPreferencesKey}_v${_kPreferencesVersion}_test.json';
-          _backupFilePath =
-              '${_kPreferencesBackupKey}_v${_kPreferencesVersion}_test.json';
+          _filePath = '${_kPreferencesKey}_test.json';
+          _backupFilePath = '${_kPreferencesBackupKey}_test.json';
         }
       }
 
