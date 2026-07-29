@@ -43,4 +43,54 @@ void main() {
       );
     });
   });
+
+  group('pendingSaleCartNeedsItemLookup', () {
+    test('only blank zero-value carts need item lookup', () {
+      expect(
+        pendingSaleCartNeedsItemLookup(subTotal: 0, ticketName: null),
+        isTrue,
+      );
+      expect(
+        pendingSaleCartNeedsItemLookup(subTotal: 0, ticketName: 'Jean'),
+        isFalse,
+      );
+      expect(
+        pendingSaleCartNeedsItemLookup(subTotal: 100, ticketName: null),
+        isFalse,
+      );
+    });
+  });
+
+  group('classifyPendingSaleCarts', () {
+    test('deleteNonEmpty wipes every candidate', () {
+      final plan = classifyPendingSaleCarts(
+        candidates: [
+          {'id': 'a', 'subTotal': 0},
+          {'id': 'b', 'subTotal': 50, 'ticketName': 'Jean'},
+        ],
+        idsWithItems: {},
+        deleteNonEmpty: true,
+      );
+      expect(plan.deleteIds, ['a', 'b']);
+      expect(plan.reparkRows, isEmpty);
+    });
+
+    test('batches empty carts for delete and re-parks named/valued ones', () {
+      final plan = classifyPendingSaleCarts(
+        candidates: [
+          {'id': 'empty', 'subTotal': 0},
+          {'id': 'named', 'subTotal': 0, 'ticketName': 'Jean'},
+          {'id': 'valued', 'subTotal': 19000},
+          {'id': 'has-lines', 'subTotal': 0},
+        ],
+        idsWithItems: {'has-lines'},
+        deleteNonEmpty: false,
+      );
+      expect(plan.deleteIds, ['empty']);
+      expect(
+        plan.reparkRows.map((r) => r['id']),
+        ['named', 'valued', 'has-lines'],
+      );
+    });
+  });
 }

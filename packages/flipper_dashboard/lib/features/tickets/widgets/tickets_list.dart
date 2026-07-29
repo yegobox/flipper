@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/utils/ticket_handover_finalize.dart';
 import 'package:flipper_dashboard/utils/ticket_workflow_complete_launcher.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/services/park_transaction_service.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/park_transaction_provider.dart';
@@ -760,7 +761,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           canCollect &&
                           !isParked &&
                           !(isAwaitingHandover && canRecordHandover),
-                      showResume: !reviewWorkflowOn && canCollect,
+                      // Resume only for parked tickets — WAITING / handover rows
+                      // must not be yanked into the till cart.
+                      showResume: !reviewWorkflowOn && canCollect && isParked,
                       canManage: canCollect,
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
@@ -851,18 +854,31 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (!ref.read(canCollectPosPaymentProvider)) {
       return;
     }
+    // Without review workflow, only parked tickets may be resumed into the till.
+    if (!_ticketReviewWorkflowEnabled &&
+        (ticket.status ?? '').toLowerCase() != PARKED) {
+      return;
+    }
+    // Ignore re-taps while a handoff is already in flight (double-resume hung
+    // Ditto write locks in production logs).
+    if (_collectingTicketId != null) return;
+    setState(() => _collectingTicketId = ticket.id);
     var resumeSucceeded = false;
-    await showResumeTicketDialog(
-      context: context,
-      ticket: ticket,
-      onResume: (t) async {
-        resumeSucceeded = await _handOffTicketToCheckout(
-          context,
-          t,
-          asSettling: true,
-        );
-      },
-    );
+    try {
+      await showResumeTicketDialog(
+        context: context,
+        ticket: ticket,
+        onResume: (t) async {
+          resumeSucceeded = await _handOffTicketToCheckout(
+            context,
+            t,
+            asSettling: true,
+          );
+        },
+      );
+    } finally {
+      if (mounted) setState(() => _collectingTicketId = null);
+    }
     if (!resumeSucceeded || !mounted) return;
     showCustomSnackBarUtil(
       context,
@@ -883,20 +899,38 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     ITransaction ticket, {
     required bool asSettling,
   }) async {
-    // If another ticket is mid-settle, re-park it first so we never leave two
-    // PENDING originals competing (and so F1 re-park path has a named ticket).
-    final existingSettling = ref.read(settlingTillTicketProvider);
-    if (existingSettling != null &&
-        existingSettling.transactionId.isNotEmpty &&
-        existingSettling.transactionId != ticket.id) {
-      await _reparkSettlingTicket(existingSettling);
+    // Already settling this ticket — just return to checkout.
+    final currentSettling = ref.read(settlingTillTicketProvider);
+    if (currentSettling != null &&
+        currentSettling.transactionId == ticket.id) {
+      if (MediaQuery.sizeOf(context).width < 600) {
+        unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
+      } else {
+        locator<RouterService>().back();
+      }
+      return true;
+    }
+
+    // If another ticket is mid-settle, re-park it first. Abort if that fails so
+    // we never clear settling while leaving A as orphan PENDING.
+    if (currentSettling != null &&
+        currentSettling.transactionId.isNotEmpty &&
+        currentSettling.transactionId != ticket.id) {
+      final reparked = await _reparkSettlingTicket(currentSettling);
+      if (!reparked) return false;
     }
 
     final parkedAt =
         ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
 
     final ok = await _resumeOrder(ticket);
-    if (!ok || !mounted) return false;
+    if (!ok) return false;
+    if (!mounted) {
+      // Capella already flipped this ticket to PENDING; put it back on the
+      // till queue so it is not lost when the Tickets route was disposed mid-handoff.
+      unawaited(_emergencyReparkResumedTicket(ticket));
+      return false;
+    }
 
     if (!asSettling) return true;
 
@@ -931,7 +965,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       'ticketBranch=${ticket.branchId} boxBranch=${ProxyService.box.getBranchId()} '
       'seedCount=${seedItems.length}',
     );
-    if (!mounted) return false;
+    if (!mounted) {
+      unawaited(_emergencyReparkResumedTicket(ticket));
+      return false;
+    }
 
     ticket.status = PENDING;
     ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
@@ -954,7 +991,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return true;
   }
 
-  Future<void> _reparkSettlingTicket(SettlingTillTicket settling) async {
+  /// Returns true when the prior settling ticket was re-parked (or already gone).
+  Future<bool> _reparkSettlingTicket(SettlingTillTicket settling) async {
     try {
       final branchId =
           settling.branchId ?? ProxyService.box.getBranchId() ?? '';
@@ -975,14 +1013,38 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               customerId: txn.customerId,
             );
       }
-    } catch (e, st) {
-      talker.error('Re-park previous settling ticket failed: $e', st);
-    } finally {
       ref.read(settlingTillTicketProvider.notifier).state = null;
       clearPinnedPosCartTransactionIfWidget(
         ref,
         transactionId: settling.transactionId,
       );
+      return true;
+    } catch (e, st) {
+      talker.error('Re-park previous settling ticket failed: $e', st);
+      // Keep settling set so ticket A is not orphaned as PENDING off the list.
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Could not return the current ticket to the till. Try again.',
+          backgroundColor: Colors.red,
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<void> _emergencyReparkResumedTicket(ITransaction ticket) async {
+    try {
+      await ParkTransactionService.park(
+        ticketName: (ticket.ticketName ?? '').trim().isNotEmpty
+            ? ticket.ticketName!.trim()
+            : 'Till · ${_ticketDisplayRef(ticket)}',
+        ticketNote: ticket.note ?? 'Sent to till for payment',
+        transaction: ticket,
+        customerId: ticket.customerId,
+      );
+    } catch (e, st) {
+      talker.error('Emergency re-park after aborted handoff failed: $e', st);
     }
   }
 

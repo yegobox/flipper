@@ -2319,89 +2319,83 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     };
   }
 
-  @override
-  Future<void> clearPendingSaleCartsExcept({
-    required String branchId,
-    required String agentId,
-    required String excludeTransactionId,
-    bool deleteNonEmpty = false,
-  }) async {
-    try {
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        talker.error('Ditto not initialized for clearPendingSaleCartsExcept');
-        throw StateError('Ditto not initialized for clearPendingSaleCartsExcept');
-      }
+  static const _pendingSaleCartMutationChunkSize = 80;
 
-      final args = _pendingSaleCartArgs(
-        branchId: branchId,
-        agentId: agentId,
-        excludeTransactionId: excludeTransactionId,
+  Future<Set<String>> _transactionIdsWithItems(
+    List<String> candidateIds,
+  ) async {
+    if (candidateIds.isEmpty) return {};
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return {};
+
+    final withItems = <String>{};
+    // Chunk to keep DQL arg lists bounded (resume can see 100+ orphan carts).
+    for (var i = 0;
+        i < candidateIds.length;
+        i += _pendingSaleCartMutationChunkSize) {
+      final end =
+          (i + _pendingSaleCartMutationChunkSize < candidateIds.length)
+              ? i + _pendingSaleCartMutationChunkSize
+              : candidateIds.length;
+      final chunk = candidateIds.sublist(i, end);
+      final result = await ditto.store.execute(
+        'SELECT transactionId FROM transaction_items '
+        'WHERE transactionId IN (:ids)',
+        arguments: {'ids': chunk},
       );
+      for (final item in result.items) {
+        final data = Map<String, dynamic>.from(item.value);
+        final tid = data['transactionId'] as String? ??
+            data['transaction_id'] as String?;
+        if (tid != null && tid.isNotEmpty) withItems.add(tid);
+      }
+    }
+    return withItems;
+  }
 
-      // Ditto DQL does not support subqueries, so resolve targets first.
-      // Empty carts are deleted; non-empty ones are re-parked unless
-      // [deleteNonEmpty] (user switch) asks to wipe everything.
+  /// Applies deletes/re-parks in short write transactions so a large orphan
+  /// backlog cannot hold the Ditto write lock for tens of seconds.
+  Future<void> _applyPendingSaleCartMutations({
+    required List<String> deleteIds,
+    required List<Map<String, dynamic>> reparkRows,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized for pending sale cart mutations');
+    }
+
+    for (var i = 0;
+        i < deleteIds.length;
+        i += _pendingSaleCartMutationChunkSize) {
+      final end = (i + _pendingSaleCartMutationChunkSize < deleteIds.length)
+          ? i + _pendingSaleCartMutationChunkSize
+          : deleteIds.length;
+      final chunk = deleteIds.sublist(i, end);
       await ditto.store.transaction((txn) async {
-        final selected = await txn.execute(
-          'SELECT * FROM transactions WHERE $_pendingSaleCartWhere',
-          arguments: args,
+        await txn.execute(
+          'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
+          arguments: {'ids': chunk},
         );
-        final candidates = <Map<String, dynamic>>[];
-        for (final item in selected.items) {
-          final data = Map<String, dynamic>.from(item.value);
-          final id = _dittoDocumentId(data);
-          if (id != null && id.isNotEmpty) {
-            data['id'] = id;
-            candidates.add(data);
-          }
-        }
+        await txn.execute(
+          'DELETE FROM transactions WHERE id IN (:ids)',
+          arguments: {'ids': chunk},
+        );
+      });
+    }
 
-        if (candidates.isEmpty) {
-          talker.info('clearPendingSaleCartsExcept: no pending sale carts');
-          return;
-        }
+    if (reparkRows.isEmpty) return;
 
-        final deleteIds = <String>[];
-        final reparkRows = <Map<String, dynamic>>[];
-
-        for (final row in candidates) {
-          final id = row['id'] as String;
-          if (deleteNonEmpty) {
-            deleteIds.add(id);
-            continue;
-          }
-          final subTotal = (row['subTotal'] as num?)?.toDouble() ?? 0.0;
-          final ticketName = (row['ticketName'] as String?)?.trim() ?? '';
-          final itemCount = await txn.execute(
-            'SELECT id FROM transaction_items WHERE transactionId = :id LIMIT 1',
-            arguments: {'id': id},
-          );
-          final hasItems = itemCount.items.isNotEmpty;
-          if (isEmptyPendingSaleCart(
-            subTotal: subTotal,
-            ticketName: ticketName,
-            hasItems: hasItems,
-          )) {
-            deleteIds.add(id);
-          } else {
-            reparkRows.add(row);
-          }
-        }
-
-        if (deleteIds.isNotEmpty) {
-          await txn.execute(
-            'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
-            arguments: {'ids': deleteIds},
-          );
-          await txn.execute(
-            'DELETE FROM transactions WHERE id IN (:ids)',
-            arguments: {'ids': deleteIds},
-          );
-        }
-
-        final nowIso = DateTime.now().toUtc().toIso8601String();
-        for (final row in reparkRows) {
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    for (var i = 0;
+        i < reparkRows.length;
+        i += _pendingSaleCartMutationChunkSize) {
+      final end =
+          (i + _pendingSaleCartMutationChunkSize < reparkRows.length)
+              ? i + _pendingSaleCartMutationChunkSize
+              : reparkRows.length;
+      final chunk = reparkRows.sublist(i, end);
+      await ditto.store.transaction((txn) async {
+        for (final row in chunk) {
           final id = row['id'] as String;
           final existingName = (row['ticketName'] as String?)?.trim() ?? '';
           final ticketName = existingName.isNotEmpty
@@ -2423,12 +2417,88 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             },
           );
         }
-
-        talker.info(
-          'clearPendingSaleCartsExcept: deleted=${deleteIds.length} '
-          'reparked=${reparkRows.length} deleteNonEmpty=$deleteNonEmpty',
-        );
       });
+    }
+  }
+
+  @override
+  Future<void> clearPendingSaleCartsExcept({
+    required String branchId,
+    required String agentId,
+    required String excludeTransactionId,
+    bool deleteNonEmpty = false,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for clearPendingSaleCartsExcept');
+        throw StateError('Ditto not initialized for clearPendingSaleCartsExcept');
+      }
+
+      final args = _pendingSaleCartArgs(
+        branchId: branchId,
+        agentId: agentId,
+        excludeTransactionId: excludeTransactionId,
+      );
+
+      // Classify with read-only queries first. The previous path ran one
+      // item-existence SELECT per candidate *inside* a write transaction —
+      // with ~100 orphan empty carts that held the Ditto write lock for
+      // 50s+ and blocked resume.
+      final selected = await ditto.store.execute(
+        'SELECT * FROM transactions WHERE $_pendingSaleCartWhere',
+        arguments: args,
+      );
+      final candidates = <Map<String, dynamic>>[];
+      for (final item in selected.items) {
+        final data = Map<String, dynamic>.from(item.value);
+        final id = _dittoDocumentId(data);
+        if (id != null && id.isNotEmpty) {
+          data['id'] = id;
+          candidates.add(data);
+        }
+      }
+
+      if (candidates.isEmpty) {
+        talker.info('clearPendingSaleCartsExcept: no pending sale carts');
+        return;
+      }
+
+      Set<String> idsWithItems = {};
+      if (!deleteNonEmpty) {
+        final maybeEmptyIds = <String>[];
+        for (final row in candidates) {
+          final subTotal = (row['subTotal'] as num?)?.toDouble() ?? 0.0;
+          final ticketName = row['ticketName'] as String?;
+          if (pendingSaleCartNeedsItemLookup(
+            subTotal: subTotal,
+            ticketName: ticketName,
+          )) {
+            maybeEmptyIds.add(row['id'] as String);
+          }
+        }
+        idsWithItems = await _transactionIdsWithItems(maybeEmptyIds);
+      }
+
+      final classified = classifyPendingSaleCarts(
+        candidates: candidates,
+        idsWithItems: idsWithItems,
+        deleteNonEmpty: deleteNonEmpty,
+      );
+
+      if (classified.deleteIds.isEmpty && classified.reparkRows.isEmpty) {
+        return;
+      }
+
+      await _applyPendingSaleCartMutations(
+        deleteIds: classified.deleteIds,
+        reparkRows: classified.reparkRows,
+      );
+
+      talker.info(
+        'clearPendingSaleCartsExcept: deleted=${classified.deleteIds.length} '
+        'reparked=${classified.reparkRows.length} deleteNonEmpty=$deleteNonEmpty',
+      );
     } catch (e, s) {
       talker.error('clearPendingSaleCartsExcept: $e', s);
       rethrow;
@@ -2636,12 +2706,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required String deviceId,
     required String branchId,
   }) async {
-    await clearPendingSaleCartsExcept(
-      branchId: branchId,
-      agentId: agentId,
-      excludeTransactionId: ticket.id,
-    );
-
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for resumeSaleTicketFast');
@@ -2652,6 +2716,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Do NOT touch createdAt here: it holds the original sale time (park no
     // longer overwrites it). Till "sent N min ago" is stamped onto
     // SettlingTillTicket from lastTouched *before* this resume write.
+    //
+    // Resume the ticket *before* sibling-cart cleanup. Cleanup used to run
+    // first and hold the Ditto write lock for 50s+ while classifying ~100
+    // orphan empty carts one query at a time — the resume UPDATE never ran
+    // until that finished, so the UI felt hung.
     await ditto.store.execute(
       'UPDATE transactions SET '
       'status = :status, agentId = :agentId, deviceId = :deviceId, '
@@ -2665,6 +2734,20 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'updatedAt': nowIso,
         'lastTouched': nowIso,
       },
+    );
+
+    // Do not block UI handoff on orphan-cart cleanup. A large backlog of empty
+    // pending carts (100+) can still take a second or two to delete even with
+    // batched reads; settling/pin paths key off [ticket.id] so a brief twin
+    // pending row is safe.
+    unawaited(
+      clearPendingSaleCartsExcept(
+        branchId: branchId,
+        agentId: agentId,
+        excludeTransactionId: ticket.id,
+      ).catchError((Object e, StackTrace s) {
+        talker.error('resumeSaleTicketFast cleanup: $e', s);
+      }),
     );
   }
 
