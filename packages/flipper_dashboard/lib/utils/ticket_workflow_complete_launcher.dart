@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -134,7 +135,15 @@ class _TicketWorkflowCompleteHostState
         transaction: ticket,
       );
 
-      final alreadyPaid = await fetchNonCreditPaid(ticket.id);
+      // Floor the fetched records with cashReceived on a loan, like
+      // QuickSellingView / MobileCheckoutScreen / CheckOut do: the payment-line
+      // persist is deferred and fire-and-forget, so a lagging fetch would
+      // under-count a resumed loan's earlier installment and re-park a ticket
+      // that this completion just paid off.
+      final fetchedPaid = await fetchNonCreditPaid(ticket.id);
+      final alreadyPaid = ticket.isLoan == true
+          ? math.max(fetchedPaid, ticket.cashReceived ?? 0.0)
+          : fetchedPaid;
       final total = ticket.subTotal ?? 0.0;
       updatePaymentRemainder(
         ref: ref,

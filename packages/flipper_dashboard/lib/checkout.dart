@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_dashboard/controllers/checkout_controller.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
@@ -61,6 +62,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         TextEditingControllersMixin,
         TransactionMixinOld,
         PreviewCartMixin,
+        TransactionComputationMixin,
         Refresh {
   TabController? tabController;
   bool _attachCartReconciliation = false;
@@ -241,6 +243,29 @@ class CheckOutState extends ConsumerState<CheckOut>
     return _cartDisplayOwnerTransaction(pending, listen: true) ?? pending;
   }
 
+  /// Non-credit money already collected for [transaction] before this tender.
+  ///
+  /// Mirrors `QuickSellingView._effectiveAlreadyPaid` and
+  /// `MobileCheckoutScreen._effectiveAlreadyPaid`. Both of those surfaces pass
+  /// their result as `overrideAlreadyPaid`; the desktop Pay bar passed nothing,
+  /// so a resumed loan's earlier installment could only be recovered from the
+  /// `isLoan` + [ITransaction.cashReceived] fallback inside
+  /// [markTransactionAsCompleted]. When `cashReceived` disagrees with the
+  /// persisted payment records (the deferred, fire-and-forget
+  /// `_persistSalePaymentLines` write), prior paid resolved to 0 and
+  /// [deriveSaleCompletionState] re-parked a ticket the cashier had just paid
+  /// off — e.g. 600 total, 200 already paid, 400 tendered, still parked owing.
+  ///
+  /// Floors the fetched value with `cashReceived` on a loan so a lagging fetch
+  /// can only ever *increase* prior paid, never lose an installment.
+  Future<double> _priorPaidForCompletion(ITransaction transaction) async {
+    final fetched = await fetchNonCreditPaid(transaction.id);
+    final loanFloor = transaction.isLoan == true
+        ? (transaction.cashReceived ?? 0.0)
+        : 0.0;
+    return math.max(fetched, loanFloor);
+  }
+
   /// Action-path variant (Pay / ticket navigation): logs the redirect once per
   /// tap instead of on every rebuild.
   ITransaction? _resolveActiveCheckoutTransaction(ITransaction? pending) {
@@ -342,11 +367,17 @@ class CheckOutState extends ConsumerState<CheckOut>
                     if (!_ensureCustomerBeforePay(txn)) {
                       return false;
                     }
+                    // Pass the real prior-paid: a resumed loan/layaway's earlier
+                    // installments must count towards the sale total, or paying
+                    // off the remainder re-parks the ticket still owing.
+                    final overrideAlreadyPaid =
+                        await _priorPaidForCompletion(txn);
                     return await _handleCompleteTransaction(
                       txn,
                       immediateCompletion,
                       onPaymentConfirmed,
                       onPaymentFailed,
+                      overrideAlreadyPaid,
                     );
                   },
               onTicketNavigation: () {
