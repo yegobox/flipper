@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
@@ -61,12 +62,18 @@ class _TicketWorkflowCompleteHostState
         TransactionComputationMixin,
         Refresh {
   var _started = false;
+  ProviderContainer? _container;
+
+  /// Set once [_afterCheckoutSaleCleanup] has run, i.e. the sale really was
+  /// marked complete and has already unwound the cart pin itself.
+  var _saleCompleted = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _started) return;
+      _container = ref.container;
       _started = true;
       unawaited(_run());
     });
@@ -196,13 +203,57 @@ class _TicketWorkflowCompleteHostState
         Navigator.of(context).pop();
       }
     } finally {
-      ref.read(settlingTillTicketProvider.notifier).state = null;
+      // Clear settling even if this host unmounted mid-flow — otherwise the
+      // next POS surface stays stuck on a completed/aborted ticket.
+      final container = _container;
+      if (container != null) {
+        container.read(settlingTillTicketProvider.notifier).state = null;
+      } else if (mounted) {
+        ref.read(settlingTillTicketProvider.notifier).state = null;
+      }
+      // Clearing settling while the resume pin survives is what produced the
+      // unpayable checkout: the cart keeps resolving to this ticket through
+      // [pinnedPosCartTransactionIdProvider] while Pay targets the operator's
+      // own pending cart, so completion dies in the persisted-cart poll
+      // ("cart not fully persisted … displayTxnIds={<this ticket>}").
+      // The success path unwinds the pin in [_afterCheckoutSaleCleanup]; this
+      // covers every abort before that (resume threw, customer gate rejected,
+      // Pay failed, host disposed mid-flow).
+      if (!_saleCompleted && container != null) {
+        clearPinnedPosCartTransactionIfContainer(
+          container,
+          transactionId: widget.ticket.id,
+        );
+      }
     }
   }
 
   Future<void> _afterCheckoutSaleCleanup(ITransaction transaction) async {
+    _saleCompleted = true;
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+
+    // This host resumed the ticket by PINNING the cart to it (and caching it)
+    // via [primePosCartForTransactionWidget]. The pin outranks the pending-cart
+    // cache, is never re-validated against status, and its provider is not
+    // autoDispose — so leaving it on a now-completed ticket keeps resolving the
+    // cart to that sale's still-`active` lines until the app restarts. Unwind it
+    // exactly like the other completion paths do (see
+    // `_resetCheckoutAfterSuccessfulSale` in checkout.dart and
+    // `_onQuickSellComplete` in QuickSellingView).
+    ref.read(suppressedCartTransactionIdProvider.notifier).state =
+        transaction.id;
+    clearPinnedPosCartTransactionIfWidget(ref, transactionId: transaction.id);
+    // Only drop the cache when it still points at the completed ticket:
+    // [markTransactionAsCompleted] has already primed the *next* pending cart
+    // here, and clearing that would leave the header falling back to the stale
+    // stream row.
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final cachedPending =
+        ref.read(cachedPendingCartTransactionProvider(isExpense));
+    if (cachedPending != null && cachedPending.id == transaction.id) {
+      clearCachedPendingCartTransactionWidget(ref, isExpense: isExpense);
+    }
 
     final branchId = ProxyService.box.getBranchId() ?? '0';
     ref.invalidate(

@@ -238,9 +238,11 @@ class CheckOutState extends ConsumerState<CheckOut>
           ref.watch(transactionByIdProvider(settling.transactionId)).value;
       if (ticket != null) return ticket;
     }
-    return pending;
+    return _cartDisplayOwnerTransaction(pending, listen: true) ?? pending;
   }
 
+  /// Action-path variant (Pay / ticket navigation): logs the redirect once per
+  /// tap instead of on every rebuild.
   ITransaction? _resolveActiveCheckoutTransaction(ITransaction? pending) {
     final settling = ref.read(settlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
@@ -248,7 +250,59 @@ class CheckOutState extends ConsumerState<CheckOut>
           ref.read(transactionByIdProvider(settling.transactionId)).value;
       if (ticket != null) return ticket;
     }
-    return pending;
+    final owner = _cartDisplayOwnerTransaction(
+      pending,
+      listen: false,
+      logRedirect: true,
+    );
+    return owner ?? pending;
+  }
+
+  /// The transaction that owns every line currently on the cart, when that is
+  /// **not** [pending].
+  ///
+  /// [posCartPendingTransactionIdProvider] resolves
+  /// [pinnedPosCartTransactionIdProvider] before the pending-cart cache/stream,
+  /// so a resumed ticket whose settling session was already cleared keeps
+  /// rendering its own lines while `pending` is an unrelated (usually empty)
+  /// pending cart. Paying `pending` in that state cannot succeed — the
+  /// persisted-cart poll never converges and completion aborts with
+  /// "cart not fully persisted txn=<pending> … displayTxnIds={<pinned>}".
+  /// Returns null unless there is exactly one owner and it is still payable, so
+  /// the normal path (cart lines belong to `pending`) is unaffected.
+  ITransaction? _cartDisplayOwnerTransaction(
+    ITransaction? pending, {
+    required bool listen,
+    bool logRedirect = false,
+  }) {
+    final ownerIds = ref
+        .read(posCartDisplayItemsProvider)
+        .map((i) => i.transactionId)
+        .whereType<String>()
+        .where(
+          (id) => id.isNotEmpty && !OptimisticCartBootstrap.isBootstrap(id),
+        )
+        .toSet();
+    if (ownerIds.length != 1) return null;
+    final ownerId = ownerIds.single;
+    if (ownerId == pending?.id) return null;
+    final async = listen
+        ? ref.watch(transactionByIdProvider(ownerId))
+        : ref.read(transactionByIdProvider(ownerId));
+    final owner = async.value;
+    if (owner == null || owner.id.isEmpty) return null;
+    final status = owner.status?.toLowerCase();
+    if (status != PENDING.toLowerCase() && status != PARKED.toLowerCase()) {
+      return null;
+    }
+    if (logRedirect) {
+      talker.warning(
+        'Checkout target redirected to the transaction that owns the cart '
+        'lines: pending=${pending?.id} → owner=$ownerId '
+        '(status=${owner.status}). A cart pin outlived its settling session.',
+      );
+    }
+    return owner;
   }
 
   Widget _buildBigScreenContent(

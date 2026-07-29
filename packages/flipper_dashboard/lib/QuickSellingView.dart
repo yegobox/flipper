@@ -25,6 +25,7 @@ import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/park_transaction_provider.dart';
+import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -281,7 +282,32 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           .read(pendingTransactionStreamProvider(isExpense: isExpense))
           .value,
       cached: readCachedPendingCartTransactionWidget(ref, isExpense: isExpense),
+      listen: false,
     );
+  }
+
+  /// True while [status] is a row the checkout may still act on (i.e. not
+  /// already completed / sent for review / awaiting handover).
+  bool _isPayableCheckoutStatus(String? status) {
+    final s = status?.toLowerCase();
+    return s == PENDING.toLowerCase() || s == PARKED.toLowerCase();
+  }
+
+  /// Resolves [transactionId] to a row the checkout can complete, else null.
+  ///
+  /// [listen] must be true only on build paths — [ref.watch] outside build
+  /// leaves a stray subscription behind.
+  ITransaction? _payableCheckoutTransactionById(
+    String transactionId, {
+    required bool listen,
+  }) {
+    if (transactionId.isEmpty) return null;
+    final async = listen
+        ? ref.watch(transactionByIdProvider(transactionId))
+        : ref.read(transactionByIdProvider(transactionId));
+    final txn = async.value;
+    if (txn == null || txn.id.isEmpty) return null;
+    return _isPayableCheckoutStatus(txn.status) ? txn : null;
   }
 
   /// Prefer the pending row that owns [posCartDisplayItemsProvider] lines so
@@ -291,6 +317,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required bool isExpense,
     required ITransaction? streamed,
     required ITransaction? cached,
+    required bool listen,
   }) {
     final displayTxnIds = ref
         .read(posCartDisplayItemsProvider)
@@ -305,6 +332,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       final id = displayTxnIds.single;
       if (streamed != null && streamed.id == id) return streamed;
       if (cached != null && cached.id == id) return cached;
+      // The visible lines belong to a transaction that is neither the streamed
+      // nor the cached pending cart — normally the *pinned* cart of a resumed
+      // ticket whose settling session has already been cleared.
+      // [posCartPendingTransactionIdProvider] resolves that pin before the
+      // cache/stream, so the cart shows those lines while completion used to be
+      // handed the (empty) pending cart instead and died in the persisted-cart
+      // poll: "Sale completion blocked: cart not fully persisted txn=<pending>
+      // … displayTxnIds={<pinned>}". Pay must act on the rows on screen.
+      final owner = _payableCheckoutTransactionById(id, listen: listen);
+      if (owner != null) return owner;
     }
     // Empty cart: prefer primed cache so Txn ID flips with "Sent for review"
     // before the Ditto stream drops the just-sent ticket.
@@ -472,6 +509,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             isExpense: isExpense,
             streamed: streamedPending,
             cached: cachedPending,
+            listen: true,
           );
     final txnId = pendingTxn?.id;
     final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
@@ -908,6 +946,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Track current branch ID to detect branch changes
   String? _currentBranchId;
+
+  // Cached branch digital-payment lookup for the small-device Pay bar, so the
+  // query is not re-issued on every rebuild. Keyed by branch; also dropped after
+  // each completed sale so a settings change is still picked up promptly.
+  String? _digitalPaymentBranchId;
+  Future<bool>? _digitalPaymentEnabledFuture;
+
   StreamSubscription<WhatsAppOptInPrompt>? _whatsAppOptInSub;
   bool _whatsAppOptInDialogShowing = false;
 
@@ -926,6 +971,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Timer? _customerPhonePersistTimer;
   static const Duration _customerFieldPersistDebounce =
       Duration(milliseconds: 450);
+
+  Future<bool> _digitalPaymentEnabledFor(String branchId) {
+    final cached = _digitalPaymentEnabledFuture;
+    if (cached != null && _digitalPaymentBranchId == branchId) return cached;
+    // [isBranchEnableForPayment] is declared FutureOr<bool>; Future.value accepts
+    // either, unlike the previous `as Future<bool>` cast (which would throw on a
+    // synchronous implementation).
+    final future = Future<bool>.value(
+      ProxyService.getStrategy(
+        Strategy.capella,
+      ).isBranchEnableForPayment(currentBranchId: branchId),
+    );
+    _digitalPaymentBranchId = branchId;
+    _digitalPaymentEnabledFuture = future;
+    return future;
+  }
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
@@ -1041,10 +1102,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       if (soldId.isNotEmpty) {
         ref.read(suppressedCartTransactionIdProvider.notifier).state = soldId;
         clearPinnedPosCartTransactionWidget(ref);
-        clearCachedPendingCartTransactionWidget(
+        // Only drop the cache when it still points at the ticket just settled.
+        // [markTransactionAsCompleted] has already primed the *next* pending cart
+        // into it, and clearing that unconditionally opened exactly the gap the
+        // comment below warns about — the header falling back to the stale stream
+        // row (old Txn ID).
+        final isExpense = ProxyService.box.isOrdering() ?? false;
+        final cachedPending = readCachedPendingCartTransactionWidget(
           ref,
-          isExpense: ProxyService.box.isOrdering() ?? false,
+          isExpense: isExpense,
         );
+        if (cachedPending != null && cachedPending.id == soldId) {
+          clearCachedPendingCartTransactionWidget(ref, isExpense: isExpense);
+        }
       }
       final total = (transaction.subTotal ?? 0).toCurrencyFormatted(
         symbol: ProxyService.box.defaultCurrency(),
@@ -1057,13 +1127,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       }
     }
 
+    // No `!` on branchId / businessId: the argument list is evaluated eagerly
+    // (only the call is unawaited), so a null here used to throw *after* the
+    // sale was marked complete and abort the rest of this cleanup — suppression
+    // release and next-pending priming included. `properties` is
+    // Map<String, Object?>, so a null value is carried through safely.
     unawaited(
       analytics.track(
         AnalyticsEvents.quickSellCompleted,
         properties: {
           'transaction_id': soldId,
-          'branch_id': transaction.branchId!,
-          'business_id': ProxyService.box.getBusinessId()!,
+          'branch_id': transaction.branchId,
+          'business_id': ProxyService.box.getBusinessId(),
           'created_at': startTime.toIso8601String(),
           'completed_at': endTime.toIso8601String(),
           'duration_seconds': duration,
@@ -1113,6 +1188,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     _lastAutoSetAmount = 0.0;
     _lastPaymentInitTransactionId = null;
     _cachedNonCreditPaid = null;
+    // Re-check branch digital-payment config on the next sale (see memo above).
+    _digitalPaymentEnabledFuture = null;
     ref.invalidate(paymentMethodsProvider);
     ref.read(optimisticOrderCountProvider.notifier).reset();
     widget.deliveryNoteCotroller.clear();
@@ -1313,15 +1390,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         // (see settlingTillTicketProvider listen below) — not the collector's
         // own pending cart.
         if (ref.read(settlingTillTicketProvider) != null) return;
-        if (next.hasValue && next.value != null) {
-          final isNewTransaction = previous?.value?.id != next.value!.id;
-          _prefillCustomerDetails(next.value!, force: isNewTransaction);
-          if (isNewTransaction) {
-            resetDigitalReceiptToggle(ref);
-            _cachedNonCreditPaid = 0.0;
-            _lastPaymentInitTransactionId = null;
-            _updateReceivedAmountIfNeeded(next.value!);
-          }
+        // After park/invalidate, Riverpod emits AsyncLoading that still carries
+        // the previous parked row. Prefilling from that re-injects the handed-off
+        // customer's name/phone onto the next empty cart (seen in production
+        // logs right after park).
+        if (next.isLoading || !next.hasValue || next.value == null) return;
+        final txn = next.value!;
+        if ((txn.status ?? '').toLowerCase() != PENDING.toLowerCase()) return;
+        final isNewTransaction = previous?.value?.id != txn.id;
+        _prefillCustomerDetails(txn, force: isNewTransaction);
+        if (isNewTransaction) {
+          resetDigitalReceiptToggle(ref);
+          _cachedNonCreditPaid = 0.0;
+          _lastPaymentInitTransactionId = null;
+          _updateReceivedAmountIfNeeded(txn);
         }
       },
     );
@@ -1334,6 +1416,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ) {
       if (next == null || next.transactionId.isEmpty) return;
       if (previous?.transactionId == next.transactionId) return;
+      // Prefer the snapshot captured at Collect — transactionById can still be
+      // loading on the first frame after handoff.
+      final snapshot = next.ticketSnapshot;
+      if (snapshot != null) {
+        _prefillCustomerDetails(snapshot, force: true);
+        return;
+      }
       final txn = ref.read(transactionByIdProvider(next.transactionId)).value;
       if (txn != null) {
         _prefillCustomerDetails(txn, force: true);
@@ -1424,6 +1513,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             isExpense: isExpense,
             streamed: basePendingTransaction.value,
             cached: cachedPending,
+            listen: true,
           );
     final AsyncValue<ITransaction> transactionAsyncValue;
     if (settlingTicket != null) {
@@ -1830,12 +1920,28 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
 
     if (confirmed == true) {
+      // No `getBranchId()!`: without an active branch there is nothing sensible
+      // to query, so say so instead of throwing out of the button handler.
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null || branchId.isEmpty) {
+        if (mounted) {
+          showErrorNotification(
+            context,
+            context.flipperL10n.currentBranchIsMissing,
+          );
+        }
+        return;
+      }
       var items = <TransactionItem>[];
+      // Lines already deactivated in Capella must stay hidden if a later line
+      // in the loop throws — restoring all of them showed items that no longer
+      // exist.
+      final deactivatedItemIds = <String>{};
       try {
         items = await ref.read(
           transactionItemsStreamProvider(
             transactionId: transactionAsyncValue.value?.id ?? "",
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: branchId,
           ).future,
         );
 
@@ -1854,6 +1960,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             active: false,
             ignoreForReport: false,
           );
+          deactivatedItemIds.add(item.id);
         }
 
         if (mounted) {
@@ -1866,6 +1973,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (mounted) {
           setState(() {
             for (final item in items) {
+              if (deactivatedItemIds.contains(item.id)) continue;
               _optimisticallyDeletedItemIds.remove(item.id);
             }
           });
@@ -1886,8 +1994,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return SliverToBoxAdapter(
       child: Consumer(
         builder: (context, ref, _) {
-          final items = ref
-              .watch(posCartDisplayItemsProvider)
+          final cartLines = ref.watch(posCartDisplayItemsProvider);
+          // A hidden id only means "deleted until the provider catches up", so it
+          // must not outlive the line leaving the cart. Resumed tickets come back
+          // with the *same* line ids, so a never-pruned set renders them as
+          // deleted forever (mirrors [_visibleTransactionItems] in
+          // [TransactionItemTable], whose set this one shadows).
+          if (_optimisticallyDeletedItemIds.isNotEmpty) {
+            final liveIds = cartLines.map((line) => line.id).toSet();
+            _optimisticallyDeletedItemIds.removeWhere(
+              (id) => !liveIds.contains(id),
+            );
+          }
+          final items = cartLines
               .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
               .toList();
           if (items.isEmpty) {
@@ -2055,10 +2174,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         IconButton(
                           key: Key('quantity-remove-${item.id}'),
                           icon: Icon(Icons.remove, size: 16),
+                          // `qty - 1` as a double, matching the cart table's
+                          // [_decrementQuantity]. `.toInt()` silently dropped the
+                          // fraction of a weighed line (2.5 kg → 1, not 1.5).
+                          // The `> 1` gate is kept as-is so this button can never
+                          // produce a zero-qty line (removal stays on Delete).
                           onPressed: displayQty > 1
                               ? () => _updateQuantity(
                                   item,
-                                  (displayQty - 1).toInt(),
+                                  displayQty - 1,
                                   transactionAsyncValue,
                                 )
                               : null,
@@ -2081,7 +2205,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           onPressed: () {
                             _updateQuantity(
                               item,
-                              (displayQty + 1).toInt(),
+                              displayQty + 1,
                               transactionAsyncValue,
                             );
                           },
@@ -2236,11 +2360,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         return branchAsync.when(
           data: (branch) {
             return FutureBuilder<bool>(
-              future:
-                  ProxyService.getStrategy(Strategy.capella).isBranchEnableForPayment(
-                        currentBranchId: branch.id,
-                      )
-                      as Future<bool>,
+              // Memoized per branch: building this future inline re-ran the
+              // BranchPaymentIntegration query (which may hydrate from remote)
+              // on *every* rebuild of the bottom bar — i.e. on each cart tap,
+              // tender keystroke and payment-signal bump — and flashed
+              // digitalPaymentEnabled back to false while each new future
+              // resolved. Same call and arguments as before, just cached.
+              future: _digitalPaymentEnabledFor(branch.id),
               builder: (context, snapshot) {
                 final digitalPaymentEnabled = snapshot.data ?? false;
                 return Container(
@@ -2380,8 +2506,30 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                             false;
                                         return true;
                                       },
-                                      loading: () async => false,
-                                      error: (error, stack) async => false,
+                                      // [PreviewSaleButton] delegates clearing the
+                                      // Pay spinner to this callback, so these
+                                      // branches must release it themselves.
+                                      // Reachable when Pay is tapped while the
+                                      // cart's transaction row is still resolving
+                                      // (optimistic ghosts already make
+                                      // cartHasItems true) — without this the
+                                      // spinner never stops.
+                                      loading: () async {
+                                        ref
+                                            .read(
+                                              payButtonStateProvider.notifier,
+                                            )
+                                            .stopLoading();
+                                        return false;
+                                      },
+                                      error: (error, stack) async {
+                                        ref
+                                            .read(
+                                              payButtonStateProvider.notifier,
+                                            )
+                                            .stopLoading();
+                                        return false;
+                                      },
                                     );
                                   },
                               model: model,
@@ -2483,9 +2631,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  /// [newQty] is a double so weighed lines keep their fraction — the cart table
+  /// ([TransactionItemTable]) has always used double qty for the same buttons.
   void _updateQuantity(
     TransactionItem item,
-    int newQty,
+    double newQty,
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
     if (!ref.read(canSellProvider)) return; // view-only: no cart edits
@@ -2990,9 +3140,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             // Trigger complete sale action — settle the till ticket when one is
             // being collected, else the operator's own pending cart.
             final activeTxn = _activeCheckoutTransaction();
+            // ref.read, not ref.watch: outside build, watch registers a
+            // subscription that outlives this callback and forces a rebuild on
+            // every emission (Riverpod tears it down again on the next build).
+            // Both providers are already watched by build(), so the value is the
+            // same snapshot.
             final transactionAsyncValue = activeTxn != null
                 ? AsyncValue<ITransaction>.data(activeTxn)
-                : ref.watch(
+                : ref.read(
                     pendingTransactionStreamProvider(
                       isExpense: ProxyService.box.isOrdering() ?? false,
                     ),
@@ -3033,7 +3188,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     transactionId: transaction.id,
                     transactionHint: transaction,
                     transactionItemsHint: transactionItemsHint,
-                    paymentMethods: ref.watch(paymentMethodsProvider),
+                    // ref.read: this runs after an await, where ref.watch would
+                    // also leave a stray subscription behind (see above).
+                    paymentMethods: ref.read(paymentMethodsProvider),
                     attachedCustomerHint: _attachedCustomerHintFor(transaction),
                     overrideAlreadyPaid: _effectiveAlreadyPaid(
                       transactionAsyncValue.value,
@@ -3567,6 +3724,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
                       _schedulePersistCustomerPhone(value);
                     },
+                    // Phone is required only when no TIN is on file (same rule as
+                    // [missingCustomerDetailsForPay]).
+                    //
+                    // No format check on a non-empty value: this field is paired
+                    // with a [CountryCodePicker], so the national number shape is
+                    // country-dependent and the Rwanda-only `^[1-9]\d{8}$` rule
+                    // used by bar-mode settle (which has no picker) would block
+                    // Pay for any non-RW number. The previous
+                    // `value.isEmpty` + regex branch never validated a typed
+                    // number at all — it only fired on an *empty* field, which
+                    // returned "invalid number" and blocked completion for a
+                    // customer who legitimately has a TIN and no phone.
                     validator: (String? value) {
                       final customerTin = ProxyService.box.customerTin();
 
@@ -3574,14 +3743,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           (value == null || value.isEmpty)) {
                         ref.read(payButtonStateProvider.notifier).stopLoading();
                         return context.flipperL10n.phoneRequiredWhenTinMissing;
-                      }
-
-                      if (value != null && value.isEmpty) {
-                        final phoneExp = RegExp(r'^[1-9]\d{8}$');
-                        if (!phoneExp.hasMatch(value)) {
-                          ref.read(payButtonStateProvider.notifier).stopLoading();
-                          return context.flipperL10n.invalidNumber;
-                        }
                       }
 
                       return null;
@@ -3601,9 +3762,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     CoreViewModel model,
   ) async {
     if (!ref.read(canSellProvider)) return; // view-only: cannot park a sale
+    // Keep the identity of the transaction the checkout is acting on — the
+    // settling till ticket, else the pending row that owns the on-screen lines
+    // (see [_pendingCartMatchingDisplay]). Only swap in a fresher row for the
+    // SAME id. Reading the pending stream unconditionally (with a hardcoded
+    // `isExpense: false`) parked the collector's own pending cart while settling,
+    // the sale cart while in ordering mode, and a freshly minted empty twin
+    // during a twin-txn race — in each case with the visible cart's total
+    // written onto the wrong row via [displayAmount].
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final streamedPending = ref
+        .read(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value;
     final txn =
-        ref.read(pendingTransactionStreamProvider(isExpense: false)).value ??
-        transaction;
+        (streamedPending != null && streamedPending.id == transaction.id)
+        ? streamedPending
+        : transaction;
     var parked = false;
     // transaction.subTotal is a persisted/streamed snapshot that can lag
     // behind optimistic cart edits and discounts — pass the live sale total
@@ -3616,6 +3790,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       onParked: () => parked = true,
     );
     if (!parked || !mounted) return;
+
+    // [showSharedTicketDialog] parks through [ParkTransactionService] directly,
+    // bypassing [parkTransactionProvider] — so the badge/list refresh that
+    // provider performs (for when the Ditto observer misses the first onChange)
+    // has to happen here, or a just-parked ticket can be missing from Tickets.
+    ref.invalidate(ticketsStreamProvider);
 
     // Unlike mobile checkout — which navigates away to the tickets list right
     // after parking — this view stays put, so the handed-off lines must be
@@ -3645,6 +3825,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// Ditto, so without this the cart keeps rendering the handed-off lines (and
   /// the next sale inherits its customer and tender fields).
   void _clearCartAfterTicketHandoff(ITransaction transaction) {
+    // Ordering mode keeps its pending cart under the purchase key, so a
+    // hardcoded `isExpense: false` cleared/invalidated the sale side and left
+    // the handed-off purchase lines rendering.
+    final isExpense = ProxyService.box.isOrdering() ?? false;
     ref.read(suppressedCartTransactionIdProvider.notifier).state =
         transaction.id;
     // A resumed ticket handed off again leaves its pin behind. Since the pin
@@ -3658,7 +3842,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         .clearForTransaction(transaction.id);
     clearCachedPendingCartTransactionWidget(
       ref,
-      isExpense: false,
+      isExpense: isExpense,
     );
     ref.invalidate(
       transactionItemsStreamProvider(
@@ -3666,15 +3850,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         branchId: ProxyService.box.getBranchId() ?? '0',
       ),
     );
+    _resetCheckoutFieldsAfterHandoff();
+    ref.invalidate(pendingTransactionStreamProvider(isExpense: isExpense));
+  }
+
+  /// Tender / discount / customer fields for a cart that just left this device.
+  ///
+  /// Shared by [_clearCartAfterTicketHandoff] and the fallback branch of
+  /// [_backToNewSaleFromSettling] (which reached this point with no resolved
+  /// transaction and therefore used to leave the ticket's customer name, phone
+  /// and tender behind for the next sale). Name/phone live in controllers *and*
+  /// persisted box keys — mirrors [_collapseCustomerFields].
+  void _resetCheckoutFieldsAfterHandoff() {
     _lastAutoSetAmount = 0.0;
     _lastPaymentInitTransactionId = null;
     _cachedNonCreditPaid = null;
     ref.invalidate(paymentMethodsProvider);
     widget.receivedAmountController.clear();
     widget.discountController.clear();
-    // Clear customer details too, so the next sale does not inherit the
-    // handed-off ticket's customer. Name/phone live in controllers + persisted
-    // box keys (mirrors _collapseCustomerFields).
     ref.read(customerNameControllerProvider).clear();
     widget.customerPhoneNumberController.clear();
     ProxyService.box.writeString(key: 'customerName', value: '');
@@ -3682,7 +3875,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       key: 'currentSaleCustomerPhoneNumber',
       value: '',
     );
-    ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
   }
 
   Future<void> _sendCartToTill(ITransaction transaction) async {
@@ -3693,6 +3885,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     setState(() => _sendToTillBusy = true);
     final displayRef = _ticketDisplayRef(transaction);
+    // [transaction] is the object held by the pending-cart cache / Ditto stream,
+    // so a subTotal written for the park below must be rolled back if the park
+    // fails — otherwise provider state keeps a total that was never persisted.
+    final previousSubTotal = transaction.subTotal;
+    var didOverrideSubTotal = false;
     try {
       // Same staleness guard as the Save Ticket dialog: transaction.subTotal
       // can lag behind an in-flight optimistic qty edit, and a merge into an
@@ -3700,6 +3897,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       final liveTotal = totalAfterDiscountAndShipping;
       if (liveTotal > 0) {
         transaction.subTotal = liveTotal;
+        didOverrideSubTotal = true;
       }
       await ref.read(parkTransactionProvider.notifier).park(
             ticketName: 'Till · $displayRef',
@@ -3717,6 +3915,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         );
       }
     } catch (e, st) {
+      if (didOverrideSubTotal) {
+        transaction.subTotal = previousSubTotal;
+      }
       tv_talk.talker.error('Send to till failed: $e', st);
       if (mounted) {
         showErrorNotification(
@@ -3757,6 +3958,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
       } catch (e, st) {
         tv_talk.talker.error('Back to new sale re-park failed: $e', st);
+        if (mounted) {
+          showErrorNotification(
+            context,
+            'Could not return this ticket to the till. Please try again.',
+          );
+        }
+        // Keep settling set — clearing here orphans a PENDING till ticket.
+        return;
       }
 
       ref.read(settlingTillTicketProvider.notifier).state = null;
@@ -3770,9 +3979,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ref.read(suppressedCartTransactionIdProvider.notifier).state =
             settling.transactionId;
         ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+        // The ticket row never resolved, so the handoff clear above was skipped —
+        // without this the collected ticket's customer/tender carried into the
+        // operator's next sale.
+        _resetCheckoutFieldsAfterHandoff();
       }
-      ref.invalidate(paymentMethodsProvider);
-      widget.receivedAmountController.clear();
       // Collect forced the full cart view; return to the normal catalog view.
       if (ref.read(previewingCart)) {
         ref.read(previewingCart.notifier).state = false;
