@@ -2397,10 +2397,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       await ditto.store.transaction((txn) async {
         for (final row in chunk) {
           final id = row['id'] as String;
-          final existingName = (row['ticketName'] as String?)?.trim() ?? '';
-          final ticketName = existingName.isNotEmpty
-              ? existingName
-              : 'Recovered · ${id.length >= 6 ? id.substring(0, 6).toUpperCase() : id.toUpperCase()}';
+          // Prefer ticketName, then customerName (what the tickets list shows),
+          // then a till-style ref — do not invent "Recovered" over a name that
+          // was already on the row under customerName.
+          final ticketName = pendingSaleCartReparkTicketName(
+            id: id,
+            ticketName: row['ticketName'] as String?,
+            customerName: row['customerName'] as String?,
+            reference: row['reference'],
+            transactionNumber: row['transactionNumber'],
+          );
           await txn.execute(
             'UPDATE transactions SET '
             'status = :status, ticketName = :ticketName, '
@@ -2466,18 +2472,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       Set<String> idsWithItems = {};
       if (!deleteNonEmpty) {
-        final maybeEmptyIds = <String>[];
-        for (final row in candidates) {
-          final subTotal = (row['subTotal'] as num?)?.toDouble() ?? 0.0;
-          final ticketName = row['ticketName'] as String?;
-          if (pendingSaleCartNeedsItemLookup(
-            subTotal: subTotal,
-            ticketName: ticketName,
-          )) {
-            maybeEmptyIds.add(row['id'] as String);
-          }
-        }
-        idsWithItems = await _transactionIdsWithItems(maybeEmptyIds);
+        // Always check line items for every sibling. Stale subTotal / customer
+        // name alone used to skip this lookup and get re-parked as mystery
+        // tickets on the till list.
+        final candidateIds = <String>[
+          for (final row in candidates) row['id'] as String,
+        ];
+        idsWithItems = await _transactionIdsWithItems(candidateIds);
       }
 
       final classified = classifyPendingSaleCarts(

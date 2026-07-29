@@ -3,18 +3,31 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('isEmptyPendingSaleCart', () {
-    test('empty operator cart is deletable', () {
+    test('no line items is deletable even with stale subTotal or name', () {
       expect(
         isEmptyPendingSaleCart(subTotal: 0, ticketName: null, hasItems: false),
         isTrue,
       );
       expect(
-        isEmptyPendingSaleCart(subTotal: 0, ticketName: '  ', hasItems: false),
+        isEmptyPendingSaleCart(
+          subTotal: 19000,
+          ticketName: 'Jean',
+          customerName: 'Jean',
+          hasItems: false,
+        ),
         isTrue,
       );
     });
 
-    test('resumed ticket with items is not deletable', () {
+    test('cart with line items is not deletable', () {
+      expect(
+        isEmptyPendingSaleCart(
+          subTotal: 0,
+          ticketName: null,
+          hasItems: true,
+        ),
+        isFalse,
+      );
       expect(
         isEmptyPendingSaleCart(
           subTotal: 1500,
@@ -24,39 +37,62 @@ void main() {
         isFalse,
       );
     });
-
-    test('cart with items but zero subTotal is not deletable', () {
-      expect(
-        isEmptyPendingSaleCart(subTotal: 0, ticketName: null, hasItems: true),
-        isFalse,
-      );
-    });
-
-    test('named ticket without items yet is not deletable', () {
-      expect(
-        isEmptyPendingSaleCart(
-          subTotal: 0,
-          ticketName: 'Walk-in',
-          hasItems: false,
-        ),
-        isFalse,
-      );
-    });
   });
 
   group('pendingSaleCartNeedsItemLookup', () {
-    test('only blank zero-value carts need item lookup', () {
+    test('every candidate needs item lookup before re-park', () {
       expect(
         pendingSaleCartNeedsItemLookup(subTotal: 0, ticketName: null),
         isTrue,
       );
       expect(
         pendingSaleCartNeedsItemLookup(subTotal: 0, ticketName: 'Jean'),
-        isFalse,
+        isTrue,
       );
       expect(
         pendingSaleCartNeedsItemLookup(subTotal: 100, ticketName: null),
-        isFalse,
+        isTrue,
+      );
+    });
+  });
+
+  group('pendingSaleCartReparkTicketName', () {
+    test('keeps existing ticketName', () {
+      expect(
+        pendingSaleCartReparkTicketName(
+          id: 'b232f9aa-1111-2222-3333-444444444444',
+          ticketName: 'Jean',
+          customerName: 'Other',
+        ),
+        'Jean',
+      );
+    });
+
+    test('falls back to customerName before inventing a till label', () {
+      expect(
+        pendingSaleCartReparkTicketName(
+          id: 'b232f9aa-1111-2222-3333-444444444444',
+          ticketName: null,
+          customerName: 'Jean',
+          reference: 190,
+        ),
+        'Jean',
+      );
+    });
+
+    test('falls back to reference then short id', () {
+      expect(
+        pendingSaleCartReparkTicketName(
+          id: 'b232f9aa-1111-2222-3333-444444444444',
+          reference: 190,
+        ),
+        'Till · 190',
+      );
+      expect(
+        pendingSaleCartReparkTicketName(
+          id: 'b232f9aa-1111-2222-3333-444444444444',
+        ),
+        'Till · B232F9',
       );
     });
   });
@@ -75,21 +111,26 @@ void main() {
       expect(plan.reparkRows, isEmpty);
     });
 
-    test('batches empty carts for delete and re-parks named/valued ones', () {
+    test('re-parks only carts with line items; deletes stale ghosts', () {
       final plan = classifyPendingSaleCarts(
         candidates: [
           {'id': 'empty', 'subTotal': 0},
-          {'id': 'named', 'subTotal': 0, 'ticketName': 'Jean'},
-          {'id': 'valued', 'subTotal': 19000},
+          {'id': 'named-ghost', 'subTotal': 0, 'ticketName': 'Jean'},
+          {'id': 'valued-ghost', 'subTotal': 19000},
+          {'id': 'customer-ghost', 'subTotal': 0, 'customerName': 'Paul'},
           {'id': 'has-lines', 'subTotal': 0},
+          {'id': 'has-lines-named', 'subTotal': 500, 'ticketName': 'Jean'},
         ],
-        idsWithItems: {'has-lines'},
+        idsWithItems: {'has-lines', 'has-lines-named'},
         deleteNonEmpty: false,
       );
-      expect(plan.deleteIds, ['empty']);
+      expect(
+        plan.deleteIds,
+        ['empty', 'named-ghost', 'valued-ghost', 'customer-ghost'],
+      );
       expect(
         plan.reparkRows.map((r) => r['id']),
-        ['named', 'valued', 'has-lines'],
+        ['has-lines', 'has-lines-named'],
       );
     });
   });
