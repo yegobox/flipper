@@ -66,6 +66,7 @@ class AdminSettingsService {
           'smsPhoneNumber': config.smsPhoneNumber,
           'enableSms': config.enableSms,
           'enableWhatsapp': config.enableWhatsapp,
+          'whatsappProvider': config.whatsappProvider,
         };
       }
       return null;
@@ -79,12 +80,14 @@ class AdminSettingsService {
     required String phone,
     required bool enableSms,
     required bool enableWhatsapp,
+    int? whatsappProvider,
   }) async {
     await SmsNotificationService.updateBranchSmsConfig(
       branchId: ProxyService.box.getBranchId()!,
       smsPhoneNumber: phone,
       enableSms: enableSms,
       enableWhatsapp: enableWhatsapp,
+      whatsappProvider: whatsappProvider,
     );
   }
 

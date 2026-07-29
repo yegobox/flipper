@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
 import 'package:flipper_models/helperModels/sale_cart_qty_rows.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
@@ -1619,7 +1620,17 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         transaction.customerTin = effectiveTin.isEmpty ? null : effectiveTin;
       }
 
-      if (effectiveTin.isNotEmpty) {
+      // A purchase code only exists to attach a buyer's RRA order code to a
+      // signed EBM receipt. [finalizePayment] drops [purchaseCode] on the floor
+      // whenever EBM will not sign (non-VAT business, no tax server, tax
+      // service stopped) — see [addFieldIfCondition], which also needs a
+      // non-null purchaseCode before it writes custTin/prcOrdCd. So a non-VAT
+      // business must never see this dialog: it demands a code they do not have
+      // (the field is `required`) and Cancel aborts the whole sale.
+      final needsPurchaseCode =
+          effectiveTin.isNotEmpty && await ebmWillSignReceipt();
+
+      if (needsPurchaseCode) {
         // Show dialog and capture whether the dialog completed successfully
         final bool? dialogResult =
             await additionalInformationIsRequiredToCompleteTransaction(

@@ -90,15 +90,17 @@ class WhatsAppMessageSyncService {
       _stateController ??= StreamController<WhatsAppSyncState>.broadcast();
       _stateController?.add(WhatsAppSyncState.syncing());
 
-      // Query for WhatsApp messages matching this business's phoneNumberId
+      // Query for WhatsApp messages — Capella sync is unfiltered; Brick mirror
+      // still scopes by phoneNumberId in the observer transform path.
+      const syncQuery = 'SELECT * FROM whatsapp_messages';
       final query =
           'SELECT * FROM whatsapp_messages WHERE phoneNumberId = :phoneNumberId';
       final arguments = {'phoneNumberId': phoneNumberId};
 
-      // Register subscription to ensure we receive updates from other devices/cloud
-      await _runner.registerSubscription(query, arguments: arguments);
+      // Broad Capella subscription so inbound from data-connector replicates.
+      await _runner.registerSubscription(syncQuery);
 
-      // Register observer to listen for changes
+      // Observer stays phone-scoped for Brick upserts.
       _observer = _runner.registerObserver(
         query,
         arguments: arguments,
@@ -150,62 +152,61 @@ class WhatsAppMessageSyncService {
     String branchId,
   ) async {
     try {
-      // Extract fields from Ditto document
-      final messageId = doc['messageId']?.toString() ?? '';
+      final messageId = doc['messageId']?.toString() ??
+          doc['_id']?.toString() ??
+          doc['id']?.toString() ??
+          '';
       final messageBody =
           doc['messageBody']?.toString() ?? doc['caption']?.toString() ?? '';
       final from = doc['from']?.toString() ?? '';
-      final waId = doc['waId']?.toString() ?? '';
+      final waId = doc['waId']?.toString() ?? from;
       final contactName = doc['contactName']?.toString();
       final phoneNumberId = doc['phoneNumberId']?.toString() ?? '';
       final messageType = doc['messageType']?.toString() ?? 'text';
-      final timestampStr = doc['createdAt']?.toString() ?? '';
+      final timestampRaw = doc['createdAt']?.toString() ??
+          doc['timestamp']?.toString() ??
+          '';
 
-      // Only process text messages for now
-      if (messageType != 'text' || messageBody.isEmpty) {
+      // Skip empty non-media stubs; allow captioned media.
+      if (messageBody.isEmpty &&
+          messageType != 'image' &&
+          messageType != 'document' &&
+          messageType != 'audio' &&
+          messageType != 'video') {
         return;
       }
 
-      // Parse timestamp
-      DateTime? timestamp;
-      try {
-        timestamp = DateTime.parse(timestampStr);
-      } catch (e) {
-        timestamp = DateTime.now();
-      }
+      final displayText = messageBody.isNotEmpty
+          ? messageBody
+          : '[${messageType.isEmpty ? 'attachment' : messageType}]';
 
-      // Find or create conversation for this WhatsApp contact
+      final timestamp = _parseWhatsAppTimestamp(timestampRaw);
+
       final conversationId = await _getOrCreateConversation(
-        waId: waId,
-        contactName: contactName ?? from,
+        waId: waId.isNotEmpty ? waId : from,
+        contactName: contactName ?? (from.isNotEmpty ? from : 'Customer'),
         branchId: branchId,
       );
 
-      // Check if message already exists to avoid duplicates
-      // Only perform deduplication if messageId is available to avoid cross-branch conflicts'
       final repository = Repository();
       if (messageId.isNotEmpty) {
         final existingMessages = await repository.get<Message>(
           query: Query(
             where: [
               Where('whatsappMessageId').isExactly(messageId),
-              Where('branchId')
-                  .isExactly(branchId), // Scope deduplication per branch
+              Where('branchId').isExactly(branchId),
             ],
           ),
         );
 
         if (existingMessages.isNotEmpty) {
-          return; // Skip duplicate
+          return;
         }
-      } else {
-        // If messageId is missing, we skip the duplicate check to avoid dropping messages
-        // This prevents loss of messages that don't have a messageId
       }
 
-      // Create and save Message with WhatsApp-specific fields
+      // Inbound customer message → role `user` (shown on the left in the inbox).
       final message = Message(
-        text: messageBody,
+        text: displayText,
         phoneNumber: from,
         branchId: branchId,
         delivered: true,
@@ -221,9 +222,40 @@ class WhatsAppMessageSyncService {
       );
 
       await repository.upsert<Message>(message);
+
+      // Bump conversation ordering.
+      final conversations = await repository.get<Conversation>(
+        query: Query(where: [Where('id').isExactly(conversationId)]),
+      );
+      if (conversations.isNotEmpty) {
+        final c = conversations.first;
+        c.lastMessageAt = timestamp;
+        if (contactName != null &&
+            contactName.isNotEmpty &&
+            (c.title.isEmpty || c.title.startsWith('WhatsApp:'))) {
+          c.title = contactName;
+        }
+        await repository.upsert<Conversation>(c);
+      }
     } catch (e) {
-      // Log error but don't stop processing other messages
       print('Error transforming WhatsApp message: $e');
+    }
+  }
+
+  DateTime _parseWhatsAppTimestamp(String raw) {
+    if (raw.isEmpty) return DateTime.now().toUtc();
+    final asInt = int.tryParse(raw);
+    if (asInt != null) {
+      // Meta sends seconds; data-connector createdAt is millis.
+      if (asInt > 1000000000000) {
+        return DateTime.fromMillisecondsSinceEpoch(asInt, isUtc: true);
+      }
+      return DateTime.fromMillisecondsSinceEpoch(asInt * 1000, isUtc: true);
+    }
+    try {
+      return DateTime.parse(raw).toUtc();
+    } catch (_) {
+      return DateTime.now().toUtc();
     }
   }
 
@@ -235,7 +267,6 @@ class WhatsAppMessageSyncService {
   }) async {
     final repository = Repository();
 
-    // Try to find existing conversation for this WhatsApp contact using the dedicated whatsappWaId field
     final conversations = await repository.get<Conversation>(
       query: Query(
         where: [
@@ -249,11 +280,11 @@ class WhatsAppMessageSyncService {
       return conversations.first.id;
     }
 
-    // Create new conversation for this contact with the whatsappWaId field set
     final conversation = Conversation(
-      title: 'WhatsApp: $contactName',
+      title: contactName,
       branchId: branchId,
       whatsappWaId: waId,
+      useCase: 'whatsapp',
     );
 
     await repository.upsert<Conversation>(conversation);

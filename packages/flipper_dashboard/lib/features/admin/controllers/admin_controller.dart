@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
 import '../services/admin_settings_service.dart';
 
 class AdminController extends ChangeNotifier {
@@ -13,6 +14,7 @@ class AdminController extends ChangeNotifier {
   String? _smsPhoneNumber;
   bool _enableSmsNotification = false;
   bool _enableWhatsappNotification = false;
+  int _whatsappProvider = WhatsAppChannel.openwa;
   String? _phoneError;
 
   // Getters
@@ -26,6 +28,7 @@ class AdminController extends ChangeNotifier {
   String? get smsPhoneNumber => _smsPhoneNumber;
   bool get enableSmsNotification => _enableSmsNotification;
   bool get enableWhatsappNotification => _enableWhatsappNotification;
+  int get whatsappProvider => _whatsappProvider;
   String? get phoneError => _phoneError;
 
   AdminController() {
@@ -52,6 +55,10 @@ class AdminController extends ChangeNotifier {
       _smsPhoneNumber = config['smsPhoneNumber'];
       _enableSmsNotification = config['enableSms'] == true;
       _enableWhatsappNotification = config['enableWhatsapp'] == true;
+      final provider = config['whatsappProvider'];
+      _whatsappProvider = provider is int
+          ? provider
+          : (provider as num?)?.toInt() ?? WhatsAppChannel.openwa;
       notifyListeners();
     }
   }
@@ -102,6 +109,7 @@ class AdminController extends ChangeNotifier {
     String? phone,
     bool? enableSms,
     bool? enableWhatsapp,
+    int? whatsappProvider,
   }) async {
     if (phone != null && phone.isNotEmpty) {
       if (!AdminSettingsService.isValidPhoneNumber(phone)) {
@@ -118,11 +126,13 @@ class AdminController extends ChangeNotifier {
         phone: phone ?? _smsPhoneNumber ?? '',
         enableSms: enableSms ?? _enableSmsNotification,
         enableWhatsapp: enableWhatsapp ?? _enableWhatsappNotification,
+        whatsappProvider: whatsappProvider ?? _whatsappProvider,
       );
 
       if (phone != null) _smsPhoneNumber = phone;
       if (enableSms != null) _enableSmsNotification = enableSms;
       if (enableWhatsapp != null) _enableWhatsappNotification = enableWhatsapp;
+      if (whatsappProvider != null) _whatsappProvider = whatsappProvider;
       _phoneError = null;
       notifyListeners();
     } catch (e) {

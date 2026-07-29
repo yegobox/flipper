@@ -14,6 +14,7 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSupabase(
         : data['sms_phone_number'] as String?,
     enableSms: data['enable_sms'] as bool? ?? false,
     enableWhatsapp: data['enable_whatsapp'] as bool? ?? false,
+    whatsappProvider: (data['whatsapp_provider'] as num?)?.toInt() ?? 1,
   );
 }
 
@@ -28,6 +29,7 @@ Future<Map<String, dynamic>> _$BranchSmsConfigToSupabase(
     'sms_phone_number': instance.smsPhoneNumber,
     'enable_sms': instance.enableSms,
     'enable_whatsapp': instance.enableWhatsapp,
+    'whatsapp_provider': instance.whatsappProvider,
   };
 }
 
@@ -44,6 +46,7 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSqlite(
         : data['sms_phone_number'] as String?,
     enableSms: data['enable_sms'] == 1,
     enableWhatsapp: data['enable_whatsapp'] == 1,
+    whatsappProvider: data['whatsapp_provider'] as int? ?? 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -58,6 +61,7 @@ Future<Map<String, dynamic>> _$BranchSmsConfigToSqlite(
     'sms_phone_number': instance.smsPhoneNumber,
     'enable_sms': instance.enableSms ? 1 : 0,
     'enable_whatsapp': instance.enableWhatsapp ? 1 : 0,
+    'whatsapp_provider': instance.whatsappProvider,
   };
 }
 
@@ -91,6 +95,10 @@ class BranchSmsConfigAdapter
     'enableWhatsapp': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'enable_whatsapp',
+    ),
+    'whatsappProvider': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'whatsapp_provider',
     ),
   };
   @override
@@ -134,6 +142,12 @@ class BranchSmsConfigAdapter
       columnName: 'enable_whatsapp',
       iterable: false,
       type: bool,
+    ),
+    'whatsappProvider': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'whatsapp_provider',
+      iterable: false,
+      type: int,
     ),
   };
   @override

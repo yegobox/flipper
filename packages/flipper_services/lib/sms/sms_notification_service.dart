@@ -75,15 +75,17 @@ class SmsNotificationService {
         text: text,
         phoneNumber: phone,
         branchId: branchId,
+        whatsappProvider: config.whatsappProvider,
       );
     }
   }
 
-  /// Deducts credits, sends OpenWA text, and audits a delivered WhatsApp row.
+  /// Deducts credits, sends WhatsApp text, and audits a delivered WhatsApp row.
   static Future<bool> sendWhatsAppTextNotification({
     required String text,
     required String phoneNumber,
     required String branchId,
+    int? whatsappProvider,
   }) async {
     final charged = await deductSmsCredits(branchId: branchId);
     if (!charged) {
@@ -102,10 +104,32 @@ class SmsNotificationService {
         );
         return false;
       }
+      final provider = WhatsAppChannel.toApiProvider(whatsappProvider);
       final client = await createOrderFormWhatsAppClient(
         dataConnectorUrl: dataConnectorUrl,
+        defaultProvider: provider,
       );
-      final result = await client.sendText(phone: phoneNumber, text: text);
+      final result = await client.sendText(
+        phone: phoneNumber,
+        text: text,
+        provider: provider,
+      );
+      if (result.needsOptIn) {
+        talker.info(
+          'WhatsApp order notification queued pending Meta opt-in '
+          '(queue_id=${result.queueId})',
+        );
+        await createMessage(
+          text: text,
+          phoneNumber: phoneNumber,
+          branchId: branchId,
+          messageSource: 'whatsapp',
+          messageType: 'text',
+          delivered: false,
+          whatsappMessageId: result.queueId,
+        );
+        return true;
+      }
       await createMessage(
         text: text,
         phoneNumber: phoneNumber,
@@ -191,42 +215,70 @@ class SmsNotificationService {
     String? smsPhoneNumber,
     bool? enableSms,
     bool? enableWhatsapp,
+    int? whatsappProvider,
     @Deprecated('Use enableSms') bool? enableNotification,
   }) async {
     try {
       final smsFlag = enableSms ?? enableNotification;
       var config = await getBranchSmsConfig(branchId);
 
+      // After local Brick repair, BranchSmsConfig may be empty while Supabase
+      // still has the row — reuse that id so we don't INSERT a second branch_id.
+      final remoteId = await _remoteBranchSmsConfigId(branchId);
+      final id = remoteId ?? config?.id;
+
       if (config == null) {
         config = BranchSmsConfig(
+          id: id,
           branchId: branchId,
           smsPhoneNumber: smsPhoneNumber,
           enableSms: smsFlag ?? false,
           enableWhatsapp: enableWhatsapp ?? false,
+          whatsappProvider: whatsappProvider ?? WhatsAppChannel.openwa,
         );
       } else {
         config = BranchSmsConfig(
-          id: config.id,
+          id: id ?? config.id,
           branchId: branchId,
           smsPhoneNumber: smsPhoneNumber ?? config.smsPhoneNumber,
           enableSms: smsFlag ?? config.enableSms,
           enableWhatsapp: enableWhatsapp ?? config.enableWhatsapp,
+          whatsappProvider: whatsappProvider ?? config.whatsappProvider,
         );
       }
 
       await _repository.upsert<BranchSmsConfig>(config);
 
-      // Guarantee Supabase has the channel flags (Brick local can lag / miss columns).
-      await Supabase.instance.client.from('branch_sms_configs').upsert({
-        'id': config.id,
-        'branch_id': config.branchId,
-        'sms_phone_number': config.smsPhoneNumber,
-        'enable_sms': config.enableSms,
-        'enable_whatsapp': config.enableWhatsapp,
-      });
+      // Conflict on branch_id (unique), not id — local may mint a new UUID.
+      await Supabase.instance.client.from('branch_sms_configs').upsert(
+        {
+          'id': config.id,
+          'branch_id': config.branchId,
+          'sms_phone_number': config.smsPhoneNumber,
+          'enable_sms': config.enableSms,
+          'enable_whatsapp': config.enableWhatsapp,
+          'whatsapp_provider': config.whatsappProvider,
+        },
+        onConflict: 'branch_id',
+      );
     } catch (e) {
       print('Error updating branch SMS config: $e');
       rethrow;
+    }
+  }
+
+  static Future<String?> _remoteBranchSmsConfigId(String branchId) async {
+    try {
+      final row = await Supabase.instance.client
+          .from('branch_sms_configs')
+          .select('id')
+          .eq('branch_id', branchId)
+          .maybeSingle();
+      final id = row?['id']?.toString();
+      return (id != null && id.isNotEmpty) ? id : null;
+    } catch (e) {
+      talker.debug('_remoteBranchSmsConfigId failed for $branchId: $e');
+      return null;
     }
   }
 

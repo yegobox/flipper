@@ -8,6 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
 
 import '../controllers/admin_controller.dart';
 import '../widgets/settings_card.dart';
@@ -250,9 +251,94 @@ class _AdminScreenContent extends StatelessWidget {
                     context.flipperL10n.receiveWhatsappNotificationsForOrders,
                   ),
                   value: controller.enableWhatsappNotification,
-                  onChanged: (value) =>
-                      controller.updateSmsConfig(enableWhatsapp: value),
+                  onChanged: (value) async {
+                    if (!value) {
+                      await controller.updateSmsConfig(enableWhatsapp: false);
+                      return;
+                    }
+                    final channel = await showDialog<int>(
+                      context: context,
+                      builder: (ctx) {
+                        var selected = controller.whatsappProvider ==
+                                WhatsAppChannel.meta
+                            ? WhatsAppChannel.meta
+                            : WhatsAppChannel.openwa;
+                        return StatefulBuilder(
+                          builder: (ctx, setDialogState) {
+                            return AlertDialog(
+                              title: const Text('WhatsApp channel'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  RadioListTile<int>(
+                                    title: const Text('OpenWA'),
+                                    subtitle: const Text('Channel 1'),
+                                    value: WhatsAppChannel.openwa,
+                                    groupValue: selected,
+                                    onChanged: (v) {
+                                      if (v == null) return;
+                                      setDialogState(() => selected = v);
+                                    },
+                                  ),
+                                  RadioListTile<int>(
+                                    title: const Text('Meta Cloud API'),
+                                    subtitle: const Text('Channel 2'),
+                                    value: WhatsAppChannel.meta,
+                                    groupValue: selected,
+                                    onChanged: (v) {
+                                      if (v == null) return;
+                                      setDialogState(() => selected = v);
+                                    },
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.of(ctx).pop(selected),
+                                  child: const Text('Save'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                    if (channel == null) return;
+                    await controller.updateSmsConfig(
+                      enableWhatsapp: true,
+                      whatsappProvider: channel,
+                    );
+                  },
                 ),
+                if (controller.enableWhatsappNotification)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: SegmentedButton<int>(
+                      segments: const [
+                        ButtonSegment<int>(
+                          value: WhatsAppChannel.openwa,
+                          label: Text('OpenWA'),
+                        ),
+                        ButtonSegment<int>(
+                          value: WhatsAppChannel.meta,
+                          label: Text('Meta'),
+                        ),
+                      ],
+                      selected: {
+                        controller.whatsappProvider == WhatsAppChannel.meta
+                            ? WhatsAppChannel.meta
+                            : WhatsAppChannel.openwa,
+                      },
+                      onSelectionChanged: (set) {
+                        controller.updateSmsConfig(whatsappProvider: set.first);
+                      },
+                    ),
+                  ),
               ],
             ),
           ),

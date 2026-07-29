@@ -376,6 +376,12 @@ class CheckOutState extends ConsumerState<CheckOut>
       );
     }
 
+    // Same pin problem outside a settling session: a plain resumed ticket is
+    // pinned by _resumeOrder, nothing here unwinds it, and the pin outranks the
+    // fresh pending cart newTransaction() mints below — so the completed sale's
+    // lines keep resolving as the cart until the app restarts.
+    clearPinnedPosCartTransactionIfWidget(ref, transactionId: transaction.id);
+
     ref.invalidate(
       transactionItemsStreamProvider(
         transactionId: transaction.id,

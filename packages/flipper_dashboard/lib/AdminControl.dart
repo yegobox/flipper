@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';
@@ -153,6 +154,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   String? smsPhoneNumber;
   bool enableSmsNotification = false;
   bool enableWhatsappNotification = false;
+  int whatsappProvider = WhatsAppChannel.openwa;
   bool enableAutoAddSearch = false;
   late final TextEditingController phoneController;
   late final FocusNode _smsPhoneFocusNode;
@@ -217,6 +219,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     String? phone,
     bool? enableSms,
     bool? enableWhatsapp,
+    int? whatsappProvider,
   }) async {
     if (phone != null && phone.isNotEmpty) {
       if (!_isValidPhoneNumber(phone)) {
@@ -235,6 +238,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         smsPhoneNumber: phone,
         enableSms: enableSms,
         enableWhatsapp: enableWhatsapp,
+        whatsappProvider: whatsappProvider,
       );
 
       if (!mounted) return;
@@ -250,6 +254,9 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         if (enableWhatsapp != null) {
           enableWhatsappNotification = enableWhatsapp;
         }
+        if (whatsappProvider != null) {
+          this.whatsappProvider = whatsappProvider;
+        }
         phoneError = null;
       });
     } catch (e) {
@@ -258,6 +265,101 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         phoneError = 'Failed to update SMS configuration';
       });
     }
+  }
+
+  /// When enabling WhatsApp, prompt for OpenWA (1) vs Meta (2).
+  Future<void> _onWhatsappEnabledChanged(bool enabled) async {
+    if (!enabled) {
+      await _updateSmsConfig(enableWhatsapp: false);
+      return;
+    }
+    final channel = await _promptWhatsAppChannel(initial: whatsappProvider);
+    if (!mounted || channel == null) return;
+    await _updateSmsConfig(
+      enableWhatsapp: true,
+      whatsappProvider: channel,
+    );
+  }
+
+  Future<int?> _promptWhatsAppChannel({required int initial}) {
+    var selected = initial == WhatsAppChannel.meta
+        ? WhatsAppChannel.meta
+        : WhatsAppChannel.openwa;
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'WhatsApp channel',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Choose how digital receipts and order notifications are sent.',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      color: const Color(0xFF6B7280),
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  RadioListTile<int>(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'OpenWA',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Local / self-hosted WhatsApp session (channel 1)',
+                      style: GoogleFonts.outfit(fontSize: 12),
+                    ),
+                    value: WhatsAppChannel.openwa,
+                    groupValue: selected,
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setDialogState(() => selected = v);
+                    },
+                  ),
+                  RadioListTile<int>(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Meta Cloud API',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      'Official Meta WhatsApp (channel 2). Customers may need '
+                      'to scan a QR to opt in before receipts can send.',
+                      style: GoogleFonts.outfit(fontSize: 12),
+                    ),
+                    value: WhatsAppChannel.meta,
+                    groupValue: selected,
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setDialogState(() => selected = v);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(selected),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   String? _normalizedSmsPhoneFromController() {
@@ -885,6 +987,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
           smsPhoneNumber = config.smsPhoneNumber;
           enableSmsNotification = config.enableSms;
           enableWhatsappNotification = config.enableWhatsapp;
+          whatsappProvider = config.whatsappProvider;
           phoneController.text = config.smsPhoneNumber ?? '';
         });
       }
@@ -2071,10 +2174,60 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                     const Color(0xFF25D366).withValues(alpha: 0.12),
                   ),
                   value: enableWhatsappNotification,
-                  onChanged: (value) =>
-                      _updateSmsConfig(enableWhatsapp: value),
+                  onChanged: _onWhatsappEnabledChanged,
                 ),
               ),
+              if (enableWhatsappNotification) ...[
+                Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Default WhatsApp channel',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: _kAdminTitleText,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '1 = OpenWA · 2 = Meta Cloud API',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: _kAdminSubtitleText,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SegmentedButton<int>(
+                        segments: const [
+                          ButtonSegment<int>(
+                            value: WhatsAppChannel.openwa,
+                            label: Text('OpenWA'),
+                            icon: Icon(Icons.smartphone_outlined, size: 16),
+                          ),
+                          ButtonSegment<int>(
+                            value: WhatsAppChannel.meta,
+                            label: Text('Meta'),
+                            icon: Icon(Icons.cloud_outlined, size: 16),
+                          ),
+                        ],
+                        selected: {
+                          whatsappProvider == WhatsAppChannel.meta
+                              ? WhatsAppChannel.meta
+                              : WhatsAppChannel.openwa,
+                        },
+                        onSelectionChanged: (set) {
+                          final v = set.first;
+                          _updateSmsConfig(whatsappProvider: v);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),

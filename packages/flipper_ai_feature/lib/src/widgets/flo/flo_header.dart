@@ -261,7 +261,7 @@ class _ModeTab extends StatelessWidget {
                   constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   decoration: BoxDecoration(
-                    color: FloTheme.wa,
+                    color: FloTheme.blue,
                     borderRadius: BorderRadius.circular(9),
                   ),
                   alignment: Alignment.center,
@@ -307,7 +307,7 @@ class _HeaderChips extends StatelessWidget {
         whatsAppConnected
             ? _ChanChip(
                 label: 'WhatsApp',
-                icon: FloIcons.whatsApp(size: 14, color: FloTheme.waDeep),
+                icon: FloIcons.whatsApp(size: 14, color: FloTheme.blueDeep),
                 connected: true,
                 isWhatsApp: true,
                 onTap: onConnectWhatsApp,
@@ -337,11 +337,11 @@ class _ChanChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isWhatsApp ? FloTheme.waTint : FloTheme.surface;
-    final border = isWhatsApp ? const Color(0xFFBCE7CC) : FloTheme.line;
-    final fg = isWhatsApp ? FloTheme.waDeep : FloTheme.ink2;
-    final dotColor = isWhatsApp ? FloTheme.wa : FloTheme.gain;
-    final dotGlow = isWhatsApp ? const Color(0xFFCFF0DC) : FloTheme.gainTint;
+    final bg = isWhatsApp ? FloTheme.blueTint : FloTheme.surface;
+    final border = isWhatsApp ? FloTheme.blueTint2 : FloTheme.line;
+    final fg = isWhatsApp ? FloTheme.blueDeep : FloTheme.ink2;
+    final dotColor = isWhatsApp ? FloTheme.blue : FloTheme.gain;
+    final dotGlow = isWhatsApp ? FloTheme.blueTint2 : FloTheme.gainTint;
 
     return InkWell(
       onTap: onTap,
@@ -401,7 +401,7 @@ class _ConnectChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FloIcons.whatsApp(size: 14, color: FloTheme.wa),
+              FloIcons.whatsApp(size: 14, color: FloTheme.blue),
               const SizedBox(width: 6),
               const Text(
                 'Connect WhatsApp',
@@ -508,8 +508,8 @@ class FloMenuPopover extends StatelessWidget {
           ),
           const Divider(height: 12, color: FloTheme.lineSoft),
           _MenuItem(
-            icon: FloIcons.whatsApp(size: 16, color: FloTheme.waDeep),
-            iconBg: FloTheme.waTint,
+            icon: FloIcons.whatsApp(size: 16, color: FloTheme.blueDeep),
+            iconBg: FloTheme.blueTint,
             title: 'Connect WhatsApp',
             subtitle: 'Chat with Flo & customers',
             badge: whatsAppConnected ? 'On' : 'Off',
@@ -598,7 +598,7 @@ class _MenuItem extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: badgeOn ? FloTheme.waTint : FloTheme.surface2,
+                    color: badgeOn ? FloTheme.blueTint : FloTheme.surface2,
                     borderRadius: BorderRadius.circular(FloTheme.radiusPill),
                     border: badgeOn ? null : Border.all(color: FloTheme.line),
                   ),
@@ -607,7 +607,7 @@ class _MenuItem extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: badgeOn ? FloTheme.waDeep : FloTheme.ink3,
+                      color: badgeOn ? FloTheme.blueDeep : FloTheme.ink3,
                     ),
                   ),
                 ),

@@ -250,10 +250,10 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       onResumed();
     } else if (state == AppLifecycleState.detached) {
-      // Clean up global event bus on app shutdown
+      // Clean up while Dart FFI is still alive — native Ditto threads must not
+      // outlive closed callbacks after isolate teardown / hot restart.
       EventBus().dispose();
-      // Also dispose of Ditto singleton to ensure proper cleanup
-      _cleanupDitto();
+      unawaited(_cleanupDitto());
     }
   }
 
@@ -261,9 +261,9 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
   Future<void> _cleanupDitto() async {
     try {
       await DittoSingleton.instance.dispose();
-      print('✅ Ditto singleton disposed on app shutdown');
+      debugPrint('✅ Ditto singleton disposed on app shutdown');
     } catch (e) {
-      print('⚠️ Error disposing Ditto singleton on app shutdown: $e');
+      debugPrint('⚠️ Error disposing Ditto singleton on app shutdown: $e');
     }
   }
 }

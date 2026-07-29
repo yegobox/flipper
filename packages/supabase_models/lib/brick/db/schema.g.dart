@@ -12,6 +12,7 @@ part '20260702191831.migration.dart';
 part '20260705114226.migration.dart';
 part '20260723122459.migration.dart';
 part '20260728113000.migration.dart';
+part '20260728163000.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -26,11 +27,12 @@ final migrations = <Migration>{
   const Migration20260705114226(),
   const Migration20260723122459(),
   const Migration20260728113000(),
+  const Migration20260728163000(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260728113000,
+  20260728163000,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -195,6 +197,7 @@ final schema = Schema(
         SchemaColumn('sms_phone_number', Column.varchar),
         SchemaColumn('enable_sms', Column.boolean),
         SchemaColumn('enable_whatsapp', Column.boolean),
+        SchemaColumn('whatsapp_provider', Column.integer),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

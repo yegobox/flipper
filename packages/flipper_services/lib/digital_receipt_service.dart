@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -9,11 +10,27 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
+
+/// Meta 24h opt-in prompt for POS (QR / wa.me) when a receipt is queued.
+class WhatsAppOptInPrompt {
+  const WhatsAppOptInPrompt({
+    required this.phone,
+    this.chatUrl,
+    this.qrPngBase64,
+    this.queueId,
+  });
+
+  final String phone;
+  final String? chatUrl;
+  final String? qrPngBase64;
+  final String? queueId;
+}
 
 /// Queues and delivers digital receipts after a receipt PDF is in S3.
 ///
 /// SMS goes through [generateReceiptUrl] + [sendSms]. WhatsApp sends the PDF
-/// via data-connector OpenWA `send-document` and audits a `messages` row.
+/// via data-connector `send-document` (OpenWA or Meta) and audits a `messages` row.
 class DigitalReceiptService {
   DigitalReceiptService._();
 
@@ -24,6 +41,13 @@ class DigitalReceiptService {
   /// `pending_digital_receipt_*` box writes were silently dropped.
   static final Map<String, bool> _pendingSmsByTransactionId = {};
   static final Set<String> _whatsAppSentTransactionIds = {};
+
+  static final StreamController<WhatsAppOptInPrompt> _optInPromptController =
+      StreamController<WhatsAppOptInPrompt>.broadcast();
+
+  /// Fired when Meta queues a receipt outside the 24h window (show QR on POS).
+  static Stream<WhatsAppOptInPrompt> get optInPromptStream =>
+      _optInPromptController.stream;
 
   static Future<void> queueSmsAfterReceiptUpload(String transactionId) async {
     if (transactionId.isEmpty) return;
@@ -113,6 +137,7 @@ class DigitalReceiptService {
         phone: phone,
         receiptFileName: receiptFileName,
         pdfData: pdfData,
+        whatsappProvider: config?.whatsappProvider,
       );
       if (ok) {
         _whatsAppSentTransactionIds.add(transactionId);
@@ -249,6 +274,7 @@ class DigitalReceiptService {
           phone: phone,
           receiptFileName: receiptFileName,
           pdfData: pdfData,
+          whatsappProvider: config?.whatsappProvider,
         );
         if (waOk) {
           _whatsAppSentTransactionIds.add(transactionId);
@@ -300,6 +326,7 @@ class DigitalReceiptService {
     required String phone,
     required String receiptFileName,
     Uint8List? pdfData,
+    int? whatsappProvider,
   }) async {
     if (pdfData == null || pdfData.isEmpty) {
       talker.warning(
@@ -326,19 +353,52 @@ class DigitalReceiptService {
         );
         return false;
       }
+      final provider = WhatsAppChannel.toApiProvider(whatsappProvider);
       final client = await createOrderFormWhatsAppClient(
         dataConnectorUrl: dataConnectorUrl,
+        defaultProvider: provider,
       );
       talker.info(
         'digital receipt: POST ${client.baseUrl}api/whatsapp/send-document '
-        'phone=$phone file=$receiptFileName',
+        'provider=$provider phone=$phone file=$receiptFileName',
       );
       final result = await client.sendDocument(
         phone: phone,
         pdfBytes: pdfData,
         filename: receiptFileName,
         caption: 'Your digital receipt',
+        provider: provider,
       );
+
+      if (result.needsOptIn) {
+        talker.info(
+          'digital receipt: Meta opt-in required (queued=${result.queued} '
+          'queue_id=${result.queueId})',
+        );
+        if (!_optInPromptController.isClosed) {
+          _optInPromptController.add(
+            WhatsAppOptInPrompt(
+              phone: phone,
+              chatUrl: result.chatUrl,
+              qrPngBase64: result.qrPngBase64,
+              queueId: result.queueId,
+            ),
+          );
+        }
+        await SmsNotificationService.createMessage(
+          text:
+              'Digital receipt PDF queued (awaiting WhatsApp opt-in): $receiptFileName',
+          phoneNumber: phone,
+          branchId: branchId,
+          messageSource: 'whatsapp',
+          messageType: 'document',
+          delivered: false,
+          whatsappMessageId: result.queueId,
+        );
+        // Queued server-side — treat as handled so we do not re-send.
+        return true;
+      }
+
       await SmsNotificationService.createMessage(
         text: 'Digital receipt PDF: $receiptFileName',
         phoneNumber: phone,

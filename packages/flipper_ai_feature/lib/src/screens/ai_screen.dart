@@ -503,8 +503,10 @@ class _AiScreenState extends ConsumerState<AiScreen> with WidgetsBindingObserver
     showDialog<void>(
       context: context,
       builder: (_) => WhatsAppConnectionDialog(
-        onConnectionChanged: () =>
-            ref.invalidate(whatsAppConnectionStateProvider),
+        onConnectionChanged: () {
+          ref.invalidate(whatsAppConnectionStateProvider);
+          ref.read(whatsappMessageSyncProvider.notifier).refresh();
+        },
       ),
     );
   }
