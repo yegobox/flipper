@@ -27,6 +27,7 @@ import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/park_transaction_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -3863,6 +3864,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// and tender behind for the next sale). Name/phone live in controllers *and*
   /// persisted box keys — mirrors [_collapseCustomerFields].
   void _resetCheckoutFieldsAfterHandoff() {
+    // Cancel debounced Capella writes so the parked ticket's customer name /
+    // phone cannot land on the newly minted empty pending cart and later be
+    // promoted by resume cleanup into a mystery till ticket.
+    _customerNamePersistTimer?.cancel();
+    _customerNamePersistTimer = null;
+    _customerPhonePersistTimer?.cancel();
+    _customerPhonePersistTimer = null;
     _lastAutoSetAmount = 0.0;
     _lastPaymentInitTransactionId = null;
     _cachedNonCreditPaid = null;
@@ -3948,10 +3956,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (txn != null &&
             (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
           await ref.read(parkTransactionProvider.notifier).park(
-                ticketName: (settling.ticketName != null &&
-                        settling.ticketName!.trim().isNotEmpty)
-                    ? settling.ticketName!
-                    : 'Till · ${settling.displayRef}',
+                ticketName: pendingSaleCartReparkTicketName(
+                  id: settling.transactionId,
+                  ticketName: settling.ticketName,
+                  customerName: settling.ticketSnapshot?.customerName ??
+                      txn.customerName,
+                  reference: settling.displayRef,
+                ),
                 ticketNote: settling.ticketNote ?? 'Sent to till for payment',
                 transaction: txn,
                 customerId: txn.customerId,

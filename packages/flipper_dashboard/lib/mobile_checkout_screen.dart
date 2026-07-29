@@ -20,6 +20,7 @@ import 'package:flipper_dashboard/widgets/mpos/mpos_payment_section.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_section_label.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_totals_card.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
 import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
@@ -145,9 +146,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       if (txn != null &&
           (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
         await ParkTransactionService.park(
-          ticketName: (settling.ticketName ?? '').trim().isNotEmpty
-              ? settling.ticketName!.trim()
-              : 'Till · ${settling.displayRef}',
+          ticketName: pendingSaleCartReparkTicketName(
+            id: settling.transactionId,
+            ticketName: settling.ticketName,
+            customerName:
+                settling.ticketSnapshot?.customerName ?? txn.customerName,
+            reference: settling.displayRef,
+          ),
           ticketNote: settling.ticketNote ?? 'Sent to till for payment',
           transaction: txn,
           customerId: txn.customerId,
@@ -343,9 +348,13 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           await ref
               .read(parkTransactionProvider.notifier)
               .park(
-                ticketName: (settling.ticketName ?? '').trim().isNotEmpty
-                    ? settling.ticketName!
-                    : 'Till · ${settling.displayRef}',
+                ticketName: pendingSaleCartReparkTicketName(
+                  id: settling.transactionId,
+                  ticketName: settling.ticketName,
+                  customerName: settling.ticketSnapshot?.customerName ??
+                      txn.customerName,
+                  reference: settling.displayRef,
+                ),
                 ticketNote: settling.ticketNote ?? 'Sent to till for payment',
                 transaction: txn,
                 customerId: txn.customerId,

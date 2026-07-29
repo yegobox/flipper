@@ -1,26 +1,73 @@
 /// Pure helpers for [clearPendingSaleCartsExcept] classification.
 ///
-/// Resume must never hard-delete a non-empty pending sale (e.g. a ticket that
-/// was already resumed on this device). Only wipe empty operator carts.
+/// Resume must never hard-delete a pending sale that still has line items
+/// (e.g. a sibling cart the operator built before Collect). Ghost rows with
+/// only a stale [subTotal] or a typed [customerName]/[ticketName] must be
+/// deleted — promoting them to PARKED is what made "mystery" tickets appear
+/// after park / re-park / Collect.
+
+String _trimmed(String? value) => value?.trim() ?? '';
+
+/// True when either parked ticket name or denormalized customer name is set.
+bool pendingSaleCartHasDisplayName({
+  String? ticketName,
+  String? customerName,
+}) {
+  return _trimmed(ticketName).isNotEmpty || _trimmed(customerName).isNotEmpty;
+}
+
+/// A pending cart is wipeable when it has no line items.
+///
+/// Stale [subTotal] and display names alone do **not** keep the row — those
+/// fields routinely survive handoff onto the next empty cart and used to be
+/// re-parked as mysterious till tickets.
 bool isEmptyPendingSaleCart({
   required double subTotal,
   String? ticketName,
+  String? customerName,
   required bool hasItems,
 }) {
-  final name = ticketName?.trim() ?? '';
-  return !hasItems && subTotal <= 0.01 && name.isEmpty;
+  return !hasItems;
 }
 
-/// Whether a pending cart row can be empty without checking line items.
+/// Every sibling candidate needs an item-existence check before re-park.
 ///
-/// Named or valued carts are never treated as wipeable empty carts, so callers
-/// can skip an item-existence lookup for them.
+/// Kept as a predicate so callers can still batch lookups; always returns
+/// true so valued/named ghosts are not promoted without lines.
 bool pendingSaleCartNeedsItemLookup({
   required double subTotal,
   String? ticketName,
+  String? customerName,
 }) {
-  final name = ticketName?.trim() ?? '';
-  return subTotal <= 0.01 && name.isEmpty;
+  return true;
+}
+
+/// Label to stamp when re-parking an orphan pending cart that **has items**.
+///
+/// Prefer the parked [ticketName], then the checkout [customerName] the UI
+/// already showed, then a till-style ref.
+String pendingSaleCartReparkTicketName({
+  required String id,
+  String? ticketName,
+  String? customerName,
+  Object? reference,
+  Object? transactionNumber,
+}) {
+  final existing = _trimmed(ticketName);
+  if (existing.isNotEmpty) return existing;
+
+  final customer = _trimmed(customerName);
+  if (customer.isNotEmpty) return customer;
+
+  final ref = _trimmed(reference?.toString());
+  if (ref.isNotEmpty) return 'Till · $ref';
+
+  final txnNo = _trimmed(transactionNumber?.toString());
+  if (txnNo.isNotEmpty) return 'Till · $txnNo';
+
+  final short =
+      id.length >= 6 ? id.substring(0, 6).toUpperCase() : id.toUpperCase();
+  return 'Till · $short';
 }
 
 /// Result of classifying sibling pending sale carts for cleanup.
@@ -36,8 +83,8 @@ class PendingSaleCartCleanupPlan {
 
 /// Split pending-sale candidates into delete vs re-park buckets.
 ///
-/// [idsWithItems] should cover every id that [pendingSaleCartNeedsItemLookup]
-/// selected; other rows are classified from subTotal/ticketName alone.
+/// Re-park **only** when [idsWithItems] contains the id. Everything else is
+/// deleted — including stale subTotal / name-only ghosts.
 PendingSaleCartCleanupPlan classifyPendingSaleCarts({
   required List<Map<String, dynamic>> candidates,
   required Set<String> idsWithItems,
@@ -53,26 +100,10 @@ PendingSaleCartCleanupPlan classifyPendingSaleCarts({
       continue;
     }
 
-    final subTotal = (row['subTotal'] as num?)?.toDouble() ?? 0.0;
-    final ticketName = (row['ticketName'] as String?)?.trim() ?? '';
-
-    if (!pendingSaleCartNeedsItemLookup(
-      subTotal: subTotal,
-      ticketName: ticketName,
-    )) {
+    if (idsWithItems.contains(id)) {
       reparkRows.add(row);
-      continue;
-    }
-
-    final hasItems = idsWithItems.contains(id);
-    if (isEmptyPendingSaleCart(
-      subTotal: subTotal,
-      ticketName: ticketName,
-      hasItems: hasItems,
-    )) {
-      deleteIds.add(id);
     } else {
-      reparkRows.add(row);
+      deleteIds.add(id);
     }
   }
 

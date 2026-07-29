@@ -20,6 +20,7 @@ import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
+import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/order_form_whatsapp_client.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -773,9 +774,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           _sendingOrderFormWhatsAppTicketIds.contains(ticket.id),
                       orderFormWhatsAppSent:
                           _sentOrderFormWhatsAppTicketIds.contains(ticket.id),
-                      onTap: () => _handleTicketTap(context, ticket),
-                      onCollect: () =>
-                          unawaited(_collectTillTicket(context, ticket)),
+                      onTap: () => _handleTicketTap(ticket),
+                      onCollect: () => unawaited(_collectTillTicket(ticket)),
                       onComplete: () =>
                           unawaited(_completeTicket(context, ticket)),
                       onRecordHandover: () =>
@@ -809,7 +809,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   ) async {
     if (_collectingTicketId != null) return;
     if (!_ticketReviewWorkflowEnabled) {
-      await _handleTicketTap(context, ticket);
+      await _handleTicketTap(ticket);
       return;
     }
 
@@ -826,19 +826,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Resume a parked ticket into settling mode for till payment collection.
-  Future<void> _collectTillTicket(
-    BuildContext context,
-    ITransaction ticket,
-  ) async {
+  Future<void> _collectTillTicket(ITransaction ticket) async {
     // Ignore re-taps while this ticket is already being collected.
     if (_collectingTicketId != null) return;
     setState(() => _collectingTicketId = ticket.id);
     try {
-      final ok = await _handOffTicketToCheckout(
-        context,
-        ticket,
-        asSettling: true,
-      );
+      final ok = await _handOffTicketToCheckout(ticket, asSettling: true);
       if (!ok || !mounted) return;
     } finally {
       if (mounted) setState(() => _collectingTicketId = null);
@@ -846,10 +839,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Dialog to update ticket status or resume
-  Future<void> _handleTicketTap(
-    BuildContext context,
-    ITransaction ticket,
-  ) async {
+  /// Uses the screen's own [State.context] (guarded by [mounted]) rather than a
+  /// row context: resuming removes this ticket from the parked list, destroying
+  /// the row element mid-await.
+  Future<void> _handleTicketTap(ITransaction ticket) async {
     // Staff cannot collect payment — ticket rows stay informational.
     if (!ref.read(canCollectPosPaymentProvider)) {
       return;
@@ -869,11 +862,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         context: context,
         ticket: ticket,
         onResume: (t) async {
-          resumeSucceeded = await _handOffTicketToCheckout(
-            context,
-            t,
-            asSettling: true,
-          );
+          resumeSucceeded =
+              await _handOffTicketToCheckout(t, asSettling: true);
         },
       );
     } finally {
@@ -894,15 +884,37 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   /// and stores [ticket] as [SettlingTillTicket.ticketSnapshot] so Pay does not
   /// fall through to the collector's empty pending cart while
   /// [transactionByIdProvider] loads.
+  /// Takes no [BuildContext]: the caller used to pass the tapped row's context,
+  /// but [_resumeOrder] flips this ticket to PENDING and invalidates the ticket
+  /// providers, so the row leaves the parked list and its element is destroyed
+  /// while this method is still awaiting. Reading `MediaQuery.sizeOf` off that
+  /// defunct element threw "Null check operator used on a null value" out of
+  /// `Element.widget` — *before* the close below ran, which is why Collect left
+  /// the tickets page open with no error shown (the throw escaped through
+  /// `unawaited`). [mounted] does not catch it: it tracks this screen's State,
+  /// not the row. The screen's own [State.context] stays valid while mounted.
   Future<bool> _handOffTicketToCheckout(
-    BuildContext context,
     ITransaction ticket, {
     required bool asSettling,
   }) async {
+    // Every exit from this method is logged with the same `[collect-handoff]`
+    // tag: "Collect did not close the tickets page" has several possible causes
+    // (slow resume still awaiting the orphan-cart sweep, an aborted re-park, an
+    // unmounted route) and the tag says which one happened, and whether the
+    // close was actually reached.
+    final handoffWatch = Stopwatch()..start();
+    void logHandoff(String outcome) {
+      talker.info(
+        '[collect-handoff] txn=${ticket.id} outcome=$outcome '
+        'asSettling=$asSettling elapsedMs=${handoffWatch.elapsedMilliseconds}',
+      );
+    }
+
     // Already settling this ticket — just return to checkout.
     final currentSettling = ref.read(settlingTillTicketProvider);
     if (currentSettling != null &&
         currentSettling.transactionId == ticket.id) {
+      logHandoff('already-settling-close');
       if (MediaQuery.sizeOf(context).width < 600) {
         unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
       } else {
@@ -917,22 +929,39 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         currentSettling.transactionId.isNotEmpty &&
         currentSettling.transactionId != ticket.id) {
       final reparked = await _reparkSettlingTicket(currentSettling);
-      if (!reparked) return false;
+      if (!reparked) {
+        logHandoff('aborted-prior-repark-failed');
+        return false;
+      }
     }
 
     final parkedAt =
         ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
 
     final ok = await _resumeOrder(ticket);
-    if (!ok) return false;
+    // Resume awaits clearPendingSaleCartsExcept, which sweeps every orphan
+    // pending cart on this branch; with a large backlog that is seconds of Ditto
+    // write work before the close below can run.
+    talker.info(
+      '[collect-handoff] txn=${ticket.id} resumeOk=$ok '
+      'resumeMs=${handoffWatch.elapsedMilliseconds}',
+    );
+    if (!ok) {
+      logHandoff('resume-failed');
+      return false;
+    }
     if (!mounted) {
       // Capella already flipped this ticket to PENDING; put it back on the
       // till queue so it is not lost when the Tickets route was disposed mid-handoff.
+      logHandoff('unmounted-after-resume');
       unawaited(_emergencyReparkResumedTicket(ticket));
       return false;
     }
 
-    if (!asSettling) return true;
+    if (!asSettling) {
+      logHandoff('resume-only-no-close');
+      return true;
+    }
 
     final originalAgentId = ticket.agentId;
     var creatorName = 'Staff';
@@ -966,6 +995,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       'seedCount=${seedItems.length}',
     );
     if (!mounted) {
+      logHandoff('unmounted-after-seed');
       unawaited(_emergencyReparkResumedTicket(ticket));
       return false;
     }
@@ -983,7 +1013,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ticketSnapshot: ticket,
     );
 
-    if (MediaQuery.sizeOf(context).width < 600) {
+    final isMobileWidth = MediaQuery.sizeOf(context).width < 600;
+    logHandoff(isMobileWidth ? 'close-mobile-checkout' : 'close-router-back');
+    if (isMobileWidth) {
       unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
     } else {
       locator<RouterService>().back();
@@ -1004,10 +1036,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (txn != null &&
           (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
         await ref.read(parkTransactionProvider.notifier).park(
-              ticketName: (settling.ticketName != null &&
-                      settling.ticketName!.trim().isNotEmpty)
-                  ? settling.ticketName!
-                  : 'Till · ${settling.displayRef}',
+              ticketName: pendingSaleCartReparkTicketName(
+                id: settling.transactionId,
+                ticketName: settling.ticketName,
+                customerName: settling.ticketSnapshot?.customerName ??
+                    txn.customerName,
+                reference: settling.displayRef,
+              ),
               ticketNote: settling.ticketNote ?? 'Sent to till for payment',
               transaction: txn,
               customerId: txn.customerId,
@@ -1036,9 +1071,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _emergencyReparkResumedTicket(ITransaction ticket) async {
     try {
       await ParkTransactionService.park(
-        ticketName: (ticket.ticketName ?? '').trim().isNotEmpty
-            ? ticket.ticketName!.trim()
-            : 'Till · ${_ticketDisplayRef(ticket)}',
+        ticketName: pendingSaleCartReparkTicketName(
+          id: ticket.id,
+          ticketName: ticket.ticketName,
+          customerName: ticket.customerName,
+          reference: _ticketDisplayRef(ticket),
+        ),
         ticketNote: ticket.note ?? 'Sent to till for payment',
         transaction: ticket,
         customerId: ticket.customerId,
