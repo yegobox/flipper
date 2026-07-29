@@ -271,7 +271,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final settling = ref.read(settlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
       final ticket =
-          ref.read(transactionByIdProvider(settling.transactionId)).value;
+          ref.read(transactionByIdProvider(settling.transactionId)).value ??
+          settling.ticketSnapshot;
       if (ticket != null) return ticket;
     }
     return _pendingCartMatchingDisplay(
@@ -465,7 +466,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         .watch(pendingTransactionStreamProvider(isExpense: isExpense))
         .value;
     final pendingTxn = (settling != null && settling.transactionId.isNotEmpty)
-        ? ref.watch(transactionByIdProvider(settling.transactionId)).value
+        ? (ref.watch(transactionByIdProvider(settling.transactionId)).value ??
+            settling.ticketSnapshot)
         : _pendingCartMatchingDisplay(
             isExpense: isExpense,
             streamed: streamedPending,
@@ -1027,16 +1029,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final duration = endTime.difference(startTime).inSeconds;
 
     final settling = ref.read(settlingTillTicketProvider);
+    // Prefer the settling ticket id when present — Pay may have been bound to a
+    // stale pending-cart closure before ticketSnapshot loaded.
+    final soldId =
+        (settling != null && settling.transactionId.isNotEmpty)
+            ? settling.transactionId
+            : transaction.id;
+
     if (settling != null) {
       ref.read(settlingTillTicketProvider.notifier).state = null;
-      // Resume pinned/cached the cart to the ticket; unwind that (and suppress
-      // the ticket id) so the collected ticket's completed lines don't linger
-      // and the next sale isn't scoped to it. The suppress/cache clear below
-      // key off `transaction.id`, which during settling is the operator's own
-      // pending cart — not the ticket — so it must be done explicitly here.
-      if (settling.transactionId.isNotEmpty) {
-        ref.read(suppressedCartTransactionIdProvider.notifier).state =
-            settling.transactionId;
+      if (soldId.isNotEmpty) {
+        ref.read(suppressedCartTransactionIdProvider.notifier).state = soldId;
         clearPinnedPosCartTransactionWidget(ref);
         clearCachedPendingCartTransactionWidget(
           ref,
@@ -1058,7 +1061,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       analytics.track(
         AnalyticsEvents.quickSellCompleted,
         properties: {
-          'transaction_id': transaction.id,
+          'transaction_id': soldId,
           'branch_id': transaction.branchId!,
           'business_id': ProxyService.box.getBusinessId()!,
           'created_at': startTime.toIso8601String(),
@@ -1087,25 +1090,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Do NOT clear the pending-cart cache first — markTransactionAsCompleted
     // already wrote the next pending id there. Clearing creates a gap where the
     // header falls back to the stale stream row (old Txn ID).
-    ref.read(suppressedCartTransactionIdProvider.notifier).state =
-        transaction.id;
+    ref.read(suppressedCartTransactionIdProvider.notifier).state = soldId;
     // Resuming a parked ticket pins the cart to it (primePosCartForTransaction),
     // and that pin outranks the pending-cart cache. Left set, the cart resolves
     // straight back to this now-completed sale's still-active lines as soon as
     // suppression is released below — and stays that way until the app restarts,
-    // since the pin provider is never disposed. The settling branch above clears
-    // its own pin; this covers a plain resume (no till-settling session).
-    clearPinnedPosCartTransactionIfWidget(ref, transactionId: transaction.id);
+    // since the pin provider is never disposed.
+    clearPinnedPosCartTransactionIfWidget(ref, transactionId: soldId);
     clearCartLinesOptimistically();
 
-    ref
-        .read(optimisticCartProvider.notifier)
-        .clearForTransaction(transaction.id);
+    ref.read(optimisticCartProvider.notifier).clearForTransaction(soldId);
 
     // Clear stale cart items for the completed transaction.
     ref.invalidate(
       transactionItemsStreamProvider(
-        transactionId: transaction.id,
+        transactionId: soldId,
         branchId: branchId,
       ),
     );
@@ -1129,7 +1128,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ITransaction? nextPending =
         (cachedNext != null &&
             cachedNext.id.isNotEmpty &&
-            cachedNext.id != transaction.id &&
+            cachedNext.id != soldId &&
             cachedNext.status == PENDING)
         ? cachedNext
         : null;
@@ -1152,7 +1151,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
     if (nextPending != null &&
         nextPending.id.isNotEmpty &&
-        nextPending.id != transaction.id &&
+        nextPending.id != soldId &&
         nextPending.status == PENDING) {
       writeCachedPendingCartTransactionWidget(
         ref,
@@ -1166,9 +1165,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       // completed sale. A pin surviving here would outrank [nextPending] in the
       // cache, so the sold lines would come straight back.
       final stillPinnedToSold =
-          ref.read(pinnedPosCartTransactionIdProvider) == transaction.id;
+          ref.read(pinnedPosCartTransactionIdProvider) == soldId;
       if (!stillPinnedToSold &&
-          ref.read(suppressedCartTransactionIdProvider) == transaction.id) {
+          ref.read(suppressedCartTransactionIdProvider) == soldId) {
         ref.read(suppressedCartTransactionIdProvider.notifier).state = null;
       }
     } else {
@@ -1410,26 +1409,34 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ref.watch(cachedPendingCartTransactionProvider(isExpense));
     // While settling a queued till ticket, drive the whole checkout (summary,
     // payment init, and — critically — completion) from that ticket rather than
-    // the collector's own pending cart. Fall back to the pending cart until the
-    // ticket row has loaded.
+    // the collector's own pending cart. Prefer the live row, else the snapshot
+    // captured at Collect so Pay never binds to an empty pending twin.
     final settlingTicket = ref.watch(settlingTillTicketProvider);
     final settlingTxn = settlingTicket == null
         ? null
-        : ref.watch(transactionByIdProvider(settlingTicket.transactionId)).value;
+        : (ref.watch(transactionByIdProvider(settlingTicket.transactionId)).value ??
+            settlingTicket.ticketSnapshot);
     // Rebuild when cart lines change so Pay tracks the txn that owns them.
     ref.watch(posCartDisplayItemsProvider);
-    final matched = settlingTxn != null
+    final matched = settlingTicket != null
         ? null
         : _pendingCartMatchingDisplay(
             isExpense: isExpense,
             streamed: basePendingTransaction.value,
             cached: cachedPending,
           );
-    final AsyncValue<ITransaction> transactionAsyncValue = settlingTxn != null
-        ? AsyncValue<ITransaction>.data(settlingTxn)
-        : (matched != null
-            ? AsyncValue<ITransaction>.data(matched)
-            : basePendingTransaction);
+    final AsyncValue<ITransaction> transactionAsyncValue;
+    if (settlingTicket != null) {
+      // Never fall through to the collector's pending cart while settling —
+      // that twin-txn race completed the wrong sale / cleared the wrong id.
+      transactionAsyncValue = settlingTxn != null
+          ? AsyncValue<ITransaction>.data(settlingTxn)
+          : const AsyncValue<ITransaction>.loading();
+    } else if (matched != null) {
+      transactionAsyncValue = AsyncValue<ITransaction>.data(matched);
+    } else {
+      transactionAsyncValue = basePendingTransaction;
+    }
     final attachedCustomerId = transactionAsyncValue.value?.customerId;
     if (attachedCustomerId != null && attachedCustomerId.isNotEmpty) {
       ref.watch(attachedCustomerProvider(attachedCustomerId));
@@ -3730,9 +3737,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     setState(() => _backToNewSaleBusy = true);
     final branchId = ProxyService.box.getBranchId() ?? '';
     try {
+      ITransaction? txn = settling.ticketSnapshot;
       try {
-        final txn =
-            await ProxyService.getStrategy(Strategy.capella).getTransaction(
+        txn ??= await ProxyService.getStrategy(Strategy.capella).getTransaction(
           id: settling.transactionId,
           branchId: branchId,
         );
@@ -3753,11 +3760,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       }
 
       ref.read(settlingTillTicketProvider.notifier).state = null;
-      clearPinnedPosCartTransactionWidget(ref);
-      clearCartLinesOptimistically();
+      // Same handoff clear as Park / Send-to-till so the re-parked ticket's
+      // lines (and pin/suppress) cannot linger on the next empty cart.
+      if (txn != null) {
+        _clearCartAfterTicketHandoff(txn);
+      } else {
+        clearPinnedPosCartTransactionWidget(ref);
+        clearCartLinesOptimistically();
+        ref.read(suppressedCartTransactionIdProvider.notifier).state =
+            settling.transactionId;
+        ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
+      }
       ref.invalidate(paymentMethodsProvider);
       widget.receivedAmountController.clear();
-      ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
       // Collect forced the full cart view; return to the normal catalog view.
       if (ref.read(previewingCart)) {
         ref.read(previewingCart.notifier).state = false;

@@ -278,10 +278,17 @@ abstract class TransactionInterface {
 
   /// Fast Ditto path for resume: drop other pending sale carts for [agentId]
   /// without registering broad transaction sync subscriptions.
+  ///
+  /// By default only **empty** carts are deleted. Non-empty pending carts
+  /// (items and/or subTotal > 0) are re-parked so resuming ticket B cannot
+  /// hard-delete ticket A that was already resumed on this device.
+  /// Pass [deleteNonEmpty] `true` for shift/user-switch cleanup that must wipe
+  /// every other pending cart.
   Future<void> clearPendingSaleCartsExcept({
     required String branchId,
     required String agentId,
     required String excludeTransactionId,
+    bool deleteNonEmpty = false,
   });
 
   /// Single targeted Ditto UPDATE for park — no pre-read, ensure-next-cart deferred.

@@ -20,6 +20,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/services/resume_transaction_service.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -80,6 +81,10 @@ class _TicketWorkflowCompleteHostState
         throw Exception('Missing branch or agent for completion');
       }
 
+      // Capture park time before resume bumps lastTouched.
+      final parkedAt =
+          ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
+
       await ResumeTransactionService.resume(
         ticket: ticket,
         branchId: branchId,
@@ -104,15 +109,17 @@ class _TicketWorkflowCompleteHostState
         active: true,
       );
 
+      ticket.status = PENDING;
       ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
         transactionId: ticket.id,
         displayRef: _ticketDisplayRef(ticket),
         creatorName: 'Staff',
-        createdAt: ticket.createdAt ?? DateTime.now(),
+        createdAt: parkedAt,
         branchId: branchId,
         ticketName: ticket.ticketName,
         ticketNote: ticket.note,
         seedItems: seedItems,
+        ticketSnapshot: ticket,
       );
 
       await TransactionInitializationHelper.initializeSession(

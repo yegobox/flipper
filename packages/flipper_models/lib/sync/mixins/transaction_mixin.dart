@@ -1333,6 +1333,7 @@ mixin TransactionMixin implements TransactionInterface {
     required String branchId,
     required String agentId,
     required String excludeTransactionId,
+    bool deleteNonEmpty = false,
   }) async {
     await ProxyService.getStrategy(
       Strategy.capella,
@@ -1340,6 +1341,7 @@ mixin TransactionMixin implements TransactionInterface {
       branchId: branchId,
       agentId: agentId,
       excludeTransactionId: excludeTransactionId,
+      deleteNonEmpty: deleteNonEmpty,
     );
   }
 

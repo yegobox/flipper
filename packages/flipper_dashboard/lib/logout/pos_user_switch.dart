@@ -120,6 +120,7 @@ Future<void> _clearOutgoingCartSilently({
       branchId: branchId,
       agentId: outgoingUserId,
       excludeTransactionId: _kExcludeNoneTransactionId,
+      deleteNonEmpty: true,
     );
   } catch (e, s) {
     talker.warning('clearPendingSaleCartsExcept during user switch: $e\n$s');

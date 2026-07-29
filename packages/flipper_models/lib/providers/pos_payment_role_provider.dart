@@ -137,11 +137,15 @@ class SettlingTillTicket {
     this.ticketName,
     this.ticketNote,
     this.seedItems = const <TransactionItem>[],
+    this.ticketSnapshot,
   });
 
   final String transactionId;
   final String displayRef;
   final String creatorName;
+
+  /// Wall-clock when the ticket was sent to the till (park `lastTouched`),
+  /// captured **before** resume bumps `lastTouched`. Drives "sent N min ago".
   final DateTime createdAt;
 
   /// Branch the ticket lives in — used to scope the settling cart's line-item
@@ -154,6 +158,11 @@ class SettlingTillTicket {
   /// first frame instead of flashing empty while the cold Ditto item stream
   /// registers its observer and delivers its first snapshot.
   final List<TransactionItem> seedItems;
+
+  /// Full ticket row captured at Collect/Resume so Pay/completion can bind to
+  /// this sale before [transactionByIdProvider] resolves (avoids completing
+  /// the collector's empty pending cart).
+  final ITransaction? ticketSnapshot;
 }
 
 /// Non-null while a Manager/Admin is settling a queued till ticket in the cart.
