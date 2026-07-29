@@ -84,6 +84,44 @@ class _ReconHarness extends ConsumerWidget {
   }
 }
 
+/// Primes the cart to [ticket] exactly once — the resume / till-collect entry
+/// point ([_resumeOrder] in tickets_list.dart) — then renders the cart count.
+class _PrimeOnceHarness extends ConsumerStatefulWidget {
+  const _PrimeOnceHarness({required this.ticket});
+
+  final ITransaction ticket;
+
+  @override
+  ConsumerState<_PrimeOnceHarness> createState() => _PrimeOnceHarnessState();
+}
+
+class _PrimeOnceHarnessState extends ConsumerState<_PrimeOnceHarness> {
+  bool _primed = false;
+
+  // Not initState: WidgetRef.container reads an inherited widget, which is only
+  // legal once dependencies are available.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_primed) return;
+    _primed = true;
+    primePosCartForTransactionWidget(
+      ref,
+      isExpense: false,
+      transaction: widget.ticket,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = ref.watch(posCartDisplayItemsProvider);
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Text('count:${lines.length}'),
+    );
+  }
+}
+
 void main() {
   late TestEnvironment env;
 
@@ -175,6 +213,281 @@ void main() {
     await tester.pump();
 
     expect(find.text('count:1'), findsOneWidget);
+  });
+
+  // A resumed parked ticket pins the cart to it (primePosCartForTransaction).
+  // The pin outranks the pending-cart cache in
+  // posCartPendingTransactionIdProvider and — unlike that cache — is never
+  // re-validated against the transaction's status, so a pin left behind on a
+  // completed sale keeps resolving the cart to its (still active) lines. That is
+  // the "cart never cleared until I restarted the app" report: the pin provider
+  // is not autoDispose, so only a relaunch drops it.
+  group('stale cart pin on a completed sale', () {
+    const nextBranchId = _branchId;
+
+    ProviderContainer containerForSoldAndNext({
+      required ITransaction sold,
+      required List<TransactionItem> soldItems,
+      required ITransaction next,
+    }) {
+      return ProviderContainer(
+        overrides: [
+          // Completion primes the cache with the *next* pending cart.
+          cachedPendingCartTransactionProvider(false)
+              .overrideWith((ref) => next),
+          pendingTransactionStreamProvider(isExpense: false)
+              .overrideWith((ref) => Stream<ITransaction>.value(next)),
+          transactionItemsStreamProvider(
+            transactionId: sold.id,
+            branchId: nextBranchId,
+          ).overrideWith((ref) => Stream<List<TransactionItem>>.value(soldItems)),
+          transactionItemsStreamProvider(
+            transactionId: next.id,
+            branchId: nextBranchId,
+          ).overrideWith(
+            (ref) => Stream<List<TransactionItem>>.value(const []),
+          ),
+        ],
+      );
+    }
+
+    testWidgets(
+        'clearing the pin keeps the sold lines away when suppression releases',
+        (tester) async {
+      final sold = _pendingTxn('txn-sold-1');
+      final next = _pendingTxn('txn-next-1');
+      final container = containerForSoldAndNext(
+        sold: sold,
+        soldItems: [_item('a', sold.id), _item('b', sold.id)],
+        next: next,
+      );
+      addTearDown(container.dispose);
+
+      // Resume pinned the cart to the ticket now being sold.
+      container.read(pinnedPosCartTransactionIdProvider.notifier).state =
+          sold.id;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const _CartCountHarness(),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('count:2'), findsOneWidget);
+
+      // Sale completes: suppress the sold id and drop its now-stale pin.
+      container.read(suppressedCartTransactionIdProvider.notifier).state =
+          sold.id;
+      expect(
+        clearPinnedPosCartTransactionIfContainer(
+          container,
+          transactionId: sold.id,
+        ),
+        isTrue,
+        reason: 'the pin still pointed at the sold transaction',
+      );
+      await tester.pump();
+      expect(find.text('count:0'), findsOneWidget);
+
+      // Completion releases suppression once the next pending cart is bound.
+      container.read(suppressedCartTransactionIdProvider.notifier).state = null;
+      await tester.pump();
+
+      expect(
+        find.text('count:0'),
+        findsOneWidget,
+        reason: 'without the pin the cart resolves the empty next pending cart, '
+            'so the sold lines must not come back',
+      );
+    });
+
+    testWidgets('a pin left on the sold sale resurrects its lines',
+        (tester) async {
+      final sold = _pendingTxn('txn-sold-2');
+      final next = _pendingTxn('txn-next-2');
+      final container = containerForSoldAndNext(
+        sold: sold,
+        soldItems: [_item('a', sold.id)],
+        next: next,
+      );
+      addTearDown(container.dispose);
+
+      container.read(pinnedPosCartTransactionIdProvider.notifier).state =
+          sold.id;
+      container.read(suppressedCartTransactionIdProvider.notifier).state =
+          sold.id;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const _CartCountHarness(),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('count:0'), findsOneWidget);
+
+      // Suppression alone is not enough — this is the regression being guarded.
+      container.read(suppressedCartTransactionIdProvider.notifier).state = null;
+      // Two pumps: suppression short-circuited the provider before it ever
+      // subscribed to the sold items stream, so releasing it starts that
+      // subscription (loading) and the value lands on the following frame.
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        find.text('count:1'),
+        findsOneWidget,
+        reason: 'documents why completion must unwind the pin, not just suppress',
+      );
+    });
+
+    test('the guarded clear leaves an unrelated pin alone', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(pinnedPosCartTransactionIdProvider.notifier).state =
+          'txn-other';
+
+      expect(
+        clearPinnedPosCartTransactionIfContainer(
+          container,
+          transactionId: 'txn-sold-3',
+        ),
+        isFalse,
+      );
+      expect(
+        container.read(pinnedPosCartTransactionIdProvider),
+        'txn-other',
+        reason: 'a pin for another transaction (e.g. mobile checkout) must stay',
+      );
+      expect(
+        clearPinnedPosCartTransactionIfContainer(
+          container,
+          transactionId: '',
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  // Resuming a parked ticket makes that ticket both the pinned cart and the
+  // emitted pending row. `syncPendingTransaction` only releases suppression for a
+  // *different* pending id, so suppression left over from the park / send-to-till
+  // that hid the ticket earlier can never be released again — the resumed cart
+  // renders empty until the app restarts. Priming the cart must drop it.
+  group('resuming a suppressed ticket', () {
+    ProviderContainer containerForResumedTicket(
+      ITransaction ticket,
+      List<TransactionItem> items,
+    ) {
+      return ProviderContainer(
+        overrides: [
+          // Send-to-till cleared the pending-cart cache; after resume the ticket
+          // is the only PENDING row left for this device+agent.
+          cachedPendingCartTransactionProvider(false).overrideWith((ref) => null),
+          pendingTransactionStreamProvider(isExpense: false)
+              .overrideWith((ref) => Stream<ITransaction>.value(ticket)),
+          transactionItemsStreamProvider(
+            transactionId: ticket.id,
+            branchId: _branchId,
+          ).overrideWith((ref) => Stream<List<TransactionItem>>.value(items)),
+        ],
+      );
+    }
+
+    testWidgets('reconciliation cannot release suppression on the resumed id',
+        (tester) async {
+      final ticket = _pendingTxn('txn-ticket-1');
+      final container = containerForResumedTicket(ticket, [_item('a', ticket.id)]);
+      addTearDown(container.dispose);
+
+      // Left behind by the send-to-till that parked this ticket.
+      container.read(suppressedCartTransactionIdProvider.notifier).state =
+          ticket.id;
+      // Resume pinned the cart to the ticket.
+      container.read(pinnedPosCartTransactionIdProvider.notifier).state =
+          ticket.id;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const _ReconHarness(),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(
+        container.read(suppressedCartTransactionIdProvider),
+        ticket.id,
+        reason: 'the guard needs a different pending id, so nothing clears it',
+      );
+      expect(
+        container.read(posCartDisplayItemsProvider),
+        isEmpty,
+        reason: 'this is the empty cart after resume that was reported',
+      );
+    });
+
+    testWidgets('priming the cart releases suppression so the lines render',
+        (tester) async {
+      final ticket = _pendingTxn('txn-ticket-2');
+      final container = containerForResumedTicket(ticket, [
+        _item('a', ticket.id),
+        _item('b', ticket.id),
+      ]);
+      addTearDown(container.dispose);
+
+      container.read(suppressedCartTransactionIdProvider.notifier).state =
+          ticket.id;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: _PrimeOnceHarness(ticket: ticket),
+        ),
+      );
+      // Prime defers to a microtask; let it land and the cart rebuild.
+      await tester.pump();
+      await tester.pump();
+
+      expect(container.read(suppressedCartTransactionIdProvider), isNull);
+      expect(
+        container.read(pinnedPosCartTransactionIdProvider),
+        ticket.id,
+        reason: 'the resumed ticket is still the pinned cart',
+      );
+      expect(find.text('count:2'), findsOneWidget);
+    });
+
+    test('the guarded clear leaves suppression for another sale alone', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(suppressedCartTransactionIdProvider.notifier).state =
+          'txn-just-sold';
+
+      expect(
+        clearSuppressedCartTransactionIfContainer(
+          container,
+          transactionId: 'txn-ticket-3',
+        ),
+        isFalse,
+      );
+      expect(
+        container.read(suppressedCartTransactionIdProvider),
+        'txn-just-sold',
+        reason: 'a sale completed elsewhere must stay suppressed',
+      );
+      expect(
+        clearSuppressedCartTransactionIfContainer(
+          container,
+          transactionId: '',
+        ),
+        isFalse,
+      );
+    });
   });
 
   testWidgets(

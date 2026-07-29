@@ -488,6 +488,11 @@ void _primePosCartForTransactionContainer(
   final id = transaction.id;
   final txn = transaction;
   Future.microtask(() {
+    // [transaction] is being revived as the active cart, so any suppression left
+    // on it — from the park / send-to-till / completion that hid it earlier —
+    // must go first, or the pinned cart renders empty and nothing can release
+    // the flag again. See [clearSuppressedCartTransactionIfContainer].
+    clearSuppressedCartTransactionIfContainer(container, transactionId: id);
     container.read(pinnedPosCartTransactionIdProvider.notifier).state = id;
     writeCachedPendingCartTransactionContainer(
       container,
@@ -534,6 +539,77 @@ void clearPinnedPosCartTransaction(Ref ref) {
 
 void clearPinnedPosCartTransactionWidget(WidgetRef ref) {
   clearPinnedPosCartTransactionContainer(ref.container);
+}
+
+/// Drops the cart pin only when it still points at [transactionId].
+///
+/// The pin outranks the pending-cart cache in
+/// [posCartPendingTransactionIdProvider], and — unlike that cache, which refuses
+/// any non-`PENDING` row — it holds a bare id that is never re-validated against
+/// the transaction's status. So a pin left behind on a sale that has since
+/// completed (or been parked) keeps resolving the cart to that transaction's
+/// line items, which stay `active: true` in Ditto forever.
+/// [suppressedCartTransactionIdProvider] hides them, but the moment suppression
+/// is released the finished sale's lines reappear and cannot be cleared without
+/// an app restart (this provider is not autoDispose).
+///
+/// Returns true when a stale pin was actually dropped.
+bool clearPinnedPosCartTransactionIfContainer(
+  ProviderContainer container, {
+  required String transactionId,
+}) {
+  if (transactionId.isEmpty) return false;
+  final pinned = container.read(pinnedPosCartTransactionIdProvider);
+  if (pinned == null || pinned.isEmpty || pinned != transactionId) return false;
+  container.read(pinnedPosCartTransactionIdProvider.notifier).state = null;
+  return true;
+}
+
+/// Drops cart suppression when it still points at [transactionId].
+///
+/// Mirror of [clearPinnedPosCartTransactionIfContainer] for the *other* flag
+/// that blanks the cart. [suppressedCartTransactionIdProvider] has exactly one
+/// release site — `syncPendingTransaction` in
+/// [posCartStreamReconciliationProvider] — and it only fires when a
+/// **different** pending row becomes active. Resuming a parked ticket makes
+/// that same id both the pinned cart and the emitted pending row, so the guard
+/// can never fire: the ticket's lines stay hidden (the provider short-circuits
+/// to `const []`) until the app restarts. Park / send-to-till / completion all
+/// suppress the id the operator may resume next, so reviving a transaction as
+/// the cart must always release it.
+///
+/// Returns true when stale suppression was actually dropped.
+bool clearSuppressedCartTransactionIfContainer(
+  ProviderContainer container, {
+  required String transactionId,
+}) {
+  if (transactionId.isEmpty) return false;
+  final suppressed = container.read(suppressedCartTransactionIdProvider);
+  if (suppressed == null ||
+      suppressed.isEmpty ||
+      suppressed != transactionId) {
+    return false;
+  }
+  container.read(suppressedCartTransactionIdProvider.notifier).state = null;
+  return true;
+}
+
+bool clearPinnedPosCartTransactionIf(Ref ref, {required String transactionId}) {
+  return clearPinnedPosCartTransactionIfContainer(
+    ref.container,
+    transactionId: transactionId,
+  );
+}
+
+/// [WidgetRef] variant — not assignable to [Ref] in this Riverpod version.
+bool clearPinnedPosCartTransactionIfWidget(
+  WidgetRef ref, {
+  required String transactionId,
+}) {
+  return clearPinnedPosCartTransactionIfContainer(
+    ref.container,
+    transactionId: transactionId,
+  );
 }
 
 /// Synchronous txn id for grid tap (no stream subscription).
