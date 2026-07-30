@@ -17,6 +17,8 @@ Future<bool> ebmVatEnabled(Ref ref) async {
     final ebm =
         await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
     // Return the VAT enabled status, default to false if ebm is null
+    final vatEnabled = ebm?.vatEnabled ?? false;
+    await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
     if (ProxyService.box.getUserLoggingEnabled() ?? false) {
       final logService = LogService();
       await logService.logException(
@@ -29,7 +31,7 @@ Future<bool> ebmVatEnabled(Ref ref) async {
         },
       );
     }
-    return ebm?.vatEnabled ?? false;
+    return vatEnabled;
   } catch (e) {
     // If there's an error, default to false
     return false;
@@ -48,6 +50,8 @@ Future<bool> getVatEnabledFromEbm() async {
     // to ensure we have the latest data even if this is the first time on a device
     final ebm =
         await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+    final vatEnabled = ebm?.vatEnabled ?? false;
+    await ProxyService.box.writeBool(key: 'vatEnabled', value: vatEnabled);
     if (ProxyService.box.getUserLoggingEnabled() ?? false) {
       final logService = LogService();
       await logService.logException(
@@ -60,7 +64,7 @@ Future<bool> getVatEnabledFromEbm() async {
         },
       );
     }
-    return ebm?.vatEnabled ?? false;
+    return vatEnabled;
   } catch (e) {
     return false;
   }

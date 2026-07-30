@@ -1079,7 +1079,9 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool vatEnabled() {
-    return _cache['vatEnabled'] as bool? ?? true;
+    // Default false — matches EBM/isVatEnabledForBranch when unset.
+    // Only VAT-enabled branches should treat tax as on.
+    return _cache['vatEnabled'] as bool? ?? false;
   }
 
   @override
