@@ -11,6 +11,7 @@ export 'pay_button_provider.dart';
 export 'profit_provider.dart';
 export 'scan_mode_provider.dart';
 export 'selected_provider.dart';
+export 'inventory_movement_provider.dart';
 export 'stock_value_provider.dart';
 export 'stock_value_report_provider.dart';
 export 'total_sale_provider.dart';

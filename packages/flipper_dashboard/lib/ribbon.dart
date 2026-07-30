@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result, unused_field
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/BranchPerformance.dart';
@@ -305,30 +306,16 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
             hasSabGradient: false,
             resizeToAvoidBottomInset: true,
             enableDrag: true,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.8,
-                  maxWidth: double.infinity,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 800,
-                      child: BranchPerformance(),
-                    ),
-                  ],
-                ),
-              ),
+            child: SizedBox(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.9,
+              child: const BranchPerformance(),
             ),
           ),
         ];
       },
       modalTypeBuilder: (context) {
-        return WoltModalType.dialog();
+        return WoltModalType.bottomSheet();
       },
       onModalDismissedWithBarrierTap: () {
         Navigator.of(context).pop();
@@ -347,27 +334,26 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   }
 
   void _showBranchPerformance(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final width = math.min(1180.0, size.width - 64);
+    final height = math.min(820.0, size.height - 48);
     showDialog(
       barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       context: context,
       builder: (_) => Dialog(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: BranchPerformance(),
-                  ),
-                ),
-              ],
-            ),
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+        // Tight size so BranchPerformance's Expanded + scroll layout never
+        // sees an unbounded height (which broke the KPI grid / MouseTracker).
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: const BranchPerformance(),
           ),
         ),
       ),
