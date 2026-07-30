@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
@@ -13,11 +14,15 @@ class TransactionReportKpiStrip extends ConsumerWidget {
     required this.startDate,
     required this.endDate,
     required this.showDetailed,
+    this.metrics = ReportMetrics.comfortable,
   });
 
   final DateTime startDate;
   final DateTime endDate;
   final bool showDetailed;
+
+  /// Height-aware sizing; defaults to the legacy (large screen) values.
+  final ReportMetrics metrics;
 
   double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
     return expenseTransactions.fold<double>(
@@ -44,40 +49,53 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         children: [
           Container(
             width: 6,
-            height: 70,
+            height: metrics.kpiBarHeight,
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: metrics.kpiGap),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              padding: EdgeInsets.symmetric(
+                vertical: metrics.kpiCardVerticalPadding,
+                horizontal: 8,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     label.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: metrics.kpiLabelFontSize,
                       letterSpacing: 0.9,
                       fontWeight: FontWeight.w800,
                       color: Colors.grey.shade600,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    // Placeholder dash while the period totals are still loading.
-                    isLoading
-                        ? '—'
-                        : displayTotal.toCurrencyFormatted(
-                            symbol: ProxyService.box.defaultCurrency(),
-                          ),
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: color,
+                  SizedBox(height: metrics.kpiLabelValueGap),
+                  // Scale (never clip) the amount so narrow cards keep the full
+                  // figure readable on small laptops.
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      // Placeholder dash while the period totals are still loading.
+                      isLoading
+                          ? '—'
+                          : displayTotal.toCurrencyFormatted(
+                              symbol: ProxyService.box.defaultCurrency(),
+                            ),
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: metrics.kpiValueFontSize,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
                     ),
                   ),
                 ],
@@ -145,7 +163,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
 
     return Row(
       children: [
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
             'Total Sales',
@@ -154,9 +172,9 @@ class TransactionReportKpiStrip extends ConsumerWidget {
             Colors.green,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
         Expanded(child: _netProfitCard(ref, kpiAsync)),
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
       ],
     );
   }
@@ -174,7 +192,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
             'Total Sales',
@@ -183,9 +201,9 @@ class TransactionReportKpiStrip extends ConsumerWidget {
             Colors.green,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
         Expanded(child: _netProfitCard(ref, kpiAsync)),
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
             'Collected',
@@ -194,7 +212,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
             Colors.teal,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
             'Owed',
@@ -203,7 +221,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
             Colors.brown,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: metrics.kpiGap),
       ],
     );
   }

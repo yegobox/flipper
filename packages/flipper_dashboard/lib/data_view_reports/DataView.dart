@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/export/report_service.dart';
 import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -57,6 +58,7 @@ class DataView extends StatefulHookConsumerWidget {
     this.serverSideTotalRowCount,
     this.externalPageIndex = 0,
     this.onServerSidePageChange,
+    this.metrics = ReportMetrics.comfortable,
   });
 
   final List<ITransaction>? transactions;
@@ -95,6 +97,10 @@ class DataView extends StatefulHookConsumerWidget {
   /// Supabase staff keyed by `users.id` (same as transaction [ITransaction.agentId] when set).
   final Map<String, TransactionReportCashierProfile>? cashierDirectory;
 
+  /// Height-aware row / pager / footer sizing. Defaults to the legacy values so
+  /// callers that do not opt in (e.g. stock recount) render unchanged.
+  final ReportMetrics metrics;
+
   @override
   DataViewState createState() => DataViewState();
 }
@@ -121,8 +127,19 @@ class DataViewState extends ConsumerState<DataView>
     }
   }
 
-  static const double dataPagerHeight = 60;
   int pageIndex = 0; // Keep pageIndex here
+
+  /// True when the sticky footer already renders a working pager, so the
+  /// separate [SfDataPager] strip would only duplicate it. Only the summary
+  /// (Z report) footer has a pager, and it can only move pages when the parent
+  /// owns the slice ([DataView.serverSidePaging]) — client-side paging still
+  /// needs [SfDataPager] to re-slice rows.
+  bool get _footerOwnsPaging =>
+      widget.metrics.preferFooterPagerOnly &&
+      widget.serverSidePaging &&
+      !widget.showDetailedReport &&
+      widget.variants == null &&
+      widget.transactions != null;
   final talker = TalkerFlutter.init();
   // Track loading states for different export operations
   bool _isExportingExcel = false;
@@ -681,7 +698,8 @@ class DataViewState extends ConsumerState<DataView>
                         },
                       ),
               ),
-              if (!widget.disablePagination) _buildDataPager(constraints),
+              if (!widget.disablePagination && !_footerOwnsPaging)
+                _buildDataPager(constraints),
               _buildStickyFooter(),
             ],
           ),
@@ -786,8 +804,8 @@ class DataViewState extends ConsumerState<DataView>
         gridLinesVisibility: GridLinesVisibility.horizontal,
         headerGridLinesVisibility: GridLinesVisibility.none,
         columnWidthMode: ColumnWidthMode.fill,
-        rowHeight: 56,
-        headerRowHeight: 44,
+        rowHeight: widget.metrics.gridRowHeight,
+        headerRowHeight: widget.metrics.gridHeaderRowHeight,
         onCellTap: _handleCellTap,
         columns: columns,
         // Only set rowsPerPage if pagination is not disabled
@@ -940,7 +958,10 @@ class DataViewState extends ConsumerState<DataView>
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: 20.0,
+        vertical: widget.metrics.footerVerticalPadding,
+      ),
       child: SafeArea(
         top: false,
         child: Row(
@@ -1055,7 +1076,10 @@ class DataViewState extends ConsumerState<DataView>
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: 24.0,
+        vertical: widget.metrics.footerVerticalPadding,
+      ),
       child: SafeArea(
         top: false,
         child: Row(
@@ -1101,11 +1125,15 @@ class DataViewState extends ConsumerState<DataView>
         : 1.0;
 
     return SizedBox(
-      height: dataPagerHeight,
+      height: widget.metrics.pagerHeight,
       child: SfDataPager(
         delegate: _dataGridSource,
         pageCount: pageCount,
         direction: Axis.horizontal,
+        itemHeight: widget.metrics.pagerItemSize,
+        itemWidth: widget.metrics.pagerItemSize,
+        navigationItemHeight: widget.metrics.pagerItemSize,
+        navigationItemWidth: widget.metrics.pagerItemSize,
         onPageNavigationEnd: (index) {
           widget.onServerSidePageChange?.call(index);
           setState(() => pageIndex = index);

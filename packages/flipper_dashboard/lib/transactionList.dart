@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_dashboard/providers/transaction_report_chart_provider.dart';
 import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
@@ -65,6 +66,12 @@ class TransactionListState extends ConsumerState<TransactionList>
   bool _isXReportLoading = false;
   bool _isSaleReportLoading = false;
   bool _isPluReportLoading = false;
+
+  /// Sizing for the height this report actually gets. Recomputed at the top of
+  /// every layout pass in [_buildReportScaffold] (before any child is built),
+  /// so the whole chrome + grid agree on one density. Small Windows laptops
+  /// land on [ReportDensity.compact], large desktops keep the original sizes.
+  ReportMetrics _metrics = ReportMetrics.comfortable;
 
   @override
   void initState() {
@@ -306,6 +313,13 @@ class TransactionListState extends ConsumerState<TransactionList>
         final isDesktop = constraints.maxWidth > 900;
         final horizontalPadding = isDesktop ? 24.0 : 12.0;
 
+        // Must run before any child builder below reads [_metrics].
+        final metrics = ReportMetrics.forViewport(
+          context,
+          availableHeight: constraints.maxHeight,
+        );
+        _metrics = metrics;
+
         final kpiStart =
             startDate ?? DateTime.now().subtract(const Duration(days: 7));
         final kpiEnd = endDate ?? DateTime.now();
@@ -315,25 +329,26 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding,
-              vertical: 16.0,
+              vertical: metrics.pageVerticalPadding,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!widget.hideHeader) ...[
                   _buildTopHeader(context, startDate, endDate, isDesktop),
-                  const SizedBox(height: 16),
+                  SizedBox(height: metrics.sectionGap),
                   TransactionReportKpiStrip(
                     startDate: kpiStart,
                     endDate: kpiEnd,
                     showDetailed: showDetailed,
+                    metrics: metrics,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: metrics.sectionGap),
                   Container(
                     decoration: _reportChromeCardDecoration(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: metrics.cardHorizontalPadding,
+                      vertical: metrics.cardVerticalPadding,
                     ),
                     child: _buildFiltersRow(
                       showDetailed,
@@ -342,12 +357,12 @@ class TransactionListState extends ConsumerState<TransactionList>
                       baseTransactions,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: metrics.tightGap),
                   Container(
                     decoration: _reportChromeCardDecoration(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: metrics.cardHorizontalPadding,
+                      vertical: metrics.cardVerticalPadding,
                     ),
                     child: _buildCashierChipsRow(
                       isDesktop,
@@ -357,11 +372,11 @@ class TransactionListState extends ConsumerState<TransactionList>
                       loading: cashiersLoading,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: metrics.tightGap),
                 ],
                 if (widget.showSearch && widget.hideHeader) ...[
                   _buildSearchAndActions(isDesktop, filters),
-                  const SizedBox(height: 16),
+                  SizedBox(height: metrics.sectionGap),
                 ],
                 Expanded(
                   child: Container(
@@ -421,11 +436,12 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
+              if (_metrics.headerTopSpacing > 0)
+                SizedBox(height: _metrics.headerTopSpacing),
               Container(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 8,
+                  vertical: _metrics.datePillVerticalPadding,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -437,16 +453,20 @@ class TransactionListState extends ConsumerState<TransactionList>
                   children: [
                     Icon(
                       Icons.calendar_month_outlined,
-                      size: 18,
+                      size: _metrics.isCompact ? 16 : 18,
                       color: Colors.grey.shade700,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      rangeText,
-                      style: TextStyle(
-                        color: Colors.grey.shade800,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+                    Flexible(
+                      child: Text(
+                        rangeText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.grey.shade800,
+                          fontSize: _metrics.dateFontSize,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -455,7 +475,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             ],
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: _metrics.tightGap),
         _buildActionButton(
           icon: Icons.file_download_outlined,
           tooltip: 'Export',
@@ -469,19 +489,29 @@ class TransactionListState extends ConsumerState<TransactionList>
           },
           isLoading: _isExporting,
         ),
-        const SizedBox(width: 12),
-        Container(width: 1, height: 28, color: const Color(0xFFE5E7EB)),
-        const SizedBox(width: 12),
+        SizedBox(width: _metrics.tightGap),
+        Container(
+          width: 1,
+          height: _metrics.isCompact ? 22 : 28,
+          color: const Color(0xFFE5E7EB),
+        ),
+        SizedBox(width: _metrics.tightGap),
         ..._buildReportButtons(startDate, endDate),
-        const SizedBox(width: 12),
+        SizedBox(width: _metrics.tightGap),
         FilledButton.icon(
           onPressed: handleDateTimePicker,
-          icon: const Icon(Icons.date_range_outlined, size: 18),
+          icon: Icon(
+            Icons.date_range_outlined,
+            size: _metrics.isCompact ? 16 : 18,
+          ),
           label: const Text('Change Date'),
           style: FilledButton.styleFrom(
             backgroundColor: _kReportPrimary,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: _metrics.primaryButtonVerticalPadding,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -675,8 +705,8 @@ class TransactionListState extends ConsumerState<TransactionList>
             .read(transactionReportFiltersProvider.notifier)
             .setViewMode(mode),
         child: Container(
-          width: 40,
-          height: 40,
+          width: _metrics.viewModeButtonSize,
+          height: _metrics.viewModeButtonSize,
           decoration: BoxDecoration(
             color: selected ? _kReportPrimary : Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -686,7 +716,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           ),
           child: Icon(
             icon,
-            size: 18,
+            size: _metrics.isCompact ? 16 : 18,
             color: selected ? Colors.white : Colors.grey.shade600,
           ),
         ),
@@ -711,11 +741,13 @@ class TransactionListState extends ConsumerState<TransactionList>
     String Function(T)? itemLabel,
   }) {
     final text = itemLabel ?? (T v) => v.toString();
+    final labelStyle = TextStyle(fontSize: _metrics.isCompact ? 13 : 14);
     return SizedBox(
-      width: 150,
+      width: _metrics.filterFieldWidth,
       child: DropdownButtonFormField<T>(
         isExpanded: true,
         value: value,
+        style: labelStyle.copyWith(color: const Color(0xFF111827)),
         items: [
           DropdownMenuItem<T>(
             value: null,
@@ -732,9 +764,9 @@ class TransactionListState extends ConsumerState<TransactionList>
           isDense: true,
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
+          contentPadding: EdgeInsets.symmetric(
             horizontal: 12,
-            vertical: 12,
+            vertical: _metrics.filterFieldVerticalPadding,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
@@ -756,10 +788,18 @@ class TransactionListState extends ConsumerState<TransactionList>
   }) {
     final field = TextField(
       controller: _searchController,
+      style: TextStyle(fontSize: _metrics.isCompact ? 13 : 14),
       decoration: InputDecoration(
         hintText: 'Search receipt number...',
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-        prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
+        hintStyle: TextStyle(
+          color: Colors.grey[400],
+          fontSize: _metrics.isCompact ? 13 : 14,
+        ),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          size: _metrics.isCompact ? 18 : 24,
+          color: Colors.grey[400],
+        ),
         suffixIcon: filters.receiptQuery.isNotEmpty
             ? IconButton(
                 icon: const Icon(Icons.close_rounded, size: 20),
@@ -794,7 +834,10 @@ class TransactionListState extends ConsumerState<TransactionList>
             : InputBorder.none,
         filled: embeddedInToolbar,
         fillColor: embeddedInToolbar ? const Color(0xFFF9FAFB) : null,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        contentPadding: EdgeInsets.symmetric(
+          vertical: _metrics.filterFieldVerticalPadding + 2,
+          horizontal: 4,
+        ),
         isDense: true,
       ),
       onChanged: (value) => ref
@@ -850,7 +893,12 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             curve: Curves.easeOut,
-            padding: const EdgeInsets.fromLTRB(4, 6, 14, 6),
+            padding: EdgeInsets.fromLTRB(
+              4,
+              _metrics.chipVerticalPadding,
+              14,
+              _metrics.chipVerticalPadding,
+            ),
             decoration: BoxDecoration(
               color: selected ? const Color(0xFFEFF6FF) : Colors.white,
               borderRadius: radius,
@@ -863,12 +911,12 @@ class TransactionListState extends ConsumerState<TransactionList>
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircleAvatar(
-                  radius: 12,
+                  radius: _metrics.chipAvatarRadius,
                   backgroundColor: avatarBg,
                   child: Text(
                     initials,
-                    style: const TextStyle(
-                      fontSize: 9.5,
+                    style: TextStyle(
+                      fontSize: _metrics.isCompact ? 8.5 : 9.5,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       height: 1,
@@ -880,7 +928,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                   title,
                   style: TextStyle(
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: _metrics.chipFontSize,
                     color: const Color(0xFF111827),
                   ),
                 ),
@@ -919,8 +967,8 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: _metrics.isCompact ? 8 : 10,
+              runSpacing: _metrics.isCompact ? 8 : 10,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 _reportCashierFilterChip(
@@ -993,18 +1041,22 @@ class TransactionListState extends ConsumerState<TransactionList>
           onTap: isLoading ? null : onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            width: 44,
-            height: 44,
+            width: _metrics.actionButtonSize,
+            height: _metrics.actionButtonSize,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(12),
             ),
             child: isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                ? Padding(
+                    padding: EdgeInsets.all(_metrics.isCompact ? 8.0 : 12.0),
+                    child: const CircularProgressIndicator(strokeWidth: 2.5),
                   )
-                : Icon(icon, size: 22, color: Colors.grey.shade600),
+                : Icon(
+                    icon,
+                    size: _metrics.actionIconSize,
+                    color: Colors.grey.shade600,
+                  ),
           ),
         ),
       ),
@@ -1017,7 +1069,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.all(4),
+      padding: EdgeInsets.all(_metrics.isCompact ? 3 : 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1043,7 +1095,10 @@ class TransactionListState extends ConsumerState<TransactionList>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: _metrics.toggleHorizontalPadding,
+          vertical: _metrics.toggleVerticalPadding,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? _kReportPrimary : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
@@ -1053,7 +1108,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           style: TextStyle(
             fontWeight: FontWeight.w700,
             color: isSelected ? Colors.white : Colors.grey[600],
-            fontSize: 14,
+            fontSize: _metrics.toggleFontSize,
           ),
         ),
       ),
@@ -1154,6 +1209,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           onServerSidePageChange: ref
               .read(transactionReportPageIndexProvider.notifier)
               .setPage,
+          metrics: _metrics,
         );
       },
       loading: () => _buildLoadingState(),

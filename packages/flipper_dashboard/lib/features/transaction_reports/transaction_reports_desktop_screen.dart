@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,6 +13,11 @@ class TransactionReportsDesktopScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Short windows (small Windows laptops, 1080p at 125/150% scaling) give the
+    // 80px bar back to the transaction grid; `multi` and `bottomSpacer` must
+    // agree or the bar overflows its preferred size.
+    final metrics = ReportMetrics.forWindow(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F4F7),
       // Shared CustomAppBar so the close button matches the rest of the app
@@ -21,6 +27,8 @@ class TransactionReportsDesktopScreen extends ConsumerWidget {
         onPop: () => Navigator.of(context).pop(),
         barBackgroundColor: const Color(0xFFF2F4F7),
         isDividerVisible: false,
+        multi: metrics.appBarMulti,
+        bottomSpacer: metrics.appBarHeight,
       ),
       body: const SafeArea(
         child: TransactionListWrapper(showDetailedReport: true),
