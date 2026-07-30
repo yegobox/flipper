@@ -5,6 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
+import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -127,6 +128,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto != null) {
+        ensureTransactionPaymentRecordsSyncSubscription(ditto);
         const sql =
             'SELECT * FROM transaction_payment_records WHERE transactionId = :transactionId';
         final queryResult = await ditto.store.execute(

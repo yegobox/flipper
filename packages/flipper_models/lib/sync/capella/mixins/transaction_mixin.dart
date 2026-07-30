@@ -8,6 +8,7 @@ import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart'
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
 import 'package:flipper_models/sync/transaction_query_helpers.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
@@ -431,6 +432,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
+      // Partial payments / PAID amounts live in this collection — without a
+      // subscription peers see the ticket but not installments.
+      ensureTransactionPaymentRecordsSyncSubscription(ditto);
 
       final whereClauses = <String>[];
       final arguments = <String, dynamic>{};
@@ -583,6 +587,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         preparedTx.dql,
         arguments: preparedTx.arguments,
       );
+      ensureTransactionPaymentRecordsSyncSubscription(ditto);
 
       final whereClauses = <String>['status = :pendingReview'];
       final arguments = <String, dynamic>{'pendingReview': PENDING_REVIEW};
@@ -2916,6 +2921,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         throw Exception('Ditto not initialized for getTotalPaidForTransaction');
       }
 
+      ensureTransactionPaymentRecordsSyncSubscription(ditto);
+
       final query =
           'SELECT * FROM transaction_payment_records WHERE transactionId = :transactionId';
       final arguments = {'transactionId': transactionId};
@@ -2964,6 +2971,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           'Ditto not initialized for getPaymentSumsByTransactionIds',
         );
       }
+
+      ensureTransactionPaymentRecordsSyncSubscription(ditto);
 
       final placeholders = transactionIds
           .asMap()
@@ -3216,6 +3225,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         talker.error('Ditto not initialized for deletePaymentRecords');
         return;
       }
+
+      ensureTransactionPaymentRecordsSyncSubscription(ditto);
 
       await ditto.store.execute(
         'DELETE FROM transaction_payment_records WHERE transactionId = :transactionId',

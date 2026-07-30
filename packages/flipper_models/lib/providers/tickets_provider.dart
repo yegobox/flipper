@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
+import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -59,18 +64,60 @@ Future<String?> _waitForBranchId() async {
   return branchId;
 }
 
-/// Batch payment sums for all visible tickets (one query per stream update).
+/// Batch payment sums for all visible tickets.
+///
+/// Streams so peer machines refresh PAID / Partial when
+/// `transaction_payment_records` arrive via Ditto (ticket rows alone do not
+/// re-emit when only tender lines sync).
 @riverpod
-Future<Map<String, double>> ticketsPaymentSums(Ref ref) async {
+Stream<Map<String, double>> ticketsPaymentSums(Ref ref) async* {
   final ticketsAsync = ref.watch(visibleTicketsProvider);
-  final tickets = ticketsAsync.value;
-  if (tickets == null) {
+  List<ITransaction> tickets = ticketsAsync.value ?? const [];
+  if (ticketsAsync.value == null) {
     // First load: wait for the branch stream so sums stay in sync with the list.
     await ref.watch(ticketsStreamProvider.future);
-    final after = ref.read(visibleTicketsProvider).value ?? const [];
-    return _paymentSumsForTickets(after);
+    tickets = ref.read(visibleTicketsProvider).value ?? const [];
   }
-  return _paymentSumsForTickets(tickets);
+
+  final branchId = ProxyService.box.getBranchId() ?? '';
+  if (branchId.isEmpty) {
+    yield const {};
+    return;
+  }
+
+  final ditto = DittoService.instance.dittoInstance;
+  if (ditto != null) {
+    ensureTransactionPaymentRecordsSyncSubscription(ditto);
+  }
+
+  Future<Map<String, double>> loadSums() => _paymentSumsForTickets(tickets);
+
+  yield await loadSums();
+
+  if (ditto == null) return;
+
+  final controller = StreamController<void>();
+  dynamic observer;
+  try {
+    observer = ditto.store.registerObserver(
+      kTransactionPaymentRecordsAllSql,
+      onChange: (_) {
+        if (!controller.isClosed) controller.add(null);
+      },
+    );
+    ref.onDispose(() {
+      unawaited(cancelDittoStoreObserver(observer));
+      if (!controller.isClosed) {
+        unawaited(controller.close());
+      }
+    });
+
+    await for (final _ in controller.stream) {
+      yield await loadSums();
+    }
+  } catch (e, s) {
+    talker.warning('ticketsPaymentSums: payment observer failed: $e', s);
+  }
 }
 
 Future<Map<String, double>> _paymentSumsForTickets(

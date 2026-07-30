@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flipper_dashboard/mobile_checkout_launcher.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
@@ -70,6 +71,17 @@ String _ticketDisplayRef(ITransaction ticket) {
   final id = ticket.id;
   if (id.length >= 6) return id.substring(0, 6).toUpperCase();
   return id.toUpperCase();
+}
+
+/// Paid amount for ticket cards: live tender sums when present, else the
+/// synced ticket [ITransaction.cashReceived] (same field updated on partial pay).
+double _paidAmountForTicket(
+  ITransaction ticket,
+  Map<String, double> paymentSumsByTxnId,
+) {
+  final fromRecords = paymentSumsByTxnId[ticket.id] ?? 0.0;
+  final fromTicket = ticket.cashReceived ?? 0.0;
+  return math.max(fromRecords, fromTicket);
 }
 
 String _customerInitials(ITransaction t) {
@@ -756,7 +768,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       ticket: ticket,
                       isSelected: isSelected,
                       isWhatsAppPickerActive: isWhatsAppPickerActive,
-                      paidAmount: paymentSumsByTxnId[ticket.id] ?? 0.0,
+                      // Prefer live payment-record sums; fall back to
+                      // cashReceived on the synced ticket so peers still show
+                      // Partial/PAID if tender docs arrive slightly later.
+                      paidAmount: _paidAmountForTicket(
+                        ticket,
+                        paymentSumsByTxnId,
+                      ),
                       showCollect: canCollect && isParked,
                       showComplete: reviewWorkflowOn &&
                           canCollect &&

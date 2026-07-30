@@ -8,24 +8,36 @@ part of 'tickets_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Batch payment sums for all visible tickets (one query per stream update).
+/// Batch payment sums for all visible tickets.
+///
+/// Streams so peer machines refresh PAID / Partial when
+/// `transaction_payment_records` arrive via Ditto (ticket rows alone do not
+/// re-emit when only tender lines sync).
 
 @ProviderFor(ticketsPaymentSums)
 const ticketsPaymentSumsProvider = TicketsPaymentSumsProvider._();
 
-/// Batch payment sums for all visible tickets (one query per stream update).
+/// Batch payment sums for all visible tickets.
+///
+/// Streams so peer machines refresh PAID / Partial when
+/// `transaction_payment_records` arrive via Ditto (ticket rows alone do not
+/// re-emit when only tender lines sync).
 
 final class TicketsPaymentSumsProvider
     extends
         $FunctionalProvider<
           AsyncValue<Map<String, double>>,
           Map<String, double>,
-          FutureOr<Map<String, double>>
+          Stream<Map<String, double>>
         >
     with
         $FutureModifier<Map<String, double>>,
-        $FutureProvider<Map<String, double>> {
-  /// Batch payment sums for all visible tickets (one query per stream update).
+        $StreamProvider<Map<String, double>> {
+  /// Batch payment sums for all visible tickets.
+  ///
+  /// Streams so peer machines refresh PAID / Partial when
+  /// `transaction_payment_records` arrive via Ditto (ticket rows alone do not
+  /// re-emit when only tender lines sync).
   const TicketsPaymentSumsProvider._()
     : super(
         from: null,
@@ -42,24 +54,28 @@ final class TicketsPaymentSumsProvider
 
   @$internal
   @override
-  $FutureProviderElement<Map<String, double>> $createElement(
+  $StreamProviderElement<Map<String, double>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<Map<String, double>> create(Ref ref) {
+  Stream<Map<String, double>> create(Ref ref) {
     return ticketsPaymentSums(ref);
   }
 }
 
 String _$ticketsPaymentSumsHash() =>
-    r'37f97952721cdab3013a4baef9523ee7fb56f8af';
+    r'10231d93a7e4c874a1ff782f6cc470f59c274942';
 
 /// Branch-wide open tickets stream (PARKED / WAITING / IN_PROGRESS).
 ///
 /// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
 /// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
 /// Staff vs till filtering happens in [visibleTicketsProvider].
+///
+/// Watches [activeBranchProvider] and waits for [branchId] so the Ditto sync
+/// subscription is never registered with a null branch (which would miss
+/// cross-device parked tickets for the whole session).
 
 @ProviderFor(ticketsStream)
 const ticketsStreamProvider = TicketsStreamProvider._();
@@ -69,6 +85,10 @@ const ticketsStreamProvider = TicketsStreamProvider._();
 /// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
 /// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
 /// Staff vs till filtering happens in [visibleTicketsProvider].
+///
+/// Watches [activeBranchProvider] and waits for [branchId] so the Ditto sync
+/// subscription is never registered with a null branch (which would miss
+/// cross-device parked tickets for the whole session).
 
 final class TicketsStreamProvider
     extends
@@ -85,6 +105,10 @@ final class TicketsStreamProvider
   /// Does **not** watch [canCollectPosPaymentProvider] — that async role used to
   /// tear down and recreate the Ditto observer (losing emits; badge flashed to 0).
   /// Staff vs till filtering happens in [visibleTicketsProvider].
+  ///
+  /// Watches [activeBranchProvider] and waits for [branchId] so the Ditto sync
+  /// subscription is never registered with a null branch (which would miss
+  /// cross-device parked tickets for the whole session).
   const TicketsStreamProvider._()
     : super(
         from: null,
@@ -111,7 +135,7 @@ final class TicketsStreamProvider
   }
 }
 
-String _$ticketsStreamHash() => r'07d5e457c80998fde1ec25e1824c2d0bfeafe7e8';
+String _$ticketsStreamHash() => r'7570cb66baca53bc8c7b66f4a72d6799293a28f0';
 
 /// Ticket Review + Handover workflow: branch-wide tickets awaiting reviewer
 /// sign-off (`pendingReview`). Deliberately separate from [ticketsStream] —
@@ -163,4 +187,4 @@ final class ReviewQueueStreamProvider
   }
 }
 
-String _$reviewQueueStreamHash() => r'986d5f00cdf2506fae93731cc333cc8aeb5b87f8';
+String _$reviewQueueStreamHash() => r'dc493022a5c8a5fccd0a3752cd8fa077be4fc242';

@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -1549,6 +1550,8 @@ class CapellaSync extends AiStrategyImpl
       talker.error('Ditto not initialized for savePaymentType');
       return;
     }
+
+    ensureTransactionPaymentRecordsSyncSubscription(ditto);
 
     if (transactionId == null) {
       throw ArgumentError('transactionId cannot be null');
