@@ -29,6 +29,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
@@ -218,8 +219,17 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           ),
         PopupMenuButton<String>(
           tooltip: 'More',
-          offset: const Offset(0, 40),
+          offset: const Offset(0, 44),
+          elevation: 10,
+          shadowColor: const Color(0x33103240),
+          color: PosTokens.surface,
+          surfaceTintColor: Colors.transparent,
           padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: PosTokens.line),
+          ),
+          constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
           child: SizedBox(
             width: 38,
             height: 38,
@@ -235,24 +245,24 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
             unawaited(_handleMoreMenuSelection(context, value));
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'locations',
-              child: Row(
-                children: [
-                  Icon(Icons.maps_home_work_outlined),
-                  SizedBox(width: 12),
-                  Text('Locations'),
-                ],
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              child: _MoreMenuRow(
+                icon: Icons.storefront_outlined,
+                label: 'Locations',
+                caption: 'Inventory by branch',
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'items',
-              child: Row(
-                children: [
-                  Icon(Icons.inventory_2_outlined),
-                  SizedBox(width: 12),
-                  Text('Items'),
-                ],
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              child: _MoreMenuRow(
+                icon: Icons.inventory_2_outlined,
+                label: 'Items',
+                caption: 'Browse and manage catalog',
               ),
             ),
           ],
@@ -362,5 +372,63 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
 
   void _showTaxDialog(BuildContext context) {
     showSystemConfigModal(context);
+  }
+}
+
+class _MoreMenuRow extends StatelessWidget {
+  const _MoreMenuRow({
+    required this.icon,
+    required this.label,
+    required this.caption,
+  });
+
+  final IconData icon;
+  final String label;
+  final String caption;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: PosTokens.blueTint,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 18, color: PosTokens.blue),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: PosTokens.ink1,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                caption,
+                style: GoogleFonts.outfit(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: PosTokens.ink3,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -11,6 +11,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
@@ -297,59 +298,63 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
         : _userName;
     final branchName = _activeBranchName();
     final locked = ref.watch(posUserSwitchLockProvider);
+    final logoutLabel = context.flipperL10n.logOut;
 
     return PopupMenuButton<String>(
       tooltip: 'Account',
-      offset: const Offset(0, 48),
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      offset: const Offset(0, 52),
+      elevation: 10,
+      shadowColor: const Color(0x33103240),
+      color: PosTokens.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: PosTokens.line),
+      ),
+      constraints: const BoxConstraints(minWidth: 260, maxWidth: 300),
+      padding: EdgeInsets.zero,
       onSelected: _onMenuSelected,
       itemBuilder: (BuildContext context) => [
+        _AccountMenuHeaderEntry(
+          initials: _getInitials(_userName),
+          displayName: displayName,
+          branchName: branchName,
+        ),
+        const PopupMenuDivider(height: 1),
         PopupMenuItem<String>(
           value: 'switchBranch',
-          child: Row(
-            children: [
-              Icon(Icons.swap_horiz, color: Colors.grey.shade800, size: 20),
-              const SizedBox(width: 10),
-              const Text(
-                'Switch Branch',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-            ],
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          child: const _AccountMenuRow(
+            icon: Icons.storefront_outlined,
+            label: 'Switch Branch',
+            iconColor: PosTokens.blue,
+            iconBackground: PosTokens.blueTint,
           ),
         ),
         if (!locked)
           PopupMenuItem<String>(
             value: 'switchUser',
-            child: Row(
-              children: [
-                Icon(
-                  Icons.switch_account,
-                  color: Colors.grey.shade800,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Switch User',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-              ],
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            child: const _AccountMenuRow(
+              icon: Icons.switch_account_outlined,
+              label: 'Switch User',
+              iconColor: PosTokens.blue,
+              iconBackground: PosTokens.blueTint,
             ),
           ),
+        const PopupMenuDivider(height: 1),
         PopupMenuItem<String>(
           value: 'logOut',
-          child: Row(
-            children: [
-              Icon(Icons.logout, color: Colors.grey.shade800, size: 20),
-              const SizedBox(width: 10),
-              Text(
-                context.flipperL10n.logOut,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          child: _AccountMenuRow(
+            icon: Icons.logout_rounded,
+            label: logoutLabel,
+            iconColor: PosTokens.lossInk,
+            iconBackground: PosTokens.lossTint,
+            labelColor: PosTokens.lossInk,
           ),
         ),
       ],
@@ -357,6 +362,174 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
         cursor: SystemMouseCursors.click,
         child: _profileChip(displayName: displayName, branchName: branchName),
       ),
+    );
+  }
+}
+
+/// Non-selectable profile summary at the top of the account menu.
+///
+/// A disabled [PopupMenuItem] would grey this out; a custom entry keeps full
+/// opacity while still participating in the menu layout.
+class _AccountMenuHeaderEntry extends PopupMenuEntry<String> {
+  const _AccountMenuHeaderEntry({
+    required this.initials,
+    required this.displayName,
+    required this.branchName,
+  });
+
+  final String initials;
+  final String displayName;
+  final String? branchName;
+
+  @override
+  double get height => 72;
+
+  @override
+  bool represents(String? value) => false;
+
+  @override
+  State<_AccountMenuHeaderEntry> createState() =>
+      _AccountMenuHeaderEntryState();
+}
+
+class _AccountMenuHeaderEntryState extends State<_AccountMenuHeaderEntry> {
+  @override
+  Widget build(BuildContext context) {
+    return _AccountMenuHeader(
+      initials: widget.initials,
+      displayName: widget.displayName,
+      branchName: widget.branchName,
+    );
+  }
+}
+
+class _AccountMenuHeader extends StatelessWidget {
+  const _AccountMenuHeader({
+    required this.initials,
+    required this.displayName,
+    required this.branchName,
+  });
+
+  final String initials;
+  final String displayName;
+  final String? branchName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: PosTokens.gradBrand,
+            ),
+            child: Text(
+              initials,
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: PosTokens.ink1,
+                    height: 1.2,
+                  ),
+                ),
+                if (branchName != null) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.storefront_outlined,
+                        size: 12,
+                        color: PosTokens.ink3,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          branchName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: PosTokens.ink3,
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountMenuRow extends StatelessWidget {
+  const _AccountMenuRow({
+    required this.icon,
+    required this.label,
+    required this.iconColor,
+    required this.iconBackground,
+    this.labelColor = PosTokens.ink1,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color iconColor;
+  final Color iconBackground;
+  final Color labelColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: iconBackground,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 17, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: labelColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
