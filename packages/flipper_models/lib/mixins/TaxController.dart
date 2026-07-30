@@ -76,6 +76,10 @@ class TaxController<OBJ> {
     /// persistence pass (e.g. [markTransactionAsCompleted] with Capella).
     bool persistReceiptTransactionFields = true,
     bool skipPresentation = false,
+
+    /// When true, the caller presents the receipt PDF itself (desktop/web
+    /// printer picker) so receipt generation must not open or print it.
+    bool deferPresentation = false,
     bool signOnly = false,
     bool presentationOnly = false,
     RwApiResponse? signedResponse,
@@ -132,6 +136,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -156,6 +161,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -181,6 +187,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -205,6 +212,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -229,6 +237,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -254,6 +263,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -278,6 +288,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -348,6 +359,7 @@ class TaxController<OBJ> {
     void Function()? onSuccess,
     bool persistReceiptTransactionFields = true,
     bool skipPresentation = false,
+    bool deferPresentation = false,
     bool signOnly = false,
     bool presentationOnly = false,
     RwApiResponse? signedResponse,
@@ -405,6 +417,7 @@ class TaxController<OBJ> {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: skipPresentation,
+            deferPresentation: deferPresentation,
             presentationReceipt: presentationReceiptForPdf,
           );
         }
@@ -472,6 +485,7 @@ class TaxController<OBJ> {
               onSuccess: onSuccess,
               persistReceiptTransactionFields: persistReceiptTransactionFields,
               skipPresentation: skipPresentation,
+              deferPresentation: deferPresentation,
               presentationReceipt: signResult.presentationReceipt,
             );
             return (
@@ -501,6 +515,7 @@ class TaxController<OBJ> {
     void Function()? onSuccess,
     bool persistReceiptTransactionFields = true,
     bool skipPresentation = false,
+    bool deferPresentation = false,
     Receipt? presentationReceipt,
   }) async {
     Business? business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
@@ -635,6 +650,7 @@ class TaxController<OBJ> {
         onSuccess?.call();
       },
       skipPresentation: skipPresentation,
+      deferPresentation: deferPresentation,
     );
 
     transaction.receiptPrinted = true;
@@ -654,6 +670,10 @@ class TaxController<OBJ> {
     required ITransaction transaction,
     required List<TransactionItem> transactionItems,
     void Function()? onSuccess,
+
+    /// When true, the caller presents the receipt PDF itself (desktop/web
+    /// printer picker) so this build must not open or print it.
+    bool deferPresentation = false,
   }) async {
     final businessId = ProxyService.box.getBusinessId();
     if (businessId == null) return null;
@@ -731,6 +751,7 @@ class TaxController<OBJ> {
         onSuccess?.call();
       },
       skipPresentation: false,
+      deferPresentation: deferPresentation,
     );
 
     transaction.receiptPrinted = true;

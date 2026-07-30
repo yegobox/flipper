@@ -352,6 +352,7 @@ mixin TransactionMixinOld {
                   .buildNonFiscalReceiptPdfBytes(
                 transaction: transaction,
                 transactionItems: items,
+                deferPresentation: true,
               );
               if (bytes != null) {
                 try {
@@ -461,6 +462,7 @@ mixin TransactionMixinOld {
             .buildNonFiscalReceiptPdfBytes(
           transaction: transaction,
           transactionItems: items,
+          deferPresentation: true,
         );
         if (bytes != null) {
           await printing(
@@ -654,6 +656,8 @@ mixin TransactionMixinOld {
             onSuccess: onSuccess,
             persistReceiptTransactionFields: persistReceiptTransactionFields,
             skipPresentation: sendDigitalReceipt,
+            // Presentation is owned by [printing] below (printer picker).
+            deferPresentation: true,
             signOnly: signOnly,
             presentationOnly: presentationOnly,
             signedResponse: signedResponse,
@@ -705,6 +709,8 @@ mixin TransactionMixinOld {
             filterType: getFilterType(transactionType: transaction.receiptType),
             persistReceiptTransactionFields: false,
             skipPresentation: sendDigitalReceipt,
+            // Presentation is owned by [printing] below (printer picker).
+            deferPresentation: true,
             presentationOnly: true,
             signedResponse: signedResponse,
             transactionItems: transactionItems,
