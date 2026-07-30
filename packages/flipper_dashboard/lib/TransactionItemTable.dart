@@ -287,6 +287,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool pinGrandTotal = false,
     List<TransactionItem>? cartLines,
     bool readOnly = false,
+    /// Prior non-credit payments on a resumed / partially paid ticket.
+    /// When > 0 and less than [grandTotal], a subtraction line is shown under
+    /// Grand Total so the remaining tender amount is explainable.
+    double alreadyPaid = 0.0,
   }) {
     _tableCartLines = cartLines;
     final lines = _linesForTable;
@@ -367,7 +371,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ),
           ValueListenableBuilder<int>(
             valueListenable: _cartTotalsTick,
-            builder: (_, __, ___) => _buildModernSummary(),
+            builder: (_, __, ___) =>
+                _buildModernSummary(alreadyPaid: alreadyPaid),
           ),
         ],
       ),
@@ -1114,10 +1119,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildModernSummary() {
+  Widget _buildModernSummary({double alreadyPaid = 0.0}) {
     final count = _visibleTransactionItems.length;
     final itemLabel = context.flipperL10n.cartItemCount(count);
     final currency = ProxyService.box.defaultCurrency();
+    final total = grandTotal.toDouble();
+    // Only for real partials (prior paid on a resumed ticket). Hide for fresh
+    // unpaid sales and for fully-covered totals so the line never appears as
+    // noise or as a false "already paid" during tender entry.
+    final showAlreadyPaid =
+        alreadyPaid > 0.01 && alreadyPaid < total - 0.01;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -1125,27 +1136,58 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         color: PosTokens.surface,
         border: Border(top: BorderSide(color: PosTokens.line, width: 1)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            context.flipperL10n.grandTotalWithItems(itemLabel),
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: PosTokens.ink2,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                context.flipperL10n.grandTotalWithItems(itemLabel),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: PosTokens.ink2,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                total.toCurrencyFormatted(symbol: currency),
+                style: PosTokens.posPriceStyle(
+                  Theme.of(context).textTheme,
+                  fontSize: 26,
+                  color: PosTokens.blue,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-          const Spacer(),
-          Text(
-            grandTotal.toCurrencyFormatted(symbol: currency),
-            style: PosTokens.posPriceStyle(
-              Theme.of(context).textTheme,
-              fontSize: 26,
-              color: PosTokens.blue,
+          if (showAlreadyPaid) ...[
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  context.flipperL10n.amountPaid,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: PosTokens.ink3,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '− ${alreadyPaid.toCurrencyFormatted(symbol: currency)}',
+                  style: PosTokens.posPriceStyle(
+                    Theme.of(context).textTheme,
+                    fontSize: 16,
+                    color: PosTokens.ink2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            overflow: TextOverflow.ellipsis,
-          ),
+          ],
         ],
       ),
     );
