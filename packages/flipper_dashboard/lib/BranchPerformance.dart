@@ -207,7 +207,6 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance> {
       child: Column(
         children: [
           _Header(
-            branchName: branch?.name,
             itemCount: items.asData?.value.length,
             onRefresh: () {
               ref.invalidate(variantsProvider((branchId: branchId)));
@@ -271,24 +270,21 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance> {
 
 class _Header extends StatelessWidget {
   const _Header({
-    required this.branchName,
     required this.itemCount,
     required this.onRefresh,
   });
 
-  final String? branchName;
   final int? itemCount;
   final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = [
-      branchName ?? 'Current branch',
-      if (itemCount != null) '$itemCount items tracked',
-    ].join(' · ');
+    final subtitle = itemCount == null
+        ? 'Live stock joined to selling pace'
+        : '$itemCount items tracked';
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 12, 14),
+      padding: const EdgeInsets.fromLTRB(20, 18, 16, 14),
       child: Row(
         children: [
           Container(
@@ -299,8 +295,11 @@ class _Header extends StatelessWidget {
               color: _kBlue.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
-            child:
-                const Icon(Icons.inventory_2_outlined, color: _kBlue, size: 20),
+            child: const Icon(
+              Icons.inventory_2_outlined,
+              color: _kBlue,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -317,27 +316,66 @@ class _Header extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style:
-                      GoogleFonts.outfit(fontSize: 13, color: Colors.black54),
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 12),
+          // Branch chip is the primary control; refresh/close are matching
+          // 40px peers so the old stock DropdownButton + IconButton row
+          // no longer fights the dashboard chrome.
           const BranchDropdown(),
-          IconButton(
-            onPressed: onRefresh,
+          const SizedBox(width: 6),
+          _HeaderIconButton(
             tooltip: 'Refresh stock and sales figures',
-            icon: const Icon(Icons.refresh, size: 20),
-            visualDensity: VisualDensity.compact,
+            icon: Icons.refresh_rounded,
+            onPressed: onRefresh,
           ),
-          if (Navigator.of(context).canPop())
-            IconButton(
-              onPressed: () => Navigator.of(context).pop(),
+          if (Navigator.of(context).canPop()) ...[
+            const SizedBox(width: 2),
+            _HeaderIconButton(
               tooltip: 'Close',
-              icon: const Icon(Icons.close, size: 20),
-              visualDensity: VisualDensity.compact,
+              icon: Icons.close_rounded,
+              onPressed: () => Navigator.of(context).pop(),
             ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  const _HeaderIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(icon, size: 20, color: Colors.black54),
+          ),
+        ),
       ),
     );
   }
