@@ -586,11 +586,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         debugPrint('We got item to save: ${instance.toString()}');
       }
       instance = await super.upsert(instance, policy: policy, query: query);
-      // Counters are Capella-only in Ditto; never push SQLite/Supabase rows.
-      if (!skipDittoSync && instance is! Counter) {
-        if (instance is Stock) {
-          debugPrint('New Current Stock: ${instance.currentStock}');
-        }
+      // Counters and Stocks are Capella/Ditto-owned at runtime. Never push Brick
+      // rows into Ditto — sale deducts skip Brick, and a stale Brick Stock upsert
+      // would clobber live on-hand qty via sendOnly sync.
+      if (!skipDittoSync && instance is! Counter && instance is! Stock) {
         if (instance is TransactionItem) {
           debugPrint('We got item to save: ${instance.toString()}');
         }

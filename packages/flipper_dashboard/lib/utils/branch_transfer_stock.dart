@@ -3,8 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 
-/// Capella [getStockById] returns a zero placeholder (empty [Stock.branchId])
-/// when the Ditto document is missing. Treat those as "not found".
+/// Reject null and Ditto rows with empty [Stock.branchId] (corrupt / incomplete).
 bool isAuthenticCapellaStock(Stock? stock) {
   if (stock == null) return false;
   final branchId = stock.branchId.trim();

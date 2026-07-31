@@ -157,7 +157,7 @@ mixin CapellaStockMixin implements StockInterface {
   }
 
   @override
-  Future<Stock> getStockById({required String id}) async {
+  Future<Stock?> getStockById({required String id}) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
@@ -169,52 +169,13 @@ mixin CapellaStockMixin implements StockInterface {
         arguments: {'id': id},
       );
 
-      if (result.items.isNotEmpty) {
-        final stockData = Map<String, dynamic>.from(result.items.first.value);
-        return _convertFromDittoDocument(stockData);
-      }
-      // For composite products (services), return a default stock with zero values
-      // since they don't track physical inventory
-      return Stock(
-        branchId: "",
-        id: id,
-        currentStock: 0,
-        lowStock: 0,
-        canTrackingStock: false,
-        showLowStockAlert: false,
-        active: true,
-        value: 0,
-        rsdQty: 0,
-        lastTouched: DateTime.now().toUtc(),
-        ebmSynced: true,
-        initialStock: 0,
-      );
+      if (result.items.isEmpty) return null;
+
+      final stockData = Map<String, dynamic>.from(result.items.first.value);
+      return _convertFromDittoDocument(stockData);
     } catch (e) {
-      // find it in sqlite then update ditto to have it next time
-      final stock = await repository.get<Stock>(
-        query: Query(where: [Where('id').isExactly(id)]),
-      );
-      if (stock.isNotEmpty) {
-        //upsert this so it is saved into ditto next time
-        repository.upsert<Stock>(stock.first);
-        return stock.first;
-      }
       talker.error('Error getting stock by ID: $e');
-      // Return default stock for composite products that don't track inventory
-      return Stock(
-        branchId: "",
-        id: id,
-        currentStock: 0,
-        lowStock: 0,
-        canTrackingStock: false,
-        showLowStockAlert: false,
-        active: true,
-        value: 0,
-        rsdQty: 0,
-        lastTouched: DateTime.now().toUtc(),
-        ebmSynced: true,
-        initialStock: 0,
-      );
+      return null;
     }
   }
 
@@ -260,7 +221,8 @@ mixin CapellaStockMixin implements StockInterface {
       final out = <String, Stock>{};
       for (final id in unique) {
         try {
-          out[id] = await getStockById(id: id);
+          final stock = await getStockById(id: id);
+          if (stock != null) out[id] = stock;
         } catch (_) {}
       }
       return out;
@@ -420,7 +382,7 @@ mixin CapellaStockMixin implements StockInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized:6');
-        return;
+        throw StateError('Ditto not initialized: updateStock');
       }
 
       // Get existing stock
@@ -431,7 +393,7 @@ mixin CapellaStockMixin implements StockInterface {
 
       if (existingResult.items.isEmpty) {
         talker.error('Stock with ID $stockId not found');
-        return;
+        throw StateError('Stock with ID $stockId not found');
       }
 
       final existingData = Map<String, dynamic>.from(
@@ -472,6 +434,9 @@ mixin CapellaStockMixin implements StockInterface {
           'UPDATE stocks SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId OR id = :stockId',
           arguments: {...updateData, 'stockId': stockId},
         );
+        // Do NOT mirror Brick here — POS sale deducts are Ditto-only. Stock/variant
+        // often are not in Brick, and Brick upserts on the hot path add latency and
+        // lock risk. Capella saveStock still mirrors on create.
       }
     } catch (e) {
       talker.error('Error updating stock: $e');
@@ -490,9 +455,10 @@ mixin CapellaStockMixin implements StockInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized: batchUpdateStocks');
-      return;
+      throw StateError('Ditto not initialized: batchUpdateStocks');
     }
 
+    // Ditto-only parallel UPDATEs — no Brick on the sale deduct path.
     Future<void> updateOne(String stockId, double current, double rsd) async {
       await ditto.store.execute(
         '''

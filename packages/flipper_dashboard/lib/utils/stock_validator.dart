@@ -30,7 +30,8 @@ Future<List<TransactionItem>> validateStockQuantity(
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
   for (final sid in stockIds) {
     if (!stocksMap.containsKey(sid)) {
-      stocksMap[sid] = await capella.getStockById(id: sid);
+      final loaded = await capella.getStockById(id: sid);
+      if (loaded != null) stocksMap[sid] = loaded;
     }
   }
 

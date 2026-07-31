@@ -211,13 +211,12 @@ class ImportsState extends ConsumerState<Imports> {
     final futures = newStockIds.map((id) =>
         ProxyService.getStrategy(Strategy.capella).getStockById(id: id));
     final stocks = await Future.wait(futures);
-    final newStockMap = Map<String, Stock>.fromEntries(
-      newStockIds
-          .toList()
-          .asMap()
-          .entries
-          .map((e) => MapEntry(e.value, stocks[e.key])),
-    );
+    final newStockMap = <String, Stock>{};
+    final ids = newStockIds.toList();
+    for (var i = 0; i < ids.length; i++) {
+      final stock = stocks[i];
+      if (stock != null) newStockMap[ids[i]] = stock;
+    }
 
     setState(() {
       _stockMap.addAll(newStockMap); // Merge with existing stocks

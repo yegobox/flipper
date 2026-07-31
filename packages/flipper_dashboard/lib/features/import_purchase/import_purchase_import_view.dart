@@ -96,8 +96,10 @@ class _ImportPurchaseImportViewState
     final stocks = await Future.wait(futures);
     if (!mounted) return;
     setState(() {
-      for (var i = 0; i < newStockIds.length; i++) {
-        _stockMap[newStockIds.elementAt(i)] = stocks[i];
+      final ids = newStockIds.toList();
+      for (var i = 0; i < ids.length; i++) {
+        final stock = stocks[i];
+        if (stock != null) _stockMap[ids[i]] = stock;
       }
       _fetchedStockIds.addAll(newStockIds);
     });

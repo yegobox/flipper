@@ -837,9 +837,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           final stockId = variant.stockId;
           if (stockId == null || stockId.isEmpty) continue;
 
-          final Stock stock = await ProxyService.getStrategy(
+          final Stock? stock = await ProxyService.getStrategy(
             Strategy.capella,
           ).getStockById(id: stockId);
+          if (stock == null) continue;
           final remainingQty = math.max(
             0.0,
             stock.currentStock?.toDouble() ?? 0.0,

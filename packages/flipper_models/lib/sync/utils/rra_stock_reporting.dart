@@ -212,7 +212,9 @@ bool saleLineAlreadyStockDeducted({
   if (sid == null || sid.isEmpty) return true;
 
   final preSale = preSaleStockByStockId?[sid];
-  if (preSale == null) return true;
+  // Without a pre-sale snapshot we cannot verify deduction — do not trust
+  // quantityShipped alone (failed deduct + shipped marker would skip forever).
+  if (preSale == null) return false;
 
   final current = stocksByStockId[sid]?.currentStock?.toDouble() ?? 0.0;
   final expectedAfterSale = _roundMoney(preSale - item.qty.toDouble());

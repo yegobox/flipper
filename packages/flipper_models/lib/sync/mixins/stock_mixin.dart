@@ -56,8 +56,12 @@ mixin StockMixin implements StockInterface {
     DateTime? lastTouched,
   }) async {
     Stock? stock = await getStockById(id: stockId);
+    if (stock == null) {
+      talker.error('updateStock: stock $stockId not found');
+      throw StateError('Stock with ID $stockId not found');
+    }
     Variant? variant = await ProxyService.strategy.getVariant(
-      stockId: stock!.id,
+      stockId: stock.id,
     );
 
     // If appending, add to existing values; otherwise, replace.

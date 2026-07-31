@@ -34,8 +34,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     );
   }
 
-  /// [getStockById] returns a zero placeholder with empty [Stock.branchId] when
-  /// the document is missing. Do not overwrite a qty-based display stock with it.
+  /// Skip null / empty-branchId Ditto rows so qty-based display stock is kept.
   Future<void> _attachAuthenticCapellaStock(Variant variant) async {
     final sid = variant.stockId?.trim();
     if (sid == null || sid.isEmpty) return;

@@ -16,7 +16,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 
-final stockProvider = FutureProvider.family<Stock, String>((
+final stockProvider = FutureProvider.family<Stock?, String>((
   ref,
   stockId,
 ) async {
@@ -122,7 +122,12 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
     for (final sid in stockIds) {
       if (!stocksById.containsKey(sid)) {
         try {
-          stocksById[sid] = await capella.getStockById(id: sid);
+          final loaded = await capella.getStockById(id: sid);
+          if (loaded != null) {
+            stocksById[sid] = loaded;
+          } else {
+            incompleteSync = true;
+          }
         } catch (_) {
           incompleteSync = true;
         }
@@ -406,7 +411,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                           )
                                           .when(
                                             data: (stock) => Text(
-                                              'Stock: ${stock.currentStock ?? 0}',
+                                              'Stock: ${stock?.currentStock ?? 0}',
                                             ),
                                             loading: () =>
                                                 const Text('Stock: loading...'),

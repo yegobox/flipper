@@ -221,6 +221,41 @@ void main() {
         isFalse,
       );
     });
+
+    test('false when shipped matches but pre-sale snapshot missing', () {
+      const stockId = 's1';
+      const variantId = 'v1';
+      final item = TransactionItem(
+        id: 'l1',
+        name: 'Smoke 005',
+        qty: 1,
+        price: 60,
+        discount: 0,
+        prc: 60,
+        ttCatCd: 'A',
+        variantId: variantId,
+        itemCd: 'RW2AMCT0000138',
+        itemClsCd: '5020230602',
+        itemNm: 'Smoke 005',
+        itemTyCd: '2',
+        supplyPrice: 25,
+        quantityShipped: 1,
+      );
+
+      expect(
+        saleLineAlreadyStockDeducted(
+          item: item,
+          variantsByVariantId: {
+            variantId: Variant(name: 'V', branchId: 'b', stockId: stockId),
+          },
+          stocksByStockId: {
+            stockId: Stock(id: stockId, branchId: 'b', currentStock: 5),
+          },
+          preSaleStockByStockId: null,
+        ),
+        isFalse,
+      );
+    });
   });
 
   group('resolveRraStockIoSarTyCd', () {

@@ -2035,10 +2035,11 @@ class CoreSync extends AiStrategyImpl
             }
             if (separator[2] == "stock") {
               final stockId = separator[3];
-              Stock? stock = await getStockById(id: stockId);
+              final resolvedStock = await getStockById(id: stockId);
+              if (resolvedStock == null) return;
 
-              stock.ebmSynced = true;
-              repository.upsert<Stock>(stock);
+              resolvedStock.ebmSynced = true;
+              repository.upsert<Stock>(resolvedStock);
 
               ProxyService.notification.sendLocalNotification(
                 body: "Stock Saving " + separator[1],
@@ -3461,7 +3462,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Stock> getStockById({required String id}) async {
+  Future<Stock?> getStockById({required String id}) async {
     // Must match Capella/Ditto reads: StockMixin delegates here, but this method
     // previously shadowed the mixin and queried Brick only — empty when Ditto is
     // ahead of SQLite (e.g. checkout reads stock via Strategy.capella then

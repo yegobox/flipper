@@ -792,12 +792,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           '[sale_completion_timing] pre_sale_stock_snapshot_ms='
           '${snapshotSw.elapsedMilliseconds} total_ms=${flowWatch.elapsedMilliseconds}',
         );
-        // Local stock decrement runs after RRA sign via [schedulePostSaleStockDeduction]
+        // Local stock decrement runs after RRA sign via [awaitPostSaleStockDeduction]
         // so Pay stays within the 5s budget (Ditto write queue was blocking ~30s+).
       }
 
-      void schedulePostSaleStockDeduction() {
-        schedulePostSaleStockDeductionAndRraSync(
+      Future<void> awaitPostSaleStockDeduction() {
+        return runLocalStockDeductionThenScheduleRra(
           transactionItems: transactionItems,
           allowSellingBelowStock: allowSellingBelowStock,
           isProformaOrTraining: isProformaOrTraining,
@@ -926,16 +926,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 ProxyService.settings.enableTicketReviewWorkflow &&
                 !mark.wasLoan;
             if (!reviewWorkflowDefersStock) {
-              schedulePostSaleStockDeduction();
+              await awaitPostSaleStockDeduction();
             }
             final deferredPayments = mark.deferredPayments;
             if (deferredPayments != null && deferredPayments.isNotEmpty) {
-              unawaited(
-                _persistSalePaymentLines(
-                  capella: capella,
-                  transactionId: transaction.id,
-                  payments: deferredPayments,
-                ),
+              await _persistSalePaymentLines(
+                capella: capella,
+                transactionId: transaction.id,
+                payments: deferredPayments,
               );
             }
             _clearSaleCustomerContextAfterSale();
@@ -1509,12 +1507,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   final capellaStrategy = ProxyService.getStrategy(
                     Strategy.capella,
                   );
-                  unawaited(
-                    _persistSalePaymentLines(
-                      capella: capellaStrategy,
-                      transactionId: transaction.id,
-                      payments: deferredPayments,
-                    ),
+                  await _persistSalePaymentLines(
+                    capella: capellaStrategy,
+                    transactionId: transaction.id,
+                    payments: deferredPayments,
                   );
                 }
 
@@ -1526,7 +1522,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     ProxyService.settings.enableTicketReviewWorkflow &&
                     !mark.wasLoan;
                 if (!reviewWorkflowDefersStock) {
-                  schedulePostSaleStockDeductionAndRraSync(
+                  await runLocalStockDeductionThenScheduleRra(
                     transactionItems: transactionItems,
                     allowSellingBelowStock: allowSellingBelowStock,
                     isProformaOrTraining: isProformaOrTraining,

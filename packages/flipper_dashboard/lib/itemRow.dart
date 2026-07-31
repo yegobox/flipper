@@ -1650,6 +1650,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock = await strategy.getStockById(
                   id: widget.variant!.stockId!,
                 );
+                if (stock == null) return;
                 final businessId = ProxyService.box.getBusinessId();
                 final branchId = ProxyService.box.getBranchId();
 

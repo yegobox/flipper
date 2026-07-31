@@ -32,13 +32,18 @@ Future<Map<String, double>> loadPreSaleStockLevelsForLines(
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
   for (final sid in stockIds) {
     if (!stocksMap.containsKey(sid)) {
-      stocksMap[sid] = await capella.getStockById(id: sid);
+      final loaded = await capella.getStockById(id: sid);
+      if (loaded != null && loaded.branchId.isNotEmpty) {
+        stocksMap[sid] = loaded;
+      }
     }
   }
 
   final out = <String, double>{};
   for (final sid in stockIds) {
-    final current = stocksMap[sid]?.currentStock;
+    final stock = stocksMap[sid];
+    if (stock == null || stock.branchId.isEmpty) continue;
+    final current = stock.currentStock;
     if (current != null) out[sid] = current;
   }
   return out;
@@ -101,7 +106,10 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
   for (final sid in stockIds) {
     if (!stocksMap.containsKey(sid)) {
-      stocksMap[sid] = await capella.getStockById(id: sid);
+      final loaded = await capella.getStockById(id: sid);
+      if (loaded != null && loaded.branchId.isNotEmpty) {
+        stocksMap[sid] = loaded;
+      }
     }
   }
 
@@ -136,7 +144,8 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     final sid = e.key;
     final delta = e.value;
     final stock = stocksMap[sid];
-    final current = stock?.currentStock;
+    if (stock == null || stock.branchId.isEmpty) continue;
+    final current = stock.currentStock;
     if (current == null) continue;
 
     originalStockQuantities[sid] = current;
@@ -156,13 +165,11 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     );
   } else {
     await capella.batchUpdateStocks(stockUpdatesById);
-    unawaited(
-      _deferMarkItemsQuantityShipped(
-        capella: capella,
-        items: itemsNeedingDeduction,
-        deductedStockIds: deductedStockIds,
-        variantsMap: variantsMap,
-      ),
+    await _deferMarkItemsQuantityShipped(
+      capella: capella,
+      items: itemsNeedingDeduction,
+      deductedStockIds: deductedStockIds,
+      variantsMap: variantsMap,
     );
   }
 
@@ -280,6 +287,63 @@ Future<void> runPostSaleStockDeductionAndRraSync({
   );
 }
 
+/// Awaits local stock deduction, then schedules RRA I/O without blocking the till.
+Future<void> runLocalStockDeductionThenScheduleRra({
+  required List<TransactionItem> transactionItems,
+  required bool allowSellingBelowStock,
+  required bool isProformaOrTraining,
+  required String transactionId,
+  required ITransaction transaction,
+  required String receiptType,
+  String? sarTyCd,
+}) async {
+  await applyDeferredSaleStockDeduction(
+    transactionItems: transactionItems,
+    allowSellingBelowStock: allowSellingBelowStock,
+    isProformaOrTraining: isProformaOrTraining,
+    transactionId: transactionId,
+  );
+
+  if (isProformaOrTraining) return;
+
+  final highestInvcNo = resolvePostSaleInvoiceNo(
+    invoiceNumber: transaction.invoiceNumber,
+    receiptNumber: transaction.receiptNumber,
+    totalReceiptNumber: transaction.totalReceiptNumber,
+  );
+  if (highestInvcNo == null) {
+    talker.warning(
+      'Skipping post-sale RRA stock sync: missing invoice/receipt number on ${transaction.id}',
+    );
+    return;
+  }
+
+  final stockIoSarTyCd = resolveRraStockIoSarTyCd(
+    sarTyCd: sarTyCd,
+    receiptType: receiptType,
+    transactionSarTyCd: transaction.sarTyCd,
+  );
+
+  talker.info(
+    'Post-sale RRA stock sync: txn=${transaction.id} invc=$highestInvcNo '
+    'sarTyCd=$stockIoSarTyCd lines=${transactionItems.length}',
+  );
+
+  unawaited(
+    ProxyService.tax
+        .syncStockAfterSuccessfulSaveSales(
+          receiptType: receiptType,
+          items: transactionItems,
+          transaction: transaction,
+          highestInvcNo: highestInvcNo,
+          sarTyCd: stockIoSarTyCd,
+        )
+        .catchError((Object e, StackTrace s) {
+          talker.error('Post-sale RRA stock sync failed: $e', s);
+        }),
+  );
+}
+
 void schedulePostSaleStockDeductionAndRraSync({
   required List<TransactionItem> transactionItems,
   required bool allowSellingBelowStock,
@@ -290,7 +354,7 @@ void schedulePostSaleStockDeductionAndRraSync({
   String? sarTyCd,
 }) {
   unawaited(
-    runPostSaleStockDeductionAndRraSync(
+    runLocalStockDeductionThenScheduleRra(
       transactionItems: transactionItems,
       allowSellingBelowStock: allowSellingBelowStock,
       isProformaOrTraining: isProformaOrTraining,

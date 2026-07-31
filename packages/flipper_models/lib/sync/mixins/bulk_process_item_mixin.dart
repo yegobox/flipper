@@ -350,7 +350,15 @@ Future<bool> _bulkUpdateExistingVariantStock({
 
   Stock stock;
   try {
-    stock = await host.getStockById(id: stockId) as Stock;
+    final loaded = await host.getStockById(id: stockId);
+    if (loaded == null) {
+      talker.warning(
+        'bulk: getStockById returned null for "${variant.name}" '
+        '(stockId=$stockId); falling through',
+      );
+      return false;
+    }
+    stock = loaded;
   } catch (e, st) {
     talker.warning(
       'bulk: getStockById failed for "${variant.name}" '

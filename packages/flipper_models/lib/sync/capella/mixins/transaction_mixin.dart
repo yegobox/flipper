@@ -1124,9 +1124,18 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  FutureOr<void> addTransaction({required ITransaction transaction}) {
-    // Ported from the brick (CoreSync) TransactionMixin (no regression).
-    repository.upsert(transaction);
+  Future<void> addTransaction({required ITransaction transaction}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for addTransaction');
+      throw StateError('Ditto not initialized for addTransaction');
+    }
+    // Refund/credit copies must be in Ditto before items are attached.
+    await ditto.store.execute(
+      'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': _transactionToMap(transaction)},
+    );
+    await repository.upsert(transaction, skipDittoSync: true);
   }
 
   @override
