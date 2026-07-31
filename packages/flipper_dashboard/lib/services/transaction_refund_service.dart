@@ -105,11 +105,9 @@ class TransactionRefundService {
   }
 
   void validateCanRefund(ITransaction transaction) {
-    if (isTransactionRefunded(transaction)) {
-      throw TransactionRefundException('This transaction is already refunded');
-    }
-    if (transaction.receiptType == 'PS') {
-      throw TransactionRefundException('Cannot refund a proforma receipt');
+    final reason = refundBlockReason(transaction);
+    if (reason != null) {
+      throw TransactionRefundException(reason);
     }
   }
 

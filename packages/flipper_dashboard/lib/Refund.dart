@@ -79,9 +79,16 @@ class _RefundState extends ConsumerState<Refund> {
 
   ITransaction? get _transaction => widget.transaction;
 
-  bool get _alreadyRefunded =>
+  bool get _refundUnavailable =>
       _refundBlocked ||
-      (_transaction != null && isTransactionRefunded(_transaction!));
+      (_transaction != null && !canRefundTransaction(_transaction!));
+
+  String get _refundUnavailableLabel {
+    final tx = _transaction;
+    if (tx == null) return 'Refund unavailable';
+    if (isTransactionRefunded(tx) || _refundBlocked) return 'Refunded';
+    return refundBlockReason(tx) ?? 'Refund unavailable';
+  }
 
   String get _currency =>
       widget.currency ?? ProxyService.box.defaultCurrency();
@@ -130,7 +137,7 @@ class _RefundState extends ConsumerState<Refund> {
                 transactionId: widget.transactionId,
               ),
               const SizedBox(height: 24),
-              RefundReasonForm(enabled: !_alreadyRefunded),
+              RefundReasonForm(enabled: !_refundUnavailable),
               const SizedBox(height: 20),
               _FinancialBreakdown(
                 currency: _currency,
@@ -139,11 +146,11 @@ class _RefundState extends ConsumerState<Refund> {
               ),
               const SizedBox(height: 24),
               _RefundActionButton(
-                label: _alreadyRefunded
-                    ? 'Refunded'
+                label: _refundUnavailable
+                    ? _refundUnavailableLabel
                     : 'Refund $_currency $amountText',
                 busy: isRefundProcessing,
-                enabled: !_alreadyRefunded,
+                enabled: !_refundUnavailable,
                 onTap: () => _onRefundTap(context),
               ),
               const SizedBox(height: 12),
@@ -159,7 +166,7 @@ class _RefundState extends ConsumerState<Refund> {
   }
 
   Future<void> _onRefundTap(BuildContext context) async {
-    if (_alreadyRefunded) return;
+    if (_refundUnavailable) return;
 
     setState(() => isRefundProcessing = true);
     try {

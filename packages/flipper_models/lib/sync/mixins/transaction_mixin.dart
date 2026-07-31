@@ -1095,9 +1095,8 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.cashReceived = cashReceived ?? transaction.cashReceived;
     transaction.customerName = customerName ?? transaction.customerName;
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
-    if (lastTouched != null) {
-      transaction.createdAt = lastTouched;
-    }
+    // Do not rewrite createdAt from lastTouched — report date filters use the
+    // original sale timestamp; activity is tracked via lastTouched / updatedAt.
     transaction.receiptPrinted = receiptPrinted ?? transaction.receiptPrinted;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;

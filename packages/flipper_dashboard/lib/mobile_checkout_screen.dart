@@ -689,7 +689,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   }
 
   bool _canModifyItems(ITransaction transaction) =>
-      (transaction.cashReceived ?? 0) <= 0;
+      _effectiveAlreadyPaid(transaction) <= 0.01;
 
   Future<void> _updateQuantity(
     TransactionItem item,

@@ -947,7 +947,7 @@ class TaxController<OBJ> {
               id: const Uuid().v4(),
               name: item.name,
               transactionId: newTransaction.id, // Update transactionId
-              variantId: transaction.id, // Update variantId
+              variantId: item.variantId,
             );
             // get variant
             Variant? variant = await ProxyService.getStrategy(Strategy.capella).getVariant(

@@ -67,3 +67,55 @@ bool isTransactionRefunded(ITransaction transaction) {
 
   return false;
 }
+
+/// Completed Flipper sale status (case-insensitive).
+bool isTransactionCompletedForRefund(ITransaction transaction) {
+  final status = (transaction.status ?? '').toLowerCase().trim();
+  return status == 'completed';
+}
+
+/// True when the sale still has credit / unpaid balance.
+///
+/// Credit (loan) sales with remaining balance owed cannot be refunded. Fully
+/// paid completed sales (`cashReceived` covers `subTotal`, or a settled loan
+/// with remainingBalance ≈ 0) are eligible.
+bool hasOutstandingCreditOrBalance(ITransaction transaction) {
+  final total = (transaction.subTotal ?? 0).toDouble();
+  if (total <= 0.01) return false;
+
+  final paid = (transaction.cashReceived ?? 0).toDouble();
+  final due = (transaction.remainingBalance ?? 0).toDouble();
+
+  // Open loan / CREDIT sale — must be fully settled first.
+  if (transaction.isLoan == true) {
+    if (due > 0.01) return true;
+    return paid < total - 0.01;
+  }
+
+  // Non-loan: require paid to cover the sale (ignore constructor default
+  // remainingBalance == subTotal when cashReceived already covers the total).
+  if (paid >= total - 0.01) return false;
+  if (due > 0.01) return true;
+  return paid < total - 0.01;
+}
+
+/// Human-readable reason the sale cannot be refunded, or null if allowed.
+String? refundBlockReason(ITransaction transaction) {
+  if (isTransactionRefunded(transaction)) {
+    return 'This transaction is already refunded';
+  }
+  if (transaction.receiptType == 'PS') {
+    return 'Cannot refund a proforma receipt';
+  }
+  if (!isTransactionCompletedForRefund(transaction)) {
+    return 'Only completed transactions can be refunded';
+  }
+  if (hasOutstandingCreditOrBalance(transaction)) {
+    return 'Credit or partially paid sales cannot be refunded until fully paid';
+  }
+  return null;
+}
+
+/// Whether UI / service may offer a refund for this sale.
+bool canRefundTransaction(ITransaction transaction) =>
+    refundBlockReason(transaction) == null;

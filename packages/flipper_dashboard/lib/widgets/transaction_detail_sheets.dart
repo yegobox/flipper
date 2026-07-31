@@ -108,6 +108,14 @@ class _TransactionActionsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final refunded = isTransactionRefunded(transaction);
+    final blockReason = refundBlockReason(transaction);
+    final refundAllowed = blockReason == null;
+    final refundTitle = refunded
+        ? 'Already refunded'
+        : (!refundAllowed ? 'Refund unavailable' : 'Refund payment');
+    final refundSubtitle = refunded
+        ? 'This income has been refunded'
+        : (blockReason ?? 'Return money to the customer');
     return _SheetScaffold(
       fillHeight: false,
       child: Column(
@@ -153,14 +161,12 @@ class _TransactionActionsSheet extends StatelessWidget {
                 if (onRefund != null)
                   _ActionRow(
                     iconSvg: TransactionDetailSvgs.refresh(),
-                    title: refunded ? 'Already refunded' : 'Refund payment',
-                    subtitle: refunded
-                        ? 'This income has been refunded'
-                        : 'Return money to the customer',
+                    title: refundTitle,
+                    subtitle: refundSubtitle,
                     danger: true,
-                    showChevron: !refunded,
-                    enabled: !refunded,
-                    onTap: refunded ? null : onRefund,
+                    showChevron: refundAllowed,
+                    enabled: refundAllowed,
+                    onTap: refundAllowed ? onRefund : null,
                   ),
               ],
             ),
@@ -231,6 +237,7 @@ class _TransactionRefundSheetState
     setState(() => _step = _RefundStep.processing);
 
     try {
+      _service.validateCanRefund(widget.transaction);
       final vatEnabled = await ref.read(ebmVatEnabledProvider.future);
       final result = await _service.execute(
         request: TransactionRefundRequest(

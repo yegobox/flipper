@@ -24,13 +24,15 @@ class ResetTransactionButton extends ConsumerWidget {
 
     return transactionAsyncValue.maybeWhen(
       data: (transaction) {
-        // Prevent resetting if it's a ticket (has ticketName) or has partial payments
+        // Prevent resetting if it's a ticket (has ticketName) or has real
+        // prior payments. Do not treat tender mirrored into cashReceived as paid.
         final bool isTicket =
             transaction.ticketName != null &&
             transaction.ticketName!.isNotEmpty;
         final bool hasPayments =
-            (transaction.cashReceived ?? 0) > 0 ||
-            (transaction.payments?.isNotEmpty ?? false);
+            (transaction.payments?.isNotEmpty ?? false) ||
+            (transaction.isLoan == true &&
+                (transaction.cashReceived ?? 0) > 0.01);
 
         // View-only staff cannot delete the pending sale.
         if (isTicket || hasPayments || !ref.watch(canSellProvider)) {

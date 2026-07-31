@@ -9,6 +9,10 @@ ITransaction _txn({
   bool? isRefunded,
   String? originalTransactionId,
   bool? isOriginalTransaction,
+  bool? isLoan,
+  double? subTotal,
+  double? cashReceived,
+  double? remainingBalance,
 }) {
   final now = DateTime.now().toUtc();
   return ITransaction(
@@ -18,7 +22,7 @@ ITransaction _txn({
     status: status ?? 'completed',
     transactionType: 'Sale',
     paymentType: 'CASH',
-    cashReceived: 0,
+    cashReceived: cashReceived ?? subTotal ?? 1000,
     customerChangeDue: 0,
     updatedAt: now,
     isIncome: true,
@@ -27,6 +31,9 @@ ITransaction _txn({
     receiptType: receiptType,
     originalTransactionId: originalTransactionId,
     isOriginalTransaction: isOriginalTransaction,
+    isLoan: isLoan,
+    subTotal: subTotal ?? 1000,
+    remainingBalance: remainingBalance,
   );
 }
 
@@ -117,6 +124,106 @@ void main() {
     test('allows refundable normal sale', () {
       expect(
         isTransactionRefunded(_txn(receiptType: 'NS', status: 'completed')),
+        isFalse,
+      );
+    });
+  });
+
+  group('canRefundTransaction', () {
+    test('allows completed fully paid cash sale', () {
+      expect(
+        canRefundTransaction(
+          _txn(
+            receiptType: 'NS',
+            status: 'completed',
+            subTotal: 1000,
+            cashReceived: 1000,
+            remainingBalance: 0,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('blocks open credit / loan with remaining balance', () {
+      expect(
+        canRefundTransaction(
+          _txn(
+            receiptType: 'NS',
+            status: 'completed',
+            isLoan: true,
+            subTotal: 1000,
+            cashReceived: 200,
+            remainingBalance: 800,
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        refundBlockReason(
+          _txn(
+            isLoan: true,
+            subTotal: 1000,
+            cashReceived: 200,
+            remainingBalance: 800,
+          ),
+        ),
+        contains('Credit or partially paid'),
+      );
+    });
+
+    test('allows settled loan that is fully paid', () {
+      expect(
+        canRefundTransaction(
+          _txn(
+            receiptType: 'NS',
+            status: 'completed',
+            isLoan: true,
+            subTotal: 1000,
+            cashReceived: 1000,
+            remainingBalance: 0,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('blocks non-completed sales', () {
+      expect(
+        canRefundTransaction(
+          _txn(
+            status: 'parked',
+            subTotal: 1000,
+            cashReceived: 1000,
+            remainingBalance: 0,
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        refundBlockReason(
+          _txn(
+            status: 'pending',
+            subTotal: 1000,
+            cashReceived: 1000,
+            remainingBalance: 0,
+          ),
+        ),
+        contains('Only completed'),
+      );
+    });
+
+    test('blocks underpaid completed sale', () {
+      expect(
+        canRefundTransaction(
+          _txn(
+            status: 'completed',
+            subTotal: 1000,
+            cashReceived: 400,
+            remainingBalance: 600,
+            isLoan: false,
+          ),
+        ),
         isFalse,
       );
     });

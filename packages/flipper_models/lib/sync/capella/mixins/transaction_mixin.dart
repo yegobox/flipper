@@ -1811,7 +1811,26 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         addUpdate('totAmt', totAmt);
       } else if (resolvedNewQty != null && price == null && prc == null) {
         final unitPriceRow = (d['price'] as num?)?.toDouble() ?? 0.0;
-        addUpdate('totAmt', unitPriceRow * resolvedNewQty);
+        // POS qty +/- only passes qty — recompute tax/discount line fields so
+        // RRA/signing stay aligned with SaleLinePricing (add-to-cart path).
+        if (taxAmt == null && taxblAmt == null && dcAmt == null) {
+          final pricing = SaleLinePricing.compute(
+            unitPrice: unitPriceRow,
+            qty: resolvedNewQty,
+            dcRt: (d['dcRt'] as num?)?.toDouble() ?? 0.0,
+            taxTyCd: d['taxTyCd']?.toString() ?? 'B',
+            taxPercentage:
+                (d['taxPercentage'] as num?)?.toDouble() ?? 18.0,
+          );
+          addUpdate('totAmt', pricing.totAmt);
+          addUpdate('taxAmt', pricing.taxAmt);
+          addUpdate('taxblAmt', pricing.taxblAmt);
+          addUpdate('dcAmt', pricing.dcAmt);
+          addUpdate('discount', pricing.discount);
+          addUpdate('dcRt', pricing.dcRt);
+        } else {
+          addUpdate('totAmt', unitPriceRow * resolvedNewQty);
+        }
       }
       addUpdate('dcRt', dcRt);
       addUpdate('dcAmt', dcAmt);
@@ -2077,8 +2096,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         lastTouched ?? transaction?.lastTouched ?? DateTime.now();
     addUpdate('updatedAt', resolvedUpdatedAt);
     addUpdate('lastTouched', resolvedLastTouched);
-    // Keep transaction createdAt aligned with last activity (same as lastTouched).
-    addUpdate('createdAt', resolvedLastTouched);
+    // Do not rewrite createdAt — report windows and ticket age use the original
+    // sale date. Activity is tracked via updatedAt / lastTouched (park paths
+    // already preserve createdAt explicitly).
     addUpdate('receiptFileName', transaction?.receiptFileName);
     addUpdate('cashReceived', cashReceived ?? transaction?.cashReceived);
     addUpdate('customerPhone', customerPhone ?? transaction?.customerPhone);

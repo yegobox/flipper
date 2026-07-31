@@ -1893,8 +1893,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
     if (!ref.read(canSellProvider)) return; // view-only: no cart edits
-    // Check if there's a partial payment
-    if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
+    // Real prior payments only — not tender mirrored into cashReceived.
+    if (_effectiveAlreadyPaid(transactionAsyncValue.value) > 0.01) {
       showErrorNotification(
         context,
         context.flipperL10n.cannotDeletePartialPaymentItems,
@@ -2038,7 +2038,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     ),
                     TextButton.icon(
                       onPressed:
-                          (transactionAsyncValue.value?.cashReceived ?? 0) > 0
+                          _effectiveAlreadyPaid(
+                                transactionAsyncValue.value,
+                              ) >
+                              0.01
                           ? null
                           : () => _deleteAllItems(transactionAsyncValue),
                       icon: const Icon(Icons.delete_sweep, size: 18),
@@ -2579,8 +2582,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     AsyncValue<ITransaction> transactionAsyncValue,
   ) {
     if (!ref.read(canSellProvider)) return; // view-only: no cart edits
-    // Check if there's a partial payment
-    if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
+    // Real prior payments only — not tender mirrored into cashReceived.
+    if (_effectiveAlreadyPaid(transactionAsyncValue.value) > 0.01) {
       showErrorNotification(
         context,
         context.flipperL10n.cannotDeletePartialPaymentItems,
@@ -2641,8 +2644,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
     if (!ref.read(canSellProvider)) return; // view-only: no cart edits
-    // Check if there's a partial payment
-    if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
+    // Real prior payments only — not tender mirrored into cashReceived.
+    if (_effectiveAlreadyPaid(transactionAsyncValue.value) > 0.01) {
       showErrorNotification(
         context,
         context.flipperL10n.cannotModifyPartialPaymentItems,

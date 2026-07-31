@@ -542,7 +542,7 @@ class PaymentsState extends ConsumerState<Payments> {
         context,
         e.toString().split(': ').last,
         textColor: Colors.white,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.red,
       );
     }
   }

@@ -88,17 +88,18 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   Future<void> _openMoreActions() async {
     // Refund is a mutation — only offer it to users with Transactions edit
     // (write/admin) access. Read-only viewers get the receipt actions only.
-    final canRefund = ref.read(
+    final hasWriteAccess = ref.read(
       featureAccessProvider(
         userId: ProxyService.box.getUserId() ?? '',
         featureName: AppFeature.Transactions,
       ),
     );
+    // Offer the refund row to editors; sheet/service block credit & unpaid sales.
     await showTransactionActionsSheet(
       context: context,
       transaction: _transaction,
       referenceLabel: _referenceLabel,
-      onRefund: canRefund ? _openRefundSheet : null,
+      onRefund: hasWriteAccess ? _openRefundSheet : null,
     );
   }
 

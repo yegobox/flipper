@@ -231,7 +231,8 @@ mixin DeleteMixin implements DeleteInterface {
           branchId: ProxyService.box.getBranchId()!,
         ));
         if (transaction != null) {
-          // Prevent deleting tickets or transactions with partial payments
+          // Prevent deleting tickets or transactions with real prior payments.
+          // cashReceived alone is unreliable on open carts (tender mirror).
           if (transaction.ticketName != null &&
               transaction.ticketName!.isNotEmpty) {
             talker.warning(
@@ -239,7 +240,11 @@ mixin DeleteMixin implements DeleteInterface {
             );
             return false;
           }
-          if ((transaction.cashReceived ?? 0) > 0) {
+          final hasRealPriorPayment =
+              (transaction.isLoan == true &&
+                  (transaction.cashReceived ?? 0) > 0) ||
+              (transaction.payments?.isNotEmpty ?? false);
+          if (hasRealPriorPayment) {
             talker.warning(
               'Attempted to delete a transaction with partial payments: ${transaction.id}',
             );

@@ -151,7 +151,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         context,
         e.toString().split(': ').last,
         textColor: Colors.white,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.red,
       );
     }
   }
