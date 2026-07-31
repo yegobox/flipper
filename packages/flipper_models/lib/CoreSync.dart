@@ -159,7 +159,7 @@ class CoreSync extends AiStrategyImpl
       token ??= pinLocal?.tokenUid;
 
       if (token != null) {
-        talker.warning(token);
+        talker.warning('firebaseLogin: signing in with custom token');
         await FirebaseAuth.instance.signInWithCustomToken(token);
 
         return true;

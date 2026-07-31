@@ -506,9 +506,14 @@ mixin AuthMixin implements AuthInterface {
           break;
         }
       }
-      businessJson ??= businessesJson.isNotEmpty && businessesJson.first is Map
-          ? Map<String, dynamic>.from(businessesJson.first as Map)
-          : null;
+      // Do not fall back to businessesJson.first — that binds the wrong tenant
+      // when the PIN's business is missing from the payload.
+      if (businessJson == null) {
+        talker.warning(
+          'Offline login: no business in user_access matches pin businessId='
+          '${pin.businessId}',
+        );
+      }
 
       if (businessJson != null && businessJson.containsKey('branches')) {
         final List<dynamic> branchesJson = businessJson['branches'] as List;
@@ -533,9 +538,7 @@ mixin AuthMixin implements AuthInterface {
       String? businessId = pin.businessId;
       if (businessId == null || businessId.isEmpty) {
         final matched = businessesE.where((b) => _pinMatchesBusiness(pin, b));
-        businessId = matched.isNotEmpty
-            ? matched.first.id
-            : (businessesE.isNotEmpty ? businessesE.first.id : null);
+        businessId = matched.isNotEmpty ? matched.first.id : null;
       }
       if (businessId != null && businessId.isNotEmpty) {
         try {
@@ -676,7 +679,10 @@ mixin AuthMixin implements AuthInterface {
           }
 
           if (selectedBusiness == null && resolvedBusinesses.isNotEmpty) {
-            selectedBusiness = resolvedBusinesses.first;
+            talker.warning(
+              'Login: no business matches pin.businessId=${pin.businessId}; '
+              'not falling back to first tenant',
+            );
           }
 
           if (selectedBusiness != null) {
@@ -1023,11 +1029,12 @@ mixin AuthMixin implements AuthInterface {
       }
 
       talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
-      talker.warning("sendLoginRequest:token:${responseBody['token']}");
+      talker.warning(
+        "sendLoginRequest:token:${responseBody['token'] != null ? '[redacted]' : 'null'}",
+      );
 
-      talker.warning("$responseBody");
       if (responseBody['id'] == null) {
-        talker.error("Missing ID in response: ${responseBody}");
+        talker.error("Missing ID in response (token/body redacted)");
         throw Exception("Missing user ID in server response");
       }
 

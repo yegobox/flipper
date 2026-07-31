@@ -251,12 +251,12 @@ class DataViewState extends ConsumerState<DataView>
     return n;
   }
 
-  /// Sum of line revenue (price × qty); matches Excel exported [TotalSales] column (P×Q per row).
+  /// Sum of net line revenue after discount; matches Pay / [SaleLinePricing].
   double _pluLineRevenueFromItemList(List<TransactionItem> items) {
     if (items.isEmpty) return 0.0;
     return items.fold<double>(
       0.0,
-      (sum, item) => sum + item.price.toDouble() * item.qty.toDouble(),
+      (sum, item) => sum + TransactionItemPluMetrics.lineNetSales(item),
     );
   }
 

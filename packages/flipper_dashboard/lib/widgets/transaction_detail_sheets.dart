@@ -210,7 +210,13 @@ class _TransactionRefundSheetState
 
   double get _refundAmount {
     if (_fullRefund) return _total;
-    final parsed = double.tryParse(_amountText.replaceAll(RegExp(r'[^\d]'), ''));
+    final cleaned = _amountText.replaceAll(RegExp(r'[^\d.]'), '');
+    // Allow at most one decimal point (e.g. "12.50").
+    final parts = cleaned.split('.');
+    final normalized = parts.length <= 1
+        ? cleaned
+        : '${parts.first}.${parts.sublist(1).join()}';
+    final parsed = double.tryParse(normalized);
     return parsed ?? 0;
   }
 
@@ -222,7 +228,9 @@ class _TransactionRefundSheetState
   @override
   void initState() {
     super.initState();
-    _amountText = _total.round().toString();
+    _amountText = _total == _total.roundToDouble()
+        ? _total.round().toString()
+        : _total.toStringAsFixed(2);
     _partialAmountController = TextEditingController(text: _amountText);
   }
 
@@ -786,7 +794,15 @@ class _PartialAmountField extends StatelessWidget {
                 contentPadding: EdgeInsets.symmetric(horizontal: 14),
                 hintText: '0',
               ),
-              onChanged: (v) => onChanged(v.replaceAll(RegExp(r'\D'), '')),
+              onChanged: (v) {
+                // Keep digits and a single decimal point (partial refund amounts).
+                final cleaned = v.replaceAll(RegExp(r'[^\d.]'), '');
+                final parts = cleaned.split('.');
+                final normalized = parts.length <= 1
+                    ? cleaned
+                    : '${parts.first}.${parts.sublist(1).join()}';
+                onChanged(normalized);
+              },
             ),
           ),
         ],

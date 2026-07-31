@@ -59,7 +59,7 @@ void main() {
       };
     }
 
-    test('type B: VAT-inclusive on gross revenue (TotalSales × rate/(100+rate))',
+    test('type B: VAT-inclusive on net revenue (price×qty − discount)',
         () {
       expect(
         PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
@@ -69,7 +69,7 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D5*F5<=0,0,ROUND((D5*F5)*H5/(100+H5),2))',
+        '=IF((D5*F5-0)<=0,0,ROUND(((D5*F5-0))*H5/(100+H5),2))',
       );
     });
 
@@ -83,7 +83,7 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D2*F2<=0,0,ROUND((D2*F2)*H2/(100+H2),2))',
+        '=IF((D2*F2-0)<=0,0,ROUND(((D2*F2-0))*H2/(100+H2),2))',
       );
     });
 
@@ -96,7 +96,7 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D3*F3<=0,0,ROUND((D3*F3)*H3/(100+H3),2))',
+        '=IF((D3*F3-0)<=0,0,ROUND(((D3*F3-0))*H3/(100+H3),2))',
       );
     });
 
@@ -111,7 +111,7 @@ void main() {
             qtyLetter: 'F',
             taxRateLetter: 'H',
           ),
-          '=IF(D4*F4<=0,0,ROUND((D4*F4)*H4/(100+H4),2))',
+          '=IF((D4*F4-0)<=0,0,ROUND(((D4*F4-0))*H4/(100+H4),2))',
           reason: 'tax type $ty should use the per-line rate cell (H4)',
         );
       }
@@ -127,12 +127,12 @@ void main() {
       );
       expect(
         f,
-        '=IF(D9*F9<=0,0,ROUND((D9*F9)*J9/(100+J9),2))',
+        '=IF((D9*F9-0)<=0,0,ROUND(((D9*F9-0))*J9/(100+J9),2))',
       );
       expect(f, isNot(contains('J9D')));
     });
 
-    test('type B ignores discount (TotalSales is price × qty, no discount)', () {
+    test('type B subtracts line discount from tax base', () {
       expect(
         PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
           rowData: baseRow(ty: 'B', discount: 50),
@@ -141,7 +141,7 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D2*F2<=0,0,ROUND((D2*F2)*H2/(100+H2),2))',
+        '=IF((D2*F2-50)<=0,0,ROUND(((D2*F2-50))*H2/(100+H2),2))',
       );
     });
 
@@ -155,7 +155,7 @@ void main() {
           qtyLetter: 'F',
           taxRateLetter: 'H',
         ),
-        '=IF(D2*F2<=0,0,ROUND((D2*F2)*H2/(100+H2),2))',
+        '=IF((D2*F2-0)<=0,0,ROUND(((D2*F2-0))*H2/(100+H2),2))',
       );
     });
   });

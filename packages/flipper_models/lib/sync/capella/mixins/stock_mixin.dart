@@ -806,10 +806,13 @@ mixin CapellaStockMixin implements StockInterface {
             // Fetch requester branch details (subBranchId)
             if (request.subBranchId != null) {
               // Ensure we subscribe to this branch data so it syncs to this device
+              final preparedBranch = prepareDqlSyncSubscription(
+                "SELECT * FROM branches WHERE _id = :id",
+                {'id': request.subBranchId},
+              );
               ditto.sync.registerSubscription(
-                dqlForSyncSubscription(
-                  "SELECT * FROM branches WHERE _id = '${request.subBranchId}'",
-                ),
+                preparedBranch.dql,
+                arguments: preparedBranch.arguments,
               );
 
               talker.info(
@@ -901,10 +904,13 @@ mixin CapellaStockMixin implements StockInterface {
             // Fetch supplier branch details (mainBranchId)
             if (request.mainBranchId != null) {
               // Ensure subscription
+              final preparedBranch = prepareDqlSyncSubscription(
+                "SELECT * FROM branches WHERE _id = :id",
+                {'id': request.mainBranchId},
+              );
               ditto.sync.registerSubscription(
-                dqlForSyncSubscription(
-                  "SELECT * FROM branches WHERE _id = '${request.mainBranchId}'",
-                ),
+                preparedBranch.dql,
+                arguments: preparedBranch.arguments,
               );
 
               final branchResult = await ditto.store.execute(

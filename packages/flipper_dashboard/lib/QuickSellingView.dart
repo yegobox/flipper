@@ -202,8 +202,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final gen = ++_nonCreditPaidFetchGen;
     final paid = await fetchNonCreditPaid(txnId);
     if (!mounted || gen != _nonCreditPaidFetchGen) return;
-    // Qty +/- may have cleared cache while this fetch was in flight.
-    if (hasOptimisticLineQtyDrift()) return;
+    // Apply even during optimistic qty drift — prior paid comes from payment
+    // records, not line totals.
     setState(() => _cachedNonCreditPaid = paid);
   }
 
@@ -373,9 +373,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   @override
   void onLineQtyOptimisticChange() {
-    // Drop stale prior-paid from an earlier line total before Ditto catches up.
-    _nonCreditPaidFetchGen++;
-    _cachedNonCreditPaid = 0.0;
+    // Keep [_cachedNonCreditPaid] — payment records are independent of qty drift.
+    // Zeroing here unlocked delete-all / wrong remainder on partial-paid tickets.
+    unawaited(_refetchNonCreditPaidForPendingSale());
     _scheduleReceivedAmountSync();
   }
 
@@ -1448,10 +1448,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // qty bumps can yield list == equality while the sale total still changes.
     ref.listen<double>(posCartPaymentRefreshSignalProvider, (previous, next) {
       if (previous == next) return;
-      // Cart total changed — drop stale prior-paid from an earlier line total
-      // (e.g. qty 1 @ 500 then qty 2 @ 1000 must not keep alreadyPaid=500).
+      // Cart total changed — refresh prior-paid from payment records (do not
+      // zero the cache first; that unlocked partial-paid tickets during qty +/-).
       if (previous != null && (previous - next).abs() > 0.01) {
-        _cachedNonCreditPaid = 0.0;
         unawaited(_refetchNonCreditPaidForPendingSale());
       }
       // Optimistic qty +/- already schedules sync; skip stale stream totals.

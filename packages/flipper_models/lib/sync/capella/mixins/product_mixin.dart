@@ -69,7 +69,42 @@ mixin CapellaProductMixin implements ProductInterface {
 
   @override
   Future<double> totalStock({String? productId, String? variantId}) async {
-    throw UnimplementedError('totalStock needs to be implemented for Capella');
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return 0.0;
+
+    Future<double> qtyForStockId(String? stockId) async {
+      if (stockId == null || stockId.isEmpty) return 0.0;
+      final stock = await ProxyService.strategy.getStockById(id: stockId);
+      return stock?.currentStock ?? 0.0;
+    }
+
+    if (variantId != null && variantId.isNotEmpty) {
+      final result = await ditto.store.execute(
+        'SELECT * FROM variants WHERE _id = :id OR id = :id LIMIT 1',
+        arguments: {'id': variantId},
+      );
+      if (result.items.isEmpty) return 0.0;
+      final stockId =
+          Map<String, dynamic>.from(result.items.first.value)['stockId']
+              ?.toString();
+      return qtyForStockId(stockId);
+    }
+
+    if (productId != null && productId.isNotEmpty) {
+      final result = await ditto.store.execute(
+        'SELECT * FROM variants WHERE productId = :productId',
+        arguments: {'productId': productId},
+      );
+      var total = 0.0;
+      for (final item in result.items) {
+        final stockId =
+            Map<String, dynamic>.from(item.value)['stockId']?.toString();
+        total += await qtyForStockId(stockId);
+      }
+      return total;
+    }
+
+    return 0.0;
   }
 
   @override

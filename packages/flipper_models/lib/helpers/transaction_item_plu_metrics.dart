@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 /// PLU / line-level metrics shared by transaction reports, exports, and dashboard gauge
@@ -5,10 +6,20 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 class TransactionItemPluMetrics {
   TransactionItemPluMetrics._();
 
-  /// Same as the on-screen "profit Made" / [TotalSales] column: selling value minus supply cost.
+  /// Net line revenue after discount (`price * qty - dcAmt`, or from `dcRt`).
+  static double lineNetSales(TransactionItem item) {
+    return SaleLinePricing.subtotalNetForItem(
+      unitPrice: item.price.toDouble(),
+      qty: item.qty.toDouble(),
+      dcAmt: item.dcAmt?.toDouble(),
+      dcRt: item.dcRt?.toDouble(),
+    );
+  }
+
+  /// Same as the on-screen "profit Made" / [TotalSales] column: net selling value
+  /// minus supply cost.
   static double profitMade(TransactionItem item) {
-    return item.price.toDouble() * item.qty.toDouble() -
-        (item.splyAmt?.toDouble() ?? 0.0);
+    return lineNetSales(item) - (item.splyAmt?.toDouble() ?? 0.0);
   }
 
   /// Per-line net before expenses: [profitMade] minus line tax.
@@ -46,23 +57,16 @@ class TransactionItemPluMetrics {
     return 18.0;
   }
 
-  /// VAT payable on the line, extracted (tax-inclusive) from the gross revenue
-  /// shown in the report's [TotalSales] column (price × qty). At the standard
-  /// 18% rate this is `totalSales × 18/118`.
+  /// VAT payable on the line, extracted (tax-inclusive) from net line revenue
+  /// ([lineNetSales]). At the standard 18% rate this is `netSales × 18/118`.
   ///
   /// The rate is either [ratePercent] — the effective rate a caller has already
   /// resolved for the row (e.g. the value shown in the export's TaxRate column),
   /// which lets VAT and net profit match that displayed rate and preserves a
   /// configured 0% — or, when not supplied, the line's own [taxRatePercent].
   /// A resolved rate of 0 yields 0 tax.
-  ///
-  /// Derived only from the rate and gross revenue (not the stored
-  /// [taxAmt]/[totAmt]/[taxblAmt] fiscal fields, whose values were the source of
-  /// the wrong figures), so the reported tax always matches the displayed
-  /// [TotalSales] and [TaxRate]. Keep in lock step with
-  /// [PluExcelFormulaBuilder.pluTaxPayableExcelFormula].
   static double taxPayable(TransactionItem item, {double? ratePercent}) {
-    final totalSales = item.price.toDouble() * item.qty.toDouble();
+    final totalSales = lineNetSales(item);
     if (totalSales <= 0) return 0.0;
 
     final pct = ratePercent ?? taxRatePercent(item);

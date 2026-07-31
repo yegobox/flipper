@@ -443,7 +443,7 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     // non-nullable field) must not crash the whole KPI computation.
     try {
       if (transactionReportCashMovementPluLine(item)) continue;
-      pluLineSales += item.price.toDouble() * item.qty.toDouble();
+      pluLineSales += TransactionItemPluMetrics.lineNetSales(item);
       pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
       pluLineTax += TransactionItemPluMetrics.taxPayable(item);
     } catch (e) {

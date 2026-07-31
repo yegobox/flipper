@@ -562,23 +562,34 @@ class PaymentsState extends ConsumerState<Payments> {
         ? double.parse(_discount.text)
         : 0.0;
 
-    final customerPhoneNumber = _countryCodeController.text + _customer.text;
-
-    ProxyService.strategy.collectPayment(
-      countryCode: _countryCodeController.text.replaceAll('+', ''),
-      branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isProformaMode(),
-      isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: (await ProxyService.box.bhfId()) ?? "00",
-      cashReceived: amount,
-      transaction: widget.transaction,
-      categoryId: categoryId,
-      transactionType: transactionType,
-      isIncome: true,
-      paymentType: paymentType!,
-      discount: discount,
-      directlyHandleReceipt: true,
-    );
+    try {
+      await ProxyService.strategy.collectPayment(
+        countryCode: _countryCodeController.text.replaceAll('+', ''),
+        branchId: ProxyService.box.getBranchId()!,
+        isProformaMode: ProxyService.box.isProformaMode(),
+        isTrainingMode: ProxyService.box.isTrainingMode(),
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
+        cashReceived: amount,
+        transaction: widget.transaction,
+        categoryId: categoryId,
+        transactionType: transactionType,
+        isIncome: true,
+        paymentType: paymentType!,
+        discount: discount,
+        directlyHandleReceipt: true,
+      );
+    } catch (e) {
+      model.handlingConfirm = false;
+      if (mounted) {
+        showSnackBar(
+          context,
+          e.toString().split(': ').last,
+          textColor: Colors.white,
+          backgroundColor: Colors.red,
+        );
+      }
+      return;
+    }
 
     if (widget.transaction.customerId != null) {
       showDialog(
@@ -640,12 +651,11 @@ class PaymentsState extends ConsumerState<Payments> {
                       if (startIndex != -1) {
                         errorMessage = errorMessage.substring(startIndex + 2);
                       }
-                      // toast(errorMessage);
                       showSnackBar(
                         context,
                         errorMessage,
                         textColor: Colors.white,
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.red,
                       );
                       return;
                     }
@@ -670,7 +680,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
     /// refresh and go home
     ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-    _routerService.back;
+    _routerService.back();
     model.handlingConfirm = false;
   }
 }

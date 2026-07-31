@@ -657,20 +657,27 @@ mixin CapellaCustomerMixin implements CustomerInterface {
         return null;
       }
 
-      /// a work around to first register to whole data instead of subset
-      /// this is because after test on new device, it can't pull data using complex query
-      /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
-      ///
-      final preparedAll =
-          prepareDqlSyncSubscription("SELECT * FROM customers", null);
-      ditto.sync.registerSubscription(
-        preparedAll.dql,
-        arguments: preparedAll.arguments,
-      );
-
-      /// end of workaround
-      ///
-
+      /// Prefer branch-scoped sync (full collection is too broad on shared mesh).
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null && branchId.isNotEmpty) {
+        final preparedBranch = prepareDqlSyncSubscription(
+          "SELECT * FROM customers WHERE branchId = :branchId",
+          {'branchId': branchId},
+        );
+        ditto.sync.registerSubscription(
+          preparedBranch.dql,
+          arguments: preparedBranch.arguments,
+        );
+      } else {
+        final preparedId = prepareDqlSyncSubscription(
+          "SELECT * FROM customers WHERE id = :id",
+          {'id': id},
+        );
+        ditto.sync.registerSubscription(
+          preparedId.dql,
+          arguments: preparedId.arguments,
+        );
+      }
       String query = 'SELECT * FROM customers WHERE id = :id';
       final arguments = <String, dynamic>{'id': id};
 

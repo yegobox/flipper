@@ -37,8 +37,7 @@ abstract final class PluExcelFormulaBuilder {
   }
 
   /// Mirrors [TransactionItemPluMetrics.taxPayable]: VAT-inclusive extraction
-  /// from gross line revenue (price × qty) at the row's own [TaxRate] cell,
-  /// i.e. `TotalSales × rate/(100+rate)` — `× 18/118` at the standard 18% rate.
+  /// from net line revenue (price × qty − discount) at the row's [TaxRate] cell.
   ///
   /// The rate cell carries the line's configured percentage, so a line with a
   /// different (or zero) rate is handled naturally: a 0 rate yields 0 tax. Always
@@ -55,9 +54,12 @@ abstract final class PluExcelFormulaBuilder {
     final q = qtyLetter;
     final tr = taxRateLetter;
     final r = excelRow;
-    // Always use ${} for letter+row so identifiers like [tr] never split (e.g. $tr$r vs $t + r…).
-    final base = '${p}${r}*${q}${r}';
-    return '=IF($base<=0,0,ROUND(($base)*${tr}${r}/(100+${tr}${r}),2))';
+    final discountRaw = rowData[PluExcelRowKeys.discount];
+    final discount = discountRaw is num ? discountRaw.toDouble() : 0.0;
+    final discountLit = excelLiteralNumForFormula(discount);
+    // Net sales = price×qty − line discount (matches SaleLinePricing / PLU metrics).
+    final base = '($p$r*$q$r-$discountLit)';
+    return '=IF($base<=0,0,ROUND(($base)*$tr$r/(100+$tr$r),2))';
   }
 
   /// Net profit line: (total sales cell − supply − tax), rounded to 2 dp.

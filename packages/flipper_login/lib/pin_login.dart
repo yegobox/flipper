@@ -406,9 +406,14 @@ class _PinLoginState extends State<PinLogin>
   }
 
   /// True when there is no network and the entered PIN matches a local cache.
+  ///
+  /// Double-checks connectivity to avoid skipping MFA on a flaky false-offline.
   Future<bool> _shouldForceOfflineLogin(IPin pinRecord) async {
     final online = await ProxyService.status.isInternetAvailable();
     if (online) return false;
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    final onlineRetry = await ProxyService.status.isInternetAvailable();
+    if (onlineRetry) return false;
     final entered = int.tryParse(_pinController.text);
     if (entered == null) return false;
     return pinRecord.pin == entered;
