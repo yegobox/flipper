@@ -61,6 +61,10 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
 
       if (existingSecret != null) {
         _secret = existingSecret.secret;
+        await MfaService().cacheSecretLocally(
+          userId: userId,
+          secret: existingSecret.secret,
+        );
       } else {
         // Generate a new secret if one doesn't exist
         _secret = MfaService().generateSecret();
@@ -73,6 +77,10 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
             issuer: 'Flipper',
             accountName: ProxyService.box.getUserPhone(),
           ),
+        );
+        await MfaService().cacheSecretLocally(
+          userId: userId,
+          secret: _secret!,
         );
       }
     } catch (e) {

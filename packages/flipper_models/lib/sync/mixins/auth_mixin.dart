@@ -459,12 +459,28 @@ mixin AuthMixin implements AuthInterface {
     required bool isInSignUpProgress,
   }) async {
     final isOnline = await ProxyService.status.isInternetAvailable();
+    var preferOffline = forceOffline;
 
-    // When online, always use /v2/api/user so box + Ditto get `response.id`
-    // (not business.user_id or a stale pin.userId).
-    if (isOnline && !forceOffline) {
-      offlineLogin = false;
-      return _authenticateUserOnline(phoneNumber, pin, flipperHttpClient);
+    // When online, prefer /v2/api/user so box + Ditto get `response.id`
+    // (not business.user_id or a stale pin.userId). Connectivity checkers often
+    // lie — if the API is unreachable, fall through to offline auth.
+    if (isOnline && !preferOffline) {
+      try {
+        offlineLogin = false;
+        return await _authenticateUserOnline(
+          phoneNumber,
+          pin,
+          flipperHttpClient,
+        );
+      } catch (e, s) {
+        if (!_isLikelyNetworkFailure(e)) {
+          rethrow;
+        }
+        talker.warning(
+          'Online auth failed with network error; trying offline login: $e\n$s',
+        );
+        preferOffline = true;
+      }
     }
 
     final accessUserId = ProxyService.box.getUserId() ?? pin.userId;
@@ -506,13 +522,17 @@ mixin AuthMixin implements AuthInterface {
           break;
         }
       }
-      // Do not fall back to businessesJson.first — that binds the wrong tenant
-      // when the PIN's business is missing from the payload.
+      // Do not fall back to businessesJson.first when multiple tenants exist —
+      // that binds the wrong business. Single-tenant payloads are safe.
       if (businessJson == null) {
-        talker.warning(
-          'Offline login: no business in user_access matches pin businessId='
-          '${pin.businessId}',
-        );
+        if (businessesJson.length == 1 && businessesJson.first is Map) {
+          businessJson = Map<String, dynamic>.from(businessesJson.first as Map);
+        } else {
+          talker.warning(
+            'Offline login: no business in user_access matches pin businessId='
+            '${pin.businessId}',
+          );
+        }
       }
 
       if (businessJson != null && businessJson.containsKey('branches')) {
@@ -538,7 +558,11 @@ mixin AuthMixin implements AuthInterface {
       String? businessId = pin.businessId;
       if (businessId == null || businessId.isEmpty) {
         final matched = businessesE.where((b) => _pinMatchesBusiness(pin, b));
-        businessId = matched.isNotEmpty ? matched.first.id : null;
+        if (matched.isNotEmpty) {
+          businessId = matched.first.id;
+        } else if (businessesE.length == 1) {
+          businessId = businessesE.first.id;
+        }
       }
       if (businessId != null && businessId.isNotEmpty) {
         try {
@@ -555,10 +579,11 @@ mixin AuthMixin implements AuthInterface {
     final bool hasOfflineTenantData =
         businessesE.isNotEmpty && branchesE.isNotEmpty;
     final bool shouldEnableOfflineLogin =
-        hasOfflineTenantData && (forceOffline || !isOnline);
+        hasOfflineTenantData && (preferOffline || !isOnline);
 
     talker.debug('Offline login decision factors:');
     talker.debug('- forceOffline: $forceOffline');
+    talker.debug('- preferOffline: $preferOffline');
     talker.debug('- businessesE not empty: ${businessesE.isNotEmpty}');
     talker.debug('- branchesE not empty: ${branchesE.isNotEmpty}');
     talker.debug('- Internet available: $isOnline');
@@ -577,11 +602,28 @@ mixin AuthMixin implements AuthInterface {
       );
     }
 
-    if (isOnline) {
+    if (isOnline && !preferOffline) {
       return _authenticateUserOnline(phoneNumber, pin, flipperHttpClient);
     }
 
-    throw Exception('Login requires an internet connection');
+    throw Exception(
+      hasOfflineTenantData
+          ? 'Login requires an internet connection'
+          : 'Offline login unavailable: no local business/branch data. '
+              'Connect once to sync, then try again.',
+    );
+  }
+
+  bool _isLikelyNetworkFailure(Object error) {
+    final text = error.toString().toLowerCase();
+    return text.contains('failed host lookup') ||
+        text.contains('failed to connect') ||
+        text.contains('socketexception') ||
+        text.contains('network is unreachable') ||
+        text.contains('connection refused') ||
+        text.contains('timed out') ||
+        text.contains('timeout') ||
+        text.contains('clientexception');
   }
 
   bool _userAccessBusinessMatchesPin(Map raw, Pin pin) {
@@ -678,10 +720,13 @@ mixin AuthMixin implements AuthInterface {
             }
           }
 
-          if (selectedBusiness == null && resolvedBusinesses.isNotEmpty) {
+          if (selectedBusiness == null && resolvedBusinesses.length == 1) {
+            selectedBusiness = resolvedBusinesses.first;
+          } else if (selectedBusiness == null &&
+              resolvedBusinesses.isNotEmpty) {
             talker.warning(
               'Login: no business matches pin.businessId=${pin.businessId}; '
-              'not falling back to first tenant',
+              'not falling back among ${resolvedBusinesses.length} tenants',
             );
           }
 

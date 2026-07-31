@@ -4,6 +4,19 @@ import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_models/models/user_mfa_secret.dart';
 import 'package:flipper_models/repositories/user_mfa_secret_repository.dart';
+import 'package:flipper_mfa/src/local_mfa_secret_cache.dart';
+
+/// Result of verifying a user TOTP against remote and/or local MFA secret.
+enum TotpVerifyOutcome {
+  /// Code matched the stored secret.
+  valid,
+
+  /// Secret was available; code did not match (or no secret anywhere).
+  invalidCode,
+
+  /// Could not fetch remote secret and no local cache to verify against.
+  unavailable,
+}
 
 class MfaService {
   /// Generates a new TOTP secret using base32 encoding
@@ -83,57 +96,118 @@ class MfaService {
   }) {
     try {
       final totp = TOTP();
-
-      // Clean the secret and code
-      final cleanSecret = secret.replaceAll(RegExp(r'[^A-Z2-7]'), '');
+      final cleanSecret =
+          secret.toUpperCase().replaceAll(RegExp(r'[^A-Z2-7]'), '');
       final cleanCode = code.replaceAll(RegExp(r'[^0-9]'), '');
-
-      // Verify the code with some time tolerance (±1 time step)
-      final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-      // Check current time window
-      if (totp.verifyCode(cleanSecret, cleanCode)) {
-        return true;
+      if (cleanSecret.isEmpty || cleanCode.length != 6) {
+        return false;
       }
-
-      // Check previous time window (30 seconds ago)
-      final previousTimeStep = currentTime - 30;
-      if (_verifyCodeAtTime(cleanSecret, cleanCode, previousTimeStep)) {
-        return true;
-      }
-
-      // Check next time window (30 seconds ahead)
-      final nextTimeStep = currentTime + 30;
-      if (_verifyCodeAtTime(cleanSecret, cleanCode, nextTimeStep)) {
-        return true;
-      }
-
-      return false;
+      // Library already allows ±1 time step (discrepancy); widen to ±2 for
+      // desktop clock skew.
+      return totp.verifyCode(cleanSecret, cleanCode, discrepancy: 2);
     } catch (e) {
       return false;
     }
   }
 
-  /// Verify a TOTP code for the current user from stored secret in Supabase
-  /// Returns true if user has a secret and the code is valid, false otherwise
-  Future<bool> verifyTotpForUser(
-      {required String userId, required String code}) async {
+  TotpVerifyOutcome _verifyAgainstSecret(String secret, String code) {
+    return verifyCode(secret: secret, code: code)
+        ? TotpVerifyOutcome.valid
+        : TotpVerifyOutcome.invalidCode;
+  }
+
+  Future<TotpVerifyOutcome> _verifyAgainstLocalCache(
+    String userId,
+    String code, {
+    int? pin,
+  }) async {
+    final local = await LocalMfaSecretCache.read(userId, pin: pin);
+    if (local == null || local.isEmpty) {
+      return TotpVerifyOutcome.unavailable;
+    }
+    return _verifyAgainstSecret(local, code);
+  }
+
+  /// Verify a TOTP code for [userId].
+  ///
+  /// Online: loads secret from Supabase, caches it locally, then verifies.
+  /// Offline / network error: verifies against [LocalMfaSecretCache] when present.
+  ///
+  /// When [localOnly] is true, skips Supabase and uses the local cache only.
+  /// Optional [pin] is used as a secondary local-cache key.
+  Future<TotpVerifyOutcome> verifyTotpForUser({
+    required String userId,
+    required String code,
+    bool localOnly = false,
+    int? pin,
+  }) async {
+    if (localOnly) {
+      return _verifyAgainstLocalCache(userId, code, pin: pin);
+    }
+
     try {
       final repo = UserMfaSecretRepository(Supabase.instance.client);
       final UserMfaSecret? record = await repo.getSecretByUserId(userId);
+      if (record == null || record.secret.isEmpty) {
+        final localOutcome =
+            await _verifyAgainstLocalCache(userId, code, pin: pin);
+        if (localOutcome != TotpVerifyOutcome.unavailable) {
+          return localOutcome;
+        }
+        return TotpVerifyOutcome.unavailable;
+      }
+      await LocalMfaSecretCache.save(
+        userId: userId,
+        secret: record.secret,
+        pin: pin,
+      );
+      return _verifyAgainstSecret(record.secret, code);
+    } catch (_) {
+      return _verifyAgainstLocalCache(userId, code, pin: pin);
+    }
+  }
+
+  /// Fetch MFA secret from Supabase (if reachable) and persist locally.
+  /// Call after PIN validation so offline TOTP works on the next attempt.
+  Future<bool> prefetchAndCacheSecret({
+    required String userId,
+    int? pin,
+  }) async {
+    try {
+      final repo = UserMfaSecretRepository(Supabase.instance.client);
+      final record =
+          await repo.getSecretByUserId(userId).timeout(const Duration(seconds: 5));
       if (record == null || record.secret.isEmpty) return false;
-      return verifyCode(secret: record.secret, code: code);
+      await LocalMfaSecretCache.save(
+        userId: userId,
+        secret: record.secret,
+        pin: pin,
+      );
+      return true;
     } catch (_) {
       return false;
     }
   }
 
-  /// Helper method to verify code at a specific time
-  bool _verifyCodeAtTime(String secret, String code, int timeStep) {
+  /// Persist [secret] for [userId] on this device (call after MFA setup).
+  Future<void> cacheSecretLocally({
+    required String userId,
+    required String secret,
+    int? pin,
+  }) {
+    return LocalMfaSecretCache.save(userId: userId, secret: secret, pin: pin);
+  }
+
+  /// Probe Supabase MFA store (connectivity checkers often lie on web).
+  Future<bool> canReachMfaStore(
+    String userId, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
     try {
-      final totp = TOTP();
-      return totp.verifyCode(secret, code);
-    } catch (e) {
+      final repo = UserMfaSecretRepository(Supabase.instance.client);
+      await repo.getSecretByUserId(userId).timeout(timeout);
+      return true;
+    } catch (_) {
       return false;
     }
   }
@@ -142,7 +216,8 @@ class MfaService {
   String generateCode(String secret) {
     try {
       final totp = TOTP();
-      final cleanSecret = secret.replaceAll(RegExp(r'[^A-Z2-7]'), '');
+      final cleanSecret =
+          secret.toUpperCase().replaceAll(RegExp(r'[^A-Z2-7]'), '');
       return totp.generateTOTPCode(cleanSecret);
     } catch (e) {
       return '';

@@ -1148,6 +1148,19 @@ class CoreSync extends AiStrategyImpl
         return local;
       }
 
+      // No local cache — avoid DNS/connect noise when clearly offline.
+      try {
+        final online = await ProxyService.status.isInternetAvailable();
+        if (!online) {
+          talker.debug(
+            'getPin: no local PIN for $pinString and device is offline',
+          );
+          return null;
+        }
+      } catch (_) {
+        // Status probe failed; still try the network below.
+      }
+
       final response = await flipperHttpClient.get(uri);
 
       if (response.statusCode == 200) {
@@ -1169,16 +1182,26 @@ class CoreSync extends AiStrategyImpl
   ///
   /// Users type the PIN digits (`pins.pin`), not `pins.userId`. Prefer lookup
   /// by [pin], then fall back to [userId] for callers that pass an API user id.
+  /// Missing business/branch/phone on the row are filled from local prefs when
+  /// available so incomplete cache rows still unlock offline login.
   Future<IPin?> _findLocalPinForLogin(String pinString) async {
     Pin? match;
 
-    final pinDigits = int.tryParse(pinString);
+    final pinDigits = int.tryParse(pinString.trim());
     if (pinDigits != null) {
       final byPin = await repository.get<Pin>(
         query: brick.Query(where: [brick.Where('pin').isExactly(pinDigits)]),
         policy: OfflineFirstGetPolicy.localOnly,
       );
       match = byPin.firstOrNull;
+
+      // Some Brick/SQLite builds miss typed Where matches — scan local rows.
+      if (match == null) {
+        final allLocal = await repository.get<Pin>(
+          policy: OfflineFirstGetPolicy.localOnly,
+        );
+        match = allLocal.where((p) => p.pin == pinDigits).firstOrNull;
+      }
     }
 
     if (match == null) {
@@ -1191,35 +1214,45 @@ class CoreSync extends AiStrategyImpl
 
     if (match == null) return null;
 
-    final userId = match.userId;
-    final phoneNumber = match.phoneNumber;
-    final businessId = match.businessId;
-    final branchId = match.branchId;
+    final userId = (match.userId?.trim().isNotEmpty == true)
+        ? match.userId!.trim()
+        : ProxyService.box.getUserId();
+    final phoneNumber = (match.phoneNumber?.trim().isNotEmpty == true)
+        ? match.phoneNumber!.trim()
+        : ProxyService.box.getUserPhone();
+    final businessId = (match.businessId?.trim().isNotEmpty == true)
+        ? match.businessId!.trim()
+        : ProxyService.box.getBusinessId();
+    final branchId = (match.branchId?.trim().isNotEmpty == true)
+        ? match.branchId!.trim()
+        : ProxyService.box.getBranchId();
+
     if (userId == null ||
         userId.isEmpty ||
         phoneNumber == null ||
-        phoneNumber.isEmpty ||
-        businessId == null ||
-        businessId.isEmpty ||
-        branchId == null ||
-        branchId.isEmpty) {
+        phoneNumber.isEmpty) {
+      talker.debug(
+        'Local PIN row found for $pinString but missing userId/phone '
+        '(userId=$userId phone=$phoneNumber)',
+      );
       return null;
     }
 
     // Prefer confirming local tenant rows exist, but do not block offline login
     // solely on Brick Business/Branch hydrate — Ditto user_access can supply them.
-    Business? business;
-    Branch? branchE;
-    try {
-      business = await getBusinessById(businessId: businessId);
-      branchE = await branch(serverId: branchId);
-    } catch (_) {
-      // Ignore hydrate errors; PIN row alone is enough to attempt offline auth.
-    }
-
-    if (business == null && branchE == null) {
+    if (businessId != null &&
+        businessId.isNotEmpty &&
+        branchId != null &&
+        branchId.isNotEmpty) {
+      try {
+        await getBusinessById(businessId: businessId);
+        await branch(serverId: branchId);
+      } catch (_) {
+        // Ignore hydrate errors; PIN row alone is enough to attempt offline auth.
+      }
+    } else {
       talker.debug(
-        'Local PIN found for $pinString but no Brick business/branch yet; '
+        'Local PIN found for $pinString without business/branch on row or prefs; '
         'returning PIN for offline auth attempt',
       );
     }
@@ -1229,8 +1262,8 @@ class CoreSync extends AiStrategyImpl
       pin: match.pin ?? pinDigits ?? int.tryParse(pinString) ?? 0,
       userId: userId,
       phoneNumber: phoneNumber,
-      branchId: branchId,
-      businessId: businessId,
+      branchId: branchId ?? '',
+      businessId: businessId ?? '',
       ownerName: match.ownerName ?? "N/A",
       tokenUid: match.tokenUid ?? "N/A",
     );

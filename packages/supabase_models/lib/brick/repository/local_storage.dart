@@ -169,6 +169,7 @@ class SharedPreferenceStorage implements LocalStorage {
   };
 
   static const String _pendingDigitalReceiptPrefix = 'pending_digital_receipt_';
+  static const String _mfaTotpSecretPrefix = 'mfa_totp_secret_';
 
   SharedPreferences? _webPrefs;
 
@@ -512,6 +513,7 @@ class SharedPreferenceStorage implements LocalStorage {
   /// Check if a key is allowed
   bool _isKeyAllowed(String key) {
     if (key.startsWith(_pendingDigitalReceiptPrefix)) return true;
+    if (key.startsWith(_mfaTotpSecretPrefix)) return true;
     return _allowedKeys.contains(key);
   }
 

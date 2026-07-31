@@ -4,6 +4,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_login/mfa_provider.dart';
+import 'package:flipper_mfa/flipper_mfa.dart';
 import 'package:flipper_login/pin_login_brand_panel.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
 import 'package:flipper_login/pin_login_signin_widgets.dart';
@@ -301,20 +302,31 @@ class _PinLoginState extends State<PinLogin>
           }
 
           final forceOffline = await _shouldForceOfflineLogin(pinRecord);
-          final ok = await _withLoginPipelineTimeout(
-            _mfa.validateTotpThenLogin(
-              pin: pinRecord,
-              code: otpCode,
-              forceOffline: forceOffline,
-            ),
-          );
-          if (!ok) {
-            setState(() {
-              _hasError = true;
-              _errorMessage = 'Invalid authenticator code. Please try again.';
-            });
-          } else {
-            _markSignInSuccess();
+          try {
+            final outcome = await _withLoginPipelineTimeout(
+              _mfa.validateTotpThenLogin(
+                pin: pinRecord,
+                code: otpCode,
+                forceOffline: forceOffline,
+              ),
+            );
+            if (outcome != TotpVerifyOutcome.valid) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = switch (outcome) {
+                  TotpVerifyOutcome.unavailable =>
+                    'Could not verify authenticator. Check your connection, '
+                        'or sign in online once so offline MFA can be cached.',
+                  TotpVerifyOutcome.invalidCode =>
+                    'Invalid authenticator code. Please try again.',
+                  TotpVerifyOutcome.valid => '',
+                };
+              });
+            } else {
+              _markSignInSuccess();
+            }
+          } catch (e, s) {
+            await _handleLoginError(e, s);
           }
         } else {
           if (_otpController.text.isEmpty) {
@@ -363,6 +375,8 @@ class _PinLoginState extends State<PinLogin>
             _playPinShake();
           }
         } else {
+          // Authenticator: always collect TOTP after a valid PIN (online or
+          // offline). Offline verify uses the locally cached secret.
           final pinRecord = await _getPin();
           if (pinRecord == null) {
             setState(() {
@@ -373,11 +387,10 @@ class _PinLoginState extends State<PinLogin>
             _playPinShake();
             return;
           }
-          // Cached PIN + offline: skip MFA (TOTP needs network) and force
-          // offline auth from local Brick/Ditto tenant data.
-          if (await _shouldForceOfflineLogin(pinRecord)) {
-            await _loginWithCachedPin(pinRecord, forceOffline: true);
-            return;
+          final userId = pinRecord.userId;
+          if (userId != null && userId.isNotEmpty) {
+            // Best-effort: cache secret while we still might have network.
+            unawaited(_mfa.prefetchSecret(userId: userId, pin: pinRecord.pin));
           }
           setState(() {
             _showOtpField = true;
@@ -399,9 +412,64 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Future<IPin?> _getPin() async {
-    return await ProxyService.strategy.getPin(
-      pinString: _pinController.text,
-      flipperHttpClient: ProxyService.http,
+    final pinString = _pinController.text.trim();
+    try {
+      return await ProxyService.strategy.getPin(
+        pinString: pinString,
+        flipperHttpClient: ProxyService.http,
+      );
+    } catch (e) {
+      // Network/DNS failures must not block offline login when a local PIN
+      // matches what the user typed.
+      final fallback = _iPinFromCachedLocal(pinString);
+      if (fallback != null) return fallback;
+      try {
+        final fromDb = await ProxyService.strategy.getPinLocal(
+          alwaysHydrate: false,
+        );
+        final entered = int.tryParse(pinString);
+        if (fromDb != null &&
+            entered != null &&
+            fromDb.pin == entered) {
+          return _iPinFromBrickPin(fromDb);
+        }
+      } catch (_) {}
+      // Offline: treat as unknown PIN instead of surfacing host-lookup errors.
+      final online = await ProxyService.status.isInternetAvailable();
+      if (!online) return null;
+      rethrow;
+    }
+  }
+
+  IPin? _iPinFromCachedLocal(String pinString) {
+    final local = _localPin;
+    final entered = int.tryParse(pinString);
+    if (local == null || entered == null || local.pin != entered) {
+      return null;
+    }
+    return _iPinFromBrickPin(local);
+  }
+
+  IPin? _iPinFromBrickPin(Pin pin) {
+    final userId = pin.userId?.trim();
+    final phone = pin.phoneNumber?.trim() ??
+        ProxyService.box.getUserPhone()?.trim();
+    if (userId == null ||
+        userId.isEmpty ||
+        phone == null ||
+        phone.isEmpty ||
+        pin.pin == null) {
+      return null;
+    }
+    return IPin(
+      id: pin.id,
+      userId: userId,
+      phoneNumber: phone,
+      pin: pin.pin!,
+      branchId: pin.branchId ?? ProxyService.box.getBranchId() ?? '',
+      businessId: pin.businessId ?? ProxyService.box.getBusinessId() ?? '',
+      ownerName: pin.ownerName ?? '',
+      tokenUid: pin.tokenUid,
     );
   }
 

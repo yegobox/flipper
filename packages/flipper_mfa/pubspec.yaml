@@ -13,6 +13,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flipper_models: any
   flipper_services: any
+  supabase_models: any
   supabase_flutter: any
 dependency_overrides:
   xml: ^7.0.1

@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 
-/// Copies the most recent pre-rename `<baseName>_v<N>.json` file into
-/// [targetFileName], if [targetFileName] does not already exist with data.
+/// Copies / merges the most recent pre-rename `<baseName>_v<N>.json` file into
+/// [targetFileName] when the stable target is missing, empty, or incomplete.
 ///
 /// The preferences (and preferences-backup) files used to be named with the
 /// shared `dbVersion` embedded in the filename. Every unrelated `dbVersion`
@@ -12,6 +13,9 @@ import 'package:path/path.dart' as p;
 /// silently dropped all local preferences — including session/auth state
 /// (`userId`, `bearerToken`, `encryptionKey`, etc.). Mirrors the fix already
 /// applied to the main database in `migrateLegacyMainDatabaseIfNeeded`.
+///
+/// Incomplete targets (e.g. a file that only contains MFA keys after a bad
+/// write) are merged with the richest legacy file so session keys return.
 Future<void> migrateLegacyPreferencesFileIfNeeded({
   required String directory,
   required String baseName,
@@ -20,10 +24,6 @@ Future<void> migrateLegacyPreferencesFileIfNeeded({
   final logger = Logger('LegacyPreferencesMigration');
   final targetPath = p.join(directory, targetFileName);
   final targetFile = File(targetPath);
-
-  if (targetFile.existsSync() && targetFile.lengthSync() > 0) {
-    return;
-  }
 
   final dir = Directory(directory);
   if (!dir.existsSync()) return;
@@ -46,13 +46,41 @@ Future<void> migrateLegacyPreferencesFileIfNeeded({
     }
   }
 
-  if (bestFile == null) return;
-
-  logger.warning(
-    'Migrating legacy preferences file ${p.basename(bestFile.path)} -> $targetFileName',
-  );
-  if (targetFile.existsSync()) {
-    await targetFile.delete();
+  Map<String, dynamic> readJson(File file) {
+    try {
+      final decoded = jsonDecode(file.readAsStringSync());
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) {
+        return decoded.map((k, v) => MapEntry(k.toString(), v));
+      }
+    } catch (_) {}
+    return <String, dynamic>{};
   }
-  await bestFile.copy(targetPath);
+
+  final targetExists = targetFile.existsSync() && targetFile.lengthSync() > 0;
+  final targetMap = targetExists ? readJson(targetFile) : <String, dynamic>{};
+  final targetLooksHealthy = targetMap.containsKey('userId') ||
+      targetMap.containsKey('businessId') ||
+      targetMap.containsKey('bearerToken');
+
+  if (targetLooksHealthy) {
+    return;
+  }
+
+  if (bestFile == null) {
+    return;
+  }
+
+  final legacyMap = readJson(bestFile);
+  if (legacyMap.isEmpty && targetMap.isEmpty) return;
+
+  // Legacy fills session keys; target wins on overlap (e.g. MFA keys).
+  final merged = <String, dynamic>{...legacyMap, ...targetMap};
+  logger.warning(
+    'Repairing preferences $targetFileName from legacy '
+    '${p.basename(bestFile.path)} (targetHealthy=$targetLooksHealthy, '
+    'legacyKeys=${legacyMap.length}, targetKeys=${targetMap.length}, '
+    'mergedKeys=${merged.length})',
+  );
+  await targetFile.writeAsString(jsonEncode(merged), flush: true);
 }
