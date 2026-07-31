@@ -4,6 +4,7 @@ import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:uuid/uuid.dart';
@@ -165,7 +166,9 @@ mixin CapellaStockMixin implements StockInterface {
         throw Exception('Ditto not initialized:4');
       }
       var result = await ditto.store.execute(
-        'SELECT * FROM stocks WHERE _id = :id OR id = :id LIMIT 1',
+        stockSelectWithMilliDql(
+          whereClause: '_id = :id OR id = :id LIMIT 1',
+        ),
         arguments: {'id': id},
       );
 
@@ -203,8 +206,10 @@ mixin CapellaStockMixin implements StockInterface {
       final arguments = <String, dynamic>{
         for (var i = 0; i < unique.length; i++) 's$i': unique[i],
       };
-      final query =
-          'SELECT * FROM stocks WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+      final query = stockSelectWithMilliDql(
+        whereClause:
+            '_id IN ($placeholders) OR id IN ($placeholders)',
+      );
       final result = await ditto.store.execute(query, arguments: arguments);
 
       final out = <String, Stock>{};
@@ -244,7 +249,7 @@ mixin CapellaStockMixin implements StockInterface {
       // Initialize async to register subscription first
       () async {
         try {
-          final query = 'SELECT * FROM stocks WHERE _id = :id';
+          final query = stockSelectWithMilliDql(whereClause: '_id = :id');
           final arguments = {'id': id};
 
           // Subscribe to ensure we have the latest data from Ditto mesh
@@ -339,18 +344,26 @@ mixin CapellaStockMixin implements StockInterface {
       }
     }
 
+    final registerQty = _parseDouble(data['currentStock']);
+    final milli = parseStockMilli(data[stockCurrentStockMilliField]);
+    // New clients: prefer CRDT milli when present so UI matches concurrent deducts.
+    final qtyFromMilli = milli != null ? fromMilli(milli) : null;
+    final currentStock = qtyFromMilli ?? registerQty;
+    final rsdRegister = _parseDouble(data['rsdQty']);
+    final rsdQty = qtyFromMilli ?? rsdRegister;
+
     return Stock(
       id: data['_id'] ?? data['id'],
       tin: data['tin'],
       bhfId: data['bhfId'],
       branchId: data['branchId'],
-      currentStock: _parseDouble(data['currentStock']),
+      currentStock: currentStock,
       lowStock: _parseDouble(data['lowStock']),
       canTrackingStock: data['canTrackingStock'],
       showLowStockAlert: data['showLowStockAlert'],
       active: data['active'],
       value: _parseDouble(data['value']),
-      rsdQty: _parseDouble(data['rsdQty']),
+      rsdQty: rsdQty,
       lastTouched: lastTouched,
       ebmSynced: data['ebmSynced'],
       initialStock: _parseDouble(data['initialStock']),
@@ -364,6 +377,120 @@ mixin CapellaStockMixin implements StockInterface {
       return double.tryParse(value);
     }
     return null;
+  }
+
+  Future<Map<String, dynamic>?> _selectStockRaw(String stockId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return null;
+    final result = await ditto.store.execute(
+      stockSelectWithMilliDql(
+        whereClause: '_id = :stockId OR id = :stockId LIMIT 1',
+      ),
+      arguments: {'stockId': stockId},
+    );
+    if (result.items.isEmpty) return null;
+    return Map<String, dynamic>.from(result.items.first.value);
+  }
+
+  /// Seed or reconcile [currentStockMilli] from register (coexistence with old tills).
+  /// Returns on-hand milli after prep (equals [toMilli] of register).
+  Future<int> _ensureAndReconcileStockMilli({
+    required String stockId,
+    required Map<String, dynamic> data,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized: stock milli');
+    }
+    final registerQty = _parseDouble(data['currentStock']) ?? 0.0;
+    final milli = parseStockMilli(data[stockCurrentStockMilliField]);
+    final action = stockMilliPrepAction(milli: milli, registerQty: registerQty);
+    final targetMilli = stockMilliAfterPrep(milli: milli, registerQty: registerQty);
+    if (action != StockMilliPrepAction.none) {
+      await ditto.store.execute(
+        stockRestartMilliDql(),
+        arguments: {'stockId': stockId, 'milli': targetMilli},
+      );
+      data[stockCurrentStockMilliField] = targetMilli;
+    }
+    return targetMilli;
+  }
+
+  Future<void> _restartStockMilli({
+    required String stockId,
+    required int milli,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized: restart milli');
+    }
+    await ditto.store.execute(
+      stockRestartMilliDql(),
+      arguments: {'stockId': stockId, 'milli': milli},
+    );
+  }
+
+  Future<void> _incrementStockMilli({
+    required String stockId,
+    required int deltaMilli,
+  }) async {
+    if (deltaMilli == 0) return;
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized: increment milli');
+    }
+    await ditto.store.execute(
+      stockIncrementMilliDql(),
+      arguments: {'stockId': stockId, 'delta': deltaMilli},
+    );
+  }
+
+  Future<void> _dualWriteRegistersFromMilli({
+    required String stockId,
+    required int milli,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized: dual-write registers');
+    }
+    final qty = fromMilli(milli);
+    await ditto.store.execute(
+      stockDualWriteRegistersDql(),
+      arguments: {
+        'stockId': stockId,
+        'currentStock': qty,
+        'rsdQty': qty,
+      },
+    );
+  }
+
+  /// Absolute qty write: COUNTER RESTART + register dual-write (and optional metadata SET).
+  Future<void> _setStockQtyViaMilli({
+    required String stockId,
+    required double currentStock,
+    required double rsdQty,
+    Map<String, dynamic>? extraRegisterFields,
+  }) async {
+    final milli = toMilli(currentStock);
+    final qty = fromMilli(milli);
+    // When rsd matches current (typical), keep them equal after milli rounding.
+    final rsdOut = (rsdQty - currentStock).abs() < 1e-9
+        ? qty
+        : fromMilli(toMilli(rsdQty));
+    await _restartStockMilli(stockId: stockId, milli: milli);
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw StateError('Ditto not initialized: set stock qty');
+    }
+    final updateData = <String, dynamic>{
+      'currentStock': qty,
+      'rsdQty': rsdOut,
+      ...?extraRegisterFields,
+    };
+    await ditto.store.execute(
+      'UPDATE stocks SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId OR id = :stockId',
+      arguments: {...updateData, 'stockId': stockId},
+    );
   }
 
   @override
@@ -385,59 +512,83 @@ mixin CapellaStockMixin implements StockInterface {
         throw StateError('Ditto not initialized: updateStock');
       }
 
-      // Get existing stock
-      final existingResult = await ditto.store.execute(
-        'SELECT * FROM stocks WHERE _id = :stockId OR id = :stockId LIMIT 1',
-        arguments: {'stockId': stockId},
-      );
-
-      if (existingResult.items.isEmpty) {
+      final existingData = await _selectStockRaw(stockId);
+      if (existingData == null) {
         talker.error('Stock with ID $stockId not found');
         throw StateError('Stock with ID $stockId not found');
       }
 
-      final existingData = Map<String, dynamic>.from(
-        existingResult.items.first.value,
-      );
-      final updateData = <String, dynamic>{};
-
-      // Handle appending vs replacing values
-      if (currentStock != null) {
-        updateData['currentStock'] = appending
-            ? ((existingData['currentStock'] as num?)?.toDouble() ?? 0) +
-                  currentStock
-            : currentStock;
-      }
-      if (rsdQty != null) {
-        updateData['rsdQty'] = appending
-            ? ((existingData['rsdQty'] as num?)?.toDouble() ?? 0) + rsdQty
-            : rsdQty;
-      }
+      final meta = <String, dynamic>{};
       if (initialStock != null) {
-        updateData['initialStock'] = appending
-            ? ((existingData['initialStock'] as num?)?.toDouble() ?? 0) +
-                  initialStock
-            : initialStock;
+        final existingInitial =
+            (existingData['initialStock'] as num?)?.toDouble() ?? 0;
+        meta['initialStock'] =
+            appending ? existingInitial + initialStock : initialStock;
       }
       if (value != null) {
-        updateData['value'] = value;
+        meta['value'] = value;
       }
       if (ebmSynced != null) {
-        updateData['ebmSynced'] = ebmSynced;
+        meta['ebmSynced'] = ebmSynced;
       }
       if (lastTouched != null) {
-        updateData['lastTouched'] = lastTouched.toIso8601String();
+        meta['lastTouched'] = lastTouched.toIso8601String();
       }
 
-      if (updateData.isNotEmpty) {
+      final touchesQty = currentStock != null || rsdQty != null;
+      if (!touchesQty) {
+        if (meta.isEmpty) return;
+        await ditto.store.execute(
+          'UPDATE stocks SET ${meta.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId OR id = :stockId',
+          arguments: {...meta, 'stockId': stockId},
+        );
+        return;
+      }
+
+      if (appending && currentStock != null) {
+        // Refunds / production: atomic milli INCREMENT after coexistence prep.
+        final available = await _ensureAndReconcileStockMilli(
+          stockId: stockId,
+          data: existingData,
+        );
+        final deltaMilli = toMilli(currentStock);
+        var nextMilli = available + deltaMilli;
+        if (nextMilli < 0) nextMilli = 0;
+        final appliedDelta = nextMilli - available;
+        if (appliedDelta != 0) {
+          await _incrementStockMilli(
+            stockId: stockId,
+            deltaMilli: appliedDelta,
+          );
+        }
+        final qty = fromMilli(nextMilli);
+        final updateData = <String, dynamic>{
+          'currentStock': qty,
+          'rsdQty': qty,
+          ...meta,
+        };
         await ditto.store.execute(
           'UPDATE stocks SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId OR id = :stockId',
           arguments: {...updateData, 'stockId': stockId},
         );
-        // Do NOT mirror Brick here — POS sale deducts are Ditto-only. Stock/variant
-        // often are not in Brick, and Brick upserts on the hot path add latency and
-        // lock risk. Capella saveStock still mirrors on create.
+        return;
       }
+
+      // Absolute SET (default): RESTART milli + dual-write registers.
+      final registerQty = _parseDouble(existingData['currentStock']) ?? 0.0;
+      final registerRsd = _parseDouble(existingData['rsdQty']) ?? registerQty;
+      final nextCurrent = currentStock ?? registerQty;
+      final nextRsd = rsdQty ?? (currentStock ?? registerRsd);
+      await _ensureAndReconcileStockMilli(
+        stockId: stockId,
+        data: existingData,
+      );
+      await _setStockQtyViaMilli(
+        stockId: stockId,
+        currentStock: nextCurrent,
+        rsdQty: nextRsd,
+        extraRegisterFields: meta.isEmpty ? null : meta,
+      );
     } catch (e) {
       talker.error('Error updating stock: $e');
       rethrow;
@@ -458,14 +609,15 @@ mixin CapellaStockMixin implements StockInterface {
       throw StateError('Ditto not initialized: batchUpdateStocks');
     }
 
-    // Ditto-only parallel UPDATEs — no Brick on the sale deduct path.
     Future<void> updateOne(String stockId, double current, double rsd) async {
-      await ditto.store.execute(
-        '''
-UPDATE stocks SET currentStock = :currentStock, rsdQty = :rsdQty
-WHERE _id = :stockId OR id = :stockId
-''',
-        arguments: {'stockId': stockId, 'currentStock': current, 'rsdQty': rsd},
+      final data = await _selectStockRaw(stockId);
+      if (data != null) {
+        await _ensureAndReconcileStockMilli(stockId: stockId, data: data);
+      }
+      await _setStockQtyViaMilli(
+        stockId: stockId,
+        currentStock: current,
+        rsdQty: rsd,
       );
     }
 
@@ -481,6 +633,57 @@ WHERE _id = :stockId OR id = :stockId
             entries[j].value.currentStock,
             entries[j].value.rsdQty,
           ),
+      ], eagerError: true);
+    }
+  }
+
+  @override
+  Future<void> batchDeductStocks(Map<String, double> deltaByStockId) async {
+    if (deltaByStockId.isEmpty) return;
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized: batchDeductStocks');
+      throw StateError('Ditto not initialized: batchDeductStocks');
+    }
+
+    // Atomic COUNTER INCREMENT (milli) + register dual-write for old clients.
+    Future<void> deductOne(String stockId, double delta) async {
+      if (delta <= 0) return;
+      final data = await _selectStockRaw(stockId);
+      if (data == null) {
+        talker.warning(
+          'batchDeductStocks: missing stock $stockId, skip delta=$delta',
+        );
+        return;
+      }
+      final available = await _ensureAndReconcileStockMilli(
+        stockId: stockId,
+        data: data,
+      );
+      final deduct = clampDeductMilli(
+        availableMilli: available,
+        deductMilli: toMilli(delta),
+      );
+      if (deduct <= 0) {
+        await _dualWriteRegistersFromMilli(stockId: stockId, milli: available);
+        return;
+      }
+      await _incrementStockMilli(stockId: stockId, deltaMilli: -deduct);
+      await _dualWriteRegistersFromMilli(
+        stockId: stockId,
+        milli: available - deduct,
+      );
+    }
+
+    final entries = deltaByStockId.entries.toList();
+    for (var i = 0; i < entries.length; i += _batchUpdateStocksConcurrency) {
+      final end = (i + _batchUpdateStocksConcurrency < entries.length)
+          ? i + _batchUpdateStocksConcurrency
+          : entries.length;
+      await Future.wait([
+        for (var j = i; j < end; j++)
+          deductOne(entries[j].key, entries[j].value),
       ], eagerError: true);
     }
   }
@@ -515,9 +718,15 @@ WHERE _id = :stockId OR id = :stockId
       canTrackingStock: true,
       lowStock: 0,
     );
+    // Registers only in DOCUMENTS — never put milli in the JSON map (would be a register).
     await ditto.store.execute(
       "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
       arguments: {'doc': stock.toJson()},
+    );
+    await seedStockMilliIfAbsentOnStore(
+      ditto.store,
+      stockId: stockId,
+      qty: currentStock,
     );
     scheduleCapellaBrickMirror(repository, stock);
     return stock;

@@ -1,8 +1,10 @@
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/selection_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -12,8 +14,9 @@ class BulkActionBar extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIds = ref.watch(selectionProvider);
+    final canManageOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
 
-    if (selectedIds.isEmpty) {
+    if (selectedIds.isEmpty || !canManageOrders) {
       return const SizedBox.shrink();
     }
 
@@ -58,6 +61,14 @@ class BulkActionBar extends HookConsumerWidget {
             const SizedBox(width: 8),
             ElevatedButton.icon(
               onPressed: () async {
+                if (!ref.read(sideMenuShowIncomingOrdersProvider)) {
+                  showCustomSnackBarUtil(
+                    context,
+                    'You do not have permission to approve orders',
+                    backgroundColor: Colors.red,
+                  );
+                  return;
+                }
                 for (final id in selectedIds) {
                   await ProxyService.getStrategy(
                     Strategy.capella,

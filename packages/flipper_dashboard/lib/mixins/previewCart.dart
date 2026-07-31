@@ -37,6 +37,7 @@ import 'package:flipper_dashboard/utils/sale_agent_completion.dart';
 import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -393,60 +394,52 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> applyDiscount(ITransaction transaction) async {
-    // get items on cart
-    final items = await ProxyService.getStrategy(Strategy.capella)
-        .transactionItems(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionId: transaction.id,
-          doneWithTransaction: false,
-          active: true,
-        );
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    final items = await capella.transactionItems(
+      branchId: ProxyService.box.getBranchId()!,
+      transactionId: transaction.id,
+      doneWithTransaction: false,
+      active: true,
+    );
 
-    double discountRate = double.tryParse(discountController.text) ?? 0;
-    if (discountRate <= 0) return;
+    final discountRate = double.tryParse(discountController.text) ?? 0;
+    if (discountRate <= 0 || items.isEmpty) return;
 
-    double itemsTotal = 0;
-
-    // Calculate total amount before discount
-    for (var item in items) {
-      itemsTotal += (item.price.toDouble() * item.qty.toDouble());
-    }
-
-    if (itemsTotal <= 0) return;
-
-    // Calculate discount amount based on rate
-    final discountAmount = (discountRate * itemsTotal) / 100;
-    double remainingDiscount = discountAmount;
-
-    try {
-      // Update items
-      for (var i = 0; i < items.length; i++) {
-        var item = items[i];
-        double itemTotal = item.price.toDouble() * item.qty.toDouble();
-        double itemDiscountAmount;
-
-        if (i == items.length - 1) {
-          // Last item gets remaining discount to avoid rounding issues
-          itemDiscountAmount = remainingDiscount;
-        } else {
-          itemDiscountAmount = (itemTotal / itemsTotal) * discountAmount;
-          remainingDiscount -= itemDiscountAmount;
-        }
-        ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
-          transactionItemId: item.id,
-          dcRt: discountRate,
-          ignoreForReport: false,
-          dcAmt: itemDiscountAmount,
-        );
-      }
-      ProxyService.getStrategy(Strategy.capella).updateTransaction(
-        transaction: transaction,
-        cashReceived: ProxyService.box.getCashReceived(),
-        subTotal: itemsTotal - discountAmount,
+    var netTotal = 0.0;
+    for (final item in items) {
+      final pricing = SaleLinePricing.compute(
+        unitPrice: item.price.toDouble(),
+        qty: item.qty.toDouble(),
+        dcRt: discountRate,
+        taxTyCd: item.taxTyCd ?? 'B',
+        taxPercentage: item.taxPercentage?.toDouble() ?? 18.0,
       );
-    } catch (e) {
-      rethrow;
+      netTotal += pricing.subtotalNet;
+      await capella.updateTransactionItem(
+        transactionItemId: item.id,
+        ignoreForReport: false,
+        dcRt: pricing.dcRt,
+        dcAmt: pricing.dcAmt,
+        discount: pricing.discount,
+        totAmt: pricing.totAmt,
+        taxAmt: pricing.taxAmt,
+        taxblAmt: pricing.taxblAmt,
+      );
+      // Keep in-memory lines aligned when callers reuse a completion hint.
+      item.dcRt = pricing.dcRt;
+      item.dcAmt = pricing.dcAmt;
+      item.discount = pricing.discount;
+      item.totAmt = pricing.totAmt;
+      item.taxAmt = pricing.taxAmt;
+      item.taxblAmt = pricing.taxblAmt;
     }
+
+    await capella.updateTransaction(
+      transaction: transaction,
+      cashReceived: ProxyService.box.getCashReceived(),
+      subTotal: netTotal,
+    );
+    transaction.subTotal = netTotal;
   }
 
   Future<bool> startCompleteTransactionFlow({
@@ -725,11 +718,27 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         ref.read(payButtonStateProvider.notifier).stopLoading();
         return false;
       }
+
+      // Persist cart % discount onto Capella lines + subTotal before totals/Pay.
+      // Reload lines (and drop hint) so completion uses dcAmt/tax fields.
+      final discountRate = double.tryParse(discountController.text) ?? 0;
+      var cartForCompletion = persistedCart;
+      if (discountRate > 0) {
+        await applyDiscount(transaction);
+        transactionItemsHint = null;
+        cartForCompletion = await capella.transactionItems(
+          branchId: transaction.branchId ?? ProxyService.box.getBranchId()!,
+          transactionId: transactionId,
+          doneWithTransaction: false,
+          active: true,
+        );
+      }
+
       final transactionItems = await _resolveTransactionItemsForCompletion(
         transaction: transaction,
         transactionId: transactionId,
         hint: transactionItemsHint,
-        persistedCart: persistedCart,
+        persistedCart: cartForCompletion,
       );
       talker.debug(
         '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '

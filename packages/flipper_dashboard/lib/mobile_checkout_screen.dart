@@ -1042,7 +1042,9 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
         bottom: false,
         child: Builder(
           builder: (context) {
-            final alreadyPaid = txn.cashReceived ?? 0.0;
+            // Match Charge / desktop: real prior payments only — not tender
+            // mirrored into cashReceived on non-loan sales.
+            final alreadyPaid = _effectiveAlreadyPaid(txn);
             final paymentsList = ref.watch(oldProvider.paymentMethodsProvider);
             final pendingPayment = calculateTotalPaid(paymentsList);
             final totalPaid = alreadyPaid + pendingPayment;
@@ -1050,6 +1052,11 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
               items: items,
               transaction: txn,
             );
+            final tax = items.fold<double>(
+              0,
+              (sum, item) => sum + (item.taxAmt?.toDouble() ?? 0),
+            );
+            final subtotal = (total - tax).clamp(0.0, double.infinity);
             // Outstanding before this payment line (do not subtract tender being
             // edited — that caused totalPayable ↔ amount field oscillation).
             final saleOutstanding = calculateRemainingBalance(
@@ -1310,8 +1317,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                         const MposSectionLabel('Totals'),
                         const SizedBox(height: 8),
                         MposTotalsCard(
-                          subtotal: total,
-                          tax: 0,
+                          subtotal: subtotal,
+                          tax: tax,
                           total: total,
                           alreadyPaid: alreadyPaid,
                           pendingPayment: pendingPayment,

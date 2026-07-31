@@ -106,7 +106,7 @@ mixin VariantMixin implements VariantInterface {
       final stock = await ProxyService.getStrategy(
         Strategy.capella,
       ).getStockById(id: sid);
-      if (stock.branchId.trim().isEmpty) return;
+      if (stock == null || stock.branchId.trim().isEmpty) return;
       variant.stock = stock;
     } catch (e, st) {
       talker.warning(

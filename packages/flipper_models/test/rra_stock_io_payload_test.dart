@@ -222,7 +222,7 @@ void main() {
       );
     });
 
-    test('false when shipped matches but pre-sale snapshot missing', () {
+    test('true when shipped matches and pre-sale snapshot missing (retry)', () {
       const stockId = 's1';
       const variantId = 'v1';
       final item = TransactionItem(
@@ -253,7 +253,7 @@ void main() {
           },
           preSaleStockByStockId: null,
         ),
-        isFalse,
+        isTrue,
       );
     });
   });
@@ -271,6 +271,17 @@ void main() {
           transactionSarTyCd: StockInOutType.adjustmentIn,
         ),
         StockInOutType.sale,
+      );
+    });
+
+    test('NR/TR resolve to return-in 03', () {
+      expect(
+        resolveRraStockIoSarTyCd(receiptType: 'NR'),
+        StockInOutType.returnIn,
+      );
+      expect(
+        resolveRraStockIoSarTyCd(receiptType: 'TR'),
+        StockInOutType.returnIn,
       );
     });
   });

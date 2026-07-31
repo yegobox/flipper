@@ -12,6 +12,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -31,6 +32,11 @@ mixin CapellaVariantMixin implements VariantInterface {
       "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
 
       arguments: {'doc': stock.toJson()},
+    );
+    await seedStockMilliIfAbsentOnStore(
+      ditto.store,
+      stockId: stock.id,
+      qty: stock.currentStock ?? 0,
     );
   }
 
@@ -1178,12 +1184,22 @@ mixin CapellaVariantMixin implements VariantInterface {
           "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': newStock.toJson()},
         );
+        await seedStockMilliIfAbsentOnStore(
+          ditto.store,
+          stockId: newStock.id,
+          qty: newStock.currentStock ?? 0,
+        );
         scheduleCapellaBrickMirror(repository, newStock);
       } else if (variant.stock != null) {
         // Ensure existing stock is synced
         await ditto.store.execute(
           "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': variant.stock!.toJson()},
+        );
+        await seedStockMilliIfAbsentOnStore(
+          ditto.store,
+          stockId: variant.stock!.id,
+          qty: variant.stock!.currentStock ?? 0,
         );
         scheduleCapellaBrickMirror(repository, variant.stock!);
       }

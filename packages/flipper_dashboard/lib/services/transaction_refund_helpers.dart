@@ -2,7 +2,11 @@ import 'package:supabase_models/brick/models/transaction.model.dart';
 
 /// Pure helpers for refund stock restoration (testable without I/O).
 
-/// Qty to restore per line item for a partial or full refund.
+/// Qty to restore for a single line (partial or full refund).
+///
+/// Does **not** force ≥1 unit — that over-restored multi-line partial refunds.
+/// Prefer [stockRestoreQtysForLines] when allocating across several lines so
+/// remainders land on whole units without inventing stock per line.
 int stockRestoreQtyForLine({
   required int lineQty,
   required double refundAmount,
@@ -17,14 +21,69 @@ int stockRestoreQtyForLine({
     return lineQty;
   }
   final ratio = refundAmount / originalTotal;
-  var qty = (lineQty * ratio).round();
-  if (qty < 1 && lineQty > 0) {
-    qty = 1;
-  }
-  if (qty > lineQty) {
-    qty = lineQty;
-  }
+  final qty = (lineQty * ratio).round();
   return qty.clamp(0, lineQty);
+}
+
+/// Allocate integer restore quantities across stock lines for a partial refund.
+///
+/// Target total units ≈ `round(sum(lineQtys) * refundAmount / originalTotal)`,
+/// using largest-remainder so a 1/3 refund of three qty-1 lines restores **1**
+/// unit total (not 3).
+List<int> stockRestoreQtysForLines({
+  required List<int> lineQtys,
+  required double refundAmount,
+  required double originalTotal,
+}) {
+  if (lineQtys.isEmpty) return const [];
+  if (originalTotal <= 0 || refundAmount <= 0) {
+    return List<int>.filled(lineQtys.length, 0);
+  }
+  if (refundAmount >= originalTotal - 0.001) {
+    return List<int>.from(lineQtys);
+  }
+
+  final ratio = refundAmount / originalTotal;
+  final totalUnits = lineQtys.fold<int>(0, (sum, q) => sum + (q > 0 ? q : 0));
+  if (totalUnits <= 0) {
+    return List<int>.filled(lineQtys.length, 0);
+  }
+
+  final targetRestore = (totalUnits * ratio).round().clamp(0, totalUnits);
+  final exact = <double>[
+    for (final q in lineQtys) (q > 0 ? q : 0) * ratio,
+  ];
+  final floors = <int>[for (final e in exact) e.floor()];
+  for (var i = 0; i < floors.length; i++) {
+    if (floors[i] > lineQtys[i]) floors[i] = lineQtys[i];
+    if (floors[i] < 0) floors[i] = 0;
+  }
+
+  var allocated = floors.fold<int>(0, (sum, q) => sum + q);
+  if (allocated >= targetRestore) return floors;
+
+  final order = List<int>.generate(exact.length, (i) => i)
+    ..sort((a, b) {
+      final fa = exact[a] - floors[a];
+      final fb = exact[b] - floors[b];
+      final cmp = fb.compareTo(fa);
+      return cmp != 0 ? cmp : a.compareTo(b);
+    });
+
+  var guard = 0;
+  while (allocated < targetRestore && guard < targetRestore + lineQtys.length) {
+    var progressed = false;
+    for (final idx in order) {
+      if (allocated >= targetRestore) break;
+      if (floors[idx] >= lineQtys[idx]) continue;
+      floors[idx]++;
+      allocated++;
+      progressed = true;
+    }
+    if (!progressed) break;
+    guard++;
+  }
+  return floors;
 }
 
 bool isPartialRefund(double refundAmount, double originalTotal) {

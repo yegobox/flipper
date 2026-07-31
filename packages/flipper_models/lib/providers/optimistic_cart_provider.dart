@@ -387,19 +387,40 @@ List<TransactionItem> mergeTransactionItemsWithOptimisticCart({
     if (displayQty <= 0) continue;
 
     final template = rows.first;
-    final unitPrice = template.price;
     final useComposite = (template.compositePrice ?? 0) != 0;
-    final linePrice = useComposite ? template.compositePrice! : unitPrice;
+    final lineUnitPrice =
+        (useComposite ? template.compositePrice! : template.price).toDouble();
 
     if (rows.length == 1 && extra == 0) {
       out.add(template);
       continue;
     }
 
+    final oldQty = sumQty > 0 ? sumQty : template.qty.toDouble();
+    var dcRt = template.dcRt?.toDouble();
+    if ((dcRt == null || dcRt == 0) &&
+        oldQty > 0 &&
+        lineUnitPrice > 0 &&
+        (template.dcAmt?.toDouble() ?? 0) > 0) {
+      dcRt = (template.dcAmt!.toDouble() / (lineUnitPrice * oldQty)) * 100;
+    }
+    final pricing = SaleLinePricing.compute(
+      unitPrice: lineUnitPrice,
+      qty: displayQty,
+      dcRt: dcRt,
+      taxTyCd: template.taxTyCd,
+      taxPercentage: (template.taxPercentage ?? 18.0).toDouble(),
+    );
+
     out.add(
       template.copyWith(
         qty: displayQty,
-        totAmt: linePrice * displayQty,
+        totAmt: pricing.totAmt,
+        dcRt: pricing.dcRt,
+        dcAmt: pricing.dcAmt,
+        discount: pricing.discount,
+        taxAmt: pricing.taxAmt,
+        taxblAmt: pricing.taxblAmt,
       ),
     );
   }

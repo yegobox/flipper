@@ -4,6 +4,7 @@ import 'package:flipper_models/helpers/personal_goal_contribution_device_key.dar
 import 'package:flipper_models/helpers/personal_goal_contribution_events.dart';
 import 'package:flipper_models/helpers/personal_goals_branch_cache.dart';
 import 'package:flipper_models/helpers/sale_personal_goal_auto_allocation.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/personal_goal.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
@@ -430,10 +431,15 @@ mixin CapellaPersonalGoalsMixin {
     bool isUtilityCashbookMovement = false,
     bool skipPersonalGoalAutoSweep = false,
   }) async {
-    final movementSubtotal = items.fold<double>(
-      0.0,
-      (a, b) => a + b.price.toDouble() * b.qty.toDouble(),
-    );
+    final movementSubtotal = SaleLinePricing.cartNetSubtotal([
+      for (final b in items)
+        (
+          unitPrice: b.price.toDouble(),
+          qty: b.qty.toDouble(),
+          dcAmt: b.dcAmt?.toDouble(),
+          dcRt: b.dcRt?.toDouble(),
+        ),
+    ]);
 
     final utilityCashInEligible =
         !skipPersonalGoalAutoSweep &&

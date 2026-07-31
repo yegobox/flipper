@@ -35,22 +35,34 @@ Future<List<TransactionItem>> validateStockQuantity(
     }
   }
 
-  final outOfStockItems = <TransactionItem>[];
+  // Aggregate requested qty by stockId so two variants (or lines) sharing one
+  // stock row cannot each pass while their combined qty exceeds on-hand.
+  final requestedByStockId = <String, double>{};
+  final itemsByStockId = <String, List<TransactionItem>>{};
   for (final item in items) {
     try {
       final vid = item.variantId;
       if (vid == null || vid.isEmpty) continue;
-      final variant = variantsMap[vid];
-      final sid = variant?.stockId;
+      final sid = variantsMap[vid]?.stockId;
       if (sid == null || sid.isEmpty) continue;
-      final stock = stocksMap[sid];
-      final current = stock?.currentStock;
-      if (current == null) continue;
-      if (current < item.qty) {
+      requestedByStockId[sid] =
+          (requestedByStockId[sid] ?? 0) + item.qty.toDouble();
+      itemsByStockId.putIfAbsent(sid, () => []).add(item);
+    } catch (_) {
+      continue;
+    }
+  }
+
+  final outOfStockItems = <TransactionItem>[];
+  final seenItemIds = <String>{};
+  for (final entry in requestedByStockId.entries) {
+    final current = stocksMap[entry.key]?.currentStock;
+    if (current == null) continue;
+    if (current + 0.0001 >= entry.value) continue;
+    for (final item in itemsByStockId[entry.key] ?? const <TransactionItem>[]) {
+      if (seenItemIds.add(item.id)) {
         outOfStockItems.add(item);
       }
-    } catch (e) {
-      continue;
     }
   }
 

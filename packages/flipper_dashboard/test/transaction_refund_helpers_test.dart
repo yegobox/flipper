@@ -77,6 +77,53 @@ void main() {
         0,
       );
     });
+
+    test('does not force one unit on tiny partial of qty-1 line', () {
+      expect(
+        stockRestoreQtyForLine(
+          lineQty: 1,
+          refundAmount: 100,
+          originalTotal: 1000,
+          lineIndex: 0,
+          lineCount: 1,
+        ),
+        0,
+      );
+    });
+  });
+
+  group('stockRestoreQtysForLines', () {
+    test('full refund restores every line qty', () {
+      expect(
+        stockRestoreQtysForLines(
+          lineQtys: [2, 3],
+          refundAmount: 1000,
+          originalTotal: 1000,
+        ),
+        [2, 3],
+      );
+    });
+
+    test('one-third refund of three qty-1 lines restores one unit total', () {
+      final qtys = stockRestoreQtysForLines(
+        lineQtys: [1, 1, 1],
+        refundAmount: 300,
+        originalTotal: 900,
+      );
+      expect(qtys.fold<int>(0, (s, q) => s + q), 1);
+      expect(qtys.every((q) => q == 0 || q == 1), isTrue);
+    });
+
+    test('half refund of ten units restores five', () {
+      expect(
+        stockRestoreQtysForLines(
+          lineQtys: [10],
+          refundAmount: 500,
+          originalTotal: 1000,
+        ),
+        [5],
+      );
+    });
   });
 
   group('isPartialRefund', () {

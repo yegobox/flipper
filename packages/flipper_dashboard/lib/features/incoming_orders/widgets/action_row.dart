@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_or
 import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
 import 'package:flipper_dashboard/features/production_output/widgets/work_order_bottom_sheet.dart';
 import 'package:flipper_dashboard/features/production_output/widgets/work_order_form.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -67,21 +68,28 @@ class ActionRow extends ConsumerWidget
       ),
       error: (_, __) => const SizedBox.shrink(),
       data: (items) {
+        final canManageOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
         final hasApprovedItems = items.any(
           (item) => (item.quantityApproved ?? 0) > 0,
         );
-        final voidDisabled = hasApprovedItems || isProcessing;
-        final approveDisabled = isFullyApproved || isProcessing;
+        final voidDisabled =
+            !canManageOrders || hasApprovedItems || isProcessing;
+        final approveDisabled =
+            !canManageOrders || isFullyApproved || isProcessing;
+        final produceDisabled = !canManageOrders;
 
         return _ActionsBar(
           children: [
             _OmBtn(
-              onPressed: isProcessing
+              onPressed: produceDisabled
+                  ? null
+                  : isProcessing
                   ? () => _handleFinishProduction(context, ref)
                   : () => _handleProduce(context, ref, items),
               icon: isProcessing ? Icons.check : Icons.factory_outlined,
               label: isProcessing ? 'Finish Production' : 'Produce',
               variant: _OmBtnVariant.ghost,
+              isDisabled: produceDisabled,
             ),
             _OmBtn(
               onPressed: approveDisabled
@@ -112,6 +120,14 @@ class ActionRow extends ConsumerWidget
     WidgetRef ref,
     InventoryRequest request,
   ) async {
+    if (!ref.read(sideMenuShowIncomingOrdersProvider)) {
+      showCustomSnackBarUtil(
+        context,
+        'You do not have permission to approve orders',
+        backgroundColor: Colors.red,
+      );
+      return;
+    }
     final bool? confirmApprove = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

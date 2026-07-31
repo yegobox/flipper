@@ -138,8 +138,9 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     qtyDeltaPerStock[sid] = (qtyDeltaPerStock[sid] ?? 0) + item.qty.toDouble();
   }
 
-  final stockUpdatesById = <String, ({double currentStock, double rsdQty})>{};
+  final deductByStockId = <String, double>{};
   final deductedStockIds = <String>{};
+  final clampToZeroStockIds = <String>{};
   for (final e in qtyDeltaPerStock.entries) {
     final sid = e.key;
     final delta = e.value;
@@ -151,20 +152,32 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     originalStockQuantities[sid] = current;
     deductedStockIds.add(sid);
 
-    var newStock = (current - delta).roundToTwoDecimalPlaces();
-    if (allowSellingBelowStock && newStock < 0) {
-      newStock = 0;
+    var applyDelta = delta;
+    if (allowSellingBelowStock && current - delta < 0) {
+      // Clamp at zero: deduct only what is on hand, then force absolute 0.
+      applyDelta = current > 0 ? current : 0;
+      clampToZeroStockIds.add(sid);
     }
-    stockUpdatesById[sid] = (currentStock: newStock, rsdQty: newStock);
+    if (applyDelta > 0) {
+      deductByStockId[sid] = applyDelta;
+    }
   }
 
-  if (stockUpdatesById.isEmpty) {
+  if (deductByStockId.isEmpty && clampToZeroStockIds.isEmpty) {
     talker.warning(
       'Deferred stock deduction: no stock rows updated for $transactionId '
       '(lines=${itemsNeedingDeduction.length})',
     );
   } else {
-    await capella.batchUpdateStocks(stockUpdatesById);
+    if (deductByStockId.isNotEmpty) {
+      await capella.batchDeductStocks(deductByStockId);
+    }
+    if (clampToZeroStockIds.isNotEmpty) {
+      await capella.batchUpdateStocks({
+        for (final sid in clampToZeroStockIds)
+          sid: (currentStock: 0.0, rsdQty: 0.0),
+      });
+    }
     await _deferMarkItemsQuantityShipped(
       capella: capella,
       items: itemsNeedingDeduction,
@@ -187,7 +200,7 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
 
   talker.debug(
     '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
-    'lines=${itemsNeedingDeduction.length} stocks=${stockUpdatesById.length}',
+    'lines=${itemsNeedingDeduction.length} stocks=${deductByStockId.length}',
   );
   return originalStockQuantities;
 }

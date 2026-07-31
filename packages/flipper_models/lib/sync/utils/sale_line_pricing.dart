@@ -36,6 +36,25 @@ class SaleLinePricing {
     return _money(gross - discount);
   }
 
+  /// Σ net line amounts for shift / collectPayment / sale completion.
+  ///
+  /// Prefer persisted [dcAmt]; falls back to [dcRt] when dcAmt is null.
+  static double cartNetSubtotal(
+    Iterable<({double unitPrice, double qty, double? dcAmt, double? dcRt})>
+        lines,
+  ) {
+    var total = 0.0;
+    for (final line in lines) {
+      total += subtotalNetForItem(
+        unitPrice: line.unitPrice,
+        qty: line.qty,
+        dcAmt: line.dcAmt,
+        dcRt: line.dcRt,
+      );
+    }
+    return _money(total);
+  }
+
   static SaleLinePricing compute({
     required double unitPrice,
     required double qty,

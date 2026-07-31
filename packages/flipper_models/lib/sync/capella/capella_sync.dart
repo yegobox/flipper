@@ -28,6 +28,7 @@ import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -51,6 +52,7 @@ import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/shift_operations.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_models/sync/capella/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/personal_goals_mixin.dart';
@@ -538,7 +540,15 @@ class CapellaSync extends AiStrategyImpl
 
       final computedSubTotal = items.isEmpty
           ? cashReceived
-          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
+          : SaleLinePricing.cartNetSubtotal([
+              for (final b in items)
+                (
+                  unitPrice: b.price.toDouble(),
+                  qty: b.qty.toDouble(),
+                  dcAmt: b.dcAmt?.toDouble(),
+                  dcRt: b.dcRt?.toDouble(),
+                ),
+            ]);
       transaction.subTotal = computedSubTotal;
 
       transaction.customerChangeDue =
@@ -899,6 +909,11 @@ class CapellaSync extends AiStrategyImpl
         await ditto.store.execute(
           "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
           arguments: {'doc': data.toJson()},
+        );
+        await seedStockMilliIfAbsentOnStore(
+          ditto.store,
+          stockId: data.id,
+          qty: data.currentStock ?? 0,
         );
         scheduleCapellaBrickMirror<Stock>(repository, data);
       } else {

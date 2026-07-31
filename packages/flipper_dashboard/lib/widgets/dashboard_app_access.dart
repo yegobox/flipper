@@ -15,7 +15,9 @@ bool dashboardAppTileVisible(WidgetRef ref, DashboardAllAppTile tile) {
   if (tile.page == 'StockRecount') {
     return ref.watch(sideMenuShowStockRecountProvider);
   }
-  if (tile.feature == 'Orders') return true;
+  if (tile.feature == 'Orders') {
+    return ref.watch(sideMenuShowIncomingOrdersProvider);
+  }
   if (tile.feature == 'ServicesGigs') return true;
   if (tile.feature == 'Settings') return true;
   // Credits is an account-level MoMo top-up, not a staff permission. It is not

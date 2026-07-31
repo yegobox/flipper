@@ -194,8 +194,11 @@ String rraSaleStockSnapshotBoxKey(String transactionId) =>
 
 /// Whether a sale line can skip local stock decrement.
 ///
-/// [quantityShipped] alone is not trusted — a prior failed deduct can mark
-/// shipped without lowering Ditto stock (perf refactor regression).
+/// When a pre-sale snapshot exists, [quantityShipped] is verified against
+/// on-hand (a shipped marker without a real deduct must not skip forever).
+/// When the snapshot was cleared (post-RRA / retry), trust [quantityShipped]
+/// alone — markers are written only after a successful `batchUpdateStocks`,
+/// so retries must not double-deduct.
 bool saleLineAlreadyStockDeducted({
   required TransactionItem item,
   required Map<String, Variant> variantsByVariantId,
@@ -212,9 +215,7 @@ bool saleLineAlreadyStockDeducted({
   if (sid == null || sid.isEmpty) return true;
 
   final preSale = preSaleStockByStockId?[sid];
-  // Without a pre-sale snapshot we cannot verify deduction — do not trust
-  // quantityShipped alone (failed deduct + shipped marker would skip forever).
-  if (preSale == null) return false;
+  if (preSale == null) return true;
 
   final current = stocksByStockId[sid]?.currentStock?.toDouble() ?? 0.0;
   final expectedAfterSale = _roundMoney(preSale - item.qty.toDouble());

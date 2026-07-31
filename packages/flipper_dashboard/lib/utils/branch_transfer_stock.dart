@@ -250,7 +250,7 @@ Future<Map<String, TransferOnHand>> resolveCapellaOnHandByVariantIds(
     }
     try {
       final stock = await capella.getStockById(id: sid);
-      if (isAuthenticCapellaStock(stock)) {
+      if (stock != null && isAuthenticCapellaStock(stock)) {
         stocksMap[sid] = stock;
       }
     } catch (e, st) {

@@ -5,6 +5,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
 import 'package:flipper_models/sync/stock_recount_rra_validation.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
@@ -433,6 +434,11 @@ LIMIT 1
       await ditto.store.execute(
         "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': stock.toJson()},
+      );
+      await applyStockMilliRestartOnStore(
+        ditto.store,
+        stockId: stock.id,
+        qty: stock.currentStock ?? item.countedQuantity,
       );
       await repository.upsert<Stock>(stock);
 

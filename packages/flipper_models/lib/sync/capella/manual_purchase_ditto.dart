@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/imports_purchases_map.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:uuid/uuid.dart';
@@ -31,6 +32,11 @@ abstract final class ManualPurchaseDitto {
     await ditto.store.execute(
       'INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': stock.toJson()},
+    );
+    await seedStockMilliIfAbsentOnStore(
+      ditto.store,
+      stockId: stock.id,
+      qty: stock.currentStock ?? 0,
     );
   }
 

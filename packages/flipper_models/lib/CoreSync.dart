@@ -26,6 +26,7 @@ import 'package:flipper_models/sync/mixins/log_mixin.dart';
 import 'package:flipper_models/sync/mixins/production_output_mixin.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/shift_operations.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 import 'package:flipper_models/sync/mixins/bulk_process_item_mixin.dart';
 
@@ -2334,7 +2335,15 @@ class CoreSync extends AiStrategyImpl
 
         transaction.subTotal = items.isEmpty
             ? cashReceived
-            : items.fold(0.0, (a, b) => a! + (b.price * b.qty));
+            : SaleLinePricing.cartNetSubtotal([
+                for (final b in items)
+                  (
+                    unitPrice: b.price.toDouble(),
+                    qty: b.qty.toDouble(),
+                    dcAmt: b.dcAmt?.toDouble(),
+                    dcRt: b.dcRt?.toDouble(),
+                  ),
+              ]);
 
         if (userId != null) {
           transaction.customerTin = customerTin;

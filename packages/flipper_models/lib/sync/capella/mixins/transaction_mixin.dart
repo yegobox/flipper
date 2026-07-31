@@ -1826,7 +1826,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           final pricing = SaleLinePricing.compute(
             unitPrice: unitPriceRow,
             qty: resolvedNewQty,
-            dcRt: (d['dcRt'] as num?)?.toDouble() ?? 0.0,
+            dcRt: dcRt ?? (d['dcRt'] as num?)?.toDouble() ?? 0.0,
             taxTyCd: d['taxTyCd']?.toString() ?? 'B',
             taxPercentage:
                 (d['taxPercentage'] as num?)?.toDouble() ?? 18.0,
@@ -1840,6 +1840,24 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         } else {
           addUpdate('totAmt', unitPriceRow * resolvedNewQty);
         }
+      } else if ((dcRt != null || dcAmt != null) &&
+          taxAmt == null &&
+          taxblAmt == null) {
+        // Cart % discount path: recompute line tax/totals from discount fields.
+        final unitPriceRow = (d['price'] as num?)?.toDouble() ?? 0.0;
+        final pricing = SaleLinePricing.compute(
+          unitPrice: unitPriceRow,
+          qty: oldQtyFromDb,
+          dcRt: dcRt ?? (d['dcRt'] as num?)?.toDouble() ?? 0.0,
+          taxTyCd: d['taxTyCd']?.toString() ?? 'B',
+          taxPercentage: (d['taxPercentage'] as num?)?.toDouble() ?? 18.0,
+        );
+        addUpdate('totAmt', pricing.totAmt);
+        addUpdate('taxAmt', pricing.taxAmt);
+        addUpdate('taxblAmt', pricing.taxblAmt);
+        if (dcAmt == null) addUpdate('dcAmt', pricing.dcAmt);
+        if (discount == null) addUpdate('discount', pricing.discount);
+        if (dcRt == null) addUpdate('dcRt', pricing.dcRt);
       }
       addUpdate('dcRt', dcRt);
       addUpdate('dcAmt', dcAmt);

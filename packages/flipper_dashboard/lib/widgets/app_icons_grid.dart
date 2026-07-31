@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/dashboard_app_shortcuts.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_models/providers/all_providers.dart';
@@ -151,8 +152,9 @@ class AppIconsGrid extends ConsumerWidget {
     final uid = ProxyService.box.getUserId() ?? '';
     final showCommission = ref.watch(showAgentCommissionNavProvider);
 
+    final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
     final filteredApps = rippleApps.where((app) {
-      if (app['feature'] == 'Orders') return true;
+      if (app['feature'] == 'Orders') return showIncomingOrders;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;
       // See dashboardAppTileVisible: 'Credits' is an account-level top-up with

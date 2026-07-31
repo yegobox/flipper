@@ -7,6 +7,7 @@ import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
 import 'package:flipper_models/helpers/sale_completion_collect.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/digital_receipt_service.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -122,11 +123,15 @@ mixin TransactionMixinOld {
               preloadedLineItemsForCollectPayment ?? const <TransactionItem>[];
           final saleTotal = items.isEmpty
               ? amount
-              : items.fold<double>(
-                  0,
-                  (sum, item) =>
-                      sum + item.price.toDouble() * item.qty.toDouble(),
-                );
+              : SaleLinePricing.cartNetSubtotal([
+                  for (final item in items)
+                    (
+                      unitPrice: item.price.toDouble(),
+                      qty: item.qty.toDouble(),
+                      dcAmt: item.dcAmt?.toDouble(),
+                      dcRt: item.dcRt?.toDouble(),
+                    ),
+                ]);
           final derived = deriveSaleCompletionState(
             transactionCashReceived: transaction.cashReceived ?? 0,
             finalSubTotal: saleTotal,
@@ -218,11 +223,15 @@ mixin TransactionMixinOld {
             final items = preloadedLineItemsForCollectPayment ?? const [];
             final saleTotal = items.isEmpty
                 ? amount
-                : items.fold<double>(
-                    0,
-                    (sum, item) =>
-                        sum + item.price.toDouble() * item.qty.toDouble(),
-                  );
+                : SaleLinePricing.cartNetSubtotal([
+                    for (final item in items)
+                      (
+                        unitPrice: item.price.toDouble(),
+                        qty: item.qty.toDouble(),
+                        dcAmt: item.dcAmt?.toDouble(),
+                        dcRt: item.dcRt?.toDouble(),
+                      ),
+                  ]);
             // Prior paid is still on the row (loan cashReceived); amount is this
             // installment. Passing cashReceived+amount without prior made the
             // "yield to lower payment rows" branch drop the prior and park.
@@ -425,12 +434,14 @@ mixin TransactionMixinOld {
       ProxyService.box.writeString(key: "getServerUrl", value: ebm!.taxServerUrl!);
       ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
 
+      // Persist invoice/receipt/sarNo to Capella/Ditto even on signOnly so
+      // handover retry can skip re-sign and stock IO has a real invoice.
       final signOutcome = await handleReceiptGeneration(
         formKey: formKey,
         context: context,
         transaction: transaction,
         purchaseCode: purchaseCode,
-        persistReceiptTransactionFields: false,
+        persistReceiptTransactionFields: true,
         signOnly: true,
         transactionItems: items,
       );

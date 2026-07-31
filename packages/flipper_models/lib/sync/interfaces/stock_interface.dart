@@ -26,6 +26,12 @@ abstract class StockInterface {
     Map<String, ({double currentStock, double rsdQty})> byStockId,
   );
 
+  /// Subtract quantities via Capella [currentStockMilli] COUNTER (+ register dual-write).
+  ///
+  /// Prefer this for sale deducts so concurrent tills merge increments. Falls back
+  /// to absolute updates on non-Capella strategies.
+  Future<void> batchDeductStocks(Map<String, double> deltaByStockId);
+
   Future<List<InventoryRequest>> requests({required String requestId});
   Future<Stock> saveStock({
     Variant? variant,

@@ -884,7 +884,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           invoiceNumber: transaction.invoiceNumber!,
           regTyCd: "A",
           sarNo: sar.sarNo.toString(),
-          sarTyCd: "06",
+          sarTyCd: StockInOutType.returnIn,
           custBhfId: transaction.customerBhfId,
           totalSupplyPrice: transaction.subTotal!,
           totalvat: transaction.taxAmount!.toDouble(),

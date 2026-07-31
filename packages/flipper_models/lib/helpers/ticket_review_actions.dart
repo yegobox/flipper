@@ -3,11 +3,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Ticket Review + Handover workflow (opt-in per business via
-/// `Setting.enableTicketReviewWorkflow`). Both actions are pure status +
-/// audit-metadata writes — no payment recomputation, no tax re-signing, no
-/// stock mutation (stock was already deducted earlier in the sale).
+/// `Setting.enableTicketReviewWorkflow`).
 ///
-/// Each call is guarded by [TransactionInterface.updateTransaction]'s
+/// [markTicketReviewed] / [recordTicketHandover] are status + audit-metadata
+/// writes. Fiscal sign + stock deduct run in `finalizeTicketHandover` *before*
+/// [recordTicketHandover] when the workflow is on (idempotent on retry).
+///
+/// Each status call is guarded by [TransactionInterface.updateTransaction]'s
 /// `requireCurrentStatus`, so a stale/duplicate tap (two reviewers, or a
 /// reviewer and a stock manager racing) is a safe no-op rather than an
 /// incorrect double transition.

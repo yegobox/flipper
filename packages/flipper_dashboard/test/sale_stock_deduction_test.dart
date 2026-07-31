@@ -145,6 +145,9 @@ void main() {
     );
 
     when(
+      () => mockCapella.batchDeductStocks(any()),
+    ).thenAnswer((_) async {});
+    when(
       () => mockCapella.batchUpdateStocks(any()),
     ).thenAnswer((_) async {});
 
@@ -205,15 +208,15 @@ void main() {
         );
 
         final captured = verify(
-          () => mockCapella.batchUpdateStocks(captureAny()),
-        ).captured.single as Map<String, ({double currentStock, double rsdQty})>;
+          () => mockCapella.batchDeductStocks(captureAny()),
+        ).captured.single as Map<String, double>;
 
-        expect(captured[stockId]!.currentStock, 10);
-        expect(captured[stockId]!.rsdQty, 10);
+        expect(captured[stockId], 1);
+        verifyNever(() => mockCapella.batchUpdateStocks(any()));
       },
     );
 
-    test('skips batchUpdate when stock already reflects post-sale qty', () async {
+    test('skips deduct when stock already reflects post-sale qty', () async {
       await _stubStock(10);
       final item = _saleLine(
         id: 'line-1',
@@ -232,6 +235,7 @@ void main() {
         transactionId: _transactionId,
       );
 
+      verifyNever(() => mockCapella.batchDeductStocks(any()));
       verifyNever(() => mockCapella.batchUpdateStocks(any()));
     });
   });

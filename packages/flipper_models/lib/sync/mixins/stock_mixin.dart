@@ -127,6 +127,22 @@ mixin StockMixin implements StockInterface {
   }
 
   @override
+  Future<void> batchDeductStocks(Map<String, double> deltaByStockId) async {
+    for (final e in deltaByStockId.entries) {
+      final delta = e.value;
+      if (delta <= 0) continue;
+      // Brick path: append negative (same as Capella absolute race risk; sales
+      // use Capella).
+      await updateStock(
+        stockId: e.key,
+        currentStock: -delta,
+        rsdQty: -delta,
+        appending: true,
+      );
+    }
+  }
+
+  @override
   Stream<List<InventoryRequest>> requestsStream({
     required String branchId,
     String filter = RequestStatus.pending,

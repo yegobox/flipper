@@ -124,24 +124,30 @@ class TransactionRefundService {
       );
     }
 
-    for (var i = 0; i < items.length; i++) {
-      final item = items[i];
+    // Resolve stock-tracked lines first, then allocate restore qtys as a set so
+    // a small partial refund does not restore ≥1 unit on every qty-1 line.
+    final stockLines = <({TransactionItem item, String stockId})>[];
+    for (final item in items) {
       final variant = await capella.getVariant(id: item.variantId);
       if (variant == null || variant.itemTyCd == '3') continue;
       final stockId = variant.stockId;
       if (stockId == null || stockId.isEmpty) continue;
+      stockLines.add((item: item, stockId: stockId));
+    }
+    if (stockLines.isEmpty) return;
 
-      final qty = stockRestoreQtyForLine(
-        lineQty: item.qty.toInt(),
-        refundAmount: refundAmount,
-        originalTotal: originalTotal,
-        lineIndex: i,
-        lineCount: items.length,
-      );
+    final restoreQtys = stockRestoreQtysForLines(
+      lineQtys: [for (final line in stockLines) line.item.qty.toInt()],
+      refundAmount: refundAmount,
+      originalTotal: originalTotal,
+    );
+
+    for (var i = 0; i < stockLines.length; i++) {
+      final qty = restoreQtys[i];
       if (qty <= 0) continue;
 
       await ProxyService.strategy.updateStock(
-        stockId: stockId,
+        stockId: stockLines[i].stockId,
         currentStock: qty.toDouble(),
         appending: true,
       );

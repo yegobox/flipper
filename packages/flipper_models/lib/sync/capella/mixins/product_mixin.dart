@@ -4,6 +4,7 @@ import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
@@ -420,6 +421,11 @@ mixin CapellaProductMixin implements ProductInterface {
           await ditto.store.execute(
             "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
             arguments: {'doc': createdStock.toJson()},
+          );
+          await seedStockMilliIfAbsentOnStore(
+            ditto.store,
+            stockId: createdStock.id,
+            qty: createdStock.currentStock ?? qty,
           );
         }
         talker.info('Created stock: ${createdStock.id} for variant');

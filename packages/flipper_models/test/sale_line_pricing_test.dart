@@ -30,6 +30,16 @@ void main() {
       );
     });
 
+    test('cartNetSubtotal subtracts line discounts', () {
+      expect(
+        SaleLinePricing.cartNetSubtotal([
+          (unitPrice: 100, qty: 1, dcAmt: 10, dcRt: 10),
+          (unitPrice: 50, qty: 2, dcAmt: 5, dcRt: null),
+        ]),
+        185, // 90 + 95
+      );
+    });
+
     test('zero dcRt leaves line at gross', () {
       final p = SaleLinePricing.compute(
         unitPrice: 500,

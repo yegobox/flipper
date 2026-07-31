@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -31,10 +32,15 @@ void applySalePaymentFieldsInMemory({
 
   final computedSubTotal = items.isEmpty
       ? tenderAmount
-      : items.fold<double>(
-          0,
-          (sum, item) => sum + item.price.toDouble() * item.qty.toDouble(),
-        );
+      : SaleLinePricing.cartNetSubtotal([
+          for (final item in items)
+            (
+              unitPrice: item.price.toDouble(),
+              qty: item.qty.toDouble(),
+              dcAmt: item.dcAmt?.toDouble(),
+              dcRt: item.dcRt?.toDouble(),
+            ),
+        ]);
   transaction.subTotal = computedSubTotal;
   transaction.numberOfItems = items.length;
   transaction.discountAmount = items.fold<double>(

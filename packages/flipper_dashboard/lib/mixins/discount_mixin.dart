@@ -1,12 +1,11 @@
 // ignore_for_file: unused_result
 
-import 'dart:async';
-
 import 'package:flipper_dashboard/mixins/base_cart_mixin.dart';
 import 'package:flipper_models/SyncStrategy.dart';
-
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 mixin DiscountMixin<T extends ConsumerStatefulWidget>
@@ -16,12 +15,9 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
       final items = await _getActiveTransactionItems(transaction);
       final discountRate = double.tryParse(discountController.text) ?? 0;
 
-      if (discountRate <= 0) return;
+      if (discountRate <= 0 || items.isEmpty) return;
 
-      final itemsTotal = _calculateItemsTotal(items);
-      if (itemsTotal <= 0) return;
-
-      await _processDiscount(items, discountRate, itemsTotal, transaction);
+      await _processDiscount(items, discountRate, transaction);
     } catch (e) {
       talker.error('Error applying discount: $e');
       rethrow;
@@ -41,58 +37,45 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  double _calculateItemsTotal(List<TransactionItem> items) {
-    return items.fold(0, (sum, item) => sum + (item.price * item.qty));
-  }
-
   Future<void> _processDiscount(
     List<TransactionItem> items,
     double discountRate,
-    double itemsTotal,
     ITransaction transaction,
   ) async {
-    final discountAmount = (discountRate * itemsTotal) / 100;
-    double remainingDiscount = discountAmount;
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    var netTotal = 0.0;
 
-    for (var i = 0; i < items.length; i++) {
-      await _applyItemDiscount(
-        items[i],
-        i == items.length - 1,
-        discountRate,
-        discountAmount,
-        itemsTotal,
-        remainingDiscount,
+    for (final item in items) {
+      final pricing = SaleLinePricing.compute(
+        unitPrice: item.price.toDouble(),
+        qty: item.qty.toDouble(),
+        dcRt: discountRate,
+        taxTyCd: item.taxTyCd ?? 'B',
+        taxPercentage: item.taxPercentage?.toDouble() ?? 18.0,
       );
-
-      if (i != items.length - 1) {
-        remainingDiscount -=
-            (items[i].price * items[i].qty / itemsTotal) * discountAmount;
-      }
+      netTotal += pricing.subtotalNet;
+      await capella.updateTransactionItem(
+        transactionItemId: item.id,
+        ignoreForReport: false,
+        dcRt: pricing.dcRt,
+        dcAmt: pricing.dcAmt,
+        discount: pricing.discount,
+        totAmt: pricing.totAmt,
+        taxAmt: pricing.taxAmt,
+        taxblAmt: pricing.taxblAmt,
+      );
+      item.dcRt = pricing.dcRt;
+      item.dcAmt = pricing.dcAmt;
+      item.discount = pricing.discount;
+      item.totAmt = pricing.totAmt;
+      item.taxAmt = pricing.taxAmt;
+      item.taxblAmt = pricing.taxblAmt;
     }
 
-    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
+    await capella.updateTransaction(
       transaction: transaction,
-      subTotal: itemsTotal - discountAmount,
+      subTotal: netTotal,
     );
-  }
-
-  Future<void> _applyItemDiscount(
-    TransactionItem item,
-    bool isLastItem,
-    double discountRate,
-    double totalDiscountAmount,
-    double itemsTotal,
-    double remainingDiscount,
-  ) async {
-    double itemDiscountAmount = isLastItem
-        ? remainingDiscount
-        : (item.price * item.qty / itemsTotal) * totalDiscountAmount;
-
-    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
-      transactionItemId: item.id,
-      dcRt: discountRate,
-      ignoreForReport: false,
-      dcAmt: itemDiscountAmount,
-    );
+    transaction.subTotal = netTotal;
   }
 }
