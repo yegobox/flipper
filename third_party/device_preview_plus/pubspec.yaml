@@ -1,0 +1,29 @@
+name: device_preview_plus
+version: 2.8.5+1
+description: Approximate how your Flutter app looks and performs on another device
+homepage: https://github.com/zeshuaro/device_preview_plus
+
+environment:
+  sdk: ">=3.12.2 <4.0.0"
+  flutter: ">=3.44.6"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.1.5
+  device_frame_plus: ^1.5.0
+  freezed_annotation: ^3.1.0
+  json_annotation: 4.12.0
+  shared_preferences: 2.5.5
+  collection: ^1.18.0
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+  build_runner: 2.15.0
+  freezed: 3.2.5
+  json_serializable: 6.14.0

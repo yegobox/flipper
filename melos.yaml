@@ -5,6 +5,8 @@ packages:
   - open-sources/**/**
   - packages/**
   - packages/**/**
+  - third_party/**
+  - third_party/**/**
   - apps/**
   - apps/**/*
 

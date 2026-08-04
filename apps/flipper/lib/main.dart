@@ -363,28 +363,20 @@ Future<void> main() async {
 
 /// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
 ///
-/// OFF by default, even in debug. Opt in per run with
-/// `--dart-define=FLIPPER_DEVICE_PREVIEW=true`.
+/// Enabled in debug on all platforms, including desktop.
 ///
-/// DevicePreview wraps the whole app in a frame [LayoutBuilder], so EVERY
-/// rebuild below it happens during [performLayout]. That turns ordinary
-/// navigation into an assertion storm: pushing a route rebuilds stacked's
-/// GlobalKey'd `Navigator`, whose subtree gets deactivated and re-activated;
-/// each [OverlayPortal] inside it re-inserts its deferred child via
-/// `_RenderTheater._addDeferredChild`, which calls `adoptChild` →
-/// `markNeedsLayout` on a render object outside the LayoutBuilder currently in
-/// layout. Flutter throws "A _RenderLayoutBuilder was mutated in
-/// _RenderLayoutBuilder.performLayout", followed by
-/// `_elements.contains(element)` from the GlobalKey retake.
+/// This is only safe because `device_preview_plus` is forked in
+/// `third_party/device_preview_plus` to host the app under a [Builder] instead
+/// of a [LayoutBuilder]. Upstream, that [LayoutBuilder] owns a [BuildScope] for
+/// the whole app, so every rebuild ran during `performLayout` and mounting or
+/// re-activating any [OverlayPortal] (a [Tooltip], a typeahead, a route push
+/// re-parenting stacked's GlobalKey'd `Navigator`) threw — then asserted every
+/// frame thereafter, because Flutter's guard flags latch. See that package's
+/// PATCHES.md.
 ///
-/// The fallout outlives the trigger: both `_RenderTheater._addDeferredChild`
-/// and `MouseTracker._deviceUpdatePhase` set a debug guard, run a callback and
-/// clear the guard with no try/finally, so the first throw leaves the guard
-/// stuck true and every later frame asserts identically until a restart.
-/// [_DevicePreviewOverlaySafeHost] only defers the FIRST [MaterialApp] mount —
-/// it cannot protect later route pushes.
-bool get kFlipperDevicePreviewEnabled =>
-    kDebugMode && const bool.fromEnvironment('FLIPPER_DEVICE_PREVIEW');
+/// [_DevicePreviewOverlaySafeHost] is still worth keeping: it defers the first
+/// [MaterialApp] mount out of DevicePreview's own first layout pass.
+bool get kFlipperDevicePreviewEnabled => kDebugMode;
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
