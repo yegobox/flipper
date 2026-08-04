@@ -2235,142 +2235,138 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     );
   }
 
+  /// Declarative list of every system toggle.
+  ///
+  /// Adding a setting is a single entry here — the panel handles grouping,
+  /// search and layout, so the section grows without new full-size cards.
+  List<_SettingsGroup> _systemSettingsGroups(BuildContext context) {
+    final l10n = context.flipperL10n;
+    return [
+      _SettingsGroup(
+        title: 'Sales & pricing',
+        color: const Color(0xFF16A34A),
+        items: [
+          _SettingItem(
+            title: l10n.decimals,
+            subtitle: l10n.enableFractionalPricing,
+            svg: AdminDashboardSvgs.decimalsCurrency,
+            tint: const Color(0xFF16A34A),
+            value: settingsService.isCurrencyDecimal,
+            onChanged: toggleCurrencyDecimal,
+          ),
+          _SettingItem(
+            title: l10n.priceQtyAdjustment,
+            subtitle: l10n.autoAdjustQtyOnPriceChange,
+            svg: AdminDashboardSvgs.priceQtyAdjustment,
+            tint: _kAdminBarRed,
+            value: settingsService.enablePriceQuantityAdjustment,
+            onChanged: togglePriceQuantityAdjustment,
+          ),
+          _SettingItem(
+            title: l10n.autoAddSearch,
+            subtitle: l10n.autoAddItemsWhenOneMatch,
+            svg: AdminDashboardSvgs.autoAddSearch,
+            tint: const Color(0xFFEC4899),
+            value: enableAutoAddSearch,
+            onChanged: toggleAutoAddSearch,
+          ),
+        ],
+      ),
+      _SettingsGroup(
+        title: 'Workflow',
+        color: _kAdminBarPurple,
+        items: [
+          _SettingItem(
+            title: l10n.ticketReviewAndHandover,
+            subtitle:
+                'Require reviewer sign-off and stock-manager handover before a '
+                'paid ticket is fully completed',
+            svg: AdminDashboardSvgs.leadsCheckmark,
+            tint: _kAdminBarPurple,
+            value: settingsService.enableTicketReviewWorkflow,
+            onChanged: toggleTicketReviewWorkflow,
+          ),
+        ],
+      ),
+      _SettingsGroup(
+        title: 'Tax & compliance',
+        color: _kAdminBarTeal,
+        items: [
+          _SettingItem(
+            title: l10n.ebm,
+            subtitle: l10n.reinitializeEbm,
+            svg: AdminDashboardSvgs.ebm,
+            tint: _kAdminBarTeal,
+            value: switchToCloudSync,
+            onChanged: (_) => showReInitializeEbmDialog(context),
+          ),
+          _SettingItem(
+            title: l10n.taxService,
+            subtitle: l10n.manageTaxServiceStatus,
+            svg: AdminDashboardSvgs.taxService,
+            tint: _kAdminBarPurple,
+            value: stopTaxService,
+            onChanged: toggleTaxService,
+          ),
+        ],
+      ),
+      _SettingsGroup(
+        title: 'Data & sync',
+        color: _kAdminBarBlue,
+        items: [
+          _SettingItem(
+            title: l10n.hydrateData,
+            subtitle: l10n.refreshAllLocalData,
+            svg: AdminDashboardSvgs.hydrateData,
+            tint: _kAdminBarRed,
+            value: forceUPSERT,
+            onChanged: toggleForceUPSERT,
+          ),
+          _SettingItem(
+            title: l10n.assetDownload,
+            subtitle: l10n.manageImageDownloads,
+            svg: AdminDashboardSvgs.assetDownload,
+            tint: _kAdminBarBlue,
+            value: filesDownloaded,
+            onChanged: toggleDownload,
+          ),
+        ],
+      ),
+      _SettingsGroup(
+        title: 'Diagnostics',
+        color: _kAdminBarOrange,
+        items: [
+          _SettingItem(
+            title: l10n.userLogging,
+            subtitle: l10n.enableExtensiveUserLogging,
+            svg: AdminDashboardSvgs.userLogging,
+            tint: const Color(0xFF6366F1),
+            value: userLoggingEnabled,
+            onChanged: toggleUserLogging,
+          ),
+          if (kDebugMode)
+            _SettingItem(
+              title: l10n.debugMode,
+              subtitle: l10n.enableDebuggingFeatures,
+              svg: AdminDashboardSvgs.debugMode,
+              tint: _kAdminBarOrange,
+              value: enableDebug,
+              onChanged: enableDebugFunc,
+            ),
+        ],
+      ),
+    ];
+  }
+
   Widget _buildSystemSettings(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _adminSectionHeader(context, context.flipperL10n.systemSettings, _kAdminBarSlate),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 3,
-          childAspectRatio: 2.45,
-          mainAxisSpacing: 14,
-          crossAxisSpacing: 14,
-          children: [
-            if (kDebugMode)
-              SwitchSettingsCard(
-                title: context.flipperL10n.debugMode,
-                subtitle: context.flipperL10n.enableDebuggingFeatures,
-                leading: _adminLeadingSvg(
-                  AdminDashboardSvgs.debugMode,
-                  _kAdminBarOrange.withValues(alpha: 0.12),
-                ),
-                value: enableDebug,
-                onChanged: enableDebugFunc,
-              ),
-            SwitchSettingsCard(
-              title: context.flipperL10n.ebm,
-              subtitle: context.flipperL10n.reinitializeEbm,
-              leading: _adminLeadingSvg(
-                AdminDashboardSvgs.ebm,
-                _kAdminBarTeal.withValues(alpha: 0.1),
-              ),
-              value: switchToCloudSync,
-              onChanged: (bool value) {
-                showReInitializeEbmDialog(context);
-              },
-            ),
-            SwitchSettingsCard(
-              title: context.flipperL10n.taxService,
-              subtitle: context.flipperL10n.manageTaxServiceStatus,
-              leading: _adminLeadingSvg(
-                AdminDashboardSvgs.taxService,
-                _kAdminBarPurple.withValues(alpha: 0.1),
-              ),
-              value: stopTaxService,
-              onChanged: toggleTaxService,
-            ),
-            SwitchSettingsCard(
-              title: context.flipperL10n.hydrateData,
-              subtitle: context.flipperL10n.refreshAllLocalData,
-              leading: _adminLeadingSvg(
-                AdminDashboardSvgs.hydrateData,
-                _kAdminBarRed.withValues(alpha: 0.1),
-              ),
-              value: forceUPSERT,
-              onChanged: toggleForceUPSERT,
-            ),
-            SwitchSettingsCard(
-              title: context.flipperL10n.assetDownload,
-              subtitle: context.flipperL10n.manageImageDownloads,
-              leading: _adminLeadingSvg(
-                AdminDashboardSvgs.assetDownload,
-                _kAdminBarBlue.withValues(alpha: 0.1),
-              ),
-              value: filesDownloaded,
-              onChanged: toggleDownload,
-            ),
-            SwitchSettingsCard(
-              title: context.flipperL10n.autoAddSearch,
-              subtitle: context.flipperL10n.autoAddItemsWhenOneMatch,
-              leading: _adminLeadingSvg(
-                AdminDashboardSvgs.autoAddSearch,
-                const Color(0xFFEC4899).withValues(alpha: 0.1),
-              ),
-              value: enableAutoAddSearch,
-              onChanged: toggleAutoAddSearch,
-            ),
-            SwitchSettingsCard(
-              title: context.flipperL10n.userLogging,
-              subtitle: context.flipperL10n.enableExtensiveUserLogging,
-              leading: _adminLeadingSvg(
-                AdminDashboardSvgs.userLogging,
-                const Color(0xFF6366F1).withValues(alpha: 0.12),
-              ),
-              value: userLoggingEnabled,
-              onChanged: toggleUserLogging,
-            ),
-            ListenableBuilder(
-              listenable: settingsService,
-              builder: (context, child) {
-                return SwitchSettingsCard(
-                  title: context.flipperL10n.priceQtyAdjustment,
-                  subtitle: context.flipperL10n.autoAdjustQtyOnPriceChange,
-                  leading: _adminLeadingSvg(
-                    AdminDashboardSvgs.priceQtyAdjustment,
-                    _kAdminBarRed.withValues(alpha: 0.1),
-                  ),
-                  value: settingsService.enablePriceQuantityAdjustment,
-                  onChanged: togglePriceQuantityAdjustment,
-                );
-              },
-            ),
-            ListenableBuilder(
-              listenable: settingsService,
-              builder: (context, child) {
-                return SwitchSettingsCard(
-                  title: context.flipperL10n.decimals,
-                  subtitle: context.flipperL10n.enableFractionalPricing,
-                  leading: _adminLeadingSvg(
-                    AdminDashboardSvgs.decimalsCurrency,
-                    const Color(0xFF16A34A).withValues(alpha: 0.1),
-                  ),
-                  value: settingsService.isCurrencyDecimal,
-                  onChanged: toggleCurrencyDecimal,
-                );
-              },
-            ),
-            ListenableBuilder(
-              listenable: settingsService,
-              builder: (context, child) {
-                return SwitchSettingsCard(
-                  title: context.flipperL10n.ticketReviewAndHandover,
-                  subtitle:
-                      'Require reviewer sign-off and stock-manager handover '
-                      'before a paid ticket is fully completed',
-                  leading: _adminLeadingSvg(
-                    AdminDashboardSvgs.leadsCheckmark,
-                    const Color(0xFF7C3AED).withValues(alpha: 0.1),
-                  ),
-                  value: settingsService.enableTicketReviewWorkflow,
-                  onChanged: toggleTicketReviewWorkflow,
-                );
-              },
-            ),
-          ],
-        ),
-      ],
+    return ListenableBuilder(
+      listenable: settingsService,
+      builder: (context, _) {
+        return _SystemSettingsPanel(
+          title: context.flipperL10n.systemSettings,
+          groups: _systemSettingsGroups(context),
+        );
+      },
     );
   }
 
@@ -2849,6 +2845,399 @@ class SettingsCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One toggle in the system-settings panel.
+class _SettingItem {
+  final String title;
+  final String subtitle;
+  final String svg;
+  final Color tint;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SettingItem({
+    required this.title,
+    required this.subtitle,
+    required this.svg,
+    required this.tint,
+    required this.value,
+    required this.onChanged,
+  });
+
+  bool matches(String query) =>
+      title.toLowerCase().contains(query) ||
+      subtitle.toLowerCase().contains(query);
+}
+
+class _SettingsGroup {
+  final String title;
+  final Color color;
+  final List<_SettingItem> items;
+
+  const _SettingsGroup({
+    required this.title,
+    required this.color,
+    required this.items,
+  });
+}
+
+/// Dense, grouped, searchable replacement for the old 3-up grid of large
+/// switch cards. Rows stay a fixed compact height, so the section scales to any
+/// number of settings instead of growing by one big card per toggle.
+class _SystemSettingsPanel extends StatefulWidget {
+  final String title;
+  final List<_SettingsGroup> groups;
+
+  const _SystemSettingsPanel({required this.title, required this.groups});
+
+  @override
+  State<_SystemSettingsPanel> createState() => _SystemSettingsPanelState();
+}
+
+class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Groups with non-matching items removed; empty groups dropped.
+  List<_SettingsGroup> get _visibleGroups {
+    final groups = widget.groups
+        .map(
+          (g) => _SettingsGroup(
+            title: g.title,
+            color: g.color,
+            items: _query.isEmpty
+                ? g.items
+                : g.items.where((i) => i.matches(_query)).toList(),
+          ),
+        )
+        .where((g) => g.items.isNotEmpty)
+        .toList();
+    return groups;
+  }
+
+  /// Splits groups into [columns] buckets, balanced by row count so the
+  /// columns end up roughly the same height.
+  List<List<_SettingsGroup>> _distribute(
+    List<_SettingsGroup> groups,
+    int columns,
+  ) {
+    final buckets = List.generate(columns, (_) => <_SettingsGroup>[]);
+    final weights = List.filled(columns, 0);
+    for (final group in groups) {
+      var lightest = 0;
+      for (var i = 1; i < columns; i++) {
+        if (weights[i] < weights[lightest]) lightest = i;
+      }
+      buckets[lightest].add(group);
+      // +1 for the group header row itself.
+      weights[lightest] += group.items.length + 1;
+    }
+    return buckets;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final groups = _visibleGroups;
+    final total = widget.groups.fold<int>(0, (sum, g) => sum + g.items.length);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth > 900 ? 2 : 1;
+        final buckets = _distribute(groups, columns);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (constraints.maxWidth < 560) ...[
+              _adminSectionHeader(context, widget.title, _kAdminBarSlate),
+              SizedBox(
+                width: double.infinity,
+                child: _SettingsSearchField(
+                  controller: _searchController,
+                  hintText: '$total settings',
+                  expand: true,
+                  onChanged: (value) =>
+                      setState(() => _query = value.trim().toLowerCase()),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ] else ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: _adminSectionHeader(
+                      context,
+                      widget.title,
+                      _kAdminBarSlate,
+                    ),
+                  ),
+                  _SettingsSearchField(
+                    controller: _searchController,
+                    hintText: '$total settings',
+                    onChanged: (value) =>
+                        setState(() => _query = value.trim().toLowerCase()),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
+            if (groups.isEmpty)
+              Container(
+                width: double.infinity,
+                decoration: _adminCardDecoration(),
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                alignment: Alignment.center,
+                child: Text(
+                  'No setting matches "${_searchController.text.trim()}"',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    color: _kAdminSubtitleText,
+                  ),
+                ),
+              )
+            else if (columns == 1)
+              Column(
+                children: [
+                  for (final group in groups) ...[
+                    _SettingsGroupCard(group: group),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              )
+            else
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (var i = 0; i < buckets.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          for (final group in buckets[i]) ...[
+                            _SettingsGroupCard(group: group),
+                            const SizedBox(height: 14),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SettingsSearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final bool expand;
+  final ValueChanged<String> onChanged;
+
+  const _SettingsSearchField({
+    required this.controller,
+    required this.hintText,
+    required this.onChanged,
+    this.expand = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: expand ? double.infinity : 220,
+      height: 36,
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        style: GoogleFonts.outfit(fontSize: 13, color: _kAdminTitleText),
+        decoration: InputDecoration(
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
+          hintText: 'Search $hintText',
+          hintStyle: GoogleFonts.outfit(
+            fontSize: 13,
+            color: _kAdminSubtitleText,
+          ),
+          prefixIcon: const Icon(
+            Icons.search,
+            size: 16,
+            color: _kAdminSubtitleText,
+          ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 34),
+          suffixIcon: controller.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.close, size: 14),
+                  color: _kAdminSubtitleText,
+                  splashRadius: 14,
+                  onPressed: () {
+                    controller.clear();
+                    onChanged('');
+                  },
+                ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: const BorderSide(color: _kAdminCardBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: const BorderSide(color: _kAdminCardBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(9),
+            borderSide: const BorderSide(
+              color: PosLayoutBreakpoints.posAccentBlue,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsGroupCard extends StatelessWidget {
+  final _SettingsGroup group;
+
+  const _SettingsGroupCard({required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: _adminCardDecoration(),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            color: const Color(0xFFFAFAFB),
+            child: Row(
+              children: [
+                Container(
+                  width: 3,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: group.color,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  group.title.toUpperCase(),
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
+                    color: _kAdminSubtitleText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, thickness: 1, color: _kAdminCardBorder),
+          for (var i = 0; i < group.items.length; i++) ...[
+            if (i > 0)
+              Padding(
+                padding: const EdgeInsets.only(left: 52),
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: _kAdminCardBorder,
+                ),
+              ),
+            _SettingRow(item: group.items[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingRow extends StatelessWidget {
+  final _SettingItem item;
+
+  const _SettingRow({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => item.onChanged(!item.value),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          child: Row(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: item.tint.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: AdminDashboardSvgs.picture(item.svg, size: 15),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: _kAdminTitleText,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      item.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        color: _kAdminSubtitleText,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Transform.scale(
+                scale: 0.78,
+                child: Switch(
+                  value: item.value,
+                  onChanged: item.onChanged,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
+                  inactiveTrackColor: const Color(0xFFE5E7EB),
+                  inactiveThumbColor: Colors.white,
+                  activeThumbColor: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
       ),
