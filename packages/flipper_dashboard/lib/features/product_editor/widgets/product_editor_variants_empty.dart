@@ -13,6 +13,11 @@ class ProductEditorVariantsEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Fills the section width so it lines up with the scan field above.
+      // TableVariants renders this inside a Stack, which hands its children
+      // LOOSE constraints — without this the box shrink-wraps its text while the
+      // variant cards (whose Rows expand) sit at full width.
+      width: double.infinity,
       margin: const EdgeInsets.only(top: 14),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       decoration: BoxDecoration(
