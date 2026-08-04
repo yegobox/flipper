@@ -363,12 +363,28 @@ Future<void> main() async {
 
 /// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
 ///
-/// Enabled in debug on all platforms (including desktop). DevicePreview's frame
-/// [LayoutBuilder] rebuilds during [performLayout]; mounting [MaterialApp]
-/// (Tooltips / [OverlayPortal]) in that same pass trips Flutter's
-/// `!_skipMarkNeedsLayout` assert. [FlipperApp] therefore hosts the app under
-/// [_DevicePreviewOverlaySafeHost], which mounts [MaterialApp] after the frame.
-bool get kFlipperDevicePreviewEnabled => kDebugMode;
+/// OFF by default, even in debug. Opt in per run with
+/// `--dart-define=FLIPPER_DEVICE_PREVIEW=true`.
+///
+/// DevicePreview wraps the whole app in a frame [LayoutBuilder], so EVERY
+/// rebuild below it happens during [performLayout]. That turns ordinary
+/// navigation into an assertion storm: pushing a route rebuilds stacked's
+/// GlobalKey'd `Navigator`, whose subtree gets deactivated and re-activated;
+/// each [OverlayPortal] inside it re-inserts its deferred child via
+/// `_RenderTheater._addDeferredChild`, which calls `adoptChild` →
+/// `markNeedsLayout` on a render object outside the LayoutBuilder currently in
+/// layout. Flutter throws "A _RenderLayoutBuilder was mutated in
+/// _RenderLayoutBuilder.performLayout", followed by
+/// `_elements.contains(element)` from the GlobalKey retake.
+///
+/// The fallout outlives the trigger: both `_RenderTheater._addDeferredChild`
+/// and `MouseTracker._deviceUpdatePhase` set a debug guard, run a callback and
+/// clear the guard with no try/finally, so the first throw leaves the guard
+/// stuck true and every later frame asserts identically until a restart.
+/// [_DevicePreviewOverlaySafeHost] only defers the FIRST [MaterialApp] mount —
+/// it cannot protect later route pushes.
+bool get kFlipperDevicePreviewEnabled =>
+    kDebugMode && const bool.fromEnvironment('FLIPPER_DEVICE_PREVIEW');
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
