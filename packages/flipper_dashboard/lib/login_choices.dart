@@ -19,6 +19,9 @@ import 'package:flipper_personal/flipper_personal.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/app_choice_dialog.dart';
+import 'package:flipper_dashboard/books_module_navigation.dart';
+import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -748,12 +751,18 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         if (!isMobileDevice) {
           String? defaultApp = ProxyService.box.getDefaultApp();
           if (defaultApp == null) {
-            final dialogService = locator<DialogService>();
-            final response = await dialogService.showCustomDialog(
+            final response = await showAppChoiceDialog(
+              dialogService: locator<DialogService>(),
               variant: DialogType.appChoice,
               title: l10n.chooseYourDefaultApp,
+              request: AppChoiceDialogRequest(
+                awaitsExternalNavigation: true,
+                businessName: business.name,
+                branchName: branches.first.name,
+              ),
             );
             if (response?.confirmed != true || response?.data == null) {
+              await AppLaunchOverlay.dismiss();
               setState(() {
                 _loadingItemId = null;
               });
@@ -773,6 +782,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       }
     } catch (e) {
       talker.error('Error handling business selection: $e');
+      // The launch curtain would otherwise sit over the error until its safety
+      // timeout.
+      await AppLaunchOverlay.dismiss();
       if (mounted) {
         ErrorHandler.showErrorSnackBar(context, e);
       }
@@ -851,16 +863,22 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         // Choose default app if not set
         String? defaultApp = ProxyService.box.getDefaultApp();
         if (defaultApp == null) {
-          final dialogService = locator<DialogService>();
-          final response = await dialogService.showCustomDialog(
+          final response = await showAppChoiceDialog(
+            dialogService: locator<DialogService>(),
             variant: DialogType.appChoice,
             title: l10n.chooseYourDefaultApp,
+            request: AppChoiceDialogRequest(
+              awaitsExternalNavigation: true,
+              businessName: _selectedBusinessName(),
+              branchName: branch.name,
+            ),
           );
 
           if (response?.confirmed == true && response?.data != null) {
             defaultApp = response!.data['defaultApp'];
           } else {
             // User cancelled app choice, maybe default to POS or stay here
+            await AppLaunchOverlay.dismiss();
             return; // Stop if no app is chosen
           }
         }
@@ -869,6 +887,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _completeAuthenticationFlow();
     } catch (e) {
       talker.error('Error handling branch selection: $e');
+      // The launch curtain would otherwise sit over the error until its safety
+      // timeout.
+      await AppLaunchOverlay.dismiss();
       if (!mounted) return;
       ErrorHandler.showErrorSnackBar(context, e);
     } finally {
@@ -884,10 +905,27 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     }
   }
 
+  /// Name of the business the user just picked, for the app switcher's context
+  /// chips. Null when [businessesProvider] has not resolved yet.
+  String? _selectedBusinessName() {
+    final businessId = ref.read(selectedBusinessIdProvider);
+    if (businessId == null) return null;
+    for (final business in ref.read(businessesProvider).value ?? <Business>[]) {
+      if (business.id == businessId) return business.name;
+    }
+    return null;
+  }
+
   // Consolidating logic into AppService
 
   Future<void> _completeAuthenticationFlow() async {
     final selectedBusinessId = ref.read(selectedBusinessIdProvider);
+    // Captured while still mounted: this widget is gone once the stack is
+    // cleared, but the launch curtain and the Books hand-off below still need a
+    // navigator.
+    final rootNavigator = mounted
+        ? Navigator.maybeOf(context, rootNavigator: true)
+        : null;
     final commissionOnly = await refreshCommissionOnlySession(
       businessId: selectedBusinessId,
     );
@@ -930,6 +968,20 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         skipCommissionCheck: true,
       );
     }
+
+    // Books is its own route rather than a dashboard tab, so it is pushed here —
+    // after the authenticated home replaced the stack. Pushing it from the app
+    // switcher instead would race `clearStack` and land the user on the
+    // dashboard while the curtain said "Opening Books".
+    if (!commissionOnly &&
+        rootNavigator != null &&
+        ProxyService.box.getDefaultApp() == 'Books') {
+      unawaited(openBooksModuleOn(rootNavigator));
+    }
+
+    // Destination is on screen: lift the "Opening <app>" curtain (no-op when the
+    // user was not routed through the app switcher).
+    AppLaunchOverlay.dismissWhenSettled();
 
     // PIN login often defers Ditto sync until after business/branch selection.
     if (commissionOnly) {

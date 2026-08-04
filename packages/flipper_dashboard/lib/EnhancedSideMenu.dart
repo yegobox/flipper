@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show
@@ -347,7 +348,8 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
                 PosTokens.ink3,
               ),
               onPressed: () {
-                _dialogService.showCustomDialog(
+                showAppChoiceDialog(
+                  dialogService: _dialogService,
                   variant: DialogType.appChoice,
                   title: 'Choose Your Default App',
                 );

@@ -18,16 +18,29 @@ Future<void> navigateToBooksModule(
   WidgetRef ref, {
   NavigatorState? navigator,
 }) async {
+  final nav = navigator ?? Navigator.maybeOf(context, rootNavigator: true);
+  if (nav == null) {
+    await ProxyService.box.writeString(key: 'defaultApp', value: 'Books');
+    return;
+  }
+
+  await openBooksModuleOn(nav);
+}
+
+/// Opens Books with only a [NavigatorState] in hand — for callers that no longer
+/// have a live [BuildContext], e.g. the login flow after it cleared the stack.
+///
+/// Resolves when Books is popped, so callers that just want it on screen should
+/// not await it.
+Future<void> openBooksModuleOn(NavigatorState navigator) async {
   await ProxyService.box.writeString(key: 'defaultApp', value: 'Books');
 
-  final nav = navigator ?? Navigator.maybeOf(context, rootNavigator: true);
-  if (nav == null) return;
+  popBooksModuleIfOpen(navigator);
 
-  popBooksModuleIfOpen(nav);
+  final isDesktop =
+      MediaQuery.sizeOf(navigator.context).width >= SITokens.desktopBreakpoint;
 
-  final isDesktop = MediaQuery.sizeOf(nav.context).width >= SITokens.desktopBreakpoint;
-
-  await nav.push<void>(
+  await navigator.push<void>(
     MaterialPageRoute<void>(
       fullscreenDialog: isDesktop,
       settings: const RouteSettings(name: BooksModuleEntry.routeName),
