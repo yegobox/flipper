@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_field.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_select.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_category_picker.dart';
+import 'package:flipper_models/countries_asset.dart' show kDefaultCountryCode;
 import 'package:flipper_models/providers/country_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -65,11 +66,7 @@ class _ProductEditorInventorySectionState
       label: 'Raw material — used to make other products',
       short: 'Raw material',
     ),
-    (
-      value: '3',
-      label: 'Service — nothing to keep in stock',
-      short: 'Service',
-    ),
+    (value: '3', label: 'Service — nothing to keep in stock', short: 'Service'),
   ];
 
   String _packagingLabel(String unit) {
@@ -92,9 +89,15 @@ class _ProductEditorInventorySectionState
     }
     final countryList = unique.values.toList();
     final currentCode = widget.countryOfOriginController.text;
+    // Falls back to RW explicitly rather than to the first row: the list is now
+    // the full ISO set, where "first" alphabetically would file products under
+    // Ascension Island. RW also matches what the save path uses when the field
+    // is left blank.
     final countryValue = countryList.any((c) => c.code == currentCode)
         ? currentCode
-        : (countryList.isNotEmpty ? countryList.first.code : null);
+        : (countryList.any((c) => c.code == kDefaultCountryCode)
+              ? kDefaultCountryCode
+              : (countryList.isNotEmpty ? countryList.first.code : null));
 
     if (countryValue != null && currentCode.isEmpty && countryList.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -150,7 +153,8 @@ class _ProductEditorInventorySectionState
               final packaging = PeField(
                 label: 'Packaging unit',
                 child: PeSelect<String>(
-                  value: widget.pkgUnits.contains(widget.selectedPackageUnitValue)
+                  value:
+                      widget.pkgUnits.contains(widget.selectedPackageUnitValue)
                       ? widget.selectedPackageUnitValue
                       : (widget.pkgUnits.isNotEmpty
                             ? widget.pkgUnits.first
@@ -167,26 +171,37 @@ class _ProductEditorInventorySectionState
               );
               final origin = PeField(
                 label: 'Country of origin',
+                // The country list comes from the `countries` table via Brick
+                // (awaitRemoteWhenNoneExist). When that table is empty the
+                // dropdown has no items and renders as a dead grey box, so say
+                // what will actually be saved instead.
+                hint: countryList.isEmpty && !countriesAsync.isLoading
+                    ? 'No country list available yet — new products are saved '
+                          'as RW.'
+                    : null,
                 child: countriesAsync.when(
-                  data: (_) => PeSelect<String>(
-                    value: countryValue,
-                    items: [
-                      for (final country in countryList)
-                        DropdownMenuItem(
-                          value: country.code,
-                          child: Text(
-                            '${country.name} (${country.code})'.toUpperCase(),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                  data: (_) => countryList.isEmpty
+                      ? const _UnavailableValueBox(value: 'RW (default)')
+                      : PeSelect<String>(
+                          value: countryValue,
+                          items: [
+                            for (final country in countryList)
+                              DropdownMenuItem(
+                                value: country.code,
+                                child: Text(
+                                  '${country.name} (${country.code})'
+                                      .toUpperCase(),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                          onChanged: (code) {
+                            if (code != null) {
+                              widget.countryOfOriginController.text = code;
+                              setState(() {});
+                            }
+                          },
                         ),
-                    ],
-                    onChanged: (code) {
-                      if (code != null) {
-                        widget.countryOfOriginController.text = code;
-                        setState(() {});
-                      }
-                    },
-                  ),
                   loading: () => const SizedBox(
                     height: 50,
                     child: Center(
@@ -230,6 +245,45 @@ class _ProductEditorInventorySectionState
   }
 }
 
+/// Stands in for a dropdown whose option list is empty, showing the value that
+/// will actually be used. An items-less [PeSelect] renders as a greyed, dead
+/// control that reads as a bug.
+class _UnavailableValueBox extends StatelessWidget {
+  const _UnavailableValueBox({required this.value});
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: ProductEditorTokens.fieldHeight,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: ProductEditorTokens.surface2,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: ProductEditorTokens.line, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              value,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: ProductEditorTokens.ink2,
+              ),
+            ),
+          ),
+          const Icon(Icons.lock, size: 16, color: ProductEditorTokens.ink4),
+        ],
+      ),
+    );
+  }
+}
+
 /// Discloses the RRA packaging/origin fields while keeping their current values
 /// readable when collapsed — hidden must not mean unknown.
 class _TaxDetailsToggle extends StatelessWidget {
@@ -259,11 +313,7 @@ class _TaxDetailsToggle extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.tune,
-                size: 17,
-                color: ProductEditorTokens.ink3,
-              ),
+              const Icon(Icons.tune, size: 17, color: ProductEditorTokens.ink3),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

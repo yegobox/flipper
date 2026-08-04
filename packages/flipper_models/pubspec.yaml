@@ -115,3 +115,7 @@ flutter:
   uses-material-design: true
   assets:
     - jsons/
+    # Reference data shipped with the app so the country-of-origin picker works
+    # before/without any `countries` rows syncing down. Loaded via
+    # rootBundle as `packages/flipper_models/assets/countries.csv`.
+    - assets/countries.csv
