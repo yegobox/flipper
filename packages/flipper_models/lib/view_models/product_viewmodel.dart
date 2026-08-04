@@ -160,18 +160,24 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   }
 
   ///create a new category and refresh list of categories
-  Future<void> createCategory() async {
+  ///
+  /// Returns the created [Category] so callers (e.g. the product editor) can
+  /// select it immediately instead of asking the user to search for it again.
+  /// Returns null when there is nothing to create (blank name / no branch).
+  Future<Category?> createCategory() async {
     final String? branchId = ProxyService.box.getBranchId();
-    if (categoryName == null) return;
+    final String name = categoryName?.trim() ?? '';
+    if (name.isEmpty || branchId == null) return null;
     final Category category = Category(
-      name: categoryName!,
+      name: name,
       active: true,
       focused: false,
-      branchId: branchId!,
+      branchId: branchId,
     );
 
     await ProxyService.strategy.create<Category>(data: category);
     app.loadCategories();
+    return category;
   }
 
   void updateCategory({required Category category}) async {

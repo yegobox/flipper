@@ -168,6 +168,45 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return name;
   }
 
+  String? _categoryNameFor(String categoryId) {
+    final categories = ref.read(categoryProvider).value ?? const <Category>[];
+    for (final category in categories) {
+      if (category.id == categoryId) return category.name;
+    }
+    return null;
+  }
+
+  /// Keeps [selectedCategoryId] and [selectedCategoryName] in lockstep, and
+  /// honours a null (cleared) selection. Previously only the id was stored and
+  /// nulls were dropped, so the editor showed no name for a freshly picked
+  /// category — and kept showing the old name after a change in edit mode.
+  void _onCategorySelected(String? categoryId) {
+    if (!mounted) return;
+    final resolvedName = categoryId == null
+        ? null
+        : _categoryNameFor(categoryId);
+    final unchanged = categoryId != null && categoryId == selectedCategoryId;
+    setState(() {
+      selectedCategoryId = categoryId;
+      selectedCategoryName =
+          resolvedName ?? (unchanged ? selectedCategoryName : null);
+    });
+  }
+
+  /// Opens the create-category dialog and selects whatever it returns, so the
+  /// user never has to hunt for the category they just created.
+  Future<void> _createAndSelectCategory({String? initialName}) async {
+    final created = await showAddCategoryModal(
+      context,
+      initialName: initialName,
+    );
+    if (!mounted || created == null) return;
+    setState(() {
+      selectedCategoryId = created.id;
+      selectedCategoryName = created.name;
+    });
+  }
+
   void _addVariantsToProvider(List<Variant> variants) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId != null && mounted) {
@@ -952,7 +991,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               def: ProductEditorSectionDef(
                 id: 'inventory',
                 title: 'Inventory & categorization',
-                subtitle: 'Category & class',
+                subtitle: 'Category & item type',
                 icon: Icons.layers_outlined,
                 isFilled: inventoryFilled,
               ),
@@ -967,12 +1006,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 },
                 selectedCategoryId: selectedCategoryId,
                 selectedCategoryName: selectedCategoryName,
-                onCategoryChanged: (newValue) {
-                  if (newValue != null) {
-                    setState(() => selectedCategoryId = newValue);
-                  }
-                },
-                onAddCategory: () => showAddCategoryModal(context),
+                onCategoryChanged: _onCategorySelected,
+                onAddCategory: _createAndSelectCategory,
+                onCreateCategory: (initialName) =>
+                    _createAndSelectCategory(initialName: initialName),
                 selectedProductType: selectedProductType,
                 onProductTypeChanged: (newValue) {
                   if (newValue != null) {
@@ -1212,12 +1249,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     },
                     selectedCategoryId: selectedCategoryId,
                     selectedCategoryName: selectedCategoryName,
-                    onCategoryChanged: (newValue) {
-                      if (newValue != null) {
-                        setState(() => selectedCategoryId = newValue);
-                      }
-                    },
-                    onAddCategory: () => showAddCategoryModal(context),
+                    onCategoryChanged: _onCategorySelected,
+                    onAddCategory: _createAndSelectCategory,
                     selectedProductType: selectedProductType,
                     onProductTypeChanged: (newValue) {
                       if (newValue != null) {

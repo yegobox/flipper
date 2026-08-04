@@ -4,7 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Handoff `.pe-var-empty` placeholder.
 class ProductEditorVariantsEmpty extends StatelessWidget {
-  const ProductEditorVariantsEmpty({super.key});
+  const ProductEditorVariantsEmpty({super.key, this.isEditMode = false});
+
+  /// "No variants yet" reads as a warning on a product that already exists, so
+  /// the wording states the situation instead.
+  final bool isEditMode;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,9 @@ class ProductEditorVariantsEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'No variants yet',
+            isEditMode
+                ? 'This product has no variants'
+                : 'No variants yet',
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -47,7 +53,7 @@ class ProductEditorVariantsEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 3),
           Text(
-            'Scan or type a variant name above to add one',
+            'Scan a barcode or type a name above to add one',
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: 12.5,

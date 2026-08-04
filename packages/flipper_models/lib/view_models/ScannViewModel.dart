@@ -37,7 +37,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   // Toggles selection for a specific variant.
   void toggleSelect(String variantId) {
-    _selectedVariants[variantId] = !_selectedVariants[variantId]!;
+    // Absent means "not selected" — the map is only ever populated by toggling,
+    // so `!_selectedVariants[variantId]!` threw on the first tap of any row that
+    // had not been through toggleSelectAll. Matches [isSelected]'s `?? false`.
+    _selectedVariants[variantId] = !(_selectedVariants[variantId] ?? false);
     notifyListeners();
   }
 
