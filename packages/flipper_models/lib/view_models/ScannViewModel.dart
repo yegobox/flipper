@@ -506,6 +506,46 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
+  /// Absolute stock quantities the operator set in this editor session, by variant
+  /// id — deferred until **Save product** (see [flushPendingStockQuantities]).
+  final Map<String, double> _pendingStockQty = {};
+
+  /// Persists an operator-set absolute quantity through [updateStock].
+  ///
+  /// A plain variant/stock document upsert only writes the `currentStock`
+  /// register, while readers (POS tiles, product rows, the editor itself) prefer
+  /// the Capella `currentStockMilli` COUNTER — so a register-only write leaves
+  /// every list showing the old number. [updateStock] does the COUNTER RESTART
+  /// plus the register dual-write, and the Brick strategy mirrors it into Capella.
+  Future<void> _persistStockQuantity(Variant variant, double quantity) async {
+    final stockId = variant.stockId;
+    if (stockId == null || stockId.isEmpty || variant.itemTyCd == "3") return;
+    await ProxyService.strategy.updateStock(
+      stockId: stockId,
+      currentStock: quantity,
+      rsdQty: quantity,
+      value: quantity * (variant.retailPrice ?? 0.0),
+      lastTouched: DateTime.now().toUtc(),
+    );
+  }
+
+  /// Writes quantities captured with `persistToBackend: false` (Add/Edit variant
+  /// sheet) once the variants exist with a stock row. Call after the save loop.
+  Future<void> flushPendingStockQuantities() async {
+    if (_pendingStockQty.isEmpty) return;
+    final pending = Map<String, double>.from(_pendingStockQty);
+    _pendingStockQty.clear();
+    for (final entry in pending.entries) {
+      final index = scannedVariants.indexWhere((v) => v.id == entry.key);
+      if (index == -1) continue;
+      try {
+        await _persistStockQuantity(scannedVariants[index], entry.value);
+      } catch (e) {
+        talker.warning('Failed to flush stock qty for ${entry.key}: $e');
+      }
+    }
+  }
+
   /// Updates quantity on the in-memory scanned variant (and linked [Stock] if any).
   ///
   /// When [persistToBackend] is false (e.g. Add variant sheet before **Save product**),
@@ -525,6 +565,23 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final scannedVariant = scannedVariants[index];
         scannedVariant.qty = newQuantity;
         scannedVariant.lastTouched = DateTime.now().toUtc();
+
+        // A variant without a Stock row would silently drop the edit: the UI
+        // reads `stock.currentStock`, and persistence is keyed on `stockId`.
+        if (scannedVariant.stock == null && scannedVariant.itemTyCd != "3") {
+          final stock = Stock(
+            branchId: scannedVariant.branchId,
+            currentStock: newQuantity,
+            rsdQty: newQuantity,
+            initialStock: newQuantity,
+            lowStock: lowStock ?? 0.0,
+            value: newQuantity * (scannedVariant.retailPrice ?? 0.0),
+            lastTouched: DateTime.now().toUtc(),
+            ebmSynced: false,
+          );
+          scannedVariant.stock = stock;
+          scannedVariant.stockId = stock.id;
+        }
 
         if (scannedVariant.stock != null) {
           scannedVariant.stock!.currentStock = newQuantity;
@@ -555,12 +612,18 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               await ProxyService.strategy.updateVariant(
                 updatables: [scannedVariant],
               );
+              // Register-only writes leave the milli COUNTER (what the lists read)
+              // on the old value — set the quantity through updateStock as well.
+              await _persistStockQuantity(scannedVariant, newQuantity);
             }
           } catch (e) {
             talker.warning(
               "Failed to persist stock update (expected for new variants): $e",
             );
+            _pendingStockQty[scannedVariant.id] = newQuantity;
           }
+        } else {
+          _pendingStockQty[scannedVariant.id] = newQuantity;
         }
       } else {
         // Handle the exception if the variant is not found
@@ -741,6 +804,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             skipRRaCall: variant.ebmSynced == true,
           );
         }
+
+        // Quantities typed in the variant sheet were held back until the stock
+        // rows existed; write them (COUNTER + register) now.
+        await flushPendingStockQuantities();
 
         // Call the onCompleteCallback if provided
         if (onCompleteCallback != null) {

@@ -68,7 +68,9 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
   Future<void> _syncLocalPath() async {
     final assetName = _variantAssetName(widget.variant);
     if (assetName == null || assetName.isEmpty) {
-      if (mounted) setState(() => _localPath = null);
+      // Runs synchronously from initState/didUpdateWidget — only touch state when
+      // it actually changes, so no rebuild is scheduled mid build/layout.
+      if (mounted && _localPath != null) setState(() => _localPath = null);
       return;
     }
 
@@ -148,8 +150,13 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
   Widget build(BuildContext context) {
     final name = _variantAssetName(widget.variant);
     final hasImage = name != null && name.isNotEmpty;
-    return Tooltip(
-      message: hasImage ? 'Change variant image' : 'Add variant image',
+    // Semantics, not Tooltip: a Tooltip's OverlayPortal child cannot attach while
+    // an ancestor LayoutBuilder is in performLayout (DevicePreview wraps the whole
+    // app in one — see kFlipperDevicePreviewEnabled), and these cells mount in
+    // exactly such a rebuild when the editor's variants arrive.
+    return Semantics(
+      button: true,
+      label: hasImage ? 'Change variant image' : 'Add variant image',
       child: InkWell(
         onTap: _uploading ? null : _pickAndUpload,
         borderRadius: BorderRadius.circular(8),

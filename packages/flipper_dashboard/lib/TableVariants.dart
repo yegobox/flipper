@@ -56,47 +56,54 @@ class TableVariants extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768; // Common breakpoint for mobile
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final content = isMobile
-            ? _buildMobileLayout(context, constraints)
-            : useCardLayout
-            ? _buildDesktopCardLayout(context)
-            : _buildDesktopLayout(context, constraints);
+    // Only the legacy DataTable layout needs the incoming constraints, and the
+    // card / mobile subtrees must stay OUT of a LayoutBuilder: they mount
+    // Tooltips (variant image cell) whose OverlayPortal child cannot be attached
+    // while a LayoutBuilder is performing layout — that trips
+    // `_RenderTheater._addDeferredChild` / `_elements.contains(element)`.
+    if (isMobile) return _wrapContent(context, _buildMobileLayout(context));
+    if (useCardLayout) {
+      return _wrapContent(context, _buildDesktopCardLayout(context));
+    }
 
-        return Stack(
-          children: [
-            if (useCardLayout)
-              content
-            else
-              Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: .1),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          _wrapContent(context, _buildDesktopLayout(context, constraints)),
+    );
+  }
+
+  Widget _wrapContent(BuildContext context, Widget content) {
+    return Stack(
+      children: [
+        if (useCardLayout)
+          content
+        else
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .1),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
                 ),
-                child: content,
-              ),
-            // Show delete button only if at least one item is selected
-            if (model.scannedVariants.any(
-              (variant) => model.isSelected(variant.id),
-            ))
-              Positioned(
-                top: 10,
-                right: 10,
-                child: _buildDeleteButton(context, model),
-              ),
-          ],
-        );
-      },
+              ],
+            ),
+            child: content,
+          ),
+        // Show delete button only if at least one item is selected
+        if (model.scannedVariants.any(
+          (variant) => model.isSelected(variant.id),
+        ))
+          Positioned(
+            top: 10,
+            right: 10,
+            child: _buildDeleteButton(context, model),
+          ),
+      ],
     );
   }
 
@@ -251,7 +258,7 @@ class TableVariants extends StatelessWidget {
                   _cardField(
                     'Quantity',
                     PeVariantQtyButton(
-                      quantity: variant.stock?.currentStock,
+                      quantity: variant.stock?.currentStock ?? variant.qty,
                       onTap: () => showEditQuantityDialog(
                         context,
                         variant,
@@ -441,7 +448,7 @@ class TableVariants extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
+  Widget _buildMobileLayout(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
       itemCount: model.scannedVariants.length,
@@ -523,7 +530,7 @@ class TableVariants extends StatelessWidget {
                 _buildMobileInfoRow(
                   'Quantity',
                   QuantityCell(
-                    quantity: variant.stock?.currentStock,
+                    quantity: variant.stock?.currentStock ?? variant.qty,
                     onEdit: () {
                       showEditQuantityDialog(context, variant, model, () {
                         FocusScope.of(
@@ -760,7 +767,7 @@ class TableVariants extends StatelessWidget {
         DataCell(Text(variant.retailPrice?.toStringAsFixed(2) ?? '')),
         DataCell(
           QuantityCell(
-            quantity: variant.stock?.currentStock,
+            quantity: variant.stock?.currentStock ?? variant.qty,
             onEdit: () {
               showEditQuantityDialog(context, variant, model, () {
                 FocusScope.of(context).requestFocus(scannedInputFocusNode);

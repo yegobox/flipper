@@ -30,6 +30,7 @@ class ProductEditorCategoryPicker extends ConsumerStatefulWidget {
 class _ProductEditorCategoryPickerState
     extends ConsumerState<ProductEditorCategoryPicker> {
   FocusNode? _activeFocusNode;
+  TextEditingController? _activeController;
 
   @override
   void dispose() {
@@ -50,6 +51,11 @@ class _ProductEditorCategoryPickerState
 
   void _selectCategory(Category category) {
     widget.onCategoryChanged(category.id);
+    // Clear the query in place. Re-keying the TypeAheadField instead would
+    // tear down its Floater (an OverlayPortal) and mount a new one, which
+    // asserts when the remount lands inside an ancestor LayoutBuilder's layout
+    // pass and leaves the disposed FloaterLink painting for a frame.
+    _activeController?.clear();
     _activeFocusNode?.unfocus();
   }
 
@@ -73,7 +79,6 @@ class _ProductEditorCategoryPickerState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TypeAheadField<Category>(
-          key: ValueKey(widget.selectedCategoryId ?? 'no-cat'),
           suggestionsCallback: (search) {
             return categoriesAsync.when(
               data: (categories) {
@@ -91,6 +96,7 @@ class _ProductEditorCategoryPickerState
           hideOnUnfocus: false,
           builder: (context, controller, focusNode) {
             _attachFocusNode(focusNode);
+            _activeController = controller;
             final focused = focusNode.hasFocus;
             return Container(
               height: ProductEditorTokens.fieldHeight,

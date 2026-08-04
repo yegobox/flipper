@@ -178,6 +178,10 @@ mixin ProductMixin {
           variations: updatables,
           branchId: ProxyService.box.getBranchId()!);
 
+      // Quantities typed in the variant sheet are held back until the stock rows
+      // exist; write them through updateStock so the milli COUNTER matches.
+      await model.flushPendingStockQuantities();
+
       model.notifyListeners();
 
       onCompleteCallback(updatables);

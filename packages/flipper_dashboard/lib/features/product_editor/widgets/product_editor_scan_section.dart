@@ -100,13 +100,18 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
                 ),
               ),
               if (_showCamera) ...[
-                IconButton(
-                  onPressed: widget.onRequestCamera,
-                  icon: const Icon(
-                    Icons.photo_camera_outlined,
-                    color: ProductEditorTokens.blue,
+                // `tooltip:` would build a Tooltip (OverlayPortal), which cannot
+                // attach while an ancestor LayoutBuilder is laying out.
+                Semantics(
+                  button: true,
+                  label: 'Scan with camera',
+                  child: IconButton(
+                    onPressed: widget.onRequestCamera,
+                    icon: const Icon(
+                      Icons.photo_camera_outlined,
+                      color: ProductEditorTokens.blue,
+                    ),
                   ),
-                  tooltip: 'Scan with camera',
                 ),
               ],
               Material(
