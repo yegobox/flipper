@@ -345,7 +345,17 @@ class CronService {
         "'$branchId' AND status = 'delegated' AND selectedDelegationDeviceId = '$deviceId'",
       );
 
-      await _delegationsSubscription?.cancel();
+      // Cancelling can throw when the previous stream's Ditto instance was
+      // already closed (logout / user switch). That must not stop us from
+      // re-establishing monitoring on the new instance.
+      final previous = _delegationsSubscription;
+      _delegationsSubscription = null;
+      _delegationMonitoringDeviceId = null;
+      try {
+        await previous?.cancel();
+      } catch (e) {
+        talker.warning('Ignoring stale delegation subscription cancel: $e');
+      }
 
       _delegationsSubscription = ProxyService.getStrategy(Strategy.capella)
           .delegationsStream(

@@ -5,6 +5,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
+import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -275,8 +276,8 @@ mixin CapellaDelegationMixin implements DelegationInterface {
 
       controller.onCancel = () async {
         debugPrint('🛑 Delegations stream cancelled');
-        await observer?.cancel();
-        await controller.close();
+        await cancelDittoStoreObserver(observer);
+        if (!controller.isClosed) await controller.close();
       };
 
       return controller.stream;
