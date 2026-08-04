@@ -1,5 +1,6 @@
 library flipper_dashboard;
 
+import 'package:flipper_dashboard/widgets/startup_progress_screen.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -33,31 +34,9 @@ class _StartUpViewState extends State<StartUpView> {
       },
       builder: (context, model, child) {
         debugPrint('🎬 [StartUpView] builder started');
-        return Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Flipper',
-                  style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                const Text('A revolutionary business software...'),
-                const SizedBox(height: 20),
-                CircularProgressIndicator(value: model.progress),
-                const SizedBox(height: 10),
-                Text(
-                  '${(model.progress * 100).toInt()}%',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+        // The view model publishes progress in 20% steps; the screen smooths
+        // them into a counter that ticks one percent at a time.
+        return StartupProgressScreen(progress: model.progress);
       },
     );
   }
