@@ -156,6 +156,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'pendingCustomerName',
     'pendingCustomerTin',
     'getDefaultApp',
+    'sessionClearedAt',
     'background_sync_enabled',
     'pending_digital_receipt_',
     // Bar Mode (branch-synced via Ditto; local cache for sync reads)
@@ -198,21 +199,7 @@ class SharedPreferenceStorage implements LocalStorage {
         return;
       }
 
-      final lVer = (legacy['_preferencesVersion'] as num?)?.toInt() ?? 0;
-      final dVer = (dittoMap['_preferencesVersion'] as num?)?.toInt() ?? 0;
-      final lDb = (legacy['dbVersion'] as num?)?.toInt() ?? 0;
-      final dDb = (dittoMap['dbVersion'] as num?)?.toInt() ?? 0;
-
-      final legacyWins = lVer > dVer || (lVer == dVer && lDb > dDb);
-      if (legacyWins) {
-        _cache = Map<String, dynamic>.from(dittoMap)..addAll(legacy);
-      } else {
-        _cache = Map<String, dynamic>.from(legacy)..addAll(dittoMap);
-      }
-
-      // Ditto merge can reintroduce a previous user's id from flipper_local_prefs.
-      // Restore in-memory session identity (API user id + branch/business picks).
-      _restoreSessionIdentity(_cache, legacy, dittoMap);
+      _cache = mergeDittoPreferences(legacy: legacy, dittoMap: dittoMap);
 
       await _writeDittoPayload();
       await _savePreferences();
@@ -236,14 +223,150 @@ class SharedPreferenceStorage implements LocalStorage {
     'userIdString',
   };
 
-  String? _nonEmptySessionString(dynamic value) {
+  /// Millis timestamp of the last [clearSessionKeys]. Used to stop a stale Ditto
+  /// prefs payload from resurrecting a session that was logged out — see
+  /// [attachDittoPersistence].
+  static const String _kSessionClearedAtKey = 'sessionClearedAt';
+
+  /// Everything that belongs to "who is signed in and what were they doing".
+  ///
+  /// Deliberately excludes device-level prefs that must survive logout:
+  /// `encryptionKey`, `databaseFilename`, `queueFilename`, `dbVersion`,
+  /// `thisDeviceId`, `getServerUrl`, `defaultLanguage`, cached MFA secrets
+  /// (offline authenticator login) and EBM/tax config (`tin`, `bhfId`, `mrc`,
+  /// `vatEnabled`), which are only re-hydrated conditionally after login.
+  static const Set<String> _sessionKeys = {
+    // Identity
+    'userId',
+    'userIdString',
+    'userPhone',
+    'userName',
+    'uid',
+    'isAnonymous',
+    'yegoboxLoggedInUserPermission',
+    'commissionOnlySession',
+    // Tokens / auth state
+    'authComplete',
+    'bearerToken',
+    'token',
+    'UToken',
+    'otp',
+    'getIsTokenRegistered',
+    'pinLogin',
+    'from_login',
+    'freshSignup',
+    // Business / branch selection
+    'businessId',
+    'currentBusinessId',
+    'getBusinessServerId',
+    'branchId',
+    'branchIdString',
+    'currentBranchId',
+    'active_branch_id',
+    'getBranchServerId',
+    'branch_switched',
+    'branch_switching',
+    'last_branch_switch_timestamp',
+    // Landing app / mode
+    'defaultApp',
+    'getDefaultApp',
+    'isPosDefault',
+    'isOrdersDefault',
+    'isProformaMode',
+    'isTrainingMode',
+    // In-flight sale state
+    'transactionId',
+    'currentOrderId',
+    'transactionInProgress',
+    'transactionCompleting',
+    'customerName',
+    'customerTin',
+    'currentSaleCustomerPhoneNumber',
+    'pendingCustomerName',
+    'pendingCustomerTin',
+    'getCashReceived',
+    'getRefundReason',
+    'couponCode',
+    'discountRate',
+    'purchaseCode',
+    // Branch-scoped artifacts
+    'receiptLogoBase64',
+    'lastZReportDate',
+  };
+
+  @override
+  Future<void> clearSessionKeys() async {
+    for (final key in _sessionKeys) {
+      _cache.remove(key);
+    }
+    _cache[_kSessionClearedAtKey] = DateTime.now().millisecondsSinceEpoch;
+
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
+      }
+      _emitModeResets();
+      return;
+    }
+
+    await _savePreferences();
+    // Logout must durably wipe the Ditto prefs copy. The coalesced background
+    // flush (see [_scheduleDittoFlush]) can be lost when the app is killed
+    // right after signing out, which then resurrects the previous session on
+    // the next [attachDittoPersistence] merge — so write it synchronously.
+    if (!_isFlutterTestEnv && DittoService.instance.isReady()) {
+      try {
+        await _writeDittoPayload();
+      } catch (e) {
+        print(
+            'SharedPreferenceStorage: Ditto session clear failed, JSON cleared: $e');
+      }
+    }
+    _emitModeResets();
+  }
+
+  void _emitModeResets() {
+    if (!_proformaModeController.isClosed) _proformaModeController.add(false);
+    if (!_trainingModeController.isClosed) _trainingModeController.add(false);
+  }
+
+  static String? _nonEmptySessionString(dynamic value) {
     if (value is! String) return null;
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
   }
 
+  /// Merges the local JSON prefs ([legacy]) with the Ditto-backed copy
+  /// ([dittoMap]) the way [attachDittoPersistence] does. Pure so the
+  /// logout-resurrection rules are testable without a Ditto instance.
+  static Map<String, dynamic> mergeDittoPreferences({
+    required Map<String, dynamic> legacy,
+    required Map<String, dynamic> dittoMap,
+  }) {
+    final lVer = (legacy['_preferencesVersion'] as num?)?.toInt() ?? 0;
+    final dVer = (dittoMap['_preferencesVersion'] as num?)?.toInt() ?? 0;
+    final lDb = (legacy['dbVersion'] as num?)?.toInt() ?? 0;
+    final dDb = (dittoMap['dbVersion'] as num?)?.toInt() ?? 0;
+
+    final legacyWins = lVer > dVer || (lVer == dVer && lDb > dDb);
+    final merged = legacyWins
+        ? (Map<String, dynamic>.from(dittoMap)..addAll(legacy))
+        : (Map<String, dynamic>.from(legacy)..addAll(dittoMap));
+
+    // Ditto merge can reintroduce a previous user's id from flipper_local_prefs.
+    // Restore in-memory session identity (API user id + branch/business picks).
+    _restoreSessionIdentity(merged, legacy, dittoMap);
+
+    // A logout the Ditto copy never saw must still win: drop every session key
+    // the local JSON no longer has, otherwise the signed-out user is silently
+    // signed back in on the next launch.
+    _dropResurrectedSession(merged, legacy, dittoMap);
+
+    return merged;
+  }
+
   /// Keeps [userId] aligned with `/v2/api/user` `id` after Ditto pref merges.
-  void _restoreSessionIdentity(
+  static void _restoreSessionIdentity(
     Map<String, dynamic> merged,
     Map<String, dynamic> legacy,
     Map<String, dynamic> dittoMap,
@@ -265,6 +388,26 @@ class SharedPreferenceStorage implements LocalStorage {
         merged[k] = leg;
       }
     }
+  }
+
+  /// Undoes session keys the Ditto payload put back after a [clearSessionKeys]
+  /// that the Ditto copy is older than.
+  static void _dropResurrectedSession(
+    Map<String, dynamic> merged,
+    Map<String, dynamic> legacy,
+    Map<String, dynamic> dittoMap,
+  ) {
+    final localClearedAt = (legacy[_kSessionClearedAtKey] as num?)?.toInt() ?? 0;
+    final dittoClearedAt =
+        (dittoMap[_kSessionClearedAtKey] as num?)?.toInt() ?? 0;
+    if (localClearedAt <= dittoClearedAt) return;
+
+    for (final key in _sessionKeys) {
+      if (!legacy.containsKey(key)) {
+        merged.remove(key);
+      }
+    }
+    merged[_kSessionClearedAtKey] = localClearedAt;
   }
 
   Future<Map<String, dynamic>?> _readDittoPayloadMap() async {

@@ -8,6 +8,11 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
+  Future<void> clearSessionKeys() async {
+    // No session state to clear in the mock.
+  }
+
+  @override
   bool? enableDebug() {
     return true;
   }
