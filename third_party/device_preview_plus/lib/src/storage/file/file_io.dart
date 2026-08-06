@@ -24,7 +24,11 @@ class FileDevicePreviewStorage extends DevicePreviewStorage {
   /// Load the last saved preferences.
   @override
   Future<DevicePreviewData?> load() async {
-    final json = await File(filePath).readAsString();
+    final file = File(filePath);
+    // Nothing saved yet is the normal first-run case, not an error worth
+    // surfacing: readAsString would throw a FileSystemException here.
+    if (!await file.exists()) return null;
+    final json = await file.readAsString();
     if (json.isEmpty) return null;
     return DevicePreviewData.fromJson(jsonDecode(json));
   }

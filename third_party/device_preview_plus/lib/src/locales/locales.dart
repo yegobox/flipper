@@ -22,7 +22,14 @@ class NamedLocale {
       scriptCode = splits[1];
       countryCode = splits[2];
     } else if (splits.length > 1) {
-      countryCode = splits[1];
+      // A four-letter subtag is a script, not a country: `zh_Hant`, `sr_Latn`
+      // and friends are language+script codes, and treating them as countries
+      // makes them miss the language+script resolution pass entirely.
+      if (splits[1].length == 4) {
+        scriptCode = splits[1];
+      } else {
+        countryCode = splits[1];
+      }
     }
 
     return Locale.fromSubtags(

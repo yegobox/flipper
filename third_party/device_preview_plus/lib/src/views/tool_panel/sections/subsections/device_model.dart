@@ -103,17 +103,22 @@ class _PlatformModelPicker extends StatelessWidget {
       devices,
       (d) => d.identifier.type,
     );
-    return ListView(
-      children: [
-        ...byDeviceType.entries
-            .map(
-              (e) => [
-                _TypeSectionHeader(type: e.key),
-                ...e.value.map((d) => DeviceTile(info: d)),
-              ],
-            )
-            .expand((x) => x),
-      ],
+    // Flattened to a header/device index so the list can be built lazily:
+    // eagerly materialising every tile costs a frame on the ~100-device lists.
+    final rows = <Object>[
+      for (final entry in byDeviceType.entries) ...[entry.key, ...entry.value],
+    ];
+    return ListView.builder(
+      itemCount: rows.length,
+      itemBuilder: (context, index) {
+        final row = rows[index];
+        if (row is DeviceType) return _TypeSectionHeader(type: row);
+        final device = row as DeviceInfo;
+        return DeviceTile(
+          key: ValueKey(device.identifier.toString()),
+          info: device,
+        );
+      },
     );
   }
 }

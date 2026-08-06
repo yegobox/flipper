@@ -21,6 +21,16 @@ class LocalePickerState extends State<LocalePicker> {
     final selectedLocale = context.select(
       (DevicePreviewStore store) => store.data.locale,
     );
+    final query = filter.trim().toLowerCase();
+    final visibleLocales = query.isEmpty
+        ? locales
+        : locales
+              .where(
+                (locale) =>
+                    locale.name.toLowerCase().contains(query) ||
+                    locale.code.toLowerCase().contains(query),
+              )
+              .toList();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(title: const Text('Locale')),
@@ -34,32 +44,29 @@ class LocalePickerState extends State<LocalePicker> {
               onTextChanged: (value) => setState(() => filter = value),
             ),
             Expanded(
-              child: ListView(
-                children: locales
-                    .where((locale) {
-                      final filter = this.filter.trim().toLowerCase();
-                      return filter.isEmpty ||
-                          locale.name.toLowerCase().contains(filter) ||
-                          locale.code.toLowerCase().contains(filter);
-                    })
-                    .map((locale) {
-                      final isSelected = locale.code == selectedLocale;
-                      return ListTile(
-                        onTap: !isSelected
-                            ? () {
-                                final store = context
-                                    .read<DevicePreviewStore>();
-                                store.data = store.data.copyWith(
-                                  locale: locale.code,
-                                );
-                                Navigator.pop(context);
-                              }
-                            : null,
-                        title: Text(locale.name),
-                        subtitle: Text(locale.code),
-                      );
-                    })
-                    .toList(),
+              // Built lazily: the default catalogue is ~560 locales, and
+              // materialising every tile on each keystroke is what made the
+              // search field feel laggy.
+              child: ListView.builder(
+                itemCount: visibleLocales.length,
+                itemBuilder: (context, index) {
+                  final locale = visibleLocales[index];
+                  final isSelected = locale.code == selectedLocale;
+                  return ListTile(
+                    key: ValueKey(locale.code),
+                    onTap: !isSelected
+                        ? () {
+                            final store = context.read<DevicePreviewStore>();
+                            store.data = store.data.copyWith(
+                              locale: locale.code,
+                            );
+                            Navigator.pop(context);
+                          }
+                        : null,
+                    title: Text(locale.name),
+                    subtitle: Text(locale.code),
+                  );
+                },
               ),
             ),
           ],

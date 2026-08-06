@@ -64,7 +64,7 @@ class DevicePreviewStore extends ChangeNotifier {
       notInitialized: () async {
         state = const DevicePreviewState.initializing();
 
-        final resolvedAvailableLocales = availableLocales != null
+        final matchedAvailableLocales = availableLocales != null
             ? availableLocales
                   .map(
                     (available) =>
@@ -76,6 +76,13 @@ class DevicePreviewStore extends ChangeNotifier {
                   .where((x) => x != null)
                   .toList()
             : defaultAvailableLocales;
+
+        // An `availableLocales` list that matches none of the known locales
+        // would otherwise leave the supported set empty, and
+        // `basicLocaleListResolution` reads `supportedLocales.first`.
+        final resolvedAvailableLocales = matchedAvailableLocales.isEmpty
+            ? defaultAvailableLocales
+            : matchedAvailableLocales;
 
         final defaultLocale = device_preview
             .basicLocaleListResolution(

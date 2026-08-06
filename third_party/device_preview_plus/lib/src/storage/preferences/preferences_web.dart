@@ -22,9 +22,7 @@ class PreferencesDevicePreviewStorage extends DevicePreviewStorage {
   /// Load the last saved preferences (until [ignore] is `true`).
   @override
   Future<DevicePreviewData?> load() async {
-    final json = web.window.localStorage.getItem(
-      'flutter.$defaultPreferencesKey',
-    );
+    final json = web.window.localStorage.getItem('flutter.$preferenceKey');
     if (json == null || json.isEmpty) return null;
     return DevicePreviewData.fromJson(jsonDecode(json));
   }
@@ -44,7 +42,7 @@ class PreferencesDevicePreviewStorage extends DevicePreviewStorage {
     await Future.delayed(const Duration(milliseconds: 500));
     if (_saveData != null) {
       web.window.localStorage.setItem(
-        'flutter.$defaultPreferencesKey',
+        'flutter.$preferenceKey',
         jsonEncode(_saveData!.toJson()),
       );
     }
