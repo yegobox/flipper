@@ -363,11 +363,19 @@ Future<void> main() async {
 
 /// Keep in sync with [DevicePreview.enabled] on [FlipperApp].
 ///
-/// Enabled in debug on all platforms (including desktop). DevicePreview's frame
-/// [LayoutBuilder] rebuilds during [performLayout]; mounting [MaterialApp]
-/// (Tooltips / [OverlayPortal]) in that same pass trips Flutter's
-/// `!_skipMarkNeedsLayout` assert. [FlipperApp] therefore hosts the app under
-/// [_DevicePreviewOverlaySafeHost], which mounts [MaterialApp] after the frame.
+/// Enabled in debug on all platforms, including desktop.
+///
+/// This is only safe because `device_preview_plus` is forked in
+/// `third_party/device_preview_plus` to host the app under a [Builder] instead
+/// of a [LayoutBuilder]. Upstream, that [LayoutBuilder] owns a [BuildScope] for
+/// the whole app, so every rebuild ran during `performLayout` and mounting or
+/// re-activating any [OverlayPortal] (a [Tooltip], a typeahead, a route push
+/// re-parenting stacked's GlobalKey'd `Navigator`) threw — then asserted every
+/// frame thereafter, because Flutter's guard flags latch. See that package's
+/// PATCHES.md.
+///
+/// [_DevicePreviewOverlaySafeHost] is still worth keeping: it defers the first
+/// [MaterialApp] mount out of DevicePreview's own first layout pass.
 bool get kFlipperDevicePreviewEnabled => kDebugMode;
 
 class FlipperApp extends StatefulWidget {

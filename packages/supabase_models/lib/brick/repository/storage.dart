@@ -38,6 +38,16 @@ abstract class LocalStorage {
   int? paginationId();
   String encryptionKey();
   Future<void> clear();
+
+  /// Durably drops every session-scoped preference (user identity, business /
+  /// branch selection, tokens, in-flight sale state) while keeping device-level
+  /// preferences such as `encryptionKey`, database filenames and device id.
+  ///
+  /// Must be awaited by logout: unlike a series of [remove] calls, the
+  /// implementation is required to flush the cleared state to *all* durable
+  /// backing stores before completing, so a killed app cannot resurrect the
+  /// previous session on next launch.
+  Future<void> clearSessionKeys();
   Future<bool> authComplete();
   String transactionId();
   String pmtTyCd();

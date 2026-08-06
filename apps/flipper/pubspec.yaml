@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.283.0+1756529770
+version: 1.295.0+1756529782
 
 
 
@@ -152,6 +152,13 @@ dependencies:
 
 dependency_overrides:
   xml: ^7.0.1
+  # Forked to drop the root LayoutBuilder that hosted the app: it owned a
+  # BuildScope for the entire app, so every rebuild ran during performLayout and
+  # any OverlayPortal mount/re-activation (Tooltip, typeahead, a route push
+  # re-parenting stacked's Navigator) threw and then asserted every frame.
+  # See third_party/device_preview_plus/PATCHES.md.
+  device_preview_plus:
+    path: ../../third_party/device_preview_plus
   smithy:
     path: ../../open-sources/smithy
   smithy_aws:
@@ -210,7 +217,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
   # Store package identity — pre-commit bumps Minor each time (1.185.0.0 → 1.186.0.0).
-  msix_version: 1.287.0.0
+  msix_version: 1.299.0.0
 
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

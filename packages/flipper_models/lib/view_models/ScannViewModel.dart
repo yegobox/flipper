@@ -37,7 +37,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   // Toggles selection for a specific variant.
   void toggleSelect(String variantId) {
-    _selectedVariants[variantId] = !_selectedVariants[variantId]!;
+    // Absent means "not selected" — the map is only ever populated by toggling,
+    // so `!_selectedVariants[variantId]!` threw on the first tap of any row that
+    // had not been through toggleSelectAll. Matches [isSelected]'s `?? false`.
+    _selectedVariants[variantId] = !(_selectedVariants[variantId] ?? false);
     notifyListeners();
   }
 
@@ -569,7 +572,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // A variant without a Stock row would silently drop the edit: the UI
         // reads `stock.currentStock`, and persistence is keyed on `stockId`.
         if (scannedVariant.stock == null && scannedVariant.itemTyCd != "3") {
+          // Keep the variant's existing stockId when it has one: a fresh uuid here
+          // orphans the real stock row (the variant may simply have been loaded
+          // without its stock hydrated) and the qty write then targets nothing.
+          final existingStockId = scannedVariant.stockId?.trim();
           final stock = Stock(
+            id: (existingStockId != null && existingStockId.isNotEmpty)
+                ? existingStockId
+                : null,
             branchId: scannedVariant.branchId,
             currentStock: newQuantity,
             rsdQty: newQuantity,

@@ -43,6 +43,60 @@ mixin StockMixin implements StockInterface {
     ).watchStocksByIds(stockIds);
   }
 
+  /// Recreates the Capella/Ditto stock document behind [stockId] when it is gone.
+  ///
+  /// A Stock row can live in Brick with no Ditto document: `repository.upsert`
+  /// deliberately skips Ditto for Stock (Capella owns live qty at runtime), while
+  /// every read here — [getStockById] — goes through Capella. Editing such a
+  /// product then failed with "stock <id> not found" and silently dropped the
+  /// typed quantity.
+  ///
+  /// Healing is only allowed when a Variant actually points at [stockId], so a
+  /// stale or mistyped id still fails loudly instead of littering the store with
+  /// orphan stock. The document is created zeroed — the caller's own update runs
+  /// right after, so nothing is double-counted.
+  Future<Stock?> _healMissingStockDocument(String stockId) async {
+    Variant? variant;
+    try {
+      variant = await ProxyService.strategy.getVariant(stockId: stockId) ??
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(stockId: stockId);
+    } catch (e, st) {
+      talker.warning(
+        'updateStock heal: variant lookup failed for $stockId: $e\n$st',
+      );
+    }
+    if (variant == null) return null;
+
+    final branchId = variant.branchId.trim().isNotEmpty
+        ? variant.branchId
+        : (ProxyService.box.getBranchId() ?? '');
+    if (branchId.trim().isEmpty) return null;
+
+    try {
+      final healed = await ProxyService.getStrategy(Strategy.capella).saveStock(
+        id: stockId,
+        variant: variant,
+        productId: variant.productId ?? '',
+        variantId: variant.id,
+        branchId: branchId,
+        currentStock: 0,
+        rsdQty: 0,
+        value: 0,
+      );
+      talker.warning(
+        'updateStock: recreated missing stock document $stockId for variant ${variant.id}',
+      );
+      return healed;
+    } catch (e, st) {
+      talker.error(
+        'updateStock heal: failed to recreate stock $stockId: $e\n$st',
+      );
+      return null;
+    }
+  }
+
   @override
   Future<void> updateStock({
     required String stockId,
@@ -55,7 +109,9 @@ mixin StockMixin implements StockInterface {
     bool appending = false,
     DateTime? lastTouched,
   }) async {
-    Stock? stock = await getStockById(id: stockId);
+    Stock? stock =
+        await getStockById(id: stockId) ??
+        await _healMissingStockDocument(stockId);
     if (stock == null) {
       talker.error('updateStock: stock $stockId not found');
       throw StateError('Stock with ID $stockId not found');

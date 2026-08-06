@@ -131,121 +131,167 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
+      // Capture the session identity up front: everything below either tears the
+      // session down or clears it, so re-reading the box mid-flight is unsafe.
+      final userId = ProxyService.box.getUserId();
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+
       ProxyService.event.unsubscribeLoginEvent();
       ProxyService.event.resetLoginStatus();
 
       await resetSaleDeviceIdCache();
       await setCommissionOnlySession(false);
       // set authComplete to false
-      ProxyService.box.writeBool(key: 'authComplete', value: false);
-      if (ProxyService.box.getUserId() != null &&
-          ProxyService.box.getBusinessId() != null &&
-          kReleaseMode) {
-        ProxyService.event.publish(loginDetails: {
-          'channel': "${ProxyService.box.getUserId()!}-logout",
-          'userId': ProxyService.box.getUserId(),
-          'businessId': ProxyService.box.getBusinessId(),
-          'branchId': ProxyService.box.getBranchId(),
-          'phone': ProxyService.box.getUserPhone(),
-          'defaultApp': ProxyService.box.getDefaultApp(),
-          'deviceName': Platform.operatingSystem,
-          'uid': isTestEnvironment == true
-              ? ""
-              : (await FirebaseAuth.instance.currentUser?.getIdToken()) ?? "",
-          'deviceVersion': await getDeviceVersionStatic(),
-          'linkingCode': randomNumber().toString()
-        });
+      await ProxyService.box.writeBool(key: 'authComplete', value: false);
 
-        // Mark existing Ditto events for this user as logged out
-        if (DittoService.instance.isReady()) {
+      // Everything up to clearSessionKeys() is best-effort remote bookkeeping
+      // that can hang on a bad network. It is time-bounded so the local session
+      // is always cleared — a logout that stalls here and never wipes prefs is
+      // what let a "logged out" user re-enter the app on relaunch.
+      Future<void> announceAndReleaseSession() async {
+        if (userId != null && businessId != null && kReleaseMode) {
+          ProxyService.event.publish(
+            loginDetails: {
+              'channel': "$userId-logout",
+              'userId': userId,
+              'businessId': businessId,
+              'branchId': branchId,
+              'phone': ProxyService.box.getUserPhone(),
+              'defaultApp': ProxyService.box.getDefaultApp(),
+              'deviceName': Platform.operatingSystem,
+              'uid': isTestEnvironment == true
+                  ? ""
+                  : (await FirebaseAuth.instance.currentUser?.getIdToken()) ??
+                        "",
+              'deviceVersion': await getDeviceVersionStatic(),
+              'linkingCode': randomNumber().toString(),
+            },
+          );
+        }
+
+        // Mark existing Ditto events for this user as logged out. This runs in
+        // every build mode — gating it on kReleaseMode left debug builds with a
+        // live Ditto identity for the previous user after signing out.
+        if (userId != null && DittoService.instance.isReady()) {
           try {
             await DittoService.instance.dittoInstance!.store.execute(
               "UPDATE events SET loggedOut = true WHERE userId = :userId",
-              arguments: {"userId": ProxyService.box.getUserId()},
+              arguments: {"userId": userId},
             );
-            await DittoSingleton.instance.logout();
-            // Reset Ditto initialization state so it can be reinitialized for the next user
-            AuthMixin.resetDittoInitializationStatic();
-            print(
-                '✅ Marked Ditto events as logged out for user ${ProxyService.box.getUserId()}');
+            print('✅ Marked Ditto events as logged out for user $userId');
           } catch (e) {
             print('Error updating Ditto events on logout: $e');
           }
         }
-      }
 
-      // Sign out from Firebase
-      if (!const bool.fromEnvironment('FLUTTER_TEST_ENV',
-          defaultValue: false)) {
-        await FirebaseAuth.instance.signOut();
-      }
+        // Perform additional logout operations
+        ProxyService.strategy.whoAmI();
 
-      // Perform additional logout operations
-      ProxyService.strategy.whoAmI();
-      await ProxyService.strategy.amplifyLogout();
-      await Supabase.instance.client.auth.signOut();
-      ProxyService.box.remove(key: 'getDefaultApp');
+        // Unset default for all businesses and branches
 
-      // Unset default for all businesses and branches
-      final userId = ProxyService.box.getUserId();
-      final businessId = ProxyService.box.getBusinessId();
-      final branchId = ProxyService.box.getBranchId();
-
-      // First, explicitly set the current active business and branch to inactive
-      if (businessId != null) {
-        try {
-          // Set current active business to inactive and not default
-          await ProxyService.strategy.updateBusiness(
-            businessId: businessId,
-            isDefault: false,
-          );
-
-          // Set current active branch to inactive and not default
-          if (branchId != null) {
-            await ProxyService.strategy.updateBranch(
-              branchId: branchId,
+        // First, explicitly set the current active business and branch to inactive
+        if (businessId != null) {
+          try {
+            // Set current active business to inactive and not default
+            await ProxyService.strategy.updateBusiness(
+              businessId: businessId,
               isDefault: false,
             );
-          }
 
-          // Now update all other businesses and branches to be safe
-          if (userId != null) {
-            List<Business> businesses =
-                await ProxyService.strategy.businesses(userId: userId);
-            for (Business business in businesses) {
-              if (business.id != businessId) {
-                await ProxyService.strategy.updateBusiness(
-                  businessId: business.id,
-                  isDefault: false,
-                );
+            // Set current active branch to inactive and not default
+            if (branchId != null) {
+              await ProxyService.strategy.updateBranch(
+                branchId: branchId,
+                isDefault: false,
+              );
+            }
+
+            // Now update all other businesses and branches to be safe
+            if (userId != null) {
+              List<Business> businesses = await ProxyService.strategy
+                  .businesses(userId: userId);
+              for (Business business in businesses) {
+                if (business.id != businessId) {
+                  await ProxyService.strategy.updateBusiness(
+                    businessId: business.id,
+                    isDefault: false,
+                  );
+                }
+              }
+              List<Branch> branches = await ProxyService.strategy.branches(
+                businessId: businessId,
+              );
+              for (Branch branch in branches) {
+                if (branch.id != branchId) {
+                  await ProxyService.strategy.updateBranch(
+                    branchId: branch.id,
+                    isDefault: false,
+                  );
+                }
               }
             }
-            List<Branch> branches =
-                await ProxyService.strategy.branches(businessId: businessId);
-            for (Branch branch in branches) {
-              if (branch.id != branchId) {
-                await ProxyService.strategy.updateBranch(
-                  branchId: branch.id,
-                  isDefault: false,
-                );
-              }
-            }
+          } catch (e) {
+            // Log error but continue with logout process
+            print('Error updating business/branch status during logout: $e');
           }
-        } catch (e) {
-          // Log error but continue with logout process
-          print('Error updating business/branch status during logout: $e');
         }
       }
 
-      // Remove user-specific data
-      ProxyService.box.remove(key: 'userId');
-      ProxyService.box.remove(key: 'getIsTokenRegistered');
-      ProxyService.box.remove(key: 'defaultApp');
+      // The bookkeeping future keeps running past the timeout, so its errors
+      // are swallowed *inside* it: an error raised after `.timeout()` has
+      // already given up has no one left to catch it and would surface as an
+      // unhandled async error long after logout returned.
+      final bookkeeping = () async {
+        try {
+          await announceAndReleaseSession();
+        } catch (e) {
+          print('Logout bookkeeping failed, session cleared anyway: $e');
+        }
+      }();
+      try {
+        await bookkeeping.timeout(const Duration(seconds: 15));
+      } catch (e) {
+        print('Logout bookkeeping did not finish, clearing session anyway: $e');
+      }
 
-      // Also remove business and branch IDs to ensure clean state for next login
-      ProxyService.box.remove(key: 'businessId');
-      ProxyService.box.remove(key: 'branchId');
-      ProxyService.box.remove(key: 'branchIdString');
+      // Drop every session-scoped preference in one durable step, while the
+      // Ditto store is still open so the Ditto-backed prefs copy is wiped too.
+      //
+      // Removing individual keys here used to miss `userIdString`, which
+      // `getUserId()` reads *before* `userId` — so the app still saw a signed-in
+      // user on the next launch and walked straight into the dashboard.
+      await ProxyService.box.clearSessionKeys();
+
+      // Tear down Ditto only after prefs are wiped: DittoSingleton.logout()
+      // stops sync, and resetDittoInitialization lets the next user re-init.
+      if (DittoService.instance.isReady()) {
+        try {
+          await DittoSingleton.instance.logout();
+        } catch (e) {
+          print('Error during Ditto logout: $e');
+        } finally {
+          // Must run even when logout throws: leaving the init flag set locks
+          // the next user out of re-initialising Ditto.
+          AuthMixin.resetDittoInitializationStatic();
+        }
+      }
+
+      // Remote sign-out is best-effort: local session prefs are already gone, so
+      // a network failure here must not report logout as failed (and must not
+      // leave the caller believing the user is still signed in).
+      try {
+        if (!const bool.fromEnvironment(
+          'FLUTTER_TEST_ENV',
+          defaultValue: false,
+        )) {
+          await FirebaseAuth.instance.signOut();
+        }
+        await ProxyService.strategy.amplifyLogout();
+        await Supabase.instance.client.auth.signOut();
+      } catch (e) {
+        print('Error during remote sign-out (session already cleared): $e');
+      }
 
       return true;
     } catch (e, s) {

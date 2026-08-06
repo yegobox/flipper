@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -8,10 +9,74 @@ import 'package:flutter/material.dart';
 class GlobalErrorHandler {
   static final LogService _logService = LogService();
 
+  /// How many times an identical error is reported before it is suppressed.
+  static const int _maxIdenticalReports = 3;
+
+  /// A repeat is treated as a fresh problem again after this long.
+  static const Duration _repeatWindow = Duration(minutes: 2);
+
+  /// How often a suppressed error still gets a one-line heartbeat.
+  static const int _suppressedHeartbeatEvery = 500;
+
+  static final Map<String, _ErrorTally> _tallies = {};
+
+  /// Some framework assertions latch and then fire ONCE PER FRAME for the rest
+  /// of the session — both `_RenderTheater._addDeferredChild`
+  /// ('!_skipMarkNeedsLayout') and `MouseTracker._deviceUpdatePhase`
+  /// ('!_debugDuringDeviceUpdate') set a debug flag, call a callback, and clear
+  /// it with no try/finally, so one throw inside leaves the flag stuck true.
+  ///
+  /// Reporting every repeat inserts a Log row per frame (which then syncs) and
+  /// buries the FIRST error — the only one that identifies the actual cause.
+  /// So: report the first few, then count quietly.
+  static bool _shouldReport(Object error, StackTrace? stackTrace) {
+    final signature = _signatureOf(error, stackTrace);
+    final now = DateTime.now();
+    final tally = _tallies[signature];
+
+    if (tally == null || now.difference(tally.lastSeen) > _repeatWindow) {
+      _tallies[signature] = _ErrorTally(count: 1, lastSeen: now);
+      return true;
+    }
+
+    tally
+      ..count += 1
+      ..lastSeen = now;
+
+    if (tally.count <= _maxIdenticalReports) return true;
+
+    if (tally.count % _suppressedHeartbeatEvery == 0) {
+      talker.warning(
+        'Suppressed ${tally.count} identical errors (still happening): '
+        '$signature',
+      );
+    }
+    return false;
+  }
+
+  /// Exception text plus the top few frames — enough to tell two different
+  /// errors apart without treating every occurrence as unique.
+  ///
+  /// More than one frame matters: for an assertion failure frame #0 is always
+  /// `_AssertionError._doThrowNew`, so a single frame would lump unrelated
+  /// asserts together and hide the second one entirely.
+  static String _signatureOf(Object error, StackTrace? stackTrace) {
+    final message = error.toString().split('\n').first;
+    final frames = (stackTrace?.toString() ?? '')
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .take(3)
+        .join(' ');
+    return '$message | $frames';
+  }
+
   /// Initialize global error handling
   static void initialize() {
     // Catch Flutter framework errors
     FlutterError.onError = (FlutterErrorDetails details) {
+      if (!_shouldReport(details.exception, details.stack)) return;
+
       // Log to your service
       _logService.logException(
         details.exception,
@@ -37,6 +102,7 @@ class GlobalErrorHandler {
         logSupabaseRealtimeError(error, stackTrace: stack);
         return true;
       }
+      if (!_shouldReport(error, stack)) return true;
       _logService.logException(
         error,
         stackTrace: stack,
@@ -155,6 +221,15 @@ class GlobalErrorHandler {
     );
   }
 
+  /// Test hook: forget what has been reported so far.
+  @visibleForTesting
+  static void resetReportTallies() => _tallies.clear();
+
+  /// Test hook for the repeat-suppression decision.
+  @visibleForTesting
+  static bool debugShouldReport(Object error, StackTrace? stackTrace) =>
+      _shouldReport(error, stackTrace);
+
   /// Example of how to use in your main.dart
 /*
 void main() {
@@ -191,4 +266,11 @@ class MyApp extends StatelessWidget {
   }
 }
 */
+}
+
+class _ErrorTally {
+  _ErrorTally({required this.count, required this.lastSeen});
+
+  int count;
+  DateTime lastSeen;
 }

@@ -615,6 +615,17 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             value == null ||
             value == "",
       );
+
+      // RRA answers 603 <ttCatCd> when tourism tax rides on anything but a
+      // service. AddRoomDialog is the only path that legitimately sets TT and
+      // it registers rooms as itemTyCd '3'; a TT that reaches a good came from
+      // seeded/imported data, so drop it rather than fail the registration.
+      if (variation.itemTyCd != '3') {
+        itemJson.remove('ttCatCd');
+        itemJson.remove('propertyTyCd');
+        itemJson.remove('roomTypeCd');
+      }
+
       final response = await sendPostRequest(url, itemJson);
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);

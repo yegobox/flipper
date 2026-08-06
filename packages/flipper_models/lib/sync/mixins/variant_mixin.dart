@@ -337,6 +337,41 @@ mixin VariantMixin implements VariantInterface {
     }
   }
 
+  /// Creates the Capella/Ditto stock document for a freshly persisted Brick stock
+  /// row, when none exists yet.
+  ///
+  /// `repository.upsert<Stock>` never pushes into Ditto — Capella owns live qty at
+  /// runtime and a stale Brick row would clobber it — so a stock row created here
+  /// had no document behind it, and the next `updateStock` (which reads through
+  /// Capella) failed with "stock <id> not found", losing the quantity typed in the
+  /// variant editor. Existing documents are left untouched: only the absent case
+  /// is created, so live on-hand qty is never overwritten.
+  Future<void> _ensureCapellaStockDocument(Variant variant) async {
+    final stock = variant.stock;
+    if (stock == null || stock.id.isEmpty) return;
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    try {
+      if (await capella.getStockById(id: stock.id) != null) return;
+      final currentStock = stock.currentStock ?? 0;
+      await capella.saveStock(
+        id: stock.id,
+        variant: variant,
+        productId: variant.productId ?? '',
+        variantId: variant.id,
+        branchId: stock.branchId.trim().isNotEmpty
+            ? stock.branchId
+            : variant.branchId,
+        currentStock: currentStock,
+        rsdQty: stock.rsdQty ?? currentStock,
+        value: stock.value ?? currentStock * (variant.retailPrice ?? 0),
+      );
+    } catch (e, st) {
+      talker.warning(
+        'addVariant: could not create Capella stock document ${stock.id}: $e\n$st',
+      );
+    }
+  }
+
   @override
   Future<int> addVariant({
     required List<Variant> variations,
@@ -372,6 +407,7 @@ mixin VariantMixin implements VariantInterface {
                 stockId: savedStock.id,
               );
             }
+            await _ensureCapellaStockDocument(variantToSave);
           }
           await repository.upsert<Variant>(variantToSave);
           if (variantToSave.splyAmt != null) {

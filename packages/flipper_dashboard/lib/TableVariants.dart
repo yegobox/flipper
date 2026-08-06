@@ -63,7 +63,14 @@ class TableVariants extends StatelessWidget {
     // `_RenderTheater._addDeferredChild` / `_elements.contains(element)`.
     if (isMobile) return _wrapContent(context, _buildMobileLayout(context));
     if (useCardLayout) {
-      return _wrapContent(context, _buildDesktopCardLayout(context));
+      // The card layout puts the delete action inline in its header row, so the
+      // floating Positioned button must not also be stacked on top — it landed
+      // over the "Select all" / count text.
+      return _wrapContent(
+        context,
+        _buildDesktopCardLayout(context),
+        hasInlineDelete: true,
+      );
     }
 
     return LayoutBuilder(
@@ -72,7 +79,11 @@ class TableVariants extends StatelessWidget {
     );
   }
 
-  Widget _wrapContent(BuildContext context, Widget content) {
+  Widget _wrapContent(
+    BuildContext context,
+    Widget content, {
+    bool hasInlineDelete = false,
+  }) {
     return Stack(
       children: [
         if (useCardLayout)
@@ -95,9 +106,10 @@ class TableVariants extends StatelessWidget {
             child: content,
           ),
         // Show delete button only if at least one item is selected
-        if (model.scannedVariants.any(
-          (variant) => model.isSelected(variant.id),
-        ))
+        if (!hasInlineDelete &&
+            model.scannedVariants.any(
+              (variant) => model.isSelected(variant.id),
+            ))
           Positioned(
             top: 10,
             right: 10,
@@ -111,17 +123,17 @@ class TableVariants extends StatelessWidget {
     final variants = model.scannedVariants.reversed.toList();
 
     if (variants.isEmpty) {
-      return const ProductEditorVariantsEmpty();
+      return ProductEditorVariantsEmpty(isEditMode: isEditMode);
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (variants.length > 1)
-          Padding(
-            padding: const EdgeInsets.only(top: 14, bottom: 10),
-            child: Row(
-              children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 14, bottom: 10),
+          child: Row(
+            children: [
+              if (variants.length > 1) ...[
                 Checkbox(
                   value: model.selectAll(model.scannedVariants),
                   onChanged: (value) => model.toggleSelectAll(
@@ -129,259 +141,228 @@ class TableVariants extends StatelessWidget {
                     value ?? false,
                   ),
                 ),
-                Text(
-                  'Select all',
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: ProductEditorTokens.ink2,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '${variants.length} variants',
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: ProductEditorTokens.ink2,
+                // Flexible so a narrow sheet shrinks this label instead of
+                // overflowing the row once the delete action joins it.
+                Flexible(
+                  child: Text(
+                    'Select all',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: ProductEditorTokens.ink2,
+                    ),
                   ),
                 ),
               ],
-            ),
+              const Spacer(),
+              if (model.scannedVariants.any((v) => model.isSelected(v.id))) ...[
+                _DeleteAllVariantsButton(onPressed: model.deleteAllVariants),
+                const SizedBox(width: 12),
+              ],
+              Text(
+                variants.length == 1
+                    ? '1 variant'
+                    : '${variants.length} variants',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: ProductEditorTokens.ink2,
+                ),
+              ),
+            ],
           ),
+        ),
         for (final variant in variants)
-          _buildDesktopVariantCard(context, variant),
+          _VariantCard(
+            // Keyed by id so the expand/collapse state follows its variant
+            // when rows are added or deleted.
+            key: ValueKey(variant.id),
+            table: this,
+            variant: variant,
+          ),
       ],
     );
   }
 
-  Widget _buildDesktopVariantCard(BuildContext context, Variant variant) {
-    final selected = model.isSelected(variant.id);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: selected ? ProductEditorTokens.blueTint : ProductEditorTokens.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: selected ? ProductEditorTokens.blue : ProductEditorTokens.line,
-          width: 1.5,
-        ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: ProductEditorTokens.blue.withValues(alpha: 0.08),
-                  blurRadius: 0,
-                  spreadRadius: 3,
-                ),
-              ]
-            : null,
+  /// Headline for a variant row. Prefers the human name; the barcode is shown
+  /// underneath rather than as the title, so a long code never stands in for a
+  /// readable name.
+  String _variantTitle(Variant variant) {
+    final name = variant.name.trim();
+    if (name.isNotEmpty && name != _tempProductName) return name;
+    final barcode = (variant.bcd ?? '').trim();
+    if (barcode.isNotEmpty) return barcode;
+    return 'Variant';
+  }
+
+  String? _variantSubtitle(Variant variant) {
+    final barcode = (variant.bcd ?? variant.sku ?? '').trim();
+    if (barcode.isEmpty || barcode == _variantTitle(variant)) return null;
+    return barcode;
+  }
+
+  /// One-line recap of the fields hidden behind "More details" — collapsed
+  /// should never mean the user has to guess what a value is.
+  String _detailsSummary(Variant variant) {
+    final tax = (variant.taxTyCd ?? '').trim();
+    final discountText = model.getDiscountController(variant.id).text.trim();
+    final discount =
+        double.tryParse(discountText) ?? (variant.dcRt ?? 0).toDouble();
+    final unit = (variant.unit ?? '').trim();
+    final parts = <String>[
+      if (tax.isNotEmpty) 'Tax $tax',
+      discount == 0 ? 'No discount' : '${discount.toStringAsFixed(0)}% off',
+      if (unit.isNotEmpty) unit,
+      variant.expirationDate != null
+          ? 'Expires ${DateFormat('MMM d, yyyy').format(variant.expirationDate!)}'
+          : 'No expiry date',
+    ];
+    return parts.join(' · ');
+  }
+
+  Widget _priceField(Variant variant) => _cardField(
+    'Price',
+    PeVariantTextInput(
+      controller: model.getPriceController(variant.id),
+      prefix: 'RWF',
+      mono: true,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+      onChanged: (s) {
+        final d = double.tryParse(s);
+        if (d != null) variant.retailPrice = d;
+      },
+    ),
+  );
+
+  Widget _quantityField(BuildContext context, Variant variant) => _cardField(
+    'Quantity',
+    PeVariantQtyButton(
+      quantity: variant.stock?.currentStock ?? variant.qty,
+      onTap: () => showEditQuantityDialog(
+        context,
+        variant,
+        model,
+        () => FocusScope.of(context).requestFocus(scannedInputFocusNode),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Checkbox(
-                value: selected,
-                onChanged: (value) => model.toggleSelect(variant.id),
-              ),
-              if (productId != null && productId!.isNotEmpty) ...[
-                VariantTableImageCell(
-                  productId: productId!,
-                  variant: variant,
-                  model: model,
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      variant.bcd ?? variant.name,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: ProductEditorTokens.ink1,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if ((variant.itemClsCd ?? variant.itemTyCd) != null)
-                      Text(
-                        variant.itemClsCd ?? 'Type ${variant.itemTyCd}',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          color: ProductEditorTokens.ink3,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: ProductEditorTokens.loss),
-                onPressed: () => _deleteVariant(context, variant),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Divider(height: 1, color: selected ? ProductEditorTokens.blue.withValues(alpha: 0.2) : ProductEditorTokens.lineSoft),
-          const SizedBox(height: 14),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final crossCount = constraints.maxWidth > 520 ? 3 : 2;
-              return GridView.count(
-                crossAxisCount: crossCount,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 14,
-                childAspectRatio: 2.2,
-                children: [
-                  _cardField(
-                    'Price',
-                    PeVariantTextInput(
-                      controller: model.getPriceController(variant.id),
-                      prefix: 'RWF',
-                      mono: true,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                      ],
-                      onChanged: (s) {
-                        final d = double.tryParse(s);
-                        if (d != null) variant.retailPrice = d;
-                      },
-                    ),
-                  ),
-                  _cardField(
-                    'Quantity',
-                    PeVariantQtyButton(
-                      quantity: variant.stock?.currentStock ?? variant.qty,
-                      onTap: () => showEditQuantityDialog(
-                        context,
-                        variant,
-                        model,
-                        () => FocusScope.of(context).requestFocus(scannedInputFocusNode),
-                      ),
-                    ),
-                  ),
-                  _cardField(
-                    'Low stock',
-                    PeVariantTextInput(
-                      controller: model.getLowStockController(variant.id),
-                      mono: true,
-                      placeholder: '0',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                      ],
-                      onChanged: (s) {
-                        final d = double.tryParse(s);
-                        if (d != null && variant.stock != null) {
-                          variant.stock!.lowStock = d;
-                        }
-                      },
-                    ),
-                  ),
-                  _cardField(
-                    'Tax',
-                    () {
-                      final options = isEbmEnabled ? ["A", "B", "C"] : ["D"];
-                      final currentValue = options.contains(variant.taxTyCd)
-                          ? variant.taxTyCd
-                          : (isEbmEnabled ? "B" : "D");
-                      return TaxDropdown(
-                        isEditMode: isEditMode,
-                        selectedValue: currentValue,
-                        options: options,
-                        onChanged: (v) => model.updateTax(variant, v),
-                      );
-                    }(),
-                  ),
-                  _cardField(
-                    'Discount %',
-                    PeVariantTextInput(
-                      controller: model.getDiscountController(variant.id),
-                      mono: true,
-                      placeholder: '0',
-                      suffix: '%',
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                  ),
-                  _cardField(
-                    'Unit',
-                    UnitOfMeasureDropdown(
-                      items: units.map((e) => e.name ?? '').toList(),
-                      selectedItem: variant.unit,
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          final unit = units.firstWhere(
-                            (u) => u.name == newValue,
-                            orElse: () => units.firstWhere(
-                              (u) => u.name == variant.unit,
-                              orElse: () => units.first,
-                            ),
-                          );
-                          onUnitOfMeasureChanged?.call(unit.code ?? newValue, variant.id);
-                        }
-                      },
-                    ),
-                  ),
-                  _cardField(
-                    'Classification',
-                    UniversalProductDropdown(
-                      context: context,
-                      model: model,
-                      variant: variant,
-                      universalProducts: unversalProducts,
-                    ),
-                  ),
-                  _cardField(
-                    'Expiration',
-                    PeVariantBox(
-                      expirationStyle: true,
-                      onTap: () async {
-                        final date = await model.pickDate(context);
-                        if (date != null) {
-                          onDateChanged(variant.id, date);
-                          model.updateDateController(variant.id, date);
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          const Icon(Icons.calendar_today_outlined,
-                              size: 15,
-                              color: ProductEditorTokens.blue),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              variant.expirationDate != null
-                                  ? DateFormat('MMM d, yyyy').format(variant.expirationDate!)
-                                  : 'Set date',
-                              style: GoogleFonts.outfit(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                                color: variant.expirationDate != null
-                                    ? ProductEditorTokens.ink1
-                                    : ProductEditorTokens.ink4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
+    ),
+  );
+
+  Widget _lowStockField(Variant variant) => _cardField(
+    'Low stock',
+    PeVariantTextInput(
+      controller: model.getLowStockController(variant.id),
+      mono: true,
+      placeholder: '0',
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+      onChanged: (s) {
+        final d = double.tryParse(s);
+        if (d != null && variant.stock != null) {
+          variant.stock!.lowStock = d;
+        }
+      },
+    ),
+  );
+
+  Widget _taxField(Variant variant) {
+    final options = isEbmEnabled ? ["A", "B", "C"] : ["D"];
+    final currentValue = options.contains(variant.taxTyCd)
+        ? variant.taxTyCd
+        : (isEbmEnabled ? "B" : "D");
+    return _cardField(
+      'Tax',
+      TaxDropdown(
+        isEditMode: isEditMode,
+        selectedValue: currentValue,
+        options: options,
+        onChanged: (v) => model.updateTax(variant, v),
       ),
     );
   }
+
+  Widget _discountField(Variant variant) => _cardField(
+    'Discount %',
+    PeVariantTextInput(
+      controller: model.getDiscountController(variant.id),
+      mono: true,
+      placeholder: '0',
+      suffix: '%',
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+    ),
+  );
+
+  Widget _unitField(Variant variant) => _cardField(
+    'Unit',
+    UnitOfMeasureDropdown(
+      items: units.map((e) => e.name ?? '').toList(),
+      selectedItem: variant.unit,
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          final unit = units.firstWhere(
+            (u) => u.name == newValue,
+            orElse: () => units.firstWhere(
+              (u) => u.name == variant.unit,
+              orElse: () => units.first,
+            ),
+          );
+          onUnitOfMeasureChanged?.call(unit.code ?? newValue, variant.id);
+        }
+      },
+    ),
+  );
+
+  // Named "RRA item class" to distinguish it from the product-level "Item
+  // type" (raw material / finished product / service) in the section above.
+  Widget _itemClassField(BuildContext context, Variant variant) => _cardField(
+    'RRA item class',
+    UniversalProductDropdown(
+      context: context,
+      model: model,
+      variant: variant,
+      universalProducts: unversalProducts,
+    ),
+  );
+
+  Widget _expirationField(BuildContext context, Variant variant) => _cardField(
+    'Expiration',
+    PeVariantBox(
+      expirationStyle: true,
+      onTap: () async {
+        final date = await model.pickDate(context);
+        if (date != null) {
+          onDateChanged(variant.id, date);
+          model.updateDateController(variant.id, date);
+        }
+      },
+      child: Row(
+        children: [
+          const Icon(
+            Icons.calendar_today_outlined,
+            size: 15,
+            color: ProductEditorTokens.blue,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              variant.expirationDate != null
+                  ? DateFormat('MMM d, yyyy').format(variant.expirationDate!)
+                  : 'Set date',
+              style: GoogleFonts.outfit(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: variant.expirationDate != null
+                    ? ProductEditorTokens.ink1
+                    : ProductEditorTokens.ink4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 
   Widget _cardField(String label, Widget child) {
     return Column(
@@ -935,6 +916,300 @@ class TableVariants extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       ),
       child: const Text('Delete', style: TextStyle(color: Colors.white)),
+    );
+  }
+}
+
+/// Mirrors `TEMP_PRODUCT` in flipper_services/constants.dart — the placeholder
+/// name a product carries before the user has named it.
+const String _tempProductName = 'temp';
+
+/// Inline bulk-delete for the card layout. Lives in the header row rather than
+/// floating in a Stack, where it overlapped the "Select all" / count text.
+///
+/// Labelled "Delete all" because that is literally what
+/// [ScannViewModel.deleteAllVariants] does — it clears every variant and ignores
+/// which ones are selected. The button only APPEARS on selection, so the old
+/// "Delete" label read as "delete the selected ones".
+class _DeleteAllVariantsButton extends StatelessWidget {
+  const _DeleteAllVariantsButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Delete all variants',
+      child: Material(
+        color: ProductEditorTokens.loss.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.delete_outline,
+                  size: 16,
+                  color: ProductEditorTokens.loss,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Delete all',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: ProductEditorTokens.loss,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One variant, split into what people edit on every product (price, quantity,
+/// low stock) and the tax/unit/expiry fields they rarely touch. The second group
+/// is collapsed behind a toggle that still summarises its values.
+class _VariantCard extends StatefulWidget {
+  const _VariantCard({
+    super.key,
+    required this.table,
+    required this.variant,
+  });
+
+  final TableVariants table;
+  final Variant variant;
+
+  @override
+  State<_VariantCard> createState() => _VariantCardState();
+}
+
+class _VariantCardState extends State<_VariantCard> {
+  /// Always starts collapsed — price/quantity/low stock are what people come
+  /// here for, and the summary line carries the rest at a glance.
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final table = widget.table;
+    final variant = widget.variant;
+    final model = table.model;
+    final selected = model.isSelected(variant.id);
+    final subtitle = table._variantSubtitle(variant);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: selected
+            ? ProductEditorTokens.blueTint
+            : ProductEditorTokens.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: selected ? ProductEditorTokens.blue : ProductEditorTokens.line,
+          width: 1.5,
+        ),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: ProductEditorTokens.blue.withValues(alpha: 0.08),
+                  blurRadius: 0,
+                  spreadRadius: 3,
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Checkbox(
+                value: selected,
+                onChanged: (value) => model.toggleSelect(variant.id),
+              ),
+              if (table.productId != null && table.productId!.isNotEmpty) ...[
+                VariantTableImageCell(
+                  productId: table.productId!,
+                  variant: variant,
+                  model: model,
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      table._variantTitle(variant),
+                      style: GoogleFonts.outfit(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: ProductEditorTokens.ink1,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.qr_code_2,
+                              size: 13,
+                              color: ProductEditorTokens.ink4,
+                            ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                subtitle,
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 11.5,
+                                  color: ProductEditorTokens.ink3,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: ProductEditorTokens.loss,
+                ),
+                onPressed: () => table._deleteVariant(context, variant),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Divider(
+            height: 1,
+            color: selected
+                ? ProductEditorTokens.blue.withValues(alpha: 0.2)
+                : ProductEditorTokens.lineSoft,
+          ),
+          const SizedBox(height: 14),
+          // ONE LayoutBuilder for the whole field area (same count as before
+          // this card was split into primary/advanced groups). Extra nested
+          // layout callbacks are exactly what this file's header warns about.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossCount = constraints.maxWidth > 520 ? 3 : 2;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _grid(crossCount, [
+                    table._priceField(variant),
+                    table._quantityField(context, variant),
+                    table._lowStockField(variant),
+                  ]),
+                  const SizedBox(height: 12),
+                  _MoreDetailsToggle(
+                    expanded: _expanded,
+                    summary: table._detailsSummary(variant),
+                    onTap: () => setState(() => _expanded = !_expanded),
+                  ),
+                  if (_expanded) ...[
+                    const SizedBox(height: 14),
+                    _grid(crossCount, [
+                      table._taxField(variant),
+                      table._discountField(variant),
+                      table._unitField(variant),
+                      table._itemClassField(context, variant),
+                      table._expirationField(context, variant),
+                    ]),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _grid(int crossCount, List<Widget> children) {
+    return GridView.count(
+      crossAxisCount: crossCount,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 14,
+      childAspectRatio: 2.2,
+      children: children,
+    );
+  }
+}
+
+class _MoreDetailsToggle extends StatelessWidget {
+  const _MoreDetailsToggle({
+    required this.expanded,
+    required this.summary,
+    required this.onTap,
+  });
+
+  final bool expanded;
+  final String summary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+          child: Row(
+            children: [
+              Icon(
+                expanded ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+                color: ProductEditorTokens.blue,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                expanded
+                    ? 'Hide tax, unit & expiry'
+                    : 'Tax, unit & expiry',
+                style: GoogleFonts.outfit(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: ProductEditorTokens.blue,
+                ),
+              ),
+              if (!expanded) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    summary,
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.outfit(
+                      fontSize: 11.5,
+                      color: ProductEditorTokens.ink3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
