@@ -97,15 +97,45 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String? kProductName;
+
+  /// Look a product up by id, falling back to Capella when the active strategy
+  /// has no copy of it.
+  ///
+  /// Off-web the active strategy is [Strategy.cloudSync] (Brick), but products
+  /// are written to / read from Capella by the rest of the product UI (see the
+  /// variant fetch in `DesktopProductAdd`), so a Brick-only lookup returns null
+  /// for products that exist perfectly well.
+  Future<Product?> _findProductById(String productId) async {
+    final String branchId = ProxyService.box.getBranchId()!;
+    final String businessId = ProxyService.box.getBusinessId()!;
+
+    final current = ProxyService.strategy;
+    final Product? fromCurrent = await current.getProduct(
+      id: productId,
+      branchId: branchId,
+      businessId: businessId,
+    );
+    if (fromCurrent != null) return fromCurrent;
+
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    if (identical(current, capella)) return null;
+
+    return capella.getProduct(
+      id: productId,
+      branchId: branchId,
+      businessId: businessId,
+    );
+  }
+
   Future<Product> getProduct({String? productId}) async {
     try {
       if (productId != null) {
-        Product? product = await ProxyService.strategy.getProduct(
-          id: productId,
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!,
-        );
-        setCurrentProduct(currentProduct: product!);
+        final Product? product = await _findProductById(productId);
+        if (product == null) {
+          throw ProductNotFoundException(
+            'No product found for id $productId on branch ${ProxyService.box.getBranchId()}',
+          );
+        }
         setCurrentProduct(currentProduct: product);
         kProductName = product.name;
         setCurrentColor(color: product.color);

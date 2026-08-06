@@ -107,6 +107,14 @@ class CustomerNotFoundException implements Exception {
   CustomerNotFoundException(this.message);
 }
 
+class ProductNotFoundException implements Exception {
+  final String message;
+  ProductNotFoundException(this.message);
+
+  @override
+  String toString() => 'ProductNotFoundException: $message';
+}
+
 class FailedPaymentException implements Exception {
   final String message;
   FailedPaymentException(this.message);

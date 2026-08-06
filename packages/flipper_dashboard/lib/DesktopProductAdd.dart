@@ -1123,6 +1123,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) async {
+            try {
               if (widget.productId != null) {
                 Product product = await model.getProduct(
                   productId: widget.productId!,
@@ -1199,6 +1200,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               model.initialize();
               // Ensure we are not in loading state AFTER data is loaded
               ref.read(loadingProvider.notifier).stopLoading();
+            } catch (e, s) {
+              talker.error('ProductEntryScreen load failed', e, s);
+              if (!mounted) return;
+              // Never leave the editor stuck on the loading spinner.
+              ref.read(loadingProvider.notifier).stopLoading();
+              showErrorNotification(
+                context,
+                e is ProductNotFoundException
+                    ? 'This product could not be loaded. It may have been deleted.'
+                    : 'Could not load this product. Please try again.',
+              );
+            }
             },
             builder: (context, model, child) {
               final isPhone =
