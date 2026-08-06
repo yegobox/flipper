@@ -238,8 +238,19 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
         }
       }
 
+      // The bookkeeping future keeps running past the timeout, so its errors
+      // are swallowed *inside* it: an error raised after `.timeout()` has
+      // already given up has no one left to catch it and would surface as an
+      // unhandled async error long after logout returned.
+      final bookkeeping = () async {
+        try {
+          await announceAndReleaseSession();
+        } catch (e) {
+          print('Logout bookkeeping failed, session cleared anyway: $e');
+        }
+      }();
       try {
-        await announceAndReleaseSession().timeout(const Duration(seconds: 15));
+        await bookkeeping.timeout(const Duration(seconds: 15));
       } catch (e) {
         print('Logout bookkeeping did not finish, clearing session anyway: $e');
       }
@@ -257,9 +268,12 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       if (DittoService.instance.isReady()) {
         try {
           await DittoSingleton.instance.logout();
-          AuthMixin.resetDittoInitializationStatic();
         } catch (e) {
           print('Error during Ditto logout: $e');
+        } finally {
+          // Must run even when logout throws: leaving the init flag set locks
+          // the next user out of re-initialising Ditto.
+          AuthMixin.resetDittoInitializationStatic();
         }
       }
 
