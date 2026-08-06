@@ -5,6 +5,7 @@ import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:uuid/uuid.dart';
@@ -493,6 +494,58 @@ mixin CapellaStockMixin implements StockInterface {
     );
   }
 
+  /// Recreates a stock document that is missing from Ditto so an edit does not
+  /// lose the quantity the operator typed.
+  ///
+  /// Stock rows born on the Brick side never reach Ditto (`repository.upsert`
+  /// skips Ditto for Stock so a stale Brick row cannot clobber live qty), so a
+  /// variant can legitimately hold a `stockId` with no document behind it. Only
+  /// ids a Variant still references are healed — anything else stays an error
+  /// rather than becoming orphan stock. Created zeroed: the caller's own update
+  /// is applied immediately after, so nothing is double-counted.
+  Future<Map<String, dynamic>?> _healMissingStockDocument(
+    String stockId,
+  ) async {
+    Variant? variant;
+    try {
+      variant = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getVariant(stockId: stockId);
+    } catch (e, st) {
+      talker.warning(
+        'updateStock heal: variant lookup failed for $stockId: $e\n$st',
+      );
+    }
+    if (variant == null) return null;
+
+    final branchId = variant.branchId.trim().isNotEmpty
+        ? variant.branchId
+        : (ProxyService.box.getBranchId() ?? '');
+    if (branchId.trim().isEmpty) return null;
+
+    try {
+      await saveStock(
+        id: stockId,
+        variant: variant,
+        productId: variant.productId ?? '',
+        variantId: variant.id,
+        branchId: branchId,
+        currentStock: 0,
+        rsdQty: 0,
+        value: 0,
+      );
+      talker.warning(
+        'updateStock: recreated missing stock document $stockId for variant ${variant.id}',
+      );
+      return await _selectStockRaw(stockId);
+    } catch (e, st) {
+      talker.error(
+        'updateStock heal: failed to recreate stock $stockId: $e\n$st',
+      );
+      return null;
+    }
+  }
+
   @override
   Future<void> updateStock({
     required String stockId,
@@ -512,7 +565,9 @@ mixin CapellaStockMixin implements StockInterface {
         throw StateError('Ditto not initialized: updateStock');
       }
 
-      final existingData = await _selectStockRaw(stockId);
+      final existingData =
+          await _selectStockRaw(stockId) ??
+          await _healMissingStockDocument(stockId);
       if (existingData == null) {
         talker.error('Stock with ID $stockId not found');
         throw StateError('Stock with ID $stockId not found');
