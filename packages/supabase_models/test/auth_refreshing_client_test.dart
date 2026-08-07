@@ -200,25 +200,57 @@ void main() {
       expect(inner.sent.single.headers[enqueuedUserHeader], 'user-a');
     });
 
-    test('does not tag reads, auth calls, or signed-out writes', () async {
+    test('does not tag reads or auth calls', () async {
       final signedIn = EnqueuedUserStampClient(
         inner,
         tokenSource: _FakeTokenSource.signedInAs('user-a'),
-      );
-      final signedOut = EnqueuedUserStampClient(
-        inner,
-        tokenSource: _FakeTokenSource(),
       );
 
       await signedIn.send(request(restUrl, method: 'GET'));
       await signedIn
           .send(request('https://project.supabase.co/auth/v1/token?g=x'));
-      await signedOut.send(request(restUrl));
 
       expect(
         inner.sent.where((r) => r.headers.containsKey(enqueuedUserHeader)),
         isEmpty,
       );
+    });
+
+    test('tags signed-out writes with the reserved uid', () async {
+      final signedOut = EnqueuedUserStampClient(
+        inner,
+        tokenSource: _FakeTokenSource(),
+      );
+
+      await signedOut.send(request(restUrl));
+
+      expect(
+        inner.sent.single.headers[enqueuedUserHeader],
+        signedOutEnqueuedUser,
+        reason: 'an unstamped write is indistinguishable from a legacy row',
+      );
+    });
+
+    test('a signed-out write is dropped once someone signs in', () async {
+      // The whole point of the reserved stamp: nobody inherits a write that
+      // was created while no one was signed in.
+      final queued = _RecordingClient();
+      final stamped = EnqueuedUserStampClient(
+        queued,
+        tokenSource: _FakeTokenSource(),
+      );
+      await stamped.send(request(restUrl));
+
+      final replay = AuthRefreshingClient(
+        inner,
+        anonKey: anonKey,
+        tokenSource: _FakeTokenSource.signedInAs('user-b'),
+      );
+      final response = await replay.send(queued.sent.single);
+
+      expect(response.statusCode, 403,
+          reason: 'must be outside reattemptForStatusCodes so it is discarded');
+      expect(inner.sent, isEmpty);
     });
 
     test('round-trips through the queue into AuthRefreshingClient', () async {

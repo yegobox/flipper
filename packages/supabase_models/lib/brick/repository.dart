@@ -275,23 +275,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         http.Client(),
         anonKey: supabaseAnonKey,
       ),
-      // Brick's default list contains 401 and 403, which means an auth
-      // rejection is retried forever. Because the queue is serial and ordered
-      // by created_at, one such job sits at the head and blocks every other
-      // pending write. AuthRefreshingClient already holds requests back (503)
-      // while there is no session, so a 401/403 that still reaches us is a
-      // genuine rejection and the job should be dropped.
-      reattemptForStatusCodes: const [
-        400,
-        404,
-        405,
-        408,
-        429,
-        500,
-        502,
-        503,
-        504,
-      ],
+      // Only transport, throttling and server-side failures are worth
+      // replaying. Brick's default list contains 401/403 (and 404), which means
+      // a rejection the server will never change its mind about is retried
+      // forever; because the queue is serial and ordered by created_at, one
+      // such job sits at the head and blocks every other pending write. The
+      // same argument rules out 400/405 — a malformed request or a wrong verb
+      // is terminal. AuthRefreshingClient already holds requests back with a
+      // synthetic 503 while there is no session, so a 401/403 that still
+      // reaches us is genuine and the job should be dropped.
+      reattemptForStatusCodes: const [408, 429, 500, 502, 503, 504],
       onReattempt: (http.Request request, dynamic object) async {
         _logger.info('Reattempting offline request: ${request.url}');
       },

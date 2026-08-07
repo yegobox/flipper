@@ -15,6 +15,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// never sees it. This mirrors Brick's own `X-Brick-OfflineFirstPolicy`.
 const String enqueuedUserHeader = 'X-Flipper-Enqueued-Uid';
 
+/// Ownership stamp for a write created while no one was signed in.
+///
+/// Never equal to a real `auth.uid()`, so [AuthRefreshingClient] discards such
+/// a job instead of committing it under whoever signs in next. A missing stamp
+/// therefore means exactly one thing — a row queued before uid tagging existed.
+const String signedOutEnqueuedUser = 'signed-out';
+
 /// A live access token together with the user it belongs to.
 typedef QueuedAuth = ({String accessToken, String userId});
 
@@ -141,8 +148,11 @@ class EnqueuedUserStampClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (_pushMethods.contains(request.method) &&
         _isAuthenticatedPath(request.url.path)) {
-      final uid = _tokenSource.currentUserId;
-      if (uid != null) request.headers[enqueuedUserHeader] = uid;
+      // Stamp unconditionally. Leaving a signed-out write unstamped would make
+      // it indistinguishable from a legacy job, and legacy jobs are replayed
+      // as-is — so the next user to sign in would commit it as their own.
+      request.headers[enqueuedUserHeader] =
+          _tokenSource.currentUserId ?? signedOutEnqueuedUser;
     }
 
     return _inner.send(request);

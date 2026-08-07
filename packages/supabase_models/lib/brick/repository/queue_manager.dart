@@ -3,11 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:brick_offline_first/offline_queue.dart';
 // ignore: depend_on_referenced_packages
 import 'package:brick_offline_first_with_rest/offline_queue.dart'
-    show
-        HTTP_JOBS_ATTEMPTS_COLUMN,
-        HTTP_JOBS_REQUEST_METHOD_COLUMN,
-        HTTP_JOBS_TABLE_NAME,
-        HTTP_JOBS_URL_COLUMN;
+    show HTTP_JOBS_ATTEMPTS_COLUMN, HTTP_JOBS_TABLE_NAME;
 
 /// Manages offline request queue operations
 class QueueManager {
@@ -133,18 +129,20 @@ class QueueManager {
 
       if (exhausted.isEmpty) return 0;
 
+      final primaryKeyColumn =
+          offlineRequestQueue.requestManager.primaryKeyColumn;
+
+      // Only the local job id and attempt count: a PostgREST URL carries the
+      // table plus the row filters (ids, phone numbers, names) in its query
+      // string, which must not be written to the log.
       for (final request in exhausted) {
         _logger.warning(
-          'Dropping queue job after ${request[HTTP_JOBS_ATTEMPTS_COLUMN]} '
-          'attempts: ${request[HTTP_JOBS_REQUEST_METHOD_COLUMN]} '
-          '${request[HTTP_JOBS_URL_COLUMN]}',
+          'Dropping queue job ${request[primaryKeyColumn]} after '
+          '${request[HTTP_JOBS_ATTEMPTS_COLUMN]} attempts',
         );
       }
 
-      await _processBatches(
-        exhausted,
-        offlineRequestQueue.requestManager.primaryKeyColumn,
-      );
+      await _processBatches(exhausted, primaryKeyColumn);
 
       return exhausted.length;
     } catch (e) {
