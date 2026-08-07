@@ -383,6 +383,40 @@ final transactionTotalPaidProvider = FutureProvider.autoDispose
       }
     });
 
+/// Tender lines (installments) recorded against a transaction, oldest first.
+///
+/// Complements [transactionTotalPaidProvider], which only returns the sum: the
+/// resume sheet needs each installment's method / payer / timestamp so a
+/// cashier can see when money came in on a parked credit ticket.
+final transactionPaymentRecordsProvider = FutureProvider.autoDispose
+    .family<List<TransactionPaymentRecord>, String>((ref, transactionId) async {
+      if (transactionId.isEmpty) return const <TransactionPaymentRecord>[];
+
+      try {
+        // Capella explicitly: the default strategy is empty off-web in some
+        // contexts, which would silently render an empty history.
+        final records = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getPaymentType(transactionId: transactionId);
+
+        final sorted = List<TransactionPaymentRecord>.from(records);
+        sorted.sort((a, b) {
+          final left = a.createdAt;
+          final right = b.createdAt;
+          // Rows without a timestamp (legacy) sink to the top, keeping the
+          // dated installments in chronological order below them.
+          if (left == null && right == null) return 0;
+          if (left == null) return -1;
+          if (right == null) return 1;
+          return left.compareTo(right);
+        });
+        return sorted;
+      } catch (e) {
+        talker.error('Error getting payment records for transaction: $e');
+        return const <TransactionPaymentRecord>[];
+      }
+    });
+
 final ordersStreamProvider = StreamProvider.autoDispose<List<ITransaction>>((
   ref,
 ) {
