@@ -11,7 +11,7 @@ import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:http/http.dart' as http show Request;
+import 'package:http/http.dart' as http show Client, Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
@@ -25,6 +25,7 @@ import 'package:logging/logging.dart';
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
+import 'repository/auth_refreshing_client.dart';
 import 'repository/database_manager.dart';
 import 'repository/legacy_database_migration.dart';
 import 'repository/queue_manager.dart';
@@ -268,6 +269,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: PlatformHelpers.getQueueDatabaseFactory(),
       databasePath: queuePath, // This is the path for the queue database
+      // Stamps a live access token onto every request, including queue
+      // replays, which would otherwise carry the JWT frozen at enqueue time.
+      innerClient: AuthRefreshingClient(
+        http.Client(),
+        anonKey: supabaseAnonKey,
+      ),
+      // Brick's default list contains 401 and 403, which means an auth
+      // rejection is retried forever. Because the queue is serial and ordered
+      // by created_at, one such job sits at the head and blocks every other
+      // pending write. AuthRefreshingClient already holds requests back (503)
+      // while there is no session, so a 401/403 that still reaches us is a
+      // genuine rejection and the job should be dropped.
+      reattemptForStatusCodes: const [
+        400,
+        404,
+        405,
+        408,
+        429,
+        500,
+        502,
+        503,
+        504,
+      ],
       onReattempt: (http.Request request, dynamic object) async {
         _logger.info('Reattempting offline request: ${request.url}');
       },
@@ -322,6 +346,14 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       dbPath: dbPath,
     );
     await _singleton!._ensurePendingAnalyticsEventTable();
+
+    // Clear jobs that have already exhausted their reattempts. Queues in the
+    // field can hold requests that looped on a 401 for as long as the app has
+    // been installed, blocking every write behind them.
+    final purged = await _singleton!.purgeExhaustedQueue();
+    if (purged > 0) {
+      _logger.warning('Purged $purged exhausted offline queue request(s)');
+    }
 
     _markReady();
     print('✅ [Repository] Repository marked as ready');
@@ -480,6 +512,25 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     } catch (e) {
       _logger.warning('Error getting queue status: $e');
       return {'locked': 0, 'unlocked': 0, 'total': 0};
+    }
+  }
+
+  /// Drop queued requests that have exhausted their reattempts.
+  /// Returns the number of requests deleted.
+  Future<int> purgeExhaustedQueue() async {
+    if (kIsWeb) {
+      return 0;
+    }
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call purgeExhaustedQueue on a disposed Repository.');
+      return 0;
+    }
+    try {
+      return await _queueManager.purgeExhaustedRequests();
+    } catch (e) {
+      _logger.warning('Error purging exhausted queue: $e');
+      return 0;
     }
   }
 
