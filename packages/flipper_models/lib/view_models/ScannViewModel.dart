@@ -707,13 +707,16 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
         final boxBhfId = await ProxyService.box.bhfId();
 
-        for (var variant in scannedVariants) {
-          Ebm? ebmCache;
-          Future<Ebm?> loadEbm() async {
-            ebmCache ??= await ProxyService.strategy.ebm(branchId: branchId);
-            return ebmCache;
-          }
+        // Memoised across the whole loop. Declaring [ebmCache] inside the loop
+        // reset it on every iteration, so a save issued one EBM lookup per
+        // variant even though the row is branch-scoped and identical each time.
+        Ebm? ebmCache;
+        Future<Ebm?> loadEbm() async {
+          ebmCache ??= await ProxyService.strategy.ebm(branchId: branchId);
+          return ebmCache;
+        }
 
+        for (var variant in scannedVariants) {
           // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
             try {
