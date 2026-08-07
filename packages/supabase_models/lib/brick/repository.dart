@@ -304,6 +304,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       },
     );
 
+    // Tags each write with the signed-in uid. This has to wrap the queue
+    // rather than sit inside it: the queue serializes headers into SQLite
+    // before AuthRefreshingClient runs, so a stamp applied further down would
+    // never be persisted alongside the job.
+    final stampingClient = EnqueuedUserStampClient(client);
+
     final SupabaseClient supabaseClient;
     final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
 
@@ -311,15 +317,15 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       debugPrint('Using mocked Supabase client in test environment');
       // Use the mocked client in a test environment
       await mock.setUp();
-      supabaseClient =
-          SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client);
+      supabaseClient = SupabaseClient(mock.serverUrl, mock.apiKey,
+          httpClient: stampingClient);
     } else {
       debugPrint('Using real Supabase client in non-test environment');
       // Initialize the real Supabase client in a non-test environment
       supabaseClient = (await Supabase.initialize(
         url: supabaseUrl,
         anonKey: supabaseAnonKey,
-        httpClient: client,
+        httpClient: stampingClient,
       ))
           .client;
     }
