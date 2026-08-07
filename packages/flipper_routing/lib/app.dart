@@ -894,7 +894,7 @@ class App {}
 
 // Detach with:
 
-// Ctrl + A, then D2wewsxfrda XZ  Q`
+// Ctrl + A, then D2wewsxfrda XZ  Q
 // 
 // Reattach later:
 
