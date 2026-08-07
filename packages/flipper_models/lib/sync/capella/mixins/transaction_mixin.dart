@@ -15,6 +15,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
@@ -2186,18 +2187,20 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (updates.isEmpty) return;
 
     final newStatus = arguments['status'] as String?;
-    Map<String, dynamic>? priorRowForEnsure;
-    if (!skipDittoSync &&
-        !deferEnsureNextPendingCart &&
-        newStatus != null &&
-        newStatus != PENDING) {
+    final leavingPending = newStatus != null && newStatus != PENDING;
+
+    // The prior row answers two questions: whether to prime the next pending
+    // cart, and whether this write is the PENDING → settled transition that
+    // owns the report date (see the createdAt re-stamp below).
+    Map<String, dynamic>? priorRow;
+    if (!skipDittoSync && leavingPending) {
       try {
         final pre = await ditto.store.execute(
           'SELECT * FROM transactions WHERE _id = :id OR id = :id',
           arguments: {'id': targetId},
         );
         if (pre.items.isNotEmpty) {
-          priorRowForEnsure = Map<String, dynamic>.from(pre.items.first.value);
+          priorRow = Map<String, dynamic>.from(pre.items.first.value);
         }
       } catch (e, s) {
         talker.warning(
@@ -2205,6 +2208,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           s,
         );
       }
+    }
+    // Unchanged gate: when the caller primes the next cart itself
+    // (markTransactionAsCompleted → manageTransaction) we must not race it.
+    final priorRowForEnsure = deferEnsureNextPendingCart ? null : priorRow;
+
+    // The cart row this write is settling was minted by
+    // [_ensureNextPendingCartIfNeeded] when the *previous* sale finished, so its
+    // createdAt is that sale's timestamp — re-stamp it here, and only here. See
+    // [posSettlementCreatedAtStamp] for the rule and why the stamp is local.
+    if (priorRow != null) {
+      final saleDate = posSettlementCreatedAtStamp(
+        priorStatus: priorRow['status'] as String?,
+        newStatus: newStatus,
+        settledAt: resolvedLastTouched,
+      );
+      if (saleDate != null) addFieldUpdate('createdAt', saleDate);
     }
 
     final statusGuardClause = requireCurrentStatus != null
@@ -2615,7 +2634,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     final targetId = transaction.id;
     final branchId = transaction.branchId ?? ProxyService.box.getBranchId()!;
-    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final now = DateTime.now();
+    final nowIso = now.toUtc().toIso8601String();
+    // Report windows compare local wall-clock strings — see the createdAt note
+    // on [setClauses] below.
+    final nowLocalIso = now.toIso8601String();
 
     // Ensure peers subscribed to this branch can pull the PARKED update.
     // Pending-cart sync alone is deviceId+PENDING and does not match parks.
@@ -2685,15 +2708,25 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // POS tickets list filters `isOriginalTransaction = true`; ensure park
     // always lands in that set (kitchen already skips this check).
     transaction.isOriginalTransaction = true;
+    transaction.createdAt = now;
 
-    // Preserve original sale createdAt. Till "sent N min ago" uses lastTouched
-    // captured into SettlingTillTicket at Collect (before resume bumps it).
+    // Park is this ticket's transition out of the shared pending cart, whose
+    // createdAt is the *previous* sale's timestamp (see the re-stamp in
+    // [updateTransaction]) — so stamp the ticket's real open time here, or a
+    // parked ticket files under the wrong day in Transaction Reports. Local,
+    // not UTC, to match the report window's wall-clock string bounds.
+    // [resumeSaleTicketFast] deliberately leaves createdAt alone; the later
+    // PENDING → COMPLETE write re-stamps it to the settlement date.
+    //
+    // Till "sent N min ago" uses lastTouched captured into SettlingTillTicket
+    // at Collect (before resume bumps it), so it is unaffected.
     final setClauses = <String>[
       'status = :status',
       'ticketName = :ticketName',
       'note = :note',
       'isLoan = :isLoan',
       'isOriginalTransaction = :isOriginal',
+      'createdAt = :createdAt',
       'updatedAt = :updatedAt',
       'lastTouched = :lastTouched',
       'subTotal = :subTotal',
@@ -2705,6 +2738,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'note': ticketNote,
       'isLoan': transaction.isLoan ?? false,
       'isOriginal': true,
+      'createdAt': nowLocalIso,
       'updatedAt': nowIso,
       'lastTouched': nowIso,
       'subTotal': subTotal,
@@ -2766,8 +2800,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     final nowIso = DateTime.now().toUtc().toIso8601String();
-    // Do NOT touch createdAt here: it holds the original sale time (park no
-    // longer overwrites it). Till "sent N min ago" is stamped onto
+    // Do NOT touch createdAt here: resume is not a settlement. The row keeps
+    // the park stamp until the PENDING → COMPLETE write re-stamps it to the
+    // settlement date. Till "sent N min ago" is stamped onto
     // SettlingTillTicket from lastTouched *before* this resume write.
     //
     // Resume the ticket *before* sibling-cart cleanup. Cleanup used to run

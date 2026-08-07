@@ -59,6 +59,31 @@ String applyTicketReviewWorkflowRedirect({
   return saleCompletionStatusPendingReview;
 }
 
+/// Aligned with [PENDING] in `flipper_services/constants.dart` (VM-safe).
+const String saleCompletionStatusPending = 'pending';
+
+/// The report date a POS row should carry once it settles, or `null` to leave
+/// `createdAt` untouched.
+///
+/// A POS cart row is minted the moment the *previous* sale finishes and is then
+/// reused with no age limit, so its `createdAt` is the previous sale's
+/// timestamp — not this sale's. It must therefore be re-stamped on the
+/// transition out of [saleCompletionStatusPending], and only then: every later
+/// write (refunds, receipt counters, RRA fields) has to preserve the sale date.
+///
+/// The returned value is always local time. Report windows are built from local
+/// wall clock with no `Z` suffix and Ditto compares them as strings, so a UTC
+/// stamp shifts sales out of their own day (−2h in Rwanda).
+DateTime? posSettlementCreatedAtStamp({
+  required String? priorStatus,
+  required String? newStatus,
+  required DateTime settledAt,
+}) {
+  if (newStatus == null || newStatus == saleCompletionStatusPending) return null;
+  if (priorStatus != saleCompletionStatusPending) return null;
+  return settledAt.isUtc ? settledAt.toLocal() : settledAt;
+}
+
 /// Statuses that mean "money already collected, tax already signed" for
 /// accounting/reporting purposes, even though the ticket is not yet in its
 /// final [saleCompletionStatusComplete] state.

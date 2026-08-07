@@ -264,4 +264,103 @@ void main() {
       expect(isFinanciallySettledSaleStatus(null), isFalse);
     });
   });
+
+  group('posSettlementCreatedAtStamp', () {
+    // The shared pending cart is minted when the previous sale finishes, so its
+    // createdAt is yesterday's last sale for the first sale of a new day.
+    final yesterdayCart = DateTime(2026, 8, 6, 18, 30);
+    final settledNow = DateTime(2026, 8, 7, 9, 15);
+
+    test('re-stamps the sale date when the cart leaves pending', () {
+      expect(
+        posSettlementCreatedAtStamp(
+          priorStatus: saleCompletionStatusPending,
+          newStatus: saleCompletionStatusComplete,
+          settledAt: settledNow,
+        ),
+        settledNow,
+      );
+    });
+
+    test('re-stamps for parked, pendingReview and awaitingHandover too', () {
+      for (final status in [
+        saleCompletionStatusParked,
+        saleCompletionStatusPendingReview,
+        saleCompletionStatusAwaitingHandover,
+      ]) {
+        expect(
+          posSettlementCreatedAtStamp(
+            priorStatus: saleCompletionStatusPending,
+            newStatus: status,
+            settledAt: settledNow,
+          ),
+          settledNow,
+          reason: 'leaving the pending cart for $status owns the report date',
+        );
+      }
+    });
+
+    test('preserves the sale date on later writes (refund, counters, RRA)', () {
+      // Prior row is already settled — createdAt must not move.
+      expect(
+        posSettlementCreatedAtStamp(
+          priorStatus: saleCompletionStatusComplete,
+          newStatus: saleCompletionStatusComplete,
+          settledAt: settledNow,
+        ),
+        isNull,
+      );
+      expect(
+        posSettlementCreatedAtStamp(
+          priorStatus: saleCompletionStatusParked,
+          newStatus: saleCompletionStatusComplete,
+          settledAt: settledNow,
+        ),
+        isNull,
+      );
+    });
+
+    test('does not stamp when the row stays a pending cart', () {
+      // e.g. resumeSaleTicketFast (parked → pending) and cart edits.
+      expect(
+        posSettlementCreatedAtStamp(
+          priorStatus: saleCompletionStatusPending,
+          newStatus: saleCompletionStatusPending,
+          settledAt: settledNow,
+        ),
+        isNull,
+      );
+      expect(
+        posSettlementCreatedAtStamp(
+          priorStatus: saleCompletionStatusPending,
+          newStatus: null,
+          settledAt: settledNow,
+        ),
+        isNull,
+      );
+    });
+
+    test('normalizes a UTC settlement time to local', () {
+      // Report windows are local wall-clock strings with no `Z`, compared
+      // lexicographically — a UTC stamp would file the sale in the wrong day.
+      final stamp = posSettlementCreatedAtStamp(
+        priorStatus: saleCompletionStatusPending,
+        newStatus: saleCompletionStatusComplete,
+        settledAt: settledNow.toUtc(),
+      );
+      expect(stamp!.isUtc, isFalse);
+      expect(stamp, settledNow);
+      expect(stamp.toIso8601String(), isNot(endsWith('Z')));
+    });
+
+    test("the stale cart date is never what lands on the sale", () {
+      final stamp = posSettlementCreatedAtStamp(
+        priorStatus: saleCompletionStatusPending,
+        newStatus: saleCompletionStatusComplete,
+        settledAt: settledNow,
+      );
+      expect(stamp, isNot(yesterdayCart));
+      expect(stamp!.day, 7, reason: 'sold on the 7th, not the cart-mint day');
+    });
+  });
 }
