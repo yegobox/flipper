@@ -11,6 +11,7 @@ import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/helperModels/payer_name.dart';
 import 'package:flipper_models/sync/capella/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -1557,6 +1558,7 @@ class CapellaSync extends AiStrategyImpl
     String? transactionId,
     double amount = 0.0,
     String? paymentMethod,
+    String? payerName,
     required bool singlePaymentOnly,
     bool saleCompletionFastPath = false,
   }) async {
@@ -1642,6 +1644,7 @@ class CapellaSync extends AiStrategyImpl
         'transactionId': r.transactionId,
         'amount': r.amount,
         'paymentMethod': r.paymentMethod,
+        'payerName': r.payerName,
         'createdAt': r.createdAt?.toUtc().toIso8601String(),
       };
 
@@ -1681,6 +1684,7 @@ class CapellaSync extends AiStrategyImpl
         amount: amount,
         transactionId: transactionId,
         paymentMethod: paymentMethod,
+        payerName: normalizedPayerName(payerName),
       );
 
       await upsertDitto(newPaymentRecord);

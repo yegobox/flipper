@@ -1100,6 +1100,7 @@ id UUID PRIMARY KEY,
 transaction_id UUID,
 amount NUMERIC(10,2),
 payment_method text,
+payer_name text,
 created_at timestamp with time zone
 
 );

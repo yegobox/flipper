@@ -450,6 +450,8 @@
     "paymentBankCheck": "Sheki ya banki",
     "paymentDebitCreditCard": "Ikarita ya banki",
     "paymentMobileMoney": "Amafaranga kuri telefoni",
+    "payerNameOptional": "Izina ry'uwishyuye (si ngombwa)",
+    "paidBy": "Yishyuwe na",
     "paymentMtnMomo": "MTN MoMo",
     "paymentAirtelMoney": "Airtel Money",
     "paymentOther": "Ibindi",

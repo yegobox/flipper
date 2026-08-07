@@ -208,7 +208,15 @@ List<PaymentLineForSaleCompletion> paymentLinesForSaleCompletion(
         if (amt <= _tenderEpsilon) {
           amt = double.tryParse(p.controller.text.trim()) ?? 0.0;
         }
-        return PaymentLineForSaleCompletion(amount: amt, method: p.method);
+        return PaymentLineForSaleCompletion(
+          amount: amt,
+          method: p.method,
+          // Only tenders that offer the field can carry a payer; a name left
+          // behind by an earlier method choice must not follow to e.g. CASH.
+          payerName: paymentMethodSupportsPayerName(p.method)
+              ? normalizedPayerName(p.payerName)
+              : null,
+        );
       })
       .toList();
 }
@@ -1038,6 +1046,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           amount: payment.amount,
           transactionId: transactionId,
           paymentMethod: payment.method,
+          payerName: payment.payerName,
           saleCompletionFastPath: true,
         );
       }
@@ -1202,6 +1211,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           amount: payment.amount,
           transactionId: transaction.id,
           paymentMethod: payment.method,
+          payerName: payment.payerName,
           saleCompletionFastPath: true,
         );
       }

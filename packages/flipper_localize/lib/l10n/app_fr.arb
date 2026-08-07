@@ -450,6 +450,8 @@
     "paymentBankCheck": "Chèque bancaire",
     "paymentDebitCreditCard": "Carte bancaire",
     "paymentMobileMoney": "Argent mobile",
+    "payerNameOptional": "Nom du payeur (facultatif)",
+    "paidBy": "Payé par",
     "paymentMtnMomo": "MTN MoMo",
     "paymentAirtelMoney": "Airtel Money",
     "paymentOther": "Autre",

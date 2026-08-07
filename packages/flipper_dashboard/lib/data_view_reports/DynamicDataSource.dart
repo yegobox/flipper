@@ -33,8 +33,12 @@ String transactionReportReceiptLabel(ITransaction t) {
 String transactionReportCustomerLabel(ITransaction t) {
   final name = t.customerName?.trim();
   if (name != null && name.isNotEmpty) return name;
-  final phone = (t.customerPhone ?? t.currentSaleCustomerPhoneNumber)?.trim();
+  // Fall back per field, not with `??`: an empty-string customerPhone is a
+  // present value, so a single `??` would swallow the sale-time number.
+  final phone = t.customerPhone?.trim();
   if (phone != null && phone.isNotEmpty) return phone;
+  final salePhone = t.currentSaleCustomerPhoneNumber?.trim();
+  if (salePhone != null && salePhone.isNotEmpty) return salePhone;
   return '—';
 }
 
