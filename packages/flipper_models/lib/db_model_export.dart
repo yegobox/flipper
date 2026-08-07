@@ -26,5 +26,6 @@ export 'helperModels/business_feature.dart';
 export 'helpers/transaction_item_plu_metrics.dart';
 export 'helpers/transaction_item_line_order.dart';
 export 'models/personal_goal.dart';
+export 'helperModels/payer_name.dart';
 export 'helperModels/transaction_payment_sums.dart';
 export 'helperModels/transaction_report_snapshot.dart';

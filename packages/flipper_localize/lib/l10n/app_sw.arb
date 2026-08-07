@@ -450,6 +450,8 @@
     "paymentBankCheck": "Hundi ya benki",
     "paymentDebitCreditCard": "Kadi ya benki",
     "paymentMobileMoney": "Pesa ya simu",
+    "payerNameOptional": "Jina la mlipaji (si lazima)",
+    "paidBy": "Amelipwa na",
     "paymentMtnMomo": "MTN MoMo",
     "paymentAirtelMoney": "Airtel Money",
     "paymentOther": "Nyingine",

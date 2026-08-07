@@ -557,11 +557,16 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required HttpClientInterface flipperHttpClient,
   });
 
+  /// [payerName] is the optional name on the MoMo/bank account that tendered
+  /// this line, for the common case where the payer is not the customer
+  /// attached to the transaction. Blank/whitespace is stored as null. Ignored
+  /// when [paymentRecord] is supplied (that record already carries its own).
   FutureOr<void> savePaymentType({
     TransactionPaymentRecord? paymentRecord,
     String? transactionId,
     double amount = 0.0,
     String? paymentMethod,
+    String? payerName,
     required bool singlePaymentOnly,
     bool saleCompletionFastPath = false,
   });

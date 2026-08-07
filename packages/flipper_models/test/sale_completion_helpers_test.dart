@@ -158,6 +158,40 @@ void main() {
       final cash = normalized.firstWhere((p) => p.method == 'CASH');
       expect(cash.amount, closeTo(40.0, 0.02));
     });
+
+    test('preserves payerName on scaled and drift-corrected rows', () {
+      final normalized = normalizePaymentLinesToSaleTotal(
+        paymentMethods: const [
+          PaymentLineForSaleCompletion(amount: 60, method: 'CASH'),
+          PaymentLineForSaleCompletion(
+            amount: 60,
+            method: 'MTN MOMO',
+            payerName: 'Jean Uwase',
+          ),
+        ],
+        saleTotal: 100,
+        shouldBeLoan: false,
+      );
+      final momo = normalized.firstWhere((p) => p.method == 'MTN MOMO');
+      expect(momo.payerName, 'Jean Uwase');
+      expect(normalized.firstWhere((p) => p.method == 'CASH').payerName, null);
+    });
+
+    test('passthrough (loan) keeps payerName untouched', () {
+      const lines = [
+        PaymentLineForSaleCompletion(
+          amount: 10,
+          method: 'BANK CHECK',
+          payerName: 'Acme Ltd',
+        ),
+      ];
+      final normalized = normalizePaymentLinesToSaleTotal(
+        paymentMethods: lines,
+        saleTotal: 100,
+        shouldBeLoan: true,
+      );
+      expect(normalized.single.payerName, 'Acme Ltd');
+    });
   });
 
   group('saleLineQtyByVariantId', () {

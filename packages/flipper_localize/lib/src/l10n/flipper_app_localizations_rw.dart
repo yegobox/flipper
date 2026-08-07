@@ -1535,6 +1535,12 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get paymentMtnMomo => 'MTN MoMo';
 
   @override
+  String get payerNameOptional => 'Izina ry\'uwishyuye (si ngombwa)';
+
+  @override
+  String get paidBy => 'Yishyuwe na';
+
+  @override
   String get paymentAirtelMoney => 'Airtel Money';
 
   @override

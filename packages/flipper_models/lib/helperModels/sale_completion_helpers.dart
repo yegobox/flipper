@@ -103,10 +103,15 @@ class PaymentLineForSaleCompletion {
   const PaymentLineForSaleCompletion({
     required this.amount,
     required this.method,
+    this.payerName,
   });
 
   final double amount;
   final String method;
+
+  /// Optional name on the MoMo/bank account that tendered this line. Carried
+  /// through completion untouched — it plays no part in the amount math.
+  final String? payerName;
 }
 
 /// Result of [deriveSaleCompletionState] — status and balances for persisting a sale.
@@ -246,6 +251,7 @@ List<PaymentLineForSaleCompletion> normalizePaymentLinesToSaleTotal({
       PaymentLineForSaleCompletion(
         amount: _roundToTwoDecimalPlaces(p.amount * factor),
         method: p.method,
+        payerName: p.payerName,
       ),
     );
   }
@@ -262,6 +268,7 @@ List<PaymentLineForSaleCompletion> normalizePaymentLinesToSaleTotal({
       adjusted[i] = PaymentLineForSaleCompletion(
         amount: _roundToTwoDecimalPlaces(p.amount + drift),
         method: p.method,
+        payerName: p.payerName,
       );
       break;
     }

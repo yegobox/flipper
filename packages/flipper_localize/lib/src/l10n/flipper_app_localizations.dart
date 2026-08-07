@@ -2819,6 +2819,18 @@ abstract class FlipperAppLocalizations {
   /// **'MTN MoMo'**
   String get paymentMtnMomo;
 
+  /// Hint for the optional name on the MoMo/bank account that sent the money, when it differs from the customer on the sale
+  ///
+  /// In en, this message translates to:
+  /// **'Payer name (optional)'**
+  String get payerNameOptional;
+
+  /// Label preceding the payer name on a transaction's payment line
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by'**
+  String get paidBy;
+
   /// Payment method display name, brand kept as-is
   ///
   /// In en, this message translates to:
