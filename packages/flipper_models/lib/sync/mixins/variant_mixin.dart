@@ -409,7 +409,10 @@ mixin VariantMixin implements VariantInterface {
             }
             await _ensureCapellaStockDocument(variantToSave);
           }
-          await repository.upsert<Variant>(variantToSave);
+          // Round before the single upsert. This used to upsert, round, then
+          // upsert the same row again, doubling the Brick write plus its Ditto
+          // mirror for every variant on every save. The persisted row is
+          // identical either way — the second write always won.
           if (variantToSave.splyAmt != null) {
             variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
           }

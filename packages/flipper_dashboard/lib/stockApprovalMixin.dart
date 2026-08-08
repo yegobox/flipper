@@ -1047,6 +1047,11 @@ mixin StockRequestApprovalLogic {
       lastTouched: now,
     );
     prepareDestinationVariantForPosCatalog(newVariant);
+    // copyWith carried the SOURCE branch's stock/stockId over; without this the
+    // destination variant shares the source's stock document (and its
+    // currentStockMilli COUNTER), so the transfer adds to and deducts from the
+    // same on-hand.
+    detachInheritedStockLink(newVariant);
 
     final createdVariant = await _capella.create<Variant>(
       data: newVariant,
@@ -1058,7 +1063,7 @@ mixin StockRequestApprovalLogic {
     // Create stock for the new variant
     final stock = await _createNewStockForSharedVariant(
       variant: createdVariant,
-      destinationBranchId: request.branch!.id,
+      destinationBranchId: request.subBranchId!,
       approvedQuantity: approvedQuantity,
     );
 
@@ -1112,18 +1117,34 @@ mixin StockRequestApprovalLogic {
         throw Exception('Stock not found');
       }
 
-      final double currentStock = v.stock!.currentStock!;
-      final double updatedStock = isDeducting
-          ? (currentStock - approvedQuantity.toDouble())
-          : (currentStock + approvedQuantity.toDouble());
+      final String stockId = v.stock!.id;
+      final double delta = isDeducting
+          ? -approvedQuantity.toDouble()
+          : approvedQuantity.toDouble();
 
+      // Atomic currentStockMilli COUNTER increment. The previous absolute
+      // `currentStock - approvedQuantity` write was computed from the variant
+      // resolved at the start of the approval, so a sale rung up on another till
+      // in between was silently restored (register-wins reconciliation in
+      // sync/utils/stock_qty_milli.dart then pushed it into the COUNTER too).
       await _capella.updateStock(
-        stockId: v.stock!.id,
-        currentStock: updatedStock,
-        value: updatedStock * v.retailPrice!,
-        rsdQty: updatedStock,
+        stockId: stockId,
+        currentStock: delta,
+        appending: true,
         lastTouched: DateTime.now().toUtc(),
         ebmSynced: false,
+      );
+
+      // `value` is derived from the post-move qty, so read the merged counter
+      // back instead of trusting the pre-move snapshot. Metadata-only update:
+      // it does not touch currentStock / rsdQty.
+      final after = await _capella.getStockById(id: stockId);
+      final double updatedStock =
+          after?.currentStock ?? ((v.stock!.currentStock ?? 0) + delta);
+      final double unitPrice = (v.retailPrice ?? v.supplyPrice ?? 0).toDouble();
+      await _capella.updateStock(
+        stockId: stockId,
+        value: updatedStock * unitPrice,
       );
     } catch (e, s) {
       talker.error('Error updating main branch stock', e, s);

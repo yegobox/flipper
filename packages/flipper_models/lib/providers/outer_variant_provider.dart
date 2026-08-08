@@ -250,8 +250,21 @@ class OuterVariants extends _$OuterVariants {
   }
 
   /// Method to force a full refresh of variants (e.g., after adding new products).
+  ///
+  /// Deliberately a plain local read, not [_fetchVariantsWithColdStartGrace]:
+  /// every caller runs this straight after a local write, so the rows are
+  /// already in the local store. The grace path passes `fetchRemote: true` and,
+  /// on an empty result, sleeps through its own 400/900/1500ms backoff *and*
+  /// `variants()`'s inner 2s/3.5s/5s backoff — up to ~34s of retry loops on a
+  /// machine still busy finishing the save. Cold start is still covered by
+  /// [build], which callers reach via `ref.invalidate`.
+  ///
+  /// Takes a search generation so an in-flight [_applySearchQuery] cannot land
+  /// on top of this refresh (or vice versa) and resurrect stale filtered rows.
   Future<void> refresh() async {
-    final paged = await _fetchVariantsWithColdStartGrace(branchId);
+    final generation = ++_searchGeneration;
+    final paged = await _fetchVariants(branchId, 0, '');
+    if (generation != _searchGeneration) return;
     _currentSearch = '';
     _totalCount = paged.totalCount;
     _pageCache.clear();

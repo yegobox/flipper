@@ -66,6 +66,7 @@ class TransactionListState extends ConsumerState<TransactionList>
   bool _isXReportLoading = false;
   bool _isSaleReportLoading = false;
   bool _isPluReportLoading = false;
+  bool _isRefreshing = false;
 
   /// Sizing for the height this report actually gets. Recomputed at the top of
   /// every layout pass in [_buildReportScaffold] (before any child is built),
@@ -165,6 +166,35 @@ class TransactionListState extends ConsumerState<TransactionList>
           duration: const Duration(seconds: 5),
         );
       }
+    }
+  }
+
+  /// Drops the cached report data and re-reads it, so the grid picks up
+  /// whatever has since arrived from a connected mesh peer or the remote.
+  Future<void> _refreshReportData() async {
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+    try {
+      ref.invalidate(transactionItemListProvider);
+      ref.invalidate(transactionReportBusinessCashiersProvider);
+      ref.invalidate(transactionReportChartSnapshotProvider(forceRealData));
+      ref.invalidate(transactionListProvider(forceRealData: forceRealData));
+      ref.invalidate(
+        transactionReportSnapshotProvider(forceRealData: forceRealData),
+      );
+      // Wait for the fresh read so the spinner reflects the actual fetch.
+      await ref.read(
+        transactionReportSnapshotProvider(forceRealData: forceRealData).future,
+      );
+    } catch (e) {
+      // The grid renders its own error state; just surface it once here.
+      if (mounted) {
+        showErrorNotification(context, 'Refresh failed: ${e.toString()}');
+      }
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
     }
   }
 
@@ -1004,21 +1034,49 @@ class TransactionListState extends ConsumerState<TransactionList>
           ),
         ),
         const SizedBox(width: 8),
-        TextButton(
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          onPressed: () => ref
-              .read(transactionReportFiltersProvider.notifier)
-              .setCashierAgentId(null),
-          child: Text(
-            'Clear',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-              fontSize: 13,
+        Tooltip(
+          message: 'Refresh — pull fresh data from mesh peers or the server',
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              onTap: _isRefreshing ? null : _refreshReportData,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: _metrics.isCompact ? 8 : 10,
+                  vertical: _metrics.isCompact ? 5 : 6,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFD1D5DB)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: _isRefreshing
+                          ? const CircularProgressIndicator(strokeWidth: 2)
+                          : Icon(
+                              Icons.refresh_rounded,
+                              size: 16,
+                              color: Colors.grey.shade700,
+                            ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Refresh',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

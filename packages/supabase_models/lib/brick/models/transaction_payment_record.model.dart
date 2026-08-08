@@ -31,6 +31,12 @@ class TransactionPaymentRecord extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "0.0")
   double? amount;
   String? paymentMethod;
+
+  /// Name of the person who actually tendered this line, when it differs from
+  /// the customer attached to the transaction (mobile money / bank transfers
+  /// are often paid from someone else's account). Optional — null for cash and
+  /// for every record written before this field existed.
+  String? payerName;
   DateTime? createdAt;
   TransactionPaymentRecord({
     String? id,
@@ -38,5 +44,6 @@ class TransactionPaymentRecord extends OfflineFirstWithSupabaseModel {
     required this.amount,
     required this.paymentMethod,
     required this.createdAt,
+    this.payerName,
   }) : id = id ?? const Uuid().v4();
 }

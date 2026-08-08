@@ -95,6 +95,7 @@ class TransactionPaymentRecordDittoAdapter
       "transactionId": model.transactionId,
       "amount": model.amount,
       "paymentMethod": model.paymentMethod,
+      "payerName": model.payerName,
       "createdAt": model.createdAt?.toIso8601String(),
     };
   }
@@ -133,6 +134,7 @@ class TransactionPaymentRecordDittoAdapter
       transactionId: document["transactionId"],
       amount: document["amount"],
       paymentMethod: document["paymentMethod"],
+      payerName: document["payerName"],
       createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
     );
   }

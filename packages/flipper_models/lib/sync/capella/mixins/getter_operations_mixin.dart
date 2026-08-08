@@ -266,6 +266,8 @@ TransactionPaymentRecord? _transactionPaymentRecordFromDittoRow(
     transactionId: tid,
     amount: _parsePaymentAmount(data['amount']) ?? 0.0,
     paymentMethod: data['paymentMethod']?.toString(),
+    // Rows written before the payer-name field existed simply have no key.
+    payerName: data['payerName']?.toString(),
     createdAt: _parsePaymentCreatedAt(data['createdAt']),
   );
 }

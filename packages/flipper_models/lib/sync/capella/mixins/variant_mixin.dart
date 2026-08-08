@@ -42,6 +42,45 @@ mixin CapellaVariantMixin implements VariantInterface {
     );
   }
 
+  Future<bool> _stockDocumentExists(String stockId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return false;
+    // Selects no COUNTER field, so no `COLLECTION stocks (… COUNTER)` declaration
+    // is needed here.
+    final result = await ditto.store.execute(
+      'SELECT _id FROM stocks WHERE _id = :id OR id = :id LIMIT 1',
+      arguments: {'id': stockId},
+    );
+    return result.items.isNotEmpty;
+  }
+
+  /// Writes [stock] to Ditto only when the document does not exist yet.
+  ///
+  /// An untyped `INSERT INTO stocks DOCUMENTS` sets the `currentStock`/`rsdQty`
+  /// REGISTERS and leaves the `currentStockMilli` COUNTER untouched. Readers
+  /// prefer the COUNTER, and the next qty write reconciles COUNTER *from* the
+  /// registers (`stockMilliPrepAction` → `reconcileFromRegister`), so re-upserting
+  /// an existing row from an in-memory snapshot resurrects quantity that a
+  /// concurrent sale or transfer already deducted. Absolute qty writes must go
+  /// through `StockInterface.updateStock`; saving a variant must not move qty.
+  Future<void> _syncStockToDittoIfAbsent(Stock stock) async {
+    if (await _stockDocumentExists(stock.id)) {
+      // Still safe: a no-op when the counter is already there.
+      final ditto = dittoService.dittoInstance;
+      if (ditto != null) {
+        await seedStockMilliIfAbsentOnStore(
+          ditto.store,
+          stockId: stock.id,
+          qty: stock.currentStock ?? 0,
+        );
+      }
+      return;
+    }
+    // Ditto only on this branch — `stocks` is in data-connector's SYNC_TABLES,
+    // so Supabase still receives it without the Brick mirror main keeps here.
+    await _syncStockToDitto(stock);
+  }
+
   /// Skip null / empty-branchId Ditto rows so qty-based display stock is kept.
   Future<void> _attachAuthenticCapellaStock(Variant variant) async {
     final sid = variant.stockId?.trim();
@@ -1020,20 +1059,11 @@ mixin CapellaVariantMixin implements VariantInterface {
                 stockId: newStockId,
               );
             } else {
-              // Existing stock id: the document upsert overwrites the
-              // `currentStock` register, but the milli COUNTER is only seeded
-              // when absent — so reconcile it from the register, or readers
-              // (which prefer the COUNTER) keep serving the old quantity.
-              final existingStock = variantToSave.stock!;
-              await _syncStockToDitto(existingStock);
-              final ditto = dittoService.dittoInstance;
-              if (ditto != null) {
-                await applyStockMilliRestartOnStore(
-                  ditto.store,
-                  stockId: existingStock.id,
-                  qty: existingStock.currentStock ?? 0,
-                );
-              }
+              // Existing stock id: create the document only if it is missing.
+              // Saving a variant must not move quantity — re-writing the qty
+              // registers here would resurrect stock a concurrent sale or
+              // transfer already deducted. See [_syncStockToDittoIfAbsent].
+              await _syncStockToDittoIfAbsent(variantToSave.stock!);
             }
           }
           await _syncVariantToDitto(variantToSave);
@@ -1257,16 +1287,9 @@ mixin CapellaVariantMixin implements VariantInterface {
           qty: newStock.currentStock ?? 0,
         );
       } else if (variant.stock != null) {
-        // Ensure existing stock is synced
-        await ditto.store.execute(
-          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-          arguments: {'doc': variant.stock!.toJson()},
-        );
-        await seedStockMilliIfAbsentOnStore(
-          ditto.store,
-          stockId: variant.stock!.id,
-          qty: variant.stock!.currentStock ?? 0,
-        );
+        // Ensure the stock document exists — but never re-write the qty of one
+        // that already does (see [_syncStockToDittoIfAbsent]).
+        await _syncStockToDittoIfAbsent(variant.stock!);
       }
     }
   }
@@ -1276,7 +1299,6 @@ mixin CapellaVariantMixin implements VariantInterface {
     required Variant variant,
     Stock? stock,
   }) async {
-    final isNewStock = stock == null;
     final effective = stock ??
         Stock(
           id: const Uuid().v4(),
@@ -1285,27 +1307,11 @@ mixin CapellaVariantMixin implements VariantInterface {
           lastTouched: DateTime.now().toUtc(),
         );
 
-    // Ditto only. `variants` and `stocks` are both in data-connector's
-    // SYNC_TABLES, so Supabase still receives them without a Brick mirror.
-    await _syncStockToDitto(effective);
-
-    // `_syncStockToDitto` seeds the milli COUNTER only when it is absent, which
-    // is right for a brand-new stock. For a caller-supplied one the document
-    // upsert has just overwritten the `currentStock` register while the COUNTER
-    // kept its old value — and readers prefer the COUNTER, so the new quantity
-    // would be silently ignored. Attaching an explicit stock is an absolute
-    // set, so reconcile the counter from the register (register wins, per
-    // StockMilliPrepAction.reconcileFromRegister).
-    if (!isNewStock) {
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        await applyStockMilliRestartOnStore(
-          ditto.store,
-          stockId: effective.id,
-          qty: effective.currentStock ?? 0,
-        );
-      }
-    }
+    // Create the document if it is new, but never re-write the qty of one that
+    // already exists — attaching a stock to a variant must not move quantity.
+    // Absolute qty writes go through StockInterface.updateStock.
+    // See [_syncStockToDittoIfAbsent].
+    await _syncStockToDittoIfAbsent(effective);
 
     variant.stock = effective;
     variant.stockId = effective.id;

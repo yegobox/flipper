@@ -1,6 +1,9 @@
 // ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
 import 'package:brick_offline_first/offline_queue.dart';
+// ignore: depend_on_referenced_packages
+import 'package:brick_offline_first_with_rest/offline_queue.dart'
+    show HTTP_JOBS_ATTEMPTS_COLUMN, HTTP_JOBS_TABLE_NAME;
 
 /// Manages offline request queue operations
 class QueueManager {
@@ -11,6 +14,11 @@ class QueueManager {
   static const int _batchSize = 10;
   // Delay between batches to prevent lock contention
   static const Duration _batchDelay = Duration(milliseconds: 50);
+
+  /// Attempts after which a job is considered unrecoverable and dropped.
+  /// The queue is serial and ordered by `created_at`, so a job that can never
+  /// succeed stays at the head and starves every write behind it.
+  static const int _maxAttempts = 25;
 
   QueueManager(this.offlineRequestQueue);
 
@@ -97,6 +105,48 @@ class QueueManager {
       return requests.length;
     } catch (e) {
       _logger.warning("An error occurred while deleting failed requests: $e");
+      return 0;
+    }
+  }
+
+  /// Drop jobs that have been reattempted more than [maxAttempts] times.
+  ///
+  /// Brick has no built-in attempt ceiling: [RestOfflineQueueClient] only
+  /// removes a job when the response status is outside its reattempt list, so
+  /// a request the server will never accept is replayed every processing
+  /// interval indefinitely. Because processing is serial and ordered by
+  /// `created_at`, that job also blocks everything queued after it.
+  ///
+  /// Returns the number of requests deleted.
+  Future<int> purgeExhaustedRequests({int maxAttempts = _maxAttempts}) async {
+    try {
+      final db = await offlineRequestQueue.requestManager.getDb();
+      final exhausted = await db.query(
+        HTTP_JOBS_TABLE_NAME,
+        where: '$HTTP_JOBS_ATTEMPTS_COLUMN > ?',
+        whereArgs: [maxAttempts],
+      );
+
+      if (exhausted.isEmpty) return 0;
+
+      final primaryKeyColumn =
+          offlineRequestQueue.requestManager.primaryKeyColumn;
+
+      // Only the local job id and attempt count: a PostgREST URL carries the
+      // table plus the row filters (ids, phone numbers, names) in its query
+      // string, which must not be written to the log.
+      for (final request in exhausted) {
+        _logger.warning(
+          'Dropping queue job ${request[primaryKeyColumn]} after '
+          '${request[HTTP_JOBS_ATTEMPTS_COLUMN]} attempts',
+        );
+      }
+
+      await _processBatches(exhausted, primaryKeyColumn);
+
+      return exhausted.length;
+    } catch (e) {
+      _logger.warning('Error purging exhausted requests: $e');
       return 0;
     }
   }

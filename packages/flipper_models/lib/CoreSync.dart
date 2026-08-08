@@ -2888,6 +2888,7 @@ class CoreSync extends AiStrategyImpl
     String? transactionId,
     double amount = 0.0,
     String? paymentMethod,
+    String? payerName,
     required bool singlePaymentOnly,
     bool saleCompletionFastPath = false,
   }) async {
@@ -2955,6 +2956,7 @@ class CoreSync extends AiStrategyImpl
         amount: amount,
         transactionId: transactionId,
         paymentMethod: paymentMethod,
+        payerName: normalizedPayerName(payerName),
       );
 
       await repository.upsert<TransactionPaymentRecord>(

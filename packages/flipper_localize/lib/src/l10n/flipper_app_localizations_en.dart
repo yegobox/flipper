@@ -1516,6 +1516,12 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   String get paymentMtnMomo => 'MTN MoMo';
 
   @override
+  String get payerNameOptional => 'Payer name (optional)';
+
+  @override
+  String get paidBy => 'Paid by';
+
+  @override
   String get paymentAirtelMoney => 'Airtel Money';
 
   @override
