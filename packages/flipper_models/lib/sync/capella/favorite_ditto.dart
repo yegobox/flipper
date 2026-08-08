@@ -38,12 +38,14 @@ Favorite favoriteFromDittoDoc(Map<String, dynamic> doc) => Favorite(
       deletedAt: _dateOrNull(doc['deletedAt']),
     );
 
-/// Branch ids already subscribed this session — registering per read leaks
-/// subscriptions until sync stalls.
+/// `dittoInstance|branchId` pairs already subscribed — registering per read
+/// leaks subscriptions until sync stalls. Keyed by instance so a recreated
+/// Ditto singleton can register its own subscriptions instead of being skipped.
 final Set<String> _favoritesSubscribed = <String>{};
 
 Future<void> ensureFavoritesSubscription(Ditto ditto, String branchId) async {
-  if (!_favoritesSubscribed.add(branchId)) return;
+  final key = '${identityHashCode(ditto)}|$branchId';
+  if (!_favoritesSubscribed.add(key)) return;
   try {
     final prepared = prepareDqlSyncSubscription(
       'SELECT * FROM $favoritesCollection WHERE branchId = :branchId',
@@ -54,6 +56,6 @@ Future<void> ensureFavoritesSubscription(Ditto ditto, String branchId) async {
       arguments: prepared.arguments,
     );
   } catch (_) {
-    _favoritesSubscribed.remove(branchId);
+    _favoritesSubscribed.remove(key);
   }
 }

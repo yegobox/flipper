@@ -137,8 +137,13 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
     // Plain nullable, not `late`: onCancel can fire before the async closure
     // below has registered the observer.
     dynamic observer;
+    var cancelled = false;
     () async {
       await ensureFavoritesSubscription(ditto, branchId);
+      // The last listener can cancel while the subscription above is still
+      // registering. onCancel has already run by then and will not run again,
+      // so registering an observer now would leak it.
+      if (cancelled) return;
       observer = ditto.store.registerObserver(
         query,
         arguments: arguments,
@@ -155,7 +160,13 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
       );
     }();
 
-    controller.onCancel = () => observer?.cancel();
+    // Await the observer teardown before closing, so the controller does not
+    // outlive its last listener with a live observer still feeding it.
+    controller.onCancel = () async {
+      cancelled = true;
+      await observer?.cancel();
+      await controller.close();
+    };
     return controller.stream;
   }
 

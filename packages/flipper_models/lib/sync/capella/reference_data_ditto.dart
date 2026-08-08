@@ -20,9 +20,13 @@ const String unitsCollection = 'units';
 const String countriesCollection = 'countries';
 const String financeProvidersCollection = 'finance_providers';
 
-/// `collection|branchId` pairs already subscribed this session. Without this
+/// `dittoInstance|collection|branchId` triples already subscribed. Without this
 /// guard every read would register another subscription and leak them until
 /// sync stalls — the same failure `isTaxEnabled` hit during bulk import.
+///
+/// The Ditto instance is part of the key: subscriptions belong to the instance
+/// that registered them, so a recreated singleton (logout/login, teardown) must
+/// be able to register its own rather than being skipped as "already done".
 final Set<String> _referenceSubscribed = <String>{};
 
 Future<void> ensureReferenceSubscription(
@@ -30,7 +34,7 @@ Future<void> ensureReferenceSubscription(
   String collection,
   String branchId,
 ) async {
-  final key = '$collection|$branchId';
+  final key = '${identityHashCode(ditto)}|$collection|$branchId';
   if (!_referenceSubscribed.add(key)) return;
   try {
     final prepared = prepareDqlSyncSubscription(
@@ -130,14 +134,16 @@ Future<void> upsertReferenceDoc(
 //                        suppliers_that_accept_this_finance_facility
 // ---------------------------------------------------------------------------
 
-/// Global collections already subscribed this session.
+/// `dittoInstance|collection` pairs already subscribed. Keyed by instance for
+/// the same reason as [_referenceSubscribed].
 final Set<String> _globalReferenceSubscribed = <String>{};
 
 Future<void> ensureGlobalReferenceSubscription(
   Ditto ditto,
   String collection,
 ) async {
-  if (!_globalReferenceSubscribed.add(collection)) return;
+  final key = '${identityHashCode(ditto)}|$collection';
+  if (!_globalReferenceSubscribed.add(key)) return;
   try {
     final prepared =
         prepareDqlSyncSubscription('SELECT * FROM $collection', null);
@@ -146,7 +152,7 @@ Future<void> ensureGlobalReferenceSubscription(
       arguments: prepared.arguments,
     );
   } catch (_) {
-    _globalReferenceSubscribed.remove(collection);
+    _globalReferenceSubscribed.remove(key);
   }
 }
 
