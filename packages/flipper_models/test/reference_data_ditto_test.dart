@@ -83,4 +83,107 @@ void main() {
       expect(back.lastTouched, isNull);
     });
   });
+
+  // Supabase columns are snake_case, Ditto docs carry the Dart camelCase names.
+  // Getting that boundary wrong yields silent zeros/empties rather than errors,
+  // so both directions are pinned here.
+  group('country mapping', () {
+    test('reads a snake_case Supabase row', () {
+      final country = countryFromSupabaseRow({
+        'id': 'rw',
+        'code': 'RW',
+        'sort_order': 3,
+        'name': 'Rwanda',
+        'description': 'East Africa',
+      });
+
+      expect(country.id, 'rw');
+      expect(country.code, 'RW');
+      expect(country.sortOrder, 3);
+      expect(country.name, 'Rwanda');
+      expect(country.description, 'East Africa');
+    });
+
+    test('sort_order arriving as a string still parses', () {
+      expect(
+        countryFromSupabaseRow({'id': 'a', 'sort_order': '7'}).sortOrder,
+        7,
+      );
+    });
+
+    test('missing sort_order defaults to 0 rather than throwing', () {
+      expect(countryFromSupabaseRow({'id': 'a'}).sortOrder, 0);
+    });
+
+    test('round-trips through a Ditto doc', () {
+      final original = countryFromSupabaseRow({
+        'id': 'rw',
+        'code': 'RW',
+        'sort_order': 3,
+        'name': 'Rwanda',
+        'description': 'East Africa',
+      });
+      final back = countryFromDittoDoc(countryToDittoDoc(original));
+
+      expect(back.id, 'rw');
+      expect(back.code, 'RW');
+      expect(back.sortOrder, 3);
+      expect(back.name, 'Rwanda');
+      expect(back.description, 'East Africa');
+    });
+
+    test('_id is the Supabase row id, so seeding is idempotent', () {
+      final doc = countryToDittoDoc(countryFromSupabaseRow({'id': 'rw'}));
+      expect(doc['_id'], 'rw');
+      expect(doc['_id'], doc['id']);
+    });
+  });
+
+  group('finance provider mapping', () {
+    test('reads a snake_case Supabase row', () {
+      final provider = financeProviderFromSupabaseRow({
+        'id': 'fp1',
+        'name': 'Acme Credit',
+        'interest_rate': 12.5,
+        'suppliers_that_accept_this_finance_facility': 's1,s2',
+      });
+
+      expect(provider.id, 'fp1');
+      expect(provider.name, 'Acme Credit');
+      expect(provider.interestRate, 12.5);
+      expect(provider.suppliersThatAcceptThisFinanceFacility, 's1,s2');
+    });
+
+    test('interest_rate arriving as a string still parses', () {
+      expect(
+        financeProviderFromSupabaseRow({'id': 'a', 'interest_rate': '9.25'})
+            .interestRate,
+        9.25,
+      );
+    });
+
+    test('round-trips through a Ditto doc', () {
+      final original = financeProviderFromSupabaseRow({
+        'id': 'fp1',
+        'name': 'Acme Credit',
+        'interest_rate': 12.5,
+        'suppliers_that_accept_this_finance_facility': 's1,s2',
+      });
+      final back =
+          financeProviderFromDittoDoc(financeProviderToDittoDoc(original));
+
+      expect(back.id, 'fp1');
+      expect(back.name, 'Acme Credit');
+      expect(back.interestRate, 12.5);
+      expect(back.suppliersThatAcceptThisFinanceFacility, 's1,s2');
+    });
+
+    test('absent supplier list becomes empty, never null', () {
+      expect(
+        financeProviderFromSupabaseRow({'id': 'a'})
+            .suppliersThatAcceptThisFinanceFacility,
+        '',
+      );
+    });
+  });
 }

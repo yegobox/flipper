@@ -17,6 +17,8 @@ import 'package:supabase_models/brick/models/all_models.dart';
 
 const String colorsCollection = 'colors';
 const String unitsCollection = 'units';
+const String countriesCollection = 'countries';
+const String financeProvidersCollection = 'finance_providers';
 
 /// `collection|branchId` pairs already subscribed this session. Without this
 /// guard every read would register another subscription and leak them until
@@ -112,3 +114,101 @@ Future<void> upsertReferenceDoc(
     arguments: {'doc': doc},
   );
 }
+
+// ---------------------------------------------------------------------------
+// Global catalogues: `countries`, `finance_providers`.
+//
+// These originate in Supabase rather than on a device, so they have no branch
+// to scope by and no client write path. Brick reached them with a remote-backed
+// `repository.get`; without Brick the client reads Supabase directly and keeps
+// a Ditto copy so the list still works offline (country pickers appear during
+// signup, which can happen on a bad connection).
+//
+// Supabase columns are snake_case — verified against `.snaplet/dataModel.json`:
+//   countries         -> id, code, sort_order, name, description
+//   finance_providers -> id, name, interest_rate,
+//                        suppliers_that_accept_this_finance_facility
+// ---------------------------------------------------------------------------
+
+/// Global collections already subscribed this session.
+final Set<String> _globalReferenceSubscribed = <String>{};
+
+Future<void> ensureGlobalReferenceSubscription(
+  Ditto ditto,
+  String collection,
+) async {
+  if (!_globalReferenceSubscribed.add(collection)) return;
+  try {
+    final prepared =
+        prepareDqlSyncSubscription('SELECT * FROM $collection', null);
+    await ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+  } catch (_) {
+    _globalReferenceSubscribed.remove(collection);
+  }
+}
+
+int _intOrZero(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+num _numOrZero(dynamic value) {
+  if (value is num) return value;
+  return num.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+Country countryFromSupabaseRow(Map<String, dynamic> row) => Country(
+      id: row['id']?.toString(),
+      name: row['name']?.toString() ?? '',
+      sortOrder: _intOrZero(row['sort_order']),
+      description: row['description']?.toString() ?? '',
+      code: row['code']?.toString() ?? '',
+    );
+
+Map<String, dynamic> countryToDittoDoc(Country country) => {
+      '_id': country.id,
+      'id': country.id,
+      'name': country.name,
+      'sortOrder': country.sortOrder,
+      'description': country.description,
+      'code': country.code,
+    };
+
+Country countryFromDittoDoc(Map<String, dynamic> doc) => Country(
+      id: (doc['id'] ?? doc['_id'])?.toString(),
+      name: doc['name']?.toString() ?? '',
+      sortOrder: _intOrZero(doc['sortOrder']),
+      description: doc['description']?.toString() ?? '',
+      code: doc['code']?.toString() ?? '',
+    );
+
+FinanceProvider financeProviderFromSupabaseRow(Map<String, dynamic> row) =>
+    FinanceProvider(
+      id: row['id']?.toString(),
+      name: row['name']?.toString() ?? '',
+      interestRate: _numOrZero(row['interest_rate']),
+      suppliersThatAcceptThisFinanceFacility:
+          row['suppliers_that_accept_this_finance_facility']?.toString() ?? '',
+    );
+
+Map<String, dynamic> financeProviderToDittoDoc(FinanceProvider provider) => {
+      '_id': provider.id,
+      'id': provider.id,
+      'name': provider.name,
+      'interestRate': provider.interestRate,
+      'suppliersThatAcceptThisFinanceFacility':
+          provider.suppliersThatAcceptThisFinanceFacility,
+    };
+
+FinanceProvider financeProviderFromDittoDoc(Map<String, dynamic> doc) =>
+    FinanceProvider(
+      id: (doc['id'] ?? doc['_id'])?.toString(),
+      name: doc['name']?.toString() ?? '',
+      interestRate: _numOrZero(doc['interestRate']),
+      suppliersThatAcceptThisFinanceFacility:
+          doc['suppliersThatAcceptThisFinanceFacility']?.toString() ?? '',
+    );

@@ -267,10 +267,18 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.startReplicator();
   }
 
-  // TODO(ditto-migration): port `businessTypes` to Ditto.
+  /// Never touched Brick: the implementation was a hardcoded single-entry list
+  /// wrapped in a fake `http.Response`, behind a five-second delay — on the
+  /// signup path. Same single entry, without the delay.
+  ///
+  /// Deliberately not switched to a live read. `public.business_types` does
+  /// exist (see [BusinessType.fromSupabaseRow]), but returning the full table
+  /// where signup has only ever seen one option is a behaviour change, not a
+  /// migration.
   @override
-  Future<List<BusinessType>> businessTypes() {
-    return _legacy.businessTypes();
+  Future<List<BusinessType>> businessTypes() async {
+    const business = BusinessTypeEnum.BUSINESS;
+    return [BusinessType(id: business.id, typeName: business.typeName)];
   }
 
   // TODO(ditto-migration): port `tenant` to Ditto.
@@ -922,10 +930,18 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.conversations(conversationId: conversationId);
   }
 
-  // TODO(ditto-migration): port `countries` to Ditto.
   @override
-  Future<List<Country>> countries() {
-    return _legacy.countries();
+  Future<List<Country>> countries() async {
+    final rows = await _globalCatalogue<Country>(
+      collection: countriesCollection,
+      fromDitto: countryFromDittoDoc,
+      toDitto: countryToDittoDoc,
+      fromSupabase: countryFromSupabaseRow,
+      supabaseOrderBy: 'sort_order',
+      legacy: _legacy.countries,
+    );
+    rows.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return rows;
   }
 
   @override
@@ -1127,10 +1143,74 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.fetchProfit(branchId);
   }
 
-  // TODO(ditto-migration): port `financeProviders` to Ditto.
   @override
   Future<List<FinanceProvider>> financeProviders() {
-    return _legacy.financeProviders();
+    return _globalCatalogue<FinanceProvider>(
+      collection: financeProvidersCollection,
+      fromDitto: financeProviderFromDittoDoc,
+      toDitto: financeProviderToDittoDoc,
+      fromSupabase: financeProviderFromSupabaseRow,
+      legacy: _legacy.financeProviders,
+    );
+  }
+
+  /// Read a Supabase-owned catalogue without Brick.
+  ///
+  /// Ditto acts as the offline cache: serve it when populated, otherwise pull
+  /// from Supabase and seed it. `_id` is the Supabase row id, so seeding is
+  /// idempotent and every device converges on the same documents. Falls back to
+  /// Brick only when both Ditto and Supabase are unavailable — that fallback
+  /// goes away with Brick itself.
+  Future<List<T>> _globalCatalogue<T>({
+    required String collection,
+    required T Function(Map<String, dynamic>) fromDitto,
+    required Map<String, dynamic> Function(T) toDitto,
+    required T Function(Map<String, dynamic>) fromSupabase,
+    required Future<List<T>> Function() legacy,
+    String? supabaseOrderBy,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+
+    if (ditto != null) {
+      await ensureGlobalReferenceSubscription(ditto, collection);
+      try {
+        final cached = await ditto.store.execute('SELECT * FROM $collection');
+        if (cached.items.isNotEmpty) {
+          return cached.items
+              .map((d) => fromDitto(Map<String, dynamic>.from(d.value)))
+              .toList();
+        }
+      } catch (e) {
+        talker.warning('Ditto $collection read failed: $e');
+      }
+    }
+
+    try {
+      var query = Supabase.instance.client.from(collection).select();
+      final rows = supabaseOrderBy == null
+          ? await query
+          : await query.order(supabaseOrderBy, ascending: true);
+
+      final parsed = (rows as List)
+          .map((r) => fromSupabase(Map<String, dynamic>.from(r as Map)))
+          .toList();
+
+      if (ditto != null) {
+        for (final row in parsed) {
+          try {
+            await upsertReferenceDoc(ditto, collection, toDitto(row));
+          } catch (e) {
+            talker.warning('$collection cache seed failed: $e');
+          }
+        }
+      }
+      if (parsed.isNotEmpty) return parsed;
+    } catch (e, st) {
+      talker.error('Supabase $collection read failed: $e\n$st');
+    }
+
+    // TODO(ditto-migration): drop with Brick — offline and nothing cached yet.
+    return legacy();
   }
 
   @override

@@ -157,7 +157,7 @@ merge, or step 2 done properly.
 
 ## What is left
 
-**130 distinct interface members** still forward to Brick. Run this for the
+**127 distinct interface members** still forward to Brick. Run this for the
 current list (it reports tag occurrences, which is slightly higher — a few
 members are tagged in more than one mixin):
 
@@ -169,42 +169,48 @@ Beyond the strategy there are also ~32 direct `repository.<op>` call sites in
 17 files outside the sync layer (UI and services) that bypass the interface
 entirely.
 
-### These are not 130 pending ports
+### These are not 127 pending ports
 
-Categorising all 130 (every member assigned exactly once, no gaps) shows only
-about a quarter can be moved by the pattern used for colours/units/favourites.
-The rest are not "not done yet" — they are **not portable**:
+Scope is the `flipper/` Flutter workspace only — no data-connector or Supabase
+seeding work. Within that scope, **getting a member off Brick does not always
+mean porting it to Ditto.** There are three distinct destinations:
 
-| Category | Members | Why |
+| Destination | What it means |
+| --- | --- |
+| Ditto | Device-owned data. Reads and writes go to a Ditto collection |
+| Supabase / Firebase / S3 direct | Server-owned data. The client calls the service directly; Ditto may act as an offline cache |
+| Deleted | The member only exists because Brick does |
+
+Categorising all 127 (each assigned once, no gaps) against those destinations:
+
+| Category | Members | Destination |
 | --- | ---: | --- |
-| Portable — transactions/tax | 12 | Collections exist and are canonical |
-| Portable — products | 9 | Blocked only on the duplicate reconcile |
-| Portable — chat | 6 | No collection yet, but clean to add |
-| Portable — inventory | 5 | Collections exist and are canonical |
-| **Portable subtotal** | **32** | |
-| Auth / identity | 18 | Firebase + Supabase Auth + apihub. No local DB involved |
-| Billing / payments | 13 | Server-authoritative in Supabase |
-| Assets / S3 | 11 | File storage, not documents |
-| Identity store (tenant, pin, user) | 12 | Boot-critical; a wrong read locks users out |
-| Org bootstrap (business, branch) | 10 | Boot-critical, runs before sync is warm |
-| **Brick-intrinsic** | **8** | See below — cannot be ported at all |
-| RBAC (access, permissions) | 7 | Partial read silently denies access |
-| Reports / files / contacts | 5 | Not documents |
-| Server-seeded catalogues | 4 | Ditto has no inbound path from Supabase |
-| Devices | 4 | Deliberately Brick; Ditto rows go stale |
-| Logs | 3 | Brick-stored diagnostics |
-| Legacy no-ops | 3 | Couchbase replicator, isolate plumbing |
+| Transactions / tax | 12 | Ditto — collections exist and are canonical |
+| Products | 9 | Ditto — blocked only on the duplicate reconcile |
+| Chat | 6 | Ditto — no collection yet, but clean to add |
+| Inventory | 3 | Ditto — collections exist and are canonical |
+| Auth / identity | 18 | Firebase + Supabase Auth + apihub |
+| Billing / payments | 13 | Supabase direct |
+| Assets | 11 | S3 direct |
+| Reports / files / contacts | 5 | Direct, not documents |
+| Logs | 3 | Ditto or dropped |
+| **Brick-intrinsic** | **8** | **Deleted** |
+| Identity store (tenant, pin, user) | 12 | Ditto — needs a completeness signal first |
+| Org bootstrap (business, branch) | 10 | Ditto — needs a completeness signal first |
+| RBAC (access, permissions) | 7 | Ditto — needs a completeness signal first |
+| Devices | 4 | Deliberately Supabase; Ditto rows go stale |
 
-The **Brick-intrinsic** eight deserve emphasis: `queueLength`,
-`deleteFailedQueue`, `subscribe`, `size`, `deleteAll`, `migrateToNewDateTime`,
-`hydrateDate`, `hydrateCodes`. `queueLength()` is literally
+The **Brick-intrinsic** eight are the only ones with nowhere to go:
+`queueLength`, `deleteFailedQueue`, `subscribe`, `size`, `deleteAll`,
+`migrateToNewDateTime`, `hydrateDate`, `hydrateCodes`. `queueLength()` is
 `repository.availableQueue()` — Brick's offline Supabase write queue — and
-`cron_service` gates hydration on it (`if (queueLength == 0)`). There is no
-Ditto equivalent because the concept only exists because Brick does. These get
-**deleted along with Brick**, and their callers rewritten, not ported.
+`cron_service` gates hydration on `queueLength == 0`. These get deleted with
+Brick and their callers rewritten.
 
-So "finalise the migration" is not 130 ports away. It is 32 ports, plus
-removing Brick — and removing Brick is the hard part, below.
+The 33 marked *needs a completeness signal* are the real design work: the
+Ditto-first-with-backfill pattern treats any non-empty result as complete,
+which silently denies access or breaks boot while a subscription is still
+catching up. Fine for a colour picker, wrong for authorisation and boot.
 
 ## The blocker for deleting Brick
 
@@ -212,19 +218,27 @@ Deleting Brick is not a code cleanup, because **most models have no Ditto
 collection at all**: 71 model classes in
 `supabase_models/lib/brick/models/`, only 24 carry a `@DittoAdapter`.
 
-The ~47 without one — `Favorite`, `Color`, `Unit`, `Country`, `Device`, `Pin`,
-`Tenant`, `Access`, `Permission`, `Credit`, `Report`, `Setting`, `Composite`,
-`SKU`, `Product`, `FinanceProvider`, `BusinessType`, `Configuration`, `Token`,
-`Shift`, … — reach Supabase only through Brick's offline-first writer. Two of
-them (`variants_branches`, `stock_requests`) are explicitly **not** in
-data-connector's `SYNC_TABLES`, so nothing else would carry them.
+The ~47 without one — `Device`, `Pin`, `Tenant`, `Access`, `Permission`,
+`Credit`, `Report`, `Setting`, `Composite`, `Configuration`, `Token`, `Shift`,
+… — reach Supabase only through Brick's offline-first writer.
 
-Removing Brick before those exist as Ditto collections would silently stop
-writing those tables to Supabase. That is data loss, not a refactor. Each one
-needs: a `@DittoAdapter` on the model, a Ditto collection, the table added to
-data-connector `SYNC_TABLES`, and the matching Supabase table verified —
-data-connector bails at startup if a `SYNC_TABLES` name is missing, which
-crash-loops the container and takes daily reports down with it.
+The slices done so far each dodged this rather than solving it:
+
+- `Color`, `Unit`, `Favorite` are written to Ditto **and** mirrored to Brick,
+  which is still what carries them to Supabase. Delete Brick today and those
+  three stop reaching Supabase.
+- `Country`, `FinanceProvider` sidestep it entirely — they are Supabase-owned
+  and read directly, with Ditto only as a cache. Nothing to write back.
+- `Product`, `SKU` already have a Ditto collection; the fix there was document
+  identity, not the writer.
+
+So the mirror is a bridge, not a solution. Every remaining device-owned model
+needs a real answer to *"where do its writes go once Brick is gone"*, and
+within this workspace that answer has to be a Ditto collection.
+
+Note also that `variants_branches` and `stock_requests` are not in
+data-connector's `SYNC_TABLES` — out of scope here, but worth knowing that
+Ditto alone would not carry them onward to Supabase today.
 
 ### What deleting Brick actually requires
 
@@ -259,11 +273,12 @@ attempted as a mechanical sweep.
 Scope note: this list is only step 5 of *What deleting Brick actually requires*
 above — the incremental part. It does not get Brick deleted on its own.
 
-1. ~~**Reference data** — `Color`, `Unit`~~ **done.** The rest of that group
-   (`Country`, `BusinessType`, `FinanceProvider`) is **not** a candidate for the
-   same treatment: those are global catalogues seeded server-side in Supabase,
-   and data-connector is one-way Ditto→Supabase, so there is no inbound path to
-   populate them in Ditto. They need a seeding mechanism, not a port.
+1. ~~**Reference data** — `Color`, `Unit`, `Country`, `BusinessType`,
+   `FinanceProvider`~~ **done.** The catalogues took a different shape to the
+   rest: they are Supabase-owned, so the client reads Supabase directly and
+   keeps a Ditto copy as an offline cache (`_globalCatalogue` in
+   `capella_sync.dart`). `businessTypes` never touched Brick at all — it was a
+   hardcoded single entry behind a five-second delay on the signup path.
 2. ~~**Favourites**~~ **done.**
 3. ~~**Expiring inventory + variants-by-product stream**~~ **done** —
    `getExpiredItems`, `geVariantStreamByProductId`. Both read collections that
@@ -299,8 +314,8 @@ work in steps 1–3 of *What deleting Brick actually requires* first:
 - `dart analyze` clean across `apps/flipper`, `flipper_models`,
   `flipper_services`, `flipper_dashboard`, `flipper_login`, `flipper_ui`,
   `flipper_ai_feature`, `supabase_models`.
-- `flipper_models`: `+306 -9` — the pre-change baseline was `+278 -9`, so the
-  delta is exactly the 28 new tests. The 9 failures (7 in
+- `flipper_models`: `+315 -9` — the pre-change baseline was `+278 -9`, so the
+  delta is exactly the 37 new tests. The 9 failures (7 in
   `branch_transfer_rra_test.dart`, 1 in `ebm_helper_test.dart`, 1 in
   `stock_recount_integration_test.dart`) pre-date this branch. Note one
   `branch_transfer_rra_test` case is flaky and occasionally reports `-10`.
