@@ -23,6 +23,7 @@ on:
       - re-design
       - v5
       - fix/*
+      - ditto-only-migration
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}

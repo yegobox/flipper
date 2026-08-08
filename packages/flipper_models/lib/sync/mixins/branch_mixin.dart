@@ -28,7 +28,7 @@ mixin BranchMixin implements BranchInterface {
         ProxyService.box.getUserPhone() ?? ProxyService.box.getUserId();
     if (loginKey == null || loginKey.isEmpty) return;
     try {
-      await ProxyService.strategy.sendLoginRequest(
+      await ProxyService.legacyStrategy.sendLoginRequest(
         loginKey,
         flipperHttpClient,
         apihub,

@@ -32,7 +32,7 @@ mixin EbmMixin implements EbmInterface {
     String? dataConnectorUrl,
   }) async {
     try {
-      final business = await ProxyService.strategy
+      final business = await ProxyService.legacyStrategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
       if (business == null) {

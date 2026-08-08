@@ -762,7 +762,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool updatePendingTransactionSubtotal = true,
   }) async {
     try {
-      TransactionItem? existTransactionItem = await ProxyService.strategy
+      TransactionItem? existTransactionItem = await ProxyService.legacyStrategy
           .getTransactionItem(
             variantId: variation.id,
             transactionId: pendingTransaction.id,
@@ -919,7 +919,7 @@ mixin TransactionMixin implements TransactionInterface {
 
     /// because for composite we might have more than one item to be added to the cart at once hence why we have this
     if (partOfComposite) {
-      final composite = (await ProxyService.strategy.composites(
+      final composite = (await ProxyService.legacyStrategy.composites(
         variantId: variation.id,
       )).firstOrNull;
       return composite?.qty ?? 0.0;

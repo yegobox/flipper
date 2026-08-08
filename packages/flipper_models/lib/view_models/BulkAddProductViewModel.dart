@@ -726,9 +726,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     if (!kIsWeb) {
       try {
         merge(
-          await ProxyService.getStrategy(
-            Strategy.cloudSync,
-          ).categories(branchId: branchId),
+          await ProxyService.legacyStrategy.categories(branchId: branchId),
         );
       } catch (e, s) {
         talker.warning('bulk category merge from cloudSync: $e', e, s);

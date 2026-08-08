@@ -4,6 +4,7 @@ import 'package:flipper_models/providers/ditto_presence_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -146,11 +147,23 @@ double _effectiveUnitPrice(Variant variant) {
   return (variant.supplyPrice ?? 0).toDouble();
 }
 
+/// On-hand qty for a raw `stocks` document.
+///
+/// Prefers the `currentStockMilli` COUNTER over the `currentStock` register —
+/// the register lags behind concurrent deducts, so valuing off it overstates
+/// stock on a busy till.
+double _onHandQty(Map<String, dynamic>? stock) {
+  if (stock == null) return 0;
+  final milli = parseStockMilli(stock[stockCurrentStockMilliField]);
+  if (milli != null) return fromMilli(milli);
+  return _asDouble(stock['currentStock']);
+}
+
 double _stockValueFor({
   required Variant variant,
   required Map<String, dynamic>? stock,
 }) {
-  final qty = _asDouble(stock?['currentStock']);
+  final qty = _onHandQty(stock);
   return qty * _effectiveUnitPrice(variant);
 }
 
@@ -235,7 +248,9 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
         .keys
         .map((i) => ':sid$i')
         .join(', ');
-    final stocksQuery = 'SELECT * FROM stocks WHERE _id IN ($placeholders)';
+    final stocksQuery = stockSelectWithMilliDql(
+      whereClause: '_id IN ($placeholders)',
+    );
     final stocksArgs = <String, dynamic>{
       for (var i = 0; i < neededStockIds.length; i++)
         'sid$i': neededStockIds[i],
@@ -265,7 +280,7 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
     final stockId = v.stockId;
     final stock = stockId == null ? null : stockById[stockId];
 
-    final currentStock = _asDouble(stock?['currentStock']);
+    final currentStock = _onHandQty(stock);
     final minStock = _asDouble(stock?['lowStock']);
     final showAlert = (stock?['showLowStockAlert'] ?? true) == true;
     final unitPrice = _effectiveUnitPrice(v);

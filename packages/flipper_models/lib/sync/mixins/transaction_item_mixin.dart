@@ -258,7 +258,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
           modrId: variation.modrId,
           modrNm: variation.modrNm,
-          branchId: (await ProxyService.strategy.activeBranch(
+          branchId: (await ProxyService.legacyStrategy.activeBranch(
             branchId: ProxyService.box.getBranchId()!,
           )).id,
           ebmSynced: false, // Assuming default value
@@ -622,7 +622,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           : 0;
 
       // Update splyAmt if variant is available
-      Variant? variant = await ProxyService.strategy.getVariant(
+      Variant? variant = await ProxyService.legacyStrategy.getVariant(
         id: item.variantId,
       );
 

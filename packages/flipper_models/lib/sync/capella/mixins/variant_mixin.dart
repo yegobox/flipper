@@ -10,6 +10,8 @@ import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
@@ -74,8 +76,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
       return;
     }
+    // Ditto only on this branch — `stocks` is in data-connector's SYNC_TABLES,
+    // so Supabase still receives it without the Brick mirror main keeps here.
     await _syncStockToDitto(stock);
-    scheduleCapellaBrickMirror(repository, stock);
   }
 
   /// Skip null / empty-branchId Ditto rows so qty-based display stock is kept.
@@ -1048,7 +1051,6 @@ mixin CapellaVariantMixin implements VariantInterface {
               final updatedStock = variantToSave.stock!.copyWith(
                 id: newStockId,
               );
-              await repository.upsert<Stock>(updatedStock);
               await _syncStockToDitto(updatedStock);
 
               // Update the variant with the new stock and stockId
@@ -1057,12 +1059,13 @@ mixin CapellaVariantMixin implements VariantInterface {
                 stockId: newStockId,
               );
             } else {
-              // Even if stock has an ID, upsert it to ensure it's synced to Ditto
-              await repository.upsert<Stock>(variantToSave.stock!);
-              await _syncStockToDitto(variantToSave.stock!);
+              // Existing stock id: create the document only if it is missing.
+              // Saving a variant must not move quantity — re-writing the qty
+              // registers here would resurrect stock a concurrent sale or
+              // transfer already deducted. See [_syncStockToDittoIfAbsent].
+              await _syncStockToDittoIfAbsent(variantToSave.stock!);
             }
           }
-          await repository.upsert<Variant>(variantToSave);
           await _syncVariantToDitto(variantToSave);
           Ebm? ebm = await ProxyService.strategy.ebm(
             branchId: ProxyService.box.getBranchId()!,
@@ -1070,7 +1073,6 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (variantToSave.splyAmt != null) {
             variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
           }
-          await repository.upsert<Variant>(variantToSave);
           await _syncVariantToDitto(variantToSave);
           if (skipRRaCall) {
             return;
@@ -1079,9 +1081,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (variant.ebmSynced == true) {
             return;
           }
-          final persisted = (await repository.get<Variant>(
-            query: Query(where: [Where('id').isExactly(variantToSave.id)]),
-          )).firstOrNull;
+          final persisted = await getVariant(id: variantToSave.id);
           if (persisted?.ebmSynced == true) {
             variant.ebmSynced = true;
             return;
@@ -1127,14 +1127,75 @@ mixin CapellaVariantMixin implements VariantInterface {
     return results.length;
   }
 
-  @override
-  Future<List<IUnit>> units({required String branchId}) {
-    throw UnimplementedError('units needs to be implemented for Capella');
+  Future<List<IUnit>> _unitsFromDitto(Ditto ditto, String branchId) async {
+    final result = await ditto.store.execute(
+      'SELECT * FROM $unitsCollection WHERE branchId = :branchId',
+      arguments: {'branchId': branchId},
+    );
+    return result.items
+        .map((d) => unitFromDittoDoc(Map<String, dynamic>.from(d.value)))
+        .toList();
   }
 
   @override
-  Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) {
-    throw UnimplementedError('addUnits needs to be implemented for Capella');
+  Future<List<IUnit>> units({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return ProxyService.legacyStrategy.units(branchId: branchId);
+    }
+
+    await ensureReferenceSubscription(ditto, unitsCollection, branchId);
+    try {
+      final fromDitto = await _unitsFromDitto(ditto, branchId);
+      if (fromDitto.isNotEmpty) return fromDitto;
+    } catch (e, s) {
+      talker.error('Ditto units read failed, falling back to Brick: $e', e, s);
+      return ProxyService.legacyStrategy.units(branchId: branchId);
+    }
+
+    // Empty in Ditto. The legacy getter seeds `mockUnits` when the branch has
+    // none at all, so this both backfills pre-migration rows and covers a
+    // first-run branch.
+    final existing =
+        await ProxyService.legacyStrategy.units(branchId: branchId);
+    for (final unit in existing) {
+      await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
+    }
+    return existing;
+  }
+
+  @override
+  Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return ProxyService.legacyStrategy.addUnits<T>(units: units);
+    }
+
+    final branchId = ProxyService.box.getBranchId()!;
+    // Dedupe against `units()`, not the raw Ditto read: on a pre-migration
+    // branch Ditto is still empty while Brick already holds these names, and
+    // seeding fresh rows here would duplicate every unit in the picker.
+    // (`this.` — the `units` parameter shadows the method here.)
+    final existing = await this.units(branchId: branchId);
+    final existingNames = existing.map((u) => u.name).toSet();
+
+    for (final map in units) {
+      final name = map['name']?.toString();
+      if (existingNames.contains(name)) continue;
+
+      final unit = IUnit(
+        active: map['active'] as bool?,
+        branchId: branchId,
+        name: name,
+        value: map['value']?.toString(),
+        lastTouched: DateTime.now().toUtc(),
+      );
+      await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
+      // Brick is still what carries `units` to Supabase.
+      scheduleCapellaBrickMirror(repository, unit);
+      existingNames.add(name);
+    }
+    return 200;
   }
 
   @override
@@ -1195,12 +1256,10 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
       variant.lastTouched = DateTime.now().toUtc();
 
-      // Ditto-first; Brick mirrors in the background (see capella_brick_mirror.dart).
       await ditto.store.execute(
         "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': variant.toFlipperJson()},
       );
-      scheduleCapellaBrickMirror(repository, variant);
 
       // Handle Stock logic for new variants or missing stock
       if (variant.stock == null && variant.itemTyCd != "3") {
@@ -1227,7 +1286,6 @@ mixin CapellaVariantMixin implements VariantInterface {
           stockId: newStock.id,
           qty: newStock.currentStock ?? 0,
         );
-        scheduleCapellaBrickMirror(repository, newStock);
       } else if (variant.stock != null) {
         // Ensure the stock document exists — but never re-write the qty of one
         // that already does (see [_syncStockToDittoIfAbsent]).
@@ -1240,10 +1298,26 @@ mixin CapellaVariantMixin implements VariantInterface {
   FutureOr<Variant> addStockToVariant({
     required Variant variant,
     Stock? stock,
-  }) {
-    throw UnimplementedError(
-      'addStockToVariant needs to be implemented for Capella',
-    );
+  }) async {
+    final effective = stock ??
+        Stock(
+          id: const Uuid().v4(),
+          currentStock: variant.qty ?? 0,
+          branchId: variant.branchId,
+          lastTouched: DateTime.now().toUtc(),
+        );
+
+    // Create the document if it is new, but never re-write the qty of one that
+    // already exists — attaching a stock to a variant must not move quantity.
+    // Absolute qty writes go through StockInterface.updateStock.
+    // See [_syncStockToDittoIfAbsent].
+    await _syncStockToDittoIfAbsent(effective);
+
+    variant.stock = effective;
+    variant.stockId = effective.id;
+    await _syncVariantToDitto(variant);
+
+    return variant;
   }
 
   @override
@@ -1252,9 +1326,58 @@ mixin CapellaVariantMixin implements VariantInterface {
     int? daysToExpiry,
     int? limit,
   }) async {
-    throw UnimplementedError(
-      'getExpiredItems needs to be implemented for Capella',
-    );
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return ProxyService.legacyStrategy.getExpiredItems(
+        branchId: branchId,
+        daysToExpiry: daysToExpiry,
+        limit: limit,
+      );
+    }
+
+    // `daysToExpiry` widens the window forward; without it "expired" means
+    // already past. Same threshold rule as the Brick implementation.
+    final now = DateTime.now().toUtc();
+    final threshold =
+        daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
+
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM variants WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+
+      final expiring = <Variant>[];
+      for (final item in result.items) {
+        final variant = Variant.fromJson(Map<String, dynamic>.from(item.value));
+        final expiry = variant.expirationDate;
+        if (expiry == null) continue;
+        if (expiry.isAfter(threshold)) continue;
+        expiring.add(variant);
+      }
+
+      // Soonest first — the Brick version left this to insertion order, which
+      // put arbitrary rows at the top of the expiry dashboard.
+      expiring.sort((a, b) => a.expirationDate!.compareTo(b.expirationDate!));
+
+      final limited = (limit != null && limit < expiring.length)
+          ? expiring.sublist(0, limit)
+          : expiring;
+
+      // Attach stock so the dashboard can show remaining quantity, matching
+      // what the Brick version did via its own stock fetch.
+      for (final variant in limited) {
+        await _attachAuthenticCapellaStock(variant);
+      }
+      return limited;
+    } catch (e, st) {
+      talker.error('Ditto getExpiredItems failed, falling back to Brick: $e\n$st');
+      return ProxyService.legacyStrategy.getExpiredItems(
+        branchId: branchId,
+        daysToExpiry: daysToExpiry,
+        limit: limit,
+      );
+    }
   }
 
   @override

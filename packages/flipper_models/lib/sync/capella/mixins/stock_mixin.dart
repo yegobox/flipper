@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
-import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
@@ -783,7 +782,8 @@ mixin CapellaStockMixin implements StockInterface {
       stockId: stockId,
       qty: currentStock,
     );
-    scheduleCapellaBrickMirror(repository, stock);
+    // Ditto only — `stocks` is in data-connector's SYNC_TABLES, so Supabase
+    // still receives this without a Brick mirror.
     return stock;
   }
 
@@ -1198,8 +1198,9 @@ mixin CapellaStockMixin implements StockInterface {
       final arguments = <String, dynamic>{
         for (var i = 0; i < unique.length; i++) 's$i': unique[i],
       };
-      final query =
-          'SELECT * FROM stocks WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+      final query = stockSelectWithMilliDql(
+        whereClause: '_id IN ($placeholders) OR id IN ($placeholders)',
+      );
 
       final controller = StreamController<Map<String, Stock?>>.broadcast();
       dynamic observer;
@@ -1253,8 +1254,9 @@ mixin CapellaStockMixin implements StockInterface {
 
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
+      final stockQuery = stockSelectWithMilliDql(whereClause: 'id = :id');
       final preparedStockId = prepareDqlSyncSubscription(
-        "SELECT * FROM stocks WHERE id = :id",
+        stockQuery,
         {'id': stockId},
       );
       ditto.sync.registerSubscription(
@@ -1262,7 +1264,7 @@ mixin CapellaStockMixin implements StockInterface {
         arguments: preparedStockId.arguments,
       );
       observer = ditto.store.registerObserver(
-        'SELECT * FROM stocks WHERE id = :id',
+        stockQuery,
         arguments: {'id': stockId},
         onChange: (queryResult) {
           if (controller.isClosed) return;

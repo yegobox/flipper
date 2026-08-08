@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/interfaces/delete_operations_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -12,22 +13,20 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
   Talker get talker;
   DittoService get dittoService => DittoService.instance;
 
+  // TODO(ditto-migration): port `deleteBranch` to Ditto.
   @override
   Future<void> deleteBranch({
     required String branchId,
     required HttpClientInterface flipperHttpClient,
   }) async {
-    throw UnimplementedError(
-      'deleteBranch needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.deleteBranch(branchId: branchId, flipperHttpClient: flipperHttpClient);
   }
 
+  // Implemented Ditto-natively in [CapellaFavoriteMixin]; abstract here so this
+  // mixin still satisfies its interface without shadowing that with a Brick
+  // delegation.
   @override
-  Future<int> deleteFavoriteByIndex({required String favIndex}) async {
-    throw UnimplementedError(
-      'deleteFavoriteByIndex needs to be implemented for Capella',
-    );
-  }
+  Future<int> deleteFavoriteByIndex({required String favIndex});
 
   Future<void> deleteAllTransactionItems({required String transactionId}) async {
     final ditto = dittoService.dittoInstance;
@@ -116,13 +115,12 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
     );
   }
 
+  // TODO(ditto-migration): port `deleteTransactionByIndex` to Ditto.
   @override
   Future<int> deleteTransactionByIndex({
     required String transactionIndex,
   }) async {
-    throw UnimplementedError(
-      'deleteTransactionByIndex needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.deleteTransactionByIndex(transactionIndex: transactionIndex);
   }
 
   @override

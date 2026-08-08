@@ -13,9 +13,10 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 mixin CapellaTenantMixin implements TenantInterface {
   Repository get repository;
   Talker get talker;
+  // TODO(ditto-migration): port `deleteTenantsWithNullPin` to Ditto.
   @override
   Future<void> deleteTenantsWithNullPin({String? businessId}) {
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.deleteTenantsWithNullPin(businessId: businessId);
   }
 
   @override
@@ -31,24 +32,25 @@ mixin CapellaTenantMixin implements TenantInterface {
         .firstOrNull;
   }
 
+  // TODO(ditto-migration): port `getDefaultTenant` to Ditto.
   @override
   Stream<Tenant?> getDefaultTenant({required String businessId}) {
-    // TODO: implement getDefaultTenant
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.getDefaultTenant(businessId: businessId);
   }
 
+  // TODO(ditto-migration): port `saveUser` to Ditto.
   @override
   Future<User> saveUser({required User user}) {
-    // TODO: implement saveUser
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.saveUser(user: user);
   }
 
+  // TODO(ditto-migration): port `authUser` to Ditto.
   @override
   Future<User?> authUser({required String uuid}) async {
-    // TODO: implement authUser
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.authUser(uuid: uuid);
   }
 
+  // TODO(ditto-migration): port `createPin` to Ditto.
   @override
   Future<void> createPin({
     required HttpClientInterface flipperHttpClient,
@@ -58,16 +60,16 @@ mixin CapellaTenantMixin implements TenantInterface {
     required String businessId,
     required int defaultApp,
   }) async {
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.createPin(flipperHttpClient: flipperHttpClient, phoneNumber: phoneNumber, pin: pin, branchId: branchId, businessId: businessId, defaultApp: defaultApp);
   }
 
+  // TODO(ditto-migration): port `tenant` to Ditto.
   @override
   Future<Tenant?> tenant(
       {String? businessId,
       String? userId,
       String? tenantId,
       required bool fetchRemote}) {
-    // TODO: implement tenant
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.tenant(businessId: businessId, userId: userId, tenantId: tenantId, fetchRemote: fetchRemote);
   }
 }
