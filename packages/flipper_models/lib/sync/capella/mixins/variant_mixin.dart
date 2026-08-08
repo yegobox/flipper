@@ -1020,7 +1020,20 @@ mixin CapellaVariantMixin implements VariantInterface {
                 stockId: newStockId,
               );
             } else {
-              await _syncStockToDitto(variantToSave.stock!);
+              // Existing stock id: the document upsert overwrites the
+              // `currentStock` register, but the milli COUNTER is only seeded
+              // when absent — so reconcile it from the register, or readers
+              // (which prefer the COUNTER) keep serving the old quantity.
+              final existingStock = variantToSave.stock!;
+              await _syncStockToDitto(existingStock);
+              final ditto = dittoService.dittoInstance;
+              if (ditto != null) {
+                await applyStockMilliRestartOnStore(
+                  ditto.store,
+                  stockId: existingStock.id,
+                  qty: existingStock.currentStock ?? 0,
+                );
+              }
             }
           }
           await _syncVariantToDitto(variantToSave);
@@ -1263,6 +1276,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     required Variant variant,
     Stock? stock,
   }) async {
+    final isNewStock = stock == null;
     final effective = stock ??
         Stock(
           id: const Uuid().v4(),
@@ -1274,6 +1288,25 @@ mixin CapellaVariantMixin implements VariantInterface {
     // Ditto only. `variants` and `stocks` are both in data-connector's
     // SYNC_TABLES, so Supabase still receives them without a Brick mirror.
     await _syncStockToDitto(effective);
+
+    // `_syncStockToDitto` seeds the milli COUNTER only when it is absent, which
+    // is right for a brand-new stock. For a caller-supplied one the document
+    // upsert has just overwritten the `currentStock` register while the COUNTER
+    // kept its old value — and readers prefer the COUNTER, so the new quantity
+    // would be silently ignored. Attaching an explicit stock is an absolute
+    // set, so reconcile the counter from the register (register wins, per
+    // StockMilliPrepAction.reconcileFromRegister).
+    if (!isNewStock) {
+      final ditto = dittoService.dittoInstance;
+      if (ditto != null) {
+        await applyStockMilliRestartOnStore(
+          ditto.store,
+          stockId: effective.id,
+          qty: effective.currentStock ?? 0,
+        );
+      }
+    }
+
     variant.stock = effective;
     variant.stockId = effective.id;
     await _syncVariantToDitto(variant);
