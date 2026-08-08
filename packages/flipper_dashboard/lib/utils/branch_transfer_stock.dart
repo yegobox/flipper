@@ -17,6 +17,27 @@ double onHandFromStock(Stock? stock, {double? qtyFallback}) {
   return qtyFallback ?? 0;
 }
 
+/// An authentic stock row that actually belongs to [branchId].
+///
+/// A transfer must never resolve the SOURCE branch's stock document as the
+/// destination's: both branches would then share one row (and one
+/// `currentStockMilli` COUNTER), so the transferred qty would be added to and
+/// deducted from the same on-hand.
+bool isStockForBranch(Stock? stock, String branchId) {
+  if (!isAuthenticCapellaStock(stock)) return false;
+  return stock!.branchId.trim() == branchId.trim();
+}
+
+/// Drops the source branch's stock link that [Variant.copyWith] carries over.
+///
+/// The destination variant is built from the source with `copyWith`, which
+/// copies `stock` and `stockId` verbatim. Left in place, the destination row
+/// points at the source branch's stock document.
+void detachInheritedStockLink(Variant variant) {
+  variant.stock = null;
+  variant.stockId = null;
+}
+
 /// Tax type codes shown in the POS catalog regardless of the viewing branch's
 /// VAT setting (regulated fuel / tourism). See `posCatalogTaxTyCds`.
 const _branchVatAgnosticTaxTyCds = {'F', 'TT'};
@@ -113,6 +134,12 @@ String destinationTransferStockId(String destVariantId) =>
 
 /// Adds [approvedQuantity] to destination on-hand, reading the current Ditto
 /// stock row first (never trusting embedded [Variant.stock] / [Variant.qty]).
+///
+/// Candidate stock documents are accepted only when they belong to
+/// [destinationBranchId] — see [isStockForBranch]. The add itself is an atomic
+/// `currentStockMilli` COUNTER increment (`appending: true`), not a
+/// read-then-absolute-write: an absolute `base + qty` write would silently drop
+/// any sale the destination till rang up between the read and the write.
 Future<Stock> applyDestinationStockDelta({
   required Variant destVariant,
   required String destinationBranchId,
@@ -136,9 +163,19 @@ Future<Stock> applyDestinationStockDelta({
   Stock? resolved;
   for (final stockId in candidateStockIds) {
     final fetched = await capella.getStockById(id: stockId);
-    if (isAuthenticCapellaStock(fetched)) {
+    if (isStockForBranch(fetched, destinationBranchId)) {
       resolved = fetched;
       break;
+    }
+    if (isAuthenticCapellaStock(fetched)) {
+      // Older transfers linked the destination variant to the SOURCE branch's
+      // stock document (inherited via copyWith). Skip it and mint/return the
+      // destination's own row instead of growing the source's on-hand.
+      talker.warning(
+        'Branch transfer: ignoring stock $stockId on branch '
+        '${fetched!.branchId} for destination $destinationBranchId '
+        '(variant=${destVariant.id})',
+      );
     }
   }
 
@@ -148,25 +185,31 @@ Future<Stock> applyDestinationStockDelta({
 
   if (resolved != null) {
     final base = resolved.currentStock ?? 0;
-    final newQty = base + approvedQuantity;
     await capella.updateStock(
       stockId: resolved.id,
-      currentStock: newQty,
-      rsdQty: newQty,
-      value: newQty * unitPrice,
+      currentStock: approvedQuantity.toDouble(),
+      appending: true,
       lastTouched: now,
       ebmSynced: false,
     );
-    resolved
+    // Re-read so `value` and the returned Stock carry the merged counter rather
+    // than this device's estimate of it.
+    final after = await capella.getStockById(id: resolved.id);
+    final newQty = after?.currentStock ?? (base + approvedQuantity);
+    final newValue = newQty * unitPrice;
+    // Metadata-only update: leaves currentStock / rsdQty (and the COUNTER) alone.
+    await capella.updateStock(stockId: resolved.id, value: newValue);
+    final out = after ?? resolved;
+    out
       ..currentStock = newQty
       ..rsdQty = newQty
-      ..value = newQty * unitPrice
+      ..value = newValue
       ..lastTouched = now;
     talker.info(
       'Branch transfer stock increment: variant=${destVariant.id} '
       'stockId=${resolved.id} $base + $approvedQuantity = $newQty',
     );
-    return resolved;
+    return out;
   }
 
   final qty = approvedQuantity.toDouble();

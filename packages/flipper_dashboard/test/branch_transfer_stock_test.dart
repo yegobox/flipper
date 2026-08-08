@@ -66,6 +66,58 @@ void main() {
     });
   });
 
+  group('isStockForBranch', () {
+    test('rejects the source branch stock row for a destination', () {
+      final sourceStock = Stock(
+        id: 'source-stock',
+        branchId: 'branch-a',
+        currentStock: 50,
+      );
+      expect(isStockForBranch(sourceStock, 'branch-b'), isFalse);
+      expect(isStockForBranch(sourceStock, 'branch-a'), isTrue);
+      expect(isStockForBranch(sourceStock, ' branch-a '), isTrue);
+    });
+
+    test('rejects null and empty-branch placeholders', () {
+      expect(isStockForBranch(null, 'branch-a'), isFalse);
+      expect(
+        isStockForBranch(
+          Stock(id: 'missing', branchId: '', currentStock: 0),
+          'branch-a',
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('detachInheritedStockLink', () {
+    test('drops the stock link copyWith carried from the source variant', () {
+      final source = Variant(
+        id: 'v-source',
+        name: 'Pain coupe',
+        branchId: 'branch-a',
+        taxTyCd: 'B',
+        stockId: 'source-stock',
+        stock: Stock(
+          id: 'source-stock',
+          branchId: 'branch-a',
+          currentStock: 50,
+        ),
+      );
+
+      final destination = source.copyWith(id: 'v-dest', branchId: 'branch-b');
+      // Regression guard: copyWith copies the source's stock link verbatim.
+      expect(destination.stockId, 'source-stock');
+      expect(destination.stock?.branchId, 'branch-a');
+
+      detachInheritedStockLink(destination);
+      expect(destination.stockId, isNull);
+      expect(destination.stock, isNull);
+      // Source is untouched.
+      expect(source.stockId, 'source-stock');
+    });
+  });
+
   group('destinationTaxTyCd', () {
     test('VAT source -> non-VAT destination collapses to D', () {
       expect(

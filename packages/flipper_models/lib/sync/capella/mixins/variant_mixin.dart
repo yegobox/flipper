@@ -40,6 +40,44 @@ mixin CapellaVariantMixin implements VariantInterface {
     );
   }
 
+  Future<bool> _stockDocumentExists(String stockId) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return false;
+    // Selects no COUNTER field, so no `COLLECTION stocks (… COUNTER)` declaration
+    // is needed here.
+    final result = await ditto.store.execute(
+      'SELECT _id FROM stocks WHERE _id = :id OR id = :id LIMIT 1',
+      arguments: {'id': stockId},
+    );
+    return result.items.isNotEmpty;
+  }
+
+  /// Writes [stock] to Ditto only when the document does not exist yet.
+  ///
+  /// An untyped `INSERT INTO stocks DOCUMENTS` sets the `currentStock`/`rsdQty`
+  /// REGISTERS and leaves the `currentStockMilli` COUNTER untouched. Readers
+  /// prefer the COUNTER, and the next qty write reconciles COUNTER *from* the
+  /// registers (`stockMilliPrepAction` → `reconcileFromRegister`), so re-upserting
+  /// an existing row from an in-memory snapshot resurrects quantity that a
+  /// concurrent sale or transfer already deducted. Absolute qty writes must go
+  /// through `StockInterface.updateStock`; saving a variant must not move qty.
+  Future<void> _syncStockToDittoIfAbsent(Stock stock) async {
+    if (await _stockDocumentExists(stock.id)) {
+      // Still safe: a no-op when the counter is already there.
+      final ditto = dittoService.dittoInstance;
+      if (ditto != null) {
+        await seedStockMilliIfAbsentOnStore(
+          ditto.store,
+          stockId: stock.id,
+          qty: stock.currentStock ?? 0,
+        );
+      }
+      return;
+    }
+    await _syncStockToDitto(stock);
+    scheduleCapellaBrickMirror(repository, stock);
+  }
+
   /// Skip null / empty-branchId Ditto rows so qty-based display stock is kept.
   Future<void> _attachAuthenticCapellaStock(Variant variant) async {
     final sid = variant.stockId?.trim();
@@ -1191,17 +1229,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
         scheduleCapellaBrickMirror(repository, newStock);
       } else if (variant.stock != null) {
-        // Ensure existing stock is synced
-        await ditto.store.execute(
-          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-          arguments: {'doc': variant.stock!.toJson()},
-        );
-        await seedStockMilliIfAbsentOnStore(
-          ditto.store,
-          stockId: variant.stock!.id,
-          qty: variant.stock!.currentStock ?? 0,
-        );
-        scheduleCapellaBrickMirror(repository, variant.stock!);
+        // Ensure the stock document exists — but never re-write the qty of one
+        // that already does (see [_syncStockToDittoIfAbsent]).
+        await _syncStockToDittoIfAbsent(variant.stock!);
       }
     }
   }
