@@ -22,91 +22,76 @@ mixin CapellaEbmMixin implements EbmInterface {
 
   DittoService get dittoService => DittoService.instance;
 
+  /// Ditto is the source of truth for EBM config.
+  ///
+  /// This used to read Brick first and only consult Ditto when SQLite had
+  /// nothing, so a stale local row beat live mesh state — and every Ditto hit
+  /// was written back into Brick. Now it is Ditto only.
   @override
   Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
     try {
-      final query = Query(
-        where: [Where('branchId').isExactly(branchId)],
-      );
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return null;
 
-      final policy = fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.localOnly;
+      const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
+      final arguments = {'branchId': branchId};
 
-      final fetchedEbms = await repository.get<Ebm>(
-        query: query,
-        policy: policy,
-      );
-
-      if (fetchedEbms.isEmpty && fetchRemote) {
-        final ditto = dittoService.dittoInstance;
-        if (ditto != null) {
-          const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
-          final arguments = {'branchId': branchId};
-
-          // Register the subscription (and pay the initial sync wait) only once
-          // per branch; repeat calls reuse the live subscription. Otherwise a
-          // bulk import leaks subscriptions and stalls Ditto sync mid-batch.
-          if (_capellaEbmSubscribedBranches.add(branchId)) {
-            final preparedEbmFetch =
-                prepareDqlSyncSubscription(dittoQuery, arguments);
-            await ditto.sync.registerSubscription(
-              preparedEbmFetch.dql,
-              arguments: preparedEbmFetch.arguments,
-            );
-            await Future.delayed(const Duration(milliseconds: 500));
-          }
-
-          final result =
-              await ditto.store.execute(dittoQuery, arguments: arguments);
-          final items = result.items.toList();
-
-          if (items.isNotEmpty) {
-            final ebmData = items.first.value as Map;
-            final tinRaw =
-                ebmData['tinNumber'] ?? ebmData['tin_number'];
-            final tinNumber = tinRaw is num
-                ? tinRaw.toInt()
-                : int.tryParse(tinRaw?.toString() ?? '') ?? 0;
-
-            final ebm = Ebm(
-              id: ebmData['id'] as String? ?? ebmData['_id'] as String?,
-              mrc: ebmData['mrc'] as String? ?? '',
-              bhfId: ebmData['bhfId'] as String? ??
-                  ebmData['bhf_id'] as String? ??
-                  '',
-              tinNumber: tinNumber,
-              dvcSrlNo: ebmData['dvcSrlNo'] as String? ??
-                  ebmData['dvc_srl_no'] as String? ??
-                  '',
-              userId: ebmData['userId'] as String? ??
-                  ebmData['user_id'] as String? ??
-                  ProxyService.box.getUserId(),
-              taxServerUrl: ebmData['taxServerUrl'] as String? ??
-                  ebmData['tax_server_url'] as String? ??
-                  '',
-              businessId: ebmData['businessId'] as String? ??
-                  ebmData['business_id'] as String? ??
-                  ProxyService.box.getBusinessId() ??
-                  '',
-              branchId: ebmData['branchId'] as String? ??
-                  ebmData['branch_id'] as String? ??
-                  branchId,
-              vatEnabled: ebmData['vatEnabled'] as bool? ??
-                  ebmData['vat_enabled'] as bool?,
-              remoteServerUrl: ebmData['remoteServerUrl'] as String? ??
-                  ebmData['remote_server_url'] as String?,
-              dataConnectorUrl: ebmData['dataConnectorUrl'] as String? ??
-                  ebmData['data_connector_url'] as String?,
-            );
-
-            await repository.upsert<Ebm>(ebm);
-            return ebm;
-          }
-        }
+      // Register the subscription (and pay the initial sync wait) only once
+      // per branch; repeat calls reuse the live subscription. Otherwise a
+      // bulk import leaks subscriptions and stalls Ditto sync mid-batch.
+      if (_capellaEbmSubscribedBranches.add(branchId)) {
+        final preparedEbmFetch = prepareDqlSyncSubscription(
+          dittoQuery,
+          arguments,
+        );
+        await ditto.sync.registerSubscription(
+          preparedEbmFetch.dql,
+          arguments: preparedEbmFetch.arguments,
+        );
+        await Future.delayed(const Duration(milliseconds: 500));
       }
 
-      return fetchedEbms.isNotEmpty ? fetchedEbms.first : null;
+      final result = await ditto.store.execute(
+        dittoQuery,
+        arguments: arguments,
+      );
+      final items = result.items.toList();
+      if (items.isEmpty) return null;
+
+      final ebmData = items.first.value as Map;
+      final tinRaw = ebmData['tinNumber'] ?? ebmData['tin_number'];
+      final tinNumber = tinRaw is num
+          ? tinRaw.toInt()
+          : int.tryParse(tinRaw?.toString() ?? '') ?? 0;
+
+      return Ebm(
+        id: ebmData['id'] as String? ?? ebmData['_id'] as String?,
+        mrc: ebmData['mrc'] as String? ?? '',
+        bhfId: ebmData['bhfId'] as String? ?? ebmData['bhf_id'] as String? ?? '',
+        tinNumber: tinNumber,
+        dvcSrlNo: ebmData['dvcSrlNo'] as String? ??
+            ebmData['dvc_srl_no'] as String? ??
+            '',
+        userId: ebmData['userId'] as String? ??
+            ebmData['user_id'] as String? ??
+            ProxyService.box.getUserId(),
+        taxServerUrl: ebmData['taxServerUrl'] as String? ??
+            ebmData['tax_server_url'] as String? ??
+            '',
+        businessId: ebmData['businessId'] as String? ??
+            ebmData['business_id'] as String? ??
+            ProxyService.box.getBusinessId() ??
+            '',
+        branchId: ebmData['branchId'] as String? ??
+            ebmData['branch_id'] as String? ??
+            branchId,
+        vatEnabled:
+            ebmData['vatEnabled'] as bool? ?? ebmData['vat_enabled'] as bool?,
+        remoteServerUrl: ebmData['remoteServerUrl'] as String? ??
+            ebmData['remote_server_url'] as String?,
+        dataConnectorUrl: ebmData['dataConnectorUrl'] as String? ??
+            ebmData['data_connector_url'] as String?,
+      );
     } catch (e, st) {
       talker.error('Capella ebm: Error fetching EBM: $e\n$st');
       return null;

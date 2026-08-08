@@ -5,6 +5,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/capella/ditto_document_reconcile.dart';
@@ -131,13 +132,28 @@ mixin CapellaProductMixin implements ProductInterface {
     final newItemCode =
         '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
 
-    await repository.upsert(
-      ItemCode(
-        code: newItemCode,
-        createdAt: DateTime.now().toUtc(),
-        branchId: branchId,
-      ),
+    final itemCodeRow = ItemCode(
+      code: newItemCode,
+      createdAt: DateTime.now().toUtc(),
+      branchId: branchId,
     );
+    final dittoForCode = dittoService.dittoInstance;
+    if (dittoForCode != null) {
+      // Collection is `codes`, not `item_codes` — see the generated
+      // itemCode.model.ditto_sync_adapter.g.dart.
+      await dittoForCode.store.execute(
+        'INSERT INTO codes DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+        arguments: {
+          'doc': {
+            '_id': itemCodeRow.id,
+            'id': itemCodeRow.id,
+            'code': itemCodeRow.code,
+            'createdAt': itemCodeRow.createdAt.toIso8601String(),
+            'branchId': itemCodeRow.branchId,
+          },
+        },
+      );
+    }
 
     return newItemCode;
   }
@@ -233,37 +249,37 @@ mixin CapellaProductMixin implements ProductInterface {
     required String branchId,
     required String businessId,
   }) async {
-    final query = brick.Query(
-      where: [
-        brick.Where('branchId').isExactly(branchId),
-        brick.Where('businessId').isExactly(businessId),
-      ],
-      orderBy: [brick.OrderBy('sku', ascending: true)],
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: getSku');
+    }
+
+    // Highest existing sequence for this branch+business. Ordering is applied
+    // on `store.execute` (subscriptions reject ORDER BY).
+    final existing = await ditto.store.execute(
+      'SELECT * FROM skus WHERE branchId = :branchId AND businessId = :businessId '
+      'ORDER BY sku DESC LIMIT 1',
+      arguments: {'branchId': branchId, 'businessId': businessId},
     );
 
-    final skus = await repository.get<SKU>(
-      query: query,
-      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    int lastSequence = skus.isEmpty ? 0 : skus.last.sku ?? 0;
-    final newSequence = lastSequence + 1;
+    int lastSequence = 0;
+    if (existing.items.isNotEmpty) {
+      final raw = existing.items.first.value['sku'];
+      lastSequence = raw is num
+          ? raw.toInt()
+          : int.tryParse(raw?.toString() ?? '') ?? 0;
+    }
 
     final newSku = SKU(
-      sku: newSequence,
+      sku: lastSequence + 1,
       branchId: branchId,
       businessId: businessId,
     );
-    await repository.upsert(newSku);
 
-    // Sync SKU to Ditto
-    final ditto = dittoService.dittoInstance;
-    if (ditto != null) {
-      await ditto.store.execute(
-        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-        arguments: {'doc': newSku.toJson()},
-      );
-    }
+    await ditto.store.execute(
+      "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+      arguments: {'doc': newSku.toJson()},
+    );
 
     return newSku;
   }
@@ -332,7 +348,6 @@ mixin CapellaProductMixin implements ProductInterface {
       SKU sku = await getSku(branchId: branchId, businessId: businessId);
 
       sku.consumed = true;
-      await repository.upsert(sku);
 
       final ditto = dittoService.dittoInstance;
       if (ditto != null) {
@@ -342,7 +357,7 @@ mixin CapellaProductMixin implements ProductInterface {
         );
       }
 
-      final createdProduct = await repository.upsert<Product>(product);
+      final createdProduct = product;
       if (ditto != null) {
         await ditto.store.execute(
           "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
@@ -352,17 +367,19 @@ mixin CapellaProductMixin implements ProductInterface {
 
       if (!skipRegularVariant) {
         // Check if a variant with the same product and barcode already exists
-        final queryConditions = [
-          brick.Where('productId').isExactly(createdProduct.id),
-        ];
-
-        if (product.barCode?.isNotEmpty == true) {
-          queryConditions.add(brick.Where('bcd').isExactly(product.barCode!));
-        }
-
-        final existingVariants = await repository.get<Variant>(
-          query: brick.Query(where: queryConditions),
+        final hasBarcode = product.barCode?.isNotEmpty == true;
+        final variantLookup = await ditto?.store.execute(
+          hasBarcode
+              ? 'SELECT * FROM variants WHERE productId = :productId AND bcd = :bcd'
+              : 'SELECT * FROM variants WHERE productId = :productId',
+          arguments: {
+            'productId': createdProduct.id,
+            if (hasBarcode) 'bcd': product.barCode!,
+          },
         );
+        final existingVariants = (variantLookup?.items ?? [])
+            .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
+            .toList();
 
         if (existingVariants.isNotEmpty) {
           final existing = existingVariants.first;
@@ -450,8 +467,7 @@ mixin CapellaProductMixin implements ProductInterface {
           currentStock: qty,
         );
 
-        // Save stock first and get the created instance
-        final createdStock = await repository.upsert<Stock>(stock);
+        final createdStock = stock;
         if (ditto != null) {
           await ditto.store.execute(
             "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
@@ -502,9 +518,7 @@ mixin CapellaProductMixin implements ProductInterface {
             savedVariant.purchaseId = purchase.id;
 
             try {
-              await repository.upsert<Variant>(savedVariant);
-              // Ditto sync for variant done in addVariant? Yes.
-              await repository.upsert<Purchase>(purchase);
+              // The variant itself was already written to Ditto by addVariant.
               if (ditto != null) {
                 final doc = await PurchaseDittoAdapter.instance
                     .toDittoDocument(purchase);
@@ -529,7 +543,6 @@ mixin CapellaProductMixin implements ProductInterface {
         }
       }
       if (purchase != null) {
-        await repository.upsert<Purchase>(purchase);
         if (ditto != null) {
           final doc =
               await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
@@ -596,9 +609,9 @@ mixin CapellaProductMixin implements ProductInterface {
   }) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
-    Category? category = (await repository.get<Category>(
-      query: brick.Query(where: [brick.Where('id').isExactly(categoryId)]),
-    )).firstOrNull;
+    Category? category = categoryId == null
+        ? null
+        : await (this as CategoryInterface).category(id: categoryId);
 
     // Determine tax type code - explicit taxTyCd, then taxTypes map, then EBM VAT default.
     final vatEnabled = await isVatEnabledForBranch(branchId: branchId);
@@ -760,10 +773,6 @@ mixin CapellaProductMixin implements ProductInterface {
         product.color = color ?? product.color;
         product.lastTouched = DateTime.now().toUtc(); // Update last touched
 
-        // Upsert to local repository
-        await repository.upsert(product);
-
-        // Update in Ditto
         if (ditto != null) {
           await ditto.store.execute(
             "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",

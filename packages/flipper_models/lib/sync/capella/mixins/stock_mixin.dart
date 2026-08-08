@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
-import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
@@ -783,7 +782,8 @@ mixin CapellaStockMixin implements StockInterface {
       stockId: stockId,
       qty: currentStock,
     );
-    scheduleCapellaBrickMirror(repository, stock);
+    // Ditto only — `stocks` is in data-connector's SYNC_TABLES, so Supabase
+    // still receives this without a Brick mirror.
     return stock;
   }
 

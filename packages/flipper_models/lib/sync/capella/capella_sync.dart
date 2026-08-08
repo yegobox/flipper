@@ -746,11 +746,15 @@ class CapellaSync extends AiStrategyImpl
               .map((i) => i.variantId)
               .whereType<String>()
               .toSet();
+          final ditto = dittoService.dittoInstance;
           for (final id in variantIds) {
             final variant = await getVariant(id: id);
-            if (variant != null) {
+            if (variant != null && ditto != null) {
               variant.lastTouched = DateTime.now().toUtc();
-              await repository.upsert<Variant>(variant);
+              await ditto.store.execute(
+                'INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+                arguments: {'doc': variant.toFlipperJson()},
+              );
             }
           }
         } catch (e) {
@@ -1475,20 +1479,59 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.isAdmin(userId: userId, appFeature: appFeature);
   }
 
+  /// Whether this branch may take payments.
+  ///
+  /// Server-owned config (`branch_payment_integrations`), so it is read from
+  /// Supabase directly with Ditto as an offline cache — the same shape as the
+  /// catalogues. `fetchRemote` skips the cache rather than changing a Brick
+  /// hydration policy.
+  ///
+  /// Defaults to **false** when nothing is known, matching the previous
+  /// `?? false`: an unknown branch must not silently gain payment rights.
   @override
   FutureOr<bool> isBranchEnableForPayment({
     required String currentBranchId,
     bool fetchRemote = false,
   }) async {
-    final paymentStatus = await repository.get<BranchPaymentIntegration>(
-      policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: brick.Query(
-        where: [brick.Where('branchId').isExactly(currentBranchId)],
-      ),
-    );
-    return paymentStatus.firstOrNull?.isEnabled ?? false;
+    final ditto = dittoService.dittoInstance;
+    const collection = 'branch_payment_integrations';
+
+    if (ditto != null && !fetchRemote) {
+      try {
+        final cached = await ditto.store.execute(
+          'SELECT * FROM $collection WHERE branchId = :branchId LIMIT 1',
+          arguments: {'branchId': currentBranchId},
+        );
+        if (cached.items.isNotEmpty) {
+          return cached.items.first.value['isEnabled'] == true;
+        }
+      } catch (e) {
+        talker.warning('Ditto $collection read failed: $e');
+      }
+    }
+
+    try {
+      final row = await Supabase.instance.client
+          .from(collection)
+          .select()
+          .eq('branch_id', currentBranchId)
+          .maybeSingle();
+      if (row == null) return false;
+
+      final isEnabled = row['is_enabled'] == true;
+      if (ditto != null) {
+        await upsertReferenceDoc(ditto, collection, {
+          '_id': row['id']?.toString(),
+          'id': row['id']?.toString(),
+          'branchId': currentBranchId,
+          'isEnabled': isEnabled,
+        });
+      }
+      return isEnabled;
+    } catch (e, st) {
+      talker.error('Supabase $collection read failed: $e\n$st');
+      return false;
+    }
   }
 
   // TODO(ditto-migration): port `isSubscribed` to Ditto.
@@ -1699,10 +1742,31 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.reports(branchId: branchId);
   }
 
-  // TODO(ditto-migration): port `saveComposite` to Ditto.
   @override
-  Future<void> saveComposite({required Composite composite}) {
-    return _legacy.saveComposite(composite: composite);
+  Future<void> saveComposite({required Composite composite}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: saveComposite');
+    }
+    await ditto.store.execute(
+      'INSERT INTO composites DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {
+        'doc': {
+          '_id': composite.id,
+          'id': composite.id,
+          'productId': composite.productId,
+          'variantId': composite.variantId,
+          'qty': composite.qty,
+          'branchId': composite.branchId,
+          'businessId': composite.businessId,
+          'actualPrice': composite.actualPrice,
+        },
+      },
+    );
+    talker.debug(
+      'Saved composite: productId=${composite.productId}, '
+      'variantId=${composite.variantId}, qty=${composite.qty}',
+    );
   }
 
   // TODO(ditto-migration): port `saveDiscount` to Ditto.
@@ -1785,26 +1849,6 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
-    Future<void> mirrorDeleteZeroAmountSqlite() async {
-      final withAmount0 = await repository
-          .get<TransactionPaymentRecord>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: brick.Query(
-              where: [
-                brick.Where('transactionId').isExactly(transactionId),
-                brick.Where('amount').isExactly(0.0),
-              ],
-            ),
-          )
-          .then((records) => records.isEmpty ? null : records.first);
-      if (withAmount0 != null) {
-        await repository.delete<TransactionPaymentRecord>(
-          withAmount0,
-          query: brick.Query(action: QueryAction.delete),
-        );
-      }
-    }
-
     // 1) Drop stale zero-amount rows (matches CoreSync semantics).
     if (!saleCompletionFastPath) {
       try {
@@ -1818,28 +1862,11 @@ class CapellaSync extends AiStrategyImpl
           s,
         );
       }
-
-      await mirrorDeleteZeroAmountSqlite();
     }
 
     // 2) Single-payment mode: clear existing tender rows before inserting the new one.
     if (singlePaymentOnly) {
       await deletePaymentRecords(transactionId: transactionId);
-
-      final existingRecords = await repository.get<TransactionPaymentRecord>(
-        query: brick.Query(
-          where: [brick.Where('transactionId').isExactly(transactionId)],
-        ),
-      );
-
-      await Future.wait(
-        existingRecords.map(
-          (record) => repository.delete<TransactionPaymentRecord>(
-            record,
-            query: brick.Query(action: QueryAction.delete),
-          ),
-        ),
-      );
     }
 
     Future<void> upsertDitto(TransactionPaymentRecord r) async {
@@ -1858,51 +1885,24 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
-    Future<void> mirrorToSqlite(TransactionPaymentRecord r) {
-      return repository.upsert<TransactionPaymentRecord>(
-        r,
-        query: brick.Query(action: QueryAction.insert),
-      );
-    }
-
+    // Ditto is the only store now. `transaction_payment_records` is in
+    // data-connector's SYNC_TABLES, so Supabase still receives these rows —
+    // the SQLite mirror this used to keep was pure duplication, and the
+    // `saleCompletionFastPath` branch existed only to move it off the hot path.
     if (paymentRecord != null) {
       await upsertDitto(paymentRecord);
-      if (saleCompletionFastPath) {
-        unawaited(
-          mirrorToSqlite(paymentRecord).catchError((e, s) {
-            talker.warning(
-              'savePaymentType: deferred SQLite mirror failed: $e',
-              s,
-            );
-          }),
-        );
-      } else {
-        await mirrorToSqlite(paymentRecord);
-      }
       return;
     }
 
     if (amount != 0) {
-      final newPaymentRecord = TransactionPaymentRecord(
-        createdAt: DateTime.now().toUtc(),
-        amount: amount,
-        transactionId: transactionId,
-        paymentMethod: paymentMethod,
+      await upsertDitto(
+        TransactionPaymentRecord(
+          createdAt: DateTime.now().toUtc(),
+          amount: amount,
+          transactionId: transactionId,
+          paymentMethod: paymentMethod,
+        ),
       );
-
-      await upsertDitto(newPaymentRecord);
-      if (saleCompletionFastPath) {
-        unawaited(
-          mirrorToSqlite(newPaymentRecord).catchError((e, s) {
-            talker.warning(
-              'savePaymentType: deferred SQLite mirror failed: $e',
-              s,
-            );
-          }),
-        );
-      } else {
-        await mirrorToSqlite(newPaymentRecord);
-      }
     }
   }
 

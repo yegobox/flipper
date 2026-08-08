@@ -1012,7 +1012,6 @@ mixin CapellaVariantMixin implements VariantInterface {
               final updatedStock = variantToSave.stock!.copyWith(
                 id: newStockId,
               );
-              await repository.upsert<Stock>(updatedStock);
               await _syncStockToDitto(updatedStock);
 
               // Update the variant with the new stock and stockId
@@ -1021,12 +1020,9 @@ mixin CapellaVariantMixin implements VariantInterface {
                 stockId: newStockId,
               );
             } else {
-              // Even if stock has an ID, upsert it to ensure it's synced to Ditto
-              await repository.upsert<Stock>(variantToSave.stock!);
               await _syncStockToDitto(variantToSave.stock!);
             }
           }
-          await repository.upsert<Variant>(variantToSave);
           await _syncVariantToDitto(variantToSave);
           Ebm? ebm = await ProxyService.strategy.ebm(
             branchId: ProxyService.box.getBranchId()!,
@@ -1034,7 +1030,6 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (variantToSave.splyAmt != null) {
             variantToSave.splyAmt = variantToSave.splyAmt!.toPrecision(0);
           }
-          await repository.upsert<Variant>(variantToSave);
           await _syncVariantToDitto(variantToSave);
           if (skipRRaCall) {
             return;
@@ -1043,9 +1038,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (variant.ebmSynced == true) {
             return;
           }
-          final persisted = (await repository.get<Variant>(
-            query: Query(where: [Where('id').isExactly(variantToSave.id)]),
-          )).firstOrNull;
+          final persisted = await getVariant(id: variantToSave.id);
           if (persisted?.ebmSynced == true) {
             variant.ebmSynced = true;
             return;
@@ -1220,12 +1213,10 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
       variant.lastTouched = DateTime.now().toUtc();
 
-      // Ditto-first; Brick mirrors in the background (see capella_brick_mirror.dart).
       await ditto.store.execute(
         "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
         arguments: {'doc': variant.toFlipperJson()},
       );
-      scheduleCapellaBrickMirror(repository, variant);
 
       // Handle Stock logic for new variants or missing stock
       if (variant.stock == null && variant.itemTyCd != "3") {
@@ -1252,7 +1243,6 @@ mixin CapellaVariantMixin implements VariantInterface {
           stockId: newStock.id,
           qty: newStock.currentStock ?? 0,
         );
-        scheduleCapellaBrickMirror(repository, newStock);
       } else if (variant.stock != null) {
         // Ensure existing stock is synced
         await ditto.store.execute(
@@ -1264,7 +1254,6 @@ mixin CapellaVariantMixin implements VariantInterface {
           stockId: variant.stock!.id,
           qty: variant.stock!.currentStock ?? 0,
         );
-        scheduleCapellaBrickMirror(repository, variant.stock!);
       }
     }
   }
@@ -1282,16 +1271,13 @@ mixin CapellaVariantMixin implements VariantInterface {
           lastTouched: DateTime.now().toUtc(),
         );
 
-    // Ditto first so the variant's stockId is already resolvable by the time
-    // the caller re-reads it — the Brick path mirrored asynchronously and lost
-    // that race on first-time writes.
+    // Ditto only. `variants` and `stocks` are both in data-connector's
+    // SYNC_TABLES, so Supabase still receives them without a Brick mirror.
     await _syncStockToDitto(effective);
     variant.stock = effective;
     variant.stockId = effective.id;
     await _syncVariantToDitto(variant);
 
-    scheduleCapellaBrickMirror(repository, effective);
-    scheduleCapellaBrickMirror(repository, variant);
     return variant;
   }
 

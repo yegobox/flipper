@@ -157,7 +157,7 @@ merge, or step 2 done properly.
 
 ## What is left
 
-**127 distinct interface members** still forward to Brick. Run this for the
+**126 distinct interface members** still forward to Brick. Run this for the
 current list (it reports tag occurrences, which is slightly higher — a few
 members are tagged in more than one mixin):
 
@@ -211,6 +211,71 @@ The 33 marked *needs a completeness signal* are the real design work: the
 Ditto-first-with-backfill pattern treats any non-empty result as complete,
 which silently denies access or breaks boot while a subscription is still
 catching up. Fine for a colour picker, wrong for authorisation and boot.
+
+## Two flows are fully Brick-free
+
+`QuickSellingView` (selling) and `DesktopProductAdd` (product create/edit) no
+longer touch Brick anywhere in their call graph — verified by mapping every
+`repository.*` use and `scheduleCapellaBrickMirror` call in the Capella layer
+back to its enclosing method, then checking the ones those two screens reach.
+Both report **0 live Brick uses**.
+
+What changed, and why each was safe:
+
+**Selling (6 sites removed)**
+- `collectPayment` deferred variant touch → Ditto write.
+- `savePaymentType` → dropped the SQLite mirror entirely, including the
+  `saleCompletionFastPath` branch that existed only to keep that mirror off the
+  hot path, and a `repository.get`+`delete` pass that duplicated the Ditto
+  delete above it.
+- `isBranchEnableForPayment` → Supabase direct with a Ditto cache. It reads
+  server-owned config, so it takes the catalogue shape rather than a Ditto
+  collection. Still defaults to **false** when nothing is known — an unknown
+  branch must not silently gain payment rights.
+
+**Product create/edit (25 sites removed)**
+- `createProduct`, `updateProduct`, `addVariant`, `getSku`, `itemCode`,
+  `saveStock`, `updateVariant`, `addStockToVariant` → every one already wrote
+  Ditto immediately after its Brick write, so the Brick half was pure
+  duplication.
+- `getSku` also read Brick to find the last sequence; now `ORDER BY sku DESC
+  LIMIT 1` on Ditto.
+- `saveComposite` → Ditto (`composites`), was a whole-member delegation.
+- `ebm()` was **Brick-first with a Ditto fallback** — a stale SQLite row beat
+  live mesh state, and every Ditto hit was written back into Brick. Now Ditto
+  only.
+- The variant-exists lookup and category lookup inside `createProduct` /
+  `_createRegularVariant` → Ditto.
+
+### Consequence: five tables no longer reach Supabase
+
+Brick was the offline-first writer for these, and data-connector does **not**
+carry them from Ditto. Its `SYNC_TABLES` currently holds only:
+
+```
+transactions, transaction_items, transaction_payment_records, variants, stocks,
+counters, sars, chart_of_accounts, accounting_journals, journal_entries,
+journal_lines, bank_statement_lines, accounting_settings
+```
+
+Everything the selling flow writes is on that list, so selling is unaffected.
+The product flow is not. **`products`, `skus`, `codes`, `composites` and
+`purchases` now stop at Ditto.** To restore the Supabase path, add them to
+data-connector's `SYNC_TABLES` (out of scope for this workspace, one env
+change):
+
+```
+SYNC_TABLES=...,products,skus,codes,composites,purchases
+```
+
+All five exist as Supabase tables under exactly those names — checked against
+the `tableName` in each Brick model, including `ItemCode`, whose Ditto
+collection and Supabase table are both `codes` rather than `item_codes`. That
+matters because data-connector bails at startup when a `SYNC_TABLES` name has
+no matching Supabase table, which crash-loops the container and takes daily
+reports down with it.
+
+Until that env change lands, treat these five as Ditto-only.
 
 ## The blocker for deleting Brick
 
