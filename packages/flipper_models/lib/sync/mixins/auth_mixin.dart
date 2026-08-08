@@ -1257,9 +1257,13 @@ mixin AuthMixin implements AuthInterface {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return _safeJsonDecode(response.body);
     } else {
-      throw Exception('Failed to request OTP');
+      throw Exception(_httpFailureMessage(
+        'Failed to request OTP',
+        response.statusCode,
+        response.body,
+      ));
     }
   }
 
@@ -1272,8 +1276,15 @@ mixin AuthMixin implements AuthInterface {
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final String token = responseData['token'];
+      final responseData = _tryJsonDecode(response.body) ?? const {};
+      final token = responseData['token'];
+      if (token is! String || token.isEmpty) {
+        throw Exception(_httpFailureMessage(
+          'Failed to verify OTP',
+          response.statusCode,
+          response.body,
+        ));
+      }
       final int serverId = responseData['serverId'] ?? 0;
       final String? businessId = responseData['businessId'];
       final String phoneNumber = responseData['phoneNumber'];
@@ -1312,8 +1323,13 @@ mixin AuthMixin implements AuthInterface {
 
       return user;
     } else {
-      final errorBody = jsonDecode(response.body);
-      throw Exception(errorBody['error'] ?? 'Failed to verify OTP');
+      final errorBody = _tryJsonDecode(response.body);
+      throw Exception(errorBody?['error'] ??
+          _httpFailureMessage(
+            'Failed to verify OTP',
+            response.statusCode,
+            response.body,
+          ));
     }
   }
 
@@ -1510,6 +1526,31 @@ mixin AuthMixin implements AuthInterface {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto == null) return;
     ProxyService.ditto.setDitto(ditto);
+  }
+
+  /// Decodes a JSON object body, or returns null when the body is not a JSON
+  /// object at all — e.g. an nginx/Cloudflare HTML error page served in front
+  /// of apihub, which would otherwise blow up with a FormatException.
+  Map<String, dynamic>? _tryJsonDecode(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Builds (and logs) an error message that keeps the HTTP status and a short
+  /// body snippet, so a gateway failure is distinguishable from a real
+  /// application error instead of surfacing as a bare "Failed to ...".
+  String _httpFailureMessage(String action, int statusCode, String body) {
+    final snippet = body.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final trimmed =
+        snippet.length > 200 ? '${snippet.substring(0, 200)}…' : snippet;
+    talker.error('$action: HTTP $statusCode body=$trimmed');
+    return trimmed.isEmpty
+        ? '$action (HTTP $statusCode)'
+        : '$action (HTTP $statusCode): $trimmed';
   }
 
   /// Helper function to safely decode JSON responses

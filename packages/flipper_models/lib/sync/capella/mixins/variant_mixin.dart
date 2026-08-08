@@ -10,6 +10,8 @@ import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
@@ -1089,16 +1091,75 @@ mixin CapellaVariantMixin implements VariantInterface {
     return results.length;
   }
 
-  // TODO(ditto-migration): port `units` to Ditto.
-  @override
-  Future<List<IUnit>> units({required String branchId}) {
-    return ProxyService.legacyStrategy.units(branchId: branchId);
+  Future<List<IUnit>> _unitsFromDitto(Ditto ditto, String branchId) async {
+    final result = await ditto.store.execute(
+      'SELECT * FROM $unitsCollection WHERE branchId = :branchId',
+      arguments: {'branchId': branchId},
+    );
+    return result.items
+        .map((d) => unitFromDittoDoc(Map<String, dynamic>.from(d.value)))
+        .toList();
   }
 
-  // TODO(ditto-migration): port `addUnits` to Ditto.
   @override
-  Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) {
-    return ProxyService.legacyStrategy.addUnits<T>(units: units);
+  Future<List<IUnit>> units({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return ProxyService.legacyStrategy.units(branchId: branchId);
+    }
+
+    await ensureReferenceSubscription(ditto, unitsCollection, branchId);
+    try {
+      final fromDitto = await _unitsFromDitto(ditto, branchId);
+      if (fromDitto.isNotEmpty) return fromDitto;
+    } catch (e, s) {
+      talker.error('Ditto units read failed, falling back to Brick: $e', e, s);
+      return ProxyService.legacyStrategy.units(branchId: branchId);
+    }
+
+    // Empty in Ditto. The legacy getter seeds `mockUnits` when the branch has
+    // none at all, so this both backfills pre-migration rows and covers a
+    // first-run branch.
+    final existing =
+        await ProxyService.legacyStrategy.units(branchId: branchId);
+    for (final unit in existing) {
+      await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
+    }
+    return existing;
+  }
+
+  @override
+  Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return ProxyService.legacyStrategy.addUnits<T>(units: units);
+    }
+
+    final branchId = ProxyService.box.getBranchId()!;
+    // Dedupe against `units()`, not the raw Ditto read: on a pre-migration
+    // branch Ditto is still empty while Brick already holds these names, and
+    // seeding fresh rows here would duplicate every unit in the picker.
+    // (`this.` — the `units` parameter shadows the method here.)
+    final existing = await this.units(branchId: branchId);
+    final existingNames = existing.map((u) => u.name).toSet();
+
+    for (final map in units) {
+      final name = map['name']?.toString();
+      if (existingNames.contains(name)) continue;
+
+      final unit = IUnit(
+        active: map['active'] as bool?,
+        branchId: branchId,
+        name: name,
+        value: map['value']?.toString(),
+        lastTouched: DateTime.now().toUtc(),
+      );
+      await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
+      // Brick is still what carries `units` to Supabase.
+      scheduleCapellaBrickMirror(repository, unit);
+      existingNames.add(name);
+    }
+    return 200;
   }
 
   @override

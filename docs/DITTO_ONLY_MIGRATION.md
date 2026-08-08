@@ -57,10 +57,30 @@ Ported natively on this branch:
 - `create<T>` — previously threw for every type except `Variant`, `Stock` and
   `VariantBranch`. Since Capella is now the only reachable strategy that throw
   would have broken every other model, so unported types fall through to Brick.
+- **Reference data — `colors` and `units`** (`PColor`, `IUnit`):
+  `colors`/`getColor`/`addColor`/`updateColor` and `units`/`addUnits`/
+  `updateUnit`. Document mapping lives in `sync/capella/reference_data_ditto.dart`.
+
+  `updateColor` and `updateUnit` were `throw UnimplementedError()` on **both**
+  databases, from a synchronous body — so picking a colour or unit in the
+  product editor threw into the caller. They now have real implementations.
+
+  Reads are **Ditto-first with a one-time backfill**: existing installs have
+  these rows only in SQLite, so an empty Ditto result falls back to Brick and
+  seeds Ditto from it rather than showing an empty picker. `addUnits` dedupes
+  against `units()` (not the raw Ditto read) for the same reason — seeding
+  fresh rows against an empty Ditto would duplicate every unit.
+
+  No `@DittoAdapter` and no data-connector change: Brick still carries both
+  tables to Supabase via the background mirror, so this slice needs no
+  `SYNC_TABLES` edit and no codegen.
+
+  Covered by `test/reference_data_ditto_test.dart` (mapping round-trip, `_id`
+  fallback, loose `active` coercion, malformed dates).
 
 ## What is left
 
-157 interface members still forward to Brick. Run this to see the current list:
+152 interface members still forward to Brick. Run this to see the current list:
 
 ```sh
 grep -rn 'TODO(ditto-migration)' packages/flipper_models/lib/sync/capella/
@@ -68,7 +88,7 @@ grep -rn 'TODO(ditto-migration)' packages/flipper_models/lib/sync/capella/
 
 | File | Members |
 | --- | ---: |
-| `capella_sync.dart` | 91 |
+| `capella_sync.dart` | 88 |
 | `mixins/getter_operations_mixin.dart` | 15 |
 | `mixins/auth_mixin.dart` | 11 |
 | `mixins/favorite_mixin.dart` | 7 |
@@ -78,9 +98,9 @@ grep -rn 'TODO(ditto-migration)' packages/flipper_models/lib/sync/capella/
 | `mixins/transaction_mixin.dart` | 4 |
 | `mixins/conversation_mixin.dart` | 3 |
 | `mixins/delete_operations_mixin.dart` | 3 |
-| `mixins/variant_mixin.dart` | 3 |
 | `mixins/storage_mixin.dart` | 2 |
 | `mixins/system_mixin.dart` | 1 |
+| `mixins/variant_mixin.dart` | 1 |
 
 Beyond the strategy there are also ~32 direct `repository.<op>` call sites in
 17 files outside the sync layer (UI and services) that bypass the interface
@@ -108,8 +128,11 @@ crash-loops the container and takes daily reports down with it.
 
 ## Suggested order
 
-1. **Reference data** — `Color`, `Unit`, `Country`, `BusinessType`,
-   `FinanceProvider`, `Configuration`. Small, read-mostly, low blast radius.
+1. ~~**Reference data** — `Color`, `Unit`~~ — done. The rest of that group
+   (`Country`, `BusinessType`, `FinanceProvider`) is **not** a candidate for the
+   same treatment: those are global catalogues seeded server-side in Supabase,
+   and data-connector is one-way Ditto→Supabase, so there is no inbound path to
+   populate them in Ditto. They need a separate seeding mechanism, not a port.
 2. **Product add/edit tail** — `createVariant`, `bindProduct`, `saveComposite`,
    `updateUnit`, `updateColor`, `colors`, `units`. Completes the flow that
    motivated this work.
@@ -125,8 +148,11 @@ crash-loops the container and takes daily reports down with it.
 - `dart analyze` clean across `apps/flipper`, `flipper_models`,
   `flipper_services`, `flipper_dashboard`, `flipper_login`, `flipper_ui`,
   `flipper_ai_feature`, `supabase_models`.
-- `flipper_models`: `+278 -9` — identical to the pre-change baseline
-  (the 9 failures in `branch_transfer_rra_test.dart` pre-date this branch).
+- `flipper_models`: `+285 -9` — the pre-change baseline was `+278 -9`, so the
+  delta is exactly the 7 new mapping tests. The 9 failures (7 in
+  `branch_transfer_rra_test.dart`, 1 in `ebm_helper_test.dart`, 1 in
+  `stock_recount_integration_test.dart`) pre-date this branch. Note one
+  `branch_transfer_rra_test` case is flaky and occasionally reports `-10`.
 - `flipper_dashboard`: `+517 -26` — identical to the pre-change baseline.
 
 Not yet verified: a real device/desktop run. Automated coverage cannot

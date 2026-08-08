@@ -29,6 +29,7 @@ import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
@@ -347,10 +348,15 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.addBranch(name: name, businessId: businessId, location: location, userOwnerPhoneNumber: userOwnerPhoneNumber, flipperHttpClient: flipperHttpClient ?? ProxyService.http, serverId: serverId, description: description, longitude: longitude, latitude: latitude, isDefault: isDefault, active: active, lastTouched: lastTouched, deletedAt: deletedAt, id: id);
   }
 
-  // TODO(ditto-migration): port `addColor` to Ditto.
   @override
-  FutureOr<void> addColor({required String name, required String branchId}) {
-    return _legacy.addColor(name: name, branchId: branchId);
+  FutureOr<void> addColor({required String name, required String branchId}) async {
+    final color = PColor(name: name, active: false, branchId: branchId);
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    // Brick is still what carries `colors` to Supabase.
+    scheduleCapellaBrickMirror(repository, color);
   }
 
   // TODO(ditto-migration): port `allAccess` to Ditto.
@@ -864,10 +870,34 @@ class CapellaSync extends AiStrategyImpl
     return txn;
   }
 
-  // TODO(ditto-migration): port `colors` to Ditto.
   @override
-  Future<List<PColor>> colors({required String branchId}) {
-    return _legacy.colors(branchId: branchId);
+  Future<List<PColor>> colors({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return _legacy.colors(branchId: branchId);
+
+    await ensureReferenceSubscription(ditto, colorsCollection, branchId);
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM $colorsCollection WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+      if (result.items.isNotEmpty) {
+        return result.items
+            .map((d) => colorFromDittoDoc(Map<String, dynamic>.from(d.value)))
+            .toList();
+      }
+    } catch (e, s) {
+      talker.error('Ditto colors read failed, falling back to Brick: $e', e, s);
+      return _legacy.colors(branchId: branchId);
+    }
+
+    // Empty in Ditto: this branch's colours predate the migration and still
+    // live in SQLite only. Seed Ditto from Brick so the next read is native.
+    final existing = await _legacy.colors(branchId: branchId);
+    for (final color in existing) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    return existing;
   }
 
   @override
@@ -1133,10 +1163,29 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.getAsset(assetName: assetName, productId: productId, variantId: variantId);
   }
 
-  // TODO(ditto-migration): port `getColor` to Ditto.
   @override
-  Future<PColor?> getColor({required String id}) {
-    return _legacy.getColor(id: id);
+  Future<PColor?> getColor({required String id}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return _legacy.getColor(id: id);
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM $colorsCollection WHERE _id = :id LIMIT 1',
+        arguments: {'id': id},
+      );
+      if (result.items.isNotEmpty) {
+        return colorFromDittoDoc(
+          Map<String, dynamic>.from(result.items.first.value),
+        );
+      }
+    } catch (e, s) {
+      talker.error('Ditto getColor($id) failed: $e', e, s);
+    }
+    // Not mirrored into Ditto yet — fall back and seed on the way through.
+    final color = await _legacy.getColor(id: id);
+    if (color != null) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    return color;
   }
 
   // TODO(ditto-migration): port `getContacts` to Ditto.
@@ -1951,14 +2000,29 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.updateAsset(assetId: assetId, assetName: assetName);
   }
 
-  // TODO(ditto-migration): port `updateColor` to Ditto.
+  /// Note: this had no implementation on either database — CoreSync threw
+  /// `UnimplementedError` from a synchronous body, so picking a colour in the
+  /// product editor threw into the caller. Implemented here on Ditto.
   @override
   FutureOr<void> updateColor({
     required String colorId,
     String? name,
     bool? active,
-  }) {
-    return _legacy.updateColor(colorId: colorId, name: name, active: active);
+  }) async {
+    final color = await getColor(id: colorId);
+    if (color == null) {
+      talker.warning('updateColor: no colour $colorId');
+      return;
+    }
+    if (name != null) color.name = name;
+    if (active != null) color.active = active;
+    color.lastTouched = DateTime.now().toUtc();
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    scheduleCapellaBrickMirror(repository, color);
   }
 
   // TODO(ditto-migration): port `updateNotification` to Ditto.
@@ -1986,15 +2050,40 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.updateReport(reportId: reportId, downloaded: downloaded);
   }
 
-  // TODO(ditto-migration): port `updateUnit` to Ditto.
+  /// Note: like [updateColor], this threw `UnimplementedError` on CoreSync —
+  /// selecting a unit in the product editor threw into the caller. Implemented
+  /// here on Ditto.
   @override
   FutureOr<void> updateUnit({
     required String unitId,
     String? name,
     bool? active,
     String? branchId,
-  }) {
-    return _legacy.updateUnit(unitId: unitId, name: name, active: active, branchId: branchId);
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.warning('updateUnit: Ditto not initialized');
+      return;
+    }
+
+    final result = await ditto.store.execute(
+      'SELECT * FROM $unitsCollection WHERE _id = :id LIMIT 1',
+      arguments: {'id': unitId},
+    );
+    if (result.items.isEmpty) {
+      talker.warning('updateUnit: no unit $unitId');
+      return;
+    }
+
+    final unit =
+        unitFromDittoDoc(Map<String, dynamic>.from(result.items.first.value));
+    if (name != null) unit.name = name;
+    if (active != null) unit.active = active;
+    if (branchId != null) unit.branchId = branchId;
+    unit.lastTouched = DateTime.now().toUtc();
+
+    await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
+    scheduleCapellaBrickMirror(repository, unit);
   }
 
   // TODO(ditto-migration): port `uploadPdfToS3` to Ditto.
