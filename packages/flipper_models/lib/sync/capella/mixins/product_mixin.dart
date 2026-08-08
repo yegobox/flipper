@@ -7,6 +7,7 @@ import 'package:flipper_models/sync/utils/rra_item_code_sequence.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
+import 'package:flipper_models/sync/capella/ditto_document_reconcile.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/log_service.dart';
@@ -809,5 +810,47 @@ mixin CapellaProductMixin implements ProductInterface {
       ditto: ditto,
       branchId: branchId,
     );
+  }
+
+  @override
+  Future<void> reconcileProductDocuments({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM products WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+      final docs = result.items
+          .map((d) => Map<String, dynamic>.from(d.value))
+          .toList();
+
+      final plan = planDittoDocumentReconcile(docs);
+      if (plan.isEmpty) return;
+
+      talker.info(
+        'reconcileProductDocuments($branchId): $plan over ${docs.length} docs',
+      );
+
+      // Write the survivors before removing anything, so a failure part-way
+      // through leaves duplicates rather than losing a product.
+      for (final upsert in plan.upserts) {
+        await ditto.store.execute(
+          'INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+          arguments: {'doc': upsert},
+        );
+      }
+      for (final staleId in plan.deletes) {
+        await ditto.store.execute(
+          'DELETE FROM products WHERE _id = :id',
+          arguments: {'id': staleId},
+        );
+      }
+    } catch (e, st) {
+      // Never block boot on this — the duplicates are survivable, a crash
+      // loop is not.
+      talker.error('reconcileProductDocuments($branchId) failed: $e\n$st');
+    }
   }
 }

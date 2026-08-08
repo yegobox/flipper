@@ -118,10 +118,23 @@ duplicate and stale copies would surface them in the product list. Before
 products can move:
 
 1. This fix ships, so duplicates stop accumulating. **Done.**
-2. Existing duplicates get reconciled — the pre-fix copies keep their random
-   `_id` and are not overwritten by anything. Needs a one-off cleanup keyed on
-   the `id` field, deciding a winner by `lastTouched`.
-3. Only then point `products` / `productStreams` at Ditto.
+2. Existing duplicates get reconciled. **Done, but not yet run on real data** —
+   `reconcileProductDocuments` (`sync/capella/ditto_document_reconcile.dart`
+   plans it, `CapellaProductMixin` executes it, `cron_service` calls it once
+   per boot alongside the other hydrate steps).
+
+   The planner is pure and covered by `test/ditto_document_reconcile_test.dart`:
+   winner is the freshest `lastTouched`; a stamped copy beats an unstamped one;
+   ties go to the already-canonical copy so re-runs are stable. Two invariants
+   matter and are asserted — it never schedules a delete for a document it is
+   about to write, and it ignores documents with no usable `id` rather than
+   dropping what might be the only copy of a record. Execution writes all
+   survivors *before* deleting anything, so a failure part-way leaves
+   duplicates rather than losing a product, and it swallows its own errors so
+   boot never depends on it.
+3. Only then point `products` / `productStreams` at Ditto — deliberately **not**
+   done in the same change, so the read does not go live on top of a cleanup
+   that has never run in the field.
 
 Note the backfill pattern used elsewhere does not rescue step 2: it only fires
 when a branch has *nothing* in Ditto, so a branch with partial coverage would
@@ -216,8 +229,8 @@ crash-loops the container and takes daily reports down with it.
 - `dart analyze` clean across `apps/flipper`, `flipper_models`,
   `flipper_services`, `flipper_dashboard`, `flipper_login`, `flipper_ui`,
   `flipper_ai_feature`, `supabase_models`.
-- `flipper_models`: `+296 -9` — the pre-change baseline was `+278 -9`, so the
-  delta is exactly the 18 new tests. The 9 failures (7 in
+- `flipper_models`: `+306 -9` — the pre-change baseline was `+278 -9`, so the
+  delta is exactly the 28 new tests. The 9 failures (7 in
   `branch_transfer_rra_test.dart`, 1 in `ebm_helper_test.dart`, 1 in
   `stock_recount_integration_test.dart`) pre-date this branch. Note one
   `branch_transfer_rra_test` case is flaky and occasionally reports `-10`.

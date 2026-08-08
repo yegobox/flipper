@@ -660,4 +660,9 @@ mixin ProductMixin implements ProductInterface {
       ),
     );
   }
+
+  /// No-op: there are no Ditto documents on the Brick path to re-key.
+  /// [CapellaProductMixin] carries the real implementation.
+  @override
+  Future<void> reconcileProductDocuments({required String branchId}) async {}
 }
