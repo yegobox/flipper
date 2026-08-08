@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/services/stored_receipt_loader.dart';
+import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
@@ -182,7 +183,7 @@ class TransactionReceiptActionsService {
       final safe = ref.replaceAll(RegExp(r'[^\w\-]+'), '_');
       return '$safe.pdf';
     }
-    return 'receipt-${transaction.id}.pdf';
+    return receiptPdfFilename(transaction);
   }
 
   String _referenceHint(ITransaction transaction) {
