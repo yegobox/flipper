@@ -368,9 +368,7 @@ class AppService with ListenableServiceMixin {
       final existingDeviceId = ProxyService.box.getThisDeviceId();
       String? existingFriendlyName;
       if (existingDeviceId != null) {
-        final branchDevices = await ProxyService.getStrategy(
-          Strategy.cloudSync,
-        ).getDevicesByBranch(branchId: branchId);
+        final branchDevices = await ProxyService.legacyStrategy.getDevicesByBranch(branchId: branchId);
         existingFriendlyName = branchDevices
             .where((d) => d.id == existingDeviceId)
             .map((d) => d.friendlyName)

@@ -1285,9 +1285,8 @@ class CapellaSync extends AiStrategyImpl
       talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
     }
     try {
-      return await ProxyService.getStrategy(
-        Strategy.cloudSync,
-      ).getUtilityVariant(name: name, branchId: branchId);
+      // TODO(ditto-migration): Brick fallback for the utility-cash variant.
+      return await ProxyService.legacyStrategy.getUtilityVariant(name: name, branchId: branchId);
     } catch (e, st) {
       talker.error('getUtilityVariant fallback failed: $e\n$st');
       return null;
@@ -2226,7 +2225,7 @@ class CapellaSync extends AiStrategyImpl
     // Web: only Ditto path below runs.
     if (!kIsWeb) {
       try {
-        await ProxyService.getStrategy(Strategy.cloudSync).updateCategory(
+        await ProxyService.legacyStrategy.updateCategory(
           categoryId: categoryId,
           name: name,
           active: active,
