@@ -2036,6 +2036,14 @@
     "@paymentMtnMomo": {
         "description": "Payment method display name, brand kept as-is"
     },
+    "payerNameOptional": "Payer name (optional)",
+    "@payerNameOptional": {
+        "description": "Hint for the optional name on the MoMo/bank account that sent the money, when it differs from the customer on the sale"
+    },
+    "paidBy": "Paid by",
+    "@paidBy": {
+        "description": "Label preceding the payer name on a transaction's payment line"
+    },
     "paymentAirtelMoney": "Airtel Money",
     "@paymentAirtelMoney": {
         "description": "Payment method display name, brand kept as-is"

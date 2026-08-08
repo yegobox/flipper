@@ -15,6 +15,9 @@ Future<TransactionPaymentRecord> _$TransactionPaymentRecordFromSupabase(
     paymentMethod: data['payment_method'] == null
         ? null
         : data['payment_method'] as String?,
+    payerName: data['payer_name'] == null
+        ? null
+        : data['payer_name'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -33,6 +36,7 @@ Future<Map<String, dynamic>> _$TransactionPaymentRecordToSupabase(
     'transaction_id': instance.transactionId,
     'amount': instance.amount,
     'payment_method': instance.paymentMethod,
+    'payer_name': instance.payerName,
     'created_at': instance.createdAt?.toIso8601String(),
   };
 }
@@ -51,6 +55,9 @@ Future<TransactionPaymentRecord> _$TransactionPaymentRecordFromSqlite(
     paymentMethod: data['payment_method'] == null
         ? null
         : data['payment_method'] as String?,
+    payerName: data['payer_name'] == null
+        ? null
+        : data['payer_name'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -69,6 +76,7 @@ Future<Map<String, dynamic>> _$TransactionPaymentRecordToSqlite(
     'transaction_id': instance.transactionId,
     'amount': instance.amount,
     'payment_method': instance.paymentMethod,
+    'payer_name': instance.payerName,
     'created_at': instance.createdAt?.toIso8601String(),
   };
 }
@@ -99,6 +107,10 @@ class TransactionPaymentRecordAdapter
     'paymentMethod': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'payment_method',
+    ),
+    'payerName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'payer_name',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -138,6 +150,12 @@ class TransactionPaymentRecordAdapter
     'paymentMethod': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'payment_method',
+      iterable: false,
+      type: String,
+    ),
+    'payerName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'payer_name',
       iterable: false,
       type: String,
     ),

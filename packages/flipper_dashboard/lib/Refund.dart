@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/services/transaction_refund_service.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -135,6 +136,16 @@ class _RefundState extends ConsumerState<Refund> {
               _TransactionIdPill(
                 shortId: shortId,
                 transactionId: widget.transactionId,
+              ),
+              const SizedBox(height: 20),
+              _PaymentBreakdown(
+                transactionId: widget.transactionId,
+                currency: _currency,
+                customerLabel: tx == null
+                    ? null
+                    : transactionReportCustomerLabel(tx),
+                fallbackMethod: tx?.paymentType,
+                fallbackAmount: tx?.cashReceived ?? tx?.subTotal,
               ),
               const SizedBox(height: 24),
               RefundReasonForm(enabled: !_refundUnavailable),
@@ -506,6 +517,209 @@ class _TransactionIdPillState extends State<_TransactionIdPill> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Per-tender breakdown for the transaction, including the optional payer name
+/// captured at checkout for MoMo / bank lines.
+///
+/// The customer attached to a sale and the person whose account the money came
+/// from are usually the same, so the payer is surfaced only when it was
+/// recorded, and flagged only when it actually differs from the customer.
+class _PaymentBreakdown extends StatefulWidget {
+  const _PaymentBreakdown({
+    required this.transactionId,
+    required this.currency,
+    required this.customerLabel,
+    required this.fallbackMethod,
+    required this.fallbackAmount,
+  });
+
+  final String transactionId;
+  final String currency;
+
+  /// Customer on the transaction, already resolved to name → phone → '—'.
+  final String? customerLabel;
+
+  /// Used when no tender rows exist (older sales, or a receipt written before
+  /// per-payment records were kept).
+  final String? fallbackMethod;
+  final double? fallbackAmount;
+
+  @override
+  State<_PaymentBreakdown> createState() => _PaymentBreakdownState();
+}
+
+class _PaymentBreakdownState extends State<_PaymentBreakdown> {
+  late Future<List<TransactionPaymentRecord>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadPayments();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PaymentBreakdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transactionId != widget.transactionId) {
+      _future = _loadPayments();
+    }
+  }
+
+  Future<List<TransactionPaymentRecord>> _loadPayments() async {
+    try {
+      // Capella explicitly: the default strategy is empty off-web in report
+      // contexts, which would silently render an empty breakdown.
+      final records = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getPaymentType(transactionId: widget.transactionId);
+      return List<TransactionPaymentRecord>.from(records);
+    } catch (_) {
+      return const <TransactionPaymentRecord>[];
+    }
+  }
+
+  bool _payerDiffersFromCustomer(String payer) {
+    final customer = widget.customerLabel?.trim();
+    if (customer == null || customer.isEmpty || customer == '—') return true;
+    return payer.trim().toLowerCase() != customer.toLowerCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<TransactionPaymentRecord>>(
+      future: _future,
+      builder: (context, snap) {
+        final loading = snap.connectionState != ConnectionState.done;
+        final records = snap.data ?? const <TransactionPaymentRecord>[];
+
+        final lines = <Widget>[];
+        if (widget.customerLabel != null) {
+          lines.add(
+            _BreakdownRow(label: 'Customer', value: widget.customerLabel!),
+          );
+        }
+
+        if (loading) {
+          lines.add(const _BreakdownRow(label: 'Payments', value: '…'));
+        } else if (records.isEmpty) {
+          final method = (widget.fallbackMethod ?? '').trim();
+          lines.add(
+            _BreakdownRow(
+              label: method.isEmpty ? 'Payment' : method.toUpperCase(),
+              value:
+                  '${widget.currency} '
+                  '${NumberFormat('#,##0.00').format(widget.fallbackAmount ?? 0)}',
+            ),
+          );
+        } else {
+          for (final record in records) {
+            final method = (record.paymentMethod ?? 'Unknown').toUpperCase();
+            lines.add(
+              _BreakdownRow(
+                label: method,
+                value:
+                    '${widget.currency} '
+                    '${NumberFormat('#,##0.00').format(record.amount ?? 0)}',
+              ),
+            );
+            final payer = record.payerName?.trim();
+            if (payer != null && payer.isNotEmpty) {
+              lines.add(
+                _PayerLine(
+                  payerName: payer,
+                  differsFromCustomer: _payerDiffersFromCustomer(payer),
+                ),
+              );
+            }
+          }
+        }
+
+        final spaced = <Widget>[];
+        for (var i = 0; i < lines.length; i++) {
+          if (i > 0) spaced.add(const SizedBox(height: 10));
+          spaced.add(lines[i]);
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: _PreviewColors.surface2,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _PreviewColors.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: spaced,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Sub-line under a tender showing who the money actually came from.
+class _PayerLine extends StatelessWidget {
+  const _PayerLine({
+    required this.payerName,
+    required this.differsFromCustomer,
+  });
+
+  final String payerName;
+  final bool differsFromCustomer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.person_outline_rounded,
+            size: 15,
+            color: differsFromCustomer
+                ? _PreviewColors.pendingInk
+                : _PreviewColors.ink3,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Paid by ',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: _PreviewColors.ink3,
+                    ),
+                  ),
+                  TextSpan(
+                    text: payerName,
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: _PreviewColors.ink1,
+                    ),
+                  ),
+                  if (differsFromCustomer)
+                    TextSpan(
+                      text: '  · differs from customer',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: _PreviewColors.pendingInk,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

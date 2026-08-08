@@ -39,6 +39,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
       {}; // Track which fields user has manually edited
   double? _cachedNonCreditPaid;
 
+  /// Payer-name controllers, keyed by [Payment.id] rather than row index so a
+  /// removed or reordered row cannot inherit another row's typed name. Owned
+  /// here (not on [Payment]) because the many call sites that rebuild a
+  /// Payment would otherwise drop the controller mid-typing.
+  final Map<String, TextEditingController> _payerNameControllers = {};
+
   @override
   void initState() {
     super.initState();
@@ -50,6 +56,15 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         talker.error(e);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _payerNameControllers.values) {
+      controller.dispose();
+    }
+    _payerNameControllers.clear();
+    super.dispose();
   }
 
   Future<void> _loadNonCreditPaid() async {
@@ -309,6 +324,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   void _removePaymentMethod(int index, {required String transactionId}) {
     // Clear user edited fields to allow re-balancing of remaining methods
     _userEditedFields.clear();
+    final payments = ref.read(paymentMethodsProvider);
+    if (index >= 0 && index < payments.length) {
+      _payerNameControllers.remove(payments[index].id)?.dispose();
+    }
     ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
 
     final transaction = ref.read(transactionByIdProvider(transactionId)).value;
@@ -388,11 +407,18 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     required String transactionId,
   }) {
     final payment = ref.read(paymentMethodsProvider)[index];
+    // A name captured for MoMo must not silently ride along to Cash. Empty
+    // string (not null) is an explicit clear the notifier will not undo.
+    final keepsPayerName = paymentMethodSupportsPayerName(newValue);
+    if (!keepsPayerName) {
+      _payerNameControllers[payment.id]?.clear();
+    }
     final newPayment = Payment(
       amount: payment.amount,
       method: newValue,
       id: payment.id,
       controller: payment.controller,
+      payerName: keepsPayerName ? payment.payerName : '',
     );
     ref
         .read(paymentMethodsProvider.notifier)
@@ -426,6 +452,108 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     updatePaymentAmounts(
       transactionId: widget.transactionId,
       focusedIndex: index,
+    );
+  }
+
+  /// Lazily-created controller for a row's payer name, seeded once from state
+  /// so rebuilds never fight the cursor while the cashier is typing.
+  TextEditingController _payerNameControllerFor(Payment payment) {
+    return _payerNameControllers.putIfAbsent(
+      payment.id,
+      () => TextEditingController(text: payment.payerName ?? ''),
+    );
+  }
+
+  /// Drops controllers for rows that no longer exist — the provider is
+  /// invalidated after each sale, which mints fresh [Payment.id]s. Runs after
+  /// the frame so a controller is never disposed while still attached.
+  void _pruneStalePayerNameControllers(List<Payment> payments) {
+    if (_payerNameControllers.isEmpty) return;
+    final liveIds = payments.map((p) => p.id).toSet();
+    final stale = _payerNameControllers.keys
+        .where((id) => !liveIds.contains(id))
+        .toList();
+    if (stale.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final id in stale) {
+        _payerNameControllers.remove(id)?.dispose();
+      }
+    });
+  }
+
+  void _onPayerNameChanged(int index, String value) {
+    final payment = ref.read(paymentMethodsProvider)[index];
+    ref
+        .read(paymentMethodsProvider.notifier)
+        .updatePaymentMethod(
+          index,
+          Payment(
+            amount: payment.amount,
+            method: payment.method,
+            controller: payment.controller,
+            id: payment.id,
+            // Raw (not normalized) so an emptied field clears rather than
+            // falling back to the previously captured name.
+            payerName: value,
+          ),
+          transactionId: widget.transactionId,
+        );
+  }
+
+  /// Optional "who paid" line, shown only for tenders that arrive from a named
+  /// third-party account (MoMo, bank). Everything else keeps the original
+  /// single-row layout.
+  Widget _buildPayerNameField(int index, {required bool compact}) {
+    final payment = ref.watch(paymentMethodsProvider)[index];
+    final visual = _methodVisual(payment.method);
+    return Container(
+      decoration: BoxDecoration(
+        color: PosTokens.surface2,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: PosTokens.line),
+      ),
+      padding: EdgeInsets.only(left: compact ? 10 : 9),
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_outline_rounded,
+            size: 15,
+            color: visual.color.withValues(alpha: 0.75),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Semantics(
+              label: context.flipperL10n.payerNameOptional,
+              child: TextFormField(
+                controller: _payerNameControllerFor(payment),
+                textCapitalization: TextCapitalization.words,
+                style: TextStyle(
+                  fontSize: compact ? 13.5 : 13,
+                  fontWeight: FontWeight.w600,
+                  color: PosTokens.ink1,
+                ),
+                decoration: InputDecoration(
+                  hintText: context.flipperL10n.payerNameOptional,
+                  hintStyle: const TextStyle(
+                    color: PosTokens.ink4,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.fromLTRB(
+                    2,
+                    compact ? 11 : 9,
+                    compact ? 10 : 9,
+                    compact ? 11 : 9,
+                  ),
+                  isDense: true,
+                ),
+                onChanged: (value) => _onPayerNameChanged(index, value),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -629,8 +757,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     required String transactionId,
     required bool compact,
   }) {
-    final showRemove = ref.watch(paymentMethodsProvider).length > 1;
-    return Row(
+    final payments = ref.watch(paymentMethodsProvider);
+    final showRemove = payments.length > 1;
+    final showPayerName = paymentMethodSupportsPayerName(payments[index].method);
+    final row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
@@ -657,11 +787,29 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         ],
       ],
     );
+
+    if (!showPayerName) return row;
+
+    // Payer name sits under the row and stops short of the remove column so it
+    // stays aligned with the method + amount cells above it.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        row,
+        const SizedBox(height: 6),
+        Padding(
+          padding: EdgeInsets.only(right: showRemove ? 32 : 0),
+          child: _buildPayerNameField(index, compact: compact),
+        ),
+      ],
+    );
   }
 
   /// Vertically stacked payment lines with hairline separators.
   List<Widget> _buildPaymentRows({required bool compact}) {
     final payments = ref.watch(paymentMethodsProvider);
+    _pruneStalePayerNameControllers(payments);
     final rows = <Widget>[];
     for (int i = 0; i < payments.length; i++) {
       if (i > 0) {

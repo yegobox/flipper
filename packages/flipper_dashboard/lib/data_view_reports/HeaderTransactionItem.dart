@@ -40,6 +40,10 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         label: _zReportHeaderLabel(headerPadding, 'CASHIER', active: true),
       ),
       GridColumn(
+        columnName: 'Customer',
+        label: _zReportHeaderLabel(headerPadding, 'CUSTOMER'),
+      ),
+      GridColumn(
         columnName: 'Type',
         label: _zReportHeaderLabel(headerPadding, 'TYPE'),
       ),

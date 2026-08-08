@@ -14,8 +14,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 final talker = TalkerFlutter.init();
 
-/// Column count for transaction summary grid (non-PLU): receipt, cashier, …, actions.
-const int kTransactionSummaryColumnCount = 10;
+/// Column count for transaction summary grid (non-PLU): receipt, cashier, customer, …, actions.
+const int kTransactionSummaryColumnCount = 11;
 
 String transactionReportReceiptLabel(ITransaction t) {
   final inv = t.invoiceNumber;
@@ -26,6 +26,20 @@ String transactionReportReceiptLabel(ITransaction t) {
   if (id.isEmpty) return '—';
   final short = id.length > 5 ? id.substring(0, 5) : id;
   return '#${short.toUpperCase()}';
+}
+
+/// Summary grid / export Customer column: stored name, else the phone captured on
+/// the sale, else a dash so walk-in sales stay visually aligned with named ones.
+String transactionReportCustomerLabel(ITransaction t) {
+  final name = t.customerName?.trim();
+  if (name != null && name.isNotEmpty) return name;
+  // Fall back per field, not with `??`: an empty-string customerPhone is a
+  // present value, so a single `??` would swallow the sale-time number.
+  final phone = t.customerPhone?.trim();
+  if (phone != null && phone.isNotEmpty) return phone;
+  final salePhone = t.currentSaleCustomerPhoneNumber?.trim();
+  if (salePhone != null && salePhone.isNotEmpty) return salePhone;
+  return '—';
 }
 
 String _transactionReportStatusLabel(ITransaction tx) {
@@ -72,6 +86,7 @@ Map<String, Object?> transactionSummaryExportRow(
       transaction,
       directory: cashierDirectory,
     ),
+    'Customer': transactionReportCustomerLabel(transaction),
     'Type': transactionReportGridTypeLabel(transaction),
     'Status': _transactionReportStatusLabel(transaction),
     'SaleTotal': _signedReportMoney(transaction.subTotal ?? 0.0, transaction),
@@ -356,6 +371,10 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           ),
         ),
         DataGridCell<String>(
+          columnName: 'Customer',
+          value: transactionReportCustomerLabel(trans),
+        ),
+        DataGridCell<String>(
           columnName: 'Type',
           value: transactionReportGridTypeLabel(trans),
         ),
@@ -577,6 +596,29 @@ abstract class DynamicDataSource<T> extends DataGridSource {
                 ),
               ),
             ],
+          ),
+        );
+      }
+      if (name == 'Customer') {
+        final label = tx != null
+            ? transactionReportCustomerLabel(tx)
+            : (e.value?.toString() ?? '');
+        final unnamed = label == '—' || label.isEmpty;
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            unnamed ? '—' : label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: unnamed ? FontWeight.w500 : FontWeight.w600,
+              color: unnamed
+                  ? const Color(0xFF9CA3AF)
+                  : const Color(0xFF111827),
+            ),
           ),
         );
       }

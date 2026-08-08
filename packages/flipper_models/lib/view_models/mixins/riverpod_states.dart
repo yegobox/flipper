@@ -383,6 +383,40 @@ final transactionTotalPaidProvider = FutureProvider.autoDispose
       }
     });
 
+/// Tender lines (installments) recorded against a transaction, oldest first.
+///
+/// Complements [transactionTotalPaidProvider], which only returns the sum: the
+/// resume sheet needs each installment's method / payer / timestamp so a
+/// cashier can see when money came in on a parked credit ticket.
+final transactionPaymentRecordsProvider = FutureProvider.autoDispose
+    .family<List<TransactionPaymentRecord>, String>((ref, transactionId) async {
+      if (transactionId.isEmpty) return const <TransactionPaymentRecord>[];
+
+      try {
+        // Capella explicitly: the default strategy is empty off-web in some
+        // contexts, which would silently render an empty history.
+        final records = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getPaymentType(transactionId: transactionId);
+
+        final sorted = List<TransactionPaymentRecord>.from(records);
+        sorted.sort((a, b) {
+          final left = a.createdAt;
+          final right = b.createdAt;
+          // Rows without a timestamp (legacy) sink to the top, keeping the
+          // dated installments in chronological order below them.
+          if (left == null && right == null) return 0;
+          if (left == null) return -1;
+          if (right == null) return 1;
+          return left.compareTo(right);
+        });
+        return sorted;
+      } catch (e) {
+        talker.error('Error getting payment records for transaction: $e');
+        return const <TransactionPaymentRecord>[];
+      }
+    });
+
 final ordersStreamProvider = StreamProvider.autoDispose<List<ITransaction>>((
   ref,
 ) {
@@ -515,9 +549,14 @@ class CombinedNotifier {
       throw Exception('Branch ID is null!');
     }
 
-    // Trigger search to force UI update
-    ref.read(searchStringProvider.notifier).emitString(value: "search");
-    ref.read(searchStringProvider.notifier).emitString(value: "");
+    // Drop back to the unfiltered catalog view. This used to emit "search" and
+    // then "" back to back: OuterVariants listens on this provider, so the
+    // throwaway "search" value cost a whole extra catalog query (and briefly
+    // blanked the grid) before "" queried again. Emit only when the search is
+    // actually set, so a save on an unfiltered grid costs a single refresh.
+    if (ref.read(searchStringProvider).isNotEmpty) {
+      ref.read(searchStringProvider.notifier).emitString(value: "");
+    }
 
     // Trigger refresh for outerVariantsProvider to show newly imported products
     ref.read(outerVariantsProvider(branchId).notifier).refresh();
@@ -769,11 +808,18 @@ class Payment {
   TextEditingController controller;
   final String id;
 
+  /// Optional name on the MoMo/bank account tendering this line, when it is
+  /// not the customer on the transaction. Null means "not captured" — see
+  /// [PaymentMethodsNotifier.updatePaymentMethod] for how it survives the
+  /// many places that rebuild a [Payment] from an existing one.
+  String? payerName;
+
   Payment({
     required this.amount,
     required this.method,
     String? id,
     TextEditingController? controller,
+    this.payerName,
   }) : controller =
            controller ?? TextEditingController(text: amount.toStringAsFixed(2)),
        id = id ?? UniqueKey().toString();
@@ -804,6 +850,17 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
     });
   }
 
+  /// Many call sites rebuild a [Payment] from an existing one to change only
+  /// the amount or the method, and know nothing about [Payment.payerName].
+  /// Keep the captured name for the same row unless the replacement carries a
+  /// value of its own — including an empty string, which the payment card uses
+  /// to deliberately clear the name (e.g. switching MoMo → Cash).
+  void _carryOverPayerName(Payment oldPayment, Payment newPayment) {
+    if (newPayment.payerName == null && oldPayment.id == newPayment.id) {
+      newPayment.payerName = oldPayment.payerName;
+    }
+  }
+
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
     try {
@@ -812,6 +869,7 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
       );
       if (existingIndex != -1) {
         final oldPayment = state[existingIndex];
+        _carryOverPayerName(oldPayment, method);
         // Only dispose if we are NOT reusing the same controller
         if (oldPayment.controller != method.controller) {
           _safeDispose(oldPayment);
@@ -840,6 +898,7 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
     }
 
     final oldPayment = state[index];
+    _carryOverPayerName(oldPayment, payment);
     // Only dispose if we are NOT reusing the same controller
     if (oldPayment.controller != payment.controller) {
       _safeDispose(oldPayment);

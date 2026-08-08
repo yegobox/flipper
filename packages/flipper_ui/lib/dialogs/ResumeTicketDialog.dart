@@ -323,6 +323,7 @@ class ResumeTicketSummary extends ConsumerWidget {
               style: GoogleFonts.poppins(fontSize: 13, color: _kDueRed),
             ),
           ),
+          _PaymentHistorySection(ticket: ticket, currency: currency),
           const SizedBox(height: 24),
           _sectionLabel('STATUS'),
           const SizedBox(height: 10),
@@ -724,6 +725,194 @@ class _ItemRow extends StatelessWidget {
   }
 }
 
+/// Installment ledger for a parked / credit ticket.
+///
+/// Renders nothing until at least one real tender exists, so a plain parked
+/// ticket (or a ticket wholly on credit) keeps the original sheet layout.
+class _PaymentHistorySection extends ConsumerWidget {
+  const _PaymentHistorySection({required this.ticket, required this.currency});
+
+  final ITransaction ticket;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recordsAsync = ref.watch(
+      transactionPaymentRecordsProvider(ticket.id),
+    );
+
+    // CREDIT rows are the unpaid portion, not money received — excluding them
+    // keeps this list's total equal to the "Amount paid" figure above, which
+    // comes from getTotalPaidForTransaction(excludePaymentMethod: 'CREDIT').
+    final payments = recordsAsync.maybeWhen(
+      data: (records) => records
+          .where((r) => !paymentMethodIsCredit(r.paymentMethod))
+          .where((r) => (r.amount ?? 0) > 0)
+          .toList(),
+      orElse: () => const <TransactionPaymentRecord>[],
+    );
+    if (payments.isEmpty) return const SizedBox.shrink();
+
+    final paid = payments.fold<double>(0, (sum, r) => sum + (r.amount ?? 0));
+    final stillDue = ((ticket.subTotal ?? 0.0) - paid).clamp(
+      0.0,
+      double.infinity,
+    );
+    final customer = (ticket.customerName ?? ticket.ticketName ?? '').trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        _sectionLabel('PAYMENTS · ${payments.length}'),
+        const SizedBox(height: 8),
+        _surfaceCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < payments.length; i++) ...[
+                if (i > 0) const Divider(height: 1, color: _kCardBorder),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: _PaymentHistoryRow(
+                    record: payments[i],
+                    index: i + 1,
+                    customerName: customer,
+                    currency: currency,
+                  ),
+                ),
+              ],
+              const Divider(height: 1, color: _kCardBorder),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  children: [
+                    _moneyRow(
+                      'Total paid so far',
+                      paid.toCurrencyFormatted(symbol: currency),
+                      valueColor: _kPaidGreen,
+                    ),
+                    const SizedBox(height: 10),
+                    _moneyRow(
+                      'Still due',
+                      stillDue.toCurrencyFormatted(symbol: currency),
+                      valueColor: _kDueRed,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentHistoryRow extends StatelessWidget {
+  const _PaymentHistoryRow({
+    required this.record,
+    required this.index,
+    required this.customerName,
+    required this.currency,
+  });
+
+  final TransactionPaymentRecord record;
+  final int index;
+  final String customerName;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final method = (record.paymentMethod ?? 'Unknown').trim();
+    final payer = record.payerName?.trim() ?? '';
+    // Only surface the payer when it adds information (mobile money / bank
+    // transfers are often tendered from someone else's account).
+    final showPayer =
+        payer.isNotEmpty && payer.toLowerCase() != customerName.toLowerCase();
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: Color(0xFFEFFAF3),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            _paymentMethodIcon(method),
+            size: 18,
+            color: _kPaidGreen,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Payment $index · ${method.isEmpty ? 'Unknown' : method.toUpperCase()}',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: _kInk,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _formatPaymentTimestamp(record.createdAt),
+                style: GoogleFonts.poppins(fontSize: 12, color: _kLabel),
+              ),
+              if (showPayer) ...[
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline_rounded,
+                      size: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        'Paid by $payer',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          (record.amount ?? 0).toCurrencyFormatted(symbol: currency),
+          style: _monoStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: _kPaidGreen,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _StatusRow extends StatelessWidget {
   const _StatusRow({
     required this.currentStatus,
@@ -1063,6 +1252,42 @@ String _formatTicketDate(DateTime? date) {
   final m = _monthShort[local.month - 1];
   return '${local.day} $m ${local.year}';
 }
+
+IconData _paymentMethodIcon(String method) {
+  final m = method.toUpperCase();
+  if (m.contains('CASH')) return Icons.payments_outlined;
+  if (m.contains('MOMO') ||
+      m.contains('MOBILE') ||
+      m.contains('MTN') ||
+      m.contains('AIRTEL')) {
+    return Icons.smartphone_rounded;
+  }
+  if (m.contains('BANK') || m.contains('TRANSFER')) {
+    return Icons.account_balance_rounded;
+  }
+  if (m.contains('CARD') || m.contains('VISA') || m.contains('POS')) {
+    return Icons.credit_card_rounded;
+  }
+  return Icons.receipt_long_rounded;
+}
+
+/// "Today · 14:32" / "Yesterday · 09:05" / "3 Aug 2026 · 09:05".
+///
+/// Records are stamped in UTC (savePaymentType) — display in device local time.
+String _formatPaymentTimestamp(DateTime? at) {
+  if (at == null) return 'Date not recorded';
+  final local = at.toLocal();
+  final time = '${_twoDigits(local.hour)}:${_twoDigits(local.minute)}';
+  final now = DateTime.now();
+  final days = DateTime(now.year, now.month, now.day)
+      .difference(DateTime(local.year, local.month, local.day))
+      .inDays;
+  if (days == 0) return 'Today · $time';
+  if (days == 1) return 'Yesterday · $time';
+  return '${local.day} ${_monthShort[local.month - 1]} ${local.year} · $time';
+}
+
+String _twoDigits(int value) => value.toString().padLeft(2, '0');
 
 String _formatPhoneDisplay(String raw) {
   final digits = raw.replaceAll(RegExp(r'\D'), '');
