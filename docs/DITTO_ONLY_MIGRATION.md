@@ -77,10 +77,31 @@ Ported natively on this branch:
 
   Covered by `test/reference_data_ditto_test.dart` (mapping round-trip, `_id`
   fallback, loose `active` coercion, malformed dates).
+- **Favourites** (`Favorite` — the POS keypad shortcuts): all seven members, in
+  `sync/capella/mixins/favorite_mixin.dart`, with mapping in
+  `sync/capella/favorite_ditto.dart`. Same Ditto-first-with-backfill shape and
+  the same Brick mirror for Supabase.
+
+  Two behaviour fixes came with it. Lookups by `favIndex` are now **scoped to
+  the branch** — the Brick versions queried `favIndex` globally, so slot "1"
+  could resolve to another branch's shortcut for a multi-branch business. And
+  `deleteFavoriteByIndex` dereferenced a null (`favorite!`) when the slot was
+  empty; it now logs and returns 200. `addFavorite` reuses the row already in
+  the slot, so re-assigning a shortcut repoints it instead of stacking rows.
+
+  The five getters were **duplicated** in `CapellaGetterOperationsMixin` and
+  `deleteFavoriteByIndex` in `CapellaDeleteOperationsMixin`. Both are applied
+  around `CapellaFavoriteMixin` in CapellaSync's `with` list, so a delegation
+  left in either would have silently shadowed the Ditto implementation. They
+  are now abstract declarations — the mixins still satisfy their interfaces,
+  and `dart analyze` staying clean is the proof that a concrete implementation
+  is still reachable (only `CapellaFavoriteMixin` has one).
+
+  Covered by `test/favorite_ditto_test.dart`.
 
 ## What is left
 
-152 interface members still forward to Brick. Run this to see the current list:
+139 interface members still forward to Brick. Run this to see the current list:
 
 ```sh
 grep -rn 'TODO(ditto-migration)' packages/flipper_models/lib/sync/capella/
@@ -89,15 +110,14 @@ grep -rn 'TODO(ditto-migration)' packages/flipper_models/lib/sync/capella/
 | File | Members |
 | --- | ---: |
 | `capella_sync.dart` | 88 |
-| `mixins/getter_operations_mixin.dart` | 15 |
 | `mixins/auth_mixin.dart` | 11 |
-| `mixins/favorite_mixin.dart` | 7 |
+| `mixins/getter_operations_mixin.dart` | 10 |
 | `mixins/business_mixin.dart` | 6 |
 | `mixins/tenant_mixin.dart` | 6 |
 | `mixins/product_mixin.dart` | 5 |
 | `mixins/transaction_mixin.dart` | 4 |
 | `mixins/conversation_mixin.dart` | 3 |
-| `mixins/delete_operations_mixin.dart` | 3 |
+| `mixins/delete_operations_mixin.dart` | 2 |
 | `mixins/storage_mixin.dart` | 2 |
 | `mixins/system_mixin.dart` | 1 |
 | `mixins/variant_mixin.dart` | 1 |
@@ -136,7 +156,8 @@ crash-loops the container and takes daily reports down with it.
 2. **Product add/edit tail** — `createVariant`, `bindProduct`, `saveComposite`,
    `updateUnit`, `updateColor`, `colors`, `units`. Completes the flow that
    motivated this work.
-3. **Favourites + devices + access/permissions.**
+3. ~~**Favourites**~~ — done. Devices and access/permissions next; both are
+   client-written and self-contained like favourites.
 4. **Auth/tenant/pin.** Highest risk — it is also where Ditto itself gets
    initialised (`sync/mixins/auth_mixin.dart:_initializeDitto`), so it must go
    last.
@@ -148,8 +169,8 @@ crash-loops the container and takes daily reports down with it.
 - `dart analyze` clean across `apps/flipper`, `flipper_models`,
   `flipper_services`, `flipper_dashboard`, `flipper_login`, `flipper_ui`,
   `flipper_ai_feature`, `supabase_models`.
-- `flipper_models`: `+285 -9` — the pre-change baseline was `+278 -9`, so the
-  delta is exactly the 7 new mapping tests. The 9 failures (7 in
+- `flipper_models`: `+291 -9` — the pre-change baseline was `+278 -9`, so the
+  delta is exactly the 13 new mapping tests. The 9 failures (7 in
   `branch_transfer_rra_test.dart`, 1 in `ebm_helper_test.dart`, 1 in
   `stock_recount_integration_test.dart`) pre-date this branch. Note one
   `branch_transfer_rra_test` case is flaky and occasionally reports `-10`.

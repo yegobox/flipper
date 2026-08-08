@@ -39,35 +39,24 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     return ProxyService.legacyStrategy.getDevices(businessId: businessId);
   }
 
-  // TODO(ditto-migration): port `getFavoriteById` to Ditto.
+  // Favourites live in [CapellaFavoriteMixin], which is applied earlier in
+  // CapellaSync's mixin chain. Declared abstract here so this mixin still
+  // satisfies GetterOperationsInterface without shadowing the Ditto-native
+  // implementations with a Brick delegation.
   @override
-  Future<Favorite?> getFavoriteById({required String favId}) async {
-    return ProxyService.legacyStrategy.getFavoriteById(favId: favId);
-  }
+  Future<Favorite?> getFavoriteById({required String favId});
 
-  // TODO(ditto-migration): port `getFavoriteByIndex` to Ditto.
   @override
-  Future<Favorite?> getFavoriteByIndex({required String favIndex}) async {
-    return ProxyService.legacyStrategy.getFavoriteByIndex(favIndex: favIndex);
-  }
+  Future<Favorite?> getFavoriteByIndex({required String favIndex});
 
-  // TODO(ditto-migration): port `getFavoriteByIndexStream` to Ditto.
   @override
-  Stream<Favorite?> getFavoriteByIndexStream({required String favIndex}) {
-    return ProxyService.legacyStrategy.getFavoriteByIndexStream(favIndex: favIndex);
-  }
+  Stream<Favorite?> getFavoriteByIndexStream({required String favIndex});
 
-  // TODO(ditto-migration): port `getFavoriteByProdId` to Ditto.
   @override
-  Future<Favorite?> getFavoriteByProdId({required String prodId}) async {
-    return ProxyService.legacyStrategy.getFavoriteByProdId(prodId: prodId);
-  }
+  Future<Favorite?> getFavoriteByProdId({required String prodId});
 
-  // TODO(ditto-migration): port `getFavorites` to Ditto.
   @override
-  Future<List<Favorite>> getFavorites() async {
-    return ProxyService.legacyStrategy.getFavorites();
-  }
+  Future<List<Favorite>> getFavorites();
 
   // TODO(ditto-migration): port `getFirebaseToken` to Ditto.
   @override

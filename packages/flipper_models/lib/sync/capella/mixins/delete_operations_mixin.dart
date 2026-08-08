@@ -22,11 +22,11 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
     return ProxyService.legacyStrategy.deleteBranch(branchId: branchId, flipperHttpClient: flipperHttpClient);
   }
 
-  // TODO(ditto-migration): port `deleteFavoriteByIndex` to Ditto.
+  // Implemented Ditto-natively in [CapellaFavoriteMixin]; abstract here so this
+  // mixin still satisfies its interface without shadowing that with a Brick
+  // delegation.
   @override
-  Future<int> deleteFavoriteByIndex({required String favIndex}) async {
-    return ProxyService.legacyStrategy.deleteFavoriteByIndex(favIndex: favIndex);
-  }
+  Future<int> deleteFavoriteByIndex({required String favIndex});
 
   Future<void> deleteAllTransactionItems({required String transactionId}) async {
     final ditto = dittoService.dittoInstance;
