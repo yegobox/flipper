@@ -29,6 +29,7 @@ import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -960,7 +961,10 @@ class CapellaSync extends AiStrategyImpl
       return data as T;
     }
 
-    throw UnimplementedError('Capella create<$T> is not supported');
+    // TODO(ditto-migration): port the remaining model types to Ditto. Until
+    // then they keep their Brick write path — Capella is now the only strategy
+    // callers can reach, so throwing here would break every other model.
+    return _legacy.create<T>(data: data);
   }
 
   // TODO(ditto-migration): port `upsertDevice` to Ditto.
@@ -969,14 +973,38 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.upsertDevice(device);
   }
 
-  // TODO(ditto-migration): port `createNewStock` to Ditto.
   @override
   Future<void> createNewStock({
     required Variant variant,
     required TransactionItem item,
     required String subBranchId,
-  }) {
-    return _legacy.createNewStock(variant: variant, item: item, subBranchId: subBranchId);
+  }) async {
+    final requested = item.quantityRequested!.toDouble();
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: createNewStock');
+    }
+    final stock = Stock(
+      id: const Uuid().v4(),
+      lastTouched: DateTime.now().toUtc(),
+      branchId: subBranchId,
+      currentStock: requested,
+      rsdQty: requested,
+      value: requested * variant.retailPrice!,
+      // Inbound transfer stock stays inactive until the receiving branch
+      // approves it — same as the Brick implementation.
+      active: false,
+    );
+    await ditto.store.execute(
+      'INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': stock.toJson()},
+    );
+    await seedStockMilliIfAbsentOnStore(
+      ditto.store,
+      stockId: stock.id,
+      qty: requested,
+    );
+    scheduleCapellaBrickMirror(repository, stock);
   }
 
   // TODO(ditto-migration): port `createOrUpdateBranchOnCloud` to Ditto.

@@ -1208,13 +1208,30 @@ mixin CapellaVariantMixin implements VariantInterface {
     }
   }
 
-  // TODO(ditto-migration): port `addStockToVariant` to Ditto.
   @override
   FutureOr<Variant> addStockToVariant({
     required Variant variant,
     Stock? stock,
-  }) {
-    return ProxyService.legacyStrategy.addStockToVariant(variant: variant, stock: stock);
+  }) async {
+    final effective = stock ??
+        Stock(
+          id: const Uuid().v4(),
+          currentStock: variant.qty ?? 0,
+          branchId: variant.branchId,
+          lastTouched: DateTime.now().toUtc(),
+        );
+
+    // Ditto first so the variant's stockId is already resolvable by the time
+    // the caller re-reads it — the Brick path mirrored asynchronously and lost
+    // that race on first-time writes.
+    await _syncStockToDitto(effective);
+    variant.stock = effective;
+    variant.stockId = effective.id;
+    await _syncVariantToDitto(variant);
+
+    scheduleCapellaBrickMirror(repository, effective);
+    scheduleCapellaBrickMirror(repository, variant);
+    return variant;
   }
 
   // TODO(ditto-migration): port `getExpiredItems` to Ditto.
