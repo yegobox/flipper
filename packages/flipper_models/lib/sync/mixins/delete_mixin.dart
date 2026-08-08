@@ -186,7 +186,7 @@ mixin DeleteMixin implements DeleteInterface {
         }
         return true;
       case 'stockRequest':
-        final request = (await ProxyService.strategy.requests(
+        final request = (await ProxyService.legacyStrategy.requests(
           requestId: id,
         )).firstOrNull;
         if (request != null) {
@@ -226,7 +226,7 @@ mixin DeleteMixin implements DeleteInterface {
         // Roster reloads from Supabase on next fetch.
         break;
       case 'transaction':
-        final transaction = (await ProxyService.strategy.getTransaction(
+        final transaction = (await ProxyService.legacyStrategy.getTransaction(
           id: id,
           branchId: ProxyService.box.getBranchId()!,
         ));
@@ -265,7 +265,7 @@ mixin DeleteMixin implements DeleteInterface {
 
   /// Variants and stocks live in Ditto (Capella), not Brick SQLite.
   Future<void> _deleteVariantFromDittoAndSupabase({required String id}) async {
-    final variant = await ProxyService.strategy.getVariant(id: id);
+    final variant = await ProxyService.legacyStrategy.getVariant(id: id);
     String? stockId = variant?.stockId;
 
     if (stockId == null || stockId.isEmpty) {

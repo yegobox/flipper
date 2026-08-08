@@ -58,7 +58,7 @@ mixin StockMixin implements StockInterface {
   Future<Stock?> _healMissingStockDocument(String stockId) async {
     Variant? variant;
     try {
-      variant = await ProxyService.strategy.getVariant(stockId: stockId) ??
+      variant = await ProxyService.legacyStrategy.getVariant(stockId: stockId) ??
           await ProxyService.getStrategy(
             Strategy.capella,
           ).getVariant(stockId: stockId);
@@ -116,7 +116,7 @@ mixin StockMixin implements StockInterface {
       talker.error('updateStock: stock $stockId not found');
       throw StateError('Stock with ID $stockId not found');
     }
-    Variant? variant = await ProxyService.strategy.getVariant(
+    Variant? variant = await ProxyService.legacyStrategy.getVariant(
       stockId: stock.id,
     );
 

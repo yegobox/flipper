@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/favorite_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -8,44 +9,45 @@ mixin CapellaFavoriteMixin implements FavoriteInterface {
   Repository get repository;
   Talker get talker;
 
+  // TODO(ditto-migration): port `addFavorite` to Ditto.
   @override
   Future<int> addFavorite({required Favorite data}) async {
-    throw UnimplementedError('addFavorite needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.addFavorite(data: data);
   }
 
+  // TODO(ditto-migration): port `getFavorites` to Ditto.
   @override
   Future<List<Favorite>> getFavorites() async {
-    throw UnimplementedError(
-        'getFavorites needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getFavorites();
   }
 
+  // TODO(ditto-migration): port `getFavoriteById` to Ditto.
   @override
   Future<Favorite?> getFavoriteById({required String favId}) async {
-    throw UnimplementedError(
-        'getFavoriteById needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getFavoriteById(favId: favId);
   }
 
+  // TODO(ditto-migration): port `getFavoriteByProdId` to Ditto.
   @override
   Future<Favorite?> getFavoriteByProdId({required String prodId}) async {
-    throw UnimplementedError(
-        'getFavoriteByProdId needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getFavoriteByProdId(prodId: prodId);
   }
 
+  // TODO(ditto-migration): port `getFavoriteByIndex` to Ditto.
   @override
   Future<Favorite?> getFavoriteByIndex({required String favIndex}) async {
-    throw UnimplementedError(
-        'getFavoriteByIndex needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getFavoriteByIndex(favIndex: favIndex);
   }
 
+  // TODO(ditto-migration): port `getFavoriteByIndexStream` to Ditto.
   @override
   Stream<Favorite?> getFavoriteByIndexStream({required String favIndex}) {
-    throw UnimplementedError(
-        'getFavoriteByIndexStream needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getFavoriteByIndexStream(favIndex: favIndex);
   }
 
+  // TODO(ditto-migration): port `deleteFavoriteByIndex` to Ditto.
   @override
   Future<int> deleteFavoriteByIndex({required String favIndex}) async {
-    throw UnimplementedError(
-        'deleteFavoriteByIndex needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.deleteFavoriteByIndex(favIndex: favIndex);
   }
 }

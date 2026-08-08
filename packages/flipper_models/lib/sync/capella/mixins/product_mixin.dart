@@ -55,16 +55,16 @@ mixin CapellaProductMixin implements ProductInterface {
     }
   }
 
+  // TODO(ditto-migration): port `products` to Ditto.
   @override
   Future<List<Product>> products({required String branchId}) async {
-    throw UnimplementedError('products needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.products(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `productStreams` to Ditto.
   @override
   Stream<List<Product>> productStreams({String? prodIndex}) {
-    throw UnimplementedError(
-      'productStreams needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.productStreams(prodIndex: prodIndex);
   }
 
   @override
@@ -107,11 +107,10 @@ mixin CapellaProductMixin implements ProductInterface {
     return 0.0;
   }
 
+  // TODO(ditto-migration): port `wholeStockValue` to Ditto.
   @override
   Stream<double> wholeStockValue({required String branchId}) {
-    throw UnimplementedError(
-      'wholeStockValue needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.wholeStockValue(branchId: branchId);
   }
 
   @override
@@ -790,15 +789,16 @@ mixin CapellaProductMixin implements ProductInterface {
     }
   }
 
+  // TODO(ditto-migration): port `hydrateDate` to Ditto.
   @override
   Future<void> hydrateDate({required String branchId}) async {
-    throw UnimplementedError('hydrateDate needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.hydrateDate(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `hydrateCodes` to Ditto.
   @override
   Future<void> hydrateCodes({required String branchId}) {
-    // TODO: implement hydrateCodes
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.hydrateCodes(branchId: branchId);
   }
 
   @override

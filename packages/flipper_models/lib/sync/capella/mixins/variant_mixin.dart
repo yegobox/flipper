@@ -1089,14 +1089,16 @@ mixin CapellaVariantMixin implements VariantInterface {
     return results.length;
   }
 
+  // TODO(ditto-migration): port `units` to Ditto.
   @override
   Future<List<IUnit>> units({required String branchId}) {
-    throw UnimplementedError('units needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.units(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `addUnits` to Ditto.
   @override
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) {
-    throw UnimplementedError('addUnits needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.addUnits<T>(units: units);
   }
 
   @override
@@ -1206,25 +1208,23 @@ mixin CapellaVariantMixin implements VariantInterface {
     }
   }
 
+  // TODO(ditto-migration): port `addStockToVariant` to Ditto.
   @override
   FutureOr<Variant> addStockToVariant({
     required Variant variant,
     Stock? stock,
   }) {
-    throw UnimplementedError(
-      'addStockToVariant needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.addStockToVariant(variant: variant, stock: stock);
   }
 
+  // TODO(ditto-migration): port `getExpiredItems` to Ditto.
   @override
   Future<List<Variant>> getExpiredItems({
     required String branchId,
     int? daysToExpiry,
     int? limit,
   }) async {
-    throw UnimplementedError(
-      'getExpiredItems needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.getExpiredItems(branchId: branchId, daysToExpiry: daysToExpiry, limit: limit);
   }
 
   @override

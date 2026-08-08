@@ -1,38 +1,35 @@
-import 'package:flutter/foundation.dart' hide Category; // Import for kIsWeb
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 
+/// Historically the app could run against either database:
+///   * [Strategy.capella]  — Ditto (Capella) documents
+///   * [Strategy.cloudSync] — Brick/SQLite + Supabase offline-first
+///
+/// The app is now **Ditto-only**. [Strategy] is kept so the ~530 existing
+/// `getStrategy(Strategy.capella)` call sites keep compiling, but every lookup
+/// resolves to Capella. Selecting the Brick path is no longer possible.
 enum Strategy { capella, cloudSync }
 
 class SyncStrategy {
   final DatabaseSyncInterface capella;
+
+  /// Legacy Brick/SQLite implementation. It is **not** selectable as a
+  /// strategy anymore — it is only reachable through [legacy], which
+  /// [CapellaSync] uses as a fallback for the surface that has not been ported
+  /// to Ditto yet. Every use is tagged `TODO(ditto-migration)`.
   final DatabaseSyncInterface cloudSync;
-  late Strategy _currentStrategy;
 
-  SyncStrategy({required this.capella, required this.cloudSync}) {
-    // Enforce Capella on Web, otherwise default to CoreSync
-    _currentStrategy = kIsWeb ? Strategy.capella : Strategy.cloudSync;
-  }
+  SyncStrategy({required this.capella, required this.cloudSync});
 
-  DatabaseSyncInterface get current {
-    return kIsWeb
-        ? capella // Always use Capella on Web
-        : (_currentStrategy == Strategy.capella ? capella : cloudSync);
-  }
+  /// The one and only database the app talks to.
+  DatabaseSyncInterface get current => capella;
 
-  DatabaseSyncInterface getStrategy(Strategy? strategy) {
-    if (strategy == null) return current;
+  /// Always Capella/Ditto, whatever is asked for.
+  DatabaseSyncInterface getStrategy(Strategy? strategy) => capella;
 
-    if (kIsWeb && strategy != Strategy.capella) {
-      throw UnsupportedError("Only Capella is supported on the web.");
-    }
+  /// No-op. Kept so existing callers (e.g. `cron_service`) compile; the
+  /// database can no longer be switched at runtime.
+  void setStrategy(Strategy strategy) {}
 
-    return strategy == Strategy.capella ? capella : cloudSync;
-  }
-
-  void setStrategy(Strategy strategy) {
-    if (kIsWeb && strategy != Strategy.capella) {
-      throw UnsupportedError("Only Capella is supported on the web.");
-    }
-    _currentStrategy = strategy;
-  }
+  /// Escape hatch for not-yet-ported operations. Do not use in new code.
+  DatabaseSyncInterface get legacy => cloudSync;
 }

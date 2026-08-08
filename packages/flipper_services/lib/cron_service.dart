@@ -807,8 +807,7 @@ class CronService {
       // Start replicator
       ProxyService.strategy.startReplicator();
 
-      // Set strategy based on platform
-      ProxyService.setStrategy(Strategy.cloudSync);
+      // The app runs on Ditto/Capella only — there is no strategy to pick.
       ProxyService.strategy.whoAmI();
 
       // Get payment plan

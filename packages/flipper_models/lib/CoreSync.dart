@@ -151,7 +151,7 @@ class CoreSync extends AiStrategyImpl
   Future<bool> firebaseLogin({String? token}) async {
     String? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy.getPinLocal(
+    final pinLocal = await ProxyService.legacyStrategy.getPinLocal(
       userId: userId,
       alwaysHydrate: true,
     );
@@ -293,7 +293,7 @@ class CoreSync extends AiStrategyImpl
     // Ensure the PIN record has the correct UID to prevent duplicates
     if (user.uid != null) {
       // Check if a PIN with this userId already exists
-      final existingPin = await ProxyService.strategy.getPinLocal(
+      final existingPin = await ProxyService.legacyStrategy.getPinLocal(
         userId: user.id,
         alwaysHydrate: false, // Use local-only to avoid network calls
       );
@@ -304,7 +304,7 @@ class CoreSync extends AiStrategyImpl
           talker.debug(
             "Updating existing PIN with correct UID during configureSystem",
           );
-          await ProxyService.strategy.updatePin(
+          await ProxyService.legacyStrategy.updatePin(
             userId: user.id,
             tokenUid: user.uid,
             phoneNumber: userPhone,
@@ -2445,7 +2445,7 @@ class CoreSync extends AiStrategyImpl
                 .whereType<String>()
                 .toSet();
             for (final id in variantIds) {
-              final variant = await ProxyService.strategy.getVariant(id: id);
+              final variant = await ProxyService.legacyStrategy.getVariant(id: id);
               if (variant != null) {
                 variant.lastTouched = DateTime.now().toUtc();
                 await repository.upsert<Variant>(variant);
@@ -3508,7 +3508,7 @@ class CoreSync extends AiStrategyImpl
     // Must match Capella/Ditto reads: StockMixin delegates here, but this method
     // previously shadowed the mixin and queried Brick only — empty when Ditto is
     // ahead of SQLite (e.g. checkout reads stock via Strategy.capella then
-    // updateStock via ProxyService.strategy / CoreSync).
+    // updateStock via ProxyService.legacyStrategy / CoreSync).
     return ProxyService.getStrategy(Strategy.capella).getStockById(id: id);
   }
 

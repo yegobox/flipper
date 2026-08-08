@@ -186,7 +186,7 @@ mixin ProductMixin implements ProductInterface {
                 value: qty * (retailPrice > 0 ? retailPrice : supplyPrice),
               );
             }
-            await ProxyService.strategy.addVariant(
+            await ProxyService.legacyStrategy.addVariant(
               variations: [toSync],
               branchId: branchId,
               skipRRaCall: false,
@@ -265,9 +265,9 @@ mixin ProductMixin implements ProductInterface {
         newVariant.stockId = createdStock.id;
         newVariant.ebmSynced = false;
 
-        // Use ProxyService.strategy.addVariant to save the variant
+        // Use ProxyService.legacyStrategy.addVariant to save the variant
         // This ensures EBM sync and SAR increment logic is applied
-        await ProxyService.strategy.addVariant(
+        await ProxyService.legacyStrategy.addVariant(
           variations: [newVariant],
           branchId: branchId,
           skipRRaCall: skipRRaCall,
@@ -388,7 +388,7 @@ mixin ProductMixin implements ProductInterface {
     double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;
     try {
       Configurations? taxConfig =
-          await ProxyService.strategy.getByTaxType(taxtype: finalTaxTyCd);
+          await ProxyService.legacyStrategy.getByTaxType(taxtype: finalTaxTyCd);
       if (taxConfig != null) {
         finalTaxPercentage = taxConfig.taxPercentage!;
       }

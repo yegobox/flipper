@@ -58,6 +58,13 @@ abstract class ProxyService {
   static void setStrategy(Strategy strategy) =>
       strategyLink.setStrategy(strategy);
 
+  /// Legacy Brick/SQLite implementation, kept only as a fallback for the
+  /// surface that has not been ported to Ditto yet.
+  ///
+  /// Do not use in new code — the app runs on Ditto/Capella. Every remaining
+  /// caller is tagged `TODO(ditto-migration)`.
+  static DatabaseSyncInterface get legacyStrategy => strategyLink.legacy;
+
   static Crash get crash => getIt<Crash>();
   static SupabaseInterface get supa => getIt<SupabaseInterface>();
   static LocalStorage get box => getIt<LocalStorage>();
