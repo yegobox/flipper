@@ -1,463 +1,2027 @@
 {
-    "@@locale": "rw",
     "save": "Bika",
+    "@save": {
+        "description": "The save message"
+    },
     "retailPrice": "Igiciro",
+    "@retailPrice": {
+        "description": "The price"
+    },
     "supplyPrice": "Ikiranguzo",
+    "@supplyPrice": {
+        "description": "Supplier price"
+    },
     "currentSale": "Igurisha rigezweho",
+    "@currentSale": {
+        "description": "Current Sale"
+    },
     "currentStock": "Ububiko buriho",
+    "@currentStock": {
+        "description": "Current Stock"
+    },
     "addProduct": "Ongeramo ibicuruzwa",
+    "@addProduct": {
+        "description": "Add Product"
+    },
     "tickets": "Amatike",
+    "@tickets": {
+        "description": "The Tickets"
+    },
     "charge": "Kwishyuza",
+    "@charge": {
+        "description": "Charge the user for the amount"
+    },
     "productName": "Izina ry'igicuruzwa",
+    "@productName": {
+        "description": "The Name of the product"
+    },
     "flipperSetting": "Igenamiterere",
+    "@flipperSetting": {
+        "description": "The Settings"
+    },
     "options": "Amahitamo",
+    "@options": {
+        "description": "The options"
+    },
     "saveTicket": "Ntushobora kubika itike utongeyeho inyandiko",
+    "@saveTicket": {
+        "description": "can not save the tickets without adding a note to ticket"
+    },
     "productNotFound": "Igicuruzwa ntikibonetse",
+    "@productNotFound": {
+        "description": "Product not found"
+    },
     "noPayable": "Nta byo kwishyuzwa bihari",
+    "@noPayable": {
+        "description": "No payable"
+    },
     "delete": "Siba",
-    "addTomenu": "Menu",
+    "@delete": {
+        "description": "Delete"
+    },
     "edit": "Hindura",
+    "@edit": {
+        "description": "Ongeraho kuri menu"
+    },
     "addWorkSpace": "Ongeramo aho gukorera",
+    "@addWorkSpace": {
+        "description": "Add WorkSpace"
+    },
     "addMembers": "Ongeramo abakozi",
+    "@addMembers": {
+        "description": "Add Members"
+    },
     "logOut": "Sohoka",
+    "@logOut": {
+        "description": "Log out action"
+    },
     "syncCounter": "Huza kontwa",
+    "@syncCounter": {
+        "description": "Synchronize counter action"
+    },
     "resetTransaction": "Subizaho igurisha",
+    "@resetTransaction": {
+        "description": "Reset transaction action"
+    },
     "resetTransactionQuestion": "Subizaho igurisha?",
+    "@resetTransactionQuestion": {
+        "description": "Reset transaction confirmation title"
+    },
     "resetTransactionDescription": "Ibi bizasiba igurisha ritegereje n'ibicuruzwa byaryo byose. Iki gikorwa ntigisubizwa inyuma.",
+    "@resetTransactionDescription": {
+        "description": "Reset transaction confirmation description"
+    },
     "transactionResetSuccessfully": "Igurisha ryasubijweho neza",
+    "@transactionResetSuccessfully": {
+        "description": "Success message after resetting a transaction"
+    },
     "errorResettingTransaction": "Habaye ikosa mu gusubizaho igurisha: {error}",
+    "@errorResettingTransaction": {
+        "description": "Error message after failing to reset a transaction",
+        "placeholders": {
+            "error": {}
+        }
+    },
     "selectedContactHasNoPhoneNumber": "Kontaki wahisemo nta nimero ya telefoni ifite",
+    "@selectedContactHasNoPhoneNumber": {
+        "description": "Contact picker error message"
+    },
     "contactsPermissionRequired": "Uruhushya rwo kureba kontaki rurakenewe kugira ngo uhitemo kontaki",
+    "@contactsPermissionRequired": {
+        "description": "Contact picker permission snackbar"
+    },
     "permissionRequired": "Uruhushya rurakenewe",
+    "@permissionRequired": {
+        "description": "Permission dialog title"
+    },
     "contactsPermissionDeniedSettings": "Uruhushya rwo kureba kontaki rwanze burundu. Rubashe mu igenamiterere ry'igikoresho cyawe kugira ngo ukoreshe iki gikorwa.",
+    "@contactsPermissionDeniedSettings": {
+        "description": "Contact picker permission denied dialog body"
+    },
     "cancel": "Kureka",
+    "@cancel": {
+        "description": "Cancel action"
+    },
     "openSettings": "Fungura igenamiterere",
+    "@openSettings": {
+        "description": "Open device settings action"
+    },
     "errorMessage": "Ikosa: {error}",
+    "@errorMessage": {
+        "description": "Generic error message",
+        "placeholders": {
+            "error": {}
+        }
+    },
     "error": "Ikosa",
+    "@error": {
+        "description": "Generic error title"
+    },
     "pickFromContacts": "Hitamo muri kontaki",
+    "@pickFromContacts": {
+        "description": "Contact picker tooltip"
+    },
     "linkDevice": "Huza igikoresho",
+    "@linkDevice": {
+        "description": "Link device screen title"
+    },
     "useFlipperOnOtherDevices": "Koresha Flipper ku bindi bikoresho",
+    "@useFlipperOnOtherDevices": {
+        "description": "Link device screen subtitle"
+    },
     "linkADevice": "Huza igikoresho",
-    "pinCode": "PIN: {pin}",
+    "@linkADevice": {
+        "description": "Link a device button"
+    },
     "listOfConnectedDevices": "Urutonde rw'ibikoresho byahujwe",
+    "@listOfConnectedDevices": {
+        "description": "Connected devices list title"
+    },
     "paymentTitle": "Ubwishyu: {paymentType}",
+    "@paymentTitle": {
+        "description": "Payment confirmation app bar title",
+        "placeholders": {
+            "paymentType": {}
+        }
+    },
     "digitalReceipt": "Inyemezabwishyu ya elegitoroniki",
+    "@digitalReceipt": {
+        "description": "Digital receipt dialog title"
+    },
     "needDigitalReceipt": "Ukeneye inyemezabwishyu ya elegitoroniki?",
+    "@needDigitalReceipt": {
+        "description": "Digital receipt prompt"
+    },
     "purchaseCode": "Kode y'ubugure",
+    "@purchaseCode": {
+        "description": "Purchase code field label"
+    },
     "pleaseEnterPurchaseCode": "Nyamuneka andika kode y'ubugure",
+    "@pleaseEnterPurchaseCode": {
+        "description": "Purchase code validation message"
+    },
     "submit": "Ohereza",
+    "@submit": {
+        "description": "Submit action"
+    },
     "done": "Byarangiye",
+    "@done": {
+        "description": "Completion status"
+    },
     "receipt": "Inyemezabwishyu",
+    "@receipt": {
+        "description": "Receipt action"
+    },
     "addNote": "Ongeramo inyandiko",
+    "@addNote": {
+        "description": "Add note action"
+    },
     "generatingReceiptWait": "Nyamuneka tegereza, turi gutegura inyemezabwishyu",
+    "@generatingReceiptWait": {
+        "description": "Receipt generation wait message"
+    },
     "poweredBy": "Bikorwa na",
+    "@poweredBy": {
+        "description": "Powered by label"
+    },
     "returnToHome": "Subira ahabanza",
+    "@returnToHome": {
+        "description": "Return home action"
+    },
     "personalGoals": "Intego bwite",
+    "@personalGoals": {
+        "description": "Personal goals screen title"
+    },
     "selectBranchToManageGoals": "Hitamo ishami ryo gucungiramo intego.",
+    "@selectBranchToManageGoals": {
+        "description": "Personal goals empty branch message"
+    },
     "couldNotLoadGoals": "Ntibyashobotse kuzana intego\n{error}",
+    "@couldNotLoadGoals": {
+        "description": "Personal goals load error",
+        "placeholders": {
+            "error": {}
+        }
+    },
     "personalGoalsEyebrow": "INTEGO BWITE",
+    "@personalGoalsEyebrow": {
+        "description": "Personal goals section eyebrow"
+    },
     "totalReservedAcrossGoals": "Byose byabitswe kuri {count, plural, =1{intego 1} other{intego {count}}}",
+    "@totalReservedAcrossGoals": {
+        "description": "Personal goals total reserved summary",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "savedThisMonth": "Byazigamwe uku kwezi",
+    "@savedThisMonth": {
+        "description": "Personal goals saved this month label"
+    },
     "onTrackCount": "{count} biri ku murongo",
+    "@onTrackCount": {
+        "description": "Personal goals on track count",
+        "placeholders": {
+            "count": {}
+        }
+    },
     "goalsProgressing": "Intego zitera imbere",
+    "@goalsProgressing": {
+        "description": "Personal goals progressing label"
+    },
     "allGoals": "Intego zose",
+    "@allGoals": {
+        "description": "All goals section title"
+    },
     "personalGoalsProfitGrowth": "Flipper yongera buhoro kuri intego zawe ikuyeko inyungu zawe.",
+    "@personalGoalsProfitGrowth": {
+        "description": "Personal goals helper text"
+    },
     "searchProducts": "Shakisha ibicuruzwa…",
+    "@searchProducts": {
+        "description": "Product search placeholder"
+    },
     "clearSelection": "Kuraho ibyatoranyijwe",
+    "@clearSelection": {
+        "description": "Clear selected products action"
+    },
     "itemsSelected": "{count, plural, =1{igicuruzwa 1 cyatoranyijwe} other{ibicuruzwa {count} byatoranyijwe}}",
+    "@itemsSelected": {
+        "description": "Selected product count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "cannotDeleteVariantWithStockRemaining": "Ntushobora gusiba igicuruzwa kikiri mu bubiko.",
+    "@cannotDeleteVariantWithStockRemaining": {
+        "description": "Product delete validation error"
+    },
     "deleteMultipleItems": "Siba ibicuruzwa byinshi",
+    "@deleteMultipleItems": {
+        "description": "Bulk delete confirmation title"
+    },
     "deleteItemsConfirmation": "Uremeza ko ushaka gusiba {count, plural, =1{igicuruzwa 1} other{ibicuruzwa {count}}}? Iki gikorwa ntigisubizwa inyuma.",
+    "@deleteItemsConfirmation": {
+        "description": "Bulk delete confirmation body",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "refreshProducts": "Vugurura ibicuruzwa",
+    "@refreshProducts": {
+        "description": "Refresh products action"
+    },
     "productsSyncingHint": "Niba uhereye kufungura porogaramu, ibicuruzwa bishobora kuba biracyahuzwa — kanda vugurura.",
+    "@productsSyncingHint": {
+        "description": "Product list empty state syncing hint"
+    },
     "errorLoadingProducts": "Ikosa mu kuzana ibicuruzwa",
+    "@errorLoadingProducts": {
+        "description": "Product loading error title"
+    },
     "retry": "Ongera ugerageze",
+    "@retry": {
+        "description": "Retry action"
+    },
     "noStockDataAvailable": "Nta makuru y'ububiko ahari",
+    "@noStockDataAvailable": {
+        "description": "No stock data empty state"
+    },
     "cash": "Amafaranga",
+    "@cash": {
+        "description": "Cash payment method"
+    },
     "credit": "Inguzanyo",
+    "@credit": {
+        "description": "Credit payment method"
+    },
     "momoPayerPhone": "Telefoni y'uwishyura kuri MoMo",
+    "@momoPayerPhone": {
+        "description": "Mobile money payer phone label"
+    },
     "momoPaymentRequestHint": "Tuzohereza ubusabe bw'ubwishyu kuri iyi nimero iyo ukanze Kwishyuza.",
+    "@momoPaymentRequestHint": {
+        "description": "Mobile money payment request helper"
+    },
     "exact": "Nyayo",
+    "@exact": {
+        "description": "Exact cash amount shortcut"
+    },
     "confirm": "Emeza",
+    "@confirm": {
+        "description": "Confirm action"
+    },
     "numberOfPayments": "Umubare w'ubwishyu",
+    "@numberOfPayments": {
+        "description": "Number of payments field label"
+    },
     "applyDiscountCode": "Koresha kode y'igabanuka",
+    "@applyDiscountCode": {
+        "description": "Apply discount code toggle label"
+    },
     "discountCode": "Kode y'igabanuka",
+    "@discountCode": {
+        "description": "Discount code field label"
+    },
     "validatingCode": "Turi kugenzura kode...",
+    "@validatingCode": {
+        "description": "Discount code validation progress"
+    },
     "createAccount": "Fungura konti",
+    "@createAccount": {
+        "description": "Create account action"
+    },
     "signIn": "INJIRA",
+    "@signIn": {
+        "description": "Sign in action"
+    },
     "setDeviceTimeAutomatic": "Nyamuneka shyira isaha y'igikoresho cyawe ku buryo bwikora",
+    "@setDeviceTimeAutomatic": {
+        "description": "Warning to enable automatic device time"
+    },
     "continueWithPhone": "Komeza ukoresheje telefoni",
+    "@continueWithPhone": {
+        "description": "Phone auth button"
+    },
     "continueWithGoogle": "Komeza ukoresheje Google",
+    "@continueWithGoogle": {
+        "description": "Google auth button"
+    },
     "continueWithMicrosoft": "Komeza ukoresheje Microsoft",
+    "@continueWithMicrosoft": {
+        "description": "Microsoft auth button"
+    },
     "continueWithApple": "Komeza ukoresheje Apple",
+    "@continueWithApple": {
+        "description": "Apple auth button"
+    },
     "or": "CYANGWA",
+    "@or": {
+        "description": "Authentication divider"
+    },
     "pinLogin": "Injira ukoresheje PIN",
+    "@pinLogin": {
+        "description": "PIN login action"
+    },
     "languagesTitle": "Indimi",
+    "@languagesTitle": {
+        "description": "Languages settings title"
+    },
     "english": "Icyongereza",
+    "@english": {
+        "description": "English language name"
+    },
     "kinyarwanda": "Ikinyarwanda",
+    "@kinyarwanda": {
+        "description": "Kinyarwanda language name"
+    },
     "swahili": "Igiswahili",
+    "@swahili": {
+        "description": "Swahili language name"
+    },
     "settings": "Igenamiterere",
+    "@settings": {
+        "description": "Settings screen title"
+    },
     "home": "Ahabanza",
+    "@home": {
+        "description": "Home navigation label"
+    },
     "sales": "Ibyagurishijwe",
+    "@sales": {
+        "description": "Sales navigation label"
+    },
     "inventory": "Ububiko",
+    "@inventory": {
+        "description": "Inventory navigation label"
+    },
     "more": "Ibindi",
+    "@more": {
+        "description": "More navigation label"
+    },
     "scanQr": "Sikana QR",
+    "@scanQr": {
+        "description": "Scan QR action"
+    },
     "dashboard": "Imbonerahamwe",
+    "@dashboard": {
+        "description": "Dashboard navigation label"
+    },
     "noUser": "Nta mukoresha",
+    "@noUser": {
+        "description": "No user empty state title"
+    },
     "pleaseLogInToContinue": "Nyamuneka injira kugira ngo ukomeze",
+    "@pleaseLogInToContinue": {
+        "description": "No user empty state subtitle"
+    },
     "loadingBusinesses": "Turi kuzana ubucuruzi...",
+    "@loadingBusinesses": {
+        "description": "Loading businesses status"
+    },
     "errorLoadingBusinesses": "Ikosa mu kuzana ubucuruzi",
+    "@errorLoadingBusinesses": {
+        "description": "Business list loading error"
+    },
     "noBusinesses": "Nta bucuruzi buhari",
+    "@noBusinesses": {
+        "description": "No businesses empty state title"
+    },
     "createFirstBusiness": "Fungura ubucuruzi bwawe bwa mbere kugira ngo utangire",
+    "@createFirstBusiness": {
+        "description": "No businesses empty state subtitle"
+    },
     "signOut": "Sohoka",
+    "@signOut": {
+        "description": "Sign out action"
+    },
     "phoneNumber": "Nimero ya telefoni",
+    "@phoneNumber": {
+        "description": "Phone number field label"
+    },
     "sendingCode": "Turi kohereza kode...",
+    "@sendingCode": {
+        "description": "Phone auth sending code progress"
+    },
     "continueAction": "Komeza",
+    "@continueAction": {
+        "description": "Continue action"
+    },
     "enterSixDigitCodeSentTo": "Andika kode y'imibare 6 yoherejwe kuri ",
+    "@enterSixDigitCodeSentTo": {
+        "description": "OTP instruction prefix"
+    },
     "codeExpiredTapToResend": "Kode yarangiye - Kanda wongere kuyohereza",
+    "@codeExpiredTapToResend": {
+        "description": "Expired OTP resend action"
+    },
     "resendCode": "Ongera wohereze kode",
+    "@resendCode": {
+        "description": "Resend OTP action"
+    },
     "resendCodeIn": "Ongera wohereze kode mu ",
+    "@resendCodeIn": {
+        "description": "Resend OTP countdown prefix"
+    },
     "seconds": "amasegonda",
+    "@seconds": {
+        "description": "Seconds unit"
+    },
     "verifying": "Turi kugenzura...",
+    "@verifying": {
+        "description": "OTP verification progress"
+    },
     "verifyCode": "Genzura kode",
+    "@verifyCode": {
+        "description": "Verify OTP action"
+    },
     "troubleSigningIn": "Ufite ikibazo cyo kwinjira?",
+    "@troubleSigningIn": {
+        "description": "PIN login help dialog title"
+    },
     "troubleSigningInHelp": "Niba ufite ikibazo cyo kwinjira, reba neza ko PIN yawe na OTP (niba ikenewe) ari byo.\n\nKu bufasha bwinshi, nyamuneka vugana n'itsinda ry'ubufasha.",
+    "@troubleSigningInHelp": {
+        "description": "PIN login help dialog body"
+    },
     "ok": "Yego",
+    "@ok": {
+        "description": "OK action"
+    },
     "welcomeBack": "Murakaza neza",
+    "@welcomeBack": {
+        "description": "Default returning user greeting"
+    },
     "tinNumber": "Nimero ya TIN",
+    "@tinNumber": {
+        "description": "TIN number field label"
+    },
     "validate": "Genzura",
+    "@validate": {
+        "description": "Validate action"
+    },
     "uploadPdfWithTin": "Ohereza PDF irimo TIN",
+    "@uploadPdfWithTin": {
+        "description": "Upload PDF containing TIN tooltip"
+    },
     "enterTinOrUpload": "Andika nimero ya TIN cyangwa kanda ikimenyetso cyo kohereza",
+    "@enterTinOrUpload": {
+        "description": "TIN field hint"
+    },
     "addEmail": "Ongeramo imeyili",
+    "@addEmail": {
+        "description": "Add email action"
+    },
     "emailAdded": "Imeyili yongewemo",
+    "@emailAdded": {
+        "description": "Email added success message"
+    },
     "updateSettings": "Vugurura igenamiterere",
+    "@updateSettings": {
+        "description": "Update settings action"
+    },
     "invite": "Tumira",
+    "@invite": {
+        "description": "Invite members action"
+    },
     "sendRequest": "Ohereza ubusabe",
+    "@sendRequest": {
+        "description": "Send invitation request action"
+    },
     "preferences": "Ibyo uhitamo",
+    "@preferences": {
+        "description": "Preferences settings title"
+    },
     "accessibility": "Uburyo bworoshye bwo gukoresha",
+    "@accessibility": {
+        "description": "Accessibility settings title"
+    },
     "language": "Ururimi",
+    "@language": {
+        "description": "Language settings label"
+    },
     "reports": "Raporo",
+    "@reports": {
+        "description": "Reports settings title"
+    },
     "enableReport": "Emeza raporo",
+    "@enableReport": {
+        "description": "Enable report setting"
+    },
     "backups": "Amakopi y'ingoboka",
+    "@backups": {
+        "description": "Backups settings title"
+    },
     "addBackup": "Ongeramo ikopi y'ingoboka",
+    "@addBackup": {
+        "description": "Add backup title"
+    },
     "restoreData": "Garura amakuru",
+    "@restoreData": {
+        "description": "Restore data action"
+    },
     "dataRestored": "Amakuru yagaruwe",
+    "@dataRestored": {
+        "description": "Backup restore success message"
+    },
     "errorRestoringBackup": "Ikosa mu kugarura ikopi y'ingoboka",
+    "@errorRestoringBackup": {
+        "description": "Backup restore error message"
+    },
     "transactionIdCopiedToClipboard": "ID y'igurisha yakoporowe",
+    "@transactionIdCopiedToClipboard": {
+        "description": "Transaction ID copied success message"
+    },
     "transactionIdShortLabel": "ID y'igurisha: ",
+    "@transactionIdShortLabel": {
+        "description": "Short transaction ID label"
+    },
     "invoiceNumberLabel": "Nimero ya fagitire: ",
+    "@invoiceNumberLabel": {
+        "description": "Invoice number label"
+    },
     "parkSaleAsTicket": "Bika iri gurisha nk'itike",
+    "@parkSaleAsTicket": {
+        "description": "Save ticket tooltip"
+    },
     "saveTicketAction": "Bika itike",
+    "@saveTicketAction": {
+        "description": "Save current sale as ticket action"
+    },
     "remainingBalanceLabel": "Amafaranga asigaye: ",
+    "@remainingBalanceLabel": {
+        "description": "Remaining balance label"
+    },
     "amountToChangeLabel": "Amafaranga yo kugarura: ",
+    "@amountToChangeLabel": {
+        "description": "Amount to change label"
+    },
     "allApps": "Porogaramu zose",
+    "@allApps": {
+        "description": "All apps launcher title"
+    },
     "sell": "Gurisha",
+    "@sell": {
+        "description": "All apps sell section"
+    },
     "quickSell": "Gurisha vuba",
+    "@quickSell": {
+        "description": "Quick sell app tile"
+    },
     "invoices": "Fagitire",
+    "@invoices": {
+        "description": "Invoices app tile"
+    },
     "pricing": "Ibiciro",
+    "@pricing": {
+        "description": "Pricing app tile"
+    },
     "payments": "Ubwishyu",
+    "@payments": {
+        "description": "Payments app tile"
+    },
     "manage": "Cunga",
+    "@manage": {
+        "description": "All apps manage section"
+    },
     "purchases": "Ibyaguzwe",
+    "@purchases": {
+        "description": "Purchases app tile"
+    },
     "customers": "Abakiriya",
+    "@customers": {
+        "description": "Customers app tile"
+    },
     "leads": "Abakiriya bashoboka",
+    "@leads": {
+        "description": "Leads app tile"
+    },
     "insights": "Isesengura",
+    "@insights": {
+        "description": "All apps insights section"
+    },
     "dailyReports": "Raporo za buri munsi",
+    "@dailyReports": {
+        "description": "Daily reports app tile"
+    },
     "commissions": "Komisiyo",
+    "@commissions": {
+        "description": "Commissions app tile"
+    },
     "production": "Umusaruro",
+    "@production": {
+        "description": "Production app tile"
+    },
     "business": "Ubucuruzi",
+    "@business": {
+        "description": "All apps business section"
+    },
     "servicesHub": "Ihuriro ry'serivisi",
+    "@servicesHub": {
+        "description": "Services hub app tile"
+    },
     "goals": "Intego",
+    "@goals": {
+        "description": "Goals app tile"
+    },
     "aiChat": "Ikiganiro na AI",
+    "@aiChat": {
+        "description": "AI chat app tile"
+    },
     "errorLoadingTransactionView": "Ikosa mu kwerekana igurisha",
+    "@errorLoadingTransactionView": {
+        "description": "Fallback message when the quick selling transaction view fails to render"
+    },
     "customer": "Umukiriya",
+    "@customer": {
+        "description": "Customer section label"
+    },
     "payment": "Ubwishyu",
+    "@payment": {
+        "description": "Payment section label"
+    },
     "delivery": "Itangwa",
+    "@delivery": {
+        "description": "Delivery section label"
+    },
     "transactionSummary": "Incamake y'igurisha",
+    "@transactionSummary": {
+        "description": "Accessibility label for transaction summary"
+    },
     "transactionSummaryHint": "Yerekana amafaranga yose na ID y'igurisha rigezweho",
+    "@transactionSummaryHint": {
+        "description": "Accessibility hint for transaction summary"
+    },
     "totalAmount": "Amafaranga yose",
+    "@totalAmount": {
+        "description": "Total amount label"
+    },
     "cannotDeletePartialPaymentItems": "Ntushobora gusiba ibicuruzwa mu gurisha rifite ubwishyu bw'igice",
+    "@cannotDeletePartialPaymentItems": {
+        "description": "Error shown when trying to delete items after partial payment"
+    },
     "deleteAllItems": "Siba ibicuruzwa byose",
+    "@deleteAllItems": {
+        "description": "Dialog title for deleting all cart items"
+    },
     "confirmRemoveAllTransactionItems": "Uremeza ko ushaka gukura ibicuruzwa byose muri iri gurisha?",
+    "@confirmRemoveAllTransactionItems": {
+        "description": "Confirmation message for deleting all transaction items"
+    },
     "deleteAll": "Siba byose",
+    "@deleteAll": {
+        "description": "Delete all action"
+    },
     "allItemsRemovedSuccessfully": "Ibicuruzwa byose byakuweho neza",
+    "@allItemsRemovedSuccessfully": {
+        "description": "Success notification after deleting all items"
+    },
     "errorRemovingItems": "Ikosa mu gukura ibicuruzwa: {error}",
+    "@errorRemovingItems": {
+        "description": "Error notification after failing to remove all items",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "noItemsAdded": "Nta gicuruzwa cyongewemo",
+    "@noItemsAdded": {
+        "description": "Empty cart title"
+    },
     "tapAddFirstItem": "Kanda buto ya + kugira ngo wongeremo igicuruzwa cya mbere",
+    "@tapAddFirstItem": {
+        "description": "Empty cart helper text"
+    },
     "cartItemCount": "{count, plural, =1{igicuruzwa 1} other{ibicuruzwa {count}}}",
+    "@cartItemCount": {
+        "description": "Cart item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "itemSemanticLabel": "Igicuruzwa: {itemName}",
+    "@itemSemanticLabel": {
+        "description": "Accessibility label for a cart item",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
     "cartItemSemanticHint": "Ingano: {quantity}, Igiciro cy'igice: {unitPrice}, Igiteranyo: {subtotal}",
+    "@cartItemSemanticHint": {
+        "description": "Accessibility hint for a cart item",
+        "placeholders": {
+            "quantity": {
+                "type": "String"
+            },
+            "unitPrice": {
+                "type": "String"
+            },
+            "subtotal": {
+                "type": "String"
+            }
+        }
+    },
     "removeItem": "Kuraho igicuruzwa",
+    "@removeItem": {
+        "description": "Remove item action"
+    },
     "unitPrice": "Igiciro cy'igice",
+    "@unitPrice": {
+        "description": "Unit price label"
+    },
     "decreaseQuantityByOne": "Gabanya ingano ku 1",
+    "@decreaseQuantityByOne": {
+        "description": "Quantity decrement tooltip"
+    },
     "increaseQuantityByOne": "Ongera ingano ku 1",
+    "@increaseQuantityByOne": {
+        "description": "Quantity increment tooltip"
+    },
     "subtotal": "Igiteranyo",
+    "@subtotal": {
+        "description": "Subtotal label"
+    },
     "deliveryDate": "Itariki y'itangwa",
+    "@deliveryDate": {
+        "description": "Delivery date field label"
+    },
     "transactionSummaryPaymentActions": "Incamake y'igurisha n'ibikorwa by'ubwishyu",
+    "@transactionSummaryPaymentActions": {
+        "description": "Accessibility label for payment action area"
+    },
     "completeSaleTotalHint": "Rangiza igurisha ku mafaranga yose {total}",
+    "@completeSaleTotalHint": {
+        "description": "Accessibility hint for payment action area",
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "errorWithValue": "Ikosa: {error}",
+    "@errorWithValue": {
+        "description": "Generic error label with value",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "confirmRemoveItemFromTransaction": "Uremeza ko ushaka gukura \"{itemName}\" muri iri gurisha?",
+    "@confirmRemoveItemFromTransaction": {
+        "description": "Confirmation message before removing a cart item",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
     "remove": "Kuraho",
+    "@remove": {
+        "description": "Remove action"
+    },
     "cannotModifyPartialPaymentItems": "Ntushobora guhindura ibicuruzwa mu gurisha rifite ubwishyu bw'igice",
+    "@cannotModifyPartialPaymentItems": {
+        "description": "Error shown when changing item quantity after partial payment"
+    },
     "failedToRemoveItem": "Gukura igicuruzwa ntibyakunze",
+    "@failedToRemoveItem": {
+        "description": "Error notification after failing to remove an item"
+    },
     "failedToUpdateItemQuantity": "Guhindura ingano y'igicuruzwa ntibyakunze",
+    "@failedToUpdateItemQuantity": {
+        "description": "Error notification after failing to update item quantity"
+    },
     "transactionItemsList": "Urutonde rw'ibicuruzwa by'igurisha",
+    "@transactionItemsList": {
+        "description": "Accessibility label for cart item list"
+    },
     "transactionItemsListHint": "Urutonde rw'ibicuruzwa biri mu gurisha rigezweho hamwe n'ingano n'ibiciro",
+    "@transactionItemsListHint": {
+        "description": "Accessibility hint for cart item list"
+    },
     "deliveryNote": "Inyandiko y'itangwa",
+    "@deliveryNote": {
+        "description": "Delivery note field label"
+    },
     "deliveryNoteSemantic": "Inyandiko y'itangwa",
+    "@deliveryNoteSemantic": {
+        "description": "Accessibility label for delivery note"
+    },
     "deliveryNoteHint": "Ongeramo amabwiriza yihariye yo gutanga",
+    "@deliveryNoteHint": {
+        "description": "Accessibility hint for delivery note"
+    },
     "deliveryInstructionsHint": "Andika amabwiriza yihariye yo gutanga",
+    "@deliveryInstructionsHint": {
+        "description": "Delivery note text field hint"
+    },
     "discount": "Igabanuka",
+    "@discount": {
+        "description": "Discount field label"
+    },
     "pleaseEnterValidNumber": "Nyamuneka andika umubare wemewe",
+    "@pleaseEnterValidNumber": {
+        "description": "Validation error for invalid numeric input"
+    },
     "discountRangeError": "Igabanuka rigomba kuba hagati ya 0 na 100",
+    "@discountRangeError": {
+        "description": "Validation error for invalid discount percentage"
+    },
     "digitalReceiptTitle": "Inyemezabwishyu ya elegitoroniki",
+    "@digitalReceiptTitle": {
+        "description": "Digital receipt toggle title"
+    },
     "digitalReceiptSmsSubtitle": "Ohereza inyemezabwishyu kuri SMS aho kufungura PDF",
+    "@digitalReceiptSmsSubtitle": {
+        "description": "Digital receipt toggle subtitle"
+    },
     "receivedAmountInCurrency": "Amafaranga yakiriwe mu {currency}",
+    "@receivedAmountInCurrency": {
+        "description": "Accessibility label for received amount field",
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
     "receivedAmountHint": "Andika amafaranga yakiriwe ku mukiriya",
+    "@receivedAmountHint": {
+        "description": "Accessibility hint for received amount field"
+    },
     "receivedAmount": "Amafaranga yakiriwe",
+    "@receivedAmount": {
+        "description": "Received amount field hint"
+    },
     "pleaseEnterReceivedAmount": "Nyamuneka andika amafaranga yakiriwe",
+    "@pleaseEnterReceivedAmount": {
+        "description": "Validation error for empty received amount"
+    },
     "customerName": "Izina ry'umukiriya",
+    "@customerName": {
+        "description": "Customer name field label"
+    },
     "customerNameHint": "Andika amazina yuzuye y'umukiriya",
+    "@customerNameHint": {
+        "description": "Accessibility hint for customer name field"
+    },
     "pleaseEnterCustomerName": "Nyamuneka andika izina ry'umukiriya",
+    "@pleaseEnterCustomerName": {
+        "description": "Validation error for empty customer name"
+    },
     "customerPhoneNumber": "Nimero ya telefoni y'umukiriya",
+    "@customerPhoneNumber": {
+        "description": "Accessibility label for customer phone number field"
+    },
     "customerPhoneNumberHint": "Andika nimero ya telefoni y'umukiriya yo kuvugana no kwishyuza",
+    "@customerPhoneNumberHint": {
+        "description": "Accessibility hint for customer phone number field"
+    },
     "items": "Ibicuruzwa",
+    "@items": {
+        "description": "Items section label"
+    },
     "transactionId": "ID y'igurisha",
+    "@transactionId": {
+        "description": "Transaction ID label"
+    },
     "amountPaid": "Amafaranga yishyuwe",
+    "@amountPaid": {
+        "description": "Amount paid label"
+    },
     "remainingBalance": "Amafaranga asigaye",
+    "@remainingBalance": {
+        "description": "Remaining balance label"
+    },
     "recordPaymentWithAmount": "Andika ubwishyu • {amount}",
+    "@recordPaymentWithAmount": {
+        "description": "Payment button label when recording a partial payment",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "payWithAmount": "Ishyura • {amount}",
+    "@payWithAmount": {
+        "description": "Payment button label",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "sendForReviewWithAmount": "Ohereza kugenzurwa • {amount}",
+    "@sendForReviewWithAmount": {
+        "description": "Payment button label when the Ticket Review + Handover workflow is enabled and the sale will be fully paid",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "phoneRequiredWhenTinMissing": "Nimero ya telefoni irakenewe iyo TIN y'umukiriya itaboneka",
+    "@phoneRequiredWhenTinMissing": {
+        "description": "Validation error when phone number is required because TIN is missing"
+    },
     "invalidNumber": "Umubare utemewe",
+    "@invalidNumber": {
+        "description": "Validation error for invalid phone number"
+    },
     "back": "Subira inyuma",
+    "@back": {
+        "description": "Back navigation tooltip"
+    },
     "managementDashboard": "Imbonerahamwe y'ubuyobozi",
+    "@managementDashboard": {
+        "description": "Admin management dashboard title"
+    },
     "quickActions": "Ibikorwa byihuse",
+    "@quickActions": {
+        "description": "Quick actions section title"
+    },
     "posDefault": "POS y'ibanze",
+    "@posDefault": {
+        "description": "POS default setting title"
+    },
     "setPosAsDefaultApp": "Shyira POS nka porogaramu y'ibanze",
+    "@setPosAsDefaultApp": {
+        "description": "POS default setting subtitle"
+    },
     "ordersDefault": "Ibyatumijwe by'ibanze",
+    "@ordersDefault": {
+        "description": "Orders default setting title"
+    },
     "setOrdersAsDefaultApp": "Shyira Ibyatumijwe nka porogaramu y'ibanze",
+    "@setOrdersAsDefaultApp": {
+        "description": "Orders default setting subtitle"
+    },
     "accountManagement": "Icungamakonti",
+    "@accountManagement": {
+        "description": "Account management section title"
+    },
     "userManagement": "Icungabakoresha",
+    "@userManagement": {
+        "description": "User management setting title"
+    },
     "manageUsersAndPermissions": "Cunga abakoresha n'uburenganzira bwabo",
+    "@manageUsersAndPermissions": {
+        "description": "User management setting subtitle"
+    },
     "branchManagement": "Icungamashami",
+    "@branchManagement": {
+        "description": "Branch management setting title"
+    },
     "manageBranchLocations": "Cunga amashami (ahantu)",
+    "@manageBranchLocations": {
+        "description": "Branch management setting subtitle"
+    },
     "financialControls": "Igenzura ry'imari",
+    "@financialControls": {
+        "description": "Financial controls section title"
+    },
     "taxSettings": "Igenamiterere ry'imisoro",
+    "@taxSettings": {
+        "description": "Tax settings title"
+    },
     "configureTaxRulesAndRates": "Shyiraho amategeko n'ibipimo by'imisoro",
+    "@configureTaxRulesAndRates": {
+        "description": "Tax settings subtitle"
+    },
     "ebmSettings": "Igenamiterere rya EBM",
+    "@ebmSettings": {
+        "description": "EBM settings title"
+    },
     "electronicBillingMachineSettings": "Igenamiterere ry'imashini ya fagitire ya elegitoroniki",
+    "@electronicBillingMachineSettings": {
+        "description": "EBM settings subtitle"
+    },
     "smsConfiguration": "Igenamiterere rya SMS",
+    "@smsConfiguration": {
+        "description": "SMS configuration section title"
+    },
     "enableSmsNotifications": "Emeza ubutumwa bwa SMS",
+    "@enableSmsNotifications": {
+        "description": "SMS notification toggle title"
+    },
     "enableWhatsappNotifications": "Emeza ubutumwa bwa WhatsApp",
+    "@enableWhatsappNotifications": {
+        "description": "WhatsApp notification toggle title"
+    },
     "receiveWhatsappNotificationsForOrders": "Kwakira ubutumwa bwa WhatsApp ku byatumijwe n'inyemezabwishyu PDF",
+    "@receiveWhatsappNotificationsForOrders": {
+        "description": "WhatsApp notification toggle subtitle"
+    },
     "systemSettings": "Igenamiterere rya sisitemu",
+    "@systemSettings": {
+        "description": "System settings section title"
+    },
     "debugMode": "Uburyo bwo kugenzura amakosa",
+    "@debugMode": {
+        "description": "Debug mode setting title"
+    },
     "enableDebugFeatures": "Emeza ibikorwa byo kugenzura amakosa",
+    "@enableDebugFeatures": {
+        "description": "Debug mode setting subtitle"
+    },
     "forceUpdate": "Hatira ivugurura",
+    "@forceUpdate": {
+        "description": "Force update setting title"
+    },
     "forceUpdateAllData": "Hatira ivugurura ry'amakuru yose",
+    "@forceUpdateAllData": {
+        "description": "Force update setting subtitle"
+    },
     "taxService": "Serivisi y'imisoro",
+    "@taxService": {
+        "description": "Tax service setting title"
+    },
     "toggleTaxService": "Hindura serivisi y'imisoro",
+    "@toggleTaxService": {
+        "description": "Tax service setting subtitle"
+    },
     "savedDiscount": "Igabanuka ryabitswe",
+    "@savedDiscount": {
+        "description": "Success notification after saving a discount"
+    },
     "createDiscount": "Kora igabanuka",
+    "@createDiscount": {
+        "description": "Create discount page title"
+    },
     "nameCannotBeNull": "Izina ntirishobora kuba ubusa",
+    "@nameCannotBeNull": {
+        "description": "Validation error for empty name"
+    },
     "amountCannotBeNull": "Amafaranga ntashobora kuba ubusa",
+    "@amountCannotBeNull": {
+        "description": "Validation error for empty amount"
+    },
     "name": "Izina",
+    "@name": {
+        "description": "Name field label"
+    },
     "saveTransactionTitle": "Bika igurisha rya {transactionType}",
+    "@saveTransactionTitle": {
+        "description": "Confirmation dialog title for saving a transaction",
+        "placeholders": {
+            "transactionType": {
+                "type": "String"
+            }
+        }
+    },
     "confirmSaveTransaction": "Uremeza ko ushaka kubika iri gurisha?",
+    "@confirmSaveTransaction": {
+        "description": "Confirmation dialog message for saving a transaction"
+    },
     "categoryMustBeSelected": "Icyiciro kigomba gutoranywa",
+    "@categoryMustBeSelected": {
+        "description": "Warning shown when saving without category"
+    },
     "confirmLogout": "Emeza gusohoka",
+    "@confirmLogout": {
+        "description": "Logout confirmation dialog title"
+    },
     "confirmLogoutMessage": "Uremeza ko ushaka gusohoka?",
+    "@confirmLogoutMessage": {
+        "description": "Logout confirmation dialog message"
+    },
     "refundReason": "Impamvu y'isubizwa ry'amafaranga",
+    "@refundReason": {
+        "description": "Refund reason field label"
+    },
     "waitForApproval": "Tegereza kwemezwa",
+    "@waitForApproval": {
+        "description": "Refund status reason"
+    },
     "approved": "Byemejwe",
+    "@approved": {
+        "description": "Refund status reason"
+    },
     "cancelRequested": "Hasabwe guhagarika",
+    "@cancelRequested": {
+        "description": "Refund status reason"
+    },
     "canceled": "Byahagaritswe",
+    "@canceled": {
+        "description": "Refund status reason"
+    },
     "refunded": "Amafaranga yasubijwe",
+    "@refunded": {
+        "description": "Refund status reason"
+    },
     "transferred": "Byimuriwe",
+    "@transferred": {
+        "description": "Refund status reason"
+    },
     "appLanguage": "Ururimi rwa porogaramu",
+    "@appLanguage": {
+        "description": "Admin Control tile title for the app language setting"
+    },
     "chooseAppLanguage": "Hitamo ururimi Flipper ikoresha",
+    "@chooseAppLanguage": {
+        "description": "Subtitle of the app language tile"
+    },
     "selectLanguage": "Hitamo ururimi",
+    "@selectLanguage": {
+        "description": "Title of the language picker sheet"
+    },
     "languageAppliesEverywhere": "Bikoreshwa ku mapaji yose ya porogaramu.",
+    "@languageAppliesEverywhere": {
+        "description": "Explains the scope of the language choice"
+    },
     "useDeviceLanguage": "Koresha ururimi rw'igikoresho",
+    "@useDeviceLanguage": {
+        "description": "Option to follow the device language instead of an explicit choice"
+    },
     "automatic": "Byikora",
+    "@automatic": {
+        "description": "Tag shown when the language follows the device"
+    },
     "french": "Igifaransa",
+    "@french": {
+        "description": "The French language"
+    },
     "accountAndFinancial": "Konti n'imari",
+    "@accountAndFinancial": {
+        "description": "Admin Control section header"
+    },
     "adminProfile": "Umwirondoro w'umuyobozi",
+    "@adminProfile": {
+        "description": "Admin Control section header"
+    },
     "smsNotifications": "Ubutumwa bwa SMS",
+    "@smsNotifications": {
+        "description": "Admin Control section header"
+    },
     "close": "Funga",
+    "@close": {
+        "description": "Close a screen or dialog"
+    },
     "refresh": "Vugurura",
+    "@refresh": {
+        "description": "Reload the current data"
+    },
     "adminEmailHint": "urugero: admin@flipper.rw",
+    "@adminEmailHint": {
+        "description": "Placeholder for the admin email field"
+    },
     "displayName": "Izina rigaragara",
+    "@displayName": {
+        "description": "Label for the admin display name field"
+    },
     "editName": "Hindura izina",
+    "@editName": {
+        "description": "Tooltip for editing the admin display name"
+    },
     "paymentMethods": "Uburyo bw'ubwishyu",
+    "@paymentMethods": {
+        "description": "Admin Control card title"
+    },
     "managePaymentOptions": "Cunga amahitamo y'ubwishyu",
+    "@managePaymentOptions": {
+        "description": "Admin Control card subtitle"
+    },
     "enterPhoneNumber": "Andika nimero ya telefoni",
+    "@enterPhoneNumber": {
+        "description": "Placeholder for a phone number field"
+    },
     "enableOrderNotifications": "Emeza ubutumwa bw'ibyatumijwe",
+    "@enableOrderNotifications": {
+        "description": "SMS setting title"
+    },
     "receiveSmsNotificationsForOrders": "Kwakira ubutumwa bwa SMS ku byatumijwe",
+    "@receiveSmsNotificationsForOrders": {
+        "description": "SMS setting subtitle"
+    },
     "enableDebuggingFeatures": "Emeza ibikorwa byo kugenzura amakosa",
-    "ebm": "EBM",
+    "@enableDebuggingFeatures": {
+        "description": "Debug mode subtitle"
+    },
     "reinitializeEbm": "Ongera utangize EBM",
+    "@reinitializeEbm": {
+        "description": "Admin action to re-register the tax device"
+    },
     "manageTaxServiceStatus": "Cunga imiterere ya serivisi y'imisoro",
+    "@manageTaxServiceStatus": {
+        "description": "Tax service subtitle"
+    },
     "hydrateData": "Zana amakuru",
+    "@hydrateData": {
+        "description": "Admin action to re-download all local data"
+    },
     "refreshAllLocalData": "Vugurura amakuru yose yo kuri iki gikoresho",
+    "@refreshAllLocalData": {
+        "description": "Hydrate data subtitle"
+    },
     "assetDownload": "Ikuramo ry'amashusho",
+    "@assetDownload": {
+        "description": "Admin toggle for downloading product images"
+    },
     "manageImageDownloads": "Cunga ikuramo ry'amashusho",
+    "@manageImageDownloads": {
+        "description": "Asset download subtitle"
+    },
     "autoAddSearch": "Kwongeramo byikora",
+    "@autoAddSearch": {
+        "description": "Admin toggle title"
+    },
     "autoAddItemsWhenOneMatch": "Ongeramo igicuruzwa byikora iyo kimwe gusa kibonetse",
+    "@autoAddItemsWhenOneMatch": {
+        "description": "Auto-add search subtitle"
+    },
     "userLogging": "Kwandika ibikorwa by'abakoresha",
+    "@userLogging": {
+        "description": "Admin toggle title"
+    },
     "enableExtensiveUserLogging": "Emeza kwandika birambuye ibikorwa by'abakoresha",
+    "@enableExtensiveUserLogging": {
+        "description": "User logging subtitle"
+    },
     "priceQtyAdjustment": "Guhuza igiciro n'ingano",
+    "@priceQtyAdjustment": {
+        "description": "Short admin toggle title for price/quantity adjustment"
+    },
     "autoAdjustQtyOnPriceChange": "Hindura ingano byikora iyo igiciro cyahindutse",
+    "@autoAdjustQtyOnPriceChange": {
+        "description": "Price-quantity adjustment subtitle"
+    },
     "decimals": "Ibice by'umubare",
+    "@decimals": {
+        "description": "Admin toggle title for fractional pricing"
+    },
     "enableFractionalPricing": "Emeza ibiciro bifite ibice",
+    "@enableFractionalPricing": {
+        "description": "Decimals subtitle"
+    },
     "ticketReviewAndHandover": "Igenzura n'ishyikirizwa ry'itike",
+    "@ticketReviewAndHandover": {
+        "description": "Admin toggle title"
+    },
     "administratorPin": "PIN y'umuyobozi",
+    "@administratorPin": {
+        "description": "Admin security section title"
+    },
     "resetAdministratorPin": "Subizaho PIN y'umuyobozi",
+    "@resetAdministratorPin": {
+        "description": "Admin security action"
+    },
     "updateHighSecurityPin": "Vugurura PIN yawe y'imibare 4 ifite umutekano uhanitse",
+    "@updateHighSecurityPin": {
+        "description": "Reset administrator PIN subtitle"
+    },
     "flipperSettingsTitle": "Igenamiterere rya Flipper",
+    "@flipperSettingsTitle": {
+        "description": "Title of the settings screen"
+    },
     "common": "Bisanzwe",
+    "@common": {
+        "description": "Settings section header"
+    },
     "environment": "Aho bikorera",
+    "@environment": {
+        "description": "Settings row showing which backend the app talks to"
+    },
     "local": "Kuri iki gikoresho",
+    "@local": {
+        "description": "Value of the environment setting"
+    },
     "account": "Konti",
+    "@account": {
+        "description": "Settings section header"
+    },
     "email": "Imeyili",
+    "@email": {
+        "description": "Settings row for the account email"
+    },
     "security": "Umutekano",
+    "@security": {
+        "description": "Settings section header"
+    },
     "sendDailyReport": "Ohereza raporo ya buri munsi",
+    "@sendDailyReport": {
+        "description": "Settings toggle for the daily report email"
+    },
     "onlinePrint": "Icapa kuri interineti",
+    "@onlinePrint": {
+        "description": "Drawer setting title"
+    },
     "managePrintSettings": "Cunga igenamiterere ry'icapa",
+    "@managePrintSettings": {
+        "description": "Online print subtitle"
+    },
     "enableExtensiveLogging": "Emeza kwandika birambuye",
+    "@enableExtensiveLogging": {
+        "description": "User logging subtitle in the drawer"
+    },
     "backgroundSync": "Guhuza mu nyuma",
+    "@backgroundSync": {
+        "description": "Drawer setting title"
+    },
     "syncDataInBackground": "Huza amakuru mu nyuma",
+    "@syncDataInBackground": {
+        "description": "Background sync subtitle"
+    },
     "closeShift": "Soza igihe cy'akazi",
+    "@closeShift": {
+        "description": "Ends the current cashier shift"
+    },
     "startNewShift": "Tangira igihe gishya cy'akazi",
+    "@startNewShift": {
+        "description": "Begins a new cashier shift"
+    },
     "checkSubscription": "Genzura ifatabuguzi",
+    "@checkSubscription": {
+        "description": "Re-checks the business subscription status"
+    },
     "couldNotCheckSubscription": "Ntibyashobotse kugenzura ifatabuguzi: {error}",
+    "@couldNotCheckSubscription": {
+        "description": "Shown when the subscription check fails",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "chooseYourDefaultApp": "Hitamo porogaramu yawe y'ibanze",
+    "@chooseYourDefaultApp": {
+        "description": "Title of the default app chooser"
+    },
     "accountSettings": "Igenamiterere rya konti",
+    "@accountSettings": {
+        "description": "Menu entry opening account settings"
+    },
     "switchAccount": "Hindura konti",
+    "@switchAccount": {
+        "description": "Menu entry for signing in as someone else"
+    },
     "continueToBranch": "Komeza kuri {branchName}",
+    "@continueToBranch": {
+        "description": "Confirms the branch the user is entering",
+        "placeholders": {
+            "branchName": {
+                "type": "String"
+            }
+        }
+    },
     "openShift": "Tangira igihe cy'akazi",
+    "@openShift": {
+        "description": "Starts a cashier shift"
+    },
     "checkingPaymentStatus": "Turi kugenzura imiterere y'ubwishyu…",
+    "@checkingPaymentStatus": {
+        "description": "Shown while the subscription payment check runs"
+    },
     "refreshAfterCustomerPays": "Vugurura nyuma y'uko umukiriya yishyuye",
+    "@refreshAfterCustomerPays": {
+        "description": "Subtitle of the check subscription row"
+    },
     "branch": "ishami",
+    "@branch": {
+        "description": "Generic word for a branch, used as a fallback when the branch name is unknown"
+    },
     "totalItems": "Ibicuruzwa byose",
+    "@totalItems": {
+        "description": "Inventory summary card title"
+    },
     "expiredItems": "Ibicuruzwa byarengeje igihe",
+    "@expiredItems": {
+        "description": "Inventory summary card title"
+    },
     "lowStockItems": "Ibicuruzwa bike mu bubiko",
+    "@lowStockItems": {
+        "description": "Inventory summary card title"
+    },
     "pendingOrders": "Ibyatumijwe bitegereje",
+    "@pendingOrders": {
+        "description": "Inventory summary card title"
+    },
     "viewAll": "Reba byose",
-    "idLabel": "ID",
+    "@viewAll": {
+        "description": "Opens the full list"
+    },
     "item": "Igicuruzwa",
+    "@item": {
+        "description": "Table column header"
+    },
     "category": "Icyiciro",
+    "@category": {
+        "description": "Table column header"
+    },
     "quantity": "Ingano",
+    "@quantity": {
+        "description": "Table column header"
+    },
     "location": "Ahantu",
+    "@location": {
+        "description": "Table column header"
+    },
     "expiredOn": "Yarengeje igihe ku",
+    "@expiredOn": {
+        "description": "Table column header for the expiry date"
+    },
     "actions": "Ibikorwa",
+    "@actions": {
+        "description": "Table column header for row actions"
+    },
     "allExpiredItems": "Ibicuruzwa byose byarengeje igihe",
+    "@allExpiredItems": {
+        "description": "Dialog title listing every expired item"
+    },
     "goHomeQuestion": "Urashaka kujya ahabanza?",
+    "@goHomeQuestion": {
+        "description": "Confirms leaving the checkout screen"
+    },
     "searchProductsOrScan": "Shakisha ibicuruzwa cyangwa sikana…",
+    "@searchProductsOrScan": {
+        "description": "POS search field placeholder"
+    },
     "clear": "Kuraho",
+    "@clear": {
+        "description": "Clears the current input"
+    },
     "addProductAction": "Ongeramo igicuruzwa",
+    "@addProductAction": {
+        "description": "Tooltip for adding a single product"
+    },
     "help": "Ubufasha",
+    "@help": {
+        "description": "Opens help for the current screen"
+    },
     "customerManagement": "Icungabakiriya",
+    "@customerManagement": {
+        "description": "Customers screen subtitle"
+    },
     "searchCustomersByNameOrPhone": "Shakisha abakiriya ku izina cyangwa telefoni",
+    "@searchCustomersByNameOrPhone": {
+        "description": "Customer search placeholder"
+    },
     "clearSearch": "Kuraho ishakisha",
+    "@clearSearch": {
+        "description": "Clears the search field"
+    },
     "add": "Ongeramo",
+    "@add": {
+        "description": "Generic add action"
+    },
     "editCustomer": "Hindura umukiriya",
+    "@editCustomer": {
+        "description": "Tooltip for editing a customer"
+    },
     "deleteCustomer": "Siba umukiriya",
+    "@deleteCustomer": {
+        "description": "Tooltip for deleting a customer"
+    },
     "customerActions": "Ibikorwa ku mukiriya",
+    "@customerActions": {
+        "description": "Semantic label for the customer row actions"
+    },
     "phone": "Telefoni",
-    "tin": "TIN",
+    "@phone": {
+        "description": "Table column header for a phone number"
+    },
     "invoice": "Fagitire",
+    "@invoice": {
+        "description": "Label above the invoice number in checkout"
+    },
     "txnId": "ID y'igurisha",
+    "@txnId": {
+        "description": "Short label above the transaction identifier"
+    },
     "addCustomer": "Ongeramo umukiriya",
+    "@addCustomer": {
+        "description": "Tooltip for attaching a customer to the sale"
+    },
     "sortDefault": "Uko bisanzwe bitondekanye",
+    "@sortDefault": {
+        "description": "Catalog sort option"
+    },
     "sortByPopularity": "Tondeka ukurikije icyamamare",
+    "@sortByPopularity": {
+        "description": "Catalog sort option"
+    },
     "sortByAverageRating": "Tondeka ukurikije amanota rusange",
+    "@sortByAverageRating": {
+        "description": "Catalog sort option"
+    },
     "sortByLatest": "Tondeka ukurikije ibya vuba",
+    "@sortByLatest": {
+        "description": "Catalog sort option"
+    },
     "sortByPriceLowToHigh": "Tondeka ukurikije igiciro: gito ku kinini",
+    "@sortByPriceLowToHigh": {
+        "description": "Catalog sort option"
+    },
     "sortByPriceHighToLow": "Tondeka ukurikije igiciro: kinini ku gito",
+    "@sortByPriceHighToLow": {
+        "description": "Catalog sort option"
+    },
     "sortByStockOut": "Tondeka ukurikije ububiko bwashize",
+    "@sortByStockOut": {
+        "description": "Catalog sort option, lowest stock first"
+    },
     "sortByEventDateOldToNew": "Tondeka ukurikije itariki: isaza ku nshya",
+    "@sortByEventDateOldToNew": {
+        "description": "Catalog sort option"
+    },
     "sortByEventDateNewToOld": "Tondeka ukurikije itariki: inshya ku isaza",
+    "@sortByEventDateNewToOld": {
+        "description": "Catalog sort option"
+    },
     "sortCompactLatest": "Ibya vuba",
+    "@sortCompactLatest": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactDefault": "Bisanzwe",
+    "@sortCompactDefault": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactPopular": "Bikunzwe",
+    "@sortCompactPopular": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactRating": "Amanota",
+    "@sortCompactRating": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactPrice": "Igiciro",
+    "@sortCompactPrice": {
+        "description": "Compact sort chip label, paired with an arrow"
+    },
     "sortCompactStockOut": "Ububiko bwashize",
+    "@sortCompactStockOut": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactDate": "Itariki",
+    "@sortCompactDate": {
+        "description": "Compact sort chip label, paired with an arrow"
+    },
     "showingRangeOfResults": "Byerekanwe {start}–{end} kuri {total}",
+    "@showingRangeOfResults": {
+        "description": "Pagination summary above the product grid",
+        "placeholders": {
+            "start": {
+                "type": "String"
+            },
+            "end": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "pageOfPages": "Ipaji {current} kuri {total}",
+    "@pageOfPages": {
+        "description": "Pagination footer",
+        "placeholders": {
+            "current": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "loadedOfProducts": "Ibicuruzwa {loaded} kuri {total}",
+    "@loadedOfProducts": {
+        "description": "Progress while the catalog loads",
+        "placeholders": {
+            "loaded": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "noProductsYet": "Nta bicuruzwa birahari",
+    "@noProductsYet": {
+        "description": "Empty catalog state"
+    },
     "noBranchSelected": "Nta shami ryatoranyijwe",
+    "@noBranchSelected": {
+        "description": "Shown when no branch is active"
+    },
     "productsRefreshedForNewBranch": "Ibicuruzwa byavuguruwe ku ishami rishya",
+    "@productsRefreshedForNewBranch": {
+        "description": "Confirms the catalog reloaded after a branch switch"
+    },
     "deletedItemsCount": "Ibicuruzwa {count} byasibwe",
+    "@deletedItemsCount": {
+        "description": "Confirms a bulk delete",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "inStockCount": "{count} mu bubiko",
+    "@inStockCount": {
+        "description": "Stock line on a product card",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
     "leftInStockCount": "Hasigaye {count} mu bubiko",
+    "@leftInStockCount": {
+        "description": "Remaining stock hint on a cart line",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
     "stockLow": "Bike",
+    "@stockLow": {
+        "description": "Badge on a product card with little stock left"
+    },
     "stockOutBadge": "Byashize",
+    "@stockOutBadge": {
+        "description": "Badge on a product card with no stock"
+    },
     "mode": "Uburyo",
+    "@mode": {
+        "description": "Label of the Sale/Transfer toggle"
+    },
     "sale": "Igurisha",
+    "@sale": {
+        "description": "Sale mode in the checkout toggle"
+    },
     "transfer": "Kwimura",
+    "@transfer": {
+        "description": "Stock transfer mode in the checkout toggle"
+    },
     "searchCustomer": "Shakisha umukiriya",
+    "@searchCustomer": {
+        "description": "Customer search placeholder"
+    },
     "pay": "Ishyura",
+    "@pay": {
+        "description": "Completes the sale"
+    },
     "noItemsYet": "Nta gicuruzwa kirahari",
+    "@noItemsYet": {
+        "description": "Empty cart state"
+    },
     "tapProductToStartSale": "Kanda igicuruzwa utangire kugurisha",
+    "@tapProductToStartSale": {
+        "description": "Empty cart hint"
+    },
     "grandTotalWithItems": "Igiteranyo cyose · {itemLabel}",
+    "@grandTotalWithItems": {
+        "description": "Cart footer total",
+        "placeholders": {
+            "itemLabel": {
+                "type": "String"
+            }
+        }
+    },
     "defaultPrice": "Igiciro gisanzwe",
+    "@defaultPrice": {
+        "description": "Marks a cart line using the unmodified price"
+    },
     "pricePerUnitEach": "{currency} {price} kuri kimwe",
+    "@pricePerUnitEach": {
+        "description": "Per-unit price on a cart line",
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "price": {
+                "type": "String"
+            }
+        }
+    },
     "deleteItem": "Siba igicuruzwa",
+    "@deleteItem": {
+        "description": "Tooltip on a cart line delete button"
+    },
     "editDetails": "Hindura ibisobanuro",
+    "@editDetails": {
+        "description": "Opens the cart line editor"
+    },
     "enterQuantity": "Andika ingano",
+    "@enterQuantity": {
+        "description": "Quantity field placeholder"
+    },
     "invalidQuantity": "Ingano itemewe",
+    "@invalidQuantity": {
+        "description": "Quantity validation error"
+    },
     "enterPrice": "Andika igiciro",
+    "@enterPrice": {
+        "description": "Price field placeholder"
+    },
     "invalidPrice": "Igiciro kitemewe",
+    "@invalidPrice": {
+        "description": "Price validation error"
+    },
     "confirmDelete": "Emeza isibwa",
+    "@confirmDelete": {
+        "description": "Delete confirmation dialog title"
+    },
     "confirmRemoveNamedItem": "Uremeza ko ushaka gukuraho \"{itemName}\"?",
+    "@confirmRemoveNamedItem": {
+        "description": "Delete confirmation body for one cart line",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
     "errorDeletingItems": "Ikosa mu gusiba ibicuruzwa: {error}",
+    "@errorDeletingItems": {
+        "description": "Bulk delete failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "errorDeletingItem": "Ikosa mu gusiba igicuruzwa: {error}",
+    "@errorDeletingItem": {
+        "description": "Single delete failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "failedToDeleteItem": "Gusiba igicuruzwa ntibyakunze",
+    "@failedToDeleteItem": {
+        "description": "Single delete failure toast"
+    },
     "failedToUpdateItem": "Guhindura igicuruzwa ntibyakunze",
-    "skuLabel": "SKU: {sku}",
-    "bcdLabel": "BCD: {barcode}",
+    "@failedToUpdateItem": {
+        "description": "Cart line update failure"
+    },
     "split": "Gabanya",
+    "@split": {
+        "description": "Splits the payment across several methods"
+    },
     "splitAcrossAnotherMethod": "Gabanya ubu bwishyu ukoresheje ubundi buryo",
+    "@splitAcrossAnotherMethod": {
+        "description": "Tooltip on the split button"
+    },
     "allPaymentTypesInUse": "Uburyo bwose bw'ubwishyu burakoreshwa — kuraho bumwe kugira ngo wongere ubundi",
+    "@allPaymentTypesInUse": {
+        "description": "Shown when every payment method is already on the sale"
+    },
     "allPaymentTypesAdded": "Uburyo bwose bw'ubwishyu bwamaze kongerwamo. Kuraho bumwe kugira ngo wongere ubundi.",
+    "@allPaymentTypesAdded": {
+        "description": "Blocks adding a further payment method"
+    },
     "pleaseEnterAnAmount": "Nyamuneka andika umubare w’amafaranga",
+    "@pleaseEnterAnAmount": {
+        "description": "Payment amount validation"
+    },
     "cashReceived": "Amafaranga yakiriwe",
+    "@cashReceived": {
+        "description": "Label of the tendered-cash field"
+    },
     "amount": "Umubare w'amafaranga",
+    "@amount": {
+        "description": "Generic amount field label"
+    },
     "removeThisPayment": "Kuraho ubu bwishyu",
+    "@removeThisPayment": {
+        "description": "Tooltip on a payment row remove button"
+    },
     "tapSplitToPayWithMoreThanOneMethod": "Kanda Gabanya kugira ngo wishyure ukoresheje uburyo burenze bumwe",
+    "@tapSplitToPayWithMoreThanOneMethod": {
+        "description": "Hint under the payments list"
+    },
     "tapSplitToAddMethod": "Kanda Gabanya wongeremo ubundi buryo",
-    "invoiceNumberValue": "No. {number}",
+    "@tapSplitToAddMethod": {
+        "description": "Compact hint under the payments list"
+    },
     "tenderedAmount": "Yatanzwe {amount}",
+    "@tenderedAmount": {
+        "description": "Cash handed over by the customer",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "paymentCollectedTotal": "Ubwishyu bwakiriwe · {total}",
+    "@paymentCollectedTotal": {
+        "description": "Confirms a till collection",
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "viewOnlyCannotTransferStock": "Ufite uburenganzira bwo kureba gusa — ntushobora kwimura ibicuruzwa.",
+    "@viewOnlyCannotTransferStock": {
+        "description": "Blocks a transfer for view-only roles"
+    },
     "selectDestinationBranch": "Hitamo ishami rigenewe",
+    "@selectDestinationBranch": {
+        "description": "Transfer validation"
+    },
     "currentBranchIsMissing": "Ishami rigezweho ntiriboneka",
+    "@currentBranchIsMissing": {
+        "description": "Transfer validation"
+    },
     "addItemsBeforeTransferring": "Ongeramo ibicuruzwa mbere yo kwimura",
+    "@addItemsBeforeTransferring": {
+        "description": "Transfer validation"
+    },
     "transferredItemsToBranch": "Ibicuruzwa {count} byimuriwe kuri {branch}",
+    "@transferredItemsToBranch": {
+        "description": "Confirms an outgoing branch transfer",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
     "transferFailed": "Kwimura ntibyakunze",
+    "@transferFailed": {
+        "description": "Outgoing transfer failure toast"
+    },
     "failedToClearCart": "Gusiba agatebo ntibyakunze",
+    "@failedToClearCart": {
+        "description": "Cart reset failure toast"
+    },
     "paymentsCollectedAtTill": "Ubwishyu bukirwa ku kasi. Ohereza iri tumizwa iyo ryiteguye — umuyobozi ni we uzakira ubwishyu.",
+    "@paymentsCollectedAtTill": {
+        "description": "Explains the till workflow to staff without collect rights"
+    },
     "sentToTillTicket": "Byoherejwe ku kasi — Itike #{reference}",
+    "@sentToTillTicket": {
+        "description": "Confirms a park-to-till",
+        "placeholders": {
+            "reference": {
+                "type": "String"
+            }
+        }
+    },
     "failedToSendToTill": "Kohereza ku kasi ntibyakunze: {error}",
+    "@failedToSendToTill": {
+        "description": "Park-to-till failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "collectingPaymentForTicket": "Kwakira ubwishyu bwa #{reference} · byoherejwe na {name} · hashize iminota {minutes}",
+    "@collectingPaymentForTicket": {
+        "description": "Banner shown while settling a colleague’s parked ticket",
+        "placeholders": {
+            "reference": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            },
+            "minutes": {
+                "type": "String"
+            }
+        }
+    },
     "returningEllipsis": "Turasubira…",
+    "@returningEllipsis": {
+        "description": "Shown while leaving the settling flow"
+    },
     "backToNewSale": "Subira ku igurisha rishya",
+    "@backToNewSale": {
+        "description": "Leaves the settling flow"
+    },
     "paymentCashCredit": "Amafaranga / Inguzanyo",
+    "@paymentCashCredit": {
+        "description": "Payment method display name"
+    },
     "paymentBankCheck": "Sheki ya banki",
+    "@paymentBankCheck": {
+        "description": "Payment method display name"
+    },
     "paymentDebitCreditCard": "Ikarita ya banki",
+    "@paymentDebitCreditCard": {
+        "description": "Payment method display name"
+    },
     "paymentMobileMoney": "Amafaranga kuri telefoni",
+    "@paymentMobileMoney": {
+        "description": "Payment method display name"
+    },
     "payerNameOptional": "Izina ry'uwishyuye (si ngombwa)",
+    "@payerNameOptional": {
+        "description": "Hint for the optional name on the MoMo/bank account that sent the money, when it differs from the customer on the sale"
+    },
     "paidBy": "Yishyuwe na",
-    "paymentMtnMomo": "MTN MoMo",
-    "paymentAirtelMoney": "Airtel Money",
+    "@paidBy": {
+        "description": "Label preceding the payer name on a transaction's payment line"
+    },
     "paymentOther": "Ibindi",
+    "@paymentOther": {
+        "description": "Payment method display name"
+    },
     "sendForReview": "Ohereza kugenzurwa",
+    "@sendForReview": {
+        "description": "Checkout button when ticket review is enabled"
+    },
     "previewCart": "Reba agatebo",
+    "@previewCart": {
+        "description": "Checkout button that opens the cart preview"
+    },
     "previewCartWithCount": "Reba agatebo ({count})",
+    "@previewCartWithCount": {
+        "description": "Cart preview button with the item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "placeOrder": "Tanga itumizwa",
-    "confirmRemoveAllItemsCount": "Uremeza ko ushaka gukura ibicuruzwa {count} byose muri iri gurisha?"
+    "@placeOrder": {
+        "description": "Submits an order in the ordering flow"
+    },
+    "confirmRemoveAllItemsCount": "Uremeza ko ushaka gukura ibicuruzwa {count} byose muri iri gurisha?",
+    "@confirmRemoveAllItemsCount": {
+        "description": "Bulk-remove confirmation naming the item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    }
 }
