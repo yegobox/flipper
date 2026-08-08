@@ -1198,8 +1198,9 @@ mixin CapellaStockMixin implements StockInterface {
       final arguments = <String, dynamic>{
         for (var i = 0; i < unique.length; i++) 's$i': unique[i],
       };
-      final query =
-          'SELECT * FROM stocks WHERE _id IN ($placeholders) OR id IN ($placeholders)';
+      final query = stockSelectWithMilliDql(
+        whereClause: '_id IN ($placeholders) OR id IN ($placeholders)',
+      );
 
       final controller = StreamController<Map<String, Stock?>>.broadcast();
       dynamic observer;
@@ -1253,8 +1254,9 @@ mixin CapellaStockMixin implements StockInterface {
 
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
+      final stockQuery = stockSelectWithMilliDql(whereClause: 'id = :id');
       final preparedStockId = prepareDqlSyncSubscription(
-        "SELECT * FROM stocks WHERE id = :id",
+        stockQuery,
         {'id': stockId},
       );
       ditto.sync.registerSubscription(
@@ -1262,7 +1264,7 @@ mixin CapellaStockMixin implements StockInterface {
         arguments: preparedStockId.arguments,
       );
       observer = ditto.store.registerObserver(
-        'SELECT * FROM stocks WHERE id = :id',
+        stockQuery,
         arguments: {'id': stockId},
         onChange: (queryResult) {
           if (controller.isClosed) return;
