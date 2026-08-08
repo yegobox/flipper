@@ -99,6 +99,35 @@ Ported natively on this branch:
 
   Covered by `test/favorite_ditto_test.dart`.
 
+## Ditto document identity — fixed, and why it blocked products
+
+Ditto keys documents by `_id`. `INSERT INTO <c> DOCUMENTS (:doc) ON ID CONFLICT
+DO UPDATE` can only match an existing row when the document carries one; with
+`_id` absent Ditto generates a fresh id, so the conflict clause never fires and
+**each save inserts a duplicate instead of updating**.
+
+`Variant.toFlipperJson` and `Stock.toJson` set `'_id': id`. `Product.toJson`
+and `SKU.toJson` did not — so every `createProduct` and every `updateProduct`
+left another copy behind in the `products` collection. This is a pre-existing
+bug, independent of the migration: those write paths were already Ditto-native.
+Both models now set `_id`, guarded by `test/ditto_document_id_test.dart`.
+
+This is what stopped `products()` moving to Ditto in this pass. The read is a
+handful of lines, but pointing it at a collection that may already hold
+duplicate and stale copies would surface them in the product list. Before
+products can move:
+
+1. This fix ships, so duplicates stop accumulating. **Done.**
+2. Existing duplicates get reconciled — the pre-fix copies keep their random
+   `_id` and are not overwritten by anything. Needs a one-off cleanup keyed on
+   the `id` field, deciding a winner by `lastTouched`.
+3. Only then point `products` / `productStreams` at Ditto.
+
+Note the backfill pattern used elsewhere does not rescue step 2: it only fires
+when a branch has *nothing* in Ditto, so a branch with partial coverage would
+silently return just the Ditto subset. Anything reading `products` needs a
+merge, or step 2 done properly.
+
 ## What is left
 
 139 interface members still forward to Brick. Run this to see the current list:
@@ -156,8 +185,26 @@ crash-loops the container and takes daily reports down with it.
 2. **Product add/edit tail** — `createVariant`, `bindProduct`, `saveComposite`,
    `updateUnit`, `updateColor`, `colors`, `units`. Completes the flow that
    motivated this work.
-3. ~~**Favourites**~~ — done. Devices and access/permissions next; both are
-   client-written and self-contained like favourites.
+3. ~~**Favourites**~~ — done.
+
+   **Devices and access/permissions are not the next slice**, despite looking
+   like it. Neither suits the Ditto-first-with-backfill pattern:
+
+   - **Devices** are deliberately kept on Brick/Supabase. `device.model.dart`
+     says so in a comment and has its `@DittoAdapter` commented out; Ditto
+     `devices` is send-only mesh state that goes stale against `thisDeviceId`
+     after a desktop re-registration. Porting reads would reintroduce a bug
+     that was deliberately fixed. Needs the staleness solved first.
+   - **Access / permissions** govern RBAC, and the backfill pattern has a hole
+     that only matters here: it treats a *non-empty* Ditto result as complete.
+     A partially-synced subscription would return a subset of a user's grants
+     and silently lock them out of features. Fine when the payload is a colour
+     picker, not fine when it is authorisation. Needs a completeness signal,
+     not an optimistic read.
+
+4. **Products** — blocked on document identity, see below. The highest-value
+   slice for POS once unblocked, since `getProduct` / `createProduct` are
+   already Ditto-native.
 4. **Auth/tenant/pin.** Highest risk — it is also where Ditto itself gets
    initialised (`sync/mixins/auth_mixin.dart:_initializeDitto`), so it must go
    last.
@@ -169,8 +216,8 @@ crash-loops the container and takes daily reports down with it.
 - `dart analyze` clean across `apps/flipper`, `flipper_models`,
   `flipper_services`, `flipper_dashboard`, `flipper_login`, `flipper_ui`,
   `flipper_ai_feature`, `supabase_models`.
-- `flipper_models`: `+291 -9` — the pre-change baseline was `+278 -9`, so the
-  delta is exactly the 13 new mapping tests. The 9 failures (7 in
+- `flipper_models`: `+296 -9` — the pre-change baseline was `+278 -9`, so the
+  delta is exactly the 18 new tests. The 9 failures (7 in
   `branch_transfer_rra_test.dart`, 1 in `ebm_helper_test.dart`, 1 in
   `stock_recount_integration_test.dart`) pre-date this branch. Note one
   `branch_transfer_rra_test` case is flaky and occasionally reports `-10`.
