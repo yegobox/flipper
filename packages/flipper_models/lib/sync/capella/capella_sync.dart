@@ -1133,12 +1133,47 @@ class CapellaSync extends AiStrategyImpl
     return _legacy.financeProviders();
   }
 
-  // TODO(ditto-migration): port `geVariantStreamByProductId` to Ditto.
   @override
   Stream<List<Variant>> geVariantStreamByProductId({
     required String productId,
   }) {
-    return _legacy.geVariantStreamByProductId(productId: productId);
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return _legacy.geVariantStreamByProductId(productId: productId);
+    }
+
+    final controller = StreamController<List<Variant>>.broadcast();
+    const query = 'SELECT * FROM variants WHERE productId = :productId';
+    final arguments = {'productId': productId};
+
+    // Plain nullable, not `late`: onCancel can fire before the observer is set.
+    dynamic observer;
+    () async {
+      try {
+        final prepared = prepareDqlSyncSubscription(query, arguments);
+        await ditto.sync.registerSubscription(
+          prepared.dql,
+          arguments: prepared.arguments,
+        );
+      } catch (e) {
+        talker.warning('variants-by-product subscription failed: $e');
+      }
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (controller.isClosed) return;
+          controller.add(
+            result.items
+                .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
+                .toList(),
+          );
+        },
+      );
+    }();
+
+    controller.onCancel = () => observer?.cancel();
+    return controller.stream;
   }
 
   @override

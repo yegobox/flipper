@@ -1295,14 +1295,64 @@ mixin CapellaVariantMixin implements VariantInterface {
     return variant;
   }
 
-  // TODO(ditto-migration): port `getExpiredItems` to Ditto.
   @override
   Future<List<Variant>> getExpiredItems({
     required String branchId,
     int? daysToExpiry,
     int? limit,
   }) async {
-    return ProxyService.legacyStrategy.getExpiredItems(branchId: branchId, daysToExpiry: daysToExpiry, limit: limit);
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return ProxyService.legacyStrategy.getExpiredItems(
+        branchId: branchId,
+        daysToExpiry: daysToExpiry,
+        limit: limit,
+      );
+    }
+
+    // `daysToExpiry` widens the window forward; without it "expired" means
+    // already past. Same threshold rule as the Brick implementation.
+    final now = DateTime.now().toUtc();
+    final threshold =
+        daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
+
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM variants WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+
+      final expiring = <Variant>[];
+      for (final item in result.items) {
+        final variant = Variant.fromJson(Map<String, dynamic>.from(item.value));
+        final expiry = variant.expirationDate;
+        if (expiry == null) continue;
+        if (expiry.isAfter(threshold)) continue;
+        expiring.add(variant);
+      }
+
+      // Soonest first — the Brick version left this to insertion order, which
+      // put arbitrary rows at the top of the expiry dashboard.
+      expiring.sort((a, b) => a.expirationDate!.compareTo(b.expirationDate!));
+
+      final limited = (limit != null && limit < expiring.length)
+          ? expiring.sublist(0, limit)
+          : expiring;
+
+      // Attach stock so the dashboard can show remaining quantity, matching
+      // what the Brick version did via its own stock fetch.
+      for (final variant in limited) {
+        await _attachAuthenticCapellaStock(variant);
+      }
+      return limited;
+    } catch (e, st) {
+      talker.error('Ditto getExpiredItems failed, falling back to Brick: $e\n$st');
+      return ProxyService.legacyStrategy.getExpiredItems(
+        branchId: branchId,
+        daysToExpiry: daysToExpiry,
+        limit: limit,
+      );
+    }
   }
 
   @override

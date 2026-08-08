@@ -98,6 +98,20 @@ Ported natively on this branch:
   is still reachable (only `CapellaFavoriteMixin` has one).
 
   Covered by `test/favorite_ditto_test.dart`.
+- **Expiring inventory** — `getExpiredItems` (`capella/mixins/variant_mixin.dart`).
+  Reads `variants` directly; the collection is already canonical (`_id` is set
+  by `Variant.toFlipperJson`), so no reconcile was needed. Results are now
+  sorted soonest-expiry-first — the Brick version returned insertion order,
+  which put arbitrary rows at the top of the expiry dashboard.
+- **Variants-by-product stream** — `geVariantStreamByProductId`
+  (`capella_sync.dart`), the product editor's variant list. Was a live Brick
+  `repository.subscribe`; now a Ditto observer, so it stays live.
+- `addStockToVariant` and `createNewStock` (Ditto-first write, then Brick
+  mirror) — these removed a read-back race rather than just changing store.
+
+  Not ported and worth knowing: **`stocks({branchId})` has zero callers.** It is
+  dead code. Deleting it is safer than porting it, but that is an interface
+  change so it is left alone here.
 
 ## Ditto document identity — fixed, and why it blocked products
 
@@ -143,35 +157,59 @@ merge, or step 2 done properly.
 
 ## What is left
 
-139 interface members still forward to Brick. Run this to see the current list:
+**130 distinct interface members** still forward to Brick. Run this for the
+current list (it reports tag occurrences, which is slightly higher — a few
+members are tagged in more than one mixin):
 
 ```sh
 grep -rn 'TODO(ditto-migration)' packages/flipper_models/lib/sync/capella/
 ```
 
-| File | Members |
-| --- | ---: |
-| `capella_sync.dart` | 88 |
-| `mixins/auth_mixin.dart` | 11 |
-| `mixins/getter_operations_mixin.dart` | 10 |
-| `mixins/business_mixin.dart` | 6 |
-| `mixins/tenant_mixin.dart` | 6 |
-| `mixins/product_mixin.dart` | 5 |
-| `mixins/transaction_mixin.dart` | 4 |
-| `mixins/conversation_mixin.dart` | 3 |
-| `mixins/delete_operations_mixin.dart` | 2 |
-| `mixins/storage_mixin.dart` | 2 |
-| `mixins/system_mixin.dart` | 1 |
-| `mixins/variant_mixin.dart` | 1 |
-
 Beyond the strategy there are also ~32 direct `repository.<op>` call sites in
 17 files outside the sync layer (UI and services) that bypass the interface
 entirely.
 
+### These are not 130 pending ports
+
+Categorising all 130 (every member assigned exactly once, no gaps) shows only
+about a quarter can be moved by the pattern used for colours/units/favourites.
+The rest are not "not done yet" — they are **not portable**:
+
+| Category | Members | Why |
+| --- | ---: | --- |
+| Portable — transactions/tax | 12 | Collections exist and are canonical |
+| Portable — products | 9 | Blocked only on the duplicate reconcile |
+| Portable — chat | 6 | No collection yet, but clean to add |
+| Portable — inventory | 5 | Collections exist and are canonical |
+| **Portable subtotal** | **32** | |
+| Auth / identity | 18 | Firebase + Supabase Auth + apihub. No local DB involved |
+| Billing / payments | 13 | Server-authoritative in Supabase |
+| Assets / S3 | 11 | File storage, not documents |
+| Identity store (tenant, pin, user) | 12 | Boot-critical; a wrong read locks users out |
+| Org bootstrap (business, branch) | 10 | Boot-critical, runs before sync is warm |
+| **Brick-intrinsic** | **8** | See below — cannot be ported at all |
+| RBAC (access, permissions) | 7 | Partial read silently denies access |
+| Reports / files / contacts | 5 | Not documents |
+| Server-seeded catalogues | 4 | Ditto has no inbound path from Supabase |
+| Devices | 4 | Deliberately Brick; Ditto rows go stale |
+| Logs | 3 | Brick-stored diagnostics |
+| Legacy no-ops | 3 | Couchbase replicator, isolate plumbing |
+
+The **Brick-intrinsic** eight deserve emphasis: `queueLength`,
+`deleteFailedQueue`, `subscribe`, `size`, `deleteAll`, `migrateToNewDateTime`,
+`hydrateDate`, `hydrateCodes`. `queueLength()` is literally
+`repository.availableQueue()` — Brick's offline Supabase write queue — and
+`cron_service` gates hydration on it (`if (queueLength == 0)`). There is no
+Ditto equivalent because the concept only exists because Brick does. These get
+**deleted along with Brick**, and their callers rewritten, not ported.
+
+So "finalise the migration" is not 130 ports away. It is 32 ports, plus
+removing Brick — and removing Brick is the hard part, below.
+
 ## The blocker for deleting Brick
 
-Porting the 157 members is mechanical. Deleting Brick is not, because **most
-models have no Ditto collection at all**: 71 model classes in
+Deleting Brick is not a code cleanup, because **most models have no Ditto
+collection at all**: 71 model classes in
 `supabase_models/lib/brick/models/`, only 24 carry a `@DittoAdapter`.
 
 The ~47 without one — `Favorite`, `Color`, `Unit`, `Country`, `Device`, `Pin`,
@@ -188,41 +226,73 @@ data-connector `SYNC_TABLES`, and the matching Supabase table verified —
 data-connector bails at startup if a `SYNC_TABLES` name is missing, which
 crash-loops the container and takes daily reports down with it.
 
+### What deleting Brick actually requires
+
+In dependency order. Nothing after step 1 is safe until step 1 is real.
+
+1. **Replace Brick as the Supabase writer.** This is the whole problem. Brick
+   is not only a local store, it is the offline-first write queue that gets
+   ~47 tables to Supabase. Either give each of those models a Ditto collection
+   plus a data-connector `SYNC_TABLES` entry, or write to Supabase directly and
+   build a replacement offline queue. Until one of those exists, removing Brick
+   silently stops writing those tables — data loss, not a refactor.
+2. **Decide per category, not per member.** Auth, billing and assets do not
+   want Ditto at all; they want their Brick *model storage* replaced with
+   direct Supabase/Firebase/S3 access. Porting them "to Ditto" is the wrong
+   goal and would add sync surface for no benefit.
+3. **Design a completeness signal for boot-critical reads.** The
+   Ditto-first-with-backfill pattern treats any non-empty result as complete.
+   That is fine for a colour picker and wrong for RBAC, tenants, pins and
+   branch bootstrap (33 members). These need to know whether a subscription has
+   caught up before trusting an empty or partial answer.
+4. **Rewrite the Brick-intrinsic callers** (the eight above), notably the
+   `queueLength == 0` hydration gate in `cron_service`.
+5. **Port the 32 portable members**, then remove `CoreSync`, `SyncStrategy`,
+   `Strategy`, `ProxyService.legacyStrategy` and the `brick_*` packages.
+
+Step 5 is the only step this branch is set up to do incrementally. Steps 1–3
+are design work with production data-loss and lockout risk, and should not be
+attempted as a mechanical sweep.
+
 ## Suggested order
 
-1. ~~**Reference data** — `Color`, `Unit`~~ — done. The rest of that group
+Scope note: this list is only step 5 of *What deleting Brick actually requires*
+above — the incremental part. It does not get Brick deleted on its own.
+
+1. ~~**Reference data** — `Color`, `Unit`~~ **done.** The rest of that group
    (`Country`, `BusinessType`, `FinanceProvider`) is **not** a candidate for the
    same treatment: those are global catalogues seeded server-side in Supabase,
    and data-connector is one-way Ditto→Supabase, so there is no inbound path to
-   populate them in Ditto. They need a separate seeding mechanism, not a port.
-2. **Product add/edit tail** — `createVariant`, `bindProduct`, `saveComposite`,
-   `updateUnit`, `updateColor`, `colors`, `units`. Completes the flow that
-   motivated this work.
-3. ~~**Favourites**~~ — done.
+   populate them in Ditto. They need a seeding mechanism, not a port.
+2. ~~**Favourites**~~ **done.**
+3. ~~**Expiring inventory + variants-by-product stream**~~ **done** —
+   `getExpiredItems`, `geVariantStreamByProductId`. Both read collections that
+   were already canonical, so they needed no reconcile.
+4. ~~**Product document identity + duplicate reconcile**~~ **done, not yet run
+   on real data.** Boot a device, confirm the `reconcileProductDocuments` log
+   line reports sane counts, then continue to 5.
+5. **Products** — `products`, `productsFuture`, `productStreams`, `getProducts`.
+   Gated on 4 having actually run; see the document-identity section for why.
+6. **Product add/edit tail** — `createVariant`, `bindProduct`, `saveComposite`,
+   `getCustomVariant`. Completes the flow that motivated this work.
+7. **Transactions/tax tail** — 12 members, collections already canonical.
+8. **Chat** — 6 members. No Ditto collection yet, but nothing to inherit either,
+   so it is clean to add. Lowest value of the portable set.
 
-   **Devices and access/permissions are not the next slice**, despite looking
-   like it. Neither suits the Ditto-first-with-backfill pattern:
+That is the whole portable set (32 members). Everything past it needs the design
+work in steps 1–3 of *What deleting Brick actually requires* first:
 
-   - **Devices** are deliberately kept on Brick/Supabase. `device.model.dart`
-     says so in a comment and has its `@DittoAdapter` commented out; Ditto
-     `devices` is send-only mesh state that goes stale against `thisDeviceId`
-     after a desktop re-registration. Porting reads would reintroduce a bug
-     that was deliberately fixed. Needs the staleness solved first.
-   - **Access / permissions** govern RBAC, and the backfill pattern has a hole
-     that only matters here: it treats a *non-empty* Ditto result as complete.
-     A partially-synced subscription would return a subset of a user's grants
-     and silently lock them out of features. Fine when the payload is a colour
-     picker, not fine when it is authorisation. Needs a completeness signal,
-     not an optimistic read.
-
-4. **Products** — blocked on document identity, see below. The highest-value
-   slice for POS once unblocked, since `getProduct` / `createProduct` are
-   already Ditto-native.
-4. **Auth/tenant/pin.** Highest risk — it is also where Ditto itself gets
-   initialised (`sync/mixins/auth_mixin.dart:_initializeDitto`), so it must go
-   last.
-5. Delete `CoreSync`, `SyncStrategy.legacy`, `ProxyService.legacyStrategy`,
-   `Strategy`, and the Brick repository.
+- **Devices** are deliberately on Brick. `device.model.dart` says so and has its
+  `@DittoAdapter` commented out; Ditto `devices` is send-only mesh state that
+  goes stale against `thisDeviceId` after a desktop re-registration. Porting
+  reads would reintroduce a bug someone already fixed.
+- **RBAC, tenants, pins, org bootstrap** (33 members) need a sync-completeness
+  signal. The backfill pattern treats any non-empty result as complete, which
+  silently denies access or breaks boot when a subscription is still catching
+  up.
+- **Auth** is also where Ditto itself gets initialised
+  (`sync/mixins/auth_mixin.dart:_initializeDitto`), so it must go last
+  regardless.
 
 ## Verification on this branch
 
