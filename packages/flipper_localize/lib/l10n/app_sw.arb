@@ -1,463 +1,2036 @@
 {
-    "@@locale": "sw",
     "save": "Hifadhi",
+    "@save": {
+        "description": "The save message"
+    },
     "retailPrice": "Bei",
+    "@retailPrice": {
+        "description": "The price"
+    },
     "supplyPrice": "Bei ya mzabuni",
+    "@supplyPrice": {
+        "description": "Supplier price"
+    },
     "currentSale": "Mauzo ya sasa",
+    "@currentSale": {
+        "description": "Current Sale"
+    },
     "currentStock": "Hisa ya sasa",
+    "@currentStock": {
+        "description": "Current Stock"
+    },
     "addProduct": "Ongeza bidhaa",
+    "@addProduct": {
+        "description": "Add Product"
+    },
     "tickets": "Tiketi",
+    "@tickets": {
+        "description": "The Tickets"
+    },
     "charge": "Toza",
+    "@charge": {
+        "description": "Charge the user for the amount"
+    },
     "productName": "Jina la bidhaa",
+    "@productName": {
+        "description": "The Name of the product"
+    },
     "flipperSetting": "Mipangilio",
+    "@flipperSetting": {
+        "description": "The Settings"
+    },
     "options": "Chaguzi",
+    "@options": {
+        "description": "The options"
+    },
     "saveTicket": "Hauwezi kuhifadhi tiketi bila kuongeza dokezo",
+    "@saveTicket": {
+        "description": "can not save the tickets without adding a note to ticket"
+    },
     "productNotFound": "Bidhaa haijapatikana",
+    "@productNotFound": {
+        "description": "Product not found"
+    },
     "noPayable": "Hakuna malipo yanayohitajika",
+    "@noPayable": {
+        "description": "No payable"
+    },
     "delete": "Futa",
+    "@delete": {
+        "description": "Delete"
+    },
     "addTomenu": "Menyu",
+    "@addTomenu": {
+        "description": "Ongeraho kuri menu"
+    },
     "edit": "Hariri",
+    "@edit": {
+        "description": "Ongeraho kuri menu"
+    },
     "addWorkSpace": "Ongeza eneo la kazi",
+    "@addWorkSpace": {
+        "description": "Add WorkSpace"
+    },
     "addMembers": "Ongeza wanachama",
+    "@addMembers": {
+        "description": "Add Members"
+    },
     "logOut": "Toka",
+    "@logOut": {
+        "description": "Log out action"
+    },
     "syncCounter": "Sawazisha kaunta",
+    "@syncCounter": {
+        "description": "Synchronize counter action"
+    },
     "resetTransaction": "Weka muamala upya",
+    "@resetTransaction": {
+        "description": "Reset transaction action"
+    },
     "resetTransactionQuestion": "Weka muamala upya?",
+    "@resetTransactionQuestion": {
+        "description": "Reset transaction confirmation title"
+    },
     "resetTransactionDescription": "Hii itafuta muamala unaosubiri na bidhaa zake zote. Kitendo hiki hakiwezi kutenduliwa.",
+    "@resetTransactionDescription": {
+        "description": "Reset transaction confirmation description"
+    },
     "transactionResetSuccessfully": "Muamala umewekwa upya kwa mafanikio",
+    "@transactionResetSuccessfully": {
+        "description": "Success message after resetting a transaction"
+    },
     "errorResettingTransaction": "Hitilafu wakati wa kuweka muamala upya: {error}",
+    "@errorResettingTransaction": {
+        "description": "Error message after failing to reset a transaction",
+        "placeholders": {
+            "error": {}
+        }
+    },
     "selectedContactHasNoPhoneNumber": "Anwani iliyochaguliwa haina nambari ya simu",
+    "@selectedContactHasNoPhoneNumber": {
+        "description": "Contact picker error message"
+    },
     "contactsPermissionRequired": "Ruhusa ya anwani inahitajika ili kuchagua anwani",
+    "@contactsPermissionRequired": {
+        "description": "Contact picker permission snackbar"
+    },
     "permissionRequired": "Ruhusa inahitajika",
+    "@permissionRequired": {
+        "description": "Permission dialog title"
+    },
     "contactsPermissionDeniedSettings": "Ruhusa ya anwani imekataliwa kabisa. Tafadhali iwezeshe kwenye mipangilio ya kifaa chako ili kutumia kipengele hiki.",
+    "@contactsPermissionDeniedSettings": {
+        "description": "Contact picker permission denied dialog body"
+    },
     "cancel": "Ghairi",
+    "@cancel": {
+        "description": "Cancel action"
+    },
     "openSettings": "Fungua mipangilio",
+    "@openSettings": {
+        "description": "Open device settings action"
+    },
     "errorMessage": "Hitilafu: {error}",
+    "@errorMessage": {
+        "description": "Generic error message",
+        "placeholders": {
+            "error": {}
+        }
+    },
     "error": "Hitilafu",
+    "@error": {
+        "description": "Generic error title"
+    },
     "pickFromContacts": "Chagua kutoka kwa anwani",
+    "@pickFromContacts": {
+        "description": "Contact picker tooltip"
+    },
     "linkDevice": "Unganisha kifaa",
+    "@linkDevice": {
+        "description": "Link device screen title"
+    },
     "useFlipperOnOtherDevices": "Tumia Flipper kwenye vifaa vingine",
+    "@useFlipperOnOtherDevices": {
+        "description": "Link device screen subtitle"
+    },
     "linkADevice": "Unganisha kifaa",
-    "pinCode": "PIN: {pin}",
+    "@linkADevice": {
+        "description": "Link a device button"
+    },
     "listOfConnectedDevices": "Orodha ya vifaa vilivyounganishwa",
+    "@listOfConnectedDevices": {
+        "description": "Connected devices list title"
+    },
     "paymentTitle": "Malipo: {paymentType}",
+    "@paymentTitle": {
+        "description": "Payment confirmation app bar title",
+        "placeholders": {
+            "paymentType": {}
+        }
+    },
     "digitalReceipt": "Risiti ya kidijitali",
+    "@digitalReceipt": {
+        "description": "Digital receipt dialog title"
+    },
     "needDigitalReceipt": "Unahitaji risiti ya kidijitali?",
+    "@needDigitalReceipt": {
+        "description": "Digital receipt prompt"
+    },
     "purchaseCode": "Kodi ya ununuzi",
+    "@purchaseCode": {
+        "description": "Purchase code field label"
+    },
     "pleaseEnterPurchaseCode": "Tafadhali weka kodi ya ununuzi",
+    "@pleaseEnterPurchaseCode": {
+        "description": "Purchase code validation message"
+    },
     "submit": "Tuma",
+    "@submit": {
+        "description": "Submit action"
+    },
     "done": "Imekamilika",
+    "@done": {
+        "description": "Completion status"
+    },
     "receipt": "Risiti",
+    "@receipt": {
+        "description": "Receipt action"
+    },
     "addNote": "Ongeza dokezo",
+    "@addNote": {
+        "description": "Add note action"
+    },
     "generatingReceiptWait": "Tafadhali subiri, tunatengeneza risiti",
+    "@generatingReceiptWait": {
+        "description": "Receipt generation wait message"
+    },
     "poweredBy": "Inaendeshwa na",
+    "@poweredBy": {
+        "description": "Powered by label"
+    },
     "returnToHome": "Rudi mwanzo",
+    "@returnToHome": {
+        "description": "Return home action"
+    },
     "personalGoals": "Malengo binafsi",
+    "@personalGoals": {
+        "description": "Personal goals screen title"
+    },
     "selectBranchToManageGoals": "Chagua tawi ili kusimamia malengo.",
+    "@selectBranchToManageGoals": {
+        "description": "Personal goals empty branch message"
+    },
     "couldNotLoadGoals": "Haikuweza kupakia malengo\n{error}",
+    "@couldNotLoadGoals": {
+        "description": "Personal goals load error",
+        "placeholders": {
+            "error": {}
+        }
+    },
     "personalGoalsEyebrow": "MALENGO BINAFSI",
+    "@personalGoalsEyebrow": {
+        "description": "Personal goals section eyebrow"
+    },
     "totalReservedAcrossGoals": "Jumla iliyowekwa akiba katika {count, plural, =1{lengo 1} other{malengo {count}}}",
+    "@totalReservedAcrossGoals": {
+        "description": "Personal goals total reserved summary",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "savedThisMonth": "Iliyowekwa akiba mwezi huu",
+    "@savedThisMonth": {
+        "description": "Personal goals saved this month label"
+    },
     "onTrackCount": "{count} yanaendelea vizuri",
+    "@onTrackCount": {
+        "description": "Personal goals on track count",
+        "placeholders": {
+            "count": {}
+        }
+    },
     "goalsProgressing": "Malengo yanaendelea",
+    "@goalsProgressing": {
+        "description": "Personal goals progressing label"
+    },
     "allGoals": "Malengo yote",
+    "@allGoals": {
+        "description": "All goals section title"
+    },
     "personalGoalsProfitGrowth": "Flipper hukuza kila lengo kimya kimya kutoka kwa faida yako.",
+    "@personalGoalsProfitGrowth": {
+        "description": "Personal goals helper text"
+    },
     "searchProducts": "Tafuta bidhaa…",
+    "@searchProducts": {
+        "description": "Product search placeholder"
+    },
     "clearSelection": "Ondoa uteuzi",
+    "@clearSelection": {
+        "description": "Clear selected products action"
+    },
     "itemsSelected": "{count, plural, =1{bidhaa 1 imechaguliwa} other{bidhaa {count} zimechaguliwa}}",
+    "@itemsSelected": {
+        "description": "Selected product count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "cannotDeleteVariantWithStockRemaining": "Haiwezi kufuta bidhaa ambayo bado ina hisa.",
+    "@cannotDeleteVariantWithStockRemaining": {
+        "description": "Product delete validation error"
+    },
     "deleteMultipleItems": "Futa bidhaa nyingi",
+    "@deleteMultipleItems": {
+        "description": "Bulk delete confirmation title"
+    },
     "deleteItemsConfirmation": "Una hakika unataka kufuta {count, plural, =1{bidhaa 1} other{bidhaa {count}}}? Kitendo hiki hakiwezi kutenduliwa.",
+    "@deleteItemsConfirmation": {
+        "description": "Bulk delete confirmation body",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "refreshProducts": "Onyesha bidhaa upya",
+    "@refreshProducts": {
+        "description": "Refresh products action"
+    },
     "productsSyncingHint": "Ikiwa umefungua programu hivi punde, bidhaa zinaweza kuwa bado zinasawazishwa — gusa onyesha upya.",
+    "@productsSyncingHint": {
+        "description": "Product list empty state syncing hint"
+    },
     "errorLoadingProducts": "Hitilafu wakati wa kupakia bidhaa",
+    "@errorLoadingProducts": {
+        "description": "Product loading error title"
+    },
     "retry": "Jaribu tena",
+    "@retry": {
+        "description": "Retry action"
+    },
     "noStockDataAvailable": "Hakuna data ya hisa inayopatikana",
+    "@noStockDataAvailable": {
+        "description": "No stock data empty state"
+    },
     "cash": "Fedha taslimu",
+    "@cash": {
+        "description": "Cash payment method"
+    },
     "credit": "Mkopo",
+    "@credit": {
+        "description": "Credit payment method"
+    },
     "momoPayerPhone": "Simu ya mlipaji wa MoMo",
+    "@momoPayerPhone": {
+        "description": "Mobile money payer phone label"
+    },
     "momoPaymentRequestHint": "Tutatuma ombi la malipo kwa nambari hii utakapogusa Toza.",
+    "@momoPaymentRequestHint": {
+        "description": "Mobile money payment request helper"
+    },
     "exact": "Kamili",
+    "@exact": {
+        "description": "Exact cash amount shortcut"
+    },
     "confirm": "Thibitisha",
+    "@confirm": {
+        "description": "Confirm action"
+    },
     "numberOfPayments": "Idadi ya malipo",
+    "@numberOfPayments": {
+        "description": "Number of payments field label"
+    },
     "applyDiscountCode": "Tumia kodi ya punguzo",
+    "@applyDiscountCode": {
+        "description": "Apply discount code toggle label"
+    },
     "discountCode": "Kodi ya punguzo",
+    "@discountCode": {
+        "description": "Discount code field label"
+    },
     "validatingCode": "Tunathibitisha kodi...",
+    "@validatingCode": {
+        "description": "Discount code validation progress"
+    },
     "createAccount": "Fungua akaunti",
+    "@createAccount": {
+        "description": "Create account action"
+    },
     "signIn": "INGIA",
+    "@signIn": {
+        "description": "Sign in action"
+    },
     "setDeviceTimeAutomatic": "Tafadhali weka saa ya kifaa chako kwa hali ya kiotomatiki",
+    "@setDeviceTimeAutomatic": {
+        "description": "Warning to enable automatic device time"
+    },
     "continueWithPhone": "Endelea na simu",
+    "@continueWithPhone": {
+        "description": "Phone auth button"
+    },
     "continueWithGoogle": "Endelea na Google",
+    "@continueWithGoogle": {
+        "description": "Google auth button"
+    },
     "continueWithMicrosoft": "Endelea na Microsoft",
+    "@continueWithMicrosoft": {
+        "description": "Microsoft auth button"
+    },
     "continueWithApple": "Endelea na Apple",
+    "@continueWithApple": {
+        "description": "Apple auth button"
+    },
     "or": "AU",
+    "@or": {
+        "description": "Authentication divider"
+    },
     "pinLogin": "Ingia kwa PIN",
+    "@pinLogin": {
+        "description": "PIN login action"
+    },
     "languagesTitle": "Lugha",
+    "@languagesTitle": {
+        "description": "Languages settings title"
+    },
     "english": "Kiingereza",
-    "kinyarwanda": "Kinyarwanda",
+    "@english": {
+        "description": "English language name"
+    },
     "swahili": "Kiswahili",
+    "@swahili": {
+        "description": "Swahili language name"
+    },
     "settings": "Mipangilio",
+    "@settings": {
+        "description": "Settings screen title"
+    },
     "home": "Mwanzo",
+    "@home": {
+        "description": "Home navigation label"
+    },
     "sales": "Mauzo",
+    "@sales": {
+        "description": "Sales navigation label"
+    },
     "inventory": "Hisa",
+    "@inventory": {
+        "description": "Inventory navigation label"
+    },
     "more": "Zaidi",
+    "@more": {
+        "description": "More navigation label"
+    },
     "scanQr": "Changanua QR",
+    "@scanQr": {
+        "description": "Scan QR action"
+    },
     "dashboard": "Dashibodi",
+    "@dashboard": {
+        "description": "Dashboard navigation label"
+    },
     "noUser": "Hakuna mtumiaji",
+    "@noUser": {
+        "description": "No user empty state title"
+    },
     "pleaseLogInToContinue": "Tafadhali ingia ili kuendelea",
+    "@pleaseLogInToContinue": {
+        "description": "No user empty state subtitle"
+    },
     "loadingBusinesses": "Tunapakia biashara...",
+    "@loadingBusinesses": {
+        "description": "Loading businesses status"
+    },
     "errorLoadingBusinesses": "Hitilafu wakati wa kupakia biashara",
+    "@errorLoadingBusinesses": {
+        "description": "Business list loading error"
+    },
     "noBusinesses": "Hakuna biashara",
+    "@noBusinesses": {
+        "description": "No businesses empty state title"
+    },
     "createFirstBusiness": "Fungua biashara yako ya kwanza ili kuanza",
+    "@createFirstBusiness": {
+        "description": "No businesses empty state subtitle"
+    },
     "signOut": "Toka",
+    "@signOut": {
+        "description": "Sign out action"
+    },
     "phoneNumber": "Nambari ya simu",
+    "@phoneNumber": {
+        "description": "Phone number field label"
+    },
     "sendingCode": "Tunatuma kodi...",
+    "@sendingCode": {
+        "description": "Phone auth sending code progress"
+    },
     "continueAction": "Endelea",
+    "@continueAction": {
+        "description": "Continue action"
+    },
     "enterSixDigitCodeSentTo": "Weka kodi ya tarakimu 6 iliyotumwa kwa ",
+    "@enterSixDigitCodeSentTo": {
+        "description": "OTP instruction prefix"
+    },
     "codeExpiredTapToResend": "Kodi imeisha muda - Gusa ili kutuma tena",
+    "@codeExpiredTapToResend": {
+        "description": "Expired OTP resend action"
+    },
     "resendCode": "Tuma kodi tena",
+    "@resendCode": {
+        "description": "Resend OTP action"
+    },
     "resendCodeIn": "Tuma kodi tena baada ya ",
+    "@resendCodeIn": {
+        "description": "Resend OTP countdown prefix"
+    },
     "seconds": "sekunde",
+    "@seconds": {
+        "description": "Seconds unit"
+    },
     "verifying": "Tunathibitisha...",
+    "@verifying": {
+        "description": "OTP verification progress"
+    },
     "verifyCode": "Thibitisha kodi",
+    "@verifyCode": {
+        "description": "Verify OTP action"
+    },
     "troubleSigningIn": "Una tatizo la kuingia?",
+    "@troubleSigningIn": {
+        "description": "PIN login help dialog title"
+    },
     "troubleSigningInHelp": "Ikiwa una tatizo la kuingia, hakikisha PIN yako na OTP (ikiwa inahitajika) ni sahihi.\n\nKwa msaada zaidi, tafadhali wasiliana na timu ya usaidizi.",
+    "@troubleSigningInHelp": {
+        "description": "PIN login help dialog body"
+    },
     "ok": "Sawa",
+    "@ok": {
+        "description": "OK action"
+    },
     "welcomeBack": "Karibu tena",
+    "@welcomeBack": {
+        "description": "Default returning user greeting"
+    },
     "tinNumber": "Nambari ya TIN",
+    "@tinNumber": {
+        "description": "TIN number field label"
+    },
     "validate": "Thibitisha",
+    "@validate": {
+        "description": "Validate action"
+    },
     "uploadPdfWithTin": "Pakia PDF yenye TIN",
+    "@uploadPdfWithTin": {
+        "description": "Upload PDF containing TIN tooltip"
+    },
     "enterTinOrUpload": "Weka nambari ya TIN au gusa aikoni ya kupakia",
+    "@enterTinOrUpload": {
+        "description": "TIN field hint"
+    },
     "addEmail": "Ongeza barua pepe",
+    "@addEmail": {
+        "description": "Add email action"
+    },
     "emailAdded": "Barua pepe imeongezwa",
+    "@emailAdded": {
+        "description": "Email added success message"
+    },
     "updateSettings": "Sasisha mipangilio",
+    "@updateSettings": {
+        "description": "Update settings action"
+    },
     "invite": "Karibisha",
+    "@invite": {
+        "description": "Invite members action"
+    },
     "sendRequest": "Tuma ombi",
+    "@sendRequest": {
+        "description": "Send invitation request action"
+    },
     "preferences": "Mapendeleo",
+    "@preferences": {
+        "description": "Preferences settings title"
+    },
     "accessibility": "Ufikivu",
+    "@accessibility": {
+        "description": "Accessibility settings title"
+    },
     "language": "Lugha",
+    "@language": {
+        "description": "Language settings label"
+    },
     "reports": "Ripoti",
+    "@reports": {
+        "description": "Reports settings title"
+    },
     "enableReport": "Wezesha ripoti",
+    "@enableReport": {
+        "description": "Enable report setting"
+    },
     "backups": "Nakala rudufu",
+    "@backups": {
+        "description": "Backups settings title"
+    },
     "addBackup": "Ongeza nakala rudufu",
+    "@addBackup": {
+        "description": "Add backup title"
+    },
     "restoreData": "Rejesha data",
+    "@restoreData": {
+        "description": "Restore data action"
+    },
     "dataRestored": "Data imerejeshwa",
+    "@dataRestored": {
+        "description": "Backup restore success message"
+    },
     "errorRestoringBackup": "Hitilafu wakati wa kurejesha nakala rudufu",
+    "@errorRestoringBackup": {
+        "description": "Backup restore error message"
+    },
     "transactionIdCopiedToClipboard": "Kitambulisho cha muamala kimenakiliwa",
+    "@transactionIdCopiedToClipboard": {
+        "description": "Transaction ID copied success message"
+    },
     "transactionIdShortLabel": "Kitambulisho: ",
+    "@transactionIdShortLabel": {
+        "description": "Short transaction ID label"
+    },
     "invoiceNumberLabel": "Nambari ya ankara: ",
+    "@invoiceNumberLabel": {
+        "description": "Invoice number label"
+    },
     "parkSaleAsTicket": "Hifadhi mauzo haya kama tiketi",
+    "@parkSaleAsTicket": {
+        "description": "Save ticket tooltip"
+    },
     "saveTicketAction": "Hifadhi tiketi",
+    "@saveTicketAction": {
+        "description": "Save current sale as ticket action"
+    },
     "remainingBalanceLabel": "Salio lililobaki: ",
+    "@remainingBalanceLabel": {
+        "description": "Remaining balance label"
+    },
     "amountToChangeLabel": "Kiasi cha kurudisha: ",
+    "@amountToChangeLabel": {
+        "description": "Amount to change label"
+    },
     "allApps": "Programu zote",
+    "@allApps": {
+        "description": "All apps launcher title"
+    },
     "sell": "Uza",
+    "@sell": {
+        "description": "All apps sell section"
+    },
     "quickSell": "Uza haraka",
+    "@quickSell": {
+        "description": "Quick sell app tile"
+    },
     "invoices": "Ankara",
+    "@invoices": {
+        "description": "Invoices app tile"
+    },
     "pricing": "Bei",
+    "@pricing": {
+        "description": "Pricing app tile"
+    },
     "payments": "Malipo",
+    "@payments": {
+        "description": "Payments app tile"
+    },
     "manage": "Simamia",
+    "@manage": {
+        "description": "All apps manage section"
+    },
     "purchases": "Manunuzi",
+    "@purchases": {
+        "description": "Purchases app tile"
+    },
     "customers": "Wateja",
+    "@customers": {
+        "description": "Customers app tile"
+    },
     "leads": "Wateja watarajiwa",
+    "@leads": {
+        "description": "Leads app tile"
+    },
     "insights": "Uchanganuzi",
+    "@insights": {
+        "description": "All apps insights section"
+    },
     "dailyReports": "Ripoti za kila siku",
+    "@dailyReports": {
+        "description": "Daily reports app tile"
+    },
     "commissions": "Kamisheni",
+    "@commissions": {
+        "description": "Commissions app tile"
+    },
     "production": "Uzalishaji",
+    "@production": {
+        "description": "Production app tile"
+    },
     "business": "Biashara",
+    "@business": {
+        "description": "All apps business section"
+    },
     "servicesHub": "Kituo cha huduma",
+    "@servicesHub": {
+        "description": "Services hub app tile"
+    },
     "goals": "Malengo",
+    "@goals": {
+        "description": "Goals app tile"
+    },
     "aiChat": "Mazungumzo ya AI",
+    "@aiChat": {
+        "description": "AI chat app tile"
+    },
     "errorLoadingTransactionView": "Hitilafu wakati wa kupakia muamala",
+    "@errorLoadingTransactionView": {
+        "description": "Fallback message when the quick selling transaction view fails to render"
+    },
     "customer": "Mteja",
+    "@customer": {
+        "description": "Customer section label"
+    },
     "payment": "Malipo",
+    "@payment": {
+        "description": "Payment section label"
+    },
     "delivery": "Uwasilishaji",
+    "@delivery": {
+        "description": "Delivery section label"
+    },
     "transactionSummary": "Muhtasari wa muamala",
+    "@transactionSummary": {
+        "description": "Accessibility label for transaction summary"
+    },
     "transactionSummaryHint": "Huonyesha kiasi jumla na kitambulisho cha muamala wa sasa",
+    "@transactionSummaryHint": {
+        "description": "Accessibility hint for transaction summary"
+    },
     "totalAmount": "Kiasi jumla",
+    "@totalAmount": {
+        "description": "Total amount label"
+    },
     "cannotDeletePartialPaymentItems": "Haiwezi kufuta bidhaa kutoka muamala wenye malipo ya sehemu",
+    "@cannotDeletePartialPaymentItems": {
+        "description": "Error shown when trying to delete items after partial payment"
+    },
     "deleteAllItems": "Futa bidhaa zote",
+    "@deleteAllItems": {
+        "description": "Dialog title for deleting all cart items"
+    },
     "confirmRemoveAllTransactionItems": "Una hakika unataka kuondoa bidhaa zote kutoka muamala huu?",
+    "@confirmRemoveAllTransactionItems": {
+        "description": "Confirmation message for deleting all transaction items"
+    },
     "deleteAll": "Futa zote",
+    "@deleteAll": {
+        "description": "Delete all action"
+    },
     "allItemsRemovedSuccessfully": "Bidhaa zote zimeondolewa kwa mafanikio",
+    "@allItemsRemovedSuccessfully": {
+        "description": "Success notification after deleting all items"
+    },
     "errorRemovingItems": "Hitilafu wakati wa kuondoa bidhaa: {error}",
+    "@errorRemovingItems": {
+        "description": "Error notification after failing to remove all items",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "noItemsAdded": "Hakuna bidhaa iliyoongezwa",
+    "@noItemsAdded": {
+        "description": "Empty cart title"
+    },
     "tapAddFirstItem": "Gusa kitufe cha + ili kuongeza bidhaa yako ya kwanza",
+    "@tapAddFirstItem": {
+        "description": "Empty cart helper text"
+    },
     "cartItemCount": "{count, plural, =1{bidhaa 1} other{bidhaa {count}}}",
+    "@cartItemCount": {
+        "description": "Cart item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "itemSemanticLabel": "Bidhaa: {itemName}",
+    "@itemSemanticLabel": {
+        "description": "Accessibility label for a cart item",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
     "cartItemSemanticHint": "Kiasi: {quantity}, Bei ya kimoja: {unitPrice}, Jumla ndogo: {subtotal}",
+    "@cartItemSemanticHint": {
+        "description": "Accessibility hint for a cart item",
+        "placeholders": {
+            "quantity": {
+                "type": "String"
+            },
+            "unitPrice": {
+                "type": "String"
+            },
+            "subtotal": {
+                "type": "String"
+            }
+        }
+    },
     "removeItem": "Ondoa bidhaa",
+    "@removeItem": {
+        "description": "Remove item action"
+    },
     "unitPrice": "Bei ya kimoja",
+    "@unitPrice": {
+        "description": "Unit price label"
+    },
     "decreaseQuantityByOne": "Punguza kiasi kwa 1",
+    "@decreaseQuantityByOne": {
+        "description": "Quantity decrement tooltip"
+    },
     "increaseQuantityByOne": "Ongeza kiasi kwa 1",
+    "@increaseQuantityByOne": {
+        "description": "Quantity increment tooltip"
+    },
     "subtotal": "Jumla ndogo",
+    "@subtotal": {
+        "description": "Subtotal label"
+    },
     "deliveryDate": "Tarehe ya uwasilishaji",
+    "@deliveryDate": {
+        "description": "Delivery date field label"
+    },
     "transactionSummaryPaymentActions": "Muhtasari wa muamala na hatua za malipo",
+    "@transactionSummaryPaymentActions": {
+        "description": "Accessibility label for payment action area"
+    },
     "completeSaleTotalHint": "Kamilisha mauzo kwa kiasi jumla {total}",
+    "@completeSaleTotalHint": {
+        "description": "Accessibility hint for payment action area",
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "errorWithValue": "Hitilafu: {error}",
+    "@errorWithValue": {
+        "description": "Generic error label with value",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "confirmRemoveItemFromTransaction": "Una hakika unataka kuondoa \"{itemName}\" kutoka muamala huu?",
+    "@confirmRemoveItemFromTransaction": {
+        "description": "Confirmation message before removing a cart item",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
     "remove": "Ondoa",
+    "@remove": {
+        "description": "Remove action"
+    },
     "cannotModifyPartialPaymentItems": "Haiwezi kubadilisha bidhaa katika muamala wenye malipo ya sehemu",
+    "@cannotModifyPartialPaymentItems": {
+        "description": "Error shown when changing item quantity after partial payment"
+    },
     "failedToRemoveItem": "Imeshindwa kuondoa bidhaa",
+    "@failedToRemoveItem": {
+        "description": "Error notification after failing to remove an item"
+    },
     "failedToUpdateItemQuantity": "Imeshindwa kusasisha kiasi cha bidhaa",
+    "@failedToUpdateItemQuantity": {
+        "description": "Error notification after failing to update item quantity"
+    },
     "transactionItemsList": "Orodha ya bidhaa za muamala",
+    "@transactionItemsList": {
+        "description": "Accessibility label for cart item list"
+    },
     "transactionItemsListHint": "Orodha ya bidhaa katika muamala wa sasa pamoja na kiasi na bei",
+    "@transactionItemsListHint": {
+        "description": "Accessibility hint for cart item list"
+    },
     "deliveryNote": "Dokezo la uwasilishaji",
+    "@deliveryNote": {
+        "description": "Delivery note field label"
+    },
     "deliveryNoteSemantic": "Dokezo la uwasilishaji",
+    "@deliveryNoteSemantic": {
+        "description": "Accessibility label for delivery note"
+    },
     "deliveryNoteHint": "Ongeza maelekezo maalum ya uwasilishaji",
+    "@deliveryNoteHint": {
+        "description": "Accessibility hint for delivery note"
+    },
     "deliveryInstructionsHint": "Weka maelekezo maalum ya uwasilishaji",
+    "@deliveryInstructionsHint": {
+        "description": "Delivery note text field hint"
+    },
     "discount": "Punguzo",
+    "@discount": {
+        "description": "Discount field label"
+    },
     "pleaseEnterValidNumber": "Tafadhali weka nambari sahihi",
+    "@pleaseEnterValidNumber": {
+        "description": "Validation error for invalid numeric input"
+    },
     "discountRangeError": "Punguzo linapaswa kuwa kati ya 0 na 100",
+    "@discountRangeError": {
+        "description": "Validation error for invalid discount percentage"
+    },
     "digitalReceiptTitle": "Risiti ya kidijitali",
+    "@digitalReceiptTitle": {
+        "description": "Digital receipt toggle title"
+    },
     "digitalReceiptSmsSubtitle": "Tuma risiti kwa SMS badala ya kufungua PDF",
+    "@digitalReceiptSmsSubtitle": {
+        "description": "Digital receipt toggle subtitle"
+    },
     "receivedAmountInCurrency": "Kiasi kilichopokelewa kwa {currency}",
+    "@receivedAmountInCurrency": {
+        "description": "Accessibility label for received amount field",
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
     "receivedAmountHint": "Weka kiasi kilichopokelewa kutoka kwa mteja",
+    "@receivedAmountHint": {
+        "description": "Accessibility hint for received amount field"
+    },
     "receivedAmount": "Kiasi kilichopokelewa",
+    "@receivedAmount": {
+        "description": "Received amount field hint"
+    },
     "pleaseEnterReceivedAmount": "Tafadhali weka kiasi kilichopokelewa",
+    "@pleaseEnterReceivedAmount": {
+        "description": "Validation error for empty received amount"
+    },
     "customerName": "Jina la mteja",
+    "@customerName": {
+        "description": "Customer name field label"
+    },
     "customerNameHint": "Weka jina kamili la mteja",
+    "@customerNameHint": {
+        "description": "Accessibility hint for customer name field"
+    },
     "pleaseEnterCustomerName": "Tafadhali weka jina la mteja",
+    "@pleaseEnterCustomerName": {
+        "description": "Validation error for empty customer name"
+    },
     "customerPhoneNumber": "Nambari ya simu ya mteja",
+    "@customerPhoneNumber": {
+        "description": "Accessibility label for customer phone number field"
+    },
     "customerPhoneNumberHint": "Weka nambari ya simu ya mteja kwa mawasiliano na malipo",
+    "@customerPhoneNumberHint": {
+        "description": "Accessibility hint for customer phone number field"
+    },
     "items": "Bidhaa",
+    "@items": {
+        "description": "Items section label"
+    },
     "transactionId": "Kitambulisho cha muamala",
+    "@transactionId": {
+        "description": "Transaction ID label"
+    },
     "amountPaid": "Kiasi kilicholipwa",
+    "@amountPaid": {
+        "description": "Amount paid label"
+    },
     "remainingBalance": "Salio lililobaki",
+    "@remainingBalance": {
+        "description": "Remaining balance label"
+    },
     "recordPaymentWithAmount": "Rekodi malipo • {amount}",
+    "@recordPaymentWithAmount": {
+        "description": "Payment button label when recording a partial payment",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "payWithAmount": "Lipa • {amount}",
+    "@payWithAmount": {
+        "description": "Payment button label",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "sendForReviewWithAmount": "Tuma kwa ukaguzi • {amount}",
+    "@sendForReviewWithAmount": {
+        "description": "Payment button label when the Ticket Review + Handover workflow is enabled and the sale will be fully paid",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "phoneRequiredWhenTinMissing": "Nambari ya simu inahitajika ikiwa TIN ya mteja haipatikani",
+    "@phoneRequiredWhenTinMissing": {
+        "description": "Validation error when phone number is required because TIN is missing"
+    },
     "invalidNumber": "Nambari si sahihi",
+    "@invalidNumber": {
+        "description": "Validation error for invalid phone number"
+    },
     "back": "Rudi",
+    "@back": {
+        "description": "Back navigation tooltip"
+    },
     "managementDashboard": "Dashibodi ya usimamizi",
+    "@managementDashboard": {
+        "description": "Admin management dashboard title"
+    },
     "quickActions": "Hatua za haraka",
+    "@quickActions": {
+        "description": "Quick actions section title"
+    },
     "posDefault": "POS chaguo-msingi",
+    "@posDefault": {
+        "description": "POS default setting title"
+    },
     "setPosAsDefaultApp": "Weka POS kama programu chaguo-msingi",
+    "@setPosAsDefaultApp": {
+        "description": "POS default setting subtitle"
+    },
     "ordersDefault": "Oda chaguo-msingi",
+    "@ordersDefault": {
+        "description": "Orders default setting title"
+    },
     "setOrdersAsDefaultApp": "Weka Oda kama programu chaguo-msingi",
+    "@setOrdersAsDefaultApp": {
+        "description": "Orders default setting subtitle"
+    },
     "accountManagement": "Usimamizi wa akaunti",
+    "@accountManagement": {
+        "description": "Account management section title"
+    },
     "userManagement": "Usimamizi wa watumiaji",
+    "@userManagement": {
+        "description": "User management setting title"
+    },
     "manageUsersAndPermissions": "Simamia watumiaji na ruhusa",
+    "@manageUsersAndPermissions": {
+        "description": "User management setting subtitle"
+    },
     "branchManagement": "Usimamizi wa matawi",
+    "@branchManagement": {
+        "description": "Branch management setting title"
+    },
     "manageBranchLocations": "Simamia matawi (maeneo)",
+    "@manageBranchLocations": {
+        "description": "Branch management setting subtitle"
+    },
     "financialControls": "Udhibiti wa fedha",
+    "@financialControls": {
+        "description": "Financial controls section title"
+    },
     "taxSettings": "Mipangilio ya kodi",
+    "@taxSettings": {
+        "description": "Tax settings title"
+    },
     "configureTaxRulesAndRates": "Sanidi kanuni na viwango vya kodi",
+    "@configureTaxRulesAndRates": {
+        "description": "Tax settings subtitle"
+    },
     "ebmSettings": "Mipangilio ya EBM",
+    "@ebmSettings": {
+        "description": "EBM settings title"
+    },
     "electronicBillingMachineSettings": "Mipangilio ya mashine ya ankara ya kielektroniki",
+    "@electronicBillingMachineSettings": {
+        "description": "EBM settings subtitle"
+    },
     "smsConfiguration": "Usanidi wa SMS",
+    "@smsConfiguration": {
+        "description": "SMS configuration section title"
+    },
     "enableSmsNotifications": "Wezesha arifa za SMS",
+    "@enableSmsNotifications": {
+        "description": "SMS notification toggle title"
+    },
     "enableWhatsappNotifications": "Wezesha arifa za WhatsApp",
+    "@enableWhatsappNotifications": {
+        "description": "WhatsApp notification toggle title"
+    },
     "receiveWhatsappNotificationsForOrders": "Pokea arifa za WhatsApp kwa oda na risiti za PDF",
+    "@receiveWhatsappNotificationsForOrders": {
+        "description": "WhatsApp notification toggle subtitle"
+    },
     "systemSettings": "Mipangilio ya mfumo",
+    "@systemSettings": {
+        "description": "System settings section title"
+    },
     "debugMode": "Hali ya utatuzi",
+    "@debugMode": {
+        "description": "Debug mode setting title"
+    },
     "enableDebugFeatures": "Wezesha vipengele vya utatuzi",
+    "@enableDebugFeatures": {
+        "description": "Debug mode setting subtitle"
+    },
     "forceUpdate": "Lazimisha usasishaji",
+    "@forceUpdate": {
+        "description": "Force update setting title"
+    },
     "forceUpdateAllData": "Lazimisha usasishaji wa data yote",
+    "@forceUpdateAllData": {
+        "description": "Force update setting subtitle"
+    },
     "taxService": "Huduma ya kodi",
+    "@taxService": {
+        "description": "Tax service setting title"
+    },
     "toggleTaxService": "Badilisha huduma ya kodi",
+    "@toggleTaxService": {
+        "description": "Tax service setting subtitle"
+    },
     "savedDiscount": "Punguzo lililohifadhiwa",
+    "@savedDiscount": {
+        "description": "Success notification after saving a discount"
+    },
     "createDiscount": "Unda punguzo",
+    "@createDiscount": {
+        "description": "Create discount page title"
+    },
     "nameCannotBeNull": "Jina haliwezi kuwa tupu",
+    "@nameCannotBeNull": {
+        "description": "Validation error for empty name"
+    },
     "amountCannotBeNull": "Kiasi hakiwezi kuwa tupu",
+    "@amountCannotBeNull": {
+        "description": "Validation error for empty amount"
+    },
     "name": "Jina",
+    "@name": {
+        "description": "Name field label"
+    },
     "saveTransactionTitle": "Hifadhi muamala wa {transactionType}",
+    "@saveTransactionTitle": {
+        "description": "Confirmation dialog title for saving a transaction",
+        "placeholders": {
+            "transactionType": {
+                "type": "String"
+            }
+        }
+    },
     "confirmSaveTransaction": "Una hakika unataka kuhifadhi muamala huu?",
+    "@confirmSaveTransaction": {
+        "description": "Confirmation dialog message for saving a transaction"
+    },
     "categoryMustBeSelected": "Kundi linapaswa kuchaguliwa",
+    "@categoryMustBeSelected": {
+        "description": "Warning shown when saving without category"
+    },
     "confirmLogout": "Thibitisha kutoka",
+    "@confirmLogout": {
+        "description": "Logout confirmation dialog title"
+    },
     "confirmLogoutMessage": "Una hakika unataka kutoka?",
+    "@confirmLogoutMessage": {
+        "description": "Logout confirmation dialog message"
+    },
     "refundReason": "Sababu ya kurejesha fedha",
+    "@refundReason": {
+        "description": "Refund reason field label"
+    },
     "waitForApproval": "Subiri idhini",
+    "@waitForApproval": {
+        "description": "Refund status reason"
+    },
     "approved": "Imeidhinishwa",
+    "@approved": {
+        "description": "Refund status reason"
+    },
     "cancelRequested": "Ombi la kughairi",
+    "@cancelRequested": {
+        "description": "Refund status reason"
+    },
     "canceled": "Imeghairiwa",
+    "@canceled": {
+        "description": "Refund status reason"
+    },
     "refunded": "Fedha imerejeshwa",
+    "@refunded": {
+        "description": "Refund status reason"
+    },
     "transferred": "Imehamishwa",
+    "@transferred": {
+        "description": "Refund status reason"
+    },
     "appLanguage": "Lugha ya programu",
+    "@appLanguage": {
+        "description": "Admin Control tile title for the app language setting"
+    },
     "chooseAppLanguage": "Chagua lugha ambayo Flipper inatumia",
+    "@chooseAppLanguage": {
+        "description": "Subtitle of the app language tile"
+    },
     "selectLanguage": "Chagua lugha",
+    "@selectLanguage": {
+        "description": "Title of the language picker sheet"
+    },
     "languageAppliesEverywhere": "Inatumika kwa kila skrini ya programu.",
+    "@languageAppliesEverywhere": {
+        "description": "Explains the scope of the language choice"
+    },
     "useDeviceLanguage": "Tumia lugha ya kifaa",
+    "@useDeviceLanguage": {
+        "description": "Option to follow the device language instead of an explicit choice"
+    },
     "automatic": "Kiotomatiki",
+    "@automatic": {
+        "description": "Tag shown when the language follows the device"
+    },
     "french": "Kifaransa",
+    "@french": {
+        "description": "The French language"
+    },
     "accountAndFinancial": "Akaunti na fedha",
+    "@accountAndFinancial": {
+        "description": "Admin Control section header"
+    },
     "adminProfile": "Wasifu wa msimamizi",
+    "@adminProfile": {
+        "description": "Admin Control section header"
+    },
     "smsNotifications": "Arifa za SMS",
+    "@smsNotifications": {
+        "description": "Admin Control section header"
+    },
     "close": "Funga",
+    "@close": {
+        "description": "Close a screen or dialog"
+    },
     "refresh": "Onyesha upya",
+    "@refresh": {
+        "description": "Reload the current data"
+    },
     "adminEmailHint": "mfano: admin@flipper.rw",
+    "@adminEmailHint": {
+        "description": "Placeholder for the admin email field"
+    },
     "displayName": "Jina la kuonyesha",
+    "@displayName": {
+        "description": "Label for the admin display name field"
+    },
     "editName": "Hariri jina",
+    "@editName": {
+        "description": "Tooltip for editing the admin display name"
+    },
     "paymentMethods": "Njia za malipo",
+    "@paymentMethods": {
+        "description": "Admin Control card title"
+    },
     "managePaymentOptions": "Simamia chaguzi za malipo",
+    "@managePaymentOptions": {
+        "description": "Admin Control card subtitle"
+    },
     "enterPhoneNumber": "Weka nambari ya simu",
+    "@enterPhoneNumber": {
+        "description": "Placeholder for a phone number field"
+    },
     "enableOrderNotifications": "Wezesha arifa za oda",
+    "@enableOrderNotifications": {
+        "description": "SMS setting title"
+    },
     "receiveSmsNotificationsForOrders": "Pokea arifa za SMS kwa oda",
+    "@receiveSmsNotificationsForOrders": {
+        "description": "SMS setting subtitle"
+    },
     "enableDebuggingFeatures": "Wezesha vipengele vya utatuzi",
-    "ebm": "EBM",
+    "@enableDebuggingFeatures": {
+        "description": "Debug mode subtitle"
+    },
     "reinitializeEbm": "Anzisha EBM upya",
+    "@reinitializeEbm": {
+        "description": "Admin action to re-register the tax device"
+    },
     "manageTaxServiceStatus": "Simamia hali ya huduma ya kodi",
+    "@manageTaxServiceStatus": {
+        "description": "Tax service subtitle"
+    },
     "hydrateData": "Pakia data",
+    "@hydrateData": {
+        "description": "Admin action to re-download all local data"
+    },
     "refreshAllLocalData": "Onyesha upya data yote ya kifaa",
+    "@refreshAllLocalData": {
+        "description": "Hydrate data subtitle"
+    },
     "assetDownload": "Upakuaji wa picha",
+    "@assetDownload": {
+        "description": "Admin toggle for downloading product images"
+    },
     "manageImageDownloads": "Simamia upakuaji wa picha",
+    "@manageImageDownloads": {
+        "description": "Asset download subtitle"
+    },
     "autoAddSearch": "Ongeza kiotomatiki",
+    "@autoAddSearch": {
+        "description": "Admin toggle title"
+    },
     "autoAddItemsWhenOneMatch": "Ongeza bidhaa kiotomatiki ikiwa moja tu inalingana",
+    "@autoAddItemsWhenOneMatch": {
+        "description": "Auto-add search subtitle"
+    },
     "userLogging": "Kumbukumbu za watumiaji",
+    "@userLogging": {
+        "description": "Admin toggle title"
+    },
     "enableExtensiveUserLogging": "Wezesha kumbukumbu za kina za watumiaji",
+    "@enableExtensiveUserLogging": {
+        "description": "User logging subtitle"
+    },
     "priceQtyAdjustment": "Kurekebisha bei na kiasi",
+    "@priceQtyAdjustment": {
+        "description": "Short admin toggle title for price/quantity adjustment"
+    },
     "autoAdjustQtyOnPriceChange": "Rekebisha kiasi kiotomatiki bei ikibadilika",
+    "@autoAdjustQtyOnPriceChange": {
+        "description": "Price-quantity adjustment subtitle"
+    },
     "decimals": "Desimali",
+    "@decimals": {
+        "description": "Admin toggle title for fractional pricing"
+    },
     "enableFractionalPricing": "Wezesha bei za sehemu",
+    "@enableFractionalPricing": {
+        "description": "Decimals subtitle"
+    },
     "ticketReviewAndHandover": "Ukaguzi na kuhamisha tiketi",
+    "@ticketReviewAndHandover": {
+        "description": "Admin toggle title"
+    },
     "administratorPin": "PIN ya msimamizi",
+    "@administratorPin": {
+        "description": "Admin security section title"
+    },
     "resetAdministratorPin": "Weka upya PIN ya msimamizi",
+    "@resetAdministratorPin": {
+        "description": "Admin security action"
+    },
     "updateHighSecurityPin": "Sasisha PIN yako ya tarakimu 4 ya usalama wa juu",
+    "@updateHighSecurityPin": {
+        "description": "Reset administrator PIN subtitle"
+    },
     "flipperSettingsTitle": "Mipangilio ya Flipper",
+    "@flipperSettingsTitle": {
+        "description": "Title of the settings screen"
+    },
     "common": "Ya kawaida",
+    "@common": {
+        "description": "Settings section header"
+    },
     "environment": "Mazingira",
+    "@environment": {
+        "description": "Settings row showing which backend the app talks to"
+    },
     "local": "Kifaa hiki",
+    "@local": {
+        "description": "Value of the environment setting"
+    },
     "account": "Akaunti",
+    "@account": {
+        "description": "Settings section header"
+    },
     "email": "Barua pepe",
+    "@email": {
+        "description": "Settings row for the account email"
+    },
     "security": "Usalama",
+    "@security": {
+        "description": "Settings section header"
+    },
     "sendDailyReport": "Tuma ripoti ya kila siku",
+    "@sendDailyReport": {
+        "description": "Settings toggle for the daily report email"
+    },
     "onlinePrint": "Uchapishaji mtandaoni",
+    "@onlinePrint": {
+        "description": "Drawer setting title"
+    },
     "managePrintSettings": "Simamia mipangilio ya uchapishaji",
+    "@managePrintSettings": {
+        "description": "Online print subtitle"
+    },
     "enableExtensiveLogging": "Wezesha kumbukumbu za kina",
+    "@enableExtensiveLogging": {
+        "description": "User logging subtitle in the drawer"
+    },
     "backgroundSync": "Usawazishaji wa nyuma",
+    "@backgroundSync": {
+        "description": "Drawer setting title"
+    },
     "syncDataInBackground": "Sawazisha data chinichini",
+    "@syncDataInBackground": {
+        "description": "Background sync subtitle"
+    },
     "closeShift": "Funga zamu",
+    "@closeShift": {
+        "description": "Ends the current cashier shift"
+    },
     "startNewShift": "Anzisha zamu mpya",
+    "@startNewShift": {
+        "description": "Begins a new cashier shift"
+    },
     "checkSubscription": "Angalia usajili",
+    "@checkSubscription": {
+        "description": "Re-checks the business subscription status"
+    },
     "couldNotCheckSubscription": "Haikuweza kuangalia usajili: {error}",
+    "@couldNotCheckSubscription": {
+        "description": "Shown when the subscription check fails",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "chooseYourDefaultApp": "Chagua programu yako chaguo-msingi",
+    "@chooseYourDefaultApp": {
+        "description": "Title of the default app chooser"
+    },
     "accountSettings": "Mipangilio ya akaunti",
+    "@accountSettings": {
+        "description": "Menu entry opening account settings"
+    },
     "switchAccount": "Badilisha akaunti",
+    "@switchAccount": {
+        "description": "Menu entry for signing in as someone else"
+    },
     "continueToBranch": "Endelea kwa {branchName}",
+    "@continueToBranch": {
+        "description": "Confirms the branch the user is entering",
+        "placeholders": {
+            "branchName": {
+                "type": "String"
+            }
+        }
+    },
     "openShift": "Anzisha zamu",
+    "@openShift": {
+        "description": "Starts a cashier shift"
+    },
     "checkingPaymentStatus": "Tunaangalia hali ya malipo…",
+    "@checkingPaymentStatus": {
+        "description": "Shown while the subscription payment check runs"
+    },
     "refreshAfterCustomerPays": "Onyesha upya baada ya mteja kulipa",
+    "@refreshAfterCustomerPays": {
+        "description": "Subtitle of the check subscription row"
+    },
     "branch": "tawi",
+    "@branch": {
+        "description": "Generic word for a branch, used as a fallback when the branch name is unknown"
+    },
     "totalItems": "Bidhaa zote",
+    "@totalItems": {
+        "description": "Inventory summary card title"
+    },
     "expiredItems": "Bidhaa zilizoisha muda",
+    "@expiredItems": {
+        "description": "Inventory summary card title"
+    },
     "lowStockItems": "Bidhaa zenye hisa ndogo",
+    "@lowStockItems": {
+        "description": "Inventory summary card title"
+    },
     "pendingOrders": "Oda zinazosubiri",
+    "@pendingOrders": {
+        "description": "Inventory summary card title"
+    },
     "viewAll": "Tazama zote",
-    "idLabel": "ID",
+    "@viewAll": {
+        "description": "Opens the full list"
+    },
     "item": "Bidhaa",
+    "@item": {
+        "description": "Table column header"
+    },
     "category": "Kundi",
+    "@category": {
+        "description": "Table column header"
+    },
     "quantity": "Kiasi",
+    "@quantity": {
+        "description": "Table column header"
+    },
     "location": "Mahali",
+    "@location": {
+        "description": "Table column header"
+    },
     "expiredOn": "Iliisha muda",
+    "@expiredOn": {
+        "description": "Table column header for the expiry date"
+    },
     "actions": "Vitendo",
+    "@actions": {
+        "description": "Table column header for row actions"
+    },
     "allExpiredItems": "Bidhaa zote zilizoisha muda",
+    "@allExpiredItems": {
+        "description": "Dialog title listing every expired item"
+    },
     "goHomeQuestion": "Unataka kwenda mwanzo?",
+    "@goHomeQuestion": {
+        "description": "Confirms leaving the checkout screen"
+    },
     "searchProductsOrScan": "Tafuta bidhaa au changanua…",
+    "@searchProductsOrScan": {
+        "description": "POS search field placeholder"
+    },
     "clear": "Ondoa",
+    "@clear": {
+        "description": "Clears the current input"
+    },
     "addProductAction": "Ongeza bidhaa",
+    "@addProductAction": {
+        "description": "Tooltip for adding a single product"
+    },
     "help": "Msaada",
+    "@help": {
+        "description": "Opens help for the current screen"
+    },
     "customerManagement": "Usimamizi wa wateja",
+    "@customerManagement": {
+        "description": "Customers screen subtitle"
+    },
     "searchCustomersByNameOrPhone": "Tafuta wateja kwa jina au simu",
+    "@searchCustomersByNameOrPhone": {
+        "description": "Customer search placeholder"
+    },
     "clearSearch": "Ondoa utafutaji",
+    "@clearSearch": {
+        "description": "Clears the search field"
+    },
     "add": "Ongeza",
+    "@add": {
+        "description": "Generic add action"
+    },
     "editCustomer": "Hariri mteja",
+    "@editCustomer": {
+        "description": "Tooltip for editing a customer"
+    },
     "deleteCustomer": "Futa mteja",
+    "@deleteCustomer": {
+        "description": "Tooltip for deleting a customer"
+    },
     "customerActions": "Vitendo vya mteja",
+    "@customerActions": {
+        "description": "Semantic label for the customer row actions"
+    },
     "phone": "Simu",
-    "tin": "TIN",
+    "@phone": {
+        "description": "Table column header for a phone number"
+    },
     "invoice": "Ankara",
+    "@invoice": {
+        "description": "Label above the invoice number in checkout"
+    },
     "txnId": "ID ya muamala",
+    "@txnId": {
+        "description": "Short label above the transaction identifier"
+    },
     "addCustomer": "Ongeza mteja",
+    "@addCustomer": {
+        "description": "Tooltip for attaching a customer to the sale"
+    },
     "sortDefault": "Mpangilio wa kawaida",
+    "@sortDefault": {
+        "description": "Catalog sort option"
+    },
     "sortByPopularity": "Panga kwa umaarufu",
+    "@sortByPopularity": {
+        "description": "Catalog sort option"
+    },
     "sortByAverageRating": "Panga kwa wastani wa ukadiriaji",
+    "@sortByAverageRating": {
+        "description": "Catalog sort option"
+    },
     "sortByLatest": "Panga kwa vipya zaidi",
+    "@sortByLatest": {
+        "description": "Catalog sort option"
+    },
     "sortByPriceLowToHigh": "Panga kwa bei: chini kwenda juu",
+    "@sortByPriceLowToHigh": {
+        "description": "Catalog sort option"
+    },
     "sortByPriceHighToLow": "Panga kwa bei: juu kwenda chini",
+    "@sortByPriceHighToLow": {
+        "description": "Catalog sort option"
+    },
     "sortByStockOut": "Panga kwa hisa iliyoisha",
+    "@sortByStockOut": {
+        "description": "Catalog sort option, lowest stock first"
+    },
     "sortByEventDateOldToNew": "Panga kwa tarehe: kuanzia ya zamani",
+    "@sortByEventDateOldToNew": {
+        "description": "Catalog sort option"
+    },
     "sortByEventDateNewToOld": "Panga kwa tarehe: kuanzia ya karibuni",
+    "@sortByEventDateNewToOld": {
+        "description": "Catalog sort option"
+    },
     "sortCompactLatest": "Vipya",
+    "@sortCompactLatest": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactDefault": "Kawaida",
+    "@sortCompactDefault": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactPopular": "Maarufu",
+    "@sortCompactPopular": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactRating": "Ukadiriaji",
+    "@sortCompactRating": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactPrice": "Bei",
+    "@sortCompactPrice": {
+        "description": "Compact sort chip label, paired with an arrow"
+    },
     "sortCompactStockOut": "Hisa imeisha",
+    "@sortCompactStockOut": {
+        "description": "Compact sort chip label"
+    },
     "sortCompactDate": "Tarehe",
+    "@sortCompactDate": {
+        "description": "Compact sort chip label, paired with an arrow"
+    },
     "showingRangeOfResults": "Inaonyesha {start}–{end} kati ya {total}",
+    "@showingRangeOfResults": {
+        "description": "Pagination summary above the product grid",
+        "placeholders": {
+            "start": {
+                "type": "String"
+            },
+            "end": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "pageOfPages": "Ukurasa {current} kati ya {total}",
+    "@pageOfPages": {
+        "description": "Pagination footer",
+        "placeholders": {
+            "current": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "loadedOfProducts": "Bidhaa {loaded} kati ya {total}",
+    "@loadedOfProducts": {
+        "description": "Progress while the catalog loads",
+        "placeholders": {
+            "loaded": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "noProductsYet": "Hakuna bidhaa bado",
+    "@noProductsYet": {
+        "description": "Empty catalog state"
+    },
     "noBranchSelected": "Hakuna tawi lililochaguliwa",
+    "@noBranchSelected": {
+        "description": "Shown when no branch is active"
+    },
     "productsRefreshedForNewBranch": "Bidhaa zimeonyeshwa upya kwa tawi jipya",
+    "@productsRefreshedForNewBranch": {
+        "description": "Confirms the catalog reloaded after a branch switch"
+    },
     "deletedItemsCount": "Bidhaa {count} zimefutwa",
+    "@deletedItemsCount": {
+        "description": "Confirms a bulk delete",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "inStockCount": "{count} kwenye hisa",
+    "@inStockCount": {
+        "description": "Stock line on a product card",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
     "leftInStockCount": "Zimebaki {count} kwenye hisa",
+    "@leftInStockCount": {
+        "description": "Remaining stock hint on a cart line",
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
     "stockLow": "Chini",
+    "@stockLow": {
+        "description": "Badge on a product card with little stock left"
+    },
     "stockOutBadge": "Imeisha",
+    "@stockOutBadge": {
+        "description": "Badge on a product card with no stock"
+    },
     "mode": "Hali",
+    "@mode": {
+        "description": "Label of the Sale/Transfer toggle"
+    },
     "sale": "Mauzo",
+    "@sale": {
+        "description": "Sale mode in the checkout toggle"
+    },
     "transfer": "Kuhamisha",
+    "@transfer": {
+        "description": "Stock transfer mode in the checkout toggle"
+    },
     "searchCustomer": "Tafuta mteja",
+    "@searchCustomer": {
+        "description": "Customer search placeholder"
+    },
     "pay": "Lipa",
+    "@pay": {
+        "description": "Completes the sale"
+    },
     "noItemsYet": "Hakuna bidhaa bado",
+    "@noItemsYet": {
+        "description": "Empty cart state"
+    },
     "tapProductToStartSale": "Gusa bidhaa ili kuanza mauzo",
+    "@tapProductToStartSale": {
+        "description": "Empty cart hint"
+    },
     "grandTotalWithItems": "Jumla kuu · {itemLabel}",
+    "@grandTotalWithItems": {
+        "description": "Cart footer total",
+        "placeholders": {
+            "itemLabel": {
+                "type": "String"
+            }
+        }
+    },
     "defaultPrice": "Bei ya kawaida",
+    "@defaultPrice": {
+        "description": "Marks a cart line using the unmodified price"
+    },
     "pricePerUnitEach": "{currency} {price} kila moja",
+    "@pricePerUnitEach": {
+        "description": "Per-unit price on a cart line",
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "price": {
+                "type": "String"
+            }
+        }
+    },
     "deleteItem": "Futa bidhaa",
+    "@deleteItem": {
+        "description": "Tooltip on a cart line delete button"
+    },
     "editDetails": "Hariri maelezo",
+    "@editDetails": {
+        "description": "Opens the cart line editor"
+    },
     "enterQuantity": "Weka kiasi",
+    "@enterQuantity": {
+        "description": "Quantity field placeholder"
+    },
     "invalidQuantity": "Kiasi si sahihi",
+    "@invalidQuantity": {
+        "description": "Quantity validation error"
+    },
     "enterPrice": "Weka bei",
+    "@enterPrice": {
+        "description": "Price field placeholder"
+    },
     "invalidPrice": "Bei si sahihi",
+    "@invalidPrice": {
+        "description": "Price validation error"
+    },
     "confirmDelete": "Thibitisha kufuta",
+    "@confirmDelete": {
+        "description": "Delete confirmation dialog title"
+    },
     "confirmRemoveNamedItem": "Una hakika unataka kuondoa \"{itemName}\"?",
+    "@confirmRemoveNamedItem": {
+        "description": "Delete confirmation body for one cart line",
+        "placeholders": {
+            "itemName": {
+                "type": "String"
+            }
+        }
+    },
     "errorDeletingItems": "Hitilafu wakati wa kufuta bidhaa: {error}",
+    "@errorDeletingItems": {
+        "description": "Bulk delete failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "errorDeletingItem": "Hitilafu wakati wa kufuta bidhaa: {error}",
+    "@errorDeletingItem": {
+        "description": "Single delete failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "failedToDeleteItem": "Imeshindwa kufuta bidhaa",
+    "@failedToDeleteItem": {
+        "description": "Single delete failure toast"
+    },
     "failedToUpdateItem": "Imeshindwa kusasisha bidhaa",
-    "skuLabel": "SKU: {sku}",
-    "bcdLabel": "BCD: {barcode}",
+    "@failedToUpdateItem": {
+        "description": "Cart line update failure"
+    },
     "split": "Gawanya",
+    "@split": {
+        "description": "Splits the payment across several methods"
+    },
     "splitAcrossAnotherMethod": "Gawanya malipo haya kwa njia nyingine",
+    "@splitAcrossAnotherMethod": {
+        "description": "Tooltip on the split button"
+    },
     "allPaymentTypesInUse": "Njia zote za malipo zinatumika — ondoa moja ili kuongeza nyingine",
+    "@allPaymentTypesInUse": {
+        "description": "Shown when every payment method is already on the sale"
+    },
     "allPaymentTypesAdded": "Njia zote za malipo zimeongezwa. Ondoa moja ili kuongeza nyingine.",
+    "@allPaymentTypesAdded": {
+        "description": "Blocks adding a further payment method"
+    },
     "pleaseEnterAnAmount": "Tafadhali weka kiasi",
+    "@pleaseEnterAnAmount": {
+        "description": "Payment amount validation"
+    },
     "cashReceived": "Fedha zilizopokelewa",
+    "@cashReceived": {
+        "description": "Label of the tendered-cash field"
+    },
     "amount": "Kiasi",
+    "@amount": {
+        "description": "Generic amount field label"
+    },
     "removeThisPayment": "Ondoa malipo haya",
+    "@removeThisPayment": {
+        "description": "Tooltip on a payment row remove button"
+    },
     "tapSplitToPayWithMoreThanOneMethod": "Gusa Gawanya ili kulipa kwa njia zaidi ya moja",
+    "@tapSplitToPayWithMoreThanOneMethod": {
+        "description": "Hint under the payments list"
+    },
     "tapSplitToAddMethod": "Gusa Gawanya ili kuongeza njia",
+    "@tapSplitToAddMethod": {
+        "description": "Compact hint under the payments list"
+    },
     "invoiceNumberValue": "Na. {number}",
+    "@invoiceNumberValue": {
+        "description": "Invoice number shown in the checkout header",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
     "tenderedAmount": "Zilizotolewa {amount}",
+    "@tenderedAmount": {
+        "description": "Cash handed over by the customer",
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
     "paymentCollectedTotal": "Malipo yamekusanywa · {total}",
+    "@paymentCollectedTotal": {
+        "description": "Confirms a till collection",
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
     "viewOnlyCannotTransferStock": "Ruhusa ya kutazama tu — hauwezi kuhamisha hisa.",
+    "@viewOnlyCannotTransferStock": {
+        "description": "Blocks a transfer for view-only roles"
+    },
     "selectDestinationBranch": "Chagua tawi lengwa",
+    "@selectDestinationBranch": {
+        "description": "Transfer validation"
+    },
     "currentBranchIsMissing": "Tawi la sasa halipatikani",
+    "@currentBranchIsMissing": {
+        "description": "Transfer validation"
+    },
     "addItemsBeforeTransferring": "Ongeza bidhaa kabla ya kuhamisha",
+    "@addItemsBeforeTransferring": {
+        "description": "Transfer validation"
+    },
     "transferredItemsToBranch": "Bidhaa {count} zimehamishiwa {branch}",
+    "@transferredItemsToBranch": {
+        "description": "Confirms an outgoing branch transfer",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
     "transferFailed": "Kuhamisha kumeshindwa",
+    "@transferFailed": {
+        "description": "Outgoing transfer failure toast"
+    },
     "failedToClearCart": "Imeshindwa kufuta kikapu",
+    "@failedToClearCart": {
+        "description": "Cart reset failure toast"
+    },
     "paymentsCollectedAtTill": "Malipo yanakusanywa kwenye kaunta. Tuma oda hii ikiwa tayari — meneja atakusanya malipo.",
+    "@paymentsCollectedAtTill": {
+        "description": "Explains the till workflow to staff without collect rights"
+    },
     "sentToTillTicket": "Imetumwa kwenye kaunta — Tiketi #{reference}",
+    "@sentToTillTicket": {
+        "description": "Confirms a park-to-till",
+        "placeholders": {
+            "reference": {
+                "type": "String"
+            }
+        }
+    },
     "failedToSendToTill": "Imeshindwa kutuma kwenye kaunta: {error}",
+    "@failedToSendToTill": {
+        "description": "Park-to-till failure",
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "collectingPaymentForTicket": "Kukusanya malipo ya #{reference} · imetumwa na {name} · dakika {minutes} zilizopita",
+    "@collectingPaymentForTicket": {
+        "description": "Banner shown while settling a colleague’s parked ticket",
+        "placeholders": {
+            "reference": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            },
+            "minutes": {
+                "type": "String"
+            }
+        }
+    },
     "returningEllipsis": "Tunarudi…",
+    "@returningEllipsis": {
+        "description": "Shown while leaving the settling flow"
+    },
     "backToNewSale": "Rudi kwa mauzo mapya",
+    "@backToNewSale": {
+        "description": "Leaves the settling flow"
+    },
     "paymentCashCredit": "Fedha / Mkopo",
+    "@paymentCashCredit": {
+        "description": "Payment method display name"
+    },
     "paymentBankCheck": "Hundi ya benki",
+    "@paymentBankCheck": {
+        "description": "Payment method display name"
+    },
     "paymentDebitCreditCard": "Kadi ya benki",
+    "@paymentDebitCreditCard": {
+        "description": "Payment method display name"
+    },
     "paymentMobileMoney": "Pesa ya simu",
+    "@paymentMobileMoney": {
+        "description": "Payment method display name"
+    },
     "payerNameOptional": "Jina la mlipaji (si lazima)",
+    "@payerNameOptional": {
+        "description": "Hint for the optional name on the MoMo/bank account that sent the money, when it differs from the customer on the sale"
+    },
     "paidBy": "Amelipwa na",
-    "paymentMtnMomo": "MTN MoMo",
-    "paymentAirtelMoney": "Airtel Money",
+    "@paidBy": {
+        "description": "Label preceding the payer name on a transaction's payment line"
+    },
     "paymentOther": "Nyingine",
+    "@paymentOther": {
+        "description": "Payment method display name"
+    },
     "sendForReview": "Tuma kwa ukaguzi",
+    "@sendForReview": {
+        "description": "Checkout button when ticket review is enabled"
+    },
     "previewCart": "Kagua kikapu",
+    "@previewCart": {
+        "description": "Checkout button that opens the cart preview"
+    },
     "previewCartWithCount": "Kagua kikapu ({count})",
+    "@previewCartWithCount": {
+        "description": "Cart preview button with the item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "placeOrder": "Weka oda",
-    "confirmRemoveAllItemsCount": "Una hakika unataka kuondoa bidhaa zote {count} kutoka muamala huu?"
+    "@placeOrder": {
+        "description": "Submits an order in the ordering flow"
+    },
+    "confirmRemoveAllItemsCount": "Una hakika unataka kuondoa bidhaa zote {count} kutoka muamala huu?",
+    "@confirmRemoveAllItemsCount": {
+        "description": "Bulk-remove confirmation naming the item count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    }
 }
