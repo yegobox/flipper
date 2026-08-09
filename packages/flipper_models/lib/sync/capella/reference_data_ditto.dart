@@ -19,6 +19,7 @@ const String colorsCollection = 'colors';
 const String unitsCollection = 'units';
 const String countriesCollection = 'countries';
 const String financeProvidersCollection = 'finance_providers';
+const String configurationsCollection = 'configurations';
 
 /// `dittoInstance|collection|branchId` triples already subscribed. Without this
 /// guard every read would register another subscription and leak them until
@@ -218,3 +219,65 @@ FinanceProvider financeProviderFromDittoDoc(Map<String, dynamic> doc) =>
       suppliersThatAcceptThisFinanceFacility:
           doc['suppliersThatAcceptThisFinanceFacility']?.toString() ?? '',
     );
+
+// ---------------------------------------------------------------------------
+// Tax configuration (`configurations`).
+//
+// Server-owned like the catalogues: rows originate in Supabase, the client only
+// reads them. Cached in Ditto so tax lookups work offline — `getByTaxType` runs
+// on the sale path and must not need a round trip.
+// ---------------------------------------------------------------------------
+
+double? _doubleOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  return double.tryParse(value.toString());
+}
+
+Configurations configurationFromSupabaseRow(Map<String, dynamic> row) =>
+    Configurations(
+      id: row['id']?.toString(),
+      taxType: row['tax_type']?.toString(),
+      taxPercentage: _doubleOrNull(row['tax_percentage']),
+      businessId: row['business_id']?.toString(),
+      branchId: row['branch_id']?.toString(),
+    );
+
+Map<String, dynamic> configurationToDittoDoc(Configurations config) => {
+      '_id': config.id,
+      'id': config.id,
+      'taxType': config.taxType,
+      'taxPercentage': config.taxPercentage,
+      'businessId': config.businessId,
+      'branchId': config.branchId,
+    };
+
+Configurations configurationFromDittoDoc(Map<String, dynamic> doc) =>
+    Configurations(
+      id: (doc['id'] ?? doc['_id'])?.toString(),
+      taxType: doc['taxType']?.toString(),
+      taxPercentage: _doubleOrNull(doc['taxPercentage']),
+      businessId: doc['businessId']?.toString(),
+      branchId: doc['branchId']?.toString(),
+    );
+
+/// Pull every `configurations` row for [branchId] from Supabase and seed the
+/// Ditto cache. Returns what it fetched.
+Future<List<Configurations>> hydrateTaxConfigurationsIntoDitto({
+  required Ditto? ditto,
+  required String branchId,
+  required Future<List<Map<String, dynamic>>> Function() fetchRows,
+}) async {
+  final rows = await fetchRows();
+  final configs = rows.map(configurationFromSupabaseRow).toList();
+  if (ditto != null) {
+    for (final config in configs) {
+      await upsertReferenceDoc(
+        ditto,
+        configurationsCollection,
+        configurationToDittoDoc(config),
+      );
+    }
+  }
+  return configs;
+}

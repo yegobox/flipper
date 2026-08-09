@@ -57,6 +57,7 @@ mixin CapellaBranchMixin implements BranchInterface {
     // Manually create map from Branch properties
     final updatedData = <String, dynamic>{
       'name': name ?? existingBranch.name,
+      'active': active ?? existingBranch.active ?? true,
       'isDefault': isDefault ?? existingBranch.isDefault,
     };
 
@@ -90,6 +91,7 @@ mixin CapellaBranchMixin implements BranchInterface {
         "longitude": branch.longitude ?? 0,
         "latitude": branch.latitude ?? 0,
         "isDefault": branch.isDefault ?? false,
+        "active": branch.active ?? true,
         "serverId": branch.serverId ?? 0,
         "lastTouched": DateTime.now().toIso8601String(),
       },
@@ -120,8 +122,10 @@ mixin CapellaBranchMixin implements BranchInterface {
       }
 
       if (active != null) {
+        // `active` is stored as a CBOR boolean by the Ditto adapter, so it must
+        // be bound as a bool — binding 1/0 never matches under DQL strict mode.
         query += " AND active = :active";
-        arguments['active'] = active ? 1 : 0;
+        arguments['active'] = active;
       }
 
       if (excludeId != null) {

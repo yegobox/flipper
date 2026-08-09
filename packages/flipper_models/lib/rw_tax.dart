@@ -18,6 +18,8 @@ import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // ignore: unused_import
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -1960,16 +1962,34 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     return true;
   }
 
+  /// Hydrates tax configuration into Ditto.
+  ///
+  /// `configurations` is server-owned — rows originate in Supabase and the
+  /// client only reads them — so this pulls the branch's rows and seeds the
+  /// Ditto cache that `getByTaxType` reads on the sale path. Called once per
+  /// boot from `cron_service`.
   @override
   Future<List<odm.Configurations>> taxConfigs({
     required String branchId,
   }) async {
-    final repository = Repository();
-    List<Configurations> taxConfigs = await repository.get<Configurations>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
-      query: Query(where: [Where('branchId').isExactly(branchId)]),
-    );
-    return taxConfigs;
+    try {
+      return await hydrateTaxConfigurationsIntoDitto(
+        ditto: DittoService.instance.dittoInstance,
+        branchId: branchId,
+        fetchRows: () async {
+          final rows = await Supabase.instance.client
+              .from('configurations')
+              .select()
+              .eq('branch_id', branchId);
+          return (rows as List)
+              .map((r) => Map<String, dynamic>.from(r as Map))
+              .toList();
+        },
+      );
+    } catch (e) {
+      talker.error('taxConfigs hydration failed for branch $branchId: $e');
+      return const [];
+    }
   }
 
   @override

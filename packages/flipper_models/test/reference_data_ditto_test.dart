@@ -186,4 +186,64 @@ void main() {
       );
     });
   });
+
+  // Tax config is server-owned and cached in Ditto so `getByTaxType` works
+  // offline on the sale path. Supabase is snake_case, Ditto docs are camelCase.
+  group('tax configuration mapping', () {
+    test('reads a snake_case Supabase row', () {
+      final config = configurationFromSupabaseRow({
+        'id': 'cfg1',
+        'tax_type': 'B',
+        'tax_percentage': 18,
+        'business_id': 'biz1',
+        'branch_id': 'branch1',
+      });
+
+      expect(config.id, 'cfg1');
+      expect(config.taxType, 'B');
+      expect(config.taxPercentage, 18.0);
+      expect(config.businessId, 'biz1');
+      expect(config.branchId, 'branch1');
+    });
+
+    test('tax_percentage arriving as a string still parses', () {
+      expect(
+        configurationFromSupabaseRow({'id': 'a', 'tax_percentage': '7.5'})
+            .taxPercentage,
+        7.5,
+      );
+    });
+
+    test('a zero rate stays zero and does not fall back to a default', () {
+      // Exempt/zero-rated codes are 0 — coercing to a default would charge VAT.
+      final config =
+          configurationFromSupabaseRow({'id': 'a', 'tax_percentage': 0});
+      expect(config.taxPercentage, 0.0);
+    });
+
+    test('round-trips through a Ditto doc', () {
+      final original = configurationFromSupabaseRow({
+        'id': 'cfg1',
+        'tax_type': 'B',
+        'tax_percentage': 18,
+        'business_id': 'biz1',
+        'branch_id': 'branch1',
+      });
+      final back = configurationFromDittoDoc(configurationToDittoDoc(original));
+
+      expect(back.id, 'cfg1');
+      expect(back.taxType, 'B');
+      expect(back.taxPercentage, 18.0);
+      expect(back.businessId, 'biz1');
+      expect(back.branchId, 'branch1');
+    });
+
+    test('_id is the Supabase row id, so seeding is idempotent', () {
+      final doc = configurationToDittoDoc(
+        configurationFromSupabaseRow({'id': 'cfg1'}),
+      );
+      expect(doc['_id'], 'cfg1');
+      expect(doc['_id'], doc['id']);
+    });
+  });
 }

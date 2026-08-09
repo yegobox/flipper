@@ -5,6 +5,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
@@ -1159,15 +1161,50 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return null;
 
-    return (await repository.get<Configurations>(
-      query: Query(
-        where: [
-          Where('taxType').isExactly(taxtype),
-          Where('branchId').isExactly(branchId),
-        ],
-      ),
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    )).firstOrNull;
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      try {
+        final cached = await ditto.store.execute(
+          'SELECT * FROM $configurationsCollection '
+          'WHERE branchId = :branchId AND taxType = :taxType LIMIT 1',
+          arguments: {'branchId': branchId, 'taxType': taxtype},
+        );
+        if (cached.items.isNotEmpty) {
+          return configurationFromDittoDoc(
+            Map<String, dynamic>.from(cached.items.first.value),
+          );
+        }
+      } catch (e) {
+        talker.warning('Ditto tax config read failed: $e');
+      }
+    }
+
+    // Cache miss — `configurations` is server-owned, so fall through to
+    // Supabase and seed Ditto. `taxConfigs` normally warms this at boot.
+    try {
+      final row = await Supabase.instance.client
+          .from(configurationsCollection)
+          .select()
+          .eq('branch_id', branchId)
+          .eq('tax_type', taxtype)
+          .limit(1)
+          .maybeSingle();
+      if (row == null) return null;
+
+      final config =
+          configurationFromSupabaseRow(Map<String, dynamic>.from(row));
+      if (ditto != null) {
+        await upsertReferenceDoc(
+          ditto,
+          configurationsCollection,
+          configurationToDittoDoc(config),
+        );
+      }
+      return config;
+    } catch (e, st) {
+      talker.error('getByTaxType($taxtype) failed: $e\n$st');
+      return null;
+    }
   }
 
   @override
