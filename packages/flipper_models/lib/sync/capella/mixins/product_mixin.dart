@@ -254,20 +254,25 @@ mixin CapellaProductMixin implements ProductInterface {
       throw Exception('Ditto not initialized: getSku');
     }
 
-    // Highest existing sequence for this branch+business. Ordering is applied
-    // on `store.execute` (subscriptions reject ORDER BY).
+    // Highest existing sequence for this branch+business. The maximum is
+    // computed in Dart instead of with `ORDER BY sku DESC LIMIT 1`: replicated
+    // documents may carry `sku` as a string or null, and those sort
+    // lexicographically ("9" > "10") or ahead of every number, so the single
+    // ordered row is not reliably the numeric maximum.
     final existing = await ditto.store.execute(
-      'SELECT * FROM skus WHERE branchId = :branchId AND businessId = :businessId '
-      'ORDER BY sku DESC LIMIT 1',
+      'SELECT * FROM skus WHERE branchId = :branchId AND businessId = :businessId',
       arguments: {'branchId': branchId, 'businessId': businessId},
     );
 
     int lastSequence = 0;
-    if (existing.items.isNotEmpty) {
-      final raw = existing.items.first.value['sku'];
-      lastSequence = raw is num
+    for (final item in existing.items) {
+      final raw = item.value['sku'];
+      final sequence = raw is num
           ? raw.toInt()
           : int.tryParse(raw?.toString() ?? '') ?? 0;
+      if (sequence > lastSequence) {
+        lastSequence = sequence;
+      }
     }
 
     final newSku = SKU(
@@ -350,25 +355,26 @@ mixin CapellaProductMixin implements ProductInterface {
       sku.consumed = true;
 
       final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        await ditto.store.execute(
-          "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-          arguments: {'doc': sku.toJson()},
-        );
+      if (ditto == null) {
+        // Without Ditto we cannot write documents nor run the duplicate check,
+        // so an empty query result would be indistinguishable from "no match".
+        throw Exception('Ditto not initialized: createProduct');
       }
+      await ditto.store.execute(
+        "INSERT INTO skus DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+        arguments: {'doc': sku.toJson()},
+      );
 
       final createdProduct = product;
-      if (ditto != null) {
-        await ditto.store.execute(
-          "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-          arguments: {'doc': createdProduct.toJson()},
-        );
-      }
+      await ditto.store.execute(
+        "INSERT INTO products DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+        arguments: {'doc': createdProduct.toJson()},
+      );
 
       if (!skipRegularVariant) {
         // Check if a variant with the same product and barcode already exists
         final hasBarcode = product.barCode?.isNotEmpty == true;
-        final variantLookup = await ditto?.store.execute(
+        final variantLookup = await ditto.store.execute(
           hasBarcode
               ? 'SELECT * FROM variants WHERE productId = :productId AND bcd = :bcd'
               : 'SELECT * FROM variants WHERE productId = :productId',
@@ -377,7 +383,7 @@ mixin CapellaProductMixin implements ProductInterface {
             if (hasBarcode) 'bcd': product.barCode!,
           },
         );
-        final existingVariants = (variantLookup?.items ?? [])
+        final existingVariants = variantLookup.items
             .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
             .toList();
 
@@ -468,17 +474,15 @@ mixin CapellaProductMixin implements ProductInterface {
         );
 
         final createdStock = stock;
-        if (ditto != null) {
-          await ditto.store.execute(
-            "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
-            arguments: {'doc': createdStock.toJson()},
-          );
-          await seedStockMilliIfAbsentOnStore(
-            ditto.store,
-            stockId: createdStock.id,
-            qty: createdStock.currentStock ?? qty,
-          );
-        }
+        await ditto.store.execute(
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
+          arguments: {'doc': createdStock.toJson()},
+        );
+        await seedStockMilliIfAbsentOnStore(
+          ditto.store,
+          stockId: createdStock.id,
+          qty: createdStock.currentStock ?? qty,
+        );
         talker.info('Created stock: ${createdStock.id} for variant');
 
         // Set stock reference on variant
@@ -519,14 +523,12 @@ mixin CapellaProductMixin implements ProductInterface {
 
             try {
               // The variant itself was already written to Ditto by addVariant.
-              if (ditto != null) {
-                final doc = await PurchaseDittoAdapter.instance
-                    .toDittoDocument(purchase);
-                await ditto.store.execute(
-                  'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-                  arguments: {'doc': doc},
-                );
-              }
+              final doc = await PurchaseDittoAdapter.instance
+                  .toDittoDocument(purchase);
+              await ditto.store.execute(
+                'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+                arguments: {'doc': doc},
+              );
 
               talker.info(
                 'Added variant ${savedVariant.id} to purchase ${purchase.id}',
@@ -543,14 +545,12 @@ mixin CapellaProductMixin implements ProductInterface {
         }
       }
       if (purchase != null) {
-        if (ditto != null) {
-          final doc =
-              await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
-          await ditto.store.execute(
-            'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-            arguments: {'doc': doc},
-          );
-        }
+        final doc =
+            await PurchaseDittoAdapter.instance.toDittoDocument(purchase);
+        await ditto.store.execute(
+          'INSERT INTO purchases DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+          arguments: {'doc': doc},
+        );
       }
 
       return createdProduct;
