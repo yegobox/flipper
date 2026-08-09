@@ -21,6 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever_windows
   sentry_flutter
   share_plus
+  speech_to_text_windows
   tray_manager
   url_launcher_windows
   window_manager

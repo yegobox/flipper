@@ -21,6 +21,9 @@ PODS:
   - CocoaAsyncSocket (7.6.5)
   - connectivity_plus (0.0.1):
     - FlutterMacOS
+  - CwlCatchException (2.2.1):
+    - CwlCatchExceptionSupport (~> 2.2.1)
+  - CwlCatchExceptionSupport (2.2.1)
   - desktop_drop (0.0.1):
     - FlutterMacOS
   - device_info_plus (0.0.1):
@@ -269,6 +272,10 @@ PODS:
   - sign_in_with_apple (0.0.1):
     - Flutter
     - FlutterMacOS
+  - speech_to_text (7.2.0):
+    - CwlCatchException
+    - Flutter
+    - FlutterMacOS
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
@@ -316,6 +323,7 @@ DEPENDENCIES:
   - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/darwin`)
+  - speech_to_text (from `Flutter/ephemeral/.symlinks/plugins/speech_to_text/darwin`)
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
@@ -326,6 +334,8 @@ SPEC REPOS:
     - AppAuth
     - AppCheckCore
     - CocoaAsyncSocket
+    - CwlCatchException
+    - CwlCatchExceptionSupport
     - DittoFlutter
     - Firebase
     - FirebaseAnalytics
@@ -425,6 +435,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   sign_in_with_apple:
     :path: Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/darwin
+  speech_to_text:
+    :path: Flutter/ephemeral/.symlinks/plugins/speech_to_text/darwin
   sqflite_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin
   tray_manager:
@@ -442,6 +454,8 @@ SPEC CHECKSUMS:
   AppCheckCore: 214137f5c378d1dec88a68425c467fe65aaff637
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: 0a976dfd033b59192912fa3c6c7b54aab5093802
+  CwlCatchException: 7acc161b299a6de7f0a46a6ed741eae2c8b4d75a
+  CwlCatchExceptionSupport: 54ccab8d8c78907b57f99717fb19d4cc3bce02dc
   desktop_drop: 1eeeb9484299585770b6461e4f3d60950e99efa2
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   ditto_live: b5a06dcb7849d9094a71555477b3ed62392f0903
@@ -499,6 +513,7 @@ SPEC CHECKSUMS:
   share_plus: 1fa619de8392a4398bfaf176d441853922614e89
   shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
   sign_in_with_apple: fb98447f3dfb81e2926945ea43a8c9c7205eaca9
+  speech_to_text: 87bf9298952e8d9073be1b6aade6d5758db5170c
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   tray_manager: c2a678ee19e2a094f0c2d03660ee2c3e81cea8ab
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce

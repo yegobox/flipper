@@ -44,7 +44,7 @@
 		<key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
 		<true/>
 	<key>NSMicrophoneUsageDescription</key>
-    <string>Some message to describe why you need this permission</string>
+	<string>Flipper uses the microphone so you can dictate questions to Flo instead of typing them.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>Uses Bluetooth to connect and sync with nearby devices</string>
 		<key>NSBluetoothPeripheralUsageDescription</key>
@@ -55,5 +55,7 @@
 		<array>
 		<string>_http-alt._tcp.</string>
 		</array>
-	</dict>
+		<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Flipper converts your speech to text on this device so Flo can read the question you dictated.</string>
+</dict>
 </plist>

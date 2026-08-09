@@ -31,6 +31,9 @@ dependencies:
   path: any
   markdown_widget: any
   record: ^6.2.0
+  # On-device speech recognition for the Flo composer mic button.
+  # Supported on android/ios/macos/web/windows; gated at runtime elsewhere.
+  speech_to_text: ^7.4.0
   file_picker: ^10.3.7
   mime: any
   flutter_svg: any
