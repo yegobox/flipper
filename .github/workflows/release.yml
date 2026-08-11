@@ -421,7 +421,7 @@ jobs:
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ditto-only-migration'
     runs-on: windows-latest
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
