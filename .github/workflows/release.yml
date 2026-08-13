@@ -421,7 +421,7 @@ jobs:
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ditto-only-migration'
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
@@ -534,7 +534,123 @@ jobs:
             Production Release for Windows App Store
         env:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
-  
+
+  # Store-format (--store) msix build off the migration branch, so it can still
+  # be sideloaded for testing or hand-submitted to Partner Center as a flight —
+  # without going through `build-and-release-windows-prod`, whose tag/name/lack
+  # of `prerelease` imply a vetted, main-branch Store submission.
+  build-and-release-windows-prerelease:
+    name: "Build windows app-store (prerelease)"
+    if: github.ref == 'refs/heads/ditto-only-migration'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
+          persist-credentials: true  # Keep this for checkout
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Initialize submodules
+        run: git submodule update --init
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
+        run: |
+          git submodule update --init
+          dart run melos bootstrap
+        shell: bash
+
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium for printing plugin
+        shell: pwsh
+        run: ./scripts/ci/prefetch-pdfium.ps1
+
+      - name: Build and Package
+        shell: pwsh
+        run: |
+          Set-Location apps/flipper
+          flutter clean
+          flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+          Set-Location apps/flipper
+          flutter build windows -v
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Set-Location ../..
+          ./scripts/ci/bundle-native-assets.ps1
+          Set-Location apps/flipper
+          dart run msix:create --store --build-windows false
+
+      - name: Extract msix_version
+        id: get_version
+        shell: powershell
+        run: |
+          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "version=$MSIX_VERSION" >> $env:GITHUB_OUTPUT
+
+      - name: Create Prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          tag_name: v${{ steps.get_version.outputs.version }}_windows_prerelease
+          name: Windows Prerelease ${{ steps.get_version.outputs.version }} (ditto-only-migration)
+          draft: false
+          prerelease: true
+          body: |
+            Nightly Store-format (--store) build from ditto-only-migration for
+            testing / manual Partner Center flight submission. Not a vetted
+            production release — see build-and-release-windows-prod for that.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+
   fastlane-deploy:
     name: "Google Deploy ${{ matrix.app }}"
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
