@@ -735,6 +735,37 @@ class BulkAddProductViewModel extends ChangeNotifier {
     return map;
   }
 
+  /// Reverse of [_loadBulkCategoryLookup] — needed to resolve a display name
+  /// for rows where the user picked a category id from the grid dropdown
+  /// rather than typing a name into the Excel "Category" column.
+  Future<Map<String, String>> _loadBulkCategoryIdToName(
+    String branchId,
+  ) async {
+    final map = <String, String>{};
+    void merge(List<Category> list) {
+      for (final c in list) {
+        map.putIfAbsent(c.id, () => c.name ?? '');
+      }
+    }
+
+    merge(
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).categories(branchId: branchId),
+    );
+
+    if (!kIsWeb) {
+      try {
+        merge(
+          await ProxyService.legacyStrategy.categories(branchId: branchId),
+        );
+      } catch (e, s) {
+        talker.warning('bulk category id->name merge from cloudSync: $e', e, s);
+      }
+    }
+    return map;
+  }
+
   /// One DB list + one create pass per distinct new name (case-insensitive).
   bool _looksLikeSqliteWriteContention(Object e) {
     final s = e.toString().toLowerCase();
@@ -822,13 +853,19 @@ class BulkAddProductViewModel extends ChangeNotifier {
     return normToId;
   }
 
-  String _bulkCategoryIdForRow(
+  /// Resolves both the category id and its display name for a row, so
+  /// callers can persist `categoryName` instead of leaving it to fall back
+  /// to the id (see [bulk_process_item_mixin.dart]'s `item.categoryName ?? item.category`).
+  (String id, String name) _bulkCategoryForRow(
     Map<String, dynamic> product,
     String rowUid,
     Map<String, String> normToId,
+    Map<String, String> idToName,
   ) {
     final picked = (_selectedCategories[rowUid] ?? '').trim();
-    if (picked.isNotEmpty) return picked;
+    if (picked.isNotEmpty) {
+      return (picked, idToName[picked] ?? '');
+    }
 
     final raw = (product['Category'] ?? '').toString().trim();
     final display = raw.isNotEmpty ? raw : kBulkDefaultExcelCategoryName;
@@ -838,18 +875,20 @@ class BulkAddProductViewModel extends ChangeNotifier {
         'Could not resolve category "$display". Try saving categories or pick one in the grid.',
       );
     }
-    return id;
+    return (id, display);
   }
 
   Future<List<brick.Variant>> _buildVariantsForLegacySave() async {
     final branchId = ProxyService.box.getBranchId()!;
     final normToId = await _ensureBulkCategoryLookup(branchId);
+    final idToName = await _loadBulkCategoryIdToName(branchId);
     final items = <brick.Variant>[];
     for (var rowIndex = 0; rowIndex < _excelData!.length; rowIndex++) {
       final product = _excelData![rowIndex];
       final barCode = _stableBulkBarCode(product, rowIndex);
       final rowUid = _bulkUidOf(product);
-      final finalCategoryId = _bulkCategoryIdForRow(product, rowUid, normToId);
+      final (finalCategoryId, finalCategoryName) =
+          _bulkCategoryForRow(product, rowUid, normToId, idToName);
       final qtyText = _resolveQuantityText(rowUid, product);
       items.add(
         brick.Variant(
@@ -865,6 +904,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
               0,
           quantity: double.tryParse(qtyText) ?? 1,
           categoryId: finalCategoryId,
+          categoryName: finalCategoryName,
           orgnNatCd: 'RW',
           qtyUnitCd: 'U',
         ),
@@ -1217,6 +1257,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     required bool isVatEnabled,
   }) async {
     final normToId = await _ensureBulkCategoryLookup(branchId);
+    final idToName = await _loadBulkCategoryIdToName(branchId);
     final rows = <Map<String, dynamic>>[];
     for (final product in _excelData!) {
       String barCode = product['BarCode'] ?? '';
@@ -1229,7 +1270,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       final rowUid = _bulkUidOf(product);
-      final finalCategoryId = _bulkCategoryIdForRow(product, rowUid, normToId);
+      final (finalCategoryId, finalCategoryName) =
+          _bulkCategoryForRow(product, rowUid, normToId, idToName);
 
       final qty = _resolveQuantityText(rowUid, product);
       final taxTyCd = resolveTaxTyCdForRow(rowUid, product);
@@ -1251,6 +1293,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
         'supplyPrice': supplyPrice,
         'categoryId': finalCategoryId,
         'category': finalCategoryId,
+        'categoryName': finalCategoryName,
         'tin': tin,
         'bhfId': bhfId,
         'taxTyCd': taxTyCd,

@@ -14,6 +14,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_localization
   geolocator_windows
   local_auth_windows
+  passkeys_windows
   pasteboard
   permission_handler_windows
   printing
@@ -21,6 +22,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever_windows
   sentry_flutter
   share_plus
+  speech_to_text_windows
   tray_manager
   url_launcher_windows
   window_manager
