@@ -33,6 +33,12 @@ class SpeechDictation extends ChangeNotifier {
   DictationState _state = DictationState.idle;
   String? _error;
   bool _initialized = false;
+  bool _disposed = false;
+
+  /// Bumped on every [start]/[stop] so a session that is superseded (or
+  /// outlived by [dispose]) can tell its own late callbacks apart from the
+  /// current one and refuse to mutate state or the target controller.
+  int _session = 0;
 
   /// Text present in the target field when the session started; recognised
   /// words are appended to it so dictation never eats what the user typed.
@@ -84,6 +90,13 @@ class SpeechDictation extends ChangeNotifier {
       return;
     }
 
+    // Captured up front so a later `stop()`/`start()`/`dispose()` — which
+    // bump `_session` or set `_disposed` — can be detected once control
+    // returns from an await, and this obsolete session can bail out instead
+    // of listening or touching state that a newer session now owns.
+    final session = ++_session;
+    bool isCurrent() => !_disposed && session == _session;
+
     _error = null;
     _setState(DictationState.starting);
 
@@ -94,9 +107,10 @@ class SpeechDictation extends ChangeNotifier {
           onError: _onError,
         );
       } catch (e) {
-        _fail('Could not start voice input: $e');
+        if (isCurrent()) _fail('Could not start voice input: $e');
         return;
       }
+      if (!isCurrent()) return;
       if (!_initialized) {
         _fail(
           'Microphone access is off. Enable it for Flipper in your system '
@@ -112,7 +126,7 @@ class SpeechDictation extends ChangeNotifier {
 
     try {
       await _speech.listen(
-        onResult: _onResult,
+        onResult: (result) => _onResult(session, result),
         listenOptions: SpeechListenOptions(
           partialResults: true,
           cancelOnError: true,
@@ -124,24 +138,33 @@ class SpeechDictation extends ChangeNotifier {
         ),
       );
     } catch (e) {
-      _fail('Could not start listening: $e');
+      if (isCurrent()) _fail('Could not start listening: $e');
       return;
     }
 
+    if (!isCurrent()) return;
     _setState(DictationState.listening);
   }
 
   Future<void> stop() async {
     if (_state == DictationState.idle) return;
+    // Invalidate the session and drop the target synchronously — before the
+    // first await below — so a `start()`/`_onResult` in flight right now
+    // (e.g. one still inside its own await) sees the stale session or a null
+    // target the instant control returns to it, rather than after
+    // `_speech.stop()` has had a chance to race it.
+    _session++;
+    _target = null;
     try {
       await _speech.stop();
     } catch (_) {
       // Stopping a session that already ended is not worth surfacing.
     }
-    _setState(DictationState.idle);
+    if (!_disposed) _setState(DictationState.idle);
   }
 
-  void _onResult(SpeechRecognitionResult result) {
+  void _onResult(int session, SpeechRecognitionResult result) {
+    if (_disposed || session != _session) return;
     final target = _target;
     if (target == null) return;
 
@@ -159,6 +182,7 @@ class SpeechDictation extends ChangeNotifier {
   }
 
   void _onStatus(String status) {
+    if (_disposed) return;
     if (status == SpeechToText.listeningStatus) {
       _setState(DictationState.listening);
     } else if (_state != DictationState.unavailable) {
@@ -169,6 +193,7 @@ class SpeechDictation extends ChangeNotifier {
   }
 
   void _onError(SpeechRecognitionError error) {
+    if (_disposed) return;
     // 'error_no_match' / 'error_speech_timeout' just mean nothing was heard;
     // dropping back to idle silently is friendlier than an error toast.
     const quiet = {'error_no_match', 'error_speech_timeout'};
@@ -196,6 +221,7 @@ class SpeechDictation extends ChangeNotifier {
   }
 
   void _fail(String message) {
+    if (_disposed) return;
     _error = message;
     // Unavailable is transient: the next tap retries, which is what a user
     // expects after granting permission in system settings.
@@ -204,13 +230,16 @@ class SpeechDictation extends ChangeNotifier {
   }
 
   void _setState(DictationState next) {
-    if (_state == next) return;
+    if (_disposed || _state == next) return;
     _state = next;
     notifyListeners();
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    _session++;
+    _target = null;
     if (_initialized) {
       _speech.cancel();
     }
