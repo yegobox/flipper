@@ -1227,20 +1227,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final cached = _taxConfigByBranchAndType[cacheKey];
     if (cached != null) return cached;
 
-    final repository = Repository();
-    final taxConfigs = await repository.get<Configurations>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: Query(
-        where: [
-          Where('taxType').isExactly(taxType),
-          Where('branchId').isExactly(branchId),
-        ],
-      ),
-    );
-    if (taxConfigs.isEmpty) {
+    // Read through Capella's Ditto-backed cache — populated at boot by
+    // `taxConfigs` — rather than Brick, so a sale on a fresh device with no
+    // network doesn't block `mapItemToJson` waiting on a remote round trip.
+    final config = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getByTaxType(taxtype: taxType);
+    if (config == null) {
       throw Exception('Failed to get tax config for $taxType');
     }
-    final config = taxConfigs.first;
     _taxConfigByBranchAndType[cacheKey] = config;
     return config;
   }
@@ -1495,22 +1490,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String customerName,
   }) async {
     final capella = ProxyService.getStrategy(Strategy.capella);
-    odm.Configurations? taxConfigTaxB = await capella.getByTaxType(
-      taxtype: "B",
-    );
-    odm.Configurations? taxConfigTaxA = await capella.getByTaxType(
-      taxtype: "A",
-    );
-    odm.Configurations? taxConfigTaxC = await capella.getByTaxType(
-      taxtype: "C",
-    );
-    odm.Configurations? taxConfigTaxD = await capella.getByTaxType(
-      taxtype: "D",
-    );
-    odm.Configurations? taxConfigTaxTT = await capella.getByTaxType(
-      taxtype: "TT",
-    );
-    odm.Configurations? taxConfigTaxF = await capella.getByTaxType(
+    final taxConfigTaxB = await capella.getByTaxType(taxtype: "B");
+    if (taxConfigTaxB == null) {
+      throw Exception('Missing tax configuration for tax type B');
+    }
+    final taxConfigTaxA = await capella.getByTaxType(taxtype: "A");
+    if (taxConfigTaxA == null) {
+      throw Exception('Missing tax configuration for tax type A');
+    }
+    final taxConfigTaxC = await capella.getByTaxType(taxtype: "C");
+    if (taxConfigTaxC == null) {
+      throw Exception('Missing tax configuration for tax type C');
+    }
+    final taxConfigTaxD = await capella.getByTaxType(taxtype: "D");
+    if (taxConfigTaxD == null) {
+      throw Exception('Missing tax configuration for tax type D');
+    }
+    final taxConfigTaxTT = await capella.getByTaxType(taxtype: "TT");
+    if (taxConfigTaxTT == null) {
+      throw Exception('Missing tax configuration for tax type TT');
+    }
+    // Tax type F (fuel) has no legacy guarantee of a seeded row, so callers
+    // fall back to a default rate below rather than treating it as required.
+    final odm.Configurations? taxConfigTaxF = await capella.getByTaxType(
       taxtype: "F",
     );
 
@@ -1575,19 +1577,19 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       "taxAmtA":
           ((taxTotals['A'] ?? 0.0) *
-                  (taxConfigTaxA!.taxPercentage ?? 0) /
+                  (taxConfigTaxA.taxPercentage ?? 0) /
                   (100 + (taxConfigTaxA.taxPercentage ?? 0)))
               .toStringAsFixed(2),
       "taxAmtB": taxAmtB,
       "taxAmtC": double.parse(
         ((taxTotals['C'] ?? 0.0) *
-                (taxConfigTaxC!.taxPercentage ?? 0) /
+                (taxConfigTaxC.taxPercentage ?? 0) /
                 (100 + (taxConfigTaxC.taxPercentage ?? 0)))
             .toStringAsFixed(2),
       ),
       "taxAmtD": double.parse(
         ((taxTotals['D'] ?? 0.0) *
-                (taxConfigTaxD!.taxPercentage ?? 0) /
+                (taxConfigTaxD.taxPercentage ?? 0) /
                 (100 + (taxConfigTaxD.taxPercentage ?? 0)))
             .toStringAsFixed(2),
       ),
@@ -1595,11 +1597,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxAmtF": taxAmtF,
 
       "taxRtA": taxConfigTaxA.taxPercentage,
-      "taxRtB": taxConfigTaxB!.taxPercentage,
+      "taxRtB": taxConfigTaxB.taxPercentage,
       "taxRtC": taxConfigTaxC.taxPercentage,
       "taxRtD": taxConfigTaxD.taxPercentage,
       "taxRtF": fuelTaxRate,
-      "ttTaxRt": taxConfigTaxTT!.taxPercentage,
+      "ttTaxRt": taxConfigTaxTT.taxPercentage,
 
       "totTaxblAmt": totalTaxable.roundToTwoDecimalPlaces(),
 
@@ -1987,8 +1989,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         },
       );
     } catch (e) {
+      // The boot caller (`cron_service`) ignores this method's return value,
+      // so swallowing the failure here as `const []` would hide it entirely
+      // and let boot proceed believing the Ditto tax cache is warm. Rethrow
+      // so the caller's own error handling — which does surface failures —
+      // sees it instead.
       talker.error('taxConfigs hydration failed for branch $branchId: $e');
-      return const [];
+      rethrow;
     }
   }
 

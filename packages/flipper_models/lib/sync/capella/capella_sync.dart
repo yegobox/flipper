@@ -1030,7 +1030,14 @@ class CapellaSync extends AiStrategyImpl
     required TransactionItem item,
     required String subBranchId,
   }) async {
-    final requested = item.quantityRequested!.toDouble();
+    // Same fallbacks used elsewhere for these two fields (e.g.
+    // transfers_report_screen.dart's `quantityRequested ?? qty`, and the
+    // `retailPrice ?? 0` used throughout transactionItemUtil.dart) — the
+    // Brick implementation force-unwrapped both and would have crashed the
+    // same way on a null, so this isn't a behavior regression, just a
+    // graceful default instead of a raw null-check crash.
+    final requested = (item.quantityRequested ?? item.qty).toDouble();
+    final retailPrice = variant.retailPrice ?? 0.0;
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       throw Exception('Ditto not initialized: createNewStock');
@@ -1041,7 +1048,7 @@ class CapellaSync extends AiStrategyImpl
       branchId: subBranchId,
       currentStock: requested,
       rsdQty: requested,
-      value: requested * variant.retailPrice!,
+      value: requested * retailPrice,
       // Inbound transfer stock stays inactive until the receiving branch
       // approves it — same as the Brick implementation.
       active: false,

@@ -79,9 +79,8 @@ mixin CapellaEbmMixin implements EbmInterface {
   /// signing down with it.
   @override
   Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
+    final ditto = dittoService.dittoInstance;
     try {
-      final ditto = dittoService.dittoInstance;
-
       if (ditto != null && !fetchRemote) {
         const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
         final arguments = {'branchId': branchId};
@@ -107,17 +106,38 @@ mixin CapellaEbmMixin implements EbmInterface {
         }
       }
 
-      final row = await Supabase.instance.client
-          .from('ebms')
-          .select()
-          .eq('branch_id', branchId)
-          .limit(1)
-          .maybeSingle();
-      if (row == null) return null;
+      try {
+        final row = await Supabase.instance.client
+            .from('ebms')
+            .select()
+            .eq('branch_id', branchId)
+            .limit(1)
+            .maybeSingle();
+        if (row != null) {
+          final ebm = _ebmFromMap(Map<String, dynamic>.from(row), branchId);
+          await cacheEbmInDitto(ebm);
+          return ebm;
+        }
+      } catch (e, st) {
+        talker.error('Capella ebm: Supabase fetch failed: $e\n$st');
+      }
 
-      final ebm = _ebmFromMap(Map<String, dynamic>.from(row), branchId);
-      await cacheEbmInDitto(ebm);
-      return ebm;
+      // Supabase had no row (or is unreachable, e.g. offline) — fall back to
+      // whatever `cacheEbmInDitto` seeded on a previous successful fetch,
+      // instead of returning null and taking VAT/RRA/receipt signing down
+      // with it. Re-checks Ditto even when the `!fetchRemote` branch above
+      // already came up empty for it — cheap, and keeps this the single
+      // place that decides the final null.
+      if (ditto != null) {
+        final result = await ditto.store.execute(
+          'SELECT * FROM ebms WHERE branchId = :branchId',
+          arguments: {'branchId': branchId},
+        );
+        if (result.items.isNotEmpty) {
+          return _ebmFromMap(result.items.first.value as Map, branchId);
+        }
+      }
+      return null;
     } catch (e, st) {
       talker.error('Capella ebm: Error fetching EBM: $e\n$st');
       return null;

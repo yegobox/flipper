@@ -1202,8 +1202,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
       return config;
     } catch (e, st) {
+      // A genuine lookup failure (network error, bad Ditto write, …) must not
+      // look identical to "no configuration for this tax type" — callers like
+      // `buildRequestData` rely on null meaning the latter and would silently
+      // build a request with a missing tax rate otherwise.
       talker.error('getByTaxType($taxtype) failed: $e\n$st');
-      return null;
+      rethrow;
     }
   }
 

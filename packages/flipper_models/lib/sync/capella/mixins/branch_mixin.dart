@@ -11,6 +11,12 @@ import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
 
+/// `businessId` keys (or `''` for none) already given one Brick fallback
+/// attempt for a legitimately-empty `branches`/`businesses` Ditto result, so
+/// repeat calls don't pay for another blocking network read every time.
+final Set<String> _branchesEmptyFallbackAttempted = <String>{};
+final Set<String> _businessesEmptyFallbackAttempted = <String>{};
+
 mixin CapellaBranchMixin implements BranchInterface {
   Repository get repository;
   Talker get talker;
@@ -178,7 +184,9 @@ mixin CapellaBranchMixin implements BranchInterface {
           .map((doc) => Branch.fromMap(Map<String, dynamic>.from(doc.value)))
           .toList();
 
-      if (branches.isEmpty && !localOnly) {
+      if (branches.isEmpty &&
+          !localOnly &&
+          _branchesEmptyFallbackAttempted.add(businessId ?? '')) {
         return _branchesFromBrick(
           businessId: businessId,
           active: active,
@@ -265,7 +273,9 @@ mixin CapellaBranchMixin implements BranchInterface {
           .map((doc) => Business.fromMap(Map<String, dynamic>.from(doc.value)))
           .toList();
 
-      if (businesses.isEmpty && fetchOnline) {
+      if (businesses.isEmpty &&
+          fetchOnline &&
+          _businessesEmptyFallbackAttempted.add(userId ?? '')) {
         return _businessesFromBrick(userId: userId, active: active);
       }
       return businesses;
