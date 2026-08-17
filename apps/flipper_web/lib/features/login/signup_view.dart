@@ -161,7 +161,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                       compact: false,
                     ),
                   ),
-                  const Expanded(child: WebBrandPanel()),
+                  const Expanded(child: BrandPanel()),
                 ],
               );
             }

@@ -212,6 +212,95 @@ jobs:
         # to target (a stray `jq .hosting.site = "useflipper"` + deploy block was
         # removed because it failed with: could not find site "useflipper").
         run: echo "Flipper Web app (serves flipper.yegobox.com + useflipper.com) deployed to ${{ steps.deploy_flipper_web.outputs.urls }}"
+
+  build_hr_deploy_firebase:
+    name: "Build & Deploy Flipper HR"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+      - run: flutter doctor -v
+
+      - name: Initialize Git repository
+        run: git init
+      - name: Submodule init and update
+        run: git submodule update --init
+
+      # flipper_hr reuses flipper_web's auth stack, so it compiles
+      # apps/flipper_web/lib/core/secrets.dart and needs the same secret files
+      # written as the flipper_web job.
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Set up Node.js for Firebase CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap dependencies
+        run: dart run melos bootstrap
+
+      - name: Build Flipper HR app
+        # dart2js only, same as flipper_web: HR pulls flipper_web's Ditto-backed
+        # auth stack, whose cold-start bootstrap is not WASM-safe.
+        run: |
+          cd apps/flipper_hr
+          flutter build web --release
+          test -f build/web/main.dart.js
+          rm -f build/web/main.dart.mjs build/web/main.dart.wasm
+
+      - name: Deploy Flipper HR app to Firebase Hosting
+        id: deploy_flipper_hr
+        uses: FirebaseExtended/action-hosting-deploy@v0.9.0
+        with:
+          entryPoint: apps/flipper_hr
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
+          # apps/flipper_hr/firebase.json pins hosting.site to `flipper-hr`, so no
+          # jq retarget is needed: main deploys live to that site (which owns
+          # hr.useflipper.com) and other branches get a preview channel on it.
+          # Preview channels are keyed by run_number — flipper_web's
+          # `github.event.commits.id` resolves to an empty string on most events.
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || format('preview-{0}', github.run_number) }}
+          projectId: yegobox-2ee43
+
+      - name: Echo Flipper HR URL
+        run: echo "Flipper HR app (serves hr.useflipper.com) deployed to ${{ steps.deploy_flipper_hr.outputs.urls }}"
+
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022

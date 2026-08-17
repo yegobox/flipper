@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/momo/momo_client.dart';
+import 'package:flipper_services/momo/momo_models.dart';
+import 'package:flipper_services/momo/momo_msisdn.dart';
+import 'package:flipper_services/payments_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/customer_payments.model.dart';
@@ -67,6 +71,12 @@ abstract class HttpApiInterface {
     required HttpClientInterface flipperHttpClient,
     required String businessId,
   });
+  /// POST `/v2/api/payNow`, ignoring the reference. Prefer
+  /// [initiatePayNowWithReference]: without the reference a payment cannot be
+  /// polled, so a debit that goes through is invisible to the app.
+  ///
+  /// Always pass [idempotencyKey] (see [MomoIdempotency]) — the server
+  /// deduplicates on it, and without one a double tap is two debits.
   Future<bool> makePayment({
     required HttpClientInterface flipperHttpClient,
     String? businessId,
@@ -77,6 +87,10 @@ abstract class HttpApiInterface {
     required String payeemessage,
     required String payerMessage,
     required int amount,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   });
 
   /// POST `/v2/api/payNow`; parses `paymentReference` from JSON on HTTP 200 or 202.
@@ -90,8 +104,15 @@ abstract class HttpApiInterface {
     required String payerMessage,
     required int amount,
     required String phoneNumber,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   });
 
+  /// Legacy boolean pre-approval. Kept for callers that only need "did the
+  /// request go out"; use [ensurePreapproval] to learn whether the payer
+  /// actually consented, which is what must be checked before charging.
   Future<bool> subscribe({
     required HttpClientInterface flipperHttpClient,
     required String businessId,
@@ -99,6 +120,38 @@ abstract class HttpApiInterface {
     int? agentCode,
     int? timeInSeconds = 120,
     required int amount,
+  });
+
+  /// Requests (or reuses) the recurring-payment mandate and reports where it
+  /// stands — state, MTN status, authorised ceiling, expiry.
+  ///
+  /// `POST /v2/api/preApprove`. Idempotent server-side, so it is safe to call
+  /// before every charge.
+  Future<MomoMandate> ensurePreapproval({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int amount,
+    String? planId,
+    Object? businessId,
+    String? branchId,
+    int? validitySeconds,
+  });
+
+  /// Re-reads a mandate, refreshed from MTN.
+  /// `GET /v2/api/pre-approval-status/{id}`. Null when it cannot be read.
+  Future<MomoMandate?> preapprovalStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String preapprovalId,
+  });
+
+  /// One request-to-pay read, classified into pending / settled / refused.
+  ///
+  /// Unlike [checkPaymentStatus] this distinguishes "not yet" from "refused",
+  /// so a till stops waiting on a payment MTN has already turned down.
+  Future<MomoSettlement> momoSettlement({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
   });
   Future<Map<String, dynamic>> payNow({
     required Map<String, dynamic> paymentData,
@@ -273,60 +326,71 @@ class HttpApi implements HttpApiInterface {
     required HttpClientInterface flipperHttpClient,
   }) async {
     try {
-      // Ensure the URL is properly formatted
-      final Uri uri = Uri.parse('${AppSecrets.apihubProd}/v2/api/payNow');
+      final amount = (paymentData['amount'] as num).toInt();
+      final phoneNumber = paymentData['phoneNumber'].toString();
 
-      // Format the request body according to the required structure
-      final formattedPaymentData = {
-        "amount": paymentData['amount'].toString(),
-        "currency": paymentData['currency'] ?? "RWF",
-        "payer": {
-          "partyIdType": "MSISDN",
-          "partyId": paymentData['phoneNumber'],
-        },
-        // this is constant for now.
-        "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
-        "payerMessage": paymentData['description'] ?? "Flipper Credit Purchase",
-        "payeeNote": "Flipper Credit",
-        "businessId": ProxyService.box.getBusinessId() ?? 1,
-        "paymentType": "Credit Purchase",
+      // The local row is written **before** the request, not after.
+      //
+      // Written afterwards it races the gateway: a fast settlement lands before
+      // the row exists, the server finds nothing to update, and a paid credit
+      // purchase sits at "pending" forever (`MOMO_BILLING.md` §3.6). Creating
+      // it first also gives us an id to use as both the idempotency key and the
+      // `customerPaymentId` the server settles against, so a double tap cannot
+      // become a second debit.
+      // `transactionId` is final on the model, so the row is built twice: once
+      // to mint the id, once to persist it. Until the MoMo reference exists the
+      // row points at itself, which is still unique and still reconcilable.
+      final rowId = CustomerPayments(
+        phoneNumber: phoneNumber,
+        paymentStatus: "pending",
+        amountPayable: amount.toDouble(),
+        transactionId: '',
+      ).id;
+      await ProxyService.strategy.upsertPayment(
+        CustomerPayments(
+          id: rowId,
+          phoneNumber: phoneNumber,
+          paymentStatus: "pending",
+          amountPayable: amount.toDouble(),
+          transactionId: rowId,
+        ),
+      );
+
+      final initiation = await MomoClient(flipperHttpClient).payNow(
+        phoneNumber: phoneNumber,
+        amount: amount,
+        paymentType: "Credit Purchase",
+        payerMessage:
+            paymentData['description']?.toString() ?? "Flipper Credit Purchase",
+        payeeNote: "Flipper Credit",
+        currency: paymentData['currency']?.toString() ?? "RWF",
+        businessId: ProxyService.box.getBusinessId() ?? 1,
+        idempotencyKey: MomoIdempotency.forCreditPurchase(rowId, amount),
+        customerPaymentId: rowId,
+        transactionId: rowId,
+      );
+
+      // Point the row at the MTN reference: that is what `getPayment` looks up
+      // when the poll comes back, and what makes the purchase reconcilable
+      // after a restart.
+      await ProxyService.strategy.upsertPayment(
+        CustomerPayments(
+          id: rowId,
+          phoneNumber: phoneNumber,
+          paymentStatus: "pending",
+          amountPayable: amount.toDouble(),
+          transactionId: initiation.reference,
+        ),
+      );
+
+      return {
+        ...initiation.raw,
+        'paymentReference': initiation.reference,
+        'customerPaymentId': rowId,
       };
-
-      // Convert formatted payment data to JSON string
-      final body = json.encode(formattedPaymentData);
-
-      talker.info('PayNow request body: $body');
-
-      // Make the POST request
-      final response = await flipperHttpClient.post(uri, body: body);
-
-      final decoded = json.decode(response.body);
-      final responseData = HttpApi.jsonObjectFromDecoded(decoded);
-      if (responseData == null) {
-        throw Exception('PayNow response is not a JSON object');
-      }
-
-      // Log the response
-      talker.info('PayNow response: ${response.body}');
-
-      // Check if the request was successful
-      if (response.statusCode == 200 || response.statusCode == 202) {
-        await ProxyService.strategy.upsertPayment(
-          CustomerPayments(
-            phoneNumber: paymentData['phoneNumber'],
-            paymentStatus: "pending",
-            amountPayable: paymentData['amount'].toDouble(),
-            transactionId: responseData['paymentReference'],
-          ),
-        );
-        return responseData;
-      } else {
-        // Handle error response
-        talker.error('PayNow error: ${response.statusCode} - ${response.body}');
-        throw Exception(
-          'PayNow request failed with status: ${response.statusCode}',
-        );
-      }
+    } on MomoException catch (e, stackTrace) {
+      talker.error('PayNow refused: ${e.message}', e, stackTrace);
+      throw Exception(e.message);
     } catch (e, stackTrace) {
       // Log and rethrow any exceptions
       talker.error(e);
@@ -453,14 +517,6 @@ class HttpApi implements HttpApiInterface {
     }
   }
 
-  /// Strips `+`, spaces, and non-digits so `partyId` matches gateway MSISDN rules.
-  static String _normalizePayNowMsisdn(String phoneNumber) {
-    var s = phoneNumber.trim();
-    s = s.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-    s = s.replaceAll('+', '');
-    s = s.replaceAll('\uFF0B', '');
-    return s.replaceAll(RegExp(r'\D'), '');
-  }
 
   Future<http.Response> _payNowPost({
     required HttpClientInterface flipperHttpClient,
@@ -472,8 +528,29 @@ class HttpApi implements HttpApiInterface {
     required String payerMessage,
     required int amount,
     required String phoneNumber,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   }) async {
-    final partyId = _normalizePayNowMsisdn(phoneNumber);
+    if (amount <= 0) {
+      throw Exception('Enter an amount greater than zero.');
+    }
+    // Validate before the request, not after: a malformed MSISDN that reaches
+    // MTN comes back as an opaque refusal, and the payer never sees a prompt.
+    final partyId = MomoMsisdn.toPartyId(phoneNumber);
+    if (partyId == null) {
+      throw Exception('Enter a valid Mobile Money number, e.g. 0788123456.');
+    }
+    if (idempotencyKey == null) {
+      // Loud on purpose. Without a key the server has nothing to tell a
+      // double tap from two genuine identical sales, so the payer is debited
+      // twice — see `data-connector/MOMO_BILLING.md` §3.6.
+      talker.warning(
+        'payNow ($paymentType) sent without an idempotencyKey — a retry will '
+        'debit ${MomoMsisdn.masked(phoneNumber)} again',
+      );
+    }
     final payload = <String, dynamic>{
       "amount": amount,
       "currency": "RWF",
@@ -483,6 +560,14 @@ class HttpApi implements HttpApiInterface {
       "branchId": branchId,
       "paymentType": paymentType,
       "externalId": externalId,
+      if (idempotencyKey != null) "idempotencyKey": idempotencyKey,
+      // Which `customer_payments` row the server should settle. Without one of
+      // these it falls back to matching the MoMo reference against
+      // `transaction_id`, and if the client wrote its own value there the row
+      // is never found: the money moves, the sale stays "pending" forever.
+      if (customerPaymentId != null) "customerPaymentId": customerPaymentId,
+      if (transactionId != null) "transactionId": transactionId,
+      if (customerId != null) "customerId": customerId,
     };
     if (businessId != null) {
       payload["businessId"] = businessId;
@@ -490,19 +575,26 @@ class HttpApi implements HttpApiInterface {
       payload.remove("businessId");
     }
     final body = json.encode(payload);
-    talker.debug(body);
+    talker.info(
+      'payNow $paymentType $amount RWF to ${MomoMsisdn.masked(phoneNumber)} '
+      '(idempotencyKey=$idempotencyKey)',
+    );
     final response = await flipperHttpClient.post(
       headers: {'Content-Type': 'application/json'},
-      Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
+      Uri.parse('${await paymentsApiBaseUrl()}/v2/api/payNow'),
       body: body,
     );
     talker.debug(response.body);
     return response;
   }
 
-  void _throwIfPayNowHttpError(int status) {
+  /// [body] is the server's response, which data-connector fills with a usable
+  /// message (`{"error": "…"}` / `{"message": "…"}`) — e.g. "paid through
+  /// 2026-09-13" when a cycle has already been collected. Surfacing that beats
+  /// showing the user "Bad request".
+  void _throwIfPayNowHttpError(int status, [String? body]) {
     if (status == 400) {
-      throw Exception("Bad request");
+      throw Exception(_payNowErrorMessage(body) ?? "Bad request");
     } else if (status == 401) {
       throw Exception("Unauthorized");
     } else if (status == 403) {
@@ -522,6 +614,19 @@ class HttpApi implements HttpApiInterface {
     }
   }
 
+  /// Pulls `error` / `message` out of a payment error body, if it is JSON.
+  String? _payNowErrorMessage(String? body) {
+    if (body == null || body.trim().isEmpty) return null;
+    try {
+      final map = HttpApi.jsonObjectFromDecoded(json.decode(body));
+      final message = map?['error'] ?? map?['message'];
+      final text = message?.toString().trim();
+      return (text == null || text.isEmpty) ? null : text;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Future<bool> makePayment({
     required HttpClientInterface flipperHttpClient,
@@ -533,6 +638,10 @@ class HttpApi implements HttpApiInterface {
     required String payerMessage,
     required int amount,
     required String phoneNumber,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   }) async {
     final response = await _payNowPost(
       flipperHttpClient: flipperHttpClient,
@@ -544,9 +653,13 @@ class HttpApi implements HttpApiInterface {
       payerMessage: payerMessage,
       amount: amount,
       phoneNumber: phoneNumber,
+      idempotencyKey: idempotencyKey,
+      customerPaymentId: customerPaymentId,
+      transactionId: transactionId,
+      customerId: customerId,
     );
     final status = response.statusCode;
-    _throwIfPayNowHttpError(status);
+    _throwIfPayNowHttpError(status, response.body);
     return status == 200 || status == 202;
   }
 
@@ -561,6 +674,10 @@ class HttpApi implements HttpApiInterface {
     required String payerMessage,
     required int amount,
     required String phoneNumber,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   }) async {
     final response = await _payNowPost(
       flipperHttpClient: flipperHttpClient,
@@ -572,9 +689,13 @@ class HttpApi implements HttpApiInterface {
       payerMessage: payerMessage,
       amount: amount,
       phoneNumber: phoneNumber,
+      idempotencyKey: idempotencyKey,
+      customerPaymentId: customerPaymentId,
+      transactionId: transactionId,
+      customerId: customerId,
     );
     final status = response.statusCode;
-    _throwIfPayNowHttpError(status);
+    _throwIfPayNowHttpError(status, response.body);
     if (status != 200 && status != 202) {
       throw Exception('PayNow failed: HTTP $status');
     }
@@ -614,18 +735,57 @@ class HttpApi implements HttpApiInterface {
     int? timeInSeconds = 120,
     required int amount,
   }) async {
-    final phone = phoneNumber.replaceAll('+', '').replaceAll(' ', '').trim();
-    final response = await flipperHttpClient.post(
-      Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
-      body: json.encode({
-        "payer": {"partyIdType": "MSISDN", "partyId": phone},
-        "payerCurrency": "RWF",
-        "payerMessage": "Flipper Subscription",
-        "validityTime": timeInSeconds,
-        "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
-      }),
+    final mandate = await ensurePreapproval(
+      flipperHttpClient: flipperHttpClient,
+      phoneNumber: phoneNumber,
+      amount: amount,
+      businessId: businessId,
+      validitySeconds: timeInSeconds,
     );
-    return response.statusCode == 200;
+    // "The request went out", which is all this boolean ever meant. Callers
+    // that need to know whether the payer *consented* must use
+    // [ensurePreapproval] and read the mandate.
+    return !mandate.isFailed;
+  }
+
+  @override
+  Future<MomoMandate> ensurePreapproval({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int amount,
+    String? planId,
+    Object? businessId,
+    String? branchId,
+    int? validitySeconds,
+  }) {
+    return MomoClient(flipperHttpClient).ensurePreapproval(
+      phoneNumber: phoneNumber,
+      amount: amount,
+      planId: planId,
+      businessId: businessId,
+      branchId: branchId,
+      validitySeconds: validitySeconds,
+    );
+  }
+
+  @override
+  Future<MomoMandate?> preapprovalStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String preapprovalId,
+  }) {
+    return MomoClient(flipperHttpClient).preapprovalStatus(preapprovalId);
+  }
+
+  @override
+  Future<MomoSettlement> momoSettlement({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  }) {
+    return MomoClient(flipperHttpClient).requestToPayStatus(
+      paymentReference,
+      branchId: branchId,
+    );
   }
 
   @override
@@ -647,7 +807,7 @@ class HttpApi implements HttpApiInterface {
         : defaultMtnRequestToPayBranchId;
     final response = await flipperHttpClient.get(
       Uri.parse(
-        '${AppSecrets.apihubProd}/v2/api/requesttopay/status/$idForStatusPath/$branch',
+        '${await paymentsApiBaseUrl()}/v2/api/requesttopay/status/$idForStatusPath/$branch',
       ),
     );
 
@@ -719,13 +879,48 @@ class HttpApi implements HttpApiInterface {
       if (payments != null) {
         final payment = payments;
 
-        // Update payment status
+        // Credits are added below, so running this twice for one reference
+        // would credit twice. The pollers do re-check after success (the plan
+        // poller and the till poller can both be live), so this guard is the
+        // difference between crediting once and crediting on every tick.
+        if (payment.paymentStatus.toLowerCase() == 'completed') {
+          talker.info(
+            'Payment $paymentReference is already completed — not crediting again',
+          );
+          return;
+        }
+
+        // Only an explicit SUCCESSFUL settles. flipper-turbo completed plans on
+        // a bare HTTP 200 with no status field, which is how payments were
+        // marked paid without money — see
+        // `PAYMENT_COMPLETED_WITHOUT_MONEY_ANALYSIS.md`.
+        final settled = MomoPaymentStatus.fromWire(
+              responseData['status']?.toString(),
+            ) ==
+            MomoPaymentStatus.successful;
+        if (!settled) {
+          talker.warning(
+            'Not marking $paymentReference completed: status is '
+            '${responseData['status']}',
+          );
+          return;
+        }
         payment.paymentStatus = 'completed';
 
         // Add credits to user account if payment was successful
-        if (responseData['status']?.toString().trim().toUpperCase() ==
-            'SUCCESSFUL') {
+        {
           final amount = double.tryParse(responseData['amount']?.toString() ?? '0') ?? 0;
+          if (amount <= 0) {
+            // A settled payment whose amount we cannot read must not silently
+            // credit nothing — that is a customer who paid and got no credit.
+            // Leave the row pending so the sweep and support can find it.
+            talker.error(
+              'MTN reported $paymentReference SUCCESSFUL but the amount was '
+              'unreadable (${responseData['amount']}); leaving it pending for '
+              'reconciliation rather than crediting 0',
+            );
+            return;
+          }
           Credit? credit = await ProxyService.strategy.getCredit(
             branchId: (await ProxyService.strategy.branch(
               serverId: ProxyService.box.getBranchId()!,
@@ -829,7 +1024,9 @@ class HttpApi implements HttpApiInterface {
   }) async {
     try {
       final response = await flipperHttpClient.get(
-        Uri.parse('${AppSecrets.apihubProd}/v2/api/plans/$planId/amount-due'),
+        Uri.parse(
+          '${await paymentsApiBaseUrl()}/v2/api/plans/$planId/amount-due',
+        ),
       );
       if (response.statusCode == 200) {
         final map = HttpApi.jsonObjectFromDecoded(json.decode(response.body));
@@ -855,7 +1052,7 @@ class HttpApi implements HttpApiInterface {
     required String paymentReference,
   }) async {
     final uri = Uri.parse(
-      '${AppSecrets.apihubProd}/v2/api/payment/finalize-on-success',
+      '${await paymentsApiBaseUrl()}/v2/api/payment/finalize-on-success',
     );
     final body = json.encode({
       'planId': planId,
@@ -888,85 +1085,31 @@ class HttpApi implements HttpApiInterface {
     String? planId,
     required int amount,
   }) async {
-    final payload = <String, dynamic>{
-      'amount': amount,
-      'currency': 'RWF',
-      'payer': {'partyIdType': 'MSISDN', 'partyId': phoneNumber},
-      'payerMessage': payerMessage,
-      'payeeNote': payeemessage,
-      'businessId': '$businessId',
-      'branchId': branchId,
-      'paymentType': paymentType,
-      if (planId != null) 'planId': planId,
-    };
-
-    final response = await flipperHttpClient.post(
-      headers: {'Content-Type': 'application/json'},
-      Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
-      body: json.encode(payload),
-    );
-    talker.debug(response.body);
-
-    final status = response.statusCode;
-    if (status == 200 || status == 202) {
-      dynamic decoded;
-      try {
-        decoded = json.decode(response.body);
-      } catch (e, st) {
-        talker.error(
-          'makePaymentWithReference: invalid JSON on HTTP $status (body: ${response.body})',
-          e,
-          st,
-        );
-        throw Exception(
-          'makePaymentWithReference: invalid JSON response (HTTP $status)',
-        );
-      }
-      final decodedMap = HttpApi.jsonObjectFromDecoded(decoded);
-      if (decodedMap == null) {
-        talker.error(
-          'makePaymentWithReference: HTTP $status but body is not a JSON object '
-          '(got ${decoded.runtimeType}). body=${response.body}',
-        );
-        throw Exception(
-          'makePaymentWithReference: unexpected response shape (HTTP $status)',
-        );
-      }
-      final paymentReference =
-          HttpApi.paymentReferenceForStatusPolling(decodedMap);
-      if (paymentReference == null || paymentReference.isEmpty) {
-        talker.error(
-          'makePaymentWithReference: HTTP $status but paymentReference/externalId missing. '
-          'body=${response.body}',
-        );
-        throw Exception(
-          'makePaymentWithReference: missing payment reference (HTTP $status)',
-        );
-      }
-      return MakePaymentWithReferenceResult(
-        paymentReference: paymentReference,
+    // No idempotency key: for a subscription the server keys the debit on the
+    // plan's billing cycle, so a retried tap re-reads the charge already in
+    // flight instead of creating a second one. It also refuses to collect a
+    // cycle that is not due, which is what stops a retry-after-success from
+    // pre-paying next month.
+    try {
+      final initiation = await MomoClient(flipperHttpClient).payNow(
+        phoneNumber: phoneNumber,
+        amount: amount,
+        paymentType: paymentType,
+        payerMessage: payerMessage,
+        payeeNote: payeemessage,
+        branchId: branchId,
+        businessId: businessId,
+        planId: planId,
       );
+      return MakePaymentWithReferenceResult(
+        paymentReference: initiation.reference,
+      );
+    } on MomoException catch (e) {
+      // Keep the gateway's own words. "Bad request" hid explanations the server
+      // does give — "paid through 2026-09-13", "amount exceeds the ceiling",
+      // MTN's own refusal — and made a failed payment undebuggable from the app.
+      throw Exception(e.message);
     }
-    if (status == 400) {
-      throw Exception('Bad request');
-    } else if (status == 401) {
-      throw Exception('Unauthorized');
-    } else if (status == 403) {
-      throw Exception('Forbidden');
-    } else if (status == 404) {
-      throw Exception('Not found');
-    } else if (status == 409) {
-      throw Exception('Duplicate payment Id');
-    } else if (status == 500) {
-      throw Exception('Internal server error');
-    } else if (status == 502) {
-      throw Exception('Payment gateway down');
-    } else if (status == 503) {
-      throw Exception('Service unavailable');
-    } else if (status == 504) {
-      throw Exception('Gateway timeout');
-    }
-    throw Exception('payNow failed: $status ${response.body}');
   }
 }
 
@@ -1029,6 +1172,10 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     required String payeemessage,
     required String payerMessage,
     required int amount,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   }) {
     // TODO: implement makePayment
     throw UnimplementedError();
@@ -1045,6 +1192,10 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     required String payerMessage,
     required int amount,
     required String phoneNumber,
+    String? idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
+    String? customerId,
   }) {
     throw UnimplementedError();
   }
@@ -1147,6 +1298,56 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   }) async {
     return const MakePaymentWithReferenceResult(
       paymentReference: 'mock-payment-reference',
+    );
+  }
+
+  /// An approved mandate that covers everything, so a test never has a payment
+  /// blocked on consent it cannot give.
+  @override
+  Future<MomoMandate> ensurePreapproval({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int amount,
+    String? planId,
+    Object? businessId,
+    String? branchId,
+    int? validitySeconds,
+  }) async {
+    return MomoMandate(
+      state: MomoMandateState.active,
+      id: 'mock-preapproval',
+      status: 'APPROVED',
+      authorisedAmount: amount,
+      expiresAt: DateTime.now().toUtc().add(const Duration(days: 365)),
+      coversCurrentPrice: true,
+      nextAction: 'none',
+    );
+  }
+
+  @override
+  Future<MomoMandate?> preapprovalStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String preapprovalId,
+  }) async {
+    return MomoMandate(
+      state: MomoMandateState.active,
+      id: preapprovalId,
+      status: 'APPROVED',
+      coversCurrentPrice: true,
+      nextAction: 'none',
+    );
+  }
+
+  @override
+  Future<MomoSettlement> momoSettlement({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+    String? branchId,
+  }) async {
+    return MomoSettlement(
+      reference: paymentReference,
+      status: MomoPaymentStatus.successful,
+      financialTransactionId: 'mock-financial-transaction-id',
     );
   }
 }

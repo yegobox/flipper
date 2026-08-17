@@ -1,0 +1,38 @@
+name: flipper_hr
+description: "Flipper HR — web app served at hr.useflipper.com."
+publish_to: 'none'
+
+version: 1.0.1+2
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^3.0.3
+  flipper_design_system: any
+  # Auth is shared with Books: HR reuses flipper_web's PIN login, signup and
+  # business/branch selection so one account works in both apps.
+  flipper_web: any
+  flipper_analytics: any
+  go_router: ^16.2.2
+  supabase_flutter: ^2.12.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+dependency_overrides:
+  # Mirrors flipper_web: both forks exist because the upstream web
+  # implementations import dart:html, which dart2wasm cannot compile.
+  flutter_keyboard_visibility_web:
+    path: ../../open-sources/flutter_keyboard_visibility_web
+  ua_client_hints:
+    path: ../../open-sources/ua_client_hints
+  sqlite3: ^3.3.1
+
+flutter:
+  uses-material-design: true

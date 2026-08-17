@@ -2,6 +2,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_web/core/analytics/analytics_provider.dart';
 import 'package:flipper_web/core/business_selection_persistence.dart';
+import 'package:flipper_web/core/routing/post_selection_route.dart';
 import 'package:flipper_web/core/session_persistence.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
 import 'package:flipper_web/features/business_selection/session_business_selection.dart';
@@ -390,7 +391,7 @@ class _BusinessBranchSelectorState
     }
 
     if (mounted) {
-      context.goNamed(AppRoute.accounting.name);
+      context.goNamed(postSelectionRouteName);
     }
   }
 

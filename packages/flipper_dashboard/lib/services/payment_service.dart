@@ -1,5 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_services/HttpApi.dart';
+import 'package:flipper_services/momo/momo_client.dart';
+import 'package:flipper_services/momo/momo_collection.dart';
+import 'package:flipper_services/momo/momo_msisdn.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +17,8 @@ class GigMomoSettlement {
     this.financialTransactionId,
     this.externalId,
     this.settledAmountRwf,
+    this.refused = false,
+    this.message,
   });
 
   final bool confirmed;
@@ -22,6 +26,18 @@ class GigMomoSettlement {
   final String? financialTransactionId;
   final String? externalId;
   final int? settledAmountRwf;
+
+  /// MTN turned the payment down, or the payer rejected it. Terminal — unlike a
+  /// timeout, retrying is the right thing to offer, and nothing was debited.
+  final bool refused;
+
+  /// What to tell the user. Carries the gateway's own words when it gave any;
+  /// "payment failed" with no reason is what made these impossible to support.
+  final String? message;
+
+  /// The verdict will not change. A timeout is *not* terminal: the payment may
+  /// still settle, so the till must not re-charge on the strength of it.
+  bool get isTerminal => confirmed || refused;
 }
 
 class PaymentService {
@@ -29,86 +45,83 @@ class PaymentService {
 
   PaymentService(this.context);
 
-  /// Branch id for payNow + requesttopay status (same as [HttpApi.defaultMtnRequestToPayBranchId]).
-  static String get mtnPayNowBranchId => HttpApi.defaultMtnRequestToPayBranchId;
+  /// Branch id for payNow + requesttopay status.
+  static String get mtnPayNowBranchId => MomoClient.defaultCollectionBranchId;
 
   /// MTN / payNow expects MSISDN digits only (no `+`, spaces, or separators).
-  static String normalizeMomoMsisdn(String phoneNumber) {
-    var s = phoneNumber.trim();
-    s = s.replaceAll(RegExp(r'[\s\-\(\)]'), '');
-    s = s.replaceAll('+', '');
-    s = s.replaceAll('\uFF0B', ''); // fullwidth plus (some keyboards)
-    s = s.replaceAll(RegExp(r'\D'), '');
-    return s;
-  }
+  static String normalizeMomoMsisdn(String phoneNumber) =>
+      MomoMsisdn.normalise(phoneNumber);
 
-  /// POST payNow (200/202 + [paymentReference]), then poll MTN until success or timeout.
-  /// [branchId] for status GET must match payNow (omit to use [mtnPayNowBranchId]).
+  /// POST payNow, then poll MTN until it gives a verdict or the window closes.
+  ///
+  /// [idempotencyKey] must be stable for one sale and different between two \u2014
+  /// derive it from the id of whatever the customer is paying for (see
+  /// [MomoIdempotency]). Without it, a second tap is a second debit.
+  ///
+  /// [branchId] for the status GET must match payNow (omit to use
+  /// [mtnPayNowBranchId]). It used to be hardcoded to `"1"` on the status leg,
+  /// which is not a branch this app has ever had.
   Future<GigMomoSettlement> waitForPaymentConfirmation({
     required String phoneNumber,
     required int finalPrice,
+    required String idempotencyKey,
     String? branchId,
     String payerMessage = 'Service gig payment',
+    String? customerPaymentId,
+    String? transactionId,
+    void Function(String reference)? onReference,
   }) async {
     final branch = (branchId != null && branchId.trim().isNotEmpty)
         ? branchId.trim()
         : mtnPayNowBranchId;
     try {
-      final msisdn = normalizeMomoMsisdn(phoneNumber);
-      if (msisdn.length < 9) {
-        talker.error(
-          'Payment request failed: invalid phone (need digits only, e.g. 250783054874)',
-        );
-        return const GigMomoSettlement(confirmed: false, paymentReference: '');
-      }
-      final initiated = await ProxyService.ht.initiatePayNowWithReference(
-        flipperHttpClient: ProxyService.http,
-        branchId: branch,
-        paymentType: 'PaymentNormal',
-        payeemessage: 'Pay for Goods',
-        payerMessage: payerMessage,
+      final collection = MomoCollection(MomoClient(ProxyService.http));
+      final result = await collection.collect(
+        phoneNumber: phoneNumber,
         amount: finalPrice,
-        phoneNumber: msisdn,
+        paymentType: 'PaymentNormal',
+        payerMessage: payerMessage,
+        payeeNote: 'Pay for Goods',
+        idempotencyKey: idempotencyKey,
+        branchId: branch,
+        customerPaymentId: customerPaymentId,
+        transactionId: transactionId,
+        pollInterval: _gigMomoPollInterval,
+        pollTimeout: _gigMomoMaxWait,
+        onReference: onReference,
       );
-      final paymentReference = HttpApi.sanitizeMtnRequestToPayReferenceId(
-        initiated.paymentReference,
-      );
-      if (paymentReference == null || paymentReference.isEmpty) {
-        talker.error('PayNow succeeded but paymentReference was missing');
-        return const GigMomoSettlement(confirmed: false, paymentReference: '');
+
+      if (result.isSettled) {
+        return GigMomoSettlement(
+          confirmed: true,
+          paymentReference: result.reference!,
+          financialTransactionId: result.financialTransactionId,
+          externalId: result.settlement?.externalId,
+          // Trust what MTN settled over what we asked for.
+          settledAmountRwf: result.settledAmount ?? finalPrice,
+        );
       }
 
-      final deadline = DateTime.now().add(_gigMomoMaxWait);
-      while (DateTime.now().isBefore(deadline)) {
-        await Future<void>.delayed(_gigMomoPollInterval);
-        if (!DateTime.now().isBefore(deadline)) break;
-        final snap = await ProxyService.ht.fetchRequestToPayHttpSnapshot(
-          flipperHttpClient: ProxyService.http,
-          paymentReference: paymentReference,
-          branchId: "1",
+      if (result.outcome == MomoCollectionOutcome.timedOut) {
+        talker.warning(
+          'MTN payment not confirmed within ${_gigMomoMaxWait.inMinutes} minutes '
+          '(reference ${result.reference})',
         );
-        if (snap != null && snap.isMtnSuccessful) {
-          final settled = snap.settledAmountRwf ?? finalPrice;
-          return GigMomoSettlement(
-            confirmed: true,
-            paymentReference: paymentReference,
-            financialTransactionId: snap.financialTransactionId,
-            externalId: snap.externalId,
-            settledAmountRwf: settled,
-          );
-        }
-        await Future<void>.delayed(_gigMomoPollInterval);
       }
-      talker.warning(
-        'MTN payment not confirmed within ${_gigMomoMaxWait.inMinutes} minutes',
-      );
       return GigMomoSettlement(
         confirmed: false,
-        paymentReference: paymentReference,
+        paymentReference: result.reference ?? '',
+        refused: result.outcome == MomoCollectionOutcome.refused ||
+            result.outcome == MomoCollectionOutcome.notStarted,
+        message: result.message,
       );
     } catch (e, st) {
       talker.error('Payment confirmation failed: $e', e, st);
-      return const GigMomoSettlement(confirmed: false, paymentReference: '');
+      return GigMomoSettlement(
+        confirmed: false,
+        paymentReference: '',
+        message: e.toString(),
+      );
     }
   }
 

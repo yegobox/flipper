@@ -1,0 +1,47 @@
+import 'package:flipper_hr/router/hr_redirect.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('unauthenticated', () {
+    test('login and signup are reachable', () {
+      for (final path in hrPublicPaths) {
+        expect(
+          hrRedirectLocation(isAuthenticated: false, path: path),
+          isNull,
+          reason: '$path should stay put',
+        );
+      }
+    });
+
+    test('root and HR pages fall back to login', () {
+      for (final path in ['/', '/people', '/business-selection', '/unknown']) {
+        expect(
+          hrRedirectLocation(isAuthenticated: false, path: path),
+          '/login',
+          reason: '$path should redirect to login',
+        );
+      }
+    });
+  });
+
+  group('authenticated', () {
+    test('login and signup send the session to business selection', () {
+      for (final path in hrPublicPaths) {
+        expect(
+          hrRedirectLocation(isAuthenticated: true, path: path),
+          '/business-selection',
+        );
+      }
+    });
+
+    test('root is left to HrAuthGate', () {
+      expect(hrRedirectLocation(isAuthenticated: true, path: '/'), isNull);
+    });
+
+    test('HR pages stay put', () {
+      for (final path in ['/people', '/business-selection']) {
+        expect(hrRedirectLocation(isAuthenticated: true, path: path), isNull);
+      }
+    });
+  });
+}

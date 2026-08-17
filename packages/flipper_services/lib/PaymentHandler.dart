@@ -1,4 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_services/momo/momo_client.dart';
+import 'package:flipper_services/momo/momo_models.dart';
+import 'package:flipper_services/momo/momo_subscription.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,12 +12,34 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+/// Raised when the payer did not consent, so nothing was charged.
+///
+/// Distinct from a payment that failed: no money was moved and none will be.
+/// The user has to approve the Mobile Money request on their handset and try
+/// again.
+class MomoPreapprovalDeclined implements Exception {
+  MomoPreapprovalDeclined(this.message, {this.mandate});
+
+  final String message;
+  final MomoMandate? mandate;
+
+  @override
+  String toString() => message;
+}
+
 mixin PaymentHandler {
-  /// Initiates MTN Mobile Money payment. Returns the payment reference when
-  /// successful, for use in polling payment status.
+  /// Establishes Mobile Money consent, then charges the subscription. Returns
+  /// the payment reference when a charge went out, for use in polling.
+  ///
+  /// Throws [MomoPreapprovalDeclined] when the payer refused the mandate — the
+  /// one case where we deliberately walk away rather than reaching for their
+  /// money a second way.
   Future<String?> handleMomoPayment(
     int finalPrice, {
     required Plan plan,
+    /// Called as the mandate moves, so a screen can say "approve the request on
+    /// your phone" instead of showing a silent spinner.
+    void Function(MomoMandate mandate)? onMandate,
   }) async {
     /// Pre-approval validity time in seconds. Must exceed plan duration to give
     /// billing software enough time to charge the user before expiry.
@@ -64,34 +89,55 @@ mixin PaymentHandler {
       selectedPlan: plan.selectedPlan!,
       totalPrice: finalPrice.toDouble(),
     );
-    final subscribed = await ProxyService.ht.subscribe(
-      businessId: ProxyService.box.getBusinessId()!,
+    /// Consent first, money second.
+    ///
+    /// [MomoSubscriptionCharger] requests (or reuses) the mandate, waits for
+    /// the payer's PIN on it, and only then submits the debit. A payer who
+    /// refuses the mandate is never charged — flipper-turbo read nothing but
+    /// the HTTP status of `preApprove` and charged regardless, which is how a
+    /// lapsed or under-authorised mandate turned into a debit that failed with
+    /// no visible reason.
+    // Charge the plan we were handed, never "the business's newest plan": the
+    // server-side fallback is how the wrong plan used to get marked paid
+    // (`PAYMENT_COMPLETED_WITHOUT_MONEY_ANALYSIS.md`).
+    final planId = plan.id;
+    if (planId == null || planId.isEmpty) {
+      throw Exception(
+        'This subscription has no plan id yet, so it cannot be charged safely. '
+        'Reopen the plan screen and try again.',
+      );
+    }
+
+    final charger = MomoSubscriptionCharger(MomoClient(ProxyService.http));
+    final result = await charger.charge(
       phoneNumber: phone,
       amount: finalPrice,
-      flipperHttpClient: ProxyService.http,
-      timeInSeconds: timeInSeconds,
+      planId: planId,
+      businessId: (await ProxyService.strategy.getBusiness(
+        businessId: ProxyService.box.getBusinessId()!,
+      ))!.id,
+      validitySeconds: timeInSeconds,
+      onMandate: onMandate,
     );
-    // delay for 20 seconds
-    await Future.delayed(const Duration(seconds: 20));
-    String? paymentReference;
-    if (subscribed) {
-      /// if subscribed, this means the user will not be prompted for PIN again,
-      /// if he has not subscribed he will be prompted for PIN.
-      final result = await ProxyService.ht.makePaymentWithReference(
-        phoneNumber: phone,
-        paymentType: "Subscription",
-        payeemessage: "Flipper Subscription",
-        payerMessage: "Flipper Subscription",
-        branchId: "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
-        businessId: (await ProxyService.strategy.getBusiness(
-          businessId: ProxyService.box.getBusinessId()!,
-        ))!.id,
-        planId: plan.id,
-        amount: finalPrice,
-        flipperHttpClient: ProxyService.http,
-      );
-      paymentReference = result.paymentReference;
+
+    switch (result.outcome) {
+      case MomoSubscriptionOutcome.preapprovalRefused:
+        talker.warning('Subscription not charged: ${result.message}');
+        throw MomoPreapprovalDeclined(
+          result.message ??
+              'Mobile Money consent was declined, so nothing was charged.',
+          mandate: result.mandate,
+        );
+      case MomoSubscriptionOutcome.chargeRejected:
+        throw Exception(result.message ?? 'The payment could not be started.');
+      case MomoSubscriptionOutcome.charged:
+        if (result.chargedOnPinPrompt) {
+          talker.info(
+            'Charged without a covering mandate — MTN will ask for a PIN once',
+          );
+        }
     }
+    final String? paymentReference = result.reference;
     // upsert plan with new payment method
     // refresh a plan as it might have updted remotely.
 
