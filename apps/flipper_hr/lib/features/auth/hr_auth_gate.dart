@@ -15,7 +15,7 @@ import 'package:go_router/go_router.dart';
 /// a page reload keeps the branch that was picked at login.
 ///
 /// The branch selection is only demanded of people who manage a roster. An
-/// invited employee owns no business, so the selector would show them an empty
+/// invited employee manages no business, so the selector would show them an empty
 /// list and strand them — [HrSession.landing] sends them straight to their leave,
 /// which resolves its own scope from their record.
 class HrAuthGate extends ConsumerWidget {

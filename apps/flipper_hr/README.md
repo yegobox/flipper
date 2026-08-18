@@ -207,3 +207,27 @@ the page hang, and a minute of staleness on "2h 14m" is not worth that.
 Public holidays are not deducted anywhere in HR yet — see the note in
 `leave_working_days.dart` for why a hardcoded Rwandan calendar would be wrong
 within a year.
+
+### The invited manager
+
+`HrRole.manager` writes an `accesses` row (feature `HR`, level `admin`, via
+`create_agent`) — but until `0006` **no HR policy read `accesses` at all**. Every
+policy scoped on `hr_user_business_ids()`, which resolved businesses by ownership
+alone, so an invited manager signed in and saw only their own leave and time. The
+role promised authority the database did not grant.
+
+`0006` makes that function answer "which businesses may this caller act in as
+HR?" — owned, **or** carrying a live `HR`/`admin` grant. Since every HR policy
+already routed through it, nothing else changed, and the client cannot tell the
+two routes apart (that is why the session layer needed no new branch).
+
+Worth being explicit about the consequence: an HR manager can read and edit the
+roster, **salary included**. If that is ever not wanted, the answer is a narrower
+grant — a separate feature name for pay, with its own policy — not a quieter
+version of this function.
+
+`hr_whoami_access()` reports the halves separately (`owned`, `managed`,
+`effective`), which is the first thing to check when a manager sees too much or
+too little. Keying on the feature name `HR` is safe because it is not one of
+Flipper's POS features (`AppFeature` in flipper_services/constants.dart), so this
+cannot silently promote an existing POS user.

@@ -3,8 +3,10 @@
 /// HR has two audiences and one login. Which one you are is not a setting — it
 /// is what the database can prove about you, and the two proofs are independent:
 ///
-///   * [businessIds] — businesses you OWN (`hr_user_business_ids()`). This is
-///     what the roster and the approvals queue are scoped to.
+///   * [businessIds] — businesses you may act in as HR (`hr_user_business_ids()`):
+///     owned outright, or held through a live HR/admin grant in `accesses`, which
+///     is what an invited manager has (see migration 0006). This is what the
+///     roster, the approvals queue and the attendance board are scoped to.
 ///   * [employeeIds] — `hr_employees` rows that ARE you (`hr_my_employee_ids()`).
 ///     This is what your own leave is scoped to.
 ///
@@ -27,7 +29,9 @@ class HrSession {
   /// degrades to, so a diagnostic-worthy state never reads as a permission.
   static const none = HrSession();
 
-  /// Businesses the caller owns. Non-empty means the roster is theirs to manage.
+  /// Businesses the caller may manage HR for — owned, or granted. Non-empty
+  /// means the roster is theirs to manage; the two routes are indistinguishable
+  /// from here on purpose, since they confer the same thing.
   final List<String> businessIds;
 
   /// The caller's own employee rows — usually one, more if they are on the
@@ -52,10 +56,10 @@ class HrSession {
 
   /// Where this session belongs after sign-in.
   ///
-  /// Someone who owns the business lands on the roster even when they also have
-  /// an employee record: managing is why they signed in, and their own leave is
-  /// one tap away. Someone with only a record lands on their leave, which is the
-  /// whole of HR for them.
+  /// Someone who manages the business lands on the roster even when they also
+  /// have an employee record: managing is why they signed in, and their own leave
+  /// is one tap away. Someone with only a record lands on their leave, which is
+  /// the whole of HR for them.
   HrLanding get landing {
     if (canManageRoster) return HrLanding.roster;
     if (hasOwnRecord) return HrLanding.myLeave;

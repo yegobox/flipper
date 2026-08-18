@@ -122,8 +122,12 @@ class AccessReport {
           'row. Check the phone on that row against the phone claim above.';
     }
     if (businessIds.isEmpty) {
-      return 'Verdict: identity resolves but owns no business — check '
-          'businesses.user_id against the identity keys above.';
+      // Two ways to hold a business now (migration 0006), so name both rather
+      // than sending someone to check only half of it.
+      return 'Verdict: identity resolves but reaches no business — you neither '
+          'own one nor hold a live HR/admin grant. Check businesses.user_id and '
+          'public.accesses against the identity keys above; '
+          'hr_whoami_access() reports both halves.';
     }
     return 'Verdict: identity and business both resolve. If a write still '
         'fails, the policies on hr_employees are not the ones from migration '

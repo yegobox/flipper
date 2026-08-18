@@ -144,14 +144,19 @@ void main() {
       expect(report.toReport(), contains('cannot tie this session'));
     });
 
-    test('an identity that owns nothing points at businesses.user_id', () {
+    test('an identity reaching no business names both ways to hold one', () {
+      // Ownership and an accesses grant (0006) are both routes; a verdict naming
+      // only one sends the reader to check the wrong table half the time.
       const report = AccessReport(
         hasSession: true,
         claims: authenticated,
         whoami: {'identity_keys': ['user-1'], 'business_ids': []},
       );
+      final text = report.toReport();
 
-      expect(report.toReport(), contains('owns no business'));
+      expect(text, contains('reaches no business'));
+      expect(text, contains('businesses.user_id'));
+      expect(text, contains('accesses'));
     });
 
     test('a fully resolving caller points at the policies themselves', () {

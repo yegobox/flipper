@@ -26,3 +26,17 @@ HrSession ownerSession({List<String> businessIds = const ['biz-1']}) =>
 /// An invited employee: their own record, and nothing else.
 HrSession staffSession({String employeeId = 'e-1'}) =>
     HrSession(employeeIds: [employeeId], identityKeys: const ['user-staff']);
+
+/// An invited HR manager: reaches the business through an `accesses` grant
+/// rather than owning it, and is on the roster themselves.
+///
+/// Indistinguishable from an owner at this layer, which is the point of
+/// migration 0006 — the client never learns which route granted the business.
+HrSession managerSession({
+  List<String> businessIds = const ['biz-1'],
+  String employeeId = 'e-9',
+}) => HrSession(
+  businessIds: businessIds,
+  employeeIds: [employeeId],
+  identityKeys: const ['user-manager'],
+);

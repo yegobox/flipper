@@ -2,6 +2,8 @@ import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/fake_hr_session_repository.dart';
+
 List<String> _paths(HrSession session) =>
     [for (final d in hrDestinationsFor(session)) d.path];
 
@@ -29,6 +31,16 @@ void main() {
         _paths(
           const HrSession(businessIds: ['biz-1'], employeeIds: ['e-1']),
         ),
+        ['/people', '/attendance', '/approvals', '/my-time', '/leave'],
+      );
+    });
+
+    test('an invited HR manager gets the same tabs as an owner', () {
+      // Migration 0006: a manager reaches the business through an accesses grant
+      // instead of owning it, and hr_user_business_ids() returns both. Nothing in
+      // the client distinguishes them, which is why this needs no new branch.
+      expect(
+        _paths(managerSession()),
         ['/people', '/attendance', '/approvals', '/my-time', '/leave'],
       );
     });

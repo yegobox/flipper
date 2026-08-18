@@ -156,9 +156,10 @@ class HrDestination {
 
 /// The modules this session may open, in nav order.
 ///
-/// Pure function of the session so the rule is testable without a router: an
-/// owner gets the roster and the approvals queue; anyone with their own record
-/// gets their leave; a session that resolves to nothing gets the roster entry so
+/// Pure function of the session so the rule is testable without a router:
+/// whoever manages a business — owner or invited HR manager — gets the roster,
+/// the board and the approvals queue; anyone with their own record gets their own
+/// time and leave; a session that resolves to nothing gets the roster entry so
 /// the People page can show its access diagnostic rather than a blank shell.
 List<HrDestination> hrDestinationsFor(HrSession session) {
   final destinations = <HrDestination>[];
