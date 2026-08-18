@@ -288,3 +288,84 @@ would then have to reject.
 manager has no business to select, and `HrBranchScope` would strand them on "pick
 a branch". The queue asks for a branch only when the session manages a business,
 and unions the branch and team reads for someone who is both.
+
+## Subscription — paying before the app opens
+
+Signing up creates an account, not an entitlement. `hr_access_state()` is the one
+question HR asks before it opens a manager surface, and until the business has
+paid the answer is `needs_payment`, so `/` lands on `/subscribe` instead of the
+roster.
+
+The **Basic** package is 350,000 RWF a month (or a year at 20% off, the same
+discount every Flipper tier carries): all Flipper apps, up to 5 POS users, 1
+branch, and up to 50 HR employees. It lives in
+`public.subscription_plan_templates` alongside Mobile / Mobile + Desktop /
+Enterprise, so Books sells the same tier from the same row — see
+`supabase/migrations/0008_hr_billing.sql`.
+
+### Who is locked out, and who is not
+
+The roster, the approvals queue and the attendance board are wrapped in
+`HrBillingGate`. Self-service leave and self-service time are not: an invited
+employee cannot pay their employer's invoice, and their entitlement resolves to
+`no_business`, which grants. Somebody who *can* pay always gets a way to — the
+lock panel's only button goes to `/subscribe`.
+
+### Where the price comes from
+
+Nowhere in this app. `hr_plan_quote()` prices the tier server-side and
+`hr_start_subscription()` writes that figure onto the business's `plans` row;
+data-connector then treats `plans.total_price` as authoritative when it charges
+(`BillingEngine::resolve_price`). If the client picked the amount, a modified
+build would buy the Basic package for 1 RWF.
+
+Nothing here settles a payment either. The app charges through
+`POST /v2/api/payNow` exactly as Books does, and data-connector owns
+`payment_completed_by_user`, `next_billing_date` and the `subscription_charges`
+ledger. A second settler writing those columns from a client session is how a
+plan gets marked paid without money moving
+(`PAYMENT_COMPLETED_WITHOUT_MONEY_ANALYSIS.md`).
+
+"Paid" is then read back with the same rule Books uses
+(`AuthMixin.hasActiveSubscription`): the next billing date is in the future *and*
+the plan is complete, either by the payer or by the processor.
+
+### Testing a real payment
+
+Mobile Money cannot be tested without real money moving — MTN prompts a real
+handset and settles a real reference. Paying 350,000 RWF to check a button is not
+viable, so the **quote** can be overridden for a bounded window. Both sides then
+still agree by construction: the plan row is written at the test amount, the
+gateway charges the plan, and the entitlement granted is a real one.
+
+From the Supabase SQL editor (a service-role connection — a signed-in client is
+refused):
+
+```sql
+select public.hr_enable_test_pricing(100, 2);  -- 100 RWF, for 2 hours
+-- …run the flow on a real handset…
+select public.hr_disable_test_pricing();
+```
+
+While it is on, every billing screen says so and the plan card shows both figures
+("Test pricing is on — normally 350,000 RWF per month"). The override **expires
+on its own**; a forgotten switch stops discounting rather than quietly giving the
+product away.
+
+### The employee cap
+
+"Up to 50 employees" is enforced where the rows are, by the
+`hr_employees_seat_cap` trigger — a UI check is not enforcement when the roster
+is a PostgREST table. A terminated record is history, not a seat, and a business
+with no plan is not capped (the paywall is what stops it; a trigger there would
+reject the rows POS and the invite flow create). Branch and POS-user limits are
+reported by `hr_access_state()` (`branches_used`, `pos_users_used`) but enforced
+by the surfaces that create branches and grant access, not from an HR migration.
+
+### If migration 0008 has not been applied
+
+`hr_access_state()` does not exist, and HR opens up rather than locking every
+business out of a paywall the project cannot satisfy — with a red strip on every
+page naming the migration to run. An unapplied migration used to be
+indistinguishable from a healthy unpaywalled app: nobody billed, nothing saying
+why.

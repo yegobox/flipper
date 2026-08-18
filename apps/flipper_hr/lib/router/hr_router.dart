@@ -1,5 +1,7 @@
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_hr/features/attendance/attendance_page.dart';
+import 'package:flipper_hr/features/billing/presentation/hr_billing_gate.dart';
+import 'package:flipper_hr/features/billing/presentation/hr_subscribe_page.dart';
 import 'package:flipper_hr/features/attendance/my_attendance_page.dart';
 import 'package:flipper_hr/features/auth/hr_auth_gate.dart';
 import 'package:flipper_hr/features/home/hr_branch_scope.dart';
@@ -47,6 +49,10 @@ abstract final class HrRoute {
   /// Own clock and timesheet. Reachable without a business selection, like
   /// [myLeave].
   static const myAttendance = 'hrMyAttendance';
+
+  /// The paywall. Reachable while unpaid — it is the one manager surface that
+  /// must not be behind the subscription it sells.
+  static const subscribe = 'hrSubscribe';
 }
 
 final hrRouterProvider = Provider<GoRouter>((ref) {
@@ -89,40 +95,52 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/people',
             name: HrRoute.home,
-            builder: (context, state) => HrBranchScope(
-              builder:
-                  (
-                    context, {
-                    required businessId,
-                    required branchId,
-                    required branchName,
-                  }) => PeoplePage(
-                    businessId: businessId,
-                    branchId: branchId,
-                    branchName: branchName,
-                  ),
+            // Gated: the roster belongs to whoever runs the business, and they
+            // are the one who can pay for it. Self-service leave and time below
+            // are deliberately left open.
+            builder: (context, state) => HrBillingGate(
+              featureName: 'The roster',
+              child: HrBranchScope(
+                builder:
+                    (
+                      context, {
+                      required businessId,
+                      required branchId,
+                      required branchName,
+                    }) => PeoplePage(
+                      businessId: businessId,
+                      branchId: branchId,
+                      branchName: branchName,
+                    ),
+              ),
             ),
           ),
           GoRoute(
             path: '/approvals',
             name: HrRoute.approvals,
-            builder: (context, state) => const _Approvals(),
+            builder: (context, state) => const HrBillingGate(
+              featureName: 'Approvals',
+              child: _Approvals(),
+            ),
           ),
           GoRoute(
             path: '/attendance',
             name: HrRoute.attendance,
-            builder: (context, state) => HrBranchScope(
-              builder:
-                  (
-                    context, {
-                    required businessId,
-                    required branchId,
-                    required branchName,
-                  }) => AttendancePage(
-                    businessId: businessId,
-                    branchId: branchId,
-                    branchName: branchName,
-                  ),
+            builder: (context, state) => HrBillingGate(
+              featureName: 'The attendance board',
+              child: HrBranchScope(
+                builder:
+                    (
+                      context, {
+                      required businessId,
+                      required branchId,
+                      required branchName,
+                    }) => AttendancePage(
+                      businessId: businessId,
+                      branchId: branchId,
+                      branchName: branchName,
+                    ),
+              ),
             ),
           ),
           GoRoute(
@@ -134,6 +152,11 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
             path: '/my-time',
             name: HrRoute.myAttendance,
             builder: (context, state) => const MyAttendancePage(),
+          ),
+          GoRoute(
+            path: '/subscribe',
+            name: HrRoute.subscribe,
+            builder: (context, state) => const HrSubscribePage(),
           ),
         ],
       ),

@@ -275,17 +275,21 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
 
     // One scroll view for the whole page: the tiles and toolbar scroll away
     // with the roster, so a narrow window never has to fit them all at once.
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-          sliver: SliverToBoxAdapter(
-            child: _Header(
-              branchName: widget.branchName,
-              onAdd: () => _openForm(),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              sliver: SliverToBoxAdapter(
+                child: _Header(
+                  branchName: widget.branchName,
+                  onAdd: () => _openForm(),
+                ),
+              ),
             ),
-          ),
-        ),
         ...roster.when(
           loading: () => const [
             SliverFillRemaining(
@@ -306,6 +310,8 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           data: (people) => _rosterSlivers(people: people, query: query, now: now),
         ),
       ],
+        ),
+      ),
     );
   }
 

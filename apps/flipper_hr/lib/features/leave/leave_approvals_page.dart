@@ -92,10 +92,7 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
   /// field needs a controller with a lifetime: disposing one as soon as
   /// `showDialog` returns kills it while the route is still animating out, and
   /// the dialog rebuilds against a disposed controller.
-  Future<String?> _askForNote(
-    LeaveRequest request, {
-    required bool approve,
-  }) {
+  Future<String?> _askForNote(LeaveRequest request, {required bool approve}) {
     return showDialog<String>(
       context: context,
       builder: (context) => _DecisionDialog(request: request, approve: approve),
@@ -139,107 +136,121 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
     // guessing, which reads as "waiting on you" — see [_QueueSplit].
     final session = ref.watch(hrSessionProvider).value ?? HrSession.none;
 
-    return leaveAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 40,
-                  color: theme.colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _messageOf(error),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 20),
-                FilledButton(onPressed: _refresh, child: const Text('Try again')),
-              ],
-            ),
-          ),
-        ),
-      ),
-      data: (all) {
-        final split = _QueueSplit.of(
-          requests: all,
-          names: names,
-          session: session,
-        );
-
-        return CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              sliver: SliverToBoxAdapter(
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: leaveAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Leave', style: theme.textTheme.headlineSmall),
-                    const SizedBox(height: 4),
+                    Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      _subtitle(split),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      _messageOf(error),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: _refresh,
+                      child: const Text('Try again'),
                     ),
                   ],
                 ),
               ),
             ),
-            if (split.mine.isNotEmpty)
-              ..._pendingSection(
-                requests: split.mine,
-                names: names,
-                // No heading when there is nothing to contrast it with: the page
-                // title already says whose queue this is.
-                heading: split.theirs.isEmpty ? null : 'Waiting on you',
-                canDecide: split.canDecide,
-              ),
-            if (split.theirs.isNotEmpty)
-              ..._pendingSection(
-                requests: split.theirs,
-                names: names,
-                heading: 'With their manager',
-                caption:
-                    'Their own manager has not answered yet. Deciding one of '
-                    'these answers it over their head.',
-                canDecide: split.canDecide,
-              ),
-            if (split.decided.isNotEmpty) ...[
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                sliver: SliverToBoxAdapter(
-                  child: Text('Decided', style: theme.textTheme.titleMedium),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                sliver: SliverList.separated(
-                  itemCount: split.decided.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) => _DecidedRow(
-                    request: split.decided[index],
-                    person: names[split.decided[index].employeeId],
+          ),
+          data: (all) {
+            final split = _QueueSplit.of(
+              requests: all,
+              names: names,
+              session: session,
+            );
+
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Leave', style: theme.textTheme.headlineSmall),
+                        const SizedBox(height: 4),
+                        Text(
+                          _subtitle(split),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-            if (split.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _NoLeaveYet(canManageRoster: session.canManageRoster),
-              ),
-          ],
-        );
-      },
+                if (split.mine.isNotEmpty)
+                  ..._pendingSection(
+                    requests: split.mine,
+                    names: names,
+                    // No heading when there is nothing to contrast it with: the page
+                    // title already says whose queue this is.
+                    heading: split.theirs.isEmpty ? null : 'Waiting on you',
+                    canDecide: split.canDecide,
+                  ),
+                if (split.theirs.isNotEmpty)
+                  ..._pendingSection(
+                    requests: split.theirs,
+                    names: names,
+                    heading: 'With their manager',
+                    caption:
+                        'Their own manager has not answered yet. Deciding one of '
+                        'these answers it over their head.',
+                    canDecide: split.canDecide,
+                  ),
+                if (split.decided.isNotEmpty) ...[
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        'Decided',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    sliver: SliverList.separated(
+                      itemCount: split.decided.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) => _DecidedRow(
+                        request: split.decided[index],
+                        person: names[split.decided[index].employeeId],
+                      ),
+                    ),
+                  ),
+                ],
+                if (split.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _NoLeaveYet(
+                      canManageRoster: session.canManageRoster,
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -311,8 +322,12 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                   ? null
                   : names[person!.managerId!],
               isDeciding: _deciding.contains(request.id),
-              onApprove: decidable ? () => _decide(request, approve: true) : null,
-              onReject: decidable ? () => _decide(request, approve: false) : null,
+              onApprove: decidable
+                  ? () => _decide(request, approve: true)
+                  : null,
+              onReject: decidable
+                  ? () => _decide(request, approve: false)
+                  : null,
             );
           },
         ),
@@ -386,8 +401,7 @@ class _QueueSplit {
       mine: mine,
       theirs: theirs,
       decided: decided,
-      canDecide: (r) =>
-          session.canManageRoster || team.contains(r.employeeId),
+      canDecide: (r) => session.canManageRoster || team.contains(r.employeeId),
     );
   }
 

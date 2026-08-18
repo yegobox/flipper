@@ -107,21 +107,25 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
       ),
     );
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          sliver: SliverToBoxAdapter(
-            child: _Header(
-              branchName: widget.branchName,
-              date: date,
-              isToday: isSameDate(date, now),
-              onPickDate: _pickDate,
-              onToday: () => setState(() => _pickedDate = null),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              sliver: SliverToBoxAdapter(
+                child: _Header(
+                  branchName: widget.branchName,
+                  date: date,
+                  isToday: isSameDate(date, now),
+                  onPickDate: _pickDate,
+                  onToday: () => setState(() => _pickedDate = null),
+                ),
+              ),
             ),
-          ),
-        ),
-        ...switch ((roster, attendance)) {
+            ...switch ((roster, attendance)) {
           (AsyncError(:final error), _) => [
             _fill(_Message(message: _messageOf(error), onRetry: () {
               ref.invalidate(rosterProvider(widget.branchId));
@@ -141,6 +145,8 @@ class _AttendancePageState extends ConsumerState<AttendancePage> {
           _ => [_fill(const Center(child: CircularProgressIndicator()))],
         },
       ],
+        ),
+      ),
     );
   }
 

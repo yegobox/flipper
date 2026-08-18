@@ -43,26 +43,31 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
           existing: existing,
           annualOverride: employee.annualLeaveDays,
           onCancel: () => Navigator.of(dialogContext).pop(),
-          onSubmit: ({
-            required type,
-            required start,
-            required end,
-            required reason,
-          }) async {
-            await ref.read(leaveActionsProvider).submit(
-              employeeId: employee.id,
-              businessId: employee.businessId,
-              branchId: employee.branchId,
-              type: type,
-              startDate: start,
-              endDate: end,
-              reason: reason,
-              // Their own account: the audit trail should say they asked, not
-              // that the row appeared from nowhere.
-              requestedBy: employee.userId,
-            );
-            if (dialogContext.mounted) Navigator.of(dialogContext).pop(true);
-          },
+          onSubmit:
+              ({
+                required type,
+                required start,
+                required end,
+                required reason,
+              }) async {
+                await ref
+                    .read(leaveActionsProvider)
+                    .submit(
+                      employeeId: employee.id,
+                      businessId: employee.businessId,
+                      branchId: employee.branchId,
+                      type: type,
+                      startDate: start,
+                      endDate: end,
+                      reason: reason,
+                      // Their own account: the audit trail should say they asked, not
+                      // that the row appeared from nowhere.
+                      requestedBy: employee.userId,
+                    );
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop(true);
+                }
+              },
         );
         if (isNarrow) return Dialog.fullscreen(child: form);
         return Dialog(
@@ -129,30 +134,33 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
   Widget build(BuildContext context) {
     final employeeAsync = ref.watch(myEmployeeProvider);
 
-    return employeeAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => _LeaveMessage(
-        icon: Icons.error_outline,
-        title: 'Could not load your record',
-        body: _messageOf(error),
-        actionLabel: 'Try again',
-        onAction: () {
-          // The session resolve is what failed in almost every case, and
-          // myEmployeeProvider depends on it — refreshing only the leaf would
-          // replay the same cached failure.
-          ref.invalidate(hrSessionProvider);
-          ref.invalidate(myEmployeeProvider);
-        },
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: employeeAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => _LeaveMessage(
+            icon: Icons.error_outline,
+            title: 'Could not load your record',
+            body: _messageOf(error),
+            actionLabel: 'Try again',
+            onAction: () {
+              ref.invalidate(hrSessionProvider);
+              ref.invalidate(myEmployeeProvider);
+            },
+          ),
+          data: (employee) {
+            if (employee == null) return const _NoEmployeeRecord();
+            return _LeaveBody(
+              employee: employee,
+              onRequest: (existing) =>
+                  _openForm(employee: employee, existing: existing),
+              onWithdraw: _withdraw,
+            );
+          },
+        ),
       ),
-      data: (employee) {
-        if (employee == null) return const _NoEmployeeRecord();
-        return _LeaveBody(
-          employee: employee,
-          onRequest: (existing) =>
-              _openForm(employee: employee, existing: existing),
-          onWithdraw: _withdraw,
-        );
-      },
     );
   }
 }
@@ -202,10 +210,7 @@ class _LeaveBody extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'My leave',
-                          style: theme.textTheme.headlineSmall,
-                        ),
+                        Text('My leave', style: theme.textTheme.headlineSmall),
                         const SizedBox(height: 4),
                         Text(
                           '${employee.fullName} · balances for $year',

@@ -1,5 +1,7 @@
+import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
@@ -58,7 +60,8 @@ class HrAuthGate extends ConsumerWidget {
   }
 
   /// The roster path: restore the persisted business/branch, then land on
-  /// People — or send them to the selector when nothing is selected.
+  /// People — or send them to the selector when nothing is selected, or to the
+  /// paywall when the business has not paid.
   Widget _selectBusinessThen(WidgetRef ref, BuildContext context) {
     // Restores the persisted business/branch before HR reads them.
     ref.watch(selectedBusinessRestoreProvider);
@@ -71,7 +74,35 @@ class HrAuthGate extends ConsumerWidget {
         onRetry: () => ref.invalidate(hasSelectedBusinessAndBranchProvider),
       ),
       data: (selected) {
-        _goOnce(context, selected ? '/people' : '/business-selection');
+        if (!selected) {
+          _goOnce(context, '/business-selection');
+          return const _HrGateLoading();
+        }
+        return _payThenPeople(ref, context);
+      },
+    );
+  }
+
+  /// An unpaid business lands on the paywall rather than on a locked roster:
+  /// the subscription is bought before the app opens, so the first screen after
+  /// signing up is the one that sells it.
+  ///
+  /// Only a verdict redirects. While entitlement is loading, and if the check
+  /// fails outright, the roster is opened — its own [HrBillingGate] re-asks the
+  /// same question, so nothing is let through permanently, and a network blip
+  /// never strands a paying customer on a payment screen.
+  Widget _payThenPeople(WidgetRef ref, BuildContext context) {
+    final businessId = ref.watch(selectedBusinessProvider)?.id;
+    final access = ref.watch(hrAccessStateProvider(businessId));
+
+    return access.when(
+      loading: () => const _HrGateLoading(),
+      error: (_, __) {
+        _goOnce(context, '/people');
+        return const _HrGateLoading();
+      },
+      data: (state) {
+        _goOnce(context, state.grantsAccess ? '/people' : '/subscribe');
         return const _HrGateLoading();
       },
     );

@@ -75,71 +75,81 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
     final open = ref.watch(myOpenSessionProvider);
     final timesheet = ref.watch(myTimesheetProvider);
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          sliver: SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('My time', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 4),
-                Text(
-                  'Your hours for the last $timesheetWindowDays days.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'My time',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Your hours for the last $timesheetWindowDays days.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ...switch ((employee, open, timesheet)) {
+              (AsyncError(:final error), _, _) ||
+              (_, AsyncError(:final error), _) ||
+              (_, _, AsyncError(:final error)) => [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _Message(
+                    message: _messageOf(error),
+                    onRetry: () {
+                      ref.invalidate(myOpenSessionProvider);
+                      ref.invalidate(myTimesheetProvider);
+                    },
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
-        ...switch ((employee, open, timesheet)) {
-          (AsyncError(:final error), _, _) ||
-          (_, AsyncError(:final error), _) ||
-          (_, _, AsyncError(:final error)) => [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _Message(
-                message: _messageOf(error),
-                onRetry: () {
-                  ref.invalidate(myOpenSessionProvider);
-                  ref.invalidate(myTimesheetProvider);
-                },
-              ),
-            ),
-          ],
-          (
-            AsyncData(value: final me),
-            AsyncData(value: final openSession),
-            AsyncData(value: final sessions),
-          ) =>
-            me == null
-                ? [
-                    const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _Message(
-                        message: 'You do not have an employee record on this '
-                            'account yet, so there are no hours to track. Ask '
-                            'whoever manages HR to add you.',
+              (
+                AsyncData(value: final me),
+                AsyncData(value: final openSession),
+                AsyncData(value: final sessions),
+              ) =>
+                me == null
+                    ? [
+                        const SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _Message(
+                            message:
+                                'You do not have an employee record on this '
+                                'account yet, so there are no hours to track. Ask '
+                                'whoever manages HR to add you.',
+                          ),
+                        ),
+                      ]
+                    : _timesheet(
+                        employeeId: me.id,
+                        openSession: openSession,
+                        sessions: sessions,
+                        now: now,
                       ),
-                    ),
-                  ]
-                : _timesheet(
-                    employeeId: me.id,
-                    openSession: openSession,
-                    sessions: sessions,
-                    now: now,
-                  ),
-          _ => [
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
-            ),
+              _ => [
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            },
           ],
-        },
-      ],
+        ),
+      ),
     );
   }
 
@@ -276,8 +286,8 @@ class _ClockCard extends StatelessWidget {
               isIn
                   ? 'Clocked in at ${formatClockTime(openSession!.startedAt)}'
                   : day.sessions.isEmpty
-                      ? 'Not clocked in today'
-                      : 'Last out at ${formatClockTime(day.lastOut!)}',
+                  ? 'Not clocked in today'
+                  : 'Last out at ${formatClockTime(day.lastOut!)}',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 20),

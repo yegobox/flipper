@@ -1,12 +1,15 @@
 {
     "name": "Flipper HR",
     "short_name": "Flipper HR",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
+    "start_url": "/",
+    "scope": "/",
+    "display": "minimal-ui",
+    "display_override": ["window-controls-overlay", "minimal-ui", "browser"],
+    "background_color": "#ffffff",
+    "theme_color": "#1565C0",
     "description": "People and payroll for Flipper businesses.",
-    "orientation": "portrait-primary",
+    "lang": "en",
+    "dir": "ltr",
     "prefer_related_applications": false,
     "icons": [
         {

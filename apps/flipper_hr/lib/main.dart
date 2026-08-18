@@ -15,22 +15,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // HR reuses flipper_web's auth stack, which stores login identity and the
-  // sale device id in SharedPreferences when this is true. The alternative path
-  // needs Flipper POS's GetIt-registered box, which HR never registers.
   flipperWebIsHostApp = true;
-
-  // Where the shared business/branch selector lands once a branch is picked.
   postSelectionRouteName = HrRoute.home;
-
-  // Sign-in and sign-up are flipper_web's screens; the right-hand panel is
-  // ours, so HR does not sign people in under Books' branding.
   brandPanelBuilder = (_) => const HrBrandPanel();
 
-  // Installs HttpOverrides / trusted certs before any http.Client is built.
   await initializeCriticalDependencies();
-
-  // Same Supabase project as Books, so one account works in both apps.
   await initializeSupabase();
 
   await FlipperAnalytics.initialize(
@@ -60,6 +49,21 @@ class FlipperHrApp extends ConsumerWidget {
       darkTheme: FlipperTheme.dark(allowRuntimeFontFetching: kIsWeb),
       themeMode: ThemeMode.system,
       routerConfig: ref.watch(hrRouterProvider),
+      // Web-native: remove Android overscroll glow; keep momentum scrolling.
+      scrollBehavior: kIsWeb ? const _WebScrollBehavior() : null,
     );
   }
+}
+
+/// Removes the rubber-band / glow overscroll effect on web.
+class _WebScrollBehavior extends MaterialScrollBehavior {
+  const _WebScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) =>
+      child;
 }
