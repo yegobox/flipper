@@ -120,6 +120,7 @@ Employee employee({
   String momoPhone = '',
   String currency = 'RWF',
   String? userId,
+  String? managerId,
   double? annualLeaveDays,
 }) => Employee(
   id: id,
@@ -142,5 +143,6 @@ Employee employee({
   paymentMethod: paymentMethod,
   momoPhone: momoPhone,
   userId: userId,
+  managerId: managerId,
   annualLeaveDays: annualLeaveDays,
 );

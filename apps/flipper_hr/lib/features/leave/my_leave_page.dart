@@ -8,6 +8,7 @@ import 'package:flipper_hr/features/leave/widgets/leave_status_chip.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
+import 'package:flipper_hr/features/people/data/person_ref.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -173,6 +174,12 @@ class _LeaveBody extends ConsumerWidget {
     final requestsAsync = ref.watch(myLeaveProvider);
     final balancesAsync = ref.watch(myLeaveBalancesProvider);
     final year = ref.watch(hrClockProvider)().year;
+    // Who will answer. Names only, and only when the line is set: an unresolved
+    // or failed read drops the line rather than guessing at an approver.
+    final approver = _approverName(
+      ref.watch(myLineProvider).value ?? const [],
+      employee.managerId,
+    );
 
     return requestsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -206,6 +213,16 @@ class _LeaveBody extends ConsumerWidget {
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
+                        if (approver != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            'Requests go to $approver',
+                            key: const Key('my-leave-approver'),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -281,6 +298,22 @@ class _LeaveBody extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The manager's name, or null when there is no line manager or their row is not
+/// among the people this session may see.
+///
+/// Silent on a miss on purpose: "Requests go to someone, we just cannot say who"
+/// is worse than not raising the question.
+String? _approverName(List<PersonRef> line, String? managerId) {
+  if (managerId == null || managerId.isEmpty) return null;
+  for (final person in line) {
+    if (person.id == managerId) {
+      final name = person.fullName;
+      return name.isEmpty ? null : name;
+    }
+  }
+  return null;
 }
 
 class _BalanceRow extends StatelessWidget {

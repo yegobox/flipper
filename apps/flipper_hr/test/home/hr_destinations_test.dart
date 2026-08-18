@@ -45,6 +45,15 @@ void main() {
       );
     });
 
+    test('a line manager gets the approvals queue but no roster', () {
+      // Migration 0007: authority from the reporting line, not from ownership. A
+      // People tab would only fail for them; the queue is the whole point.
+      expect(
+        _paths(lineManagerSession()),
+        ['/approvals', '/my-time', '/leave'],
+      );
+    });
+
     test('an unresolved session still reaches People, which explains why', () {
       // The access diagnostic lives on the People page; a blank shell would hide
       // the one screen that can say what went wrong.

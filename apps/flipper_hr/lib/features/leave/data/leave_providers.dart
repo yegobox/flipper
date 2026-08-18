@@ -34,6 +34,57 @@ final branchLeaveProvider =
       );
     }, retry: (retryCount, error) => null);
 
+/// Every request from the signed-in person's team — their reports, and anyone
+/// under those (see `hr_my_report_ids()` in migration 0007).
+///
+/// Empty for someone with nobody reporting to them, which is the common case and
+/// not an error. Keyed on nothing: the team is a property of the session, so one
+/// cache entry serves the queue however it is reached.
+final teamLeaveProvider = FutureProvider<List<LeaveRequest>>((ref) async {
+  final session = await ref.watch(hrSessionProvider.future);
+  if (!session.hasReports) return const [];
+  return ref.watch(leaveRepositoryProvider).fetchForEmployees(
+    employeeIds: session.reportIds,
+  );
+}, retry: (retryCount, error) => null);
+
+/// The approvals queue for whoever is signed in.
+///
+/// Unions the two routes to authority, because both can hold at once and neither
+/// contains the other:
+///
+///   * the open branch, when the session manages the business — unchanged
+///     behaviour for an owner or an invited HR manager;
+///   * their own team, wherever it sits — a line manager's reports can be on
+///     another branch than the one selected, and a team lead has no selection at
+///     all.
+///
+/// Deduped by request id, so someone with both routes sees each request once.
+/// [branchId] is nullable because the page is reachable without a branch
+/// selection; passing one for a session that manages no business adds nothing,
+/// since RLS would return only what the team route already covers.
+final approvalsQueueProvider =
+    FutureProvider.family<List<LeaveRequest>, String?>((ref, branchId) async {
+      final session = await ref.watch(hrSessionProvider.future);
+
+      final byId = <String, LeaveRequest>{};
+      if (session.hasReports) {
+        for (final r in await ref.watch(teamLeaveProvider.future)) {
+          byId[r.id] = r;
+        }
+      }
+      if (branchId != null && session.canManageRoster) {
+        for (final r in await ref.watch(branchLeaveProvider(branchId).future)) {
+          byId[r.id] = r;
+        }
+      }
+
+      // Newest first, matching what either fetch returns on its own so a merged
+      // queue and a single-source one read the same way.
+      return byId.values.toList()
+        ..sort((a, b) => b.startDate.compareTo(a.startDate));
+    }, retry: (retryCount, error) => null);
+
 /// The signed-in person's own requests. Empty when they have no record, which is
 /// not an error — see [myEmployeeProvider].
 final myLeaveProvider = FutureProvider<List<LeaveRequest>>((ref) async {
@@ -163,6 +214,9 @@ class LeaveActions {
   void _invalidate(LeaveRequest saved, {LeaveRequest? previous}) {
     _ref.invalidate(employeeLeaveProvider(saved.employeeId));
     _ref.invalidate(branchLeaveProvider(saved.branchId));
+    // The team queue is not keyed by branch, so it needs saying separately;
+    // approvalsQueueProvider watches both and recomputes off them.
+    _ref.invalidate(teamLeaveProvider);
     if (previous != null && previous.branchId != saved.branchId) {
       _ref.invalidate(branchLeaveProvider(previous.branchId));
     }

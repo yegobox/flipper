@@ -38,6 +38,7 @@ class EmployeeRowMapper {
       bankName: _str(row['bank_name']),
       bankAccount: _str(row['bank_account']),
       userId: _strOrNull(row['user_id']),
+      managerId: _strOrNull(row['manager_id']),
       // Nullable on purpose: null is "statutory default", so it must survive the
       // round trip rather than collapsing to 0 the way parseAmount would.
       annualLeaveDays: parseOptionalAmount(row['annual_leave_days']),
@@ -85,6 +86,9 @@ class EmployeeRowMapper {
     'bank_name': _nullIfBlank(e.bankName),
     'bank_account': _nullIfBlank(e.bankAccount),
     'user_id': _nullIfBlank(e.userId ?? ''),
+    // Null, never '', so the self-reference either points at a row or at
+    // nothing — an empty string would be rejected by the uuid column.
+    'manager_id': _nullIfBlank(e.managerId ?? ''),
     'annual_leave_days': e.annualLeaveDays,
     'notes': _nullIfBlank(e.notes),
   };

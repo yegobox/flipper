@@ -58,6 +58,11 @@ class SupabaseHrSessionRepository implements HrSessionRepository {
     return HrSession(
       businessIds: _ids(row['business_ids']),
       employeeIds: _ids(row['employee_ids']),
+      // Absent before migration 0007, which is why _ids treats a missing key the
+      // same as an empty array: an unmigrated project resolves to a session with
+      // no reports rather than a parse failure that hides the roster too.
+      reportIds: _ids(row['report_ids']),
+      managerIds: _ids(row['manager_ids']),
       identityKeys: _ids(row['identity_keys']),
     );
   }

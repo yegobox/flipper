@@ -157,10 +157,12 @@ class HrDestination {
 /// The modules this session may open, in nav order.
 ///
 /// Pure function of the session so the rule is testable without a router:
-/// whoever manages a business — owner or invited HR manager — gets the roster,
-/// the board and the approvals queue; anyone with their own record gets their own
-/// time and leave; a session that resolves to nothing gets the roster entry so
-/// the People page can show its access diagnostic rather than a blank shell.
+/// whoever manages a business — owner or invited HR manager — gets the roster and
+/// the board; anyone who has leave to decide, by business scope OR by having
+/// people report to them, gets the approvals queue; anyone with their own record
+/// gets their own time and leave; a session that resolves to nothing gets the
+/// roster entry so the People page can show its access diagnostic rather than a
+/// blank shell.
 List<HrDestination> hrDestinationsFor(HrSession session) {
   final destinations = <HrDestination>[];
   if (session.canManageRoster || session.landing == HrLanding.unresolved) {
@@ -180,6 +182,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
         icon: Icons.schedule_outlined,
       ),
     );
+  }
+  // Approvals answers to the reporting line as much as to business scope
+  // (migration 0007): a team lead who manages no business still decides their own
+  // team's leave, and this is the only tab that lets them. Placed before the
+  // self-service pair either way, so the order does not shuffle depending on how
+  // the authority was granted.
+  if (session.canApproveLeave) {
     destinations.add(
       const HrDestination(
         path: '/approvals',

@@ -243,4 +243,30 @@ void main() {
       );
     });
   });
+
+  group('reporting line', () {
+    test('reporting to nobody is normal, not an omission', () {
+      expect(
+        validate(employee(managerId: null)),
+        isNot(contains(EmployeeField.managerId)),
+      );
+    });
+
+    test('reporting to somebody else is fine', () {
+      expect(
+        validate(employee(id: 'e-1', managerId: 'e-boss')),
+        isNot(contains(EmployeeField.managerId)),
+      );
+    });
+
+    test('reporting to yourself is refused here, before the database does', () {
+      // hr_employees_manager_not_self would reject it anyway; saying so in the
+      // form beats a round trip that fails.
+      expect(
+        validate(employee(id: 'e-1', managerId: 'e-1'))[
+            EmployeeField.managerId],
+        'Someone cannot report to themselves',
+      );
+    });
+  });
 }

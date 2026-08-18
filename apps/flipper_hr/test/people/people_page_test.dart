@@ -384,4 +384,110 @@ void main() {
       expect(find.text('Network is down.'), findsOneWidget);
     });
   });
+
+  group('reporting line', () {
+    testWidgets('the roster shows who each person reports to', (tester) async {
+      await _pumpPeople(
+        tester,
+        FakeEmployeeRepository(
+          seed: [
+            employee(
+              id: 'e-1',
+              firstName: 'Aline',
+              lastName: 'Uwase',
+              managerId: 'e-boss',
+            ),
+            employee(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco'),
+          ],
+        ),
+      );
+
+      expect(find.text('REPORTS TO'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('employee-manager-e-1')))
+            .data,
+        'Jean Bosco',
+      );
+      // Nobody above Jean, so his leave falls to whoever runs the business.
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('employee-manager-e-boss')))
+            .data,
+        '—',
+      );
+    });
+
+    testWidgets('a new hire can be pointed at their manager on the way in',
+        (tester) async {
+      final repository = FakeEmployeeRepository(
+        seed: [employee(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco')],
+      );
+      await _pumpPeople(tester, repository);
+
+      await tester.tap(find.byKey(const Key('people-add')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('employee-firstName')),
+        'Aline',
+      );
+      await tester.enterText(
+        find.byKey(const Key('employee-lastName')),
+        'Uwase',
+      );
+      await tester.enterText(
+        find.byKey(const Key('employee-phone')),
+        '0788123456',
+      );
+      await tester.enterText(
+        find.byKey(const Key('employee-jobTitle')),
+        'Cashier',
+      );
+      await tester.tap(find.byKey(const Key('employee-manager')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Jean Bosco · Cashier').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('employee-form-save')));
+      await tester.pumpAndSettle();
+
+      final saved = repository.people.firstWhere((e) => e.firstName == 'Aline');
+      expect(saved.managerId, 'e-boss');
+    });
+
+    testWidgets('the form never offers a loop back down the line',
+        (tester) async {
+      // Jean manages Yves, who manages Aline. Editing Yves may only offer Jean:
+      // pointing him at Aline is the cycle the database trigger refuses.
+      await _pumpPeople(
+        tester,
+        FakeEmployeeRepository(
+          seed: [
+            employee(id: 'jean', firstName: 'Jean', lastName: 'Bosco'),
+            employee(
+              id: 'yves',
+              firstName: 'Yves',
+              lastName: 'Kamana',
+              managerId: 'jean',
+            ),
+            employee(
+              id: 'aline',
+              firstName: 'Aline',
+              lastName: 'Uwase',
+              managerId: 'yves',
+            ),
+          ],
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('employee-row-yves')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('employee-manager')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Jean Bosco · Cashier'), findsWidgets);
+      expect(find.text('Aline Uwase · Cashier'), findsNothing);
+      expect(find.text('No manager'), findsWidgets);
+    });
+  });
 }

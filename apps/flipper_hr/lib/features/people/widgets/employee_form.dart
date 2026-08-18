@@ -18,11 +18,19 @@ class EmployeeForm extends StatefulWidget {
     required this.initial,
     required this.today,
     required this.onSubmit,
+    this.managerOptions = const [],
     this.onCancel,
     this.onDiagnose,
   });
 
   final Employee initial;
+
+  /// Who this person may be set to report to, already filtered by the caller
+  /// (see `managerCandidatesFor`) so the dropdown cannot offer a loop.
+  ///
+  /// Empty is a normal state — the first person on a roster has nobody to report
+  /// to — and the field then explains itself instead of showing an empty menu.
+  final List<Employee> managerOptions;
 
   /// Injected clock, so "cannot start more than a year ahead" is testable.
   final DateTime today;
@@ -286,6 +294,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
                             : _update((d) => d.copyWith(status: v)),
                       ),
                     ),
+                    _managerField(),
                     _pair(
                       isNarrow,
                       _DateField(
@@ -479,6 +488,63 @@ class _EmployeeFormState extends State<EmployeeForm> {
         const SizedBox(width: 16),
         Expanded(child: right),
       ],
+    );
+  }
+
+  /// The reporting line: who approves this person's leave.
+  ///
+  /// A dropdown over the branch roster rather than free text, because the value
+  /// is a foreign key and the whole point is that the named person can act on it.
+  /// The null entry is a real choice, not a placeholder — leaving it unset sends
+  /// their leave to whoever manages the business, which is what happens for every
+  /// record written before reporting lines existed.
+  Widget _managerField() {
+    final options = widget.managerOptions;
+    // A value no longer in the list — a manager who was terminated, or one on
+    // another branch — would make the dropdown assert. Showing the field as unset
+    // with a note beats crashing the form or silently rewriting the record.
+    final selected = options.any((e) => e.id == _draft.managerId)
+        ? _draft.managerId
+        : null;
+    final missing = _draft.hasManager && selected == null;
+
+    return DropdownButtonFormField<String?>(
+      key: const Key('employee-manager'),
+      initialValue: selected,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'Reports to',
+        errorText: _errors[EmployeeField.managerId],
+        helperText: missing
+            ? 'Their current manager is not on this branch\'s roster. Pick '
+                  'someone here to change it.'
+            : options.isEmpty
+            ? 'Nobody to choose yet — leave requests go to whoever manages the '
+                  'business.'
+            : 'Their leave requests go to this person. Leave it unset and they '
+                  'go to whoever manages the business.',
+      ),
+      items: [
+        const DropdownMenuItem<String?>(
+          value: null,
+          child: Text('No manager'),
+        ),
+        for (final option in options)
+          DropdownMenuItem<String?>(
+            value: option.id,
+            child: Text(
+              option.jobTitle.isEmpty
+                  ? option.fullName
+                  : '${option.fullName} · ${option.jobTitle}',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+      ],
+      onChanged: (value) => _update(
+        (d) => value == null
+            ? d.copyWith(clearManagerId: true)
+            : d.copyWith(managerId: value),
+      ),
     );
   }
 

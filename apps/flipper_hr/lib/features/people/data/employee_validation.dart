@@ -9,6 +9,7 @@ enum EmployeeField {
   jobTitle,
   hireDate,
   endDate,
+  managerId,
   nationalId,
   baseSalary,
   annualLeaveDays,
@@ -83,6 +84,14 @@ Map<EmployeeField, String> validateEmployee(
   }
   if (end != null && end.isBefore(hire)) {
     errors[EmployeeField.endDate] = 'Last day cannot be before the start date';
+  }
+
+  // The database refuses this twice over (the hr_employees_manager_not_self
+  // CHECK and the cycle trigger), but a dropdown that let it be chosen and a
+  // save that then failed would be a worse form than one that says so here.
+  // Deeper loops are the dropdown's job — see managerCandidatesFor.
+  if (e.managerId != null && e.managerId == e.id && e.id.isNotEmpty) {
+    errors[EmployeeField.managerId] = 'Someone cannot report to themselves';
   }
 
   if (e.baseSalary < 0) {

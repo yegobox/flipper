@@ -3,19 +3,31 @@ import 'package:flipper_hr/features/leave/data/leave_request.dart';
 import 'package:flipper_hr/features/leave/data/leave_type.dart';
 import 'package:flipper_hr/features/leave/leave_approvals_page.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
+import 'package:flipper_hr/features/session/data/hr_session.dart';
+import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_employee_repository.dart';
+import '../helpers/fake_hr_line_repository.dart';
+import '../helpers/fake_hr_session_repository.dart';
 import '../helpers/fake_leave_repository.dart';
 
 final _today = DateTime(2026, 8, 18);
 
+/// Pumps the queue as an owner of branch-1 unless told otherwise.
+///
+/// [session] is what decides which queue the page builds at all: an owner reads
+/// the branch, while a line manager reads their team and passes no [branchId].
 Future<void> _pumpApprovals(
   WidgetTester tester, {
   FakeLeaveRepository? leave,
   FakeEmployeeRepository? people,
+  FakeHrLineRepository? line,
+  HrSession? session,
+  String? branchId = 'branch-1',
+  String? branchName = 'Kigali Main',
   String? deciderUserId = 'user-owner',
 }) async {
   tester.view.physicalSize = const Size(1400, 1000);
@@ -36,13 +48,19 @@ Future<void> _pumpApprovals(
                 ],
               ),
         ),
+        hrLineRepositoryProvider.overrideWithValue(
+          line ?? FakeHrLineRepository(),
+        ),
+        hrSessionRepositoryProvider.overrideWithValue(
+          FakeHrSessionRepository(session: session ?? ownerSession()),
+        ),
         hrClockProvider.overrideWithValue(() => _today),
       ],
       child: MaterialApp(
         home: Scaffold(
           body: LeaveApprovalsPage(
-            branchId: 'branch-1',
-            branchName: 'Kigali Main',
+            branchId: branchId,
+            branchName: branchName,
             deciderUserId: deciderUserId,
           ),
         ),
@@ -339,6 +357,176 @@ void main() {
             'Compassionate leave · 7 Sep 2026 → 9 Sep 2026 · 3 days',
           ),
         ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('the reporting line', () {
+    testWidgets('a line manager sees their team with no branch at all',
+        (tester) async {
+      // No business scope and no branch selection: the queue is hr_my_report_ids()
+      // through teamLeaveProvider, and the row is on a branch this session could
+      // not have selected.
+      await _pumpApprovals(
+        tester,
+        branchId: null,
+        branchName: null,
+        session: lineManagerSession(reportIds: const ['e-1']),
+        leave: FakeLeaveRepository(
+          seed: [leaveRequest(id: 'leave-1', branchId: 'branch-9')],
+        ),
+        line: FakeHrLineRepository(
+          seed: [
+            personRef(id: 'e-1', firstName: 'Aline', managerId: 'e-boss'),
+            personRef(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco'),
+          ],
+        ),
+      );
+
+      expect(find.byKey(const Key('approval-leave-1')), findsOneWidget);
+      expect(find.text('Aline Uwase'), findsOneWidget);
+      expect(find.text('1 request waiting on you · Your team'), findsOneWidget);
+      expect(find.byKey(const Key('approve-leave-1')), findsOneWidget);
+    });
+
+    testWidgets('an owner sees whose queue a request is really in',
+        (tester) async {
+      await _pumpApprovals(
+        tester,
+        leave: FakeLeaveRepository(
+          seed: [leaveRequest(id: 'leave-1', employeeId: 'e-1')],
+        ),
+        people: FakeEmployeeRepository(
+          seed: [
+            employee(id: 'e-1', firstName: 'Aline', managerId: 'e-boss'),
+            employee(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco'),
+          ],
+        ),
+      );
+
+      expect(find.text('With their manager'), findsOneWidget);
+      expect(find.text('Reports to Jean Bosco'), findsOneWidget);
+      expect(
+        find.text(
+          'Nothing waiting on you · 1 with another manager · Kigali Main',
+        ),
+        findsOneWidget,
+      );
+      // Still decidable: business scope overrides the line, deliberately.
+      expect(find.byKey(const Key('approve-leave-1')), findsOneWidget);
+    });
+
+    testWidgets('someone with no manager waits on whoever runs the business',
+        (tester) async {
+      // The pre-0007 fallback, and the reason an owner's queue does not empty out
+      // the day reporting lines are switched on.
+      await _pumpApprovals(
+        tester,
+        leave: FakeLeaveRepository(
+          seed: [leaveRequest(id: 'leave-1', employeeId: 'e-1')],
+        ),
+        people: FakeEmployeeRepository(
+          seed: [employee(id: 'e-1', firstName: 'Aline')],
+        ),
+      );
+
+      expect(find.text('With their manager'), findsNothing);
+      expect(
+        find.text('1 request waiting on you · Kigali Main'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an owner who also runs a team gets their own team first',
+        (tester) async {
+      await _pumpApprovals(
+        tester,
+        session: const HrSession(
+          businessIds: ['biz-1'],
+          employeeIds: ['e-boss'],
+          reportIds: ['e-1'],
+        ),
+        leave: FakeLeaveRepository(
+          seed: [
+            leaveRequest(id: 'mine', employeeId: 'e-1'),
+            leaveRequest(id: 'theirs', employeeId: 'e-2'),
+          ],
+        ),
+        people: FakeEmployeeRepository(
+          seed: [
+            employee(id: 'e-1', firstName: 'Aline', managerId: 'e-boss'),
+            employee(id: 'e-2', firstName: 'Chantal', managerId: 'e-other'),
+            employee(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco'),
+            employee(id: 'e-other', firstName: 'Yves', lastName: 'Kamana'),
+          ],
+        ),
+      );
+
+      expect(find.text('Waiting on you'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(const Key('approval-mine'))).dy,
+        lessThan(
+          tester.getTopLeft(find.byKey(const Key('approval-theirs'))).dy,
+        ),
+      );
+      expect(
+        find.text(
+          '1 request waiting on you · 1 with another manager · Kigali Main',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a skip-level request stays under its own manager',
+        (tester) async {
+      // hr_my_report_ids() is recursive, so a manager two levels up may answer —
+      // but the request is still the nearer manager's, and the heading says so.
+      await _pumpApprovals(
+        tester,
+        branchId: null,
+        branchName: null,
+        session: lineManagerSession(
+          employeeId: 'e-boss',
+          reportIds: const ['e-other', 'e-2'],
+        ),
+        leave: FakeLeaveRepository(
+          seed: [leaveRequest(id: 'leave-2', employeeId: 'e-2')],
+        ),
+        line: FakeHrLineRepository(
+          seed: [
+            personRef(id: 'e-2', firstName: 'Chantal', managerId: 'e-other'),
+            personRef(
+              id: 'e-other',
+              firstName: 'Yves',
+              lastName: 'Kamana',
+              managerId: 'e-boss',
+            ),
+            personRef(id: 'e-boss', firstName: 'Jean', lastName: 'Bosco'),
+          ],
+        ),
+      );
+
+      expect(find.text('With their manager'), findsOneWidget);
+      expect(find.text('Reports to Yves Kamana'), findsOneWidget);
+      expect(find.byKey(const Key('approve-leave-2')), findsOneWidget);
+      expect(
+        find.text('Nothing waiting on you · 1 with another manager · Your team'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an empty team queue says whose requests will land there',
+        (tester) async {
+      await _pumpApprovals(
+        tester,
+        branchId: null,
+        branchName: null,
+        session: lineManagerSession(reportIds: const ['e-1']),
+      );
+
+      expect(
+        find.textContaining('reports to you will appear here'),
         findsOneWidget,
       );
     });

@@ -3,7 +3,9 @@ import 'package:flipper_hr/features/invite/data/hr_invite.dart';
 import 'package:flipper_hr/features/invite/data/hr_invite_repository.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_repository.dart';
+import 'package:flipper_hr/features/people/data/hr_line_repository.dart';
 import 'package:flipper_hr/features/people/data/people_query.dart';
+import 'package:flipper_hr/features/people/data/person_ref.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// The roster's store. Overridden with a fake in tests.
 final employeeRepositoryProvider = Provider<EmployeeRepository>((ref) {
   return SupabaseEmployeeRepository(Supabase.instance.client);
+});
+
+/// The reporting-line directory. Overridden with a fake in tests.
+final hrLineRepositoryProvider = Provider<HrLineRepository>((ref) {
+  return SupabaseHrLineRepository(Supabase.instance.client);
 });
 
 /// The invite pipeline. Overridden with a fake in tests.
@@ -47,6 +54,45 @@ final rosterProvider = FutureProvider.family<List<Employee>, String>(
   // provider's future settles instead of hanging while retries continue.
   retry: (retryCount, error) => null,
 );
+
+/// The signed-in person, their manager and their whole team — names only.
+///
+/// Read for two screens that must work without roster access: the approvals queue
+/// of a line manager who manages no business, and the self-service leave page,
+/// which names who a request is waiting on. Kept here rather than under `leave/`
+/// because it is a people read, and both consumers want the same cache entry.
+///
+/// Retry is off for the same reason as [rosterProvider]: the pages that watch it
+/// degrade to ids rather than looping on a failed fetch.
+final myLineProvider = FutureProvider<List<PersonRef>>((ref) {
+  return ref.watch(hrLineRepositoryProvider).fetchMyLine();
+}, retry: (retryCount, error) => null);
+
+/// Names for whoever the current session can see, keyed by employee id.
+///
+/// Merged from two sources on purpose, because the two audiences have different
+/// reach and both may hold at once: [rosterProvider] covers the open branch for
+/// someone who manages the business, and [myLineProvider] covers a manager's own
+/// team wherever it sits. The roster wins on collision — it is the fuller record,
+/// and the line's projection is a subset of it.
+///
+/// Never fails: either source erroring leaves fewer names, and a queue that shows
+/// an id is better than a queue that shows an error.
+final peopleNamesProvider =
+    Provider.family<Map<String, PersonRef>, String?>((ref, branchId) {
+      final names = <String, PersonRef>{};
+
+      for (final person in ref.watch(myLineProvider).value ?? const []) {
+        names[person.id] = person;
+      }
+      if (branchId != null) {
+        for (final e in ref.watch(rosterProvider(branchId)).value ??
+            const []) {
+          names[e.id] = PersonRef.fromEmployee(e);
+        }
+      }
+      return names;
+    });
 
 /// Search / filter / sort state for the open branch's directory.
 final peopleQueryProvider =

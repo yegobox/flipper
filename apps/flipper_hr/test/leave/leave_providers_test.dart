@@ -3,6 +3,7 @@ import 'package:flipper_hr/features/leave/data/leave_repository.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
 import 'package:flipper_hr/features/leave/data/leave_type.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
+import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -96,6 +97,170 @@ void main() {
       );
 
       expect([for (final r in pending) r.id], ['sooner', 'later']);
+    });
+  });
+
+  group('teamLeaveProvider', () {
+    test('reads every request from the people who report to you', () async {
+      final container = _container(
+        session: FakeHrSessionRepository(
+          session: lineManagerSession(reportIds: const ['e-1', 'e-2']),
+        ),
+        leave: FakeLeaveRepository(
+          seed: [
+            leaveRequest(id: 'a', employeeId: 'e-1'),
+            leaveRequest(id: 'b', employeeId: 'e-2'),
+            leaveRequest(id: 'other-team', employeeId: 'e-9'),
+          ],
+        ),
+      );
+
+      final requests = await container.read(teamLeaveProvider.future);
+
+      expect({for (final r in requests) r.id}, {'a', 'b'});
+    });
+
+    test('nobody reporting to you reads as an empty team, not everything',
+        () async {
+      // The failure mode worth pinning: an empty id list must never widen into
+      // "all requests the policies would allow".
+      final leave = FakeLeaveRepository(
+        seed: [leaveRequest(id: 'someone-elses', employeeId: 'e-1')],
+      );
+      final container = _container(
+        session: FakeHrSessionRepository(session: ownerSession()),
+        leave: leave,
+      );
+
+      expect(await container.read(teamLeaveProvider.future), isEmpty);
+    });
+  });
+
+  group('approvalsQueueProvider', () {
+    test('an owner reads the open branch', () async {
+      final container = _container(
+        session: FakeHrSessionRepository(session: ownerSession()),
+        leave: FakeLeaveRepository(
+          seed: [
+            leaveRequest(id: 'here', branchId: 'branch-1'),
+            leaveRequest(id: 'elsewhere', branchId: 'branch-2'),
+          ],
+        ),
+      );
+
+      final queue = await container.read(
+        approvalsQueueProvider('branch-1').future,
+      );
+
+      expect([for (final r in queue) r.id], ['here']);
+    });
+
+    test('a line manager reads their team without any branch', () async {
+      final container = _container(
+        session: FakeHrSessionRepository(
+          session: lineManagerSession(reportIds: const ['e-1']),
+        ),
+        leave: FakeLeaveRepository(
+          seed: [
+            // On a branch this session has no selection for, which is the case
+            // that could not be reached before migration 0007.
+            leaveRequest(id: 'mine', employeeId: 'e-1', branchId: 'branch-9'),
+            leaveRequest(id: 'theirs', employeeId: 'e-9', branchId: 'branch-1'),
+          ],
+        ),
+      );
+
+      final queue = await container.read(approvalsQueueProvider(null).future);
+
+      expect([for (final r in queue) r.id], ['mine']);
+    });
+
+    test('both routes at once are merged, each request once', () async {
+      final container = _container(
+        session: FakeHrSessionRepository(
+          session: const HrSession(
+            businessIds: ['biz-1'],
+            employeeIds: ['e-boss'],
+            reportIds: ['e-1', 'e-away'],
+          ),
+        ),
+        leave: FakeLeaveRepository(
+          seed: [
+            // In both sources: on the branch AND on the team.
+            leaveRequest(id: 'both', employeeId: 'e-1', branchId: 'branch-1'),
+            // Team only: a report working out of another branch.
+            leaveRequest(
+              id: 'team-only',
+              employeeId: 'e-away',
+              branchId: 'branch-7',
+            ),
+            // Branch only: somebody else's report.
+            leaveRequest(
+              id: 'branch-only',
+              employeeId: 'e-9',
+              branchId: 'branch-1',
+            ),
+          ],
+        ),
+      );
+
+      final queue = await container.read(
+        approvalsQueueProvider('branch-1').future,
+      );
+
+      expect(
+        {for (final r in queue) r.id},
+        {'both', 'team-only', 'branch-only'},
+      );
+      expect(queue.length, 3);
+    });
+
+    test('a branch is ignored for someone who manages no business', () async {
+      // The router does not pass one, but a stale selection must not become a
+      // read of a branch this session has no authority over.
+      final container = _container(
+        session: FakeHrSessionRepository(
+          session: lineManagerSession(reportIds: const ['e-1']),
+        ),
+        leave: FakeLeaveRepository(
+          seed: [
+            leaveRequest(id: 'branch-row', employeeId: 'e-9'),
+            leaveRequest(id: 'team-row', employeeId: 'e-1'),
+          ],
+        ),
+      );
+
+      final queue = await container.read(
+        approvalsQueueProvider('branch-1').future,
+      );
+
+      expect([for (final r in queue) r.id], ['team-row']);
+    });
+
+    test('a decision refreshes the team queue too', () async {
+      final leave = FakeLeaveRepository(
+        seed: [leaveRequest(id: 'leave-1', employeeId: 'e-1')],
+      );
+      final container = _container(
+        session: FakeHrSessionRepository(
+          session: lineManagerSession(reportIds: const ['e-1']),
+        ),
+        leave: leave,
+      );
+      final subscription = container.listen(
+        approvalsQueueProvider(null),
+        (_, __) {},
+      );
+      addTearDown(subscription.close);
+      await container.read(approvalsQueueProvider(null).future);
+
+      await container.read(leaveActionsProvider).approve(
+        request: leave.requests.single,
+        decidedBy: 'user-line-manager',
+      );
+      final queue = await container.read(approvalsQueueProvider(null).future);
+
+      expect(queue.single.status, LeaveStatus.approved);
     });
   });
 

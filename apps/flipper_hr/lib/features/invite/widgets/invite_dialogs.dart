@@ -10,17 +10,27 @@ import 'package:flutter/services.dart';
 Future<HrRole?> showInviteRoleDialog(
   BuildContext context, {
   required Employee employee,
+  int directReports = 0,
 }) {
   return showDialog<HrRole>(
     context: context,
-    builder: (context) => _InviteRoleDialog(employee: employee),
+    builder: (context) => _InviteRoleDialog(
+      employee: employee,
+      directReports: directReports,
+    ),
   );
 }
 
 class _InviteRoleDialog extends StatefulWidget {
-  const _InviteRoleDialog({required this.employee});
+  const _InviteRoleDialog({required this.employee, this.directReports = 0});
 
   final Employee employee;
+
+  /// How many people report to them on the roster. Shown because it changes what
+  /// the Staff role means for this person: the reporting line grants approval on
+  /// its own, so a supervisor does not need the HR-manager grant to answer their
+  /// own team.
+  final int directReports;
 
   @override
   State<_InviteRoleDialog> createState() => _InviteRoleDialogState();
@@ -71,6 +81,16 @@ class _InviteRoleDialogState extends State<_InviteRoleDialog> {
                 'second person.',
               ),
             ],
+            if (widget.directReports > 0) ...[
+              const SizedBox(height: 12),
+              _Warning(
+                '${widget.directReports} '
+                '${widget.directReports == 1 ? 'person' : 'people'} '
+                'report to them, so they will approve that leave whichever role '
+                'you pick. The roster and everyone else\'s pay is what the '
+                'manager role adds.',
+              ),
+            ],
             const SizedBox(height: 20),
             Text('What can they do?', style: theme.textTheme.titleSmall),
             const SizedBox(height: 4),
@@ -115,9 +135,11 @@ class _InviteRoleDialogState extends State<_InviteRoleDialog> {
 
   static String _describe(HrRole role) => switch (role) {
     HrRole.staff =>
-      'Sees their own record, books leave and checks their balance.',
+      'Sees their own record, books leave and checks their balance — plus '
+          'approves leave for anyone who reports to them.',
     HrRole.manager =>
-      'Everything above, plus the branch roster and approving leave.',
+      'Everything above, plus the branch roster, pay, and approving leave for '
+          'the whole business.',
   };
 }
 

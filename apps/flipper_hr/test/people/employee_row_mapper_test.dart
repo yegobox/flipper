@@ -29,6 +29,7 @@ void main() {
     'bank_name': null,
     'bank_account': null,
     'user_id': null,
+    'manager_id': 'emp-boss',
     'notes': null,
     'created_at': '2026-01-02T08:30:00.000Z',
     'updated_at': '2026-01-03T09:00:00.000Z',
@@ -38,6 +39,8 @@ void main() {
   group('fromRow', () {
     test('reads a full row', () {
       final e = EmployeeRowMapper.fromRow(row());
+
+      expect(e.managerId, 'emp-boss');
 
       expect(e.id, 'emp-1');
       expect(e.fullName, 'Aline Uwase');
@@ -190,6 +193,21 @@ void main() {
       });
 
       expect(echoed.copyWith(updatedAt: original.updatedAt), original);
+    });
+
+    test('a cleared manager is written as null, not an empty string', () {
+      // manager_id is a uuid column: '' would be rejected outright, and the
+      // record must be able to get back to "reports to nobody".
+      final e = EmployeeRowMapper.fromRow(row()).copyWith(clearManagerId: true);
+      final update = EmployeeRowMapper.toUpdateRow(e);
+
+      expect(update['manager_id'], isNull);
+      expect(
+        EmployeeRowMapper.toUpdateRow(
+          EmployeeRowMapper.fromRow(row()),
+        )['manager_id'],
+        'emp-boss',
+      );
     });
 
     test('enum values are written as their wire strings', () {

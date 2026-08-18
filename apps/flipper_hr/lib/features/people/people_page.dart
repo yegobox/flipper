@@ -5,6 +5,7 @@ import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/people/data/people_query.dart';
+import 'package:flipper_hr/features/people/data/reporting_line.dart';
 import 'package:flipper_hr/features/people/widgets/employee_form.dart';
 import 'package:flipper_hr/features/people/widgets/status_chip.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +61,15 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           hireDate: today,
         );
 
+    // The roster is already loaded — the form is opened from it — so the manager
+    // choices are computed here rather than fetched again. Read, not watched: a
+    // dropdown whose options shifted under the person choosing would be worse
+    // than one that is a few seconds stale.
+    final managerOptions = managerCandidatesFor(
+      roster: ref.read(rosterProvider(widget.branchId)).value ?? const [],
+      employee: initial,
+    );
+
     final isNarrow = MediaQuery.sizeOf(context).width < 720;
     final saved = await showDialog<Employee>(
       context: context,
@@ -68,6 +78,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         final form = EmployeeForm(
           initial: initial,
           today: today,
+          managerOptions: managerOptions,
           onCancel: () => Navigator.of(dialogContext).pop(),
           onDiagnose: _showAccessDiagnostic,
           onSubmit: (draft) async {
@@ -101,7 +112,17 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
   /// The PIN dialog is not skippable on success — it is the only time the
   /// credential exists in a readable form, and losing it means re-inviting.
   Future<void> _invite(Employee employee) async {
-    final role = await showInviteRoleDialog(context, employee: employee);
+    // The role dialog says what Staff means for this person, and for a supervisor
+    // that depends on how many people report to them.
+    final directReports = directReportsOf(
+      ref.read(rosterProvider(widget.branchId)).value ?? const [],
+      employee.id,
+    ).length;
+    final role = await showInviteRoleDialog(
+      context,
+      employee: employee,
+      directReports: directReports,
+    );
     if (role == null || !mounted) return;
 
     setState(() => _invitingId = employee.id);
@@ -349,6 +370,9 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
               return _RosterRow(
                 key: Key('employee-row-${person.id}'),
                 employee: person,
+                // Resolved against the whole roster, not the filtered list: a
+                // department filter must not blank out someone's manager.
+                manager: approverFor(roster: people, employee: person),
                 asOf: now,
                 isTable: isTable,
                 onEdit: () => _openForm(employee: person),
@@ -602,7 +626,8 @@ class _TableHeader extends StatelessWidget {
       child: Row(
         children: [
           Expanded(flex: 4, child: Text('NAME', style: style)),
-          Expanded(flex: 3, child: Text('DEPARTMENT', style: style)),
+          Expanded(flex: 2, child: Text('DEPARTMENT', style: style)),
+          Expanded(flex: 3, child: Text('REPORTS TO', style: style)),
           Expanded(flex: 3, child: Text('CONTACT', style: style)),
           Expanded(flex: 2, child: Text('TENURE', style: style)),
           Expanded(flex: 3, child: Text('BASE PAY', style: style)),
@@ -618,6 +643,7 @@ class _RosterRow extends StatelessWidget {
   const _RosterRow({
     super.key,
     required this.employee,
+    required this.manager,
     required this.asOf,
     required this.isTable,
     required this.onEdit,
@@ -627,6 +653,12 @@ class _RosterRow extends StatelessWidget {
   });
 
   final Employee employee;
+
+  /// Who this person reports to, when the line says and that person is on this
+  /// branch's roster. Null shows as an em dash — no manager, so their leave falls
+  /// to whoever manages the business.
+  final Employee? manager;
+
   final DateTime asOf;
   final bool isTable;
   final VoidCallback onEdit;
@@ -657,6 +689,7 @@ class _RosterRow extends StatelessWidget {
           subtitle: Text(
             [
               if (employee.jobTitle.isNotEmpty) employee.jobTitle,
+              if (manager case final manager?) 'Reports to ${manager.fullName}',
               if (employee.phone.isNotEmpty) employee.phone,
               pay,
             ].join(' · '),
@@ -714,9 +747,17 @@ class _RosterRow extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 3,
+              flex: 2,
               child: Text(
                 employee.department.isEmpty ? '—' : employee.department,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Text(
+                manager?.fullName ?? '—',
+                key: Key('employee-manager-${employee.id}'),
                 overflow: TextOverflow.ellipsis,
               ),
             ),

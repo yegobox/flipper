@@ -56,6 +56,29 @@ class SupabaseLeaveRepository implements LeaveRepository {
   }
 
   @override
+  Future<List<LeaveRequest>> fetchForEmployees({
+    required List<String> employeeIds,
+  }) async {
+    // No ids is no query. PostgREST would happily send `in.()` and the RLS
+    // policies would then decide the result, which for an owner is the whole
+    // business — the opposite of "nobody reports to me".
+    if (employeeIds.isEmpty) return const [];
+    try {
+      final rows = await _client
+          .from(table)
+          .select()
+          .inFilter('employee_id', employeeIds)
+          .order('start_date', ascending: false);
+      return [for (final row in rows) LeaveRowMapper.fromRow(row)];
+    } catch (e) {
+      throw LeaveRepositoryException(
+        describeBackendError('Could not load leave for your team.', e),
+        cause: e,
+      );
+    }
+  }
+
+  @override
   Future<LeaveRequest> submit(LeaveRequest request) async {
     try {
       final row = await _client

@@ -7,6 +7,8 @@ import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/leave/leave_approvals_page.dart';
 import 'package:flipper_hr/features/leave/my_leave_page.dart';
 import 'package:flipper_hr/features/people/people_page.dart';
+import 'package:flipper_hr/features/session/data/hr_session.dart';
+import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flipper_hr/router/hr_redirect.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
@@ -35,7 +37,8 @@ abstract final class HrRoute {
   /// Self-service leave. Reachable without a business selection.
   static const myLeave = 'hrMyLeave';
 
-  /// The branch approvals queue.
+  /// The approvals queue: the open branch's for someone who manages the
+  /// business, their own team's for a line manager.
   static const approvals = 'hrApprovals';
 
   /// The branch attendance board.
@@ -103,18 +106,7 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/approvals',
             name: HrRoute.approvals,
-            builder: (context, state) => HrBranchScope(
-              builder:
-                  (
-                    context, {
-                    required businessId,
-                    required branchId,
-                    required branchName,
-                  }) => _Approvals(
-                    branchId: branchId,
-                    branchName: branchName,
-                  ),
-            ),
+            builder: (context, state) => const _Approvals(),
           ),
           GoRoute(
             path: '/attendance',
@@ -160,24 +152,46 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Reads the signed-in profile so a decision records who made it.
+/// Scopes the approvals queue, and reads the signed-in profile so a decision
+/// records who made it.
 ///
-/// A thin wrapper rather than a parameter threaded through [HrBranchScope]: the
-/// decider is an identity concern, and the branch scope has no business knowing
-/// about it.
+/// Unlike the roster and the board, this route cannot simply demand a branch.
+/// Since migration 0007 a line manager approves their own team's leave without
+/// managing any business, so for them there is no selection to make and
+/// [HrBranchScope] would strand them on "pick a branch" — the exact dead end the
+/// auth gate avoids for self-service leave. The branch is therefore asked for only
+/// when the session actually manages a business; everyone else gets the
+/// team-scoped queue.
+///
+/// The decider is read here rather than threaded through the scope: it is an
+/// identity concern, and the branch scope has no business knowing about it.
 class _Approvals extends ConsumerWidget {
-  const _Approvals({required this.branchId, required this.branchName});
-
-  final String branchId;
-  final String? branchName;
+  const _Approvals();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentUserProfileProvider).value;
-    return LeaveApprovalsPage(
-      branchId: branchId,
-      branchName: branchName,
-      deciderUserId: profile?.id,
+    final deciderUserId = profile?.id;
+    // Unresolved counts as "no business scope": the team queue works for
+    // everybody, while the branch queue would show a selector to someone who has
+    // nothing to select.
+    final session = ref.watch(hrSessionProvider).value ?? HrSession.none;
+
+    if (!session.canManageRoster) {
+      return LeaveApprovalsPage(deciderUserId: deciderUserId);
+    }
+    return HrBranchScope(
+      builder:
+          (
+            context, {
+            required businessId,
+            required branchId,
+            required branchName,
+          }) => LeaveApprovalsPage(
+            branchId: branchId,
+            branchName: branchName,
+            deciderUserId: deciderUserId,
+          ),
     );
   }
 }

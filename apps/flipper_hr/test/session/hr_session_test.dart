@@ -35,6 +35,31 @@ void main() {
       expect(HrSession.none.primaryEmployeeId, isNull);
     });
 
+    test('people reporting to you make leave yours to decide', () {
+      // The third, independent proof migration 0007 adds: no business scope at
+      // all, and still an approver.
+      const session = HrSession(employeeIds: ['e-boss'], reportIds: ['e-1']);
+
+      expect(session.canManageRoster, isFalse);
+      expect(session.hasReports, isTrue);
+      expect(session.canApproveLeave, isTrue);
+      // Their own leave is still the page they open; the queue is a tab away.
+      expect(session.landing, HrLanding.myLeave);
+    });
+
+    test('an owner with nobody reporting to them still approves', () {
+      const session = HrSession(businessIds: ['biz-1']);
+
+      expect(session.hasReports, isFalse);
+      expect(session.canApproveLeave, isTrue);
+    });
+
+    test('staff with no reports approve nothing', () {
+      const session = HrSession(employeeIds: ['e-1']);
+
+      expect(session.canApproveLeave, isFalse);
+    });
+
     test('multi-branch staff read self-service against the first record', () {
       const session = HrSession(employeeIds: ['e-1', 'e-2']);
 
@@ -49,12 +74,30 @@ void main() {
         'identity_keys': ['user-1', 'user-2'],
         'phones': ['+250788123456'],
         'employee_ids': ['e-1'],
+        'manager_ids': ['e-boss'],
+        'report_ids': ['e-2', 'e-3'],
         'business_ids': ['biz-1'],
       });
 
       expect(session.identityKeys, ['user-1', 'user-2']);
       expect(session.employeeIds, ['e-1']);
+      expect(session.managerIds, ['e-boss']);
+      expect(session.reportIds, ['e-2', 'e-3']);
       expect(session.businessIds, ['biz-1']);
+    });
+
+    test('a project without 0007 resolves to a session with no reports', () {
+      // hr_whoami_employee() gained report_ids in 0007. An older function still
+      // answers, and its answer must degrade to "no team" rather than throwing —
+      // otherwise an unmigrated project loses the roster as well.
+      final session = SupabaseHrSessionRepository.parseSession({
+        'employee_ids': ['e-1'],
+        'business_ids': ['biz-1'],
+      });
+
+      expect(session.reportIds, isEmpty);
+      expect(session.hasReports, isFalse);
+      expect(session.canManageRoster, isTrue);
     });
 
     test('empty arrays are an unresolved session, not a malformed one', () {

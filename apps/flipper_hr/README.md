@@ -57,6 +57,9 @@ lib/features/people/
   data/employee_repository.dart   backend-agnostic contract
   data/supabase_employee_repository.dart
   data/employee_validation.dart   form rules (pure function)
+  data/reporting_line.dart        org-chart walks: reports, chain, manager choices
+  data/person_ref.dart            a person's name without their pay
+  data/hr_line_repository.dart    hr_my_line(): you, your manager, your team
   data/people_query.dart          search / filter / sort + summary tiles
   data/money_format.dart          RWF + date + tenure formatting
   data/people_providers.dart      repository, roster, query, write actions
@@ -71,6 +74,8 @@ supabase/migrations/0002_hr_employees_rls_identity.sql
 supabase/migrations/0003_hr_employees_rls_pin_identity.sql
 supabase/migrations/0004_hr_leave.sql
 supabase/migrations/0005_hr_attendance.sql
+supabase/migrations/0006_hr_manager_access.sql
+supabase/migrations/0007_hr_reporting_line.sql
 ```
 
 Everything except the two widgets is a pure function or a value object, so the
@@ -78,9 +83,11 @@ rules are tested without a backend; the page and form are tested against
 `test/helpers/fake_employee_repository.dart`.
 
 Migrations are applied by hand, lowest number first, in the Supabase SQL editor
-as the service role — `0001` through `0005`, in order. `0002` and `0003` each fix
+as the service role — `0001` through `0007`, in order. `0002` and `0003` each fix
 the identity mapping the previous one got wrong; stopping before `0003` means
-every read and write returns 403.
+every read and write returns 403. Stopping before `0007` costs no reads, but
+reporting lines silently do not exist: `hr_my_line()` is missing, so the client
+says so instead of showing an empty team.
 
 `0001` creates `hr_employees` with RLS scoped to the businesses the signed-in
 account owns; nothing loads until it is applied.
@@ -231,3 +238,53 @@ version of this function.
 too little. Keying on the feature name `HR` is safe because it is not one of
 Flipper's POS features (`AppFeature` in flipper_services/constants.dart), so this
 cannot silently promote an existing POS user.
+
+## Leave — who approves
+
+Two things can make a leave request yours to answer, and they are independent:
+
+- **Business scope** — you own the business or hold a live `HR`/`admin` grant
+  (`hr_user_business_ids()`, above). Decides anything in the business.
+- **The reporting line** — `hr_employees.manager_id`, added by `0007`. Decides the
+  leave of anyone at or below you, and needs no business scope at all.
+
+The second is what a shift supervisor should have had all along. Before `0007` the
+only way to let one approve their team's leave was to invite them as
+`HrRole.manager`, which hands over the whole roster including salary. Now the
+authority comes from the relationship: `hr_my_report_ids()` walks the line
+downward (recursively, so a manager's manager can cover for them) and the leave
+policies key on it.
+
+Set on the People form's **Reports to** field. Left unset — the owner, a new hire
+not yet placed — the request falls to whoever manages the business, which is
+exactly how HR behaved before this existed, so nothing needed a backfill.
+
+What the split buys the approvals queue: **Waiting on you** is the requests whose
+*direct* manager you are (plus the unassigned ones, if you run the business), and
+**With their manager** is everyone else's, listed rather than hidden because a
+manager on leave must not be able to strand their team. Deciding one of those is
+an override, and the heading says so.
+
+Two deliberate non-grants:
+
+- **A line manager cannot read the roster.** RLS is row-level, so a SELECT policy
+  on `hr_employees` would hand a team lead their reports' `base_salary`,
+  `national_id` and `bank_account` along with their names. Instead `hr_my_line()`
+  projects the non-sensitive columns for exactly the rows they are tied to, and
+  the client models that as `PersonRef` — not an `Employee` with a zeroed salary,
+  which would put a plausible `RWF 0` on screen and invite code to read it.
+- **A line manager cannot edit the org chart.** `hr_employees` INSERT/UPDATE is
+  unchanged, so only business-scoped HR sets `manager_id` — a manager cannot
+  re-parent themselves onto a richer team.
+
+Nobody can approve their own leave: `hr_my_report_ids()` excludes the caller's own
+rows, and a cycle in the line — which would make people their own reports, and so
+their own approvers — is refused twice, by the `hr_employees_manager_not_self`
+CHECK and by the `hr_employees_no_manager_cycle` trigger. The form does the same
+walk client-side (`reporting_line.dart`) so the dropdown never offers a loop it
+would then have to reject.
+
+`/approvals` is therefore the one route that does **not** demand a branch: a line
+manager has no business to select, and `HrBranchScope` would strand them on "pick
+a branch". The queue asks for a branch only when the session manages a business,
+and unions the branch and team reads for someone who is both.

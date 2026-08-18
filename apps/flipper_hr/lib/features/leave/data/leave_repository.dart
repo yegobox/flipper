@@ -16,6 +16,17 @@ abstract class LeaveRepository {
   /// Every request on a branch, newest first — the approvals queue.
   Future<List<LeaveRequest>> fetchForBranch({required String branchId});
 
+  /// Every request belonging to any of [employeeIds], newest first.
+  ///
+  /// The queue of a line manager, who has no branch to ask for: their team is a
+  /// set of employee ids (`hr_my_report_ids()`), and it may span branches. A third
+  /// method rather than a filter argument for the same reason the first two are
+  /// separate — the RLS policy behind it is its own (`hr_leave_select_reports`),
+  /// and an empty [employeeIds] must not silently mean "everything".
+  Future<List<LeaveRequest>> fetchForEmployees({
+    required List<String> employeeIds,
+  });
+
   /// Files a request. Always stored pending; the returned row is what Postgres
   /// kept, including the trigger-assigned business and branch.
   Future<LeaveRequest> submit(LeaveRequest request);

@@ -27,6 +27,20 @@ HrSession ownerSession({List<String> businessIds = const ['biz-1']}) =>
 HrSession staffSession({String employeeId = 'e-1'}) =>
     HrSession(employeeIds: [employeeId], identityKeys: const ['user-staff']);
 
+/// A line manager: on the roster themselves, with people reporting to them, and
+/// no business scope at all.
+///
+/// The session migration 0007 exists for — authority from the reporting line
+/// rather than from ownership or an `accesses` grant.
+HrSession lineManagerSession({
+  String employeeId = 'e-boss',
+  List<String> reportIds = const ['e-1'],
+}) => HrSession(
+  employeeIds: [employeeId],
+  reportIds: reportIds,
+  identityKeys: const ['user-line-manager'],
+);
+
 /// An invited HR manager: reaches the business through an `accesses` grant
 /// rather than owning it, and is on the roster themselves.
 ///

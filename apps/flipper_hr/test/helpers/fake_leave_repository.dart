@@ -44,6 +44,18 @@ class FakeLeaveRepository implements LeaveRepository {
   }
 
   @override
+  Future<List<LeaveRequest>> fetchForEmployees({
+    required List<String> employeeIds,
+  }) async {
+    _maybeFail();
+    // No ids means nobody's queue, not everybody's — the same short-circuit the
+    // Supabase repository makes so an empty team cannot read as the whole table.
+    if (employeeIds.isEmpty) return const [];
+    final wanted = employeeIds.toSet();
+    return _sorted(_requests.where((r) => wanted.contains(r.employeeId)));
+  }
+
+  @override
   Future<LeaveRequest> submit(LeaveRequest request) async {
     _maybeFail();
     submitCount++;

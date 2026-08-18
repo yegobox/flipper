@@ -119,6 +119,7 @@ class Employee {
     this.bankName = '',
     this.bankAccount = '',
     this.userId,
+    this.managerId,
     this.annualLeaveDays,
     this.notes = '',
     this.createdAt,
@@ -169,6 +170,16 @@ class Employee {
   /// the HR invite, and what ties this record to the leave the person books.
   final String? userId;
 
+  /// The person this employee reports to — an [Employee.id] on the same roster.
+  ///
+  /// Null means nobody in particular, and that is a real state rather than an
+  /// omission: the owner reports to no one, and a new hire is often added before
+  /// the org chart catches up. Leave for someone with no manager falls back to
+  /// whoever manages the business, which is how HR behaved before reporting lines
+  /// existed. When it is set, that person is the one the request waits on — see
+  /// `hr_my_report_ids()` in migration 0007.
+  final String? managerId;
+
   /// Annual leave entitlement in working days, when their contract improves on
   /// the statutory minimum.
   ///
@@ -187,6 +198,9 @@ class Employee {
 
   /// True once this person can sign into HR and book their own leave.
   bool get hasFlipperAccount => (userId ?? '').trim().isNotEmpty;
+
+  /// True when this person's leave has a named approver of its own.
+  bool get hasManager => (managerId ?? '').trim().isNotEmpty;
 
   /// Contact the invite is addressed to. Phone first: the login PIN is confirmed
   /// with an OTP sent by SMS, so a record with only an email cannot complete a
@@ -266,6 +280,8 @@ class Employee {
     String? bankName,
     String? bankAccount,
     String? userId,
+    String? managerId,
+    bool clearManagerId = false,
     double? annualLeaveDays,
     bool clearAnnualLeaveDays = false,
     String? notes,
@@ -295,6 +311,9 @@ class Employee {
     bankName: bankName ?? this.bankName,
     bankAccount: bankAccount ?? this.bankAccount,
     userId: userId ?? this.userId,
+    // Clearable for the same reason as the entitlement below: "reports to
+    // nobody" is a choice the form has to be able to get back to.
+    managerId: clearManagerId ? null : (managerId ?? this.managerId),
     // Clearable, because blank means "the statutory default" — a distinct value
     // from 0, and one the form must be able to get back to.
     annualLeaveDays: clearAnnualLeaveDays
@@ -329,6 +348,7 @@ class Employee {
     bankName,
     bankAccount,
     userId,
+    managerId,
     annualLeaveDays,
     notes,
     createdAt,
