@@ -7,25 +7,29 @@ List<String> _paths(HrSession session) =>
 
 void main() {
   group('hrDestinationsFor', () {
-    test('an owner gets the roster and the approvals queue', () {
+    test('an owner gets the roster, the board and the approvals queue', () {
       expect(
         _paths(const HrSession(businessIds: ['biz-1'])),
-        ['/people', '/approvals'],
+        ['/people', '/attendance', '/approvals'],
       );
     });
 
-    test('an invited employee gets their leave and nothing else', () {
+    test('an invited employee gets only their own time and leave', () {
       // The point of deriving this from the session: an employee cannot read the
-      // roster, so a People tab would only ever fail for them.
-      expect(_paths(const HrSession(employeeIds: ['e-1'])), ['/leave']);
+      // roster, so a People tab would only ever fail for them. The branch board
+      // is likewise absent — they may see their own hours, not the branch's.
+      expect(
+        _paths(const HrSession(employeeIds: ['e-1'])),
+        ['/my-time', '/leave'],
+      );
     });
 
-    test('an owner on their own payroll gets all three, roster first', () {
+    test('an owner on their own payroll gets both sets, management first', () {
       expect(
         _paths(
           const HrSession(businessIds: ['biz-1'], employeeIds: ['e-1']),
         ),
-        ['/people', '/approvals', '/leave'],
+        ['/people', '/attendance', '/approvals', '/my-time', '/leave'],
       );
     });
 

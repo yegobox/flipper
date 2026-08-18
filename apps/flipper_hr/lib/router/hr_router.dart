@@ -1,4 +1,6 @@
 import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_hr/features/attendance/attendance_page.dart';
+import 'package:flipper_hr/features/attendance/my_attendance_page.dart';
 import 'package:flipper_hr/features/auth/hr_auth_gate.dart';
 import 'package:flipper_hr/features/home/hr_branch_scope.dart';
 import 'package:flipper_hr/features/home/hr_home_shell.dart';
@@ -35,6 +37,13 @@ abstract final class HrRoute {
 
   /// The branch approvals queue.
   static const approvals = 'hrApprovals';
+
+  /// The branch attendance board.
+  static const attendance = 'hrAttendance';
+
+  /// Own clock and timesheet. Reachable without a business selection, like
+  /// [myLeave].
+  static const myAttendance = 'hrMyAttendance';
 }
 
 final hrRouterProvider = Provider<GoRouter>((ref) {
@@ -108,9 +117,31 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            path: '/attendance',
+            name: HrRoute.attendance,
+            builder: (context, state) => HrBranchScope(
+              builder:
+                  (
+                    context, {
+                    required businessId,
+                    required branchId,
+                    required branchName,
+                  }) => AttendancePage(
+                    businessId: businessId,
+                    branchId: branchId,
+                    branchName: branchName,
+                  ),
+            ),
+          ),
+          GoRoute(
             path: '/leave',
             name: HrRoute.myLeave,
             builder: (context, state) => const MyLeavePage(),
+          ),
+          GoRoute(
+            path: '/my-time',
+            name: HrRoute.myAttendance,
+            builder: (context, state) => const MyAttendancePage(),
           ),
         ],
       ),

@@ -62,9 +62,15 @@ lib/features/people/
   data/people_providers.dart      repository, roster, query, write actions
   people_page.dart                the directory
   widgets/employee_form.dart      add / edit
+lib/features/invite/            three-hop invite (apihub + create_agent)
+lib/features/leave/             requests, balances, approvals
+lib/features/attendance/        clock in/out, board, timesheet
+lib/features/session/           what the database can prove about the caller
 supabase/migrations/0001_hr_employees.sql
 supabase/migrations/0002_hr_employees_rls_identity.sql
 supabase/migrations/0003_hr_employees_rls_pin_identity.sql
+supabase/migrations/0004_hr_leave.sql
+supabase/migrations/0005_hr_attendance.sql
 ```
 
 Everything except the two widgets is a pure function or a value object, so the
@@ -72,9 +78,9 @@ rules are tested without a backend; the page and form are tested against
 `test/helpers/fake_employee_repository.dart`.
 
 Migrations are applied by hand, lowest number first, in the Supabase SQL editor
-as the service role — `0001`, then `0002`, then `0003`. Each later one fixes the
-identity mapping the previous got wrong; stopping early means every read and
-write returns 403.
+as the service role — `0001` through `0005`, in order. `0002` and `0003` each fix
+the identity mapping the previous one got wrong; stopping before `0003` means
+every read and write returns 403.
 
 `0001` creates `hr_employees` with RLS scoped to the businesses the signed-in
 account owns; nothing loads until it is applied.
@@ -165,3 +171,39 @@ flipper_web sites.
    A records for the `hr` host.
 3. Wait for the certificate to provision, then sign in with a Flipper PIN and
    confirm HR opens on `/people` with the picked business and branch.
+
+## Attendance — the clock and the timesheet
+
+`0005` adds `hr_attendance_sessions`: **one row per stretch worked**, not one row
+per day with clock-in/clock-out columns. People break for lunch and step out
+mid-shift, and a single pair of columns forces that into either a lie or a second
+table. Per-day totals are derived in `attendance_day.dart`, from the same rule
+payroll will read.
+
+| Route | Who | What |
+| ----- | --- | ---- |
+| `/attendance` | roster managers | the branch board for one day: who is in, since when, how long |
+| `/my-time` | anyone with a record | own clock and the last 14 days |
+
+Two things are load-bearing:
+
+- **The server stamps the time.** `hr_clock_in()` / `hr_clock_out()` are RPCs
+  because `now()` cannot be expressed in a PostgREST insert payload, and a
+  timesheet whose times come from the device is only as trustworthy as the device
+  clock — including a deliberately wound-back one. They are `SECURITY INVOKER`,
+  so RLS still applies: the RPC decides the *time*, never the *permission*.
+- **One open session per person**, enforced by a partial unique index rather than
+  a client-side check. Two taps on a slow connection would otherwise both pass a
+  check and double-count the day.
+
+The board's rows come from the **roster**, not from the attendance rows, so
+someone who has not clocked in reads as "Not in" rather than being invisible —
+"who is missing?" is the question a manager opens it for.
+
+Elapsed time for an open session is computed at build from `hrClockProvider`, not
+ticked by a timer: a timer that never settles makes every widget test touching
+the page hang, and a minute of staleness on "2h 14m" is not worth that.
+
+Public holidays are not deducted anywhere in HR yet — see the note in
+`leave_working_days.dart` for why a hardcoded Rwandan calendar would be wrong
+within a year.

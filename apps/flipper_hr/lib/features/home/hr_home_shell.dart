@@ -174,6 +174,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
   if (session.canManageRoster) {
     destinations.add(
       const HrDestination(
+        path: '/attendance',
+        label: 'Attendance',
+        icon: Icons.schedule_outlined,
+      ),
+    );
+    destinations.add(
+      const HrDestination(
         path: '/approvals',
         label: 'Approvals',
         icon: Icons.fact_check_outlined,
@@ -181,6 +188,13 @@ List<HrDestination> hrDestinationsFor(HrSession session) {
     );
   }
   if (session.hasOwnRecord) {
+    destinations.add(
+      const HrDestination(
+        path: '/my-time',
+        label: 'My time',
+        icon: Icons.timer_outlined,
+      ),
+    );
     destinations.add(
       const HrDestination(
         path: '/leave',

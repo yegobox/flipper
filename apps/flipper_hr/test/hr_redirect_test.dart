@@ -17,7 +17,9 @@ void main() {
       for (final path in [
         '/',
         '/people',
+        '/attendance',
         '/leave',
+        '/my-time',
         '/approvals',
         '/business-selection',
         '/unknown',
@@ -46,11 +48,13 @@ void main() {
     });
 
     test('HR pages stay put', () {
-      // Self-service leave included: an invited employee never picks a business,
-      // so a redirect through the selector would strand them.
+      // The self-service pages included: an invited employee never picks a
+      // business, so a redirect through the selector would strand them.
       for (final path in [
         '/people',
+        '/attendance',
         '/leave',
+        '/my-time',
         '/approvals',
         '/business-selection',
       ]) {
