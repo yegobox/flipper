@@ -16,7 +16,7 @@ router — nothing about the login flow is duplicated:
 | `/login`             | `PinScreen` (flipper_web) — PIN → OTP/TOTP     |
 | `/signup`            | `SignupView` (flipper_web)                     |
 | `/business-selection`| `BusinessSelectionWrapper` (flipper_web)       |
-| `/people`            | `HrHomeShell` (this app)                       |
+| `/people`            | `HrHomeShell` → `PeoplePage` (this app)        |
 | `/`                  | `HrAuthGate` — routes by session + selection   |
 
 Three host-app settings are applied in `main()` before the router is built:
@@ -39,6 +39,85 @@ Same Supabase project and same `apihub` endpoints as flipper_web, so PINs, OTP
 and TOTP behave identically. Sessions are per-origin browser storage: signing in
 on `hr.useflipper.com` does not carry a session over from `useflipper.com`, it is
 the *account* that is shared, not the browser session.
+
+## People — the employee directory
+
+`/people` is HR's first module: the roster for the selected branch. Every other
+HR feature (attendance, leave, payroll) references an employee record, so this
+is the table they all hang off.
+
+Supabase is the only store. Unlike POS entities, HR records are never read
+offline through Ditto, so there is no dual-write — `hr_employees` in the same
+Supabase project flipper_web uses.
+
+```
+lib/features/people/
+  data/employee.dart              DTO + employment enums (plain Dart)
+  data/employee_row_mapper.dart   hr_employees row ↔ Employee
+  data/employee_repository.dart   backend-agnostic contract
+  data/supabase_employee_repository.dart
+  data/employee_validation.dart   form rules (pure function)
+  data/people_query.dart          search / filter / sort + summary tiles
+  data/money_format.dart          RWF + date + tenure formatting
+  data/people_providers.dart      repository, roster, query, write actions
+  people_page.dart                the directory
+  widgets/employee_form.dart      add / edit
+supabase/migrations/0001_hr_employees.sql
+supabase/migrations/0002_hr_employees_rls_identity.sql
+supabase/migrations/0003_hr_employees_rls_pin_identity.sql
+```
+
+Everything except the two widgets is a pure function or a value object, so the
+rules are tested without a backend; the page and form are tested against
+`test/helpers/fake_employee_repository.dart`.
+
+Migrations are applied by hand, lowest number first, in the Supabase SQL editor
+as the service role — `0001`, then `0002`, then `0003`. Each later one fixes the
+identity mapping the previous got wrong; stopping early means every read and
+write returns 403.
+
+`0001` creates `hr_employees` with RLS scoped to the businesses the signed-in
+account owns; nothing loads until it is applied.
+
+`business_id` and `branch_id` are `uuid`, like the rest of this schema; Dart
+holds them as `String` and PostgREST casts on the way in, so nothing in the
+client cares.
+
+Membership is the fiddly part, and it took three migrations to get right:
+
+- `0001` reused `user_business_ids()` from `logs_rls_policies.sql`, which
+  resolves the caller as `users.uuid = auth.uid()`. That mapping is from the POS
+  app's Firebase-era login; `public.users.uuid` is null for real accounts, so it
+  resolved nobody and RLS denied everything with a 403.
+- `0002` added `hr_identity_keys()` and `hr_phones_match()`, resolving the caller
+  from `auth.uid()` or the JWT phone / email. It also assumed a
+  `<something>@flipper.rw` login key was `<phone>@flipper.rw`.
+- `0003` fixes that: those keys are **`<pin>@flipper.rw`** (`public.pins.pin`,
+  an int). A PIN session carries no phone claim at all, and matching the
+  synthetic key against `users.email` resolves a `users` row that owns nothing —
+  identity resolved, `business_ids` empty, writes still denied. `0003` takes the
+  hop the client already takes for these keys (`pins.user_id`, see
+  `UserRepository.fetchAndSaveUserProfile`), then treats the phone number as the
+  account identity so a PIN-resolved row reaches the sibling `users` row that
+  owns the business.
+
+Rows are still only reachable by someone the database can tie to the owning
+business. Holding a PIN grants that PIN's user's businesses — the same identity
+model the app applies, since the PIN is what signs you in.
+
+`0002` also installs `public.hr_whoami()`, which returns the caller exactly as
+the policies see them (`auth_uid`, `identity_keys`, `business_ids`). Its file
+ends with the impersonation recipe for testing a policy from the SQL editor
+without a browser, and a rolled-back smoke insert.
+
+Two notes on what the data holds:
+
+- Rows carry names, phone numbers, national IDs and salaries, which makes them
+  Confidential under IPA's data classification. That is why there is no DELETE
+  policy, `anon` is granted nothing, and RLS is not optional here.
+- `PeopleSummary`'s payroll figure is an estimate, not a payslip — weekly pay is
+  annualised over 52 weeks, and daily/hourly pay uses the 22-working-day and
+  8-hour assumptions in `Employee.monthlyCostEstimate`.
 
 ## Local
 

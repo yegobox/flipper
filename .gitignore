@@ -97,6 +97,13 @@ coverage/
 # GEMINI.md
 supabase
 
+# ...but HR's schema is hand-applied SQL we need in history, not CLI state. The
+# parent dir has to be un-excluded first: git will not descend into an excluded
+# directory, so negating only the files inside it has no effect.
+!apps/flipper_hr/supabase/
+!apps/flipper_hr/supabase/migrations/
+!apps/flipper_hr/supabase/migrations/*.sql
+
 proprietary/*
 proprietary/.*
 proprietary

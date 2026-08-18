@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/people/people_page.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/services/auth_service.dart';
@@ -5,8 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Signed-in HR shell. Today it only proves the shared session resolved to a
-/// business + branch; HR modules land inside this scaffold later.
+/// Signed-in HR shell. Resolves the shared session to a business + branch and
+/// hosts the HR module for it — today the people directory.
+///
+/// The scope is read here and passed to [PeoplePage] as plain ids, so HR
+/// features never import flipper_web's selection providers themselves.
 class HrHomeShell extends ConsumerStatefulWidget {
   const HrHomeShell({super.key});
 
@@ -34,7 +38,6 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final profile = ref.watch(currentUserProfileProvider).value;
     final business = ref.watch(selectedBusinessProvider);
     final branch = ref.watch(selectedBranchProvider);
@@ -43,113 +46,102 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
       appBar: AppBar(
         title: const Text('Flipper HR'),
         actions: [
-          TextButton.icon(
-            onPressed: _isSigningOut ? null : _signOut,
-            icon: _isSigningOut
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.logout),
-            label: const Text('Sign out'),
+          if (business != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Center(
+                child: Text(
+                  [business.name, branch?.name]
+                      .where((v) => v != null && v.isNotEmpty)
+                      .join(' · '),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ),
+          PopupMenuButton<String>(
+            key: const Key('hr-account-menu'),
+            tooltip: 'Account',
+            icon: const Icon(Icons.account_circle_outlined),
+            onSelected: (value) {
+              switch (value) {
+                case 'switch':
+                  context.go('/business-selection');
+                case 'signOut':
+                  _signOut();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Text(profile?.phoneNumber ?? 'Signed in'),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'switch',
+                child: Text('Switch business or branch'),
+              ),
+              PopupMenuItem(
+                value: 'signOut',
+                child: Text(_isSigningOut ? 'Signing out…' : 'Sign out'),
+              ),
+            ],
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.badge_outlined,
-                  size: 48,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'People and payroll',
-                  style: theme.textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Signed in with your Flipper account — the same credentials '
-                  'you use for Books.',
-                  style: theme.textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _InfoRow(
-                          label: 'Account',
-                          value: profile?.phoneNumber ?? '—',
-                        ),
-                        _InfoRow(label: 'User id', value: profile?.id ?? '—'),
-                        _InfoRow(
-                          label: 'Business',
-                          value: business?.name ?? '—',
-                        ),
-                        _InfoRow(label: 'Branch', value: branch?.name ?? '—'),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => context.go('/business-selection'),
-                  icon: const Icon(Icons.swap_horiz),
-                  label: const Text('Switch business or branch'),
-                ),
-              ],
+      body: branch == null || business == null
+          ? _NoBranchSelected(
+              onPick: () => context.go('/business-selection'),
+            )
+          : PeoplePage(
+              businessId: business.id,
+              branchId: branch.id,
+              branchName: branch.name,
             ),
-          ),
-        ),
-      ),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+/// Reachable on a hard reload where the persisted selection did not restore.
+class _NoBranchSelected extends StatelessWidget {
+  const _NoBranchSelected({required this.onPick});
 
-  final String label;
-  final String value;
+  final VoidCallback onPick;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              label,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.store_outlined,
+              size: 44,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text('Pick a branch to continue',
+                style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(
+              'HR records belong to a branch, so choose the one you are '
+              'working on.',
+              textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onPick,
+              icon: const Icon(Icons.swap_horiz),
+              label: const Text('Choose business or branch'),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
