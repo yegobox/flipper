@@ -14,7 +14,14 @@ void main() {
     });
 
     test('root and HR pages fall back to login', () {
-      for (final path in ['/', '/people', '/business-selection', '/unknown']) {
+      for (final path in [
+        '/',
+        '/people',
+        '/leave',
+        '/approvals',
+        '/business-selection',
+        '/unknown',
+      ]) {
         expect(
           hrRedirectLocation(isAuthenticated: false, path: path),
           '/login',
@@ -39,7 +46,14 @@ void main() {
     });
 
     test('HR pages stay put', () {
-      for (final path in ['/people', '/business-selection']) {
+      // Self-service leave included: an invited employee never picks a business,
+      // so a redirect through the selector would strand them.
+      for (final path in [
+        '/people',
+        '/leave',
+        '/approvals',
+        '/business-selection',
+      ]) {
         expect(hrRedirectLocation(isAuthenticated: true, path: path), isNull);
       }
     });

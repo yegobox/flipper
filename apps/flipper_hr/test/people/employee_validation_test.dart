@@ -205,4 +205,42 @@ void main() {
       );
     });
   });
+
+  group('annual leave entitlement', () {
+    test('blank means the statutory default, so it is not an error', () {
+      expect(
+        validate(employee(annualLeaveDays: null)),
+        isNot(contains(EmployeeField.annualLeaveDays)),
+      );
+    });
+
+    test('zero is allowed — it means no annual leave, deliberately', () {
+      expect(
+        validate(employee(annualLeaveDays: 0)),
+        isNot(contains(EmployeeField.annualLeaveDays)),
+      );
+    });
+
+    test('a better contract entitlement is fine', () {
+      expect(
+        validate(employee(annualLeaveDays: 25)),
+        isNot(contains(EmployeeField.annualLeaveDays)),
+      );
+    });
+
+    test('a negative entitlement is rejected', () {
+      expect(
+        validate(employee(annualLeaveDays: -1)),
+        contains(EmployeeField.annualLeaveDays),
+      );
+    });
+
+    test('more than a working year reads as hours typed as days', () {
+      expect(
+        validate(employee(annualLeaveDays: 1440))[
+            EmployeeField.annualLeaveDays],
+        contains('days, not hours'),
+      );
+    });
+  });
 }

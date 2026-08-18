@@ -1,3 +1,4 @@
+import 'package:flipper_hr/features/leave/data/leave_type.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_validation.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
@@ -64,6 +65,13 @@ class _EmployeeFormState extends State<EmployeeForm> {
       'rssbNumber': TextEditingController(text: _draft.rssbNumber),
       'baseSalary': TextEditingController(
         text: _draft.baseSalary == 0 ? '' : formatNumber(_draft.baseSalary),
+      ),
+      'annualLeaveDays': TextEditingController(
+        // Blank when unset, so the field reads as "statutory default" rather
+        // than as a zero entitlement.
+        text: _draft.annualLeaveDays == null
+            ? ''
+            : formatNumber(_draft.annualLeaveDays!),
       ),
       'momoPhone': TextEditingController(text: _draft.momoPhone),
       'bankName': TextEditingController(text: _draft.bankName),
@@ -343,6 +351,25 @@ class _EmployeeFormState extends State<EmployeeForm> {
                         onChanged: (v) => v == null
                             ? null
                             : _update((d) => d.copyWith(payFrequency: v)),
+                      ),
+                    ),
+                    _text(
+                      fieldKey: 'annualLeaveDays',
+                      label: 'Annual leave days',
+                      field: EmployeeField.annualLeaveDays,
+                      keyboardType: TextInputType.number,
+                      helper:
+                          'Leave blank for the legal minimum of '
+                          '${LeaveType.annual.entitlementDays!.toInt()} working '
+                          'days',
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                      ],
+                      onChanged: (v) => _update(
+                        (d) => v.trim().isEmpty
+                            // Back to the statutory default, not to zero.
+                            ? d.copyWith(clearAnnualLeaveDays: true)
+                            : d.copyWith(annualLeaveDays: _parseAmount(v)),
                       ),
                     ),
                     DropdownButtonFormField<PaymentMethod>(

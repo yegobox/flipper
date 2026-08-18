@@ -164,11 +164,20 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                     Text('Leave', style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 4),
                     Text(
-                      pending.isEmpty
-                          ? 'Nothing waiting on you'
-                          : '${pending.length} '
-                                '${pending.length == 1 ? 'request' : 'requests'} '
-                                'waiting on you',
+                      [
+                        if (pending.isEmpty)
+                          'Nothing waiting on you'
+                        else
+                          '${pending.length} '
+                              '${pending.length == 1 ? 'request' : 'requests'} '
+                              'waiting on you',
+                        // Named because the queue is branch-scoped: someone
+                        // switching branches needs to see which one they are
+                        // approving for.
+                        if (widget.branchName case final name?
+                            when name.isNotEmpty)
+                          name,
+                      ].join(' · '),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

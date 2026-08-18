@@ -11,6 +11,7 @@ enum EmployeeField {
   endDate,
   nationalId,
   baseSalary,
+  annualLeaveDays,
   momoPhone,
   bankName,
   bankAccount,
@@ -23,6 +24,10 @@ const _nationalIdDigits = 16;
 /// Shortest phone number worth accepting (a local Rwandan number without the
 /// country code is 9 digits after the leading zero).
 const _minPhoneDigits = 9;
+
+/// Working days in a year (52 weeks x 5, less a fortnight of public holidays).
+/// An annual leave entitlement past this is a units mistake, not generosity.
+const _maxAnnualLeaveDays = 261;
 
 /// A start date this far ahead is almost certainly a typo, not a future hire.
 const _maxFutureHireDays = 365;
@@ -82,6 +87,20 @@ Map<EmployeeField, String> validateEmployee(
 
   if (e.baseSalary < 0) {
     errors[EmployeeField.baseSalary] = 'Pay cannot be negative';
+  }
+
+  // Only checked when set. Blank leaves the statutory 18 working days in force
+  // (see LeaveType.annual), so an empty field is the normal case, not an
+  // omission. The upper bound catches a figure typed in hours or a stray digit —
+  // a year has 261 working days, so anything past that cannot be leave.
+  final annualLeave = e.annualLeaveDays;
+  if (annualLeave != null) {
+    if (annualLeave < 0) {
+      errors[EmployeeField.annualLeaveDays] = 'Leave days cannot be negative';
+    } else if (annualLeave > _maxAnnualLeaveDays) {
+      errors[EmployeeField.annualLeaveDays] =
+          'That is more than a working year — enter days, not hours';
+    }
   }
 
   switch (e.paymentMethod) {

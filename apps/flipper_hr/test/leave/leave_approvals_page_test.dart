@@ -66,7 +66,10 @@ void main() {
       expect(find.byKey(const Key('approval-leave-1')), findsOneWidget);
       expect(find.text('Aline Uwase'), findsOneWidget);
       expect(find.text('Family trip'), findsOneWidget);
-      expect(find.text('1 request waiting on you'), findsOneWidget);
+      expect(
+        find.text('1 request waiting on you · Kigali Main'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('counts more than one request in the plural', (tester) async {
@@ -80,7 +83,10 @@ void main() {
         ),
       );
 
-      expect(find.text('2 requests waiting on you'), findsOneWidget);
+      expect(
+        find.text('2 requests waiting on you · Kigali Main'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('puts the soonest start first, not the newest filing',
@@ -95,14 +101,15 @@ void main() {
         ),
       );
 
-      final cards = tester.widgetList(find.byType(Card)).toList();
-      // Positions, not widget order: the queue is a sliver list.
+      // Screen position, not widget order: the queue is a sliver list, so "first"
+      // means higher up.
       final sooner = tester
           .getTopLeft(find.byKey(const Key('approval-sooner')))
           .dy;
-      final later = tester.getTopLeft(find.byKey(const Key('approval-later'))).dy;
+      final later = tester
+          .getTopLeft(find.byKey(const Key('approval-later')))
+          .dy;
       expect(sooner, lessThan(later));
-      expect(cards, isNotNull);
     });
 
     testWidgets('separates decided requests from the queue', (tester) async {
@@ -263,7 +270,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('approval-leave-1')), findsNothing);
-      expect(find.text('Nothing waiting on you'), findsOneWidget);
+      expect(
+        find.text('Nothing waiting on you · Kigali Main'),
+        findsOneWidget,
+      );
       expect(find.text('Decided'), findsOneWidget);
     });
 

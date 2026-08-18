@@ -267,6 +267,7 @@ class Employee {
     String? bankAccount,
     String? userId,
     double? annualLeaveDays,
+    bool clearAnnualLeaveDays = false,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -294,7 +295,11 @@ class Employee {
     bankName: bankName ?? this.bankName,
     bankAccount: bankAccount ?? this.bankAccount,
     userId: userId ?? this.userId,
-    annualLeaveDays: annualLeaveDays ?? this.annualLeaveDays,
+    // Clearable, because blank means "the statutory default" — a distinct value
+    // from 0, and one the form must be able to get back to.
+    annualLeaveDays: clearAnnualLeaveDays
+        ? null
+        : (annualLeaveDays ?? this.annualLeaveDays),
     notes: notes ?? this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,

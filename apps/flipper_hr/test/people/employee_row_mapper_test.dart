@@ -2,6 +2,8 @@ import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_row_mapper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/fake_employee_repository.dart';
+
 void main() {
   Map<String, dynamic> row([Map<String, dynamic> overrides = const {}]) => {
     'id': 'emp-1',
@@ -211,6 +213,52 @@ void main() {
       expect(EmployeeRowMapper.formatDate(DateTime(2026, 2, 9)), '2026-02-09');
       expect(EmployeeRowMapper.formatDate(DateTime(2026, 12, 31)),
           '2026-12-31');
+    });
+  });
+
+  group('annual leave entitlement round trip', () {
+    test('null survives as null, since it means the statutory default', () {
+      final read = EmployeeRowMapper.fromRow(const {
+        'annual_leave_days': null,
+      });
+
+      expect(read.annualLeaveDays, isNull);
+      expect(EmployeeRowMapper.toUpdateRow(read)['annual_leave_days'], isNull);
+    });
+
+    test('zero survives as zero, which means no annual leave at all', () {
+      // The distinction the nullable column exists for. parseAmount would
+      // collapse both to 0 and lose it.
+      final read = EmployeeRowMapper.fromRow(const {'annual_leave_days': 0});
+
+      expect(read.annualLeaveDays, 0);
+    });
+
+    test('a numeric arrives as int, double or string', () {
+      for (final raw in <Object>[25, 25.0, '25', '25.0']) {
+        expect(
+          EmployeeRowMapper.fromRow({'annual_leave_days': raw})
+              .annualLeaveDays,
+          25,
+          reason: 'annual_leave_days as ${raw.runtimeType}',
+        );
+      }
+    });
+
+    test('a half day survives', () {
+      expect(
+        EmployeeRowMapper.fromRow(const {'annual_leave_days': '18.5'})
+            .annualLeaveDays,
+        18.5,
+      );
+    });
+
+    test('an override is written back', () {
+      final row = EmployeeRowMapper.toUpdateRow(
+        employee(annualLeaveDays: 25),
+      );
+
+      expect(row['annual_leave_days'], 25);
     });
   });
 }
