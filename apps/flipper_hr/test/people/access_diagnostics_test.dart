@@ -160,11 +160,11 @@ void main() {
         claims: authenticated,
         whoami: {
           'identity_keys': ['user-1'],
-          'business_ids': ['d8012247'],
+          'business_ids': ['biz-1'],
         },
       );
 
-      expect(report.businessIds, ['d8012247']);
+      expect(report.businessIds, ['biz-1']);
       expect(report.toReport(), contains('check pg_policies'));
     });
 

@@ -1,3 +1,5 @@
+import 'package:flipper_hr/features/invite/data/hr_invite.dart';
+import 'package:flipper_hr/features/invite/widgets/invite_dialogs.dart';
 import 'package:flipper_hr/features/people/data/access_diagnostics.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
@@ -34,6 +36,11 @@ class PeoplePage extends ConsumerStatefulWidget {
 
 class _PeoplePageState extends ConsumerState<PeoplePage> {
   final _searchController = TextEditingController();
+
+  /// Id of the person an invite is running for, so their row can show it. One at
+  /// a time: the pipeline is three network hops and a second concurrent run
+  /// against the same record would race on `user_id`.
+  String? _invitingId;
 
   @override
   void dispose() {
@@ -86,6 +93,50 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
             ? '${saved.fullName} was added to the roster.'
             : 'Saved changes to ${saved.fullName}.',
       );
+    }
+  }
+
+  /// Invites someone into HR: pick the role, run the pipeline, show the PIN.
+  ///
+  /// The PIN dialog is not skippable on success — it is the only time the
+  /// credential exists in a readable form, and losing it means re-inviting.
+  Future<void> _invite(Employee employee) async {
+    final role = await showInviteRoleDialog(context, employee: employee);
+    if (role == null || !mounted) return;
+
+    setState(() => _invitingId = employee.id);
+    try {
+      final HrInvite invite;
+      try {
+        invite = await ref.read(peopleActionsProvider).invite(
+          employee: employee,
+          role: role,
+        );
+      } finally {
+        // Cleared before the PIN dialog opens, not after it closes: the spinner
+        // belongs to the network work, and leaving it spinning behind a modal
+        // says the invite is still running when it has already finished.
+        if (mounted) setState(() => _invitingId = null);
+      }
+      if (!mounted) return;
+      await showInvitePinDialog(
+        context,
+        invite: invite,
+        name: employee.fullName,
+      );
+    } on HrInviteException catch (e) {
+      // The step is worth showing: 'linkEmployee' in particular means the invite
+      // itself worked, so the reader should not try to send it again.
+      if (mounted) {
+        _toast(
+          e.step == HrInviteStep.linkEmployee
+              ? 'Invite sent, but not linked. ${e.message}'
+              : e.message,
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (mounted) _toast(_messageOf(e), isError: true);
     }
   }
 
@@ -302,6 +353,8 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                 isTable: isTable,
                 onEdit: () => _openForm(employee: person),
                 onChangeStatus: (status) => _changeStatus(person, status),
+                onInvite: _invitingId == null ? () => _invite(person) : null,
+                isInviting: _invitingId == person.id,
               );
             },
           ),
@@ -569,6 +622,8 @@ class _RosterRow extends StatelessWidget {
     required this.isTable,
     required this.onEdit,
     required this.onChangeStatus,
+    required this.onInvite,
+    this.isInviting = false,
   });
 
   final Employee employee;
@@ -576,6 +631,13 @@ class _RosterRow extends StatelessWidget {
   final bool isTable;
   final VoidCallback onEdit;
   final ValueChanged<EmploymentStatus> onChangeStatus;
+
+  /// Null while another invite is in flight — the pipeline is not safe to run
+  /// twice at once, so the action is simply unavailable rather than queued.
+  final VoidCallback? onInvite;
+
+  /// True for the row whose invite is running.
+  final bool isInviting;
 
   @override
   Widget build(BuildContext context) {
@@ -603,7 +665,12 @@ class _RosterRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               StatusChip(status: employee.status),
-              _RowMenu(employee: employee, onChangeStatus: onChangeStatus),
+              _RowMenu(
+                employee: employee,
+                onChangeStatus: onChangeStatus,
+                onInvite: onInvite,
+                isInviting: isInviting,
+              ),
             ],
           ),
         ),
@@ -677,6 +744,8 @@ class _RosterRow extends StatelessWidget {
               child: _RowMenu(
                 employee: employee,
                 onChangeStatus: onChangeStatus,
+                onInvite: onInvite,
+                isInviting: isInviting,
               ),
             ),
           ],
@@ -709,47 +778,121 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-/// Status actions for one row. Only transitions that make sense are offered:
-/// no "mark on leave" for someone already on leave, no "reactivate" for someone
-/// active, no "terminate" for someone already terminated.
+/// One row's actions: the status transitions that make sense for this person,
+/// plus the HR invite.
+///
+/// Only sensible transitions are offered: no "mark on leave" for someone already
+/// on leave, no "reactivate" for someone active, no "terminate" for someone
+/// already terminated. Inviting is offered for anyone still employed — including
+/// someone who already has an account, since re-inviting is how a lost PIN is
+/// replaced.
 class _RowMenu extends StatelessWidget {
-  const _RowMenu({required this.employee, required this.onChangeStatus});
+  const _RowMenu({
+    required this.employee,
+    required this.onChangeStatus,
+    required this.onInvite,
+    this.isInviting = false,
+  });
 
   final Employee employee;
   final ValueChanged<EmploymentStatus> onChangeStatus;
+  final VoidCallback? onInvite;
+  final bool isInviting;
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<EmploymentStatus>(
+    if (isInviting) {
+      // Replaces the button rather than sitting beside it: the row's actions are
+      // all unavailable until the invite settles, and a spinner in the same slot
+      // says so without a second affordance to explain.
+      return const SizedBox(
+        width: 48,
+        height: 40,
+        child: Center(
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    final invite = onInvite;
+    return PopupMenuButton<RosterRowAction>(
       key: Key('people-menu-${employee.id}'),
-      tooltip: 'Change status',
-      onSelected: onChangeStatus,
+      tooltip: 'Actions',
+      onSelected: (action) => switch (action) {
+        RosterRowInvite() => invite?.call(),
+        RosterRowStatus(:final status) => onChangeStatus(status),
+      },
       itemBuilder: (context) => [
+        if (employee.status.isEmployed)
+          PopupMenuItem(
+            key: const Key('people-menu-invite'),
+            value: const RosterRowInvite(),
+            enabled: invite != null,
+            child: Text(
+              employee.hasFlipperAccount
+                  ? 'Re-send HR invite'
+                  : 'Invite to HR',
+            ),
+          ),
+        if (employee.status.isEmployed) const PopupMenuDivider(),
         if (employee.status != EmploymentStatus.active)
           const PopupMenuItem(
-            value: EmploymentStatus.active,
+            value: RosterRowStatus(EmploymentStatus.active),
             child: Text('Mark active'),
           ),
         if (employee.status != EmploymentStatus.onLeave &&
             employee.status.isEmployed)
           const PopupMenuItem(
-            value: EmploymentStatus.onLeave,
+            value: RosterRowStatus(EmploymentStatus.onLeave),
             child: Text('Mark on leave'),
           ),
         if (employee.status != EmploymentStatus.suspended &&
             employee.status.isEmployed)
           const PopupMenuItem(
-            value: EmploymentStatus.suspended,
+            value: RosterRowStatus(EmploymentStatus.suspended),
             child: Text('Suspend'),
           ),
         if (employee.status.isEmployed)
           const PopupMenuItem(
-            value: EmploymentStatus.terminated,
+            value: RosterRowStatus(EmploymentStatus.terminated),
             child: Text('Terminate'),
           ),
       ],
     );
   }
+}
+
+/// What a row's overflow menu can ask for. A sealed type rather than a second
+/// enum so the status transitions keep carrying their [EmploymentStatus] and the
+/// `switch` above stays exhaustive.
+sealed class RosterRowAction {
+  const RosterRowAction();
+}
+
+class RosterRowInvite extends RosterRowAction {
+  const RosterRowInvite();
+
+  @override
+  bool operator ==(Object other) => other is RosterRowInvite;
+
+  @override
+  int get hashCode => (RosterRowInvite).hashCode;
+}
+
+class RosterRowStatus extends RosterRowAction {
+  const RosterRowStatus(this.status);
+
+  final EmploymentStatus status;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RosterRowStatus && other.status == status;
+
+  @override
+  int get hashCode => status.hashCode;
 }
 
 class _EmptyRoster extends StatelessWidget {

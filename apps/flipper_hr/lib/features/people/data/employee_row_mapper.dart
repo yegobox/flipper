@@ -38,6 +38,9 @@ class EmployeeRowMapper {
       bankName: _str(row['bank_name']),
       bankAccount: _str(row['bank_account']),
       userId: _strOrNull(row['user_id']),
+      // Nullable on purpose: null is "statutory default", so it must survive the
+      // round trip rather than collapsing to 0 the way parseAmount would.
+      annualLeaveDays: parseOptionalAmount(row['annual_leave_days']),
       notes: _str(row['notes']),
       createdAt: parseTimestamp(row['created_at']),
       updatedAt: parseTimestamp(row['updated_at']),
@@ -82,6 +85,7 @@ class EmployeeRowMapper {
     'bank_name': _nullIfBlank(e.bankName),
     'bank_account': _nullIfBlank(e.bankAccount),
     'user_id': _nullIfBlank(e.userId ?? ''),
+    'annual_leave_days': e.annualLeaveDays,
     'notes': _nullIfBlank(e.notes),
   };
 
@@ -119,6 +123,17 @@ class EmployeeRowMapper {
     if (value == null) return 0;
     if (value is num) return value.toDouble();
     return double.tryParse(value.toString().trim()) ?? 0;
+  }
+
+  /// Like [parseAmount] but keeps null as null. For columns where null and 0
+  /// mean different things — `annual_leave_days` null is "the statutory 18",
+  /// while 0 is "no annual leave at all".
+  static double? parseOptionalAmount(Object? value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    final raw = value.toString().trim();
+    if (raw.isEmpty) return null;
+    return double.tryParse(raw);
   }
 
   static String _str(Object? value, {String fallback = ''}) {

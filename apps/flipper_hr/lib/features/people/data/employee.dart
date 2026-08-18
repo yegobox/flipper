@@ -119,6 +119,7 @@ class Employee {
     this.bankName = '',
     this.bankAccount = '',
     this.userId,
+    this.annualLeaveDays,
     this.notes = '',
     this.createdAt,
     this.updatedAt,
@@ -164,8 +165,18 @@ class Employee {
   final String bankName;
   final String bankAccount;
 
-  /// Flipper account this person signs in with, when they have one.
+  /// Flipper account this person signs in with, when they have one. Written by
+  /// the HR invite, and what ties this record to the leave the person books.
   final String? userId;
+
+  /// Annual leave entitlement in working days, when their contract improves on
+  /// the statutory minimum.
+  ///
+  /// Null means "the statutory default applies" (18 working days — see
+  /// [LeaveType.annual]), NOT zero. `hr_employees.annual_leave_days` is nullable
+  /// for the same reason: records that predate the column keep the legal minimum
+  /// without a backfill.
+  final double? annualLeaveDays;
   final String notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -173,6 +184,17 @@ class Employee {
   bool get isPersisted => id.isNotEmpty;
 
   bool get isActive => status == EmploymentStatus.active;
+
+  /// True once this person can sign into HR and book their own leave.
+  bool get hasFlipperAccount => (userId ?? '').trim().isNotEmpty;
+
+  /// Contact the invite is addressed to. Phone first: the login PIN is confirmed
+  /// with an OTP sent by SMS, so a record with only an email cannot complete a
+  /// sign-in even though `/v2/api/user` accepts one.
+  String get inviteContact {
+    final p = phone.trim();
+    return p.isNotEmpty ? p : email.trim();
+  }
 
   String get fullName => [firstName.trim(), lastName.trim()]
       .where((p) => p.isNotEmpty)
@@ -244,6 +266,7 @@ class Employee {
     String? bankName,
     String? bankAccount,
     String? userId,
+    double? annualLeaveDays,
     String? notes,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -271,6 +294,7 @@ class Employee {
     bankName: bankName ?? this.bankName,
     bankAccount: bankAccount ?? this.bankAccount,
     userId: userId ?? this.userId,
+    annualLeaveDays: annualLeaveDays ?? this.annualLeaveDays,
     notes: notes ?? this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -300,6 +324,7 @@ class Employee {
     bankName,
     bankAccount,
     userId,
+    annualLeaveDays,
     notes,
     createdAt,
     updatedAt,

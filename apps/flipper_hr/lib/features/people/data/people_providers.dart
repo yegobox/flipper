@@ -1,13 +1,31 @@
+import 'package:flipper_hr/features/invite/data/apihub_hr_invite_repository.dart';
+import 'package:flipper_hr/features/invite/data/hr_invite.dart';
+import 'package:flipper_hr/features/invite/data/hr_invite_repository.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_repository.dart';
 import 'package:flipper_hr/features/people/data/people_query.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart';
+import 'package:flipper_web/core/secrets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// The roster's store. Overridden with a fake in tests.
 final employeeRepositoryProvider = Provider<EmployeeRepository>((ref) {
   return SupabaseEmployeeRepository(Supabase.instance.client);
+});
+
+/// The invite pipeline. Overridden with a fake in tests.
+///
+/// apihub's base URL and the public Basic-auth credentials come from
+/// flipper_web's [AppSecrets], the same ones its PIN login uses — HR must talk to
+/// the deployment its sessions were issued by.
+final hrInviteRepositoryProvider = Provider<HrInviteRepository>((ref) {
+  return ApiHubHrInviteRepository(
+    client: Supabase.instance.client,
+    apihubBaseUrl: AppSecrets.apihubProd,
+    apiUsername: AppSecrets.publicUsername,
+    apiPassword: AppSecrets.publicPassword,
+  );
 });
 
 /// Today's date, injected so summary tiles and date validation are testable and
@@ -73,6 +91,47 @@ class PeopleActions {
         : await repository.createEmployee(employee);
     _ref.invalidate(rosterProvider(employee.branchId));
     return saved;
+  }
+
+  /// Invites [employee] into HR and records the account on their row.
+  ///
+  /// Returns the invite — the caller shows the PIN, which is the only time it is
+  /// visible. The record is linked as part of this call rather than left to the
+  /// UI: an invite whose `user_id` never lands leaves someone able to sign in and
+  /// unable to see their own leave, which is worse than no invite at all.
+  ///
+  /// A failure to link is surfaced, not swallowed, but the invite itself is not
+  /// rolled back — the account and PIN are real by then, and destroying them
+  /// would be the more damaging repair. Re-inviting is idempotent: apihub returns
+  /// the existing account and `create_agent` updates the existing tenant.
+  Future<HrInvite> invite({
+    required Employee employee,
+    required HrRole role,
+  }) async {
+    final invited = await _ref.read(hrInviteRepositoryProvider).invite(
+      contact: employee.inviteContact,
+      name: employee.fullName,
+      businessId: employee.businessId,
+      branchId: employee.branchId,
+      role: role,
+    );
+
+    try {
+      await _ref.read(employeeRepositoryProvider).linkAccount(
+        id: employee.id,
+        userId: invited.userId,
+      );
+    } on EmployeeRepositoryException catch (e) {
+      throw HrInviteException(
+        e.message,
+        step: HrInviteStep.linkEmployee,
+        cause: e,
+      );
+    } finally {
+      _ref.invalidate(rosterProvider(employee.branchId));
+    }
+
+    return invited;
   }
 
   Future<Employee> setStatus({

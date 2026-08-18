@@ -36,6 +36,19 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
   }
 
   @override
+  Future<Employee?> fetchEmployee({required String id}) async {
+    try {
+      final row = await _client.from(table).select().eq('id', id).maybeSingle();
+      return row == null ? null : EmployeeRowMapper.fromRow(row);
+    } catch (e) {
+      throw EmployeeRepositoryException(
+        describeBackendError('Could not load this person\'s record.', e),
+        cause: e,
+      );
+    }
+  }
+
+  @override
   Future<Employee> createEmployee(Employee employee) async {
     try {
       final row = await _client
@@ -77,6 +90,34 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
           'Could not save changes to ${_describe(employee)}.',
           e,
           scope: _scopeOf(employee),
+        ),
+        cause: e,
+      );
+    }
+  }
+
+  @override
+  Future<Employee> linkAccount({
+    required String id,
+    required String userId,
+  }) async {
+    try {
+      final row = await _client
+          .from(table)
+          .update({
+            'user_id': userId,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', id)
+          .select()
+          .single();
+      return EmployeeRowMapper.fromRow(row);
+    } catch (e) {
+      throw EmployeeRepositoryException(
+        describeBackendError(
+          'The invite was sent, but this record could not be linked to the new '
+          'account. Their leave will not resolve until it is.',
+          e,
         ),
         cause: e,
       );

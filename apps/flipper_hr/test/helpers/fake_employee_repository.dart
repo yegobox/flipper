@@ -29,6 +29,13 @@ class FakeEmployeeRepository implements EmployeeRepository {
   }
 
   @override
+  Future<Employee?> fetchEmployee({required String id}) async {
+    _maybeFail();
+    fetchCount++;
+    return _people.where((e) => e.id == id).firstOrNull;
+  }
+
+  @override
   Future<Employee> createEmployee(Employee employee) async {
     _maybeFail();
     final stored = employee.copyWith(
@@ -49,6 +56,21 @@ class FakeEmployeeRepository implements EmployeeRepository {
     }
     _people[index] = employee;
     return employee;
+  }
+
+  @override
+  Future<Employee> linkAccount({
+    required String id,
+    required String userId,
+  }) async {
+    _maybeFail();
+    final index = _people.indexWhere((e) => e.id == id);
+    if (index < 0) {
+      throw EmployeeRepositoryException('No such person: $id');
+    }
+    final updated = _people[index].copyWith(userId: userId);
+    _people[index] = updated;
+    return updated;
   }
 
   @override
@@ -97,6 +119,8 @@ Employee employee({
   PaymentMethod paymentMethod = PaymentMethod.mobileMoney,
   String momoPhone = '',
   String currency = 'RWF',
+  String? userId,
+  double? annualLeaveDays,
 }) => Employee(
   id: id,
   businessId: businessId,
@@ -117,4 +141,6 @@ Employee employee({
   payFrequency: payFrequency,
   paymentMethod: paymentMethod,
   momoPhone: momoPhone,
+  userId: userId,
+  annualLeaveDays: annualLeaveDays,
 );
