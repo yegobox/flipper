@@ -5,6 +5,7 @@ import 'package:flipper_hr/features/billing/presentation/hr_subscribe_page.dart'
 import 'package:flipper_hr/features/attendance/my_attendance_page.dart';
 import 'package:flipper_hr/features/auth/hr_auth_gate.dart';
 import 'package:flipper_hr/features/home/hr_branch_scope.dart';
+import 'package:flipper_hr/features/home/hr_overview_page.dart';
 import 'package:flipper_hr/features/home/hr_home_shell.dart';
 import 'package:flipper_hr/features/leave/leave_approvals_page.dart';
 import 'package:flipper_hr/features/leave/my_leave_page.dart';
@@ -32,9 +33,13 @@ abstract final class HrRoute {
   static const signup = 'signup';
   static const businessSelection = 'businessSelection';
 
-  /// The roster. Still the post-selection landing route, because picking a
-  /// business only happens for someone who manages one.
-  static const home = 'hrHome';
+  /// The dashboard. The post-selection landing route, because picking a business
+  /// only happens for someone who manages one — and what they want first is the
+  /// state of the branch, not a table.
+  static const home = 'hrOverview';
+
+  /// The roster.
+  static const people = 'hrPeople';
 
   /// Self-service leave. Reachable without a business selection.
   static const myLeave = 'hrMyLeave';
@@ -93,8 +98,28 @@ final hrRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => HrHomeShell(child: child),
         routes: [
           GoRoute(
-            path: '/people',
+            path: '/overview',
             name: HrRoute.home,
+            builder: (context, state) => HrBillingGate(
+              featureName: 'The dashboard',
+              child: HrBranchScope(
+                builder:
+                    (
+                      context, {
+                      required businessId,
+                      required branchId,
+                      required branchName,
+                    }) => HrOverviewPage(
+                      businessId: businessId,
+                      branchId: branchId,
+                      branchName: branchName,
+                    ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/people',
+            name: HrRoute.people,
             // Gated: the roster belongs to whoever runs the business, and they
             // are the one who can pay for it. Self-service leave and time below
             // are deliberately left open.

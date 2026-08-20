@@ -711,7 +711,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
     final map = <String, String>{};
     void merge(List<Category> list) {
       for (final c in list) {
-        map.putIfAbsent(_bulkCategoryLookupKey(c.name ?? ''), () => c.id);
+        // A nameless category must not occupy a lookup slot — it can never be
+        // matched by name, and keeping it out leaves the key free for a real one.
+        final key = _bulkCategoryLookupKey(c.name ?? '');
+        if (key.isEmpty) continue;
+        map.putIfAbsent(key, () => c.id);
       }
     }
 

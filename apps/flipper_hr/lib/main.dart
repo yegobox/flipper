@@ -46,8 +46,12 @@ class FlipperHrApp extends ConsumerWidget {
       title: 'Flipper HR',
       debugShowCheckedModeBanner: false,
       theme: FlipperTheme.light(allowRuntimeFontFetching: kIsWeb),
-      darkTheme: FlipperTheme.dark(allowRuntimeFontFetching: kIsWeb),
-      themeMode: ThemeMode.system,
+      // Light only, deliberately. The signed-in chrome (sidebar, topbar, rail)
+      // is a fixed light token set mirroring flipper_web's accounting shell, so
+      // following the OS theme put dark Material pages inside white chrome —
+      // the split visible on the subscribe screen. One theme until the shell
+      // has a dark palette of its own.
+      themeMode: ThemeMode.light,
       routerConfig: ref.watch(hrRouterProvider),
       // Web-native: remove Android overscroll glow; keep momentum scrolling.
       scrollBehavior: kIsWeb ? const _WebScrollBehavior() : null,

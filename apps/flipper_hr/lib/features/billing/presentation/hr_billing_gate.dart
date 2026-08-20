@@ -1,5 +1,6 @@
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
+import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +40,6 @@ class HrPaywallPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final feature = featureName ?? 'This';
     final lapsed = access.hasLapsed;
 
@@ -49,24 +49,38 @@ class HrPaywallPanel extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
-          child: Card(
+          child: Container(
+            decoration: HrTokens.panel(),
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.lock_outline,
-                    size: 36,
-                    color: theme.colorScheme.primary,
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: HrTokens.accentTint,
+                      borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+                    ),
+                    child: const Icon(
+                      Icons.lock_outline,
+                      size: 22,
+                      color: HrTokens.accent,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     lapsed
                         ? 'Your subscription has ended'
                         : '$feature needs a subscription',
-                    style: theme.textTheme.titleMedium,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: HrTokens.ink1,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -77,8 +91,10 @@ class HrPaywallPanel extends StatelessWidget {
                         : 'Flipper HR is part of the Flipper subscription. Pay '
                               'for the business once and the roster, leave and '
                               'attendance open for everyone on it.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      color: HrTokens.ink2,
+                      height: 1.45,
                     ),
                   ),
                   if (access.isAwaitingSettlement) ...[
@@ -87,8 +103,10 @@ class HrPaywallPanel extends StatelessWidget {
                       'A payment is already on its way. If you approved it on '
                       'your phone, this unlocks as soon as Mobile Money '
                       'confirms it.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: HrTokens.ink3,
+                        height: 1.4,
                       ),
                     ),
                   ],
@@ -96,7 +114,15 @@ class HrPaywallPanel extends StatelessWidget {
                   FilledButton.icon(
                     key: const Key('hr-paywall-subscribe'),
                     onPressed: () => context.go('/subscribe'),
-                    icon: const Icon(Icons.workspace_premium_outlined),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: HrTokens.accent,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(0, 44),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+                      ),
+                    ),
+                    icon: const Icon(Icons.workspace_premium_outlined, size: 18),
                     label: Text(lapsed ? 'Renew now' : 'See the plan'),
                   ),
                 ],
@@ -227,21 +253,25 @@ class _Strip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final foreground = switch (tone) {
-      _Tone.danger => scheme.onErrorContainer,
-      _Tone.warning => scheme.onTertiaryContainer,
+      _Tone.danger => const Color(0xFF991B1B),
+      _Tone.warning => const Color(0xFF92400E),
     };
     final background = switch (tone) {
-      _Tone.danger => scheme.errorContainer,
-      _Tone.warning => scheme.tertiaryContainer,
+      _Tone.danger => const Color(0xFFFEF2F2),
+      _Tone.warning => const Color(0xFFFFF7ED),
+    };
+    final edge = switch (tone) {
+      _Tone.danger => const Color(0xFFFECACA),
+      _Tone.warning => const Color(0xFFFED7AA),
     };
 
     return Container(
       padding: EdgeInsets.fromLTRB(12, 10, action == null ? 12 : 4, 10),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(HrTokens.radiusSm),
+        border: Border.all(color: edge),
       ),
       // Wrap rather than Row: the message plus a button overflows a phone
       // width, and this notice must never be the thing that breaks a layout.
@@ -255,9 +285,11 @@ class _Strip extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 560),
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              style: TextStyle(
+                fontSize: 12.5,
                 color: foreground,
                 fontWeight: FontWeight.w600,
+                height: 1.35,
               ),
             ),
           ),

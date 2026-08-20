@@ -2,6 +2,7 @@ import 'package:flipper_hr/features/billing/application/hr_billing_providers.dar
 import 'package:flipper_hr/features/billing/application/hr_subscription_controller.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/data/hr_msisdn.dart';
+import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +35,6 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final business = ref.watch(selectedBusinessProvider);
     final businessId = business?.id;
 
@@ -65,14 +65,19 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
     final quote = ref.watch(hrPlanQuoteProvider(quoteRequest));
     final payment = ref.watch(hrSubscriptionControllerProvider);
 
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: quote.when(
+    // No Scaffold: this page already sits inside the shell's, and nesting one
+    // repainted the workspace background a different colour behind the card.
+    return SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: DecoratedBox(
+              decoration: HrTokens.panel(),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: quote.when(
                 loading: () => const Padding(
                   padding: EdgeInsets.all(48),
                   child: Center(child: CircularProgressIndicator()),
@@ -92,13 +97,18 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
                       access.hasLapsed
                           ? 'Renew your subscription'
                           : 'Subscribe to Flipper',
-                      style: theme.textTheme.headlineSmall,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: HrTokens.ink1,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       business?.name ?? '',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: HrTokens.ink3,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -142,8 +152,9 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
                       onRetry: () => ref
                           .read(hrSubscriptionControllerProvider.notifier)
                           .reset(),
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -162,16 +173,71 @@ class _BillingPeriodToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<bool>(
+    return Container(
       key: const Key('hr-billing-period'),
-      segments: const [
-        ButtonSegment(value: false, label: Text('Monthly')),
-        ButtonSegment(value: true, label: Text('Yearly')),
-      ],
-      selected: {isYearly},
-      onSelectionChanged: onChanged == null
-          ? null
-          : (selection) => onChanged!(selection.first),
+      height: 40,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: HrTokens.surface2,
+        borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+        border: Border.all(color: HrTokens.line),
+      ),
+      child: Row(
+        children: [
+          _Segment(
+            label: 'Monthly',
+            selected: !isYearly,
+            onTap: onChanged == null ? null : () => onChanged!(false),
+          ),
+          _Segment(
+            label: 'Yearly',
+            selected: isYearly,
+            onTap: onChanged == null ? null : () => onChanged!(true),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Segment extends StatelessWidget {
+  const _Segment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: selected ? HrTokens.surface : Colors.transparent,
+        borderRadius: BorderRadius.circular(HrTokens.radiusSm),
+        elevation: selected ? 1 : 0,
+        shadowColor: Colors.black12,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(HrTokens.radiusSm),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: onTap == null
+                    ? HrTokens.ink4
+                    : selected
+                        ? HrTokens.ink1
+                        : HrTokens.ink2,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -186,44 +252,55 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final full = quote.fullAmountRwf;
     final allowance = quote.allowance;
 
-    return Card(
+    return Container(
       key: const Key('hr-plan-card'),
+      decoration: HrTokens.panel(color: HrTokens.sidebarBg2),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(quote.name, style: theme.textTheme.titleMedium),
+            Text(
+              quote.name,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: HrTokens.ink1,
+              ),
+            ),
             if (quote.description != null) ...[
               const SizedBox(height: 4),
               Text(
                 quote.description!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: const TextStyle(fontSize: 12.5, color: HrTokens.ink3),
               ),
             ],
-            const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+            const SizedBox(height: 14),
+            // Wrap, not Row: a yearly figure in a narrow card is wider than it
+            // looks, and a price is the one thing on this page that must never
+            // be clipped.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.end,
+              spacing: 6,
               children: [
                 Text(
                   '${formatRwf(quote.amountRwf)} RWF',
                   key: const Key('hr-plan-amount'),
-                  style: theme.textTheme.headlineSmall?.copyWith(
+                  style: const TextStyle(
+                    fontSize: 26,
                     fontWeight: FontWeight.w700,
+                    color: HrTokens.ink1,
+                    height: 1.15,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  quote.periodLabel,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    quote.periodLabel,
+                    style: const TextStyle(fontSize: 13, color: HrTokens.ink3),
                   ),
                 ),
               ],
@@ -237,8 +314,9 @@ class _PlanCard extends StatelessWidget {
                 'Test pricing is on — normally ${formatRwf(full)} RWF '
                 '${quote.periodLabel}.',
                 key: const Key('hr-plan-test-mode'),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.error,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: HrTokens.danger,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -251,26 +329,38 @@ class _PlanCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 18,
-                        color: theme.colorScheme.primary,
+                      const Icon(
+                        Icons.check_circle,
+                        size: 17,
+                        color: HrTokens.accent,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(feature, style: theme.textTheme.bodyMedium),
+                        child: Text(
+                          feature,
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            color: HrTokens.ink2,
+                            height: 1.35,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
             ],
             if (allowance.hasLimits) ...[
-              const Divider(height: 28),
-              Text(
+              const Divider(height: 28, color: HrTokens.line),
+              const Text(
                 'What this business is using',
-                style: theme.textTheme.labelLarge,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: HrTokens.ink3,
+                  letterSpacing: 0.6,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               _UsageRow(
                 label: 'POS users',
                 used: allowance.posUsersUsed,
@@ -303,21 +393,50 @@ class _UsageRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final exhausted = limit != null && used >= limit!;
+    final cap = limit;
+    final exhausted = cap != null && used >= cap;
+    // A count alone hides the shape of the problem: "5 of 1" and "5 of 5" read
+    // the same in a list until one of them is a bar running past its end.
+    final fraction = cap == null || cap <= 0
+        ? 0.0
+        : (used / cap).clamp(0.0, 1.0).toDouble();
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(label, style: theme.textTheme.bodyMedium),
-          Text(
-            limit == null ? '$used · unlimited' : '$used of $limit',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: exhausted ? theme.colorScheme.error : null,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 13, color: HrTokens.ink2),
+              ),
+              Text(
+                cap == null ? '$used · unlimited' : '$used of $cap',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: exhausted ? HrTokens.danger : HrTokens.ink1,
+                ),
+              ),
+            ],
           ),
+          if (cap != null) ...[
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: fraction,
+                minHeight: 4,
+                backgroundColor: HrTokens.line,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  exhausted ? HrTokens.danger : HrTokens.accent,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -346,10 +465,31 @@ class _PhoneField extends StatelessWidget {
       keyboardType: TextInputType.phone,
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]'))],
       onChanged: onChanged,
+      style: const TextStyle(fontSize: 15, color: HrTokens.ink1),
       decoration: InputDecoration(
         labelText: 'Mobile Money number',
         hintText: '0788123456',
-        border: const OutlineInputBorder(),
+        prefixIcon: const Icon(
+          Icons.smartphone_outlined,
+          size: 18,
+          color: HrTokens.ink3,
+        ),
+        filled: true,
+        fillColor: enabled ? HrTokens.surface : HrTokens.surface2,
+        labelStyle: const TextStyle(fontSize: 13, color: HrTokens.ink3),
+        hintStyle: const TextStyle(color: HrTokens.ink4),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+          borderSide: const BorderSide(color: HrTokens.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+          borderSide: const BorderSide(color: HrTokens.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+          borderSide: const BorderSide(color: HrTokens.accent, width: 1.6),
+        ),
         errorText: invalid
             ? 'Enter a valid MTN or Airtel number, e.g. 0788123456.'
             : null,
@@ -378,7 +518,6 @@ class _PaymentAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final message = payment.message;
 
     if (payment.stage == HrPaymentStage.confirmed) {
@@ -388,14 +527,18 @@ class _PaymentAction extends StatelessWidget {
           _StatusLine(
             key: const Key('hr-payment-confirmed'),
             icon: Icons.check_circle_outline,
-            color: theme.colorScheme.primary,
+            color: HrTokens.success,
             message: message ?? 'Payment received.',
           ),
           const SizedBox(height: 16),
-          FilledButton(
-            key: const Key('hr-payment-continue'),
-            onPressed: onDone,
-            child: const Text('Open Flipper HR'),
+          SizedBox(
+            height: 46,
+            child: FilledButton(
+              key: const Key('hr-payment-continue'),
+              onPressed: onDone,
+              style: _payButtonStyle,
+              child: const Text('Open Flipper HR'),
+            ),
           ),
         ],
       );
@@ -412,15 +555,14 @@ class _PaymentAction extends StatelessWidget {
           _StatusLine(
             key: Key(failed ? 'hr-payment-failed' : 'hr-payment-progress'),
             icon: failed ? Icons.error_outline : Icons.phonelink_ring_outlined,
-            color: failed
-                ? theme.colorScheme.error
-                : theme.colorScheme.onSurfaceVariant,
+            color: failed ? HrTokens.danger : HrTokens.ink2,
             message: message,
           ),
           const SizedBox(height: 12),
         ],
         FilledButton.icon(
           key: const Key('hr-pay-button'),
+          style: _payButtonStyle,
           onPressed: payment.isBusy || !HrMsisdn.isValid(phone)
               ? null
               : (failed ? onRetry : onPay),
@@ -441,19 +583,33 @@ class _PaymentAction extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Text(
           'You will get a Mobile Money prompt on this number. Approving it '
           'charges ${formatRwf(quote.amountRwf)} RWF.',
           textAlign: TextAlign.center,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          style: const TextStyle(
+            fontSize: 12,
+            color: HrTokens.ink3,
+            height: 1.4,
           ),
         ),
       ],
     );
   }
 }
+
+/// One button shape for the whole flow — pay, retry and continue are the same
+/// action in three states, and three heights made them look like three things.
+final ButtonStyle _payButtonStyle = FilledButton.styleFrom(
+  backgroundColor: HrTokens.accent,
+  foregroundColor: Colors.white,
+  minimumSize: const Size.fromHeight(46),
+  textStyle: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(HrTokens.radiusMd),
+  ),
+);
 
 class _StatusLine extends StatelessWidget {
   const _StatusLine({

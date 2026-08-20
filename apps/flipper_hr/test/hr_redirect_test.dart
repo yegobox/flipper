@@ -16,6 +16,7 @@ void main() {
     test('root and HR pages fall back to login', () {
       for (final path in [
         '/',
+        '/overview',
         '/people',
         '/attendance',
         '/leave',
@@ -51,6 +52,7 @@ void main() {
       // The self-service pages included: an invited employee never picks a
       // business, so a redirect through the selector would strand them.
       for (final path in [
+        '/overview',
         '/people',
         '/attendance',
         '/leave',

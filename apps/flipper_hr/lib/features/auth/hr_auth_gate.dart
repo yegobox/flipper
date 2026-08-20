@@ -59,9 +59,9 @@ class HrAuthGate extends ConsumerWidget {
     );
   }
 
-  /// The roster path: restore the persisted business/branch, then land on
-  /// People — or send them to the selector when nothing is selected, or to the
-  /// paywall when the business has not paid.
+  /// The manager path: restore the persisted business/branch, then land on the
+  /// dashboard — or send them to the selector when nothing is selected, or to
+  /// the paywall when the business has not paid.
   Widget _selectBusinessThen(WidgetRef ref, BuildContext context) {
     // Restores the persisted business/branch before HR reads them.
     ref.watch(selectedBusinessRestoreProvider);
@@ -78,12 +78,12 @@ class HrAuthGate extends ConsumerWidget {
           _goOnce(context, '/business-selection');
           return const _HrGateLoading();
         }
-        return _payThenPeople(ref, context);
+        return _payThenOverview(ref, context);
       },
     );
   }
 
-  /// An unpaid business lands on the paywall rather than on a locked roster:
+  /// An unpaid business lands on the paywall rather than on a locked dashboard:
   /// the subscription is bought before the app opens, so the first screen after
   /// signing up is the one that sells it.
   ///
@@ -91,18 +91,18 @@ class HrAuthGate extends ConsumerWidget {
   /// fails outright, the roster is opened — its own [HrBillingGate] re-asks the
   /// same question, so nothing is let through permanently, and a network blip
   /// never strands a paying customer on a payment screen.
-  Widget _payThenPeople(WidgetRef ref, BuildContext context) {
+  Widget _payThenOverview(WidgetRef ref, BuildContext context) {
     final businessId = ref.watch(selectedBusinessProvider)?.id;
     final access = ref.watch(hrAccessStateProvider(businessId));
 
     return access.when(
       loading: () => const _HrGateLoading(),
       error: (_, __) {
-        _goOnce(context, '/people');
+        _goOnce(context, '/overview');
         return const _HrGateLoading();
       },
       data: (state) {
-        _goOnce(context, state.grantsAccess ? '/people' : '/subscribe');
+        _goOnce(context, state.grantsAccess ? '/overview' : '/subscribe');
         return const _HrGateLoading();
       },
     );

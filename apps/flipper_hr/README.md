@@ -334,23 +334,40 @@ the plan is complete, either by the payer or by the processor.
 
 Mobile Money cannot be tested without real money moving — MTN prompts a real
 handset and settles a real reference. Paying 350,000 RWF to check a button is not
-viable, so the **quote** can be overridden for a bounded window. Both sides then
-still agree by construction: the plan row is written at the test amount, the
-gateway charges the plan, and the entitlement granted is a real one.
+viable, so the **quote** can be overridden. Both sides then still agree by
+construction: the plan row is written at the test amount, the gateway charges the
+plan, and the entitlement granted is a real one.
 
-From the Supabase SQL editor (a service-role connection — a signed-in client is
-refused):
+The amount is whatever you want from **100 RWF** up — 100, 150, 500. The floor is
+MTN's, not ours: it refuses a smaller collection outright, so a 1 RWF test never
+prompts the handset and reads on screen as a broken gateway. From the Supabase
+SQL editor (a service-role connection; a signed-in client is refused):
 
 ```sql
-select public.hr_enable_test_pricing(100, 2);  -- 100 RWF, for 2 hours
+-- 100 RWF, for 8 hours, only for the business you are testing with
+select public.hr_enable_test_pricing(
+  100, 8, array['11111111-1111-4111-8111-111111111111']
+);
+
 -- …run the flow on a real handset…
+
 select public.hr_disable_test_pricing();
 ```
 
-While it is on, every billing screen says so and the plan card shows both figures
-("Test pricing is on — normally 350,000 RWF per month"). The override **expires
-on its own**; a forgotten switch stops discounting rather than quietly giving the
-product away.
+`hr_enable_test_pricing(amount, hours, business_ids)` — anything under
+`hr_min_test_charge_rwf()` (100) is refused rather than rounded up, since
+silently charging 100 when you asked for 1 would have you testing an amount you
+never chose. Hours default to 24 and are clamped to 1…720, and `business_ids` defaults to null, which discounts *every*
+business. Prefer naming yours: an unscoped override means a real customer who
+happens to pay during the window gets the test price too, and that is the only
+reason to keep the window short. Scoped, it can safely stay on for a working day.
+
+Two properties that make this safe to have at all: it **expires on its own**, so
+a forgotten switch stops discounting rather than quietly giving the product away;
+and while it is on, every billing screen says so and the plan card shows both
+figures ("Test pricing is on — normally 350,000 RWF per month"). `test_mode` is
+resolved per business, so the customer next door is told nothing about your test
+and is quoted list price.
 
 ### The employee cap
 

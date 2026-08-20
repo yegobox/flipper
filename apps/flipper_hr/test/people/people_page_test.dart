@@ -102,7 +102,7 @@ void main() {
         ),
       );
 
-      expect(find.text('HEADCOUNT'), findsOneWidget);
+      expect(find.text('Headcount'), findsOneWidget);
       expect(find.text('RWF 650K'), findsOneWidget);
     });
 
@@ -308,7 +308,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.people.single.status, EmploymentStatus.onLeave);
-      expect(find.text('On leave'), findsOneWidget);
+      // Scoped to the row: the summary tile above it is also labelled
+      // "On leave" now that tile labels are sentence case.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('employee-row-e-1')),
+          matching: find.text('On leave'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('terminating asks first and records the last day',

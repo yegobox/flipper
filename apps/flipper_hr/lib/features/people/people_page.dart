@@ -8,6 +8,8 @@ import 'package:flipper_hr/features/people/data/people_query.dart';
 import 'package:flipper_hr/features/people/data/reporting_line.dart';
 import 'package:flipper_hr/features/people/widgets/employee_form.dart';
 import 'package:flipper_hr/features/people/widgets/status_chip.dart';
+import 'package:flipper_hr/features/branding/hr_tokens.dart';
+import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -360,17 +362,22 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
           ),
         )
       else ...[
-        if (isTable)
-          const SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            sliver: SliverToBoxAdapter(child: _TableHeader()),
-          ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          sliver: SliverList.separated(
+          // The table is one panel: header and rows share a border and a
+          // corner radius, so a long roster reads as a single object rather
+          // than a stack of loose rows. DecoratedSliver keeps the list lazy,
+          // which a Card wrapped around a Column would not.
+          sliver: _maybePanel(
+            enabled: isTable,
+            sliver: SliverMainAxisGroup(
+              slivers: [
+                if (isTable) const SliverToBoxAdapter(child: _TableHeader()),
+                SliverList.separated(
             itemCount: visible.length,
-            separatorBuilder: (_, __) =>
-                isTable ? const Divider(height: 1) : const SizedBox(height: 8),
+            separatorBuilder: (_, __) => isTable
+                ? const Divider(height: 1, color: HrTokens.line)
+                : const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final person = visible[index];
               return _RosterRow(
@@ -387,10 +394,20 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                 isInviting: _invitingId == person.id,
               );
             },
+                ),
+              ],
+            ),
           ),
         ),
       ],
     ];
+  }
+
+  /// Wraps the table in a panel; leaves the stacked card layout alone, where
+  /// each row is already its own surface.
+  Widget _maybePanel({required bool enabled, required Widget sliver}) {
+    if (!enabled) return sliver;
+    return DecoratedSliver(decoration: HrTokens.panel(), sliver: sliver);
   }
 }
 
@@ -402,23 +419,20 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('People', style: theme.textTheme.headlineSmall),
+              const Text('People', style: HrType.display),
               const SizedBox(height: 4),
               Text(
                 branchName == null
                     ? 'Everyone on this branch'
                     : 'Everyone at $branchName',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                style: HrType.caption,
               ),
             ],
           ),
@@ -426,7 +440,8 @@ class _Header extends StatelessWidget {
         FilledButton.icon(
           key: const Key('people-add'),
           onPressed: onAdd,
-          icon: const Icon(Icons.person_add_alt_1),
+          style: hrPrimaryButtonStyle(),
+          icon: const Icon(Icons.person_add_alt_1, size: 17),
           label: const Text('Add person'),
         ),
       ],
@@ -445,55 +460,35 @@ class _SummaryTiles extends StatelessWidget {
       spacing: 12,
       runSpacing: 12,
       children: [
-        _Tile(label: 'Headcount', value: '${summary.headcount}'),
-        _Tile(label: 'Active', value: '${summary.active}'),
-        _Tile(label: 'On leave', value: '${summary.onLeave}'),
-        _Tile(label: 'New this month', value: '${summary.newThisMonth}'),
-        _Tile(
+        HrStatTile(
+          label: 'Headcount',
+          value: '${summary.headcount}',
+          icon: Icons.groups_outlined,
+        ),
+        HrStatTile(
+          label: 'Active',
+          value: '${summary.active}',
+          icon: Icons.check_circle_outline,
+          tone: HrTone.positive,
+        ),
+        HrStatTile(
+          label: 'On leave',
+          value: '${summary.onLeave}',
+          icon: Icons.beach_access_outlined,
+          tone: summary.onLeave > 0 ? HrTone.warning : HrTone.neutral,
+        ),
+        HrStatTile(
+          label: 'New this month',
+          value: '${summary.newThisMonth}',
+          icon: Icons.auto_awesome_outlined,
+        ),
+        HrStatTile(
           label: 'Monthly payroll',
           value: formatCompactMoney(summary.monthlyPayroll, summary.currency),
+          icon: Icons.payments_outlined,
+          hint: 'Estimated',
         ),
       ],
-    );
-  }
-}
-
-class _Tile extends StatelessWidget {
-  const _Tile({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 168,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -513,8 +508,8 @@ class _Toolbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(peopleQueryProvider.notifier);
     return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+      spacing: 10,
+      runSpacing: 10,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         SizedBox(
@@ -523,21 +518,30 @@ class _Toolbar extends ConsumerWidget {
             key: const Key('people-search'),
             controller: searchController,
             onChanged: controller.setSearch,
-            decoration: InputDecoration(
-              isDense: true,
+            style: const TextStyle(fontSize: 13.5, color: HrTokens.ink1),
+            decoration: _fieldDecoration(
               hintText: 'Search name, role, phone…',
-              prefixIcon: const Icon(Icons.search, size: 20),
+            ).copyWith(
+              prefixIcon: const Icon(
+                Icons.search,
+                size: 18,
+                color: HrTokens.ink3,
+              ),
+              prefixIconConstraints: const BoxConstraints(minWidth: 36),
               suffixIcon: query.search.isEmpty
                   ? null
                   : IconButton(
                       tooltip: 'Clear search',
-                      icon: const Icon(Icons.clear, size: 18),
+                      icon: const Icon(
+                        Icons.clear,
+                        size: 16,
+                        color: HrTokens.ink3,
+                      ),
                       onPressed: () {
                         searchController.clear();
                         controller.setSearch('');
                       },
                     ),
-              border: const OutlineInputBorder(),
             ),
           ),
         ),
@@ -550,11 +554,7 @@ class _Toolbar extends ConsumerWidget {
             // Without this the button takes the width of its longest item and
             // overflows the fixed-width box it sits in.
             isExpanded: true,
-            decoration: const InputDecoration(
-              isDense: true,
-              labelText: 'Status',
-              border: OutlineInputBorder(),
-            ),
+            decoration: _fieldDecoration(labelText: 'Status'),
             items: [
               const DropdownMenuItem(value: null, child: Text('Employed')),
               for (final s in EmploymentStatus.values)
@@ -571,11 +571,7 @@ class _Toolbar extends ConsumerWidget {
               initialValue: query.department,
               isDense: true,
               isExpanded: true,
-              decoration: const InputDecoration(
-                isDense: true,
-                labelText: 'Department',
-                border: OutlineInputBorder(),
-              ),
+              decoration: _fieldDecoration(labelText: 'Department'),
               items: [
                 const DropdownMenuItem(
                   value: null,
@@ -594,11 +590,7 @@ class _Toolbar extends ConsumerWidget {
             initialValue: query.sort,
             isDense: true,
             isExpanded: true,
-            decoration: const InputDecoration(
-              isDense: true,
-              labelText: 'Sort by',
-              border: OutlineInputBorder(),
-            ),
+            decoration: _fieldDecoration(labelText: 'Sort by'),
             items: [
               for (final s in PeopleSort.values)
                 DropdownMenuItem(value: s, child: Text(s.label)),
@@ -611,22 +603,44 @@ class _Toolbar extends ConsumerWidget {
   }
 }
 
+/// One shape for every control in the toolbar, so a search box and three
+/// selects read as one row of controls rather than four separate widgets.
+InputDecoration _fieldDecoration({String? labelText, String? hintText}) {
+  OutlineInputBorder border(Color color, [double width = 1]) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(HrTokens.radiusSm),
+        borderSide: BorderSide(color: color, width: width),
+      );
+
+  return InputDecoration(
+    isDense: true,
+    labelText: labelText,
+    hintText: hintText,
+    labelStyle: const TextStyle(fontSize: 13, color: HrTokens.ink3),
+    hintStyle: const TextStyle(fontSize: 13.5, color: HrTokens.ink4),
+    floatingLabelStyle: const TextStyle(fontSize: 13, color: HrTokens.accent),
+    filled: true,
+    fillColor: HrTokens.surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    border: border(HrTokens.border),
+    enabledBorder: border(HrTokens.border),
+    focusedBorder: border(HrTokens.accent, 1.5),
+  );
+}
+
 class _TableHeader extends StatelessWidget {
   const _TableHeader();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = theme.textTheme.labelSmall?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-      letterSpacing: 1,
-      fontWeight: FontWeight.w700,
-    );
+    const style = HrType.overline;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+      decoration: const BoxDecoration(
+        color: HrTokens.surface2,
+        border: Border(bottom: BorderSide(color: HrTokens.line)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(HrTokens.radiusLg),
         ),
       ),
       child: Row(
@@ -679,15 +693,14 @@ class _RosterRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final pay =
         '${formatMoney(employee.baseSalary, employee.currency)} '
         '· ${employee.payFrequency.label.toLowerCase()}';
     final tenure = formatTenure(hireDate: employee.hireDate, asOf: asOf);
 
     if (!isTable) {
-      return Card(
-        margin: EdgeInsets.zero,
+      return HrPanel(
+        padding: EdgeInsets.zero,
         child: ListTile(
           onTap: onEdit,
           leading: _Avatar(employee: employee),
@@ -718,8 +731,9 @@ class _RosterRow extends StatelessWidget {
 
     return InkWell(
       onTap: onEdit,
+      hoverColor: HrTokens.surface2,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             Expanded(
@@ -735,16 +749,12 @@ class _RosterRow extends StatelessWidget {
                         Text(
                           employee.fullName,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: HrType.bodyStrong,
                         ),
                         Text(
                           employee.jobTitle.isEmpty ? '—' : employee.jobTitle,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                          style: HrType.caption,
                         ),
                       ],
                     ),
@@ -757,6 +767,7 @@ class _RosterRow extends StatelessWidget {
               child: Text(
                 employee.department.isEmpty ? '—' : employee.department,
                 overflow: TextOverflow.ellipsis,
+                style: HrType.body,
               ),
             ),
             Expanded(
@@ -765,6 +776,7 @@ class _RosterRow extends StatelessWidget {
                 manager?.fullName ?? '—',
                 key: Key('employee-manager-${employee.id}'),
                 overflow: TextOverflow.ellipsis,
+                style: HrType.body,
               ),
             ),
             Expanded(
@@ -772,12 +784,17 @@ class _RosterRow extends StatelessWidget {
               child: Text(
                 employee.phone.isEmpty ? '—' : employee.phone,
                 overflow: TextOverflow.ellipsis,
+                style: HrType.body,
               ),
             ),
-            Expanded(flex: 2, child: Text(tenure)),
+            Expanded(flex: 2, child: Text(tenure, style: HrType.body)),
             Expanded(
               flex: 3,
-              child: Text(pay, overflow: TextOverflow.ellipsis),
+              child: Text(
+                pay,
+                overflow: TextOverflow.ellipsis,
+                style: HrType.body,
+              ),
             ),
             Expanded(
               flex: 2,
@@ -809,18 +826,12 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: scheme.secondaryContainer,
-      child: Text(
-        employee.initials.isEmpty ? '?' : employee.initials,
-        style: TextStyle(
-          color: scheme.onSecondaryContainer,
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
-        ),
-      ),
+    // Seeded on the id, so the same person keeps the same colour on the roster,
+    // the approvals queue and the dashboard.
+    return HrPersonAvatar(
+      initials: employee.initials,
+      seed: employee.id,
+      radius: 17,
     );
   }
 }
@@ -949,37 +960,33 @@ class _EmptyRoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 380),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.groups_outlined,
-              size: 48,
-              color: theme.colorScheme.primary,
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: HrPanel(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const HrEmptyState(
+                  icon: Icons.groups_outlined,
+                  title: 'No one on this branch yet',
+                  message:
+                      'Add your first person to start tracking attendance, '
+                      'leave and payroll.',
+                ),
+                FilledButton.icon(
+                  key: const Key('people-empty-add'),
+                  onPressed: onAdd,
+                  style: hrPrimaryButtonStyle(),
+                  icon: const Icon(Icons.person_add_alt_1, size: 17),
+                  label: const Text('Add person'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text('No one on this branch yet', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              'Add your first person to start tracking attendance, leave and '
-              'payroll.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              key: const Key('people-empty-add'),
-              onPressed: onAdd,
-              icon: const Icon(Icons.person_add_alt_1),
-              label: const Text('Add person'),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -993,26 +1000,13 @@ class _NoMatches extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 40,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          Text('No one matches these filters',
-              style: theme.textTheme.titleSmall),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            key: const Key('people-clear-filters'),
-            onPressed: onClear,
-            child: const Text('Clear filters'),
-          ),
-        ],
+      child: HrEmptyState(
+        icon: Icons.search_off,
+        message: 'No one matches these filters',
+        actionLabel: 'Clear filters',
+        actionKey: const Key('people-clear-filters'),
+        onAction: onClear,
       ),
     );
   }
@@ -1031,37 +1025,35 @@ class _RosterError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.cloud_off,
-              size: 40,
-              color: theme.colorScheme.error,
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: HrPanel(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HrEmptyState(icon: Icons.cloud_off, message: message),
+                FilledButton(
+                  key: const Key('people-retry'),
+                  onPressed: onRetry,
+                  style: hrPrimaryButtonStyle(),
+                  child: const Text('Try again'),
+                ),
+                if (onDiagnose != null)
+                  TextButton(
+                    key: const Key('people-diagnose'),
+                    onPressed: onDiagnose,
+                    style: TextButton.styleFrom(
+                      foregroundColor: HrTokens.ink3,
+                    ),
+                    child: const Text('Why was this denied?'),
+                  ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge,
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              key: const Key('people-retry'),
-              onPressed: onRetry,
-              child: const Text('Try again'),
-            ),
-            if (onDiagnose != null)
-              TextButton(
-                key: const Key('people-diagnose'),
-                onPressed: onDiagnose,
-                child: const Text('Why was this denied?'),
-              ),
-          ],
+          ),
         ),
       ),
     );

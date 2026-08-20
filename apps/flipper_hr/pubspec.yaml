@@ -2,7 +2,7 @@ name: flipper_hr
 description: "Flipper HR — web app served at hr.useflipper.com."
 publish_to: 'none'
 
-version: 1.0.9+10
+version: 1.0.10+11
 
 environment:
   sdk: ^3.9.2
@@ -21,6 +21,8 @@ dependencies:
   # apihub is plain REST (the invite's account and PIN hops), so HR needs an
   # http client of its own rather than reaching through supabase_flutter's.
   http: ^1.2.0
+  # The sidebar's expanded/collapsed choice outlives a page reload.
+  shared_preferences: ^2.5.3
   supabase_flutter: ^2.12.0
 
 dev_dependencies:

@@ -9,10 +9,10 @@ List<String> _paths(HrSession session) =>
 
 void main() {
   group('hrDestinationsFor', () {
-    test('an owner gets the roster, the board and the approvals queue', () {
+    test('an owner gets the dashboard, roster, board and approvals queue', () {
       expect(
         _paths(const HrSession(businessIds: ['biz-1'])),
-        ['/people', '/attendance', '/approvals'],
+        ['/overview', '/people', '/attendance', '/approvals'],
       );
     });
 
@@ -31,7 +31,7 @@ void main() {
         _paths(
           const HrSession(businessIds: ['biz-1'], employeeIds: ['e-1']),
         ),
-        ['/people', '/attendance', '/approvals', '/my-time', '/leave'],
+        ['/overview', '/people', '/attendance', '/approvals', '/my-time', '/leave'],
       );
     });
 
@@ -41,7 +41,7 @@ void main() {
       // the client distinguishes them, which is why this needs no new branch.
       expect(
         _paths(managerSession()),
-        ['/people', '/attendance', '/approvals', '/my-time', '/leave'],
+        ['/overview', '/people', '/attendance', '/approvals', '/my-time', '/leave'],
       );
     });
 

@@ -1,7 +1,12 @@
 import 'package:flipper_hr/features/people/data/employee.dart';
+import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flutter/material.dart';
 
-/// Colour-coded employment status pill used in both roster layouts.
+/// Employment status as one of the product's pills.
+///
+/// The mapping is the point: active is not "primary-coloured", it is *positive*,
+/// and suspended is *danger*. Naming the meaning rather than the colour is what
+/// keeps this chip in step with every other status on screen.
 class StatusChip extends StatelessWidget {
   const StatusChip({super.key, required this.status});
 
@@ -9,38 +14,12 @@ class StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    // Tinted surfaces rather than saturated fills, so a table of chips stays
-    // readable in both themes.
-    final (Color fg, Color bg) = switch (status) {
-      EmploymentStatus.active => (scheme.primary, scheme.primaryContainer),
-      EmploymentStatus.onLeave => (
-        scheme.tertiary,
-        scheme.tertiaryContainer,
-      ),
-      EmploymentStatus.suspended => (
-        scheme.onSecondaryContainer,
-        scheme.secondaryContainer,
-      ),
-      EmploymentStatus.terminated => (
-        scheme.onSurfaceVariant,
-        scheme.surfaceContainerHighest,
-      ),
+    final tone = switch (status) {
+      EmploymentStatus.active => HrTone.positive,
+      EmploymentStatus.onLeave => HrTone.warning,
+      EmploymentStatus.suspended => HrTone.danger,
+      EmploymentStatus.terminated => HrTone.neutral,
     };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        status.label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: fg,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return HrPill(label: status.label, tone: tone);
   }
 }

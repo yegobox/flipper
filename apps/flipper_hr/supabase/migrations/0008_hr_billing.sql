@@ -139,13 +139,21 @@ on conflict (slug) do update set
 -- still written server-side, data-connector still charges what the plan says,
 -- and the entitlement it grants is still a real one.
 --
--- Two safety properties, because this is a switch that gives the product away
+-- The amount is whatever you say, from 100 RWF up — 100, 150, 500. The floor is
+-- MTN's, not ours: it refuses a smaller collection outright, which looks like a
+-- broken gateway rather than a bad test amount.
+--
+-- Three safety properties, because this is a switch that gives the product away
 -- if it is ever left on:
 --
 --   1. Only a service-role / SQL-editor connection may turn it on. A signed-in
 --      client is refused.
 --   2. It expires on its own. A forgotten override stops applying rather than
 --      quietly discounting a real customer forever.
+--   3. It can be aimed at named businesses. A global discount means any customer
+--      who happens to pay during the window gets the test price — which is the
+--      reason the window has to be kept short. Scope it to the business you are
+--      testing with and it can safely stay on for a working day.
 create table if not exists public.hr_billing_settings (
   id                     boolean primary key default true check (id),
   -- Days past next_billing_date that still count as paid. 0 by design: the
@@ -154,12 +162,25 @@ create table if not exists public.hr_billing_settings (
   grace_days             integer not null default 0 check (grace_days >= 0),
   test_charge_amount_rwf integer check (test_charge_amount_rwf is null
                                         or test_charge_amount_rwf > 0),
-  test_charge_until      timestamptz
+  test_charge_until      timestamptz,
+  -- Businesses the override applies to. NULL (or empty) means every business,
+  -- which is the blunt setting — prefer naming the one you are testing with.
+  test_charge_business_ids text[]
 );
+
+alter table public.hr_billing_settings
+  add column if not exists test_charge_business_ids text[];
 insert into public.hr_billing_settings (id) values (true) on conflict (id) do nothing;
 
--- The override in force right now, or null when normal pricing applies.
-create or replace function public.hr_test_charge_amount()
+-- The override in force for [p_business_id] right now, or null when that
+-- business pays list price.
+--
+-- Takes the business rather than reading a global flag so a scoped override is
+-- impossible to apply to the wrong customer: every caller already knows which
+-- business it is pricing, and a null argument only matches an unscoped override.
+create or replace function public.hr_test_charge_amount(
+  p_business_id text default null
+)
 returns integer
 language sql
 stable
@@ -173,24 +194,51 @@ as $$
      -- No expiry means "not enabled": leaving it open-ended is the mistake the
      -- expiry exists to prevent.
      and s.test_charge_until is not null
-     and s.test_charge_until > now();
+     and s.test_charge_until > now()
+     and (
+       -- Unscoped: every business, the blunt setting.
+       s.test_charge_business_ids is null
+       or cardinality(s.test_charge_business_ids) = 0
+       -- Scoped: only the businesses named when it was switched on.
+       or p_business_id = any (s.test_charge_business_ids)
+     );
 $$;
 
 -- Reported by hr_access_state() as well as by every quote, so a discounted
 -- charge can never be presented as a full one.
-create or replace function public.hr_billing_test_mode()
+create or replace function public.hr_billing_test_mode(
+  p_business_id text default null
+)
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select public.hr_test_charge_amount() is not null;
+  select public.hr_test_charge_amount(p_business_id) is not null;
 $$;
 
+-- The smallest collection MTN Rwanda will accept. Below it the request-to-pay is
+-- refused rather than prompting the payer, which reads on screen as a broken
+-- gateway rather than as a bad test amount — so the floor is enforced here,
+-- where somebody can be told why, instead of being discovered on a handset.
+create or replace function public.hr_min_test_charge_rwf()
+returns integer
+language sql
+immutable
+as $$ select 100 $$;
+
+-- Charge [p_amount_rwf] instead of the list price for [p_hours] hours.
+--
+--   select public.hr_enable_test_pricing(100);                  -- 100 RWF, everywhere, 24h
+--   select public.hr_enable_test_pricing(150, 8, array['<business-uuid>']);
+--
+-- The amount is anything from 100 RWF up; the hours are clamped to 1 … 720 so
+-- the switch cannot be set to never expire.
 create or replace function public.hr_enable_test_pricing(
-  p_amount_rwf integer default 100,
-  p_hours      integer default 24
+  p_amount_rwf  integer default 100,
+  p_hours       integer default 24,
+  p_business_ids text[] default null
 )
 returns jsonb
 language plpgsql
@@ -199,22 +247,34 @@ set search_path = ''
 as $$
 declare
   v_hours integer := greatest(least(coalesce(p_hours, 24), 24 * 30), 1);
+  v_scope text[]  := nullif(coalesce(p_business_ids, '{}'::text[]), '{}'::text[]);
+  v_min   integer := public.hr_min_test_charge_rwf();
 begin
   if auth.uid() is not null then
     raise exception 'test pricing cannot be enabled by a signed-in client';
   end if;
-  if coalesce(p_amount_rwf, 0) <= 0 then
-    raise exception 'the test amount must be greater than zero';
+  -- Refused, not rounded up: silently charging 100 when 1 was asked for would
+  -- have the operator testing an amount they never chose.
+  if coalesce(p_amount_rwf, 0) < v_min then
+    raise exception
+      'the test amount must be at least % RWF — Mobile Money will not collect less, '
+      'so a smaller charge fails at the gateway instead of prompting the payer',
+      v_min;
   end if;
 
   update public.hr_billing_settings
-     set test_charge_amount_rwf = p_amount_rwf,
-         test_charge_until      = now() + make_interval(hours => v_hours)
+     set test_charge_amount_rwf   = p_amount_rwf,
+         test_charge_until        = now() + make_interval(hours => v_hours),
+         test_charge_business_ids = v_scope
    where id;
 
   return jsonb_build_object(
     'test_charge_amount_rwf', p_amount_rwf,
-    'expires_at', (select test_charge_until from public.hr_billing_settings where id)
+    'expires_at', (select test_charge_until from public.hr_billing_settings where id),
+    'businesses', case
+                    when v_scope is null then 'every business'
+                    else to_jsonb(v_scope)::text
+                  end
   );
 end;
 $$;
@@ -230,7 +290,9 @@ begin
     raise exception 'test pricing cannot be changed by a signed-in client';
   end if;
   update public.hr_billing_settings
-     set test_charge_amount_rwf = null, test_charge_until = null
+     set test_charge_amount_rwf   = null,
+         test_charge_until        = null,
+         test_charge_business_ids = null
    where id;
 end;
 $$;
@@ -315,7 +377,7 @@ as $$
 declare
   v_tpl    public.subscription_plan_templates;
   v_full   integer;
-  v_test   integer := public.hr_test_charge_amount();
+  v_test   integer := public.hr_test_charge_amount(p_business_id);
   v_yearly boolean := coalesce(p_is_yearly, false);
 begin
   if p_business_id is null or p_business_id = '' then
@@ -583,7 +645,7 @@ begin
     'phone_number',     v_plan.phone_number,
     'valid_until',      v_valid,
     'grace_days',       coalesce(v_grace, 0),
-    'test_mode',        public.hr_billing_test_mode(),
+    'test_mode',        public.hr_billing_test_mode(v_business),
     'max_pos_users',    v_tpl.max_pos_users,
     'max_branches',     v_tpl.max_branches,
     'max_hr_employees', v_tpl.max_hr_employees,
@@ -679,13 +741,19 @@ grant execute on function public.hr_access_state(text)                          
 grant execute on function public.hr_employee_count(text)                          to authenticated;
 grant execute on function public.hr_branch_count(text)                            to authenticated;
 grant execute on function public.hr_pos_user_count(text)                          to authenticated;
-grant execute on function public.hr_test_charge_amount()                          to authenticated;
-grant execute on function public.hr_billing_test_mode()                           to authenticated;
+grant execute on function public.hr_min_test_charge_rwf()                         to authenticated;
+grant execute on function public.hr_test_charge_amount(text)                      to authenticated;
+grant execute on function public.hr_billing_test_mode(text)                       to authenticated;
 
 -- Turning a discount on is an operator action, not something a signed-in
 -- account can reach. Both are refused for a session with an auth.uid() anyway;
 -- this stops them being callable at all.
-revoke all on function public.hr_enable_test_pricing(integer, integer) from public, anon, authenticated;
+revoke all on function public.hr_enable_test_pricing(integer, integer, text[])
+  from public, anon, authenticated;
+-- The old two-argument signature, if an earlier draft of this file was applied.
+drop function if exists public.hr_enable_test_pricing(integer, integer);
+drop function if exists public.hr_test_charge_amount();
+drop function if exists public.hr_billing_test_mode();
 revoke all on function public.hr_disable_test_pricing() from public, anon, authenticated;
 
 -- hr_billing_settings holds an operator switch, not user data. No policy grants
