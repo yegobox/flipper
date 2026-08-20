@@ -98,13 +98,11 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   /// the same product will be use if it is still temp product
   String? kProductName;
 
-  /// Look a product up by id, falling back to Capella when the active strategy
-  /// has no copy of it.
+  /// Look a product up by id, falling back to Brick when Ditto has no copy.
   ///
-  /// Off-web the active strategy is [Strategy.cloudSync] (Brick), but products
-  /// are written to / read from Capella by the rest of the product UI (see the
-  /// variant fetch in `DesktopProductAdd`), so a Brick-only lookup returns null
-  /// for products that exist perfectly well.
+  /// The active strategy is now always Capella/Ditto, but `getProduct` still
+  /// forwards to Brick there, and older products may exist in only one of the
+  /// two stores — so try both before giving up.
   Future<Product?> _findProductById(String productId) async {
     final String branchId = ProxyService.box.getBranchId()!;
     final String businessId = ProxyService.box.getBusinessId()!;
@@ -117,10 +115,13 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     );
     if (fromCurrent != null) return fromCurrent;
 
-    final capella = ProxyService.getStrategy(Strategy.capella);
-    if (identical(current, capella)) return null;
+    // TODO(ditto-migration): drop once `getProduct` is Ditto-native. The other
+    // store is Brick now — before the strategy collapse this compared against
+    // Capella, which would make this fallback a no-op.
+    final legacy = ProxyService.legacyStrategy;
+    if (identical(current, legacy)) return null;
 
-    return capella.getProduct(
+    return legacy.getProduct(
       id: productId,
       branchId: branchId,
       businessId: businessId,

@@ -734,6 +734,10 @@ class CronService {
       await ProxyService.strategy.hydrateCodes(branchId: branchId);
       // Registers Ditto cloud pull for `sars` + hydrates SQLite mirror (Brick).
       await ProxyService.strategy.hydrateSars(branchId: branchId);
+      // Clears duplicate `products` documents left by writes that predate
+      // Product.toJson setting `_id`. No-op once the collection is canonical,
+      // and it swallows its own errors — boot must not depend on it.
+      await ProxyService.strategy.reconcileProductDocuments(branchId: branchId);
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
         final businessId = ProxyService.box.getBusinessId()!;
@@ -807,8 +811,7 @@ class CronService {
       // Start replicator
       ProxyService.strategy.startReplicator();
 
-      // Set strategy based on platform
-      ProxyService.setStrategy(Strategy.cloudSync);
+      // The app runs on Ditto/Capella only — there is no strategy to pick.
       ProxyService.strategy.whoAmI();
 
       // Get payment plan

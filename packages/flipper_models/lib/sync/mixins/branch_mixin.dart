@@ -28,7 +28,7 @@ mixin BranchMixin implements BranchInterface {
         ProxyService.box.getUserPhone() ?? ProxyService.box.getUserId();
     if (loginKey == null || loginKey.isEmpty) return;
     try {
-      await ProxyService.strategy.sendLoginRequest(
+      await ProxyService.legacyStrategy.sendLoginRequest(
         loginKey,
         flipperHttpClient,
         apihub,
@@ -62,6 +62,12 @@ mixin BranchMixin implements BranchInterface {
     // find a branch by name create the branch if only it does not exist
     Branch? existingBranch = await branch(name: name);
     if (existingBranch != null) {
+      // Apply the requested flags — re-upserting the branch unchanged left a
+      // pre-existing branch inactive even when the caller asked for an active
+      // one, which then failed the startup "has active branches" check.
+      existingBranch
+        ..active = active
+        ..isDefault = isDefault;
       await repository.upsert<Branch>(
         existingBranch,
         policy: OfflineFirstUpsertPolicy.localOnly,
@@ -146,7 +152,8 @@ mixin BranchMixin implements BranchInterface {
   @override
   Future<List<Branch>> branches({
     String? businessId,
-    bool? active = false,
+    // No default: `null` means "don't filter on active".
+    bool? active,
     String? excludeId,
     bool localOnly = false,
   }) async {

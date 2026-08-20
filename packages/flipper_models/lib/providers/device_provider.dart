@@ -10,15 +10,16 @@ part 'device_provider.g.dart';
 
 /// Branch devices for delegation target pickers.
 ///
-/// Always reads via [Strategy.cloudSync] (Brick → Supabase), **not** Capella/Ditto.
-/// Ditto `devices` can lag behind or keep stale rows after reinstall; Supabase is
-/// the source of truth for the picker list.
+/// TODO(ditto-migration): deliberately still on Brick → Supabase, **not**
+/// Ditto. Ditto `devices` can lag behind or keep stale rows after reinstall;
+/// Supabase is the source of truth for the picker list. Porting this needs the
+/// staleness handled first — see docs/DITTO_ONLY_MIGRATION.md.
 @riverpod
 Future<List<Device>> devicesForBranch(
   Ref ref, {
   required String branchId,
 }) async {
-  final devices = await ProxyService.getStrategy(Strategy.cloudSync)
+  final devices = await ProxyService.legacyStrategy
       .getDevicesByBranch(
     branchId: branchId,
     getPolicy: OfflineFirstGetPolicy.awaitRemote,

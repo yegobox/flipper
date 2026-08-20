@@ -47,18 +47,24 @@ mixin CapellaStockRecountMixin implements StockRecountInterface {
         lastTouched = DateTime.tryParse(data['lastTouched'].toString());
       }
     }
+    // Prefer the CRDT milli COUNTER over the `currentStock` register: the
+    // register can lag behind concurrent deducts, and a recount comparing
+    // against a stale expected quantity reports a bogus variance.
+    final milli = parseStockMilli(data[stockCurrentStockMilliField]);
+    final qtyFromMilli = milli != null ? fromMilli(milli) : null;
+
     return Stock(
       id: (data['_id'] ?? data['id']).toString(),
       tin: data['tin'] as int?,
       bhfId: data['bhfId'] as String?,
       branchId: data['branchId']?.toString() ?? '',
-      currentStock: _toDouble(data['currentStock']),
+      currentStock: qtyFromMilli ?? _toDouble(data['currentStock']),
       lowStock: _toDouble(data['lowStock']),
       canTrackingStock: data['canTrackingStock'] as bool? ?? true,
       showLowStockAlert: data['showLowStockAlert'] as bool? ?? true,
       active: data['active'] as bool? ?? true,
       value: _toDouble(data['value']),
-      rsdQty: _toDouble(data['rsdQty']),
+      rsdQty: qtyFromMilli ?? _toDouble(data['rsdQty']),
       lastTouched: lastTouched ?? DateTime.now().toUtc(),
       ebmSynced: data['ebmSynced'] as bool? ?? false,
       initialStock: _toDouble(data['initialStock']),
@@ -172,7 +178,7 @@ ON ID CONFLICT DO UPDATE
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return null;
     final result = await ditto.store.execute(
-      'SELECT * FROM stocks WHERE _id = :id OR id = :id LIMIT 1',
+      stockSelectWithMilliDql(whereClause: '_id = :id OR id = :id LIMIT 1'),
       arguments: {'id': id},
     );
     if (result.items.isEmpty) return null;
@@ -658,7 +664,7 @@ LIMIT 1
   }) async {
     final ditto = _dittoOrThrow();
     final stocksResult = await ditto.store.execute(
-      'SELECT * FROM stocks WHERE branchId = :branchId',
+      stockSelectWithMilliDql(whereClause: 'branchId = :branchId'),
       arguments: {'branchId': branchId},
     );
 

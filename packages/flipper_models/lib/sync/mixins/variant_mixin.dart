@@ -432,7 +432,7 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
-          final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
+          final isTaxEnabled = await ProxyService.legacyStrategy.isTaxEnabled(
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
           );
@@ -442,7 +442,7 @@ mixin VariantMixin implements VariantInterface {
           }
 
           // Only fetch EBM once we know an RRA registration is actually needed.
-          final ebm = await ProxyService.strategy.ebm(
+          final ebm = await ProxyService.legacyStrategy.ebm(
             branchId: ProxyService.box.getBranchId()!,
           );
           final taxUrl = ebm!.taxServerUrl;
@@ -567,7 +567,7 @@ mixin VariantMixin implements VariantInterface {
       return;
     }
     try {
-      Category? category = await ProxyService.strategy.category(
+      Category? category = await ProxyService.legacyStrategy.category(
         id: categoryId ?? "",
       );
       // loop through all variants and update all with retailPrice and supplyPrice

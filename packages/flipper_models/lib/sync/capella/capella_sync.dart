@@ -30,6 +30,8 @@ import 'package:talker/talker.dart';
 import 'package:flipper_models/services/loan_customer_linker.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/category_mixin.dart';
@@ -125,26 +127,40 @@ class CapellaSync extends AiStrategyImpl
   CapellaSync();
 
   DittoService get dittoService => DittoService.instance;
+
+  /// The legacy Brick/SQLite implementation.
+  ///
+  /// The app now runs on Ditto only — [CapellaSync] is the single
+  /// [DatabaseSyncInterface] the rest of the codebase ever sees. Operations
+  /// that do not have a Ditto-native implementation yet are forwarded here so
+  /// that collapsing the two strategies into one is behaviour-preserving.
+  ///
+  /// Every forwarding member is tagged `TODO(ditto-migration)`. Porting one to
+  /// Ditto means replacing that body and deleting the tag; when no tags remain
+  /// this getter — and Brick — can be deleted.
+  DatabaseSyncInterface get _legacy => ProxyService.legacyStrategy;
   @override
   Future<void> initCollections() async {
     throw UnimplementedError('initCollections needs to be implemented');
   }
 
+  // TODO(ditto-migration): port `downloadAsset` to Ditto.
   @override
   Future<Stream<double>> downloadAsset({
     required String branchId,
     required String assetName,
     required String subPath,
   }) async {
-    throw UnimplementedError('downloadAsset needs to be implemented');
+    return _legacy.downloadAsset(branchId: branchId, assetName: assetName, subPath: subPath);
   }
 
+  // TODO(ditto-migration): port `upsertPlan` to Ditto.
   @override
   Future<void> upsertPlan({
     required String businessId,
     required Plan selectedPlan,
   }) async {
-    throw UnimplementedError('upsertPlan needs to be implemented');
+    return _legacy.upsertPlan(businessId: businessId, selectedPlan: selectedPlan);
   }
 
   @override
@@ -237,25 +253,36 @@ class CapellaSync extends AiStrategyImpl
     }
   }
 
+  // TODO(ditto-migration): port `downloadAssetSave` to Ditto.
   @override
   Future<Stream<double>> downloadAssetSave({
     String? assetName,
     String? subPath = "branch",
   }) async {
-    throw UnimplementedError('downloadAssetSave needs to be implemented');
+    return _legacy.downloadAssetSave(assetName: assetName, subPath: subPath);
   }
 
+  // TODO(ditto-migration): port `startReplicator` to Ditto.
   @override
   Future<void> startReplicator() async {
-    throw UnimplementedError('startReplicator needs to be implemented');
+    return _legacy.startReplicator();
   }
 
+  /// Never touched Brick: the implementation was a hardcoded single-entry list
+  /// wrapped in a fake `http.Response`, behind a five-second delay — on the
+  /// signup path. Same single entry, without the delay.
+  ///
+  /// Deliberately not switched to a live read. `public.business_types` does
+  /// exist (see [BusinessType.fromSupabaseRow]), but returning the full table
+  /// where signup has only ever seen one option is a behaviour change, not a
+  /// migration.
   @override
-  Future<List<BusinessType>> businessTypes() {
-    // TODO: implement businessTypes
-    throw UnimplementedError();
+  Future<List<BusinessType>> businessTypes() async {
+    const business = BusinessTypeEnum.BUSINESS;
+    return [BusinessType(id: business.id, typeName: business.typeName)];
   }
 
+  // TODO(ditto-migration): port `tenant` to Ditto.
   @override
   Future<Tenant?> tenant({
     String? businessId,
@@ -263,8 +290,7 @@ class CapellaSync extends AiStrategyImpl
     String? tenantId,
     required bool fetchRemote,
   }) {
-    // TODO: implement tenant
-    throw UnimplementedError();
+    return _legacy.tenant(businessId: businessId, userId: userId, tenantId: tenantId, fetchRemote: fetchRemote);
   }
 
   @override
@@ -273,16 +299,17 @@ class CapellaSync extends AiStrategyImpl
   @override
   SendPort? sendPort;
 
+  // TODO(ditto-migration): port `access` to Ditto.
   @override
   Future<List<Access>> access({
     required String userId,
     String? featureName,
     required bool fetchRemote,
   }) {
-    // TODO: implement access
-    throw UnimplementedError();
+    return _legacy.access(userId: userId, featureName: featureName, fetchRemote: fetchRemote);
   }
 
+  // TODO(ditto-migration): port `addAccess` to Ditto.
   @override
   FutureOr<void> addAccess({
     required String userId,
@@ -294,10 +321,10 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     DateTime? createdAt,
   }) {
-    // TODO: implement addAccess
-    throw UnimplementedError();
+    return _legacy.addAccess(userId: userId, featureName: featureName, accessLevel: accessLevel, userType: userType, status: status, branchId: branchId, businessId: businessId, createdAt: createdAt);
   }
 
+  // TODO(ditto-migration): port `addAsset` to Ditto.
   @override
   FutureOr<void> addAsset({
     required String productId,
@@ -306,10 +333,10 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     String? variantId,
   }) {
-    // TODO: implement addAsset
-    throw UnimplementedError();
+    return _legacy.addAsset(productId: productId, assetName: assetName, branchId: branchId, businessId: businessId, variantId: variantId);
   }
 
+  // TODO(ditto-migration): port `addBranch` to Ditto.
   @override
   FutureOr<Branch> addBranch({
     required String name,
@@ -327,26 +354,30 @@ class CapellaSync extends AiStrategyImpl
     DateTime? deletedAt,
     int? id,
   }) {
-    // TODO: implement addBranch
-    throw UnimplementedError();
+    return _legacy.addBranch(name: name, businessId: businessId, location: location, userOwnerPhoneNumber: userOwnerPhoneNumber, flipperHttpClient: flipperHttpClient ?? ProxyService.http, serverId: serverId, description: description, longitude: longitude, latitude: latitude, isDefault: isDefault, active: active, lastTouched: lastTouched, deletedAt: deletedAt, id: id);
   }
 
   @override
-  FutureOr<void> addColor({required String name, required String branchId}) {
-    // TODO: implement addColor
-    throw UnimplementedError();
+  FutureOr<void> addColor({required String name, required String branchId}) async {
+    final color = PColor(name: name, active: false, branchId: branchId);
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    // Brick is still what carries `colors` to Supabase.
+    scheduleCapellaBrickMirror(repository, color);
   }
 
+  // TODO(ditto-migration): port `allAccess` to Ditto.
   @override
   Future<List<Access>> allAccess({required String userId}) {
-    // TODO: implement allAccess
-    throw UnimplementedError();
+    return _legacy.allAccess(userId: userId);
   }
 
+  // TODO(ditto-migration): port `amplifyLogout` to Ditto.
   @override
   Future<void> amplifyLogout() {
-    // TODO: implement amplifyLogout
-    throw UnimplementedError();
+    return _legacy.amplifyLogout();
   }
 
   @override
@@ -434,31 +465,31 @@ class CapellaSync extends AiStrategyImpl
     }
   }
 
+  // TODO(ditto-migration): port `authState` to Ditto.
   @override
   Stream<Tenant?> authState({required String branchId}) {
-    // TODO: implement authState
-    throw UnimplementedError();
+    return _legacy.authState(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `bindProduct` to Ditto.
   @override
   Future<bool> bindProduct({
     required String productId,
     required String tenantId,
   }) {
-    // TODO: implement bindProduct
-    throw UnimplementedError();
+    return _legacy.bindProduct(productId: productId, tenantId: tenantId);
   }
 
+  // TODO(ditto-migration): port `cleanDuplicatePlans` to Ditto.
   @override
   Future<void> cleanDuplicatePlans() {
-    // TODO: implement cleanDuplicatePlans
-    throw UnimplementedError();
+    return _legacy.cleanDuplicatePlans();
   }
 
+  // TODO(ditto-migration): port `clearOldLogs` to Ditto.
   @override
   Future<int> clearOldLogs({required Duration olderThan, String? businessId}) {
-    // TODO: implement clearOldLogs
-    throw UnimplementedError();
+    return _legacy.clearOldLogs(olderThan: olderThan, businessId: businessId);
   }
 
   @override
@@ -716,11 +747,15 @@ class CapellaSync extends AiStrategyImpl
               .map((i) => i.variantId)
               .whereType<String>()
               .toSet();
+          final ditto = dittoService.dittoInstance;
           for (final id in variantIds) {
             final variant = await getVariant(id: id);
-            if (variant != null) {
+            if (variant != null && ditto != null) {
               variant.lastTouched = DateTime.now().toUtc();
-              await repository.upsert<Variant>(variant);
+              await ditto.store.execute(
+                'INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+                arguments: {'doc': variant.toFlipperJson()},
+              );
             }
           }
         } catch (e) {
@@ -849,9 +884,33 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<PColor>> colors({required String branchId}) {
-    // TODO: implement colors
-    throw UnimplementedError();
+  Future<List<PColor>> colors({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return _legacy.colors(branchId: branchId);
+
+    await ensureReferenceSubscription(ditto, colorsCollection, branchId);
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM $colorsCollection WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+      if (result.items.isNotEmpty) {
+        return result.items
+            .map((d) => colorFromDittoDoc(Map<String, dynamic>.from(d.value)))
+            .toList();
+      }
+    } catch (e, s) {
+      talker.error('Ditto colors read failed, falling back to Brick: $e', e, s);
+      return _legacy.colors(branchId: branchId);
+    }
+
+    // Empty in Ditto: this branch's colours predate the migration and still
+    // live in SQLite only. Seed Ditto from Brick so the next read is native.
+    final existing = await _legacy.colors(branchId: branchId);
+    for (final color in existing) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    return existing;
   }
 
   @override
@@ -870,16 +929,24 @@ class CapellaSync extends AiStrategyImpl
     );
   }
 
+  // TODO(ditto-migration): port `conversations` to Ditto.
   @override
   conversations({int? conversationId}) {
-    // TODO: implement conversations
-    throw UnimplementedError();
+    return _legacy.conversations(conversationId: conversationId);
   }
 
   @override
-  Future<List<Country>> countries() {
-    // TODO: implement countries
-    throw UnimplementedError();
+  Future<List<Country>> countries() async {
+    final rows = await _globalCatalogue<Country>(
+      collection: countriesCollection,
+      fromDitto: countryFromDittoDoc,
+      toDitto: countryToDittoDoc,
+      fromSupabase: countryFromSupabaseRow,
+      supabaseOrderBy: 'sort_order',
+      legacy: _legacy.countries,
+    );
+    rows.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return rows;
   }
 
   @override
@@ -945,13 +1012,16 @@ class CapellaSync extends AiStrategyImpl
       return data as T;
     }
 
-    throw UnimplementedError('Capella create<$T> is not supported');
+    // TODO(ditto-migration): port the remaining model types to Ditto. Until
+    // then they keep their Brick write path — Capella is now the only strategy
+    // callers can reach, so throwing here would break every other model.
+    return _legacy.create<T>(data: data);
   }
 
+  // TODO(ditto-migration): port `upsertDevice` to Ditto.
   @override
   Future<Device> upsertDevice(Device device) {
-    // TODO: implement upsertDevice
-    throw UnimplementedError();
+    return _legacy.upsertDevice(device);
   }
 
   @override
@@ -959,20 +1029,52 @@ class CapellaSync extends AiStrategyImpl
     required Variant variant,
     required TransactionItem item,
     required String subBranchId,
-  }) {
-    // TODO: implement createNewStock
-    throw UnimplementedError();
+  }) async {
+    // Same fallbacks used elsewhere for these two fields (e.g.
+    // transfers_report_screen.dart's `quantityRequested ?? qty`, and the
+    // `retailPrice ?? 0` used throughout transactionItemUtil.dart) — the
+    // Brick implementation force-unwrapped both and would have crashed the
+    // same way on a null, so this isn't a behavior regression, just a
+    // graceful default instead of a raw null-check crash.
+    final requested = (item.quantityRequested ?? item.qty).toDouble();
+    final retailPrice = variant.retailPrice ?? 0.0;
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: createNewStock');
+    }
+    final stock = Stock(
+      id: const Uuid().v4(),
+      lastTouched: DateTime.now().toUtc(),
+      branchId: subBranchId,
+      currentStock: requested,
+      rsdQty: requested,
+      value: requested * retailPrice,
+      // Inbound transfer stock stays inactive until the receiving branch
+      // approves it — same as the Brick implementation.
+      active: false,
+    );
+    await ditto.store.execute(
+      'INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': stock.toJson()},
+    );
+    await seedStockMilliIfAbsentOnStore(
+      ditto.store,
+      stockId: stock.id,
+      qty: requested,
+    );
+    scheduleCapellaBrickMirror(repository, stock);
   }
 
+  // TODO(ditto-migration): port `createOrUpdateBranchOnCloud` to Ditto.
   @override
   Future<void> createOrUpdateBranchOnCloud({
     required Branch branch,
     required bool isOnline,
   }) {
-    // TODO: implement createOrUpdateBranchOnCloud
-    throw UnimplementedError();
+    return _legacy.createOrUpdateBranchOnCloud(branch: branch, isOnline: isOnline);
   }
 
+  // TODO(ditto-migration): port `createVariant` to Ditto.
   @override
   Future<Variant> createVariant({
     required String barCode,
@@ -991,20 +1093,19 @@ class CapellaSync extends AiStrategyImpl
     required String name,
     Configurations? taxType,
   }) {
-    // TODO: implement createVariant
-    throw UnimplementedError();
+    return _legacy.createVariant(barCode: barCode, sku: sku, productId: productId, branchId: branchId, retailPrice: retailPrice, supplierPrice: supplierPrice, qty: qty, taxTypes: taxTypes, itemClasses: itemClasses, itemTypes: itemTypes, color: color, tinNumber: tinNumber, itemSeq: itemSeq, name: name, taxType: taxType);
   }
 
+  // TODO(ditto-migration): port `credit` to Ditto.
   @override
   Stream<Credit?> credit({required String branchId}) {
-    // TODO: implement credit
-    throw UnimplementedError();
+    return _legacy.credit(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `defaultBranch` to Ditto.
   @override
   FutureOr<Branch?> defaultBranch() {
-    // TODO: implement defaultBranch
-    throw UnimplementedError();
+    return _legacy.defaultBranch();
   }
 
   @override
@@ -1018,54 +1119,164 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `deleteAll` to Ditto.
   @override
   FutureOr<void> deleteAll<T extends Object>({required String tableName}) {
-    // TODO: implement deleteAll
-    throw UnimplementedError();
+    return _legacy.deleteAll<T>(tableName: tableName);
   }
 
+  // TODO(ditto-migration): port `deleteFailedQueue` to Ditto.
   @override
   Future<void> deleteFailedQueue() {
-    // TODO: implement deleteFailedQueue
-    throw UnimplementedError();
+    return _legacy.deleteFailedQueue();
   }
 
+  // TODO(ditto-migration): port `deletePaymentById` to Ditto.
   @override
   Future<void> deletePaymentById(String id) {
-    // TODO: implement deletePaymentById
-    throw UnimplementedError();
+    return _legacy.deletePaymentById(id);
   }
 
+  // TODO(ditto-migration): port `deleteTransactionItemAndResequence` to Ditto.
   @override
   Future<void> deleteTransactionItemAndResequence({required String id}) {
-    // TODO: implement deleteTransactionItemAndResequence
-    throw UnimplementedError();
+    return _legacy.deleteTransactionItemAndResequence(id: id);
   }
 
+  // TODO(ditto-migration): port `fetchCost` to Ditto.
   @override
   Future<double> fetchCost(String branchId) {
-    // TODO: implement fetchCost
-    throw UnimplementedError();
+    return _legacy.fetchCost(branchId);
   }
 
+  // TODO(ditto-migration): port `fetchProfit` to Ditto.
   @override
   Future<double> fetchProfit(String branchId) {
-    // TODO: implement fetchProfit
-    throw UnimplementedError();
+    return _legacy.fetchProfit(branchId);
   }
 
   @override
   Future<List<FinanceProvider>> financeProviders() {
-    // TODO: implement financeProviders
-    throw UnimplementedError();
+    return _globalCatalogue<FinanceProvider>(
+      collection: financeProvidersCollection,
+      fromDitto: financeProviderFromDittoDoc,
+      toDitto: financeProviderToDittoDoc,
+      fromSupabase: financeProviderFromSupabaseRow,
+      legacy: _legacy.financeProviders,
+    );
+  }
+
+  /// Read a Supabase-owned catalogue without Brick.
+  ///
+  /// Ditto acts as the offline cache: serve it when populated, otherwise pull
+  /// from Supabase and seed it. `_id` is the Supabase row id, so seeding is
+  /// idempotent and every device converges on the same documents. Falls back to
+  /// Brick only when both Ditto and Supabase are unavailable — that fallback
+  /// goes away with Brick itself.
+  Future<List<T>> _globalCatalogue<T>({
+    required String collection,
+    required T Function(Map<String, dynamic>) fromDitto,
+    required Map<String, dynamic> Function(T) toDitto,
+    required T Function(Map<String, dynamic>) fromSupabase,
+    required Future<List<T>> Function() legacy,
+    String? supabaseOrderBy,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+
+    if (ditto != null) {
+      await ensureGlobalReferenceSubscription(ditto, collection);
+      try {
+        final cached = await ditto.store.execute('SELECT * FROM $collection');
+        if (cached.items.isNotEmpty) {
+          return cached.items
+              .map((d) => fromDitto(Map<String, dynamic>.from(d.value)))
+              .toList();
+        }
+      } catch (e) {
+        talker.warning('Ditto $collection read failed: $e');
+      }
+    }
+
+    try {
+      var query = Supabase.instance.client.from(collection).select();
+      final rows = supabaseOrderBy == null
+          ? await query
+          : await query.order(supabaseOrderBy, ascending: true);
+
+      final parsed = (rows as List)
+          .map((r) => fromSupabase(Map<String, dynamic>.from(r as Map)))
+          .toList();
+
+      if (ditto != null) {
+        for (final row in parsed) {
+          try {
+            await upsertReferenceDoc(ditto, collection, toDitto(row));
+          } catch (e) {
+            talker.warning('$collection cache seed failed: $e');
+          }
+        }
+      }
+      if (parsed.isNotEmpty) return parsed;
+    } catch (e, st) {
+      talker.error('Supabase $collection read failed: $e\n$st');
+    }
+
+    // TODO(ditto-migration): drop with Brick — offline and nothing cached yet.
+    return legacy();
   }
 
   @override
   Stream<List<Variant>> geVariantStreamByProductId({
     required String productId,
   }) {
-    // TODO: implement geVariantStreamByProductId
-    throw UnimplementedError();
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      return _legacy.geVariantStreamByProductId(productId: productId);
+    }
+
+    final controller = StreamController<List<Variant>>.broadcast();
+    const query = 'SELECT * FROM variants WHERE productId = :productId';
+    final arguments = {'productId': productId};
+
+    // Plain nullable, not `late`: onCancel can fire before the observer is set.
+    dynamic observer;
+    var cancelled = false;
+    () async {
+      try {
+        final prepared = prepareDqlSyncSubscription(query, arguments);
+        await ditto.sync.registerSubscription(
+          prepared.dql,
+          arguments: prepared.arguments,
+        );
+      } catch (e) {
+        talker.warning('variants-by-product subscription failed: $e');
+      }
+      // The last listener can cancel while the subscription above is still
+      // registering. onCancel has already run by then and will not run again,
+      // so registering an observer now would leak it.
+      if (cancelled) return;
+      observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (controller.isClosed) return;
+          controller.add(
+            result.items
+                .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
+                .toList(),
+          );
+        },
+      );
+    }();
+
+    // Await the observer teardown before closing, so the controller does not
+    // outlive its last listener with a live observer still feeding it.
+    controller.onCancel = () async {
+      cancelled = true;
+      await observer?.cancel();
+      await controller.close();
+    };
+    return controller.stream;
   }
 
   @override
@@ -1074,32 +1285,51 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `getAllPayments` to Ditto.
   @override
   Future<List<CustomerPayments>> getAllPayments() {
-    // TODO: implement getAllPayments
-    throw UnimplementedError();
+    return _legacy.getAllPayments();
   }
 
+  // TODO(ditto-migration): port `getAsset` to Ditto.
   @override
   FutureOr<Assets?> getAsset({
     String? assetName,
     String? productId,
     String? variantId,
   }) {
-    // TODO: implement getAsset
-    throw UnimplementedError();
+    return _legacy.getAsset(assetName: assetName, productId: productId, variantId: variantId);
   }
 
   @override
-  Future<PColor?> getColor({required String id}) {
-    // TODO: implement getColor
-    throw UnimplementedError();
+  Future<PColor?> getColor({required String id}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return _legacy.getColor(id: id);
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM $colorsCollection WHERE _id = :id LIMIT 1',
+        arguments: {'id': id},
+      );
+      if (result.items.isNotEmpty) {
+        return colorFromDittoDoc(
+          Map<String, dynamic>.from(result.items.first.value),
+        );
+      }
+    } catch (e, s) {
+      talker.error('Ditto getColor($id) failed: $e', e, s);
+    }
+    // Not mirrored into Ditto yet — fall back and seed on the way through.
+    final color = await _legacy.getColor(id: id);
+    if (color != null) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    return color;
   }
 
+  // TODO(ditto-migration): port `getContacts` to Ditto.
   @override
   Future<List<Business>> getContacts() {
-    // TODO: implement getContacts
-    throw UnimplementedError();
+    return _legacy.getContacts();
   }
 
   @override
@@ -1147,6 +1377,7 @@ class CapellaSync extends AiStrategyImpl
     }
   }
 
+  // TODO(ditto-migration): port `getCustomVariant` to Ditto.
   @override
   Future<Variant?> getCustomVariant({
     required String businessId,
@@ -1154,8 +1385,7 @@ class CapellaSync extends AiStrategyImpl
     required int tinNumber,
     required String bhFId,
   }) {
-    // TODO: implement getCustomVariant
-    throw UnimplementedError();
+    return _legacy.getCustomVariant(businessId: businessId, branchId: branchId, tinNumber: tinNumber, bhFId: bhFId);
   }
 
   @override
@@ -1193,43 +1423,43 @@ class CapellaSync extends AiStrategyImpl
       talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
     }
     try {
-      return await ProxyService.getStrategy(
-        Strategy.cloudSync,
-      ).getUtilityVariant(name: name, branchId: branchId);
+      // TODO(ditto-migration): Brick fallback for the utility-cash variant.
+      return await ProxyService.legacyStrategy.getUtilityVariant(name: name, branchId: branchId);
     } catch (e, st) {
       talker.error('getUtilityVariant fallback failed: $e\n$st');
       return null;
     }
   }
 
+  // TODO(ditto-migration): port `getLogs` to Ditto.
   @override
   Future<List<Log>> getLogs({
     String? type,
     String? businessId,
     int limit = 100,
   }) {
-    // TODO: implement getLogs
-    throw UnimplementedError();
+    return _legacy.getLogs(type: type, businessId: businessId, limit: limit);
   }
 
+  // TODO(ditto-migration): port `getPayment` to Ditto.
   @override
   Future<CustomerPayments?> getPayment({required String paymentReference}) {
-    // TODO: implement getPayment
-    throw UnimplementedError();
+    return _legacy.getPayment(paymentReference: paymentReference);
   }
 
+  // TODO(ditto-migration): port `getPaymentById` to Ditto.
   @override
   Future<CustomerPayments?> getPaymentById(String id) {
-    // TODO: implement getPaymentById
-    throw UnimplementedError();
+    return _legacy.getPaymentById(id);
   }
 
+  // TODO(ditto-migration): port `getTop5RecentConversations` to Ditto.
   @override
   getTop5RecentConversations() {
-    // TODO: implement getTop5RecentConversations
-    throw UnimplementedError();
+    return _legacy.getTop5RecentConversations();
   }
 
+  // TODO(ditto-migration): port `getUniversalProducts` to Ditto.
   @override
   Future<Response> getUniversalProducts(
     Uri url, {
@@ -1237,24 +1467,23 @@ class CapellaSync extends AiStrategyImpl
     Object? body,
     Encoding? encoding,
   }) {
-    // TODO: implement getUniversalProducts
-    throw UnimplementedError();
+    return _legacy.getUniversalProducts(url, headers: headers, body: body, encoding: encoding);
   }
 
+  // TODO(ditto-migration): port `hasOfflineAssets` to Ditto.
   @override
   Future<bool> hasOfflineAssets() {
-    // TODO: implement hasOfflineAssets
-    throw UnimplementedError();
+    return _legacy.hasOfflineAssets();
   }
 
+  // TODO(ditto-migration): port `initializeEbm` to Ditto.
   @override
   Future<BusinessInfo> initializeEbm({
     required String tin,
     required String bhfId,
     required String dvcSrlNo,
   }) {
-    // TODO: implement initializeEbm
-    throw UnimplementedError();
+    return _legacy.initializeEbm(tin: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo);
   }
 
   @override
@@ -1263,32 +1492,71 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `isAdmin` to Ditto.
   @override
   FutureOr<bool> isAdmin({required String userId, required String appFeature}) {
-    // TODO: implement isAdmin
-    throw UnimplementedError();
+    return _legacy.isAdmin(userId: userId, appFeature: appFeature);
   }
 
+  /// Whether this branch may take payments.
+  ///
+  /// Server-owned config (`branch_payment_integrations`), so it is read from
+  /// Supabase directly with Ditto as an offline cache — the same shape as the
+  /// catalogues. `fetchRemote` skips the cache rather than changing a Brick
+  /// hydration policy.
+  ///
+  /// Defaults to **false** when nothing is known, matching the previous
+  /// `?? false`: an unknown branch must not silently gain payment rights.
   @override
   FutureOr<bool> isBranchEnableForPayment({
     required String currentBranchId,
     bool fetchRemote = false,
   }) async {
-    final paymentStatus = await repository.get<BranchPaymentIntegration>(
-      policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: brick.Query(
-        where: [brick.Where('branchId').isExactly(currentBranchId)],
-      ),
-    );
-    return paymentStatus.firstOrNull?.isEnabled ?? false;
+    final ditto = dittoService.dittoInstance;
+    const collection = 'branch_payment_integrations';
+
+    if (ditto != null && !fetchRemote) {
+      try {
+        final cached = await ditto.store.execute(
+          'SELECT * FROM $collection WHERE branchId = :branchId LIMIT 1',
+          arguments: {'branchId': currentBranchId},
+        );
+        if (cached.items.isNotEmpty) {
+          return cached.items.first.value['isEnabled'] == true;
+        }
+      } catch (e) {
+        talker.warning('Ditto $collection read failed: $e');
+      }
+    }
+
+    try {
+      final row = await Supabase.instance.client
+          .from(collection)
+          .select()
+          .eq('branch_id', currentBranchId)
+          .maybeSingle();
+      if (row == null) return false;
+
+      final isEnabled = row['is_enabled'] == true;
+      if (ditto != null) {
+        await upsertReferenceDoc(ditto, collection, {
+          '_id': row['id']?.toString(),
+          'id': row['id']?.toString(),
+          'branchId': currentBranchId,
+          'isEnabled': isEnabled,
+        });
+      }
+      return isEnabled;
+    } catch (e, st) {
+      talker.error('Supabase $collection read failed: $e\n$st');
+      return false;
+    }
   }
 
+  // TODO(ditto-migration): port `isSubscribed` to Ditto.
   @override
   bool isSubscribed({required String feature, required String businessId}) {
-    // TODO: implement isSubscribed
-    throw UnimplementedError();
+    return _legacy.isSubscribed(feature: feature, businessId: businessId);
   }
 
   @override
@@ -1380,6 +1648,7 @@ class CapellaSync extends AiStrategyImpl
     }
   }
 
+  // TODO(ditto-migration): port `loadConversations` to Ditto.
   @override
   Future<void> loadConversations({
     required String businessId,
@@ -1387,8 +1656,7 @@ class CapellaSync extends AiStrategyImpl
     String? pk,
     String? sk,
   }) {
-    // TODO: implement loadConversations
-    throw UnimplementedError();
+    return _legacy.loadConversations(businessId: businessId, pageSize: pageSize, pk: pk, sk: sk);
   }
 
   @override
@@ -1407,17 +1675,17 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `permission` to Ditto.
   @override
   @override
   FutureOr<LPermission?> permission({required String userId}) {
-    // TODO: implement permission
-    throw UnimplementedError();
+    return _legacy.permission(userId: userId);
   }
 
+  // TODO(ditto-migration): port `permissions` to Ditto.
   @override
   FutureOr<List<LPermission>> permissions({required String userId}) {
-    // TODO: implement permissions
-    throw UnimplementedError();
+    return _legacy.permissions(userId: userId);
   }
 
   @override
@@ -1431,10 +1699,10 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `productsFuture` to Ditto.
   @override
   Future<List<Product>> productsFuture({required String branchId}) {
-    // TODO: implement productsFuture
-    throw UnimplementedError();
+    return _legacy.productsFuture(branchId: branchId);
   }
 
   @override
@@ -1448,67 +1716,89 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `queueLength` to Ditto.
   @override
   Future<int> queueLength() {
-    // TODO: implement queueLength
-    throw UnimplementedError();
+    return _legacy.queueLength();
   }
 
+  // TODO(ditto-migration): port `reDownloadAsset` to Ditto.
   @override
   Future<void> reDownloadAsset() {
-    // TODO: implement reDownloadAsset
-    throw UnimplementedError();
+    return _legacy.reDownloadAsset();
   }
 
+  // TODO(ditto-migration): port `refreshSession` to Ditto.
   @override
   Future<void> refreshSession({
     required String branchId,
     int? refreshRate = 5,
   }) {
-    // TODO: implement refreshSession
-    throw UnimplementedError();
+    return _legacy.refreshSession(branchId: branchId, refreshRate: refreshRate);
   }
 
+  // TODO(ditto-migration): port `refund` to Ditto.
   @override
   Future<void> refund({required int itemId}) {
-    // TODO: implement refund
-    throw UnimplementedError();
+    return _legacy.refund(itemId: itemId);
   }
 
+  // TODO(ditto-migration): port `removeS3File` to Ditto.
   @override
   Future<bool> removeS3File({required String fileName}) {
-    // TODO: implement removeS3File
-    throw UnimplementedError();
+    return _legacy.removeS3File(fileName: fileName);
   }
 
+  // TODO(ditto-migration): port `report` to Ditto.
   @override
   Report report({required int id}) {
-    // TODO: implement report
-    throw UnimplementedError();
+    return _legacy.report(id: id);
   }
 
+  // TODO(ditto-migration): port `reports` to Ditto.
   @override
   Stream<List<Report>> reports({required String branchId}) {
-    // TODO: implement reports
-    throw UnimplementedError();
+    return _legacy.reports(branchId: branchId);
   }
 
   @override
-  Future<void> saveComposite({required Composite composite}) {
-    // TODO: implement saveComposite
-    throw UnimplementedError();
+  Future<void> saveComposite({required Composite composite}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized: saveComposite');
+    }
+    await ditto.store.execute(
+      'INSERT INTO composites DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {
+        'doc': {
+          '_id': composite.id,
+          'id': composite.id,
+          'productId': composite.productId,
+          'variantId': composite.variantId,
+          'qty': composite.qty,
+          'branchId': composite.branchId,
+          'businessId': composite.businessId,
+          'actualPrice': composite.actualPrice,
+        },
+      },
+    );
+    talker.debug(
+      'Saved composite: productId=${composite.productId}, '
+      'variantId=${composite.variantId}, qty=${composite.qty}',
+    );
   }
 
+  // TODO(ditto-migration): port `saveDiscount` to Ditto.
   @override
   Future<void> saveDiscount({
     required String branchId,
     required name,
     double? amount,
   }) {
-    // TODO: implement saveDiscount
-    throw UnimplementedError();
+    return _legacy.saveDiscount(branchId: branchId, name: name, amount: amount);
   }
 
+  // TODO(ditto-migration): port `saveImageLocally` to Ditto.
   @override
   Future<Assets> saveImageLocally({
     required File imageFile,
@@ -1518,16 +1808,16 @@ class CapellaSync extends AiStrategyImpl
     String subPath = 'branch',
     String? variantId,
   }) {
-    // TODO: implement saveImageLocally
-    throw UnimplementedError();
+    return _legacy.saveImageLocally(imageFile: imageFile, productId: productId, branchId: branchId, businessId: businessId, subPath: subPath, variantId: variantId);
   }
 
+  // TODO(ditto-migration): port `saveLog` to Ditto.
   @override
   Future<void> saveLog(Log log) {
-    // TODO: implement saveLog
-    throw UnimplementedError();
+    return _legacy.saveLog(log);
   }
 
+  // TODO(ditto-migration): port `saveOrUpdatePaymentPlan` to Ditto.
   @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required String businessId,
@@ -1543,8 +1833,7 @@ class CapellaSync extends AiStrategyImpl
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   }) {
-    // TODO: implement saveOrUpdatePaymentPlan
-    throw UnimplementedError();
+    return _legacy.saveOrUpdatePaymentPlan(businessId: businessId, addons: addons, selectedPlan: selectedPlan, planTemplateId: planTemplateId, additionalDevices: additionalDevices, isYearlyPlan: isYearlyPlan, totalPrice: totalPrice, paymentMethod: paymentMethod, customerCode: customerCode, plan: plan, numberOfPayments: numberOfPayments, flipperHttpClient: flipperHttpClient);
   }
 
   @override
@@ -1580,26 +1869,6 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
-    Future<void> mirrorDeleteZeroAmountSqlite() async {
-      final withAmount0 = await repository
-          .get<TransactionPaymentRecord>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: brick.Query(
-              where: [
-                brick.Where('transactionId').isExactly(transactionId),
-                brick.Where('amount').isExactly(0.0),
-              ],
-            ),
-          )
-          .then((records) => records.isEmpty ? null : records.first);
-      if (withAmount0 != null) {
-        await repository.delete<TransactionPaymentRecord>(
-          withAmount0,
-          query: brick.Query(action: QueryAction.delete),
-        );
-      }
-    }
-
     // 1) Drop stale zero-amount rows (matches CoreSync semantics).
     if (!saleCompletionFastPath) {
       try {
@@ -1613,28 +1882,11 @@ class CapellaSync extends AiStrategyImpl
           s,
         );
       }
-
-      await mirrorDeleteZeroAmountSqlite();
     }
 
     // 2) Single-payment mode: clear existing tender rows before inserting the new one.
     if (singlePaymentOnly) {
       await deletePaymentRecords(transactionId: transactionId);
-
-      final existingRecords = await repository.get<TransactionPaymentRecord>(
-        query: brick.Query(
-          where: [brick.Where('transactionId').isExactly(transactionId)],
-        ),
-      );
-
-      await Future.wait(
-        existingRecords.map(
-          (record) => repository.delete<TransactionPaymentRecord>(
-            record,
-            query: brick.Query(action: QueryAction.delete),
-          ),
-        ),
-      );
     }
 
     Future<void> upsertDitto(TransactionPaymentRecord r) async {
@@ -1654,59 +1906,32 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
-    Future<void> mirrorToSqlite(TransactionPaymentRecord r) {
-      return repository.upsert<TransactionPaymentRecord>(
-        r,
-        query: brick.Query(action: QueryAction.insert),
-      );
-    }
-
+    // Ditto is the only store now. `transaction_payment_records` is in
+    // data-connector's SYNC_TABLES, so Supabase still receives these rows —
+    // the SQLite mirror this used to keep was pure duplication, and the
+    // `saleCompletionFastPath` branch existed only to move it off the hot path.
     if (paymentRecord != null) {
       await upsertDitto(paymentRecord);
-      if (saleCompletionFastPath) {
-        unawaited(
-          mirrorToSqlite(paymentRecord).catchError((e, s) {
-            talker.warning(
-              'savePaymentType: deferred SQLite mirror failed: $e',
-              s,
-            );
-          }),
-        );
-      } else {
-        await mirrorToSqlite(paymentRecord);
-      }
       return;
     }
 
     if (amount != 0) {
-      final newPaymentRecord = TransactionPaymentRecord(
-        createdAt: DateTime.now().toUtc(),
-        amount: amount,
-        transactionId: transactionId,
-        paymentMethod: paymentMethod,
-        payerName: normalizedPayerName(payerName),
+      await upsertDitto(
+        TransactionPaymentRecord(
+          createdAt: DateTime.now().toUtc(),
+          amount: amount,
+          transactionId: transactionId,
+          paymentMethod: paymentMethod,
+          payerName: normalizedPayerName(payerName),
+        ),
       );
-
-      await upsertDitto(newPaymentRecord);
-      if (saleCompletionFastPath) {
-        unawaited(
-          mirrorToSqlite(newPaymentRecord).catchError((e, s) {
-            talker.warning(
-              'savePaymentType: deferred SQLite mirror failed: $e',
-              s,
-            );
-          }),
-        );
-      } else {
-        await mirrorToSqlite(newPaymentRecord);
-      }
     }
   }
 
+  // TODO(ditto-migration): port `savePin` to Ditto.
   @override
   Future<Pin?> savePin({required Pin pin}) {
-    // TODO: implement savePin
-    throw UnimplementedError();
+    return _legacy.savePin(pin: pin);
   }
 
   @override
@@ -1715,58 +1940,58 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  // TODO(ditto-migration): port `sendMessageToIsolate` to Ditto.
   @override
   Future<void> sendMessageToIsolate({Map<String, dynamic>? message}) async {
-    // TODO: implement sendMessageToIsolate
-    throw UnimplementedError();
+    return _legacy.sendMessageToIsolate(message: message);
   }
 
+  // TODO(ditto-migration): port `sendReport` to Ditto.
   @override
   Future<int> sendReport({required List<TransactionItem> transactionItems}) {
-    // TODO: implement sendReport
-    throw UnimplementedError();
+    return _legacy.sendReport(transactionItems: transactionItems);
   }
 
+  // TODO(ditto-migration): port `setBranchPaymentStatus` to Ditto.
   @override
   FutureOr<void> setBranchPaymentStatus({
     required String currentBranchId,
     required bool status,
   }) {
-    // TODO: implement setBranchPaymentStatus
-    throw UnimplementedError();
+    return _legacy.setBranchPaymentStatus(currentBranchId: currentBranchId, status: status);
   }
 
+  // TODO(ditto-migration): port `signup` to Ditto.
   @override
   Future<Business?> signup({
     required Map business,
     required HttpClientInterface flipperHttpClient,
   }) {
-    // TODO: implement signup
-    throw UnimplementedError();
+    return _legacy.signup(business: business, flipperHttpClient: flipperHttpClient);
   }
 
+  // TODO(ditto-migration): port `size` to Ditto.
   @override
   Future<int> size<T>({required T object}) {
-    // TODO: implement size
-    throw UnimplementedError();
+    return _legacy.size<T>(object: object);
   }
 
+  // TODO(ditto-migration): port `sku` to Ditto.
   @override
   Stream<SKU?> sku({required String branchId, required String businessId}) {
-    // TODO: implement sku
-    throw UnimplementedError();
+    return _legacy.sku(branchId: branchId, businessId: businessId);
   }
 
+  // TODO(ditto-migration): port `spawnIsolate` to Ditto.
   @override
   Future<void> spawnIsolate(isolateHandler) {
-    // TODO: implement spawnIsolate
-    throw UnimplementedError();
+    return _legacy.spawnIsolate(isolateHandler);
   }
 
+  // TODO(ditto-migration): port `stocks` to Ditto.
   @override
   FutureOr<List<Stock>> stocks({required String branchId}) {
-    // TODO: implement stocks
-    throw UnimplementedError();
+    return _legacy.stocks(branchId: branchId);
   }
 
   @override
@@ -1841,6 +2066,7 @@ class CapellaSync extends AiStrategyImpl
     }
   }
 
+  // TODO(ditto-migration): port `subscribe` to Ditto.
   @override
   Future<({String customerCode, String url, int userId})> subscribe({
     required String businessId,
@@ -1849,34 +2075,33 @@ class CapellaSync extends AiStrategyImpl
     required HttpClientInterface flipperHttpClient,
     required int amount,
   }) {
-    // TODO: implement subscribe
-    throw UnimplementedError();
+    return _legacy.subscribe(businessId: businessId, business: business, agentCode: agentCode, flipperHttpClient: flipperHttpClient, amount: amount);
   }
 
+  // TODO(ditto-migration): port `syncOfflineAssets` to Ditto.
   @override
   Future<List<String>> syncOfflineAssets() {
-    // TODO: implement syncOfflineAssets
-    throw UnimplementedError();
+    return _legacy.syncOfflineAssets();
   }
 
+  // TODO(ditto-migration): port `syncUserWithAwsIncognito` to Ditto.
   @override
   Future<void> syncUserWithAwsIncognito({required String identifier}) {
-    // TODO: implement syncUserWithAwsIncognito
-    throw UnimplementedError();
+    return _legacy.syncUserWithAwsIncognito(identifier: identifier);
   }
 
+  // TODO(ditto-migration): port `totalSales` to Ditto.
   @override
   Stream<double> totalSales({required String branchId}) {
-    // TODO: implement totalSales
-    throw UnimplementedError();
+    return _legacy.totalSales(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `universalProductNames` to Ditto.
   @override
   Future<List<UnversalProduct>> universalProductNames({
     required String branchId,
   }) {
-    // TODO: implement universalProductNames
-    throw UnimplementedError();
+    return _legacy.universalProductNames(branchId: branchId);
   }
 
   @override
@@ -1893,6 +2118,7 @@ class CapellaSync extends AiStrategyImpl
     // TODO: implement updateAccess
   }
 
+  // TODO(ditto-migration): port `updateAcess` to Ditto.
   @override
   FutureOr<void> updateAcess({
     required String userId,
@@ -1901,85 +2127,124 @@ class CapellaSync extends AiStrategyImpl
     String? accessLevel,
     String? userType,
   }) {
-    // TODO: implement updateAcess
-    throw UnimplementedError();
+    return _legacy.updateAcess(userId: userId, featureName: featureName, status: status, accessLevel: accessLevel, userType: userType);
   }
 
+  // TODO(ditto-migration): port `updateAsset` to Ditto.
   @override
   FutureOr<void> updateAsset({required String assetId, String? assetName}) {
-    // TODO: implement updateAsset
-    throw UnimplementedError();
+    return _legacy.updateAsset(assetId: assetId, assetName: assetName);
   }
 
+  /// Note: this had no implementation on either database — CoreSync threw
+  /// `UnimplementedError` from a synchronous body, so picking a colour in the
+  /// product editor threw into the caller. Implemented here on Ditto.
   @override
   FutureOr<void> updateColor({
     required String colorId,
     String? name,
     bool? active,
-  }) {
-    // TODO: implement updateColor
-    throw UnimplementedError();
+  }) async {
+    final color = await getColor(id: colorId);
+    if (color == null) {
+      talker.warning('updateColor: no colour $colorId');
+      return;
+    }
+    if (name != null) color.name = name;
+    if (active != null) color.active = active;
+    color.lastTouched = DateTime.now().toUtc();
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      await upsertReferenceDoc(ditto, colorsCollection, colorToDittoDoc(color));
+    }
+    scheduleCapellaBrickMirror(repository, color);
   }
 
+  // TODO(ditto-migration): port `updateNotification` to Ditto.
   @override
   FutureOr<void> updateNotification({
     required String notificationId,
     bool? completed,
   }) {
-    // TODO: implement updateNotification
-    throw UnimplementedError();
+    return _legacy.updateNotification(notificationId: notificationId, completed: completed);
   }
 
+  // TODO(ditto-migration): port `updatePin` to Ditto.
   @override
   FutureOr<void> updatePin({
     required String userId,
     String? phoneNumber,
     String? tokenUid,
   }) {
-    // TODO: implement updatePin
-    throw UnimplementedError();
+    return _legacy.updatePin(userId: userId, phoneNumber: phoneNumber, tokenUid: tokenUid);
   }
 
+  // TODO(ditto-migration): port `updateReport` to Ditto.
   @override
   FutureOr<void> updateReport({required String reportId, bool? downloaded}) {
-    // TODO: implement updateReport
-    throw UnimplementedError();
+    return _legacy.updateReport(reportId: reportId, downloaded: downloaded);
   }
 
+  /// Note: like [updateColor], this threw `UnimplementedError` on CoreSync —
+  /// selecting a unit in the product editor threw into the caller. Implemented
+  /// here on Ditto.
   @override
   FutureOr<void> updateUnit({
     required String unitId,
     String? name,
     bool? active,
     String? branchId,
-  }) {
-    // TODO: implement updateUnit
-    throw UnimplementedError();
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.warning('updateUnit: Ditto not initialized');
+      return;
+    }
+
+    final result = await ditto.store.execute(
+      'SELECT * FROM $unitsCollection WHERE _id = :id LIMIT 1',
+      arguments: {'id': unitId},
+    );
+    if (result.items.isEmpty) {
+      talker.warning('updateUnit: no unit $unitId');
+      return;
+    }
+
+    final unit =
+        unitFromDittoDoc(Map<String, dynamic>.from(result.items.first.value));
+    if (name != null) unit.name = name;
+    if (active != null) unit.active = active;
+    if (branchId != null) unit.branchId = branchId;
+    unit.lastTouched = DateTime.now().toUtc();
+
+    await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
+    scheduleCapellaBrickMirror(repository, unit);
   }
 
+  // TODO(ditto-migration): port `uploadPdfToS3` to Ditto.
   @override
   Future<String> uploadPdfToS3(
     Uint8List pdfData,
     String fileName, {
     required String transactionId,
   }) {
-    // TODO: implement uploadPdfToS3
-    throw UnimplementedError();
+    return _legacy.uploadPdfToS3(pdfData, fileName, transactionId: transactionId);
   }
 
+  // TODO(ditto-migration): port `upsertPayment` to Ditto.
   @override
   Future<CustomerPayments> upsertPayment(CustomerPayments payment) {
-    // TODO: implement upsertPayment
-    throw UnimplementedError();
+    return _legacy.upsertPayment(payment);
   }
 
+  // TODO(ditto-migration): port `userNameAvailable` to Ditto.
   @override
   Future<int> userNameAvailable({
     required String name,
     required HttpClientInterface flipperHttpClient,
   }) {
-    // TODO: implement userNameAvailable
-    throw UnimplementedError();
+    return _legacy.userNameAvailable(name: name, flipperHttpClient: flipperHttpClient);
   }
 
   @override
@@ -2057,16 +2322,17 @@ class CapellaSync extends AiStrategyImpl
   @override
   Talker get talker => _talker;
 
+  // TODO(ditto-migration): port `getPinLocal` to Ditto.
   @override
   FutureOr<Pin?> getPinLocal({
     String? userId,
     String? phoneNumber,
     required bool alwaysHydrate,
   }) {
-    // TODO: implement getPinLocal
-    throw UnimplementedError();
+    return _legacy.getPinLocal(userId: userId, phoneNumber: phoneNumber, alwaysHydrate: alwaysHydrate);
   }
 
+  // TODO(ditto-migration): port `updateTenant` to Ditto.
   @override
   Future<void> updateTenant({
     String? tenantId,
@@ -2081,8 +2347,7 @@ class CapellaSync extends AiStrategyImpl
     bool? sessionActive,
     String? branchId,
   }) {
-    // TODO: implement updateTenant
-    throw UnimplementedError();
+    return _legacy.updateTenant(tenantId: tenantId, name: name, phoneNumber: phoneNumber, email: email, userId: userId, businessId: businessId, type: type, id: id, pin: pin, sessionActive: sessionActive, branchId: branchId);
   }
 
   @override
@@ -2097,7 +2362,7 @@ class CapellaSync extends AiStrategyImpl
     // Web: only Ditto path below runs.
     if (!kIsWeb) {
       try {
-        await ProxyService.getStrategy(Strategy.cloudSync).updateCategory(
+        await ProxyService.legacyStrategy.updateCategory(
           categoryId: categoryId,
           name: name,
           active: active,
@@ -2148,15 +2413,15 @@ class CapellaSync extends AiStrategyImpl
     }
   }
 
+  // TODO(ditto-migration): port `sendOtpForSignup` to Ditto.
   @override
   Future<Map<String, dynamic>> sendOtpForSignup(String contact) {
-    // TODO: implement sendOtpForSignup
-    throw UnimplementedError();
+    return _legacy.sendOtpForSignup(contact);
   }
 
+  // TODO(ditto-migration): port `verifyOtpForSignup` to Ditto.
   @override
   Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp) {
-    // TODO: implement verifyOtpForSignup
-    throw UnimplementedError();
+    return _legacy.verifyOtpForSignup(contact, otp);
   }
 }

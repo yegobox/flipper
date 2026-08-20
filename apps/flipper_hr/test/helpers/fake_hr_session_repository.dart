@@ -1,0 +1,56 @@
+import 'package:flipper_hr/features/session/data/hr_session.dart';
+import 'package:flipper_hr/features/session/data/hr_session_repository.dart';
+
+/// Returns a canned [HrSession], or throws.
+class FakeHrSessionRepository implements HrSessionRepository {
+  FakeHrSessionRepository({this.session = HrSession.none, this.failWith});
+
+  HrSession session;
+  Object? failWith;
+
+  int resolveCount = 0;
+
+  @override
+  Future<HrSession> resolve() async {
+    resolveCount++;
+    final failure = failWith;
+    if (failure != null) throw failure;
+    return session;
+  }
+}
+
+/// An owner-only session: the roster and approvals, no record of their own.
+HrSession ownerSession({List<String> businessIds = const ['biz-1']}) =>
+    HrSession(businessIds: businessIds, identityKeys: const ['user-owner']);
+
+/// An invited employee: their own record, and nothing else.
+HrSession staffSession({String employeeId = 'e-1'}) =>
+    HrSession(employeeIds: [employeeId], identityKeys: const ['user-staff']);
+
+/// A line manager: on the roster themselves, with people reporting to them, and
+/// no business scope at all.
+///
+/// The session migration 0007 exists for — authority from the reporting line
+/// rather than from ownership or an `accesses` grant.
+HrSession lineManagerSession({
+  String employeeId = 'e-boss',
+  List<String> reportIds = const ['e-1'],
+}) => HrSession(
+  employeeIds: [employeeId],
+  reportIds: reportIds,
+  identityKeys: const ['user-line-manager'],
+);
+
+/// An invited HR manager: reaches the business through an `accesses` grant
+/// rather than owning it, and is on the roster themselves.
+///
+/// Indistinguishable from an owner at this layer, which is the point of
+/// migration 0006 — the client never learns which route granted the business.
+HrSession managerSession({
+  List<String> businessIds = const ['biz-1'],
+  String employeeId = 'e-9',
+}) => HrSession(
+  businessIds: businessIds,
+  employeeIds: [employeeId],
+  identityKeys: const ['user-manager'],
+);

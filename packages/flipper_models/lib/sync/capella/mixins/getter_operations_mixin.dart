@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'dart:async';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
@@ -17,73 +18,56 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   Talker get talker;
   DittoService get dittoService => DittoService.instance;
 
+  // TODO(ditto-migration): port `getDevice` to Ditto.
   @override
   Future<Device?> getDevice({
     required String phone,
     required String linkingCode,
   }) async {
-    throw UnimplementedError('getDevice needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getDevice(phone: phone, linkingCode: linkingCode);
   }
 
+  // TODO(ditto-migration): port `getDeviceById` to Ditto.
   @override
   Future<Device?> getDeviceById({required int id}) async {
-    throw UnimplementedError(
-      'getDeviceById needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.getDeviceById(id: id);
   }
 
+  // TODO(ditto-migration): port `getDevices` to Ditto.
   @override
   Future<List<Device>> getDevices({required String businessId}) async {
-    throw UnimplementedError('getDevices needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getDevices(businessId: businessId);
   }
+
+  // Favourites live in [CapellaFavoriteMixin], which is applied earlier in
+  // CapellaSync's mixin chain. Declared abstract here so this mixin still
+  // satisfies GetterOperationsInterface without shadowing the Ditto-native
+  // implementations with a Brick delegation.
+  @override
+  Future<Favorite?> getFavoriteById({required String favId});
 
   @override
-  Future<Favorite?> getFavoriteById({required String favId}) async {
-    throw UnimplementedError(
-      'getFavoriteById needs to be implemented for Capella',
-    );
-  }
+  Future<Favorite?> getFavoriteByIndex({required String favIndex});
 
   @override
-  Future<Favorite?> getFavoriteByIndex({required String favIndex}) async {
-    throw UnimplementedError(
-      'getFavoriteByIndex needs to be implemented for Capella',
-    );
-  }
+  Stream<Favorite?> getFavoriteByIndexStream({required String favIndex});
 
   @override
-  Stream<Favorite?> getFavoriteByIndexStream({required String favIndex}) {
-    throw UnimplementedError(
-      'getFavoriteByIndexStream needs to be implemented for Capella',
-    );
-  }
+  Future<Favorite?> getFavoriteByProdId({required String prodId});
 
   @override
-  Future<Favorite?> getFavoriteByProdId({required String prodId}) async {
-    throw UnimplementedError(
-      'getFavoriteByProdId needs to be implemented for Capella',
-    );
-  }
+  Future<List<Favorite>> getFavorites();
 
-  @override
-  Future<List<Favorite>> getFavorites() async {
-    throw UnimplementedError(
-      'getFavorites needs to be implemented for Capella',
-    );
-  }
-
+  // TODO(ditto-migration): port `getFirebaseToken` to Ditto.
   @override
   Future<String> getFirebaseToken() async {
-    throw UnimplementedError(
-      'getFirebaseToken needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.getFirebaseToken();
   }
 
+  // TODO(ditto-migration): port `getLatestCompaign` to Ditto.
   @override
   FutureOr<FlipperSaleCompaign?> getLatestCompaign() async {
-    throw UnimplementedError(
-      'getLatestCompaign needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.getLatestCompaign();
   }
 
   @override
@@ -165,12 +149,13 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     );
   }
 
+  // TODO(ditto-migration): port `getPin` to Ditto.
   @override
   Future<IPin?> getPin({
     required String pinString,
     required HttpClientInterface flipperHttpClient,
   }) async {
-    throw UnimplementedError('getPin needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getPin(pinString: pinString, flipperHttpClient: flipperHttpClient);
   }
 
   @override
@@ -182,13 +167,14 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     }
   }
 
+  // TODO(ditto-migration): port `getProducts` to Ditto.
   @override
   Future<List<Product>> getProducts({
     String? key,
     int? prodIndex,
     required String branchId,
   }) async {
-    throw UnimplementedError('getProducts needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getProducts(key: key, prodIndex: prodIndex, branchId: branchId);
   }
 
   @override
@@ -201,18 +187,18 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
         .firstOrNull;
   }
 
+  // TODO(ditto-migration): port `getTenant` to Ditto.
   @override
   FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
-    throw UnimplementedError('getTenant needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.getTenant(userId: userId, pin: pin);
   }
 
+  // TODO(ditto-migration): port `getTransactionsAmountsSum` to Ditto.
   @override
   Future<({double expense, double income})> getTransactionsAmountsSum({
     required String period,
   }) async {
-    throw UnimplementedError(
-      'getTransactionsAmountsSum needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.getTransactionsAmountsSum(period: period);
   }
 
   // getBusinessById() is implemented by CapellaBusinessMixin (do not stub here
@@ -221,6 +207,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   // branch() is implemented by CapellaBranchMixin (do not stub here — later
   // mixins shadow earlier ones and would hide the Ditto implementation).
 
+  // TODO(ditto-migration): port `transactions` to Ditto.
   @override
   Future<List<ITransaction>> transactions({
     DateTime? startDate,
@@ -240,9 +227,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     List<String>? receiptNumber,
     String? customerId,
   }) async {
-    throw UnimplementedError(
-      'transactions needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.transactions(startDate: startDate, endDate: endDate, status: status, skipOriginalTransactionCheck: skipOriginalTransactionCheck, transactionType: transactionType, isCashOut: isCashOut, fetchRemote: fetchRemote, id: id, isExpense: isExpense, filterType: filterType, branchId: branchId, includeZeroSubTotal: includeZeroSubTotal, includePending: includePending, forceRealData: forceRealData, receiptNumber: receiptNumber, customerId: customerId);
   }
 }
 

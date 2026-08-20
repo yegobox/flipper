@@ -53,7 +53,7 @@ mixin AuthMixin implements AuthInterface {
       }
 
       // Save the PIN with the updated UID
-      await ProxyService.strategy.savePin(pin: thePin);
+      await ProxyService.legacyStrategy.savePin(pin: thePin);
       await loc.getIt<AppService>().appInit();
       final defaultApp = ProxyService.box.getDefaultApp();
       final branchId = ProxyService.box.getBranchId() ?? thePin.branchId;
@@ -175,7 +175,7 @@ mixin AuthMixin implements AuthInterface {
     if (userId == null) return false;
 
     // Get the existing PIN for this user ID
-    final pinLocal = await ProxyService.strategy.getPinLocal(
+    final pinLocal = await ProxyService.legacyStrategy.getPinLocal(
       userId: userId,
       alwaysHydrate: true,
     );
@@ -190,7 +190,7 @@ mixin AuthMixin implements AuthInterface {
         // This ensures we keep the PIN record updated with the latest token
         if (pinLocal != null && pinLocal.tokenUid != token) {
           talker.debug("Updating PIN with new token for userId: $userId");
-          ProxyService.strategy.updatePin(
+          ProxyService.legacyStrategy.updatePin(
             userId: userId,
             phoneNumber: pinLocal.phoneNumber,
             tokenUid: token,
@@ -217,7 +217,7 @@ mixin AuthMixin implements AuthInterface {
             final IUser user = IUser.fromJson(json.decode(response.body));
 
             // Update the existing PIN with the new token
-            ProxyService.strategy.updatePin(
+            ProxyService.legacyStrategy.updatePin(
               userId: user.id,
               phoneNumber: pinLocal.phoneNumber,
               tokenUid: user.uid,
@@ -241,7 +241,7 @@ mixin AuthMixin implements AuthInterface {
     // if (isTestEnvironment()) return true;
     // Plan reads are Ditto-first (see CoreSync / CapellaSync); [preferFresh] is
     // ignored there but kept for API compatibility.
-    final Plan? plan = await ProxyService.strategy.getPaymentPlan(
+    final Plan? plan = await ProxyService.legacyStrategy.getPaymentPlan(
       businessId: businessId,
       fetchOnline: true,
       preferFresh: true,
@@ -277,7 +277,7 @@ mixin AuthMixin implements AuthInterface {
       // Sync paymentCompletedByUser so local state matches paymentStatus
       if (!(plan.paymentCompletedByUser ?? false)) {
         plan.paymentCompletedByUser = true;
-        await ProxyService.strategy.upsertPlan(
+        await ProxyService.legacyStrategy.upsertPlan(
           businessId: businessId,
           selectedPlan: plan,
         );
@@ -292,7 +292,7 @@ mixin AuthMixin implements AuthInterface {
       // Update local state to reflect expired subscription
       if (isPaymentCompletedLocally) {
         plan.paymentCompletedByUser = false;
-        await ProxyService.strategy.upsertPlan(
+        await ProxyService.legacyStrategy.upsertPlan(
           businessId: businessId,
           selectedPlan: plan,
         );
@@ -312,7 +312,7 @@ mixin AuthMixin implements AuthInterface {
       // If the online status differs from local, update local to ensure sync
       if (isPaymentComplete != isPaymentCompletedLocally) {
         plan.paymentCompletedByUser = isPaymentComplete;
-        await ProxyService.strategy.upsertPlan(
+        await ProxyService.legacyStrategy.upsertPlan(
           businessId: businessId,
           selectedPlan: plan,
         );
@@ -327,7 +327,7 @@ mixin AuthMixin implements AuthInterface {
   }
 
   Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
-    final id = (await ProxyService.strategy.activeBusiness())?.id ?? "";
+    final id = (await ProxyService.legacyStrategy.activeBusiness())?.id ?? "";
     await hasActiveSubscription(
       businessId: id,
       flipperHttpClient: ProxyService.http,
@@ -377,7 +377,7 @@ mixin AuthMixin implements AuthInterface {
     int? pinCode,
   }) async {
     try {
-      final localPin = await ProxyService.strategy.getPinLocal(
+      final localPin = await ProxyService.legacyStrategy.getPinLocal(
         phoneNumber: phoneNumber,
         alwaysHydrate: false,
       );
@@ -389,7 +389,7 @@ mixin AuthMixin implements AuthInterface {
         'for $phoneNumber',
       );
       localPin.userId = canonicalUserId;
-      await ProxyService.strategy.savePin(pin: localPin);
+      await ProxyService.legacyStrategy.savePin(pin: localPin);
     } catch (e, s) {
       talker.warning('Could not realign PIN userId: $e\n$s');
     }
@@ -566,7 +566,7 @@ mixin AuthMixin implements AuthInterface {
       }
       if (businessId != null && businessId.isNotEmpty) {
         try {
-          branchesE = await ProxyService.strategy.branches(
+          branchesE = await ProxyService.legacyStrategy.branches(
             businessId: businessId,
             localOnly: true,
           );
@@ -669,7 +669,7 @@ mixin AuthMixin implements AuthInterface {
     // Cache PIN locally so the same PIN can authenticate offline later.
     try {
       final sessionUserId = ProxyService.box.getUserId() ?? user.id;
-      await ProxyService.strategy.savePin(
+      await ProxyService.legacyStrategy.savePin(
         pin: Pin(
           userId: sessionUserId.isNotEmpty ? sessionUserId : pin.userId,
           pin: pin.pin,
@@ -847,7 +847,7 @@ mixin AuthMixin implements AuthInterface {
     if (!isFreshSignup) {
       // Check if active business is individual type and default
       try {
-        final activeBusiness = await ProxyService.strategy.activeBusiness();
+        final activeBusiness = await ProxyService.legacyStrategy.activeBusiness();
         if (activeBusiness != null &&
             activeBusiness.businessTypeId == 2 &&
             activeBusiness.isDefault == true) {
@@ -968,7 +968,7 @@ mixin AuthMixin implements AuthInterface {
     }
 
     // get userId of the user that is trying to log in
-    final savedLocalPinForThis = await ProxyService.strategy.getPinLocal(
+    final savedLocalPinForThis = await ProxyService.legacyStrategy.getPinLocal(
       phoneNumber: lookupPhone,
       alwaysHydrate: false,
     );
@@ -1257,9 +1257,13 @@ mixin AuthMixin implements AuthInterface {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return _safeJsonDecode(response.body);
     } else {
-      throw Exception('Failed to request OTP');
+      throw Exception(_httpFailureMessage(
+        'Failed to request OTP',
+        response.statusCode,
+        response.body,
+      ));
     }
   }
 
@@ -1272,8 +1276,15 @@ mixin AuthMixin implements AuthInterface {
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final String token = responseData['token'];
+      final responseData = _tryJsonDecode(response.body) ?? const {};
+      final token = responseData['token'];
+      if (token is! String || token.isEmpty) {
+        throw Exception(_httpFailureMessage(
+          'Failed to verify OTP',
+          response.statusCode,
+          response.body,
+        ));
+      }
       final int serverId = responseData['serverId'] ?? 0;
       final String? businessId = responseData['businessId'];
       final String phoneNumber = responseData['phoneNumber'];
@@ -1312,8 +1323,13 @@ mixin AuthMixin implements AuthInterface {
 
       return user;
     } else {
-      final errorBody = jsonDecode(response.body);
-      throw Exception(errorBody['error'] ?? 'Failed to verify OTP');
+      final errorBody = _tryJsonDecode(response.body);
+      throw Exception(errorBody?['error'] ??
+          _httpFailureMessage(
+            'Failed to verify OTP',
+            response.statusCode,
+            response.body,
+          ));
     }
   }
 
@@ -1510,6 +1526,31 @@ mixin AuthMixin implements AuthInterface {
     final ditto = DittoSingleton.instance.ditto;
     if (ditto == null) return;
     ProxyService.ditto.setDitto(ditto);
+  }
+
+  /// Decodes a JSON object body, or returns null when the body is not a JSON
+  /// object at all — e.g. an nginx/Cloudflare HTML error page served in front
+  /// of apihub, which would otherwise blow up with a FormatException.
+  Map<String, dynamic>? _tryJsonDecode(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Builds (and logs) an error message that keeps the HTTP status and a short
+  /// body snippet, so a gateway failure is distinguishable from a real
+  /// application error instead of surfacing as a bare "Failed to ...".
+  String _httpFailureMessage(String action, int statusCode, String body) {
+    final snippet = body.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final trimmed =
+        snippet.length > 200 ? '${snippet.substring(0, 200)}…' : snippet;
+    talker.error('$action: HTTP $statusCode body=$trimmed');
+    return trimmed.isEmpty
+        ? '$action (HTTP $statusCode)'
+        : '$action (HTTP $statusCode): $trimmed';
   }
 
   /// Helper function to safely decode JSON responses

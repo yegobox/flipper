@@ -1041,6 +1041,28 @@ class _FailedPaymentState extends State<FailedPayment>
                         );
                       }
                     }
+                  } on MomoPreapprovalDeclined catch (e) {
+                    // The payer refused the Mobile Money mandate, so we never
+                    // asked for their money. Saying "payment failed" here sends
+                    // them looking for a debit that does not exist.
+                    _paymentTimeoutTimer?.cancel();
+                    if (!_mounted) return;
+                    setState(() {
+                      _errorMessage = e.message;
+                      _waitingForPaymentCompletion = false;
+                    });
+
+                    _shakeController.forward().then((_) {
+                      _shakeController.reset();
+                    });
+
+                    showCustomSnackBarUtil(
+                      context,
+                      'Nothing was charged. Approve the Mobile Money request on '
+                      'your phone, then try again.',
+                      backgroundColor: const Color(0xFF0B1220),
+                      showCloseButton: true,
+                    );
                   } catch (e) {
                     _paymentTimeoutTimer?.cancel();
                     if (!_mounted) return;
@@ -1272,10 +1294,32 @@ class _FailedPaymentState extends State<FailedPayment>
         // Backend PaymentChecker may not have updated the plan yet, so we
         // update Supabase ourselves when MTN confirms success.
         if (paymentReference != null && paymentReference.isNotEmpty) {
-          final completed = await ProxyService.ht.checkPaymentStatus(
+          // Read the verdict first: `checkPaymentStatus` reports a refusal and
+          // a not-yet identically, so on its own the screen spins for the full
+          // five minutes on a charge MTN turned down in the first ten seconds.
+          final settlement = await ProxyService.ht.momoSettlement(
             flipperHttpClient: ProxyService.http,
             paymentReference: paymentReference,
           );
+          if (settlement.isFailed && _mounted) {
+            _paymentTimeoutTimer?.cancel();
+            _paymentCompletionPollTimer?.cancel();
+            setState(() {
+              _waitingForPaymentCompletion = false;
+              _errorMessage = settlement.reason?.trim().isNotEmpty == true
+                  ? '${settlement.reason} Nothing was charged — try again.'
+                  : 'The payment was declined. Nothing was charged — try again.';
+            });
+            return;
+          }
+
+          final completed = settlement.isSuccessful &&
+              // Still routed through checkPaymentStatus: that is what settles
+              // the local payment row and grants credits, exactly once.
+              await ProxyService.ht.checkPaymentStatus(
+                flipperHttpClient: ProxyService.http,
+                paymentReference: paymentReference,
+              );
           if (completed && _mounted) {
             _paymentTimeoutTimer?.cancel();
             _paymentCompletionPollTimer?.cancel();

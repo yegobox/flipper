@@ -339,9 +339,13 @@ mixin CapellaDelegationMixin implements DelegationInterface {
     OfflineFirstGetPolicy getPolicy =
         OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
   }) {
-    // Device pickers must use Brick/Supabase — Ditto `devices` is send-only
-    // mesh state and often stale vs thisDeviceId after desktop re-registration.
-    return ProxyService.getStrategy(Strategy.cloudSync).getDevicesByBranch(
+    // TODO(ditto-migration): device pickers must use Brick/Supabase — Ditto
+    // `devices` is send-only mesh state and often stale vs thisDeviceId after
+    // desktop re-registration. Needs the staleness fixed before it can move.
+    //
+    // This asked for `getStrategy(Strategy.cloudSync)` until the strategy
+    // collapse made that resolve to Capella — i.e. to this very method.
+    return ProxyService.legacyStrategy.getDevicesByBranch(
       branchId: branchId,
       getPolicy: getPolicy,
     );

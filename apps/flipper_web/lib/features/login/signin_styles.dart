@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_web/core/branding/brand_panel_builder.dart';
 import 'package:flutter/material.dart';
 
 // ── Design tokens (mirrors flipper_login/SignInTokens) ───────────────────────
@@ -350,6 +351,18 @@ InputDecoration siInputDecoration({
 }
 
 // ── Brand panel (mirrors PinLoginBrandPanel from flipper_login) ───────────────
+
+/// The brand panel the shared login screens render on desktop widths.
+///
+/// Resolves to the host app's panel when one is registered in
+/// [brandPanelBuilder], otherwise to Books' [WebBrandPanel].
+class BrandPanel extends StatelessWidget {
+  const BrandPanel({super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      brandPanelBuilder?.call(context) ?? const WebBrandPanel();
+}
 
 class WebBrandPanel extends StatefulWidget {
   const WebBrandPanel({super.key});

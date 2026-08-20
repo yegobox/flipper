@@ -1,0 +1,38 @@
+{
+    "name": "Flipper HR",
+    "short_name": "Flipper HR",
+    "start_url": "/",
+    "scope": "/",
+    "display": "minimal-ui",
+    "display_override": ["window-controls-overlay", "minimal-ui", "browser"],
+    "background_color": "#ffffff",
+    "theme_color": "#1565C0",
+    "description": "People and payroll for Flipper businesses.",
+    "lang": "en",
+    "dir": "ltr",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

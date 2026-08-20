@@ -6,6 +6,15 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Establishes a fresh Supabase session (refresh, or full sign-in from
+/// whatever credentials the app has on hand) and returns an access token, or
+/// `null` if none could be obtained. Kept as an injected function rather than
+/// a direct dependency so this file — the shared transport every Supabase
+/// call routes through — doesn't have to import the app's login/service
+/// layer; see `Repository` for the production wiring
+/// (`SupabaseSessionService.ensureAccessToken`).
+typedef EnsureAccessToken = Future<String?> Function();
+
 /// Header carrying the `auth.uid()` that was signed in when a request was
 /// first enqueued.
 ///
@@ -39,25 +48,41 @@ abstract class AccessTokenSource {
 }
 
 /// [AccessTokenSource] backed by the ambient `Supabase.instance` session.
+///
+/// When there is no session at all — not just an expiring one — this falls
+/// through to the injected [EnsureAccessToken] (production wiring:
+/// `SupabaseSessionService.ensureAccessToken`), which refreshes or, failing
+/// that, signs back in from the phone/email stored at login. That keeps
+/// sign-in logic in exactly one place: every Supabase call goes through
+/// [Supabase.instance.client], which is wired to route through this class
+/// (see `Repository`'s `httpClient:`), so no other call site — present or
+/// future — can independently forget to establish a session before reading.
+///
+/// Without an injected [EnsureAccessToken] (e.g. in tests), this only retries
+/// `auth.refreshSession()` — it never signs in from scratch.
 class SupabaseAccessTokenSource implements AccessTokenSource {
   /// Refresh this long before the token actually expires, so a request that is
   /// in flight when the clock rolls over is not rejected.
   static const Duration _expiryLeeway = Duration(minutes: 1);
 
-  /// After a failed refresh, don't try again for this long. The queue ticks
-  /// every 5 seconds; without a cooldown a broken session would hammer
+  /// After a failed refresh/sign-in, don't try again for this long. The queue
+  /// ticks every 5 seconds; without a cooldown a broken session would hammer
   /// `/auth/v1/token`.
   static const Duration _refreshCooldown = Duration(seconds: 30);
 
   final Logger _logger;
+  final EnsureAccessToken? _ensureAccessToken;
 
-  /// Deduplicates concurrent refreshes; the queue and the UI can both trip the
-  /// expiry check at the same moment.
-  Future<Session?>? _inFlightRefresh;
+  /// Deduplicates concurrent establish attempts; the queue and an ad-hoc read
+  /// (e.g. `isBranchEnableForPayment`) can both trip this at the same moment.
+  Future<QueuedAuth?>? _inFlightEstablish;
   DateTime? _refreshFailedAt;
 
-  SupabaseAccessTokenSource({Logger? logger})
-      : _logger = logger ?? Logger('SupabaseAccessTokenSource');
+  SupabaseAccessTokenSource({
+    Logger? logger,
+    EnsureAccessToken? ensureAccessToken,
+  })  : _logger = logger ?? Logger('SupabaseAccessTokenSource'),
+        _ensureAccessToken = ensureAccessToken;
 
   @override
   String? get currentUserId => _auth?.currentSession?.user.id;
@@ -68,8 +93,7 @@ class SupabaseAccessTokenSource implements AccessTokenSource {
     if (auth == null) return null;
 
     final session = auth.currentSession;
-    if (session == null) return null;
-    if (!_isExpiring(session)) return _asAuth(session);
+    if (session != null && !_isExpiring(session)) return _asAuth(session);
 
     final failedAt = _refreshFailedAt;
     if (failedAt != null &&
@@ -77,8 +101,7 @@ class SupabaseAccessTokenSource implements AccessTokenSource {
       return null;
     }
 
-    final refreshed = await (_inFlightRefresh ??= _refresh(auth));
-    return refreshed == null ? null : _asAuth(refreshed);
+    return _inFlightEstablish ??= _establishSession(auth);
   }
 
   /// `null` until `Supabase.initialize` has completed.
@@ -93,17 +116,26 @@ class SupabaseAccessTokenSource implements AccessTokenSource {
   QueuedAuth _asAuth(Session session) =>
       (accessToken: session.accessToken, userId: session.user.id);
 
-  Future<Session?> _refresh(GoTrueClient auth) async {
+  Future<QueuedAuth?> _establishSession(GoTrueClient auth) async {
     try {
-      final response = await auth.refreshSession();
+      final ensure = _ensureAccessToken;
+      final token = ensure != null
+          ? await ensure()
+          : (await auth.refreshSession()).session?.accessToken;
+
+      final userId = _auth?.currentSession?.user.id;
+      if (token == null || token.isEmpty || userId == null) {
+        _refreshFailedAt = DateTime.now();
+        return null;
+      }
       _refreshFailedAt = null;
-      return response.session;
+      return (accessToken: token, userId: userId);
     } catch (e) {
       _refreshFailedAt = DateTime.now();
-      _logger.warning('Failed to refresh Supabase session: $e');
+      _logger.warning('Failed to establish Supabase session: $e');
       return null;
     } finally {
-      _inFlightRefresh = null;
+      _inFlightEstablish = null;
     }
   }
 

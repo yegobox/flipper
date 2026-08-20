@@ -117,9 +117,15 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _paymentVerificationService.setPaymentStatusChangeCallback((response) {
         unawaited(_handlePaymentStatusChange(response));
       });
+      // The interval is the floor, not the mechanism. On its own, a device
+      // stays locked out for up to four hours after the owner pays on another
+      // one — and keeps trading for up to four hours after a subscription
+      // lapses. The realtime watch below reacts to the plan row itself, so the
+      // timer only has to cover devices that were offline when it changed.
       _paymentVerificationService.startPeriodicVerification(
-        intervalMinutes: kDebugMode ? 20 : 240,
+        intervalMinutes: kDebugMode ? 2 : 240,
       );
+      unawaited(_paymentVerificationService.startRealtimeVerification());
 
       _internetConnectionService.startPeriodicConnectionCheck();
 
@@ -133,6 +139,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       await _handleInitialPaymentVerification().timeout(
         const Duration(seconds: 15),
       );
+      // Try the watch again now the business is definitely resolved: the call
+      // above may have run before `appInit()` had one, and it is a no-op when
+      // the channel is already open for this business.
+      unawaited(_paymentVerificationService.startRealtimeVerification());
       debugPrint('🚀 [StartupViewModel] Payment verification complete');
       _progress = 1.0;
       notifyListeners();

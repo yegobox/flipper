@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'dart:async';
 
 import 'package:flipper_models/helperModels/pin.dart';
@@ -19,24 +20,26 @@ mixin CapellaAuthMixin implements AuthInterface {
   bool get offlineLogin => _offlineLogin;
   set offlineLogin(bool value) => _offlineLogin = value;
 
+  // TODO(ditto-migration): port `businesses` to Ditto.
   @override
   Future<List<Business>> businesses(
       {String? userId, bool fetchOnline = false, bool active = false}) async {
-    throw UnimplementedError('businesses needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.businesses(userId: userId, fetchOnline: fetchOnline, active: active);
   }
 
+  // TODO(ditto-migration): port `completeLogin` to Ditto.
   @override
   Future<void> completeLogin(Pin thePin) {
-    throw UnimplementedError(
-        'completeLogin needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.completeLogin(thePin);
   }
 
+  // TODO(ditto-migration): port `firebaseLogin` to Ditto.
   @override
   Future<bool> firebaseLogin({String? token}) async {
-    throw UnimplementedError(
-        'firebaseLogin needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.firebaseLogin(token: token);
   }
 
+  // TODO(ditto-migration): port `login` to Ditto.
   @override
   Future<IUser> login({
     required String userPhone,
@@ -48,9 +51,10 @@ mixin CapellaAuthMixin implements AuthInterface {
     bool forceOffline = false,
     required HttpClientInterface flipperHttpClient,
   }) async {
-    throw UnimplementedError('login needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.login(userPhone: userPhone, skipDefaultAppSetup: skipDefaultAppSetup, existingUser: existingUser, isInSignUpProgress: isInSignUpProgress, stopAfterConfigure: stopAfterConfigure, pin: pin, forceOffline: forceOffline, flipperHttpClient: flipperHttpClient);
   }
 
+  // TODO(ditto-migration): port `sendLoginRequest` to Ditto.
   @override
   Future<http.Response> sendLoginRequest(
     String phoneNumber,
@@ -61,40 +65,39 @@ mixin CapellaAuthMixin implements AuthInterface {
     String? pinLookupPhone,
     bool refreshUserAccessOnly = false,
   }) async {
-    throw UnimplementedError(
-        'sendLoginRequest needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.sendLoginRequest(phoneNumber, flipperHttpClient, apihub, uid: uid, expectedPinUserId: expectedPinUserId, pinLookupPhone: pinLookupPhone, refreshUserAccessOnly: refreshUserAccessOnly);
   }
 
+  // TODO(ditto-migration): port `configureSystem` to Ditto.
   @override
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
-    throw UnimplementedError(
-        'configureSystem needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.configureSystem(userPhone, user, offlineLogin: offlineLogin);
   }
 
+  // TODO(ditto-migration): port `loginOnSocial` to Ditto.
   @override
   Future<SocialToken?> loginOnSocial({
     String? phoneNumberOrEmail,
     String? password,
   }) async {
-    throw UnimplementedError(
-        'loginOnSocial needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.loginOnSocial(phoneNumberOrEmail: phoneNumberOrEmail, password: password);
   }
 
+  // TODO(ditto-migration): port `hasActiveSubscription` to Ditto.
   @override
   Future<bool> hasActiveSubscription(
       {required String businessId,
       required HttpClientInterface flipperHttpClient,
       required bool fetchRemote}) async {
-    throw UnimplementedError(
-        'hasActiveSubscription needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.hasActiveSubscription(businessId: businessId, flipperHttpClient: flipperHttpClient, fetchRemote: fetchRemote);
   }
 
+  // TODO(ditto-migration): port `handleLoginError` to Ditto.
   @override
   Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
       {String? responseChannel}) {
-    throw UnimplementedError(
-        'handleLoginError needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.handleLoginError(e, s, responseChannel: responseChannel);
   }
 
   @override
@@ -103,14 +106,15 @@ mixin CapellaAuthMixin implements AuthInterface {
         'supabaseAuth needs to be implemented for Capella');
   }
 
+  // TODO(ditto-migration): port `requestOtp` to Ditto.
   @override
   Future<Map<String, dynamic>> requestOtp(String pin) {
-    throw UnimplementedError('requestOtp needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.requestOtp(pin);
   }
 
+  // TODO(ditto-migration): port `verifyOtpAndLogin` to Ditto.
   @override
   Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) {
-    throw UnimplementedError(
-        'verifyOtpAndLogin needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.verifyOtpAndLogin(otp, pin: pin);
   }
 }

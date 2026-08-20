@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -9,6 +10,12 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
+
+/// `businessId` keys (or `''` for none) already given one Brick fallback
+/// attempt for a legitimately-empty `branches`/`businesses` Ditto result, so
+/// repeat calls don't pay for another blocking network read every time.
+final Set<String> _branchesEmptyFallbackAttempted = <String>{};
+final Set<String> _businessesEmptyFallbackAttempted = <String>{};
 
 mixin CapellaBranchMixin implements BranchInterface {
   Repository get repository;
@@ -57,6 +64,7 @@ mixin CapellaBranchMixin implements BranchInterface {
     // Manually create map from Branch properties
     final updatedData = <String, dynamic>{
       'name': name ?? existingBranch.name,
+      'active': active ?? existingBranch.active ?? true,
       'isDefault': isDefault ?? existingBranch.isDefault,
     };
 
@@ -90,6 +98,7 @@ mixin CapellaBranchMixin implements BranchInterface {
         "longitude": branch.longitude ?? 0,
         "latitude": branch.latitude ?? 0,
         "isDefault": branch.isDefault ?? false,
+        "active": branch.active ?? true,
         "serverId": branch.serverId ?? 0,
         "lastTouched": DateTime.now().toIso8601String(),
       },
@@ -98,16 +107,51 @@ mixin CapellaBranchMixin implements BranchInterface {
     talker.info('Saved branch: ${branch.id}');
   }
 
+  /// Brick-backed read used when the caller allows a non-local lookup
+  /// (`localOnly: false`) but the local Ditto store has nothing to offer —
+  /// e.g. a fresh device, where `branches` is send-only and therefore never
+  /// replicated down.
+  Future<List<Branch>> _branchesFromBrick({
+    String? businessId,
+    bool? active,
+    String? excludeId,
+  }) async {
+    try {
+      return await repository.get<Branch>(
+        query: Query(
+          where: [
+            if (businessId != null) Where('businessId').isExactly(businessId),
+            if (excludeId != null) Where('id').isNot(excludeId),
+            if (active != null) Where('active').isExactly(active),
+          ],
+        ),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+    } catch (e, s) {
+      talker.error('Brick branches fallback failed: $e');
+      talker.error(s);
+      return [];
+    }
+  }
+
   @override
   Future<List<Branch>> branches({
     String? businessId,
-    bool? active = false,
+    // No default: `null` means "don't filter on active" so callers that omit
+    // it get every branch rather than the inactive ones only.
+    bool? active,
     String? excludeId,
     bool localOnly = false,
   }) async {
     if (dittoService.dittoInstance == null) {
       talker.error('Ditto not initialized for branches query');
-      return [];
+      return localOnly
+          ? <Branch>[]
+          : _branchesFromBrick(
+              businessId: businessId,
+              active: active,
+              excludeId: excludeId,
+            );
     }
 
     try {
@@ -120,8 +164,10 @@ mixin CapellaBranchMixin implements BranchInterface {
       }
 
       if (active != null) {
+        // `active` is stored as a CBOR boolean by the Ditto adapter, so it must
+        // be bound as a bool — binding 1/0 never matches under DQL strict mode.
         query += " AND active = :active";
-        arguments['active'] = active ? 1 : 0;
+        arguments['active'] = active;
       }
 
       if (excludeId != null) {
@@ -134,13 +180,30 @@ mixin CapellaBranchMixin implements BranchInterface {
         arguments: arguments,
       );
 
-      return result.items
+      final branches = result.items
           .map((doc) => Branch.fromMap(Map<String, dynamic>.from(doc.value)))
           .toList();
+
+      if (branches.isEmpty &&
+          !localOnly &&
+          _branchesEmptyFallbackAttempted.add(businessId ?? '')) {
+        return _branchesFromBrick(
+          businessId: businessId,
+          active: active,
+          excludeId: excludeId,
+        );
+      }
+      return branches;
     } catch (e, s) {
       talker.error('Error fetching branches: $e');
       talker.error(s);
-      return [];
+      return localOnly
+          ? <Branch>[]
+          : _branchesFromBrick(
+              businessId: businessId,
+              active: active,
+              excludeId: excludeId,
+            );
     }
   }
 
@@ -181,7 +244,9 @@ mixin CapellaBranchMixin implements BranchInterface {
   }) async {
     if (dittoService.dittoInstance == null) {
       talker.error('Ditto not initialized for businesses query');
-      return [];
+      return fetchOnline
+          ? _businessesFromBrick(userId: userId, active: active)
+          : <Business>[];
     }
 
     try {
@@ -194,8 +259,9 @@ mixin CapellaBranchMixin implements BranchInterface {
       }
 
       if (active) {
+        // Stored as a CBOR boolean — see the note in `branches`.
         query += " AND active = :active";
-        arguments['active'] = 1;
+        arguments['active'] = true;
       }
 
       final result = await dittoService.dittoInstance!.store.execute(
@@ -203,11 +269,43 @@ mixin CapellaBranchMixin implements BranchInterface {
         arguments: arguments,
       );
 
-      return result.items
+      final businesses = result.items
           .map((doc) => Business.fromMap(Map<String, dynamic>.from(doc.value)))
           .toList();
+
+      if (businesses.isEmpty &&
+          fetchOnline &&
+          _businessesEmptyFallbackAttempted.add(userId ?? '')) {
+        return _businessesFromBrick(userId: userId, active: active);
+      }
+      return businesses;
     } catch (e, s) {
       talker.error('Error fetching businesses: $e');
+      talker.error(s);
+      return fetchOnline
+          ? _businessesFromBrick(userId: userId, active: active)
+          : <Business>[];
+    }
+  }
+
+  /// Brick-backed read used when the caller opted into a remote lookup
+  /// (`fetchOnline: true`) but the local Ditto store came back empty.
+  Future<List<Business>> _businessesFromBrick({
+    String? userId,
+    bool active = false,
+  }) async {
+    try {
+      return await repository.get<Business>(
+        query: Query(
+          where: [
+            if (userId != null) Where('userId').isExactly(userId),
+            if (active) Where('active').isExactly(true),
+          ],
+        ),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+    } catch (e, s) {
+      talker.error('Brick businesses fallback failed: $e');
       talker.error(s);
       return [];
     }

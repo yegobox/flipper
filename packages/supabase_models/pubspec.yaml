@@ -26,7 +26,7 @@ dependencies:
   flipper_models: any
   flipper_services: any
   sqlite3: ^3.3.1
-  ditto_live: ^5.0.2
+  ditto_live: ^5.1.0
   flipper_web: any
   brick_ditto_generators: any
 dependency_overrides:
@@ -53,6 +53,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  shared_preferences: any
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
   build_runner: ^2.4.15

@@ -24,6 +24,7 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/digital_receipt_service.dart';
+import 'package:flipper_services/momo/momo_client.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -1363,19 +1364,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             : "$countryCode$localPhone";
       }
 
-      await _sendpaymentRequest(
-        phoneNumber: phoneNumber,
-        branchId: branchId,
-        externalId: transaction.id,
-        finalPrice: transaction.subTotal!.toInt(),
-      );
-
-      talker.info("📤 Payment request sent to phone: $phoneNumber");
-      talker.info("💰 Amount: ${transaction.subTotal!.toInt()}");
-
       final uuid = Uuid();
       final paymentId = uuid.v4();
+      final finalPrice = transaction.subTotal!.toInt();
 
+      // The row goes in **before** the request, not after.
+      //
+      // Written afterwards it races the gateway: a fast settlement lands before
+      // the row exists, the server finds nothing to update, and a sale that was
+      // actually paid for sits at "pending" until the listener times out
+      // (`data-connector/MOMO_BILLING.md` §3.6).
       await Supabase.instance.client.from('customer_payments').upsert({
         'id': paymentId,
         'phone_number': phoneNumber,
@@ -1383,6 +1381,28 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         'amount_payable': transaction.subTotal!,
         'transaction_id': transaction.id,
       });
+
+      await _sendpaymentRequest(
+        phoneNumber: phoneNumber,
+        branchId: branchId,
+        externalId: transaction.id,
+        finalPrice: finalPrice,
+        // Which row to settle. The server matches on `customerPaymentId` first
+        // and `transactionId` second; sending neither left it falling back to
+        // its own MoMo reference, which never matches the id the client wrote
+        // here — so the update silently went nowhere.
+        customerPaymentId: paymentId,
+        transactionId: transaction.id,
+        // Same ticket, same key: a second tap on Pay returns the request
+        // already in flight instead of debiting the customer twice.
+        idempotencyKey: MomoIdempotency.forTransaction(
+          transaction.id,
+          finalPrice,
+        ),
+      );
+
+      talker.info("📤 Payment request sent to phone: $phoneNumber");
+      talker.info("💰 Amount: $finalPrice");
 
       talker.info(
         "⏳ Payment status set to PENDING - Waiting for user confirmation...",
@@ -1721,6 +1741,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required int finalPrice,
     required String branchId,
     required String externalId,
+    required String idempotencyKey,
+    String? customerPaymentId,
+    String? transactionId,
   }) async {
     try {
       final response = await ProxyService.ht.makePayment(
@@ -1732,6 +1755,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         branchId: branchId,
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,
+        idempotencyKey: idempotencyKey,
+        customerPaymentId: customerPaymentId,
+        transactionId: transactionId,
       );
       return response;
     } catch (e) {

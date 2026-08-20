@@ -5,6 +5,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
+import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/ditto_observer_utils.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
@@ -1139,17 +1141,19 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     await repository.upsert(transaction, skipDittoSync: true);
   }
 
+  // TODO(ditto-migration): port `taxes` to Ditto.
   @override
   Future<List<Configurations>> taxes({required String branchId}) async {
-    throw UnimplementedError('taxes needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.taxes(branchId: branchId);
   }
 
+  // TODO(ditto-migration): port `saveTax` to Ditto.
   @override
   Future<Configurations> saveTax({
     required String configId,
     required double taxPercentage,
   }) async {
-    throw UnimplementedError('saveTax needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.saveTax(configId: configId, taxPercentage: taxPercentage);
   }
 
   @override
@@ -1157,15 +1161,54 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return null;
 
-    return (await repository.get<Configurations>(
-      query: Query(
-        where: [
-          Where('taxType').isExactly(taxtype),
-          Where('branchId').isExactly(branchId),
-        ],
-      ),
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    )).firstOrNull;
+    final ditto = dittoService.dittoInstance;
+    if (ditto != null) {
+      try {
+        final cached = await ditto.store.execute(
+          'SELECT * FROM $configurationsCollection '
+          'WHERE branchId = :branchId AND taxType = :taxType LIMIT 1',
+          arguments: {'branchId': branchId, 'taxType': taxtype},
+        );
+        if (cached.items.isNotEmpty) {
+          return configurationFromDittoDoc(
+            Map<String, dynamic>.from(cached.items.first.value),
+          );
+        }
+      } catch (e) {
+        talker.warning('Ditto tax config read failed: $e');
+      }
+    }
+
+    // Cache miss — `configurations` is server-owned, so fall through to
+    // Supabase and seed Ditto. `taxConfigs` normally warms this at boot.
+    try {
+      final row = await Supabase.instance.client
+          .from(configurationsCollection)
+          .select()
+          .eq('branch_id', branchId)
+          .eq('tax_type', taxtype)
+          .limit(1)
+          .maybeSingle();
+      if (row == null) return null;
+
+      final config =
+          configurationFromSupabaseRow(Map<String, dynamic>.from(row));
+      if (ditto != null) {
+        await upsertReferenceDoc(
+          ditto,
+          configurationsCollection,
+          configurationToDittoDoc(config),
+        );
+      }
+      return config;
+    } catch (e, st) {
+      // A genuine lookup failure (network error, bad Ditto write, …) must not
+      // look identical to "no configuration for this tax type" — callers like
+      // `buildRequestData` rely on null meaning the latter and would silently
+      // build a request with a missing tax rate otherwise.
+      talker.error('getByTaxType($taxtype) failed: $e\n$st');
+      rethrow;
+    }
   }
 
   @override
@@ -2916,10 +2959,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  // TODO(ditto-migration): port `migrateToNewDateTime` to Ditto.
   @override
   Future<bool> migrateToNewDateTime({required String branchId}) async {
-    // TODO: implement migrateToNewDateTime
-    throw UnimplementedError();
+    return ProxyService.legacyStrategy.migrateToNewDateTime(branchId: branchId);
   }
 
   @override
@@ -2960,6 +3003,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     );
   }
 
+  // TODO(ditto-migration): port `transactionsAndItems` to Ditto.
   @override
   Future<List<TransactionWithItems>> transactionsAndItems({
     DateTime? startDate,
@@ -2977,9 +3021,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
   }) async {
-    throw UnimplementedError(
-      'transactions needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.transactionsAndItems(startDate: startDate, endDate: endDate, status: status, transactionType: transactionType, branchId: branchId, isCashOut: isCashOut, fetchRemote: fetchRemote, id: id, isExpense: isExpense, filterType: filterType, includeZeroSubTotal: includeZeroSubTotal, includePending: includePending, includeParked: includeParked, skipOriginalTransactionCheck: skipOriginalTransactionCheck);
   }
 
   @override

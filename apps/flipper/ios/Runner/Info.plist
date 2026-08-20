@@ -58,7 +58,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to provide accurate services while using the app.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Some message to describe why you need this permission</string>
+	<string>Flipper uses the microphone so you can dictate questions to Flo instead of typing them.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to upload and select images.</string>
 	<key>UIApplicationSceneManifest</key>
@@ -111,5 +111,7 @@
 	<true/>
 	<key>com.posthog.posthog.POSTHOG_HOST</key>
 	<string>https://us.i.posthog.com</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Flipper uses speech recognition to transcribe the question you dictated so Flo can read it.</string>
 </dict>
 </plist>

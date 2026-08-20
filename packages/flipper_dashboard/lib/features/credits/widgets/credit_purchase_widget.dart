@@ -297,6 +297,11 @@ class _PaymentStatusDialog extends StatefulWidget {
 class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
   bool isCheckingPayment = true;
   bool paymentSuccessful = false;
+
+  /// Set when MTN refused the payment. Distinct from the timeout copy: a
+  /// refusal means nothing was charged, so "check your credits later" would be
+  /// wrong advice.
+  String? paymentFailureReason;
   int checkCount = 0;
   static const int maxChecks = 30; // Check for up to 30 times (5 minutes)
   Timer? statusCheckTimer;
@@ -320,19 +325,40 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
 
   Future<void> _checkPaymentStatus() async {
     try {
-      bool isSuccessful = await ProxyService.httpApi.checkPaymentStatus(
+      // Read the verdict first. `checkPaymentStatus` collapses "not yet" and
+      // "MTN turned it down" into the same `false`, so on its own it keeps the
+      // dialog spinning for five minutes on a payment that was refused in the
+      // first ten seconds — and never tells the buyer why.
+      final settlement = await ProxyService.httpApi.momoSettlement(
         flipperHttpClient: ProxyService.http,
         paymentReference: widget.paymentReference,
       );
 
+      if (settlement.isSuccessful) {
+        // Same call as before: this is what credits the account, and it is
+        // guarded against crediting the same reference twice.
+        await ProxyService.httpApi.checkPaymentStatus(
+          flipperHttpClient: ProxyService.http,
+          paymentReference: widget.paymentReference,
+        );
+      }
+
       if (mounted) {
         setState(() {
-          if (isSuccessful) {
+          if (settlement.isSuccessful) {
             // Payment successful
             paymentSuccessful = true;
             isCheckingPayment = false;
             statusCheckTimer?.cancel();
             widget.onSuccess?.call();
+          } else if (settlement.isFailed) {
+            // Terminal. Stop polling and say what happened; nothing was
+            // charged, so the buyer can simply try again.
+            isCheckingPayment = false;
+            paymentFailureReason = settlement.reason?.trim().isNotEmpty == true
+                ? settlement.reason
+                : 'The payment was declined on your phone.';
+            statusCheckTimer?.cancel();
           } else {
             // Payment not yet successful, increment check count
             checkCount++;
@@ -427,6 +453,12 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
                           ),
                         ),
                       ],
+                    )
+                  : paymentFailureReason != null
+                  ? Text(
+                      '$paymentFailureReason Nothing was charged — you can try again.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
                     )
                   : checkCount >= maxChecks
                   ? const Text(

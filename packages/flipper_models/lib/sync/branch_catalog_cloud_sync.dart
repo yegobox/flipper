@@ -146,6 +146,9 @@ Future<void> ensureBranchCatalogCloudSubscriptions({
       args: {'branchId': branchId},
     ),
     (
+      // Replication scope only — no value is read from this, so it does not
+      // need the `COLLECTION stocks (currentStockMilli COUNTER)` declaration
+      // that value reads use (see stock_qty_milli.dart).
       key: 'stocks|$branchId',
       sql: 'SELECT * FROM stocks WHERE branchId = :branchId',
       args: {'branchId': branchId},

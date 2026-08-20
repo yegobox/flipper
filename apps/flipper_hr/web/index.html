@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta name="description" content="Flipper HR — people and payroll for Flipper businesses.">
+
+  <!-- PWA / iOS -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Flipper HR">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a2e" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Flipper HR</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Font preload -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #ffffff;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #1a1a2e; }
+    }
+    flutter-view, flt-glass-pane {
+      background: transparent !important;
+    }
+    /* Splash */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      transition: opacity 0.3s ease;
+    }
+    @media (prefers-color-scheme: dark) {
+      #splash { background: #1a1a2e; }
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    #splash-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: #1565C0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    #splash-logo svg { width: 36px; height: 36px; fill: #fff; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+  <script>
+    function removeSplash() {
+      const el = document.getElementById('splash');
+      if (el) {
+        el.classList.add('hidden');
+        setTimeout(() => el.remove(), 350);
+      }
+    }
+    // Auto-remove after Flutter bootstrap completes (fallback).
+    window.addEventListener('flutter-first-frame', removeSplash);
+  </script>
+</head>
+<body>
+  <div id="splash">
+    <div id="splash-logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+      </svg>
+    </div>
+  </div>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

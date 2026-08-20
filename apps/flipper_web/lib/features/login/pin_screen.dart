@@ -206,7 +206,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(child: _buildFormColumn(compact: false)),
-                  const Expanded(child: WebBrandPanel()),
+                  const Expanded(child: BrandPanel()),
                 ],
               );
             }

@@ -561,6 +561,24 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       } else {
         throw Exception("Payment plan is null");
       }
+    } on MomoPreapprovalDeclined catch (e) {
+      // Consent was refused, so nothing was charged. Worth its own message:
+      // "failed to initiate payment" reads like a fault at our end and invites
+      // a retry that will be refused the same way.
+      talker.warning('Pre-approval declined: ${e.message}');
+      if (_mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${e.message} Approve the Mobile Money request on your phone, '
+              'then try again.',
+            ),
+          ),
+        );
+      }
     } catch (e, s) {
       talker.warning(e.toString());
       talker.error(s.toString());

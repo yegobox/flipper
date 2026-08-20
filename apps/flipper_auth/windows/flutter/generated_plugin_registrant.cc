@@ -17,6 +17,7 @@
 #include <flutter_localization/flutter_localization_plugin_c_api.h>
 #include <geolocator_windows/geolocator_windows.h>
 #include <local_auth_windows/local_auth_plugin.h>
+#include <passkeys_windows/passkeys_windows_plugin.h>
 #include <pasteboard/pasteboard_plugin.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <printing/printing_plugin.h>
@@ -24,6 +25,7 @@
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <sentry_flutter/sentry_flutter_plugin.h>
 #include <share_plus/share_plus_windows_plugin_c_api.h>
+#include <speech_to_text_windows/speech_to_text_windows.h>
 #include <tray_manager/tray_manager_plugin.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <window_manager/window_manager_plugin.h>
@@ -51,6 +53,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("GeolocatorWindows"));
   LocalAuthPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("LocalAuthPlugin"));
+  PasskeysWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PasskeysWindowsPlugin"));
   PasteboardPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PasteboardPlugin"));
   PermissionHandlerWindowsPluginRegisterWithRegistrar(
@@ -65,6 +69,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("SentryFlutterPlugin"));
   SharePlusWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SharePlusWindowsPluginCApi"));
+  SpeechToTextWindowsRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("SpeechToTextWindows"));
   TrayManagerPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("TrayManagerPlugin"));
   UrlLauncherWindowsRegisterWithRegistrar(

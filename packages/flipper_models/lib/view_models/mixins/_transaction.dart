@@ -22,6 +22,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helpers/desktop_pdf_open.dart';
+import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
 import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -79,7 +80,7 @@ mixin TransactionMixinOld {
       RwApiResponse? response;
       final ebm = await ProxyService.getStrategy(
         Strategy.capella,
-      ).ebm(branchId: branchId);
+      ).ebm(branchId: branchId, fetchRemote: false);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -421,8 +422,9 @@ mixin TransactionMixinOld {
     final taxEnabled = await ProxyService.getStrategy(
       Strategy.capella,
     ).isTaxEnabled(businessId: businessId, branchId: branchId);
-    final ebm =
-        await ProxyService.getStrategy(Strategy.capella).ebm(branchId: branchId);
+    final ebm = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).ebm(branchId: branchId, fetchRemote: false);
     final hasUser = (await ProxyService.box.bhfId()) != null;
     final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
     final formKey = GlobalKey<FormState>();
@@ -498,8 +500,12 @@ mixin TransactionMixinOld {
     /// When true, always show the branded picker even if a default printer
     /// is saved or only one printer is available.
     bool alwaysShowPicker = false,
-    String pdfFilename = 'receipt.pdf',
+    /// Defaults to `<customer>-<yyyyMMdd_HHmmss>.pdf` derived from the sale, so
+    /// saved receipts don't all collide on a single `receipt.pdf`.
+    String? pdfFilename,
   }) async {
+    final resolvedPdfFilename =
+        pdfFilename ?? receiptPdfFilename(transaction);
     if (Platform.isAndroid || Platform.isIOS) {
       print("can't direct pring on ios, android using direct printer.");
     } else {
@@ -582,9 +588,15 @@ mixin TransactionMixinOld {
 
       if (saveAsPdf) {
         if (!kIsWeb && UniversalPlatform.isDesktop) {
-          await openPdfBytesOnDesktop(bytes: bytes, filename: pdfFilename);
+          await openPdfBytesOnDesktop(
+            bytes: bytes,
+            filename: resolvedPdfFilename,
+          );
         } else {
-          await Printing.sharePdf(bytes: bytes, filename: pdfFilename);
+          await Printing.sharePdf(
+            bytes: bytes,
+            filename: resolvedPdfFilename,
+          );
         }
         return;
       }

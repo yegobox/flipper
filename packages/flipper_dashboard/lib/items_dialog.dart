@@ -7,6 +7,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
@@ -15,15 +16,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-
-final stockProvider = FutureProvider.family<Stock?, String>((
-  ref,
-  stockId,
-) async {
-  return await ProxyService.getStrategy(
-    Strategy.capella,
-  ).getStockById(id: stockId);
-});
 
 class ItemsDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
@@ -190,7 +182,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
         TextCellValue('Unit'),
       ]);
 
-      // Add data rows — quantities from one Ditto batch read (not cached stockProvider).
+      // Add data rows — quantities from one Ditto batch read (not the live per-row stock stream).
       for (final variant in variants) {
         final sid = variant.stockId;
         final qty = (sid != null && sid.isNotEmpty)
@@ -407,7 +399,9 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                         variant.stockId!.isNotEmpty)
                                       ref
                                           .watch(
-                                            stockProvider(variant.stockId!),
+                                            stockByVariantProvider(
+                                              variant.stockId!,
+                                            ),
                                           )
                                           .when(
                                             data: (stock) => Text(

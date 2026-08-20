@@ -84,4 +84,10 @@ abstract class ProductInterface {
   Future<void> hydrateDate({required String branchId});
   Future<void> hydrateCodes({required String branchId});
   Future<void> hydrateSars({required String branchId});
+
+  /// One-off cleanup of `products` documents written before `Product.toJson`
+  /// set `_id`, which left a duplicate behind on every save. Re-keys the
+  /// surviving copy onto the app id and drops the strays. Safe to re-run — it
+  /// is a no-op once the collection is canonical. No-op on Brick.
+  Future<void> reconcileProductDocuments({required String branchId});
 }

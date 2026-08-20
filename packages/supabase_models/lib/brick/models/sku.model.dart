@@ -34,6 +34,11 @@ class SKU extends OfflineFirstWithSupabaseModel {
 
   Map<String, dynamic> toJson() {
     return {
+      // Ditto keys documents by `_id`. Without it every write generates a
+      // fresh document id, so `ON ID CONFLICT DO UPDATE` never matches and
+      // each save inserts a duplicate instead of updating. Only used for
+      // Ditto document writes — see Variant.toFlipperJson / Stock.toJson.
+      '_id': id,
       'id': id,
       'sku': sku,
       'branchId': branchId,

@@ -97,7 +97,7 @@ final agentCommissionAdminSummaryProvider =
       final businessUuid =
           await FlipperBaseModel.resolveBusinessUuidForTenants(businessId);
       if (businessUuid != null) {
-        final business = await ProxyService.getStrategy(Strategy.cloudSync)
+        final business = await ProxyService.legacyStrategy
             .getBusiness(businessId: businessUuid);
         businessName = business?.name;
       }

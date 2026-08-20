@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'dart:async';
 
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -14,11 +15,10 @@ mixin CapellaBusinessMixin implements BusinessInterface {
   Talker get talker;
   DittoService get dittoService => DittoService.instance;
 
+  // TODO(ditto-migration): port `activeBusiness` to Ditto.
   @override
   Future<Business?> activeBusiness({int? userId}) async {
-    throw UnimplementedError(
-      'activeBusiness needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.activeBusiness();
   }
 
   @override
@@ -58,13 +58,14 @@ mixin CapellaBusinessMixin implements BusinessInterface {
     return result.firstOrNull;
   }
 
+  // TODO(ditto-migration): port `businesses` to Ditto.
   @override
   Future<List<Business>> businesses({
     String? userId,
     bool fetchOnline = false,
     bool active = false,
   }) async {
-    throw UnimplementedError('businesses needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.businesses(userId: userId, fetchOnline: fetchOnline, active: active);
   }
 
   @override
@@ -81,16 +82,16 @@ mixin CapellaBusinessMixin implements BusinessInterface {
     return result.firstOrNull;
   }
 
+  // TODO(ditto-migration): port `getBusinessFromOnlineGivenId` to Ditto.
   @override
   Future<Business?> getBusinessFromOnlineGivenId({
     required int id,
     required HttpClientInterface flipperHttpClient,
   }) async {
-    throw UnimplementedError(
-      'getBusinessFromOnlineGivenId needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.getBusinessFromOnlineGivenId(id: id, flipperHttpClient: flipperHttpClient);
   }
 
+  // TODO(ditto-migration): port `addBusiness` to Ditto.
   @override
   Future<void> addBusiness({
     required String id,
@@ -139,9 +140,10 @@ mixin CapellaBusinessMixin implements BusinessInterface {
     DateTime? deletedAt,
     required String encryptionKey,
   }) async {
-    throw UnimplementedError('addBusiness needs to be implemented for Capella');
+    return ProxyService.legacyStrategy.addBusiness(id: id, userId: userId, serverId: serverId, businessId: businessId, name: name, currency: currency, categoryId: categoryId, latitude: latitude, longitude: longitude, timeZone: timeZone, country: country, businessUrl: businessUrl, hexColor: hexColor, imageUrl: imageUrl, type: type, active: active, chatUid: chatUid, metadata: metadata, role: role, lastSeen: lastSeen, firstName: firstName, lastName: lastName, createdAt: createdAt, deviceToken: deviceToken, backUpEnabled: backUpEnabled, subscriptionPlan: subscriptionPlan, nextBillingDate: nextBillingDate, previousBillingDate: previousBillingDate, isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded, backupFileId: backupFileId, email: email, lastDbBackup: lastDbBackup, fullName: fullName, tinNumber: tinNumber, bhfId: bhfId, dvcSrlNo: dvcSrlNo, adrs: adrs, taxEnabled: taxEnabled, taxServerUrl: taxServerUrl, isDefault: isDefault, businessTypeId: businessTypeId, lastTouched: lastTouched, phoneNumber: phoneNumber, deletedAt: deletedAt, encryptionKey: encryptionKey);
   }
 
+  // TODO(ditto-migration): port `updateBusiness` to Ditto.
   @override
   Future<void> updateBusiness({
     required String businessId,
@@ -150,15 +152,12 @@ mixin CapellaBusinessMixin implements BusinessInterface {
     bool? isDefault,
     String? backupFileId,
   }) async {
-    throw UnimplementedError(
-      'updateBusiness needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.updateBusiness(businessId: businessId, name: name, active: active, isDefault: isDefault, backupFileId: backupFileId);
   }
 
+  // TODO(ditto-migration): port `defaultBusiness` to Ditto.
   @override
   Future<Business?> defaultBusiness() async {
-    throw UnimplementedError(
-      'defaultBusiness needs to be implemented for Capella',
-    );
+    return ProxyService.legacyStrategy.defaultBusiness();
   }
 }

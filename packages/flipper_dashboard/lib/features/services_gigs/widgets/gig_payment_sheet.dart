@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flipper_dashboard/services/payment_service.dart';
+import 'package:flipper_services/momo/momo_client.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -127,14 +128,26 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
       phoneNumber: phone,
       finalPrice: amount,
       payerMessage: 'Gig service payment',
+      // One gig request at one price is one payment however many times the
+      // sheet is submitted; a genuinely repeated payment for the same request
+      // would be a different amount, or a different request.
+      idempotencyKey: MomoIdempotency.forTransaction(_r.id, amount),
+      transactionId: _r.id,
     );
 
     if (!mounted) return;
 
     if (!settlement.confirmed) {
-      const msg =
-          'Payment was not confirmed. Approve the MTN prompt on your phone, or try again. '
-          'If money left your account, contact support with this request.';
+      // A refusal and a timeout need different words. Telling a payer whose
+      // request MTN turned down to "contact support if money left your account"
+      // sends them chasing a debit that never happened; telling someone whose
+      // payment is merely slow that it failed invites a second charge.
+      final msg = settlement.refused
+          ? '${settlement.message ?? 'The payment was declined.'} '
+              'Nothing was charged — you can try again.'
+          : 'Payment was not confirmed yet. Approve the MTN prompt on your phone. '
+              'If money left your account, contact support with this request '
+              'rather than paying again.';
       setState(() {
         _submitting = false;
         _sheetError = msg;

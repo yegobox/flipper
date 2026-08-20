@@ -105,9 +105,7 @@ class _TransactionDelegationSettingsState
     if (branchId == null || thisDeviceId == null) return;
 
     try {
-      final devices = await ProxyService.getStrategy(
-        Strategy.cloudSync,
-      ).getDevicesByBranch(branchId: branchId);
+      final devices = await ProxyService.legacyStrategy.getDevicesByBranch(branchId: branchId);
       final current =
           devices.where((device) => device.id == thisDeviceId).firstOrNull;
       if (!mounted) return;
@@ -143,9 +141,7 @@ class _TransactionDelegationSettingsState
 
     setState(() => _isSavingFriendlyName = true);
     try {
-      final branchDevices = await ProxyService.getStrategy(
-        Strategy.cloudSync,
-      ).getDevicesByBranch(branchId: branchId);
+      final branchDevices = await ProxyService.legacyStrategy.getDevicesByBranch(branchId: branchId);
       final existing = branchDevices.where((d) => d.id == thisDeviceId).firstOrNull;
       if (existing == null) {
         throw StateError('This device is not registered yet');

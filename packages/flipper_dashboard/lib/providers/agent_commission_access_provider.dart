@@ -79,12 +79,12 @@ Future<bool> resolveCanManageAgentCommission() async {
   // Brick/CoreSync fallback when Supabase access query is empty (local cache).
   try {
     final business =
-        await ProxyService.getStrategy(Strategy.cloudSync).getBusiness(
+        await ProxyService.legacyStrategy.getBusiness(
       businessId: businessUuid,
     );
     if (business?.userId != null && business!.userId == uid) return true;
 
-    return await ProxyService.getStrategy(Strategy.cloudSync).isAdmin(
+    return await ProxyService.legacyStrategy.isAdmin(
       userId: uid,
       appFeature: AppFeature.Settings,
     );
