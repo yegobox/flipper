@@ -42,6 +42,10 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
     required this.borderColor,
     required this.scrollbarColor,
     required this.scrollbarHoverColor,
+    required this.tableHeaderColor,
+    required this.tableRowHoverColor,
+    required this.tableRowSelectedColor,
+    required this.tableRowAltColor,
   });
 
   factory FlipperThemeExtension.light() {
@@ -79,6 +83,10 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
       borderColor: FlipperColors.border,
       scrollbarColor: Color(0x3F171717),
       scrollbarHoverColor: Color(0x7F171717),
+      tableHeaderColor: FlipperColors.veryLightGrey,
+      tableRowHoverColor: Color(0xFFF2FCFF),
+      tableRowSelectedColor: Color(0xFFE1FBFF),
+      tableRowAltColor: Color(0xFFFBFBFC),
     );
   }
 
@@ -117,6 +125,10 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
       borderColor: FlipperColors.borderDark,
       scrollbarColor: Color(0x40FFFFFF),
       scrollbarHoverColor: Color(0x80FFFFFF),
+      tableHeaderColor: Color(0xFF232935),
+      tableRowHoverColor: Color(0xFF232935),
+      tableRowSelectedColor: Color(0xFF1A202C),
+      tableRowAltColor: Color(0xFF20262F),
     );
   }
 
@@ -157,6 +169,11 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
   final Color scrollbarColor;
   final Color scrollbarHoverColor;
 
+  final Color tableHeaderColor;
+  final Color tableRowHoverColor;
+  final Color tableRowSelectedColor;
+  final Color tableRowAltColor;
+
   @override
   FlipperThemeExtension copyWith({
     Color? warning,
@@ -191,6 +208,10 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
     Color? borderColor,
     Color? scrollbarColor,
     Color? scrollbarHoverColor,
+    Color? tableHeaderColor,
+    Color? tableRowHoverColor,
+    Color? tableRowSelectedColor,
+    Color? tableRowAltColor,
   }) =>
       FlipperThemeExtension(
         warning: warning ?? this.warning,
@@ -228,6 +249,11 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
         scrollbarColor: scrollbarColor ?? this.scrollbarColor,
         scrollbarHoverColor:
             scrollbarHoverColor ?? this.scrollbarHoverColor,
+        tableHeaderColor: tableHeaderColor ?? this.tableHeaderColor,
+        tableRowHoverColor: tableRowHoverColor ?? this.tableRowHoverColor,
+        tableRowSelectedColor:
+            tableRowSelectedColor ?? this.tableRowSelectedColor,
+        tableRowAltColor: tableRowAltColor ?? this.tableRowAltColor,
       );
 
   @override
@@ -278,6 +304,14 @@ class FlipperThemeExtension extends ThemeExtension<FlipperThemeExtension> {
       scrollbarColor: Color.lerp(scrollbarColor, other.scrollbarColor, t)!,
       scrollbarHoverColor:
           Color.lerp(scrollbarHoverColor, other.scrollbarHoverColor, t)!,
+      tableHeaderColor:
+          Color.lerp(tableHeaderColor, other.tableHeaderColor, t)!,
+      tableRowHoverColor:
+          Color.lerp(tableRowHoverColor, other.tableRowHoverColor, t)!,
+      tableRowSelectedColor: Color.lerp(
+          tableRowSelectedColor, other.tableRowSelectedColor, t)!,
+      tableRowAltColor:
+          Color.lerp(tableRowAltColor, other.tableRowAltColor, t)!,
     );
   }
 }
