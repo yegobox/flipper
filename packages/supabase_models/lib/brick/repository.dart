@@ -10,6 +10,7 @@ import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Client, Request;
 import 'package:supabase_models/brick/brick.g.dart';
@@ -274,6 +275,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       innerClient: AuthRefreshingClient(
         http.Client(),
         anonKey: supabaseAnonKey,
+        // Lets the transport itself sign back in (not just refresh) when a
+        // request finds no active session — see auth_refreshing_client.dart.
+        tokenSource: SupabaseAccessTokenSource(
+          ensureAccessToken: SupabaseSessionService.ensureAccessToken,
+        ),
       ),
       // Only transport, throttling and server-side failures are worth
       // replaying. Brick's default list contains 401/403 (and 404), which means

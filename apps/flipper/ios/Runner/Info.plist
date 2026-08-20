@@ -112,6 +112,6 @@
 	<key>com.posthog.posthog.POSTHOG_HOST</key>
 	<string>https://us.i.posthog.com</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Flipper converts your speech to text on this device so Flo can read the question you dictated.</string>
+	<string>Flipper uses speech recognition to transcribe the question you dictated so Flo can read it.</string>
 </dict>
 </plist>

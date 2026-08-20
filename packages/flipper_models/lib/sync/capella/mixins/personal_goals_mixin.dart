@@ -520,7 +520,15 @@ mixin CapellaPersonalGoalsMixin {
 
     List<PersonalGoal> goals;
     try {
-      goals = await _loadPersonalGoalsForBranch(ditto, branchId);
+      // Single-shot: a miss here falls through to the unawaited
+      // [_retryPersonalGoalSweepWhenGoalsArrive] below, which retries in the
+      // background. Retrying here too would block sale completion on the
+      // same wait twice.
+      goals = await _loadPersonalGoalsForBranch(
+        ditto,
+        branchId,
+        retryWhenEmpty: false,
+      );
     } catch (e, s) {
       talker.error('applyPersonalGoalAutoSweepIfEligible: load goals $e\n$s');
       return;

@@ -78,8 +78,14 @@ class _FloComposerState extends State<FloComposer> {
 
   /// Recognised words are still streaming in when send fires, so end the
   /// session first — otherwise the field keeps filling after it is cleared.
+  /// `stop()` drops its target synchronously (before its own first await),
+  /// so calling it here — without awaiting — is enough to stop any in-flight
+  /// dictation session from touching the controller once `onSend` reads it.
+  /// Gate on `isBusy` too: a tap that lands mid-`start()` (before the state
+  /// flips to listening) would otherwise skip the stop and let that session
+  /// start writing into the field after send already fired.
   void _handleSend() {
-    if (_dictation.isListening) _dictation.stop();
+    if (_dictation.isListening || _dictation.isBusy) _dictation.stop();
     widget.onSend();
   }
 

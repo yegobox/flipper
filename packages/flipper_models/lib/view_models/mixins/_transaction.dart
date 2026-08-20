@@ -80,7 +80,7 @@ mixin TransactionMixinOld {
       RwApiResponse? response;
       final ebm = await ProxyService.getStrategy(
         Strategy.capella,
-      ).ebm(branchId: branchId);
+      ).ebm(branchId: branchId, fetchRemote: false);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -422,8 +422,9 @@ mixin TransactionMixinOld {
     final taxEnabled = await ProxyService.getStrategy(
       Strategy.capella,
     ).isTaxEnabled(businessId: businessId, branchId: branchId);
-    final ebm =
-        await ProxyService.getStrategy(Strategy.capella).ebm(branchId: branchId);
+    final ebm = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).ebm(branchId: branchId, fetchRemote: false);
     final hasUser = (await ProxyService.box.bhfId()) != null;
     final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
     final formKey = GlobalKey<FormState>();
