@@ -141,6 +141,61 @@ void main() {
 
       expect(find.text('the roster'), findsOneWidget);
     });
+
+    testWidgets('an unpaid business with skips left is offered one',
+        (tester) async {
+      final container = _container(
+        billing: FakeHrBillingRepository(access: unpaidState()),
+      );
+      await container.read(hrAccessStateProvider('biz-1').future);
+
+      await _pump(
+        tester,
+        container,
+        const HrBillingGate(child: Text('the roster')),
+      );
+
+      expect(find.byKey(const Key('hr-skip-payment')), findsOneWidget);
+      expect(find.textContaining('2 left'), findsOneWidget);
+    });
+
+    testWidgets('no skip is offered once the cap is used up', (tester) async {
+      final container = _container(
+        billing: FakeHrBillingRepository(
+          access: unpaidState(skipsUsed: 2, maxPaymentSkips: 2),
+        ),
+      );
+      await container.read(hrAccessStateProvider('biz-1').future);
+
+      await _pump(
+        tester,
+        container,
+        const HrBillingGate(child: Text('the roster')),
+      );
+
+      expect(find.byKey(const Key('hr-skip-payment')), findsNothing);
+    });
+
+    testWidgets('tapping skip spends one and unlocks the roster',
+        (tester) async {
+      final billing = FakeHrBillingRepository(access: unpaidState());
+      final container = _container(billing: billing);
+      await container.read(hrAccessStateProvider('biz-1').future);
+
+      await _pump(
+        tester,
+        container,
+        const HrBillingGate(child: Text('the roster')),
+      );
+
+      billing.access = skippedState();
+      await tester.tap(find.byKey(const Key('hr-skip-payment')));
+      await tester.pumpAndSettle();
+
+      expect(billing.skips, ['biz-1']);
+      expect(find.text('the roster'), findsOneWidget);
+      expect(find.byKey(const Key('hr-paywall-panel')), findsNothing);
+    });
   });
 
   group('HrSubscribePage', () {
@@ -247,6 +302,30 @@ void main() {
 
       expect(find.text('Choose a business'), findsOneWidget);
       expect(find.byKey(const Key('hr-plan-card')), findsNothing);
+    });
+
+    testWidgets('offers a skip alongside paying, while one is left',
+        (tester) async {
+      final container = _container(
+        billing: FakeHrBillingRepository(access: unpaidState()),
+      );
+
+      await _pump(tester, container, const HrSubscribePage());
+
+      expect(find.byKey(const Key('hr-skip-payment')), findsOneWidget);
+    });
+
+    testWidgets('no skip is offered on the pay screen once exhausted',
+        (tester) async {
+      final container = _container(
+        billing: FakeHrBillingRepository(
+          access: unpaidState(skipsUsed: 2, maxPaymentSkips: 2),
+        ),
+      );
+
+      await _pump(tester, container, const HrSubscribePage());
+
+      expect(find.byKey(const Key('hr-skip-payment')), findsNothing);
     });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
+import 'package:flipper_hr/features/billing/presentation/hr_skip_payment_action.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
@@ -26,16 +27,28 @@ class HrBillingGate extends ConsumerWidget {
     final businessId = ref.watch(selectedBusinessProvider)?.id;
     final access = ref.watch(hrAccessSnapshotProvider(businessId));
     if (access.grantsAccess) return child;
-    return HrPaywallPanel(access: access, featureName: featureName);
+    return HrPaywallPanel(
+      access: access,
+      businessId: businessId,
+      featureName: featureName,
+    );
   }
 }
 
 /// The lock itself, split out so it can be laid out and tested without an
 /// entitlement state behind it.
 class HrPaywallPanel extends StatelessWidget {
-  const HrPaywallPanel({super.key, required this.access, this.featureName});
+  const HrPaywallPanel({
+    super.key,
+    required this.access,
+    this.businessId,
+    this.featureName,
+  });
 
   final HrAccessState access;
+
+  /// Needed only to spend a skip; the lock itself renders fine without it.
+  final String? businessId;
   final String? featureName;
 
   @override
@@ -125,6 +138,8 @@ class HrPaywallPanel extends StatelessWidget {
                     icon: const Icon(Icons.workspace_premium_outlined, size: 18),
                     label: Text(lapsed ? 'Renew now' : 'See the plan'),
                   ),
+                  if (businessId != null)
+                    HrSkipPaymentAction(businessId: businessId!, access: access),
                 ],
               ),
             ),
@@ -207,6 +222,31 @@ class HrBillingNotice extends ConsumerWidget {
       );
     }
 
+    if (access.isSkipped) {
+      final skipDays = access.skipDaysLeft();
+      final left = switch (skipDays) {
+        null => 'soon',
+        0 => 'today',
+        1 => 'in 1 day',
+        final d => 'in $d days',
+      };
+      return Padding(
+        padding: padding,
+        child: _Strip(
+          key: const Key('hr-billing-skipped'),
+          tone: _Tone.warning,
+          icon: Icons.timer_outlined,
+          message:
+              'You\'re using free access without paying (${access.skipsUsed} '
+              'of ${access.maxPaymentSkips} skips used). It ends $left.',
+          action: TextButton(
+            onPressed: () => context.go('/subscribe'),
+            child: const Text('Pay now'),
+          ),
+        ),
+      );
+    }
+
     final days = access.daysLeft();
     if (access.status == HrAccessStatus.entitled &&
         days != null &&
@@ -253,9 +293,11 @@ class _Strip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mirrors HrTone.danger/HrTone.warning's foreground in hr_ui.dart — keep
+    // these in step with that palette rather than picking a new red/amber.
     final foreground = switch (tone) {
-      _Tone.danger => const Color(0xFF991B1B),
-      _Tone.warning => const Color(0xFF92400E),
+      _Tone.danger => const Color(0xFFB91C1C),
+      _Tone.warning => const Color(0xFFB45309),
     };
     final background = switch (tone) {
       _Tone.danger => const Color(0xFFFEF2F2),

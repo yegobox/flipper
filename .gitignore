@@ -113,3 +113,6 @@ yegobox-2ee43-b80ca010ff08.json
 *.dll
 *.docx
 .tmp_aab_scan/
+
+# Cargo build output for the turso_dart native assets crate (hundreds of MB).
+open-sources/turso_dart/rust/target/

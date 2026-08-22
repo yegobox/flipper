@@ -28,10 +28,10 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - ditto_live (5.0.2):
-    - DittoFlutter (= 5.0.2)
+  - ditto_live (5.0.3):
+    - DittoFlutter (= 5.0.3)
     - FlutterMacOS
-  - DittoFlutter (5.0.2)
+  - DittoFlutter (5.0.3)
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_selector_macos (0.0.1):
@@ -458,8 +458,8 @@ SPEC CHECKSUMS:
   CwlCatchExceptionSupport: 54ccab8d8c78907b57f99717fb19d4cc3bce02dc
   desktop_drop: 1eeeb9484299585770b6461e4f3d60950e99efa2
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  ditto_live: b5a06dcb7849d9094a71555477b3ed62392f0903
-  DittoFlutter: f780d1a73cebce21503e00f9016880d46722f901
+  ditto_live: de5999d0de276d1024369d57f9f6f47c002d11df
+  DittoFlutter: 411f743ae08d4802a69c508a055aecfde62a51dc
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   Firebase: 14f11e91129d246a8a6166b4c1c2ea61b56806ec

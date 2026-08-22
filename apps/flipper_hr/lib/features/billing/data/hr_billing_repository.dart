@@ -20,6 +20,11 @@ abstract class HrBillingRepository {
     bool isYearly = false,
     String? phoneNumber,
   });
+
+  /// Spends one of the business's limited payment skips and returns the
+  /// resulting entitlement, already unlocked. Throws [HrBillingException]
+  /// when there is no payment due, or no skips left to spend.
+  Future<HrAccessState> skipPayment({required String businessId});
 }
 
 /// A billing call that failed with something worth showing the user.

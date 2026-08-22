@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/attendance/data/attendance_day.dart';
+import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flutter/material.dart';
 
 /// Colour-coded clock state, matching the shape of [StatusChip] and
@@ -10,32 +11,11 @@ class AttendanceStateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final (Color fg, Color bg) = switch (state) {
-      AttendanceState.clockedIn => (scheme.primary, scheme.primaryContainer),
-      AttendanceState.clockedOut => (
-        scheme.onSecondaryContainer,
-        scheme.secondaryContainer,
-      ),
-      AttendanceState.absent => (
-        scheme.onSurfaceVariant,
-        scheme.surfaceContainerHighest,
-      ),
+    final tone = switch (state) {
+      AttendanceState.clockedIn => HrTone.positive,
+      AttendanceState.clockedOut => HrTone.info,
+      AttendanceState.absent => HrTone.neutral,
     };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        state.label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: fg,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return HrPill(label: state.label, tone: tone);
   }
 }

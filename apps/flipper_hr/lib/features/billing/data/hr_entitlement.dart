@@ -22,6 +22,10 @@ enum HrAccessStatus {
   /// They manage a business, and it has no plan yet.
   needsSetup,
 
+  /// Unpaid, but let in on one of a limited number of payment skips. Never
+  /// confused with [entitled] — no money has moved.
+  skipped,
+
   /// The session manages no business at all: an invited employee. There is
   /// nothing here for them to buy, and their own leave and timesheet stay open.
   noBusiness;
@@ -31,6 +35,7 @@ enum HrAccessStatus {
         'entitled' => HrAccessStatus.entitled,
         'needs_payment' => HrAccessStatus.needsPayment,
         'needs_setup' => HrAccessStatus.needsSetup,
+        'skipped' => HrAccessStatus.skipped,
         'no_business' => HrAccessStatus.noBusiness,
         _ => HrAccessStatus.unknown,
       };
@@ -102,6 +107,9 @@ class HrAccessState {
     this.graceDays = 0,
     this.testMode = false,
     this.allowance = const HrPlanAllowance(),
+    this.skipsUsed = 0,
+    this.maxPaymentSkips = 0,
+    this.skipExpiresAt,
   });
 
   /// Startup and signed-out placeholder. Grants access: the state resolves in
@@ -157,14 +165,29 @@ class HrAccessState {
 
   final HrPlanAllowance allowance;
 
+  /// Lifetime skips this business has already used.
+  final int skipsUsed;
+
+  /// Lifetime skips this business is allowed, from `hr_billing_settings`.
+  /// Defaults to `0` — a server that predates migration 0009 does not send
+  /// this key, and the safe reading of "no key" is "no skips available",
+  /// never "unlimited".
+  final int maxPaymentSkips;
+
+  /// End of the current skip's grant, when [status] is [HrAccessStatus.skipped].
+  final DateTime? skipExpiresAt;
+
   /// May the manager surfaces — roster, approvals, attendance — be opened?
   ///
   /// Someone who manages no business is let through: an invited employee has
   /// nothing to pay for, and their self-service pages resolve their own scope.
+  /// A skip opens the door exactly like a real payment does — the distinction
+  /// lives in [status], not in whether the door is open.
   bool get grantsAccess =>
       !enforced ||
       status == HrAccessStatus.unknown ||
       status == HrAccessStatus.entitled ||
+      status == HrAccessStatus.skipped ||
       status == HrAccessStatus.noBusiness;
 
   /// True when there is a subscription to buy or renew.
@@ -172,6 +195,24 @@ class HrAccessState {
       enforced &&
       (status == HrAccessStatus.needsPayment ||
           status == HrAccessStatus.needsSetup);
+
+  /// True when the business is in the app right now on a skip, not a payment.
+  bool get isSkipped => status == HrAccessStatus.skipped;
+
+  /// Skips left to spend, floored at zero.
+  int get skipsRemaining => (maxPaymentSkips - skipsUsed).clamp(0, maxPaymentSkips);
+
+  /// True when a skip is on offer: payment is due and one is still available.
+  bool get canSkipPayment => needsPayment && skipsRemaining > 0;
+
+  /// Whole days left on the current skip, floored at zero. Null when not
+  /// skipped or there is nothing to count down.
+  int? skipDaysLeft({DateTime? now}) {
+    final until = skipExpiresAt;
+    if (until == null) return null;
+    final hours = until.difference(now ?? DateTime.now()).inHours;
+    return hours <= 0 ? 0 : (hours / 24).ceil();
+  }
 
   /// A charge is in flight: the plan is unpaid but the processor has not
   /// finished with it. The paywall says "waiting for MTN" rather than offering
@@ -209,6 +250,9 @@ class HrAccessState {
       graceDays: _int(json['grace_days']),
       testMode: json['test_mode'] == true,
       allowance: HrPlanAllowance.fromJson(json),
+      skipsUsed: _int(json['skips_used']),
+      maxPaymentSkips: _int(json['max_payment_skips']),
+      skipExpiresAt: _dateTime(json['skip_expires_at']),
     );
   }
 }

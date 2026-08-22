@@ -102,6 +102,66 @@ void main() {
       expect(state.isAwaitingSettlement, isTrue);
     });
 
+    test('a skip unlocks without claiming a real payment', () {
+      final state = HrAccessState.fromJson({
+        'status': 'skipped',
+        'business_id': 'biz-1',
+        'skips_used': 1,
+        'max_payment_skips': 2,
+        'skip_expires_at': '2026-09-17T09:00:00+00:00',
+      });
+
+      expect(state.status, HrAccessStatus.skipped);
+      expect(state.grantsAccess, isTrue);
+      // A skip is not a subscription to buy or renew — the reminder strip,
+      // not the paywall, is what tells the user about it.
+      expect(state.needsPayment, isFalse);
+      expect(state.isSkipped, isTrue);
+      expect(state.skipsUsed, 1);
+      expect(state.maxPaymentSkips, 2);
+      expect(state.skipsRemaining, 1);
+    });
+
+    test('a payload from before skips existed still defaults safely', () {
+      final state = HrAccessState.fromJson({
+        'status': 'needs_payment',
+        'business_id': 'biz-1',
+      });
+
+      // No skip keys sent (pre-migration-0009 server): fails closed, no skip
+      // is ever offered rather than defaulting to "unlimited".
+      expect(state.skipsUsed, 0);
+      expect(state.maxPaymentSkips, 0);
+      expect(state.skipsRemaining, 0);
+      expect(state.canSkipPayment, isFalse);
+    });
+
+    test('skipsRemaining and canSkipPayment track usage against the cap', () {
+      final oneLeft = HrAccessState.fromJson({
+        'status': 'needs_payment',
+        'skips_used': 1,
+        'max_payment_skips': 2,
+      });
+      expect(oneLeft.skipsRemaining, 1);
+      expect(oneLeft.canSkipPayment, isTrue);
+
+      final exhausted = HrAccessState.fromJson({
+        'status': 'needs_payment',
+        'skips_used': 2,
+        'max_payment_skips': 2,
+      });
+      expect(exhausted.skipsRemaining, 0);
+      expect(exhausted.canSkipPayment, isFalse);
+
+      final paidUp = HrAccessState.fromJson({
+        'status': 'entitled',
+        'skips_used': 0,
+        'max_payment_skips': 2,
+      });
+      // Skips are only ever offered when a payment is actually due.
+      expect(paidUp.canSkipPayment, isFalse);
+    });
+
     test('an unapplied migration opens up and flags itself', () {
       const state = HrAccessState.schemaMissing();
 
