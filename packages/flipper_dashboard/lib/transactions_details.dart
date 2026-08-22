@@ -71,6 +71,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
   late ITransaction _transaction;
   bool _openProducts = true;
   bool _openTimeline = false;
+  // Cached so Share/Download/Print can build a receipt copy without refetching.
+  List<TransactionItem> _items = const [];
 
   @override
   void initState() {
@@ -99,6 +101,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
       context: context,
       transaction: _transaction,
       referenceLabel: _referenceLabel,
+      items: _items,
       onRefund: hasWriteAccess ? _openRefundSheet : null,
     );
   }
@@ -189,6 +192,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                   onInvoice: () => _receiptActions.viewInvoice(
                     context,
                     _transaction,
+                    items: items,
                   ),
                 ),
               ],
@@ -210,6 +214,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
           fetchRemote: true,
         );
     model.completedTransactionItemsList = items;
+    _items = items;
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
@@ -13,6 +14,9 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 final talker = TalkerFlutter.init();
+
+/// Shared so the grid's row actions reuse one receipt resolver.
+final _receiptActions = TransactionReceiptActionsService();
 
 /// Column count for transaction summary grid (non-PLU): receipt, cashier, customer, …, actions.
 const int kTransactionSummaryColumnCount = 11;
@@ -762,14 +766,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
                   actionPillButton(
                     icon: Icons.print_outlined,
                     tooltip: 'Print',
-                    onTap: () {
-                      ScaffoldMessenger.maybeOf(ctx)?.showSnackBar(
-                        const SnackBar(
-                          content: Text('Print is not available yet.'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
+                    onTap: () => _receiptActions.printReceipt(ctx, tx),
                   ),
                 ],
               );
