@@ -370,7 +370,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire";
+			shellScript = "# Native assets: turso_dart's build hook shells out to rustup/cargo, which\n# live in $HOME/.cargo/bin. Xcode launched from Finder inherits launchd's\n# PATH, which does not include it, so flutter assemble's dart_build target\n# fails with \"Building native assets failed\". Terminal builds already have\n# it on PATH, which is why only Xcode breaks.\nexport PATH=\"$HOME/.cargo/bin:/usr/local/bin:/opt/homebrew/bin:$PATH\"\nif ! command -v rustup > /dev/null 2>&1; then\n  echo \"error: rustup not found on PATH. Install Rust (https://rustup.rs) or add its bin directory to PATH in this script phase.\" >&2\n  exit 1\nfi\n\"$FLUTTER_ROOT\"/packages/flutter_tools/bin/macos_assemble.sh && touch Flutter/ephemeral/tripwire";
 		};
 		56E1C7FF74AB7B395ABEBA10 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
