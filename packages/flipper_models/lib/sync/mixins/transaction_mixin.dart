@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
@@ -503,15 +505,7 @@ mixin TransactionMixin implements TransactionInterface {
     });
   }
 
-  String getReceiptType() {
-    if (ProxyService.box.isProformaMode()) {
-      return "PS";
-    } else if (ProxyService.box.isTrainingMode()) {
-      return "TS";
-    } else {
-      return "NS";
-    }
-  }
+  String getReceiptType() => defaultSaleReceiptType();
 
   @override
   Stream<ITransaction> manageTransactionStream({

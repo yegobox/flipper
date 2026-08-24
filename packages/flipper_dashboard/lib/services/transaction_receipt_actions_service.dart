@@ -110,7 +110,7 @@ class TransactionReceiptActionsService {
     // the button reads as broken.
     _showProgress(context, 'Preparing receipt…');
     try {
-      _validateCanPresent(transaction);
+      validateCanPresent(transaction);
 
       final resolved = await resolveReceipt(transaction, items);
       _hideProgress(context);
@@ -182,8 +182,16 @@ class TransactionReceiptActionsService {
       'Could not prepare a receipt for this sale. Check your connection and '
       'try again.';
 
-  void _validateCanPresent(ITransaction transaction) {
-    if (transaction.receiptType == 'TS') {
+  @visibleForTesting
+  void validateCanPresent(ITransaction transaction) {
+    // An RRA-signed *training* receipt must never leave the device looking
+    // like a real one. A sale merely tagged TS with no signed PDF is not one:
+    // Ditto carts used to be minted as "TS" regardless of mode, and those
+    // sales can only ever produce the local fallback, which is stamped
+    // "CUSTOMER COPY ... not an EBM fiscal receipt".
+    final hasStoredFiscalPdf =
+        (transaction.receiptFileName ?? '').trim().isNotEmpty;
+    if (transaction.receiptType == 'TS' && hasStoredFiscalPdf) {
       throw TransactionReceiptException(
         'Training receipts cannot be shared or printed.',
       );

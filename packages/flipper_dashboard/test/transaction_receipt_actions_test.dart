@@ -18,7 +18,8 @@ class _FakeLoader extends StoredReceiptLoader {
   }
 }
 
-ITransaction _sale({String? receiptFileName}) => ITransaction(
+ITransaction _sale({String? receiptFileName, String? receiptType}) =>
+    ITransaction(
       id: 'tx-1',
       branchId: 'branch-1',
       agentId: 'agent-1',
@@ -32,6 +33,7 @@ ITransaction _sale({String? receiptFileName}) => ITransaction(
       isIncome: true,
       isExpense: false,
       receiptFileName: receiptFileName,
+      receiptType: receiptType,
     );
 
 final _fallbackBytes = Uint8List.fromList('%PDF-fallback'.codeUnits);
@@ -115,6 +117,44 @@ void main() {
         ),
       ),
     );
+  });
+
+  group('training receipt guard', () {
+    final service = TransactionReceiptActionsService(
+      loader: _FakeLoader(null),
+      fallbackBuilder: (_, __) async => _fallbackBytes,
+    );
+
+    test('blocks a signed training receipt', () {
+      expect(
+        () => service.validateCanPresent(
+          _sale(receiptType: 'TS', receiptFileName: 'training-1.pdf'),
+        ),
+        throwsA(
+          isA<TransactionReceiptException>().having(
+            (e) => e.message,
+            'message',
+            contains('Training receipts'),
+          ),
+        ),
+      );
+    });
+
+    test('allows a TS-tagged sale with no signed PDF (legacy default)', () {
+      // Ditto carts used to be minted as "TS" whatever the mode; those sales
+      // only ever produce the stamped "CUSTOMER COPY" fallback.
+      expect(() => service.validateCanPresent(_sale(receiptType: 'TS')),
+          returnsNormally);
+    });
+
+    test('allows a normal sale', () {
+      expect(
+        () => service.validateCanPresent(
+          _sale(receiptType: 'NS', receiptFileName: 'receipt-1.pdf'),
+        ),
+        returnsNormally,
+      );
+    });
   });
 
   test('empty bytes are treated as a failure, not a document', () async {

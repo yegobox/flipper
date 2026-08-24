@@ -224,6 +224,13 @@ class DashboardQuickAccessSvgs {
   <path d="M14 17h6M17 14v6" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
 </svg>''';
 
+  static String drawerReceiptModeIcon() =>
+      '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" stroke="#0F766E" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M9 8h6M9 12h6" stroke="#0F766E" stroke-width="1.6" stroke-linecap="round"/>
+</svg>''';
+
   static String drawerSignOutIcon() =>
       '''
 <svg viewBox="0 0 24 24" fill="none" $_xmlns>
