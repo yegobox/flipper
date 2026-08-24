@@ -81,8 +81,11 @@ jobs:
         env:
           SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
         run: |
-          bash scripts/ci/verify_shorebird_token.sh
+          bash "$GITHUB_WORKSPACE/scripts/ci/verify_shorebird_token.sh"
           shorebird --version
+          # shorebird.yaml lives in apps/flipper. The repo root pubspec.yaml is the
+          # melos workspace file and has no flutter assets, so doctor must run in the app dir.
+          cd "$GITHUB_WORKSPACE/apps/flipper"
           shorebird doctor -v
 
       - name: Install Melos

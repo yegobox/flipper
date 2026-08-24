@@ -77,7 +77,9 @@ pubspec_overrides.yaml
 
 .gradle
 android/.gradle
-pubspec.lock
+# Shorebird requires a tracked lockfile so patches resolve the same dependency
+# versions as the release they patch (shorebird doctor flags this otherwise).
+!pubspec.lock
 pubspec_overrides.yaml
 android/.gradle/7.4/executionHistory/executionHistory.bin
 build
