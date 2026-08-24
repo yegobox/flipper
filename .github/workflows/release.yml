@@ -202,7 +202,15 @@ jobs:
           # On main -> deploy to the live channel (serves yegobox-2ee43.web.app
           # AND the connected custom domain flipper.yegobox.com). Other branches
           # get an ephemeral preview channel for QA.
-`ailed with: could not find site "useflipper").
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || format('pr-{0}', github.event.commits.id) }}
+          projectId: yegobox-2ee43
+      - name: Echo Flipper Web URL
+        # The live-channel deploy above publishes to the default `yegobox-2ee43`
+        # Hosting site, which owns BOTH custom domains flipper.yegobox.com AND
+        # useflipper.com (see Firebase Console > Hosting). So this single deploy
+        # already serves useflipper.com — there is no separate `useflipper` site
+        # to target (a stray `jq .hosting.site = "useflipper"` + deploy block was
+        # removed because it failed with: could not find site "useflipper").
         run: echo "Flipper Web app (serves flipper.yegobox.com + useflipper.com) deployed to ${{ steps.deploy_flipper_web.outputs.urls }}"
 
   build_hr_deploy_firebase:
