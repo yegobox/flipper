@@ -26,10 +26,9 @@ mixin PlanMixin on DittoCore {
   bool _ensurePlanReplicationSubscription(String businessId) {
     if (dittoInstance == null) return false;
     if (_planReplicationSubscriptions.contains(businessId)) return false;
-    final prepared = prepareDqlSyncSubscription(
-      _planQuery,
-      {'businessId': businessId},
-    );
+    final prepared = prepareDqlSyncSubscription(_planQuery, {
+      'businessId': businessId,
+    });
     dittoInstance!.sync.registerSubscription(
       prepared.dql,
       arguments: prepared.arguments,
@@ -42,10 +41,9 @@ mixin PlanMixin on DittoCore {
   bool _ensureAddonReplicationSubscription(String planId) {
     if (dittoInstance == null) return false;
     if (_addonReplicationSubscriptions.contains(planId)) return false;
-    final prepared = prepareDqlSyncSubscription(
-      _addonQuery,
-      {'planId': planId},
-    );
+    final prepared = prepareDqlSyncSubscription(_addonQuery, {
+      'planId': planId,
+    });
     dittoInstance!.sync.registerSubscription(
       prepared.dql,
       arguments: prepared.arguments,
@@ -168,22 +166,53 @@ mixin PlanMixin on DittoCore {
   ) {
     if (docs.length == 1) return docs.single;
 
-    debugPrint(
-      '⚠️ getPaymentPlanFromDitto: ${docs.length} plan documents for same '
-      'business; using canonical row (latest nextBillingDate / updatedAt)',
-    );
-
     final sorted = List<Map<String, dynamic>>.from(docs)
       ..sort(_comparePlanDocumentsForCanonical);
-    return sorted.first;
+
+    final chosen = sorted.first;
+    debugPrint(
+      '⚠️ getPaymentPlanFromDitto: ${docs.length} plan documents for same '
+      'business; selected canonical row with payment status '
+      '${chosen['paymentStatus'] ?? chosen['payment_status'] ?? 'unknown'} '
+      'and nextBillingDate ${chosen['nextBillingDate'] ?? chosen['next_billing_date'] ?? 'unknown'}',
+    );
+    return chosen;
+  }
+
+  bool _isPlanPaymentComplete(Map<String, dynamic> doc) {
+    final paymentStatus = (doc['paymentStatus'] ?? doc['payment_status'])
+        ?.toString()
+        .trim()
+        .toUpperCase();
+    final paymentCompletedByUser =
+        doc['paymentCompletedByUser'] == true ||
+        doc['payment_completed_by_user'] == true;
+    final lastPaymentDate =
+        _parseDateTime(doc['lastPaymentDate']) ??
+        _parseDateTime(doc['last_payment_date']);
+
+    return paymentCompletedByUser ||
+        paymentStatus == 'COMPLETED' ||
+        paymentStatus == 'PAID' ||
+        lastPaymentDate != null;
   }
 
   int _comparePlanDocumentsForCanonical(
     Map<String, dynamic> a,
     Map<String, dynamic> b,
   ) {
-    final na = _parseDateTime(a['nextBillingDate']);
-    final nb = _parseDateTime(b['nextBillingDate']);
+    final aComplete = _isPlanPaymentComplete(a);
+    final bComplete = _isPlanPaymentComplete(b);
+    if (aComplete != bComplete) {
+      return aComplete ? -1 : 1;
+    }
+
+    final na =
+        _parseDateTime(a['nextBillingDate']) ??
+        _parseDateTime(a['next_billing_date']);
+    final nb =
+        _parseDateTime(b['nextBillingDate']) ??
+        _parseDateTime(b['next_billing_date']);
     if (na != null && nb != null && na != nb) {
       return nb.compareTo(na);
     }
@@ -191,17 +220,27 @@ mixin PlanMixin on DittoCore {
     if (na == null && nb != null) return 1;
 
     final ua =
-        _parseDateTime(a['updatedAt']) ?? _parseDateTime(a['lastUpdated']);
+        _parseDateTime(a['updatedAt']) ??
+        _parseDateTime(a['lastUpdated']) ??
+        _parseDateTime(a['updated_at']) ??
+        _parseDateTime(a['last_updated']);
     final ub =
-        _parseDateTime(b['updatedAt']) ?? _parseDateTime(b['lastUpdated']);
+        _parseDateTime(b['updatedAt']) ??
+        _parseDateTime(b['lastUpdated']) ??
+        _parseDateTime(b['updated_at']) ??
+        _parseDateTime(b['last_updated']);
     if (ua != null && ub != null && ua != ub) {
       return ub.compareTo(ua);
     }
     if (ua != null && ub == null) return -1;
     if (ua == null && ub != null) return 1;
 
-    final pa = _parseDateTime(a['lastPaymentDate']);
-    final pb = _parseDateTime(b['lastPaymentDate']);
+    final pa =
+        _parseDateTime(a['lastPaymentDate']) ??
+        _parseDateTime(a['last_payment_date']);
+    final pb =
+        _parseDateTime(b['lastPaymentDate']) ??
+        _parseDateTime(b['last_payment_date']);
     if (pa != null && pb != null && pa != pb) {
       return pb.compareTo(pa);
     }
