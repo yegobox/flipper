@@ -3,6 +3,11 @@ import 'package:flipper_models/helperModels/talker.dart' as talker_import;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/PaymentHandler.dart';
+import 'package:flipper_services/dodo/dodo_availability.dart';
+import 'package:flipper_services/dodo/dodo_client.dart';
+import 'package:flipper_services/dodo/dodo_models.dart';
+import 'package:flipper_services/dodo/dodo_subscription.dart';
+import 'package:flipper_services/payment_rail.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flutter/foundation.dart';
@@ -86,6 +91,21 @@ class _FailedPaymentState extends State<FailedPayment>
   /// Matches backend [calculateAccumulatedDueAmount] / MTN validation; null until loaded.
   double? _chargeBaseRwf;
 
+  // ── card rail (Dodo Payments) ─────────────────────────────────────────────
+  //
+  // This screen is where switching rails matters most: a customer whose MoMo
+  // charge keeps failing is exactly the customer a card is for. Everything here
+  // is additive — with the card rail unavailable, `_cardAvailable` stays false,
+  // nothing new renders, and the retry path below is the one that shipped.
+  PaymentRail _rail = PaymentRail.mtnMomo;
+  bool _cardAvailable = false;
+  DodoHealth? _dodoHealth;
+  final TextEditingController _emailController = TextEditingController();
+  String? _emailError;
+  DodoCheckout? _pendingCheckout;
+  bool _cardPollRunning = false;
+  bool _railInitialisedFromPlan = false;
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +142,116 @@ class _FailedPaymentState extends State<FailedPayment>
     _setupPlanSubscription();
     _loadSkipCount();
     _fadeController.forward();
+    _probeCardRail();
+    _prefillBillingEmail();
+  }
+
+  /// Asks the connector whether card payment is sellable here. Never throws:
+  /// an unreachable connector simply means no card option.
+  Future<void> _probeCardRail() async {
+    final health = await dodoRailHealth();
+    if (!_mounted) return;
+    setState(() {
+      _dodoHealth = health;
+      // `readyForThisBuild`, not `ready`: the connector can be ready on live
+      // while the mode this build transacts in has no credentials. Offering
+      // Card then would fail on the first tap.
+      _cardAvailable = health.readyForThisBuild;
+    });
+    _syncRailWithPlan();
+  }
+
+  /// Resume the waiting state when a checkout is already in flight.
+  ///
+  /// Tapping "Pay by card" hands off to the browser, and the OS is free to stop
+  /// or recreate the Flutter view while the customer is on Dodo's page. When
+  /// they come back, `initState` has run fresh — `_waitingForPaymentCompletion`
+  /// is false — so the screen renders as if nothing were pending and shows no
+  /// sign that a payment is being confirmed.
+  ///
+  /// The connector already knows: a `pending` subscription still holding a usable
+  /// payment link *is* an unfinished checkout. Asking it on load is what makes
+  /// the waiting state survive the hand-off.
+  ///
+  /// Deliberately does not resume for a terminal or entitled subscription —
+  /// there is nothing to wait for — and never for the MoMo rail, whose waiting
+  /// state is a bounded five-minute poll with different semantics.
+  Future<void> _resumeCardCheckoutIfPending() async {
+    if (!_cardAvailable || _waitingForPaymentCompletion) return;
+    final planId = _plan?.id;
+    if (planId == null || planId.isEmpty) return;
+    if (!_rail.isCard) return;
+
+    final DodoSubscriptionStatus status;
+    try {
+      // Cheap: the connector answers from its own row, with no Dodo round trip.
+      status = await DodoClient(ProxyService.http).subscriptionForPlan(planId);
+    } catch (e) {
+      // No subscription yet, or the connector is unreachable. Either way there
+      // is nothing to resume, and this must never block the screen.
+      talker.info('No Dodo checkout to resume for plan $planId: $e');
+      return;
+    }
+
+    if (!_mounted || status.entitled) return;
+    final resumable = status.nextAction == DodoNextAction.openPaymentLink ||
+        status.nextAction == DodoNextAction.updatePaymentMethod;
+    if (!resumable || !status.checkout.hasLink) return;
+
+    talker.info(
+      'Resuming an in-flight Dodo checkout for plan $planId '
+      '(${status.status}/${status.nextAction.name})',
+    );
+    setState(() {
+      _waitingForPaymentCompletion = true;
+      _pendingCheckout = status.checkout;
+    });
+    _startCardPolling(planId);
+  }
+
+  /// Preselects the rail the plan is already on.
+  ///
+  /// A customer whose subscription is a Dodo one should land on the card tab —
+  /// asking them to re-pick it every time is how a retry ends up on the wrong
+  /// rail. Runs once, and only towards `card`: [PaymentRail.fromWire] answers
+  /// `mtnMomo` for every legacy value, so this can never move an existing MoMo
+  /// plan anywhere.
+  void _syncRailWithPlan() {
+    if (_railInitialisedFromPlan || !_cardAvailable) return;
+    final plan = _plan;
+    if (plan == null) return;
+    _railInitialisedFromPlan = true;
+    final railFromPlan = PaymentRail.fromWire(plan.paymentMethod);
+    if (railFromPlan.isCard && _rail.isMomo) {
+      setState(() => _rail = railFromPlan);
+    }
+    // Both the rail and the plan are known now, which is what the resume check
+    // needs. Fire-and-forget: it must not delay the screen.
+    unawaited(_resumeCardCheckoutIfPending());
+  }
+
+  Future<void> _prefillBillingEmail() async {
+    try {
+      final business = await ProxyService.strategy.activeBusiness();
+      final email = business?.email?.toString().trim();
+      if (!_mounted || email == null || email.isEmpty || email == 'null') return;
+      if (_emailController.text.trim().isEmpty) {
+        _emailController.text = email;
+      }
+    } catch (e) {
+      talker.warning('Could not prefill the billing email: $e');
+    }
+  }
+
+  /// Loose on purpose — Dodo is the authority on deliverability, and rejecting
+  /// an unusual but valid address here would block a payment for no reason.
+  String? _getEmailError(String value) {
+    final email = value.trim();
+    if (email.isEmpty) return 'An email is required for the card receipt';
+    if (!email.contains('@') || email.startsWith('@') || email.endsWith('@')) {
+      return 'Enter a valid email address';
+    }
+    return null;
   }
 
   Future<void> _loadSkipCount() async {
@@ -376,6 +506,7 @@ class _FailedPaymentState extends State<FailedPayment>
     _mounted = false;
     _subscription?.cancel();
     _phoneNumberController.dispose();
+    _emailController.dispose();
     _shakeController.dispose();
     _fadeController.dispose();
     _pulseController.dispose();
@@ -477,6 +608,7 @@ class _FailedPaymentState extends State<FailedPayment>
         if (needsPhoneInput) _usePhoneNumber = true;
         _initSwitchPlanFromPlan(fetchedPlan);
       });
+      _syncRailWithPlan();
 
       final pid = fetchedPlan?.id;
       if (pid != null) {
@@ -659,8 +791,10 @@ class _FailedPaymentState extends State<FailedPayment>
         title: 'Payment Issue',
         showBack: false,
         actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
-        overlay: const PaymentLoadingOverlay(
-          message: 'Complete payment on your phone…',
+        overlay: PaymentLoadingOverlay(
+          message: _rail.isCard
+              ? 'Complete payment on the card page…'
+              : 'Complete payment on your phone…',
         ),
         children: [
           _buildPaymentWaitingContent(),
@@ -701,10 +835,28 @@ class _FailedPaymentState extends State<FailedPayment>
               isValidating: _isValidatingCode,
             ),
           ),
+        // A customer whose Mobile Money charge keeps failing is exactly who a
+        // card is for, so the choice belongs on this screen — but only when the
+        // connector says the card rail is sellable.
+        if (_plan != null && _cardAvailable)
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: PaymentRailSelector(
+              rail: _rail,
+              enabled: !_isLoading && !_waitingForPaymentCompletion,
+              onChanged: (rail) => setState(() {
+                _rail = rail;
+                _emailError = null;
+                _errorMessage = null;
+              }),
+            ),
+          ),
         if (_plan != null)
           FadeTransition(
             opacity: _fadeAnimation,
-            child: _buildPhoneNumberSection(),
+            child: _rail.isCard
+                ? _buildCardSection()
+                : _buildPhoneNumberSection(),
           ),
         FadeTransition(
           opacity: _fadeAnimation,
@@ -734,8 +886,10 @@ class _FailedPaymentState extends State<FailedPayment>
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: PaymentTokens.blueTint2),
                 ),
-                child: const Icon(
-                  FluentIcons.phone_24_regular,
+                child: Icon(
+                  _rail.isCard
+                      ? FluentIcons.credit_card_person_24_regular
+                      : FluentIcons.phone_24_regular,
                   size: 38,
                   color: PaymentTokens.blue,
                 ),
@@ -745,17 +899,40 @@ class _FailedPaymentState extends State<FailedPayment>
         ),
         const SizedBox(height: 24),
         Text(
-          'Complete Payment on Your Phone',
+          _rail.isCard
+              ? 'Complete Payment on the Card Page'
+              : 'Complete Payment on Your Phone',
           style: PaymentTypography.heroHeadline(),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
         Text(
-          'A payment request has been sent to your MTN Mobile Money.\n'
-          'Open your phone and approve the transaction.',
+          _rail.isCard
+              ? 'Enter your card details on the page that opened.\n'
+                  'This screen updates on its own once the payment goes through.'
+              : 'A payment request has been sent to your MTN Mobile Money.\n'
+                  'Open your phone and approve the transaction.',
           style: PaymentTypography.body(),
           textAlign: TextAlign.center,
         ),
+        if (_rail.isCard && _pendingCheckout?.paymentLink != null) ...[
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => _reopenCheckout(_pendingCheckout!.paymentLink!),
+            icon: const Icon(Icons.open_in_new, size: 18),
+            label: const Text('Reopen payment page'),
+          ),
+        ],
+        // The waiting screen has no back button, so without this a customer who
+        // abandoned the checkout — or whose screen resumed into a stale pending
+        // subscription — would be stuck watching a spinner with no way out.
+        if (_rail.isCard) ...[
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: _stopWaitingForCard,
+            child: const Text('Not now — back to payment options'),
+          ),
+        ],
         const SizedBox(height: 32),
         const SizedBox(
           width: 46,
@@ -979,19 +1156,234 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
+  Widget _buildCardSection() {
+    return PaymentCardCheckoutCard(
+      emailController: _emailController,
+      emailError: _emailError,
+      isTestMode: _dodoHealth?.isTestMode ?? false,
+      discountApplied: _discountAmount > 0,
+      pendingCheckoutLink: _pendingCheckout?.paymentLink,
+      onOpenPendingLink: _pendingCheckout?.paymentLink == null
+          ? null
+          : () => _reopenCheckout(_pendingCheckout!.paymentLink!),
+      onEmailChanged: (_) {
+        if (_emailError != null) setState(() => _emailError = null);
+      },
+    );
+  }
+
+  Future<void> _reopenCheckout(String link) async {
+    final opened = await DodoCardCheckout(DodoClient(ProxyService.http))
+        .openPaymentLink(link);
+    if (!_mounted || opened) return;
+    setState(() {
+      _errorMessage =
+          'Could not open the payment page on this device. Try Mobile Money, '
+          'or finish the payment on a phone or computer with a browser.';
+    });
+  }
+
+  /// The card retry, kept entirely apart from [_retryPayment].
+  ///
+  /// Nothing about the Mobile Money path is reused or reordered here on
+  /// purpose: that path takes consent then pushes a debit and polls MTN, and
+  /// grafting a hosted checkout into it is how you end up breaking the rail
+  /// that works. The two only meet at the `plans` row.
+  Future<void> _startCardRetry(BuildContext context) async {
+    final plan = _plan;
+    if (plan == null) return;
+
+    final emailError = _getEmailError(_emailController.text);
+    if (emailError != null) {
+      setState(() => _emailError = emailError);
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _emailError = null;
+    });
+
+    try {
+      // Carry any plan switch the user made above into the card subscription;
+      // Dodo prices the tier from the catalogue, so the tier has to be right.
+      final effectivePlan = _buildEffectivePlanForRetry();
+      final result = await handleCardPayment(
+        plan: effectivePlan,
+        email: _emailController.text.trim(),
+      );
+
+      if (!_mounted) return;
+
+      switch (result.outcome) {
+        case DodoCheckoutOutcome.entitled:
+          setState(() => _isLoading = false);
+          locator<RouterService>().navigateTo(FlipperAppRoute());
+          return;
+
+        case DodoCheckoutOutcome.resubscribeRequired:
+          setState(() {
+            _isLoading = false;
+            _errorMessage = result.message ??
+                'This subscription has ended. Pick a plan above to start again.';
+          });
+          return;
+
+        case DodoCheckoutOutcome.awaitingPayment:
+        case DodoCheckoutOutcome.needsPaymentMethod:
+          setState(() {
+            _isLoading = false;
+            _waitingForPaymentCompletion = true;
+            _pendingCheckout = result.checkout;
+          });
+          // Longer than the Mobile Money timeout: a card, possibly through a
+          // 3-D Secure step, in a browser the customer had to switch to, is not
+          // a 90-second affair.
+          _paymentTimeoutTimer?.cancel();
+          _paymentTimeoutTimer = Timer(const Duration(minutes: 12), () {
+            if (!_mounted) return;
+            setState(() {
+              _waitingForPaymentCompletion = false;
+              _errorMessage =
+                  'We have not seen the card payment yet. If you completed it, '
+                  'reopen this screen in a moment — it can take a little while '
+                  'to arrive.';
+            });
+          });
+          _startCardPolling(result.planId);
+          return;
+
+        case DodoCheckoutOutcome.couldNotOpenLink:
+          // handleCardPayment raises CardCheckoutUnavailable for this, so this
+          // arm should be unreachable. It still reports, rather than returning
+          // silently: a silent arm here is indistinguishable from a dead button,
+          // which is exactly the failure that is hardest to diagnose.
+          setState(() {
+            _isLoading = false;
+            _pendingCheckout = result.checkout;
+            _errorMessage = result.message ??
+                'Could not open the card payment page on this device. Use the '
+                    'link below, or pay with Mobile Money.';
+          });
+          _reportCardFailure(context, _errorMessage!);
+          return;
+      }
+    } on CardCheckoutUnavailable catch (e) {
+      if (!_mounted) return;
+      setState(() {
+        _isLoading = false;
+        _pendingCheckout = e.checkout ?? _pendingCheckout;
+        _errorMessage = e.message;
+      });
+      _reportCardFailure(context, e.message);
+    } on DodoException catch (e) {
+      if (!_mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.displayMessage;
+      });
+      _reportCardFailure(context, e.displayMessage);
+    } catch (e) {
+      if (!_mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Card payment could not be started: $e';
+      });
+      _reportCardFailure(context, 'Card payment could not be started.');
+    }
+  }
+
+  /// Leave the card waiting state without treating it as a failure.
+  ///
+  /// Nothing is cancelled upstream: the Dodo subscription stays pending and its
+  /// link stays valid, so the customer can finish later and the connector's
+  /// webhook still settles it. This only stops *this screen* waiting.
+  void _stopWaitingForCard() {
+    _paymentTimeoutTimer?.cancel();
+    if (!_mounted) return;
+    setState(() {
+      _waitingForPaymentCompletion = false;
+      _errorMessage = null;
+    });
+  }
+
+  /// Surface a card failure the same way the Mobile Money path does.
+  ///
+  /// Setting `_errorMessage` alone renders a panel that can sit below the fold
+  /// on a long screen, so the only thing the user reliably notices is the shake
+  /// — which reads as "I tapped and it blinked and nothing happened". The
+  /// MoMo arm below has always shown a snackbar; this makes the card arm match.
+  void _reportCardFailure(BuildContext context, String message) {
+    _shakeController.forward().then((_) => _shakeController.reset());
+    talker.error('Card payment failed: $message');
+    if (!mounted) return;
+    showCustomSnackBarUtil(
+      context,
+      message,
+      backgroundColor: PaymentTokens.loss,
+      showCloseButton: true,
+    );
+  }
+
+  /// Waits for the card money to land.
+  ///
+  /// Separate from [_startPaymentCompletionPolling] because the questions are
+  /// different: that one asks MTN about a reference, this one asks the connector
+  /// about a subscription — and forces a read-through to Dodo every few polls,
+  /// so a webhook that never arrives costs seconds rather than the connector's
+  /// whole reconcile interval.
+  Future<void> _startCardPolling(String planId) async {
+    if (_cardPollRunning || planId.isEmpty) return;
+    _cardPollRunning = true;
+
+    final status = await DodoCardCheckout(DodoClient(ProxyService.http))
+        .awaitEntitlement(
+      planId,
+      isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
+    );
+
+    _cardPollRunning = false;
+    if (!_mounted || !_waitingForPaymentCompletion) return;
+
+    _paymentTimeoutTimer?.cancel();
+
+    if (status?.entitled == true) {
+      setState(() => _waitingForPaymentCompletion = false);
+      locator<RouterService>().navigateTo(FlipperAppRoute());
+      return;
+    }
+
+    setState(() {
+      _waitingForPaymentCompletion = false;
+      _errorMessage = status?.lastError ??
+          'The card payment has not come through. Try again, or use Mobile '
+              'Money.';
+    });
+  }
+
   Widget _buildRetryButton(BuildContext context) {
     final retrying = _isLoading && !_waitingForPaymentCompletion;
 
     return Column(
       children: [
         PaymentPrimaryButton(
-          label: 'Try Again',
+          label: _rail.isCard ? 'Pay by card' : 'Try Again',
           loading: retrying,
-          loadingLabel: 'Retrying…',
-          icon: FluentIcons.arrow_sync_20_regular,
+          loadingLabel: _rail.isCard ? 'Opening…' : 'Retrying…',
+          icon: _rail.isCard
+              ? FluentIcons.credit_card_person_20_regular
+              : FluentIcons.arrow_sync_20_regular,
           onPressed: _plan == null || _waitingForPaymentCompletion
               ? null
               : () async {
+                  // The card rail has its own start-and-wait; the Mobile Money
+                  // path below is untouched by it.
+                  if (_rail.isCard) {
+                    await _startCardRetry(context);
+                    return;
+                  }
+
                   setState(() {
                     _isLoading = true;
                     _errorMessage = null;

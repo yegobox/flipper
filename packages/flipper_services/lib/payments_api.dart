@@ -1,7 +1,6 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
 
 /// Base URL for MTN MoMo payment endpoints.
 ///
@@ -10,15 +9,32 @@ import 'package:flutter/foundation.dart';
 /// and gig payments, and credit purchases. The `/v2/api/*` routes there are
 /// wire-compatible with the flipper-turbo ones, so only the host changes.
 ///
-/// Resolution order, matching `FloChatService`:
+/// The card rail (Dodo Payments) shares this base URL — `/api/dodo/*` is served
+/// by the same connector, so a wrong host breaks both rails at once.
 ///
-/// 1. `Ebm.dataConnectorUrl` for the active branch (per-branch override)
-/// 2. `https://data-connector.yegobox.com` in release builds
-/// 3. `http://127.0.0.1:8084` in debug builds
+/// Resolution order:
+///
+/// 1. [setPaymentsApiBaseUrlOverride] (tests, or a build aimed at staging)
+/// 2. `Ebm.dataConnectorUrl` for the active branch (per-branch override)
+/// 3. [kPaymentsApiBaseUrl] — the same host in debug and release
+///
+/// **Debug no longer falls back to localhost.** It used to default to
+/// `http://127.0.0.1:8084`, which silently swallowed every payment call on any
+/// machine without a connector running locally: the request simply never
+/// resolved, so the UI sat on a spinner with nothing in the log. Pointing debug
+/// at the real connector means a dev build behaves like a release one by
+/// default. To work against a local connector, opt in explicitly:
+///
+/// ```dart
+/// setPaymentsApiBaseUrlOverride(kPaymentsApiLocalBaseUrl);
+/// ```
 ///
 /// Never returns a trailing slash, so callers write `'$base/v2/api/payNow'`.
-const String kPaymentsApiProdBaseUrl = 'https://data-connector.yegobox.com';
-const String kPaymentsApiDebugBaseUrl = 'http://127.0.0.1:8084';
+const String kPaymentsApiBaseUrl = 'https://prod.api.yegobox.com';
+
+/// A local connector, for `setPaymentsApiBaseUrlOverride`. Not a default —
+/// see [kPaymentsApiBaseUrl].
+const String kPaymentsApiLocalBaseUrl = 'http://127.0.0.1:8084';
 
 String? _overrideBaseUrl;
 String? _cachedBaseUrl;
@@ -62,7 +78,9 @@ Future<String> _resolve() async {
       talker.warning('Payments API: EBM lookup failed ($e); using the default');
     }
   }
-  return kDebugMode ? kPaymentsApiDebugBaseUrl : kPaymentsApiProdBaseUrl;
+  // Same host in debug and release. See kPaymentsApiBaseUrl for why debug no
+  // longer defaults to localhost.
+  return kPaymentsApiBaseUrl;
 }
 
 String? _normalize(String? raw) {

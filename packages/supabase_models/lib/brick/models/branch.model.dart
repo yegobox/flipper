@@ -104,24 +104,57 @@ class Branch extends OfflineFirstWithSupabaseModel {
   }
 
   factory Branch.fromMap(Map<String, dynamic> map) {
+    // Ditto documents are loosely typed: coordinates and ids can arrive as
+    // strings, so every scalar is coerced instead of downcast.
+    String? parseString(dynamic v) {
+      if (v == null) return null;
+      final s = v.toString();
+      return s.isEmpty ? null : s;
+    }
+
+    num? parseNum(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v;
+      return num.tryParse(v.toString());
+    }
+
+    int? parseInt(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      return int.tryParse(v.toString()) ?? num.tryParse(v.toString())?.toInt();
+    }
+
+    bool parseBool(dynamic v, {bool orElse = false}) {
+      if (v == null) return orElse;
+      if (v is bool) return v;
+      if (v is num) return v != 0;
+      final s = v.toString().toLowerCase();
+      if (s == 'true' || s == '1') return true;
+      if (s == 'false' || s == '0') return false;
+      return orElse;
+    }
+
+    DateTime? parseDt(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString());
+    }
+
     return Branch(
-      id: map['id'] as String,
-      name: map['name'] as String?,
-      serverId: (map['serverId'] ?? map['server_id']) as int?,
-      location: map['location'] as String?,
-      description: map['description'] as String?,
-      businessId: (map['businessId'] ?? map['business_id']) as String?,
-      latitude: map['latitude'],
-      longitude: map['longitude'],
-      isDefault: (map['isDefault'] ?? map['is_default']) as bool? ?? false,
-      isOnline: (map['isOnline'] ?? map['is_online']) as bool? ?? false,
-      active: (map['active']) as bool? ?? false,
-      deletedAt: (map['deletedAt'] ?? map['deleted_at']) != null
-          ? DateTime.tryParse((map['deletedAt'] ?? map['deleted_at']) as String)
-          : null,
-      updatedAt: (map['updatedAt'] ?? map['updated_at']) != null
-          ? DateTime.tryParse((map['updatedAt'] ?? map['updated_at']) as String)
-          : null,
+      id: (map['id'] ?? map['_id'] ?? '').toString(),
+      name: parseString(map['name']),
+      serverId: parseInt(map['serverId'] ?? map['server_id']),
+      location: parseString(map['location']),
+      description: parseString(map['description']),
+      businessId: parseString(map['businessId'] ?? map['business_id']),
+      latitude: parseNum(map['latitude']),
+      longitude: parseNum(map['longitude']),
+      isDefault: parseBool(map['isDefault'] ?? map['is_default']),
+      isOnline: parseBool(map['isOnline'] ?? map['is_online']),
+      active: parseBool(map['active']),
+      deletedAt: parseDt(map['deletedAt'] ?? map['deleted_at']),
+      updatedAt: parseDt(map['updatedAt'] ?? map['updated_at']),
     );
   }
 }

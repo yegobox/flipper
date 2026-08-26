@@ -1359,7 +1359,7 @@ packages:
       path: "../flipper_web"
       relative: true
     source: path
-    version: "1.0.778+1694"
+    version: "1.0.779+1695"
   flowy_svg:
     dependency: "direct overridden"
     description:
