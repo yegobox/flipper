@@ -2,7 +2,7 @@ name: flipper_hr
 description: "Flipper HR — web app served at hr.useflipper.com."
 publish_to: 'none'
 
-version: 1.0.10+11
+version: 1.0.13+14
 
 environment:
   sdk: ^3.9.2

@@ -11,6 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 // Handoff tokens aligned with transactions_details.dart
 abstract final class _SheetColors {
@@ -41,6 +42,9 @@ Future<void> showTransactionActionsSheet({
   required BuildContext context,
   required ITransaction transaction,
   required String referenceLabel,
+  // Line items already loaded by the detail screen; passed on so a locally
+  // built receipt copy does not have to re-read them.
+  List<TransactionItem>? items,
   // Null when the viewer lacks Transactions edit access — the Refund row is
   // then hidden so read-only users cannot trigger a refund.
   VoidCallback? onRefund,
@@ -52,6 +56,7 @@ Future<void> showTransactionActionsSheet({
     builder: (ctx) => _TransactionActionsSheet(
       transaction: transaction,
       referenceLabel: referenceLabel,
+      items: items,
       hostContext: context,
       onRefund: onRefund == null
           ? null
@@ -88,25 +93,35 @@ class _TransactionActionsSheet extends StatelessWidget {
     required this.referenceLabel,
     required this.onRefund,
     required this.hostContext,
+    this.items,
   });
 
   final ITransaction transaction;
   final String referenceLabel;
   final VoidCallback? onRefund;
   final BuildContext hostContext;
+  final List<TransactionItem>? items;
 
   static final _receiptActions = TransactionReceiptActionsService();
 
   Future<void> _runReceiptAction(
     BuildContext sheetContext,
-    Future<void> Function(BuildContext host, ITransaction tx) action,
+    Future<void> Function(
+      BuildContext host,
+      ITransaction tx, {
+      List<TransactionItem>? items,
+    }) action,
   ) async {
     Navigator.of(sheetContext).pop();
-    await action(hostContext, transaction);
+    await action(hostContext, transaction, items: items);
   }
 
   @override
   Widget build(BuildContext context) {
+    // No EBM PDF stored for this sale — the actions still work, they just
+    // produce a locally built customer copy instead of the fiscal receipt.
+    final hasFiscalPdf =
+        (transaction.receiptFileName ?? '').trim().isNotEmpty;
     final refunded = isTransactionRefunded(transaction);
     final blockReason = refundBlockReason(transaction);
     final refundAllowed = blockReason == null;
@@ -134,7 +149,9 @@ class _TransactionActionsSheet extends StatelessWidget {
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.share(),
                   title: 'Share receipt',
-                  subtitle: 'Send via WhatsApp, SMS or email',
+                  subtitle: hasFiscalPdf
+                      ? 'Send via WhatsApp, SMS or email'
+                      : 'Send a sale copy via WhatsApp, SMS or email',
                   onTap: () => _runReceiptAction(
                     context,
                     _receiptActions.shareReceipt,
@@ -143,7 +160,9 @@ class _TransactionActionsSheet extends StatelessWidget {
                 _ActionRow(
                   iconSvg: TransactionDetailSvgs.download(),
                   title: 'Download PDF',
-                  subtitle: 'Save a copy of this receipt',
+                  subtitle: hasFiscalPdf
+                      ? 'Save a copy of this receipt'
+                      : 'Save this sale as a PDF copy',
                   onTap: () => _runReceiptAction(
                     context,
                     _receiptActions.downloadReceipt,

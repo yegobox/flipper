@@ -25,6 +25,11 @@ class FakeHrBillingRepository implements HrBillingRepository {
 
   final List<String?> accessReads = [];
   final List<Map<String, Object?>> starts = [];
+  final List<String> skips = [];
+
+  /// What `skipPayment` returns on success. Defaults to a fresh
+  /// [skippedState] so a test doesn't have to set it up unless it cares.
+  HrAccessState? skipResult;
 
   @override
   Future<HrAccessState> fetchAccessState({String? businessId}) async {
@@ -59,6 +64,13 @@ class FakeHrBillingRepository implements HrBillingRepository {
     if (failure != null) throw failure!;
     return startResult ??
         const HrSubscriptionStart(planId: 'plan-1', amountRwf: 350000);
+  }
+
+  @override
+  Future<HrAccessState> skipPayment({required String businessId}) async {
+    skips.add(businessId);
+    if (failure != null) throw failure!;
+    return skipResult ?? skippedState();
   }
 }
 
@@ -110,14 +122,34 @@ HrAccessState entitledState({DateTime? validUntil}) => HrAccessState(
   validUntil: validUntil ?? DateTime.now().add(const Duration(days: 20)),
 );
 
-HrAccessState unpaidState({DateTime? validUntil, String? paymentStatus}) =>
-    HrAccessState(
-      status: validUntil == null
-          ? HrAccessStatus.needsSetup
-          : HrAccessStatus.needsPayment,
-      businessId: 'biz-1',
-      planId: validUntil == null ? null : 'plan-1',
-      slug: 'basic',
-      paymentStatus: paymentStatus,
-      validUntil: validUntil,
-    );
+HrAccessState unpaidState({
+  DateTime? validUntil,
+  String? paymentStatus,
+  int skipsUsed = 0,
+  int maxPaymentSkips = 2,
+}) => HrAccessState(
+  status: validUntil == null
+      ? HrAccessStatus.needsSetup
+      : HrAccessStatus.needsPayment,
+  businessId: 'biz-1',
+  planId: validUntil == null ? null : 'plan-1',
+  slug: 'basic',
+  paymentStatus: paymentStatus,
+  validUntil: validUntil,
+  skipsUsed: skipsUsed,
+  maxPaymentSkips: maxPaymentSkips,
+);
+
+/// Unpaid, but let in on one of the business's limited skips.
+HrAccessState skippedState({
+  int skipsUsed = 1,
+  int maxPaymentSkips = 2,
+  DateTime? skipExpiresAt,
+}) => HrAccessState(
+  status: HrAccessStatus.skipped,
+  businessId: 'biz-1',
+  slug: 'basic',
+  skipsUsed: skipsUsed,
+  maxPaymentSkips: maxPaymentSkips,
+  skipExpiresAt: skipExpiresAt ?? DateTime.now().add(const Duration(days: 30)),
+);

@@ -28,6 +28,7 @@ import 'package:flipper_services/momo/momo_client.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
@@ -1156,6 +1157,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       '[sale_completion_timing] agent_commission_ms=${commSw.elapsedMilliseconds} '
       'has_hints=$hasAgentCommissionHints',
     );
+
+    // The pending cart was minted with whatever sale mode was active when it
+    // was created (and older carts were minted as "TS" unconditionally).
+    // Re-resolve it here so the persisted code matches what this completion
+    // actually reports to EBM — a normal sale must never land as TS/PS.
+    // Refund/copy/cash-book codes are authored deliberately, so leave those.
+    final storedReceiptType = (transaction.receiptType ?? '').trim();
+    if (storedReceiptType.isEmpty ||
+        pendingSaleReceiptTypes.contains(storedReceiptType)) {
+      transaction.receiptType =
+          getFilterType(transactionType: storedReceiptType).name;
+    }
 
     final markSw = Stopwatch()..start();
     final now = DateTime.now();

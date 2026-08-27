@@ -4,7 +4,8 @@ import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
-// 
+
+//
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
@@ -984,3 +985,7 @@ class App {}
 
 //  report_service
 // plu_report
+// rm -rf ~/Library/Developer/Xcode/DerivedData/*
+// rm -rf ~/.gradle/caches
+// rm -rf /Users/richard/Developer/yego-project/flipper/open-sources/turso_dart/rust/target
+// rm -rf /private/tmp/claude-501

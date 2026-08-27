@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -1321,9 +1322,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         branchId: branchId,
         createdAt: now,
         shiftId: shiftId,
-        receiptType: isExpense
-            ? "NS"
-            : "TS", // Simplified logic, adjust as needed
+        // Normal Sale unless the operator turned on Proforma/Training mode.
+        // This used to hardcode "TS" for sales, which tagged every sale as a
+        // training receipt and blocked sharing/printing it. Proforma/Training
+        // are *sale* modes, so an expense stays NS either way.
+        receiptType:
+            isExpense ? TransactionReceptType.NS : defaultSaleReceiptType(),
       );
 
       await ditto.store.execute(

@@ -53,6 +53,14 @@ class SupabaseHrBillingRepository implements HrBillingRepository {
     return HrSubscriptionStart.fromJson(raw);
   }
 
+  @override
+  Future<HrAccessState> skipPayment({required String businessId}) async {
+    final raw = await _rpc('hr_skip_payment', {
+      'p_business_id': businessId,
+    }, 'Could not skip this payment.');
+    return HrAccessState.fromJson(raw);
+  }
+
   Future<Map<String, dynamic>> _rpc(
     String function,
     Map<String, dynamic> params,

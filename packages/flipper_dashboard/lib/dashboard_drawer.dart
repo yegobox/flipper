@@ -28,6 +28,7 @@ import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:flipper_dashboard/widgets/mobile_sale_mode_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class DashboardDrawer extends ConsumerStatefulWidget {
@@ -42,6 +43,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
   String? _switchingBranchId;
   bool userLoggingEnabled = false;
   bool backgroundSyncEnabled = false;
+  SaleMode saleMode = SaleMode.normal;
 
   Future<Map<String, dynamic>?> _fetchProfileRow() async {
     final userId = ProxyService.box.getUserId()?.trim();
@@ -97,6 +99,7 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
   void initState() {
     super.initState();
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
+    saleMode = currentSaleMode();
     backgroundSyncEnabled =
         ProxyService.box.readBool(key: 'background_sync_enabled') ?? false;
 
@@ -564,6 +567,19 @@ class _DashboardDrawerState extends ConsumerState<DashboardDrawer>
                   ),
                 ),
               );
+            },
+          ),
+          const SizedBox(height: 12),
+          // Desktop exposes these as Training/Proforma switches in System
+          // Config; mobile had no way to reach them at all.
+          _ModernMenuRow(
+            iconSvg: DashboardQuickAccessSvgs.drawerReceiptModeIcon(),
+            title: 'Sale mode',
+            subtitle: saleModeLabel(saleMode),
+            onTap: () async {
+              final selected = await showMobileSaleModeSheet(context);
+              if (!mounted) return;
+              setState(() => saleMode = selected);
             },
           ),
           const SizedBox(height: 12),

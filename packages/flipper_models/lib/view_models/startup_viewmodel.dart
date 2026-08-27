@@ -40,7 +40,29 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   // Track last user activity to avoid interrupting active users
   DateTime? _lastUserActivity;
-  static const Duration _userActivityThreshold = Duration(minutes: 5);
+
+  /// How recently the user must have interacted for a *background* payment
+  /// verification to hold off on navigating (see `PaymentVerificationNavigator`).
+  ///
+  /// In debug this is deliberately shorter than the verification interval.
+  /// `updateUserActivity()` fires on every tap anywhere in the app, so with the
+  /// production 5-minute threshold and the 2-minute debug interval, every
+  /// periodic check lands inside the window and the paywall can never appear
+  /// while a developer is using the app — 2 < 5, so it is not a timing race but
+  /// a structural impossibility. 30s < 2min makes the paywall reachable again.
+  ///
+  /// Release behaviour is unchanged: mid-sale interruption is still prevented,
+  /// and `_criticalRoutes` guards the checkout screens independently.
+  static const Duration _userActivityThreshold = kDebugMode
+      ? Duration(seconds: 30)
+      : Duration(minutes: 5);
+
+  /// How often background payment verification runs.
+  ///
+  /// Must stay **longer** than [_userActivityThreshold] — see the assert in
+  /// [runStartupLogic]. Debug polls often so a lapse is visible while working;
+  /// release polls rarely because the realtime plan watch is the real mechanism.
+  static const int _verificationIntervalMinutes = kDebugMode ? 2 : 240;
   bool _isInitialStartup = true;
   bool _hasRetriedAfterTimeout = false;
   double _progress = 0.0;
@@ -122,8 +144,22 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // one — and keeps trading for up to four hours after a subscription
       // lapses. The realtime watch below reacts to the plan row itself, so the
       // timer only has to cover devices that were offline when it changed.
+      // The paywall is only reachable if a verification can land OUTSIDE the
+      // activity window. `updateUserActivity()` fires on every tap, so if the
+      // threshold were >= the interval, every periodic check would be skipped
+      // as "user recently active" and a lapsed subscription would trade
+      // indefinitely. That inversion shipped once; this stops it silently
+      // returning.
+      assert(
+        _userActivityThreshold <
+            const Duration(minutes: _verificationIntervalMinutes),
+        'payment verification interval ($_verificationIntervalMinutes min) must exceed '
+        'the user-activity threshold ($_userActivityThreshold), or '
+        'PaymentVerificationNavigator skips every periodic check and the paywall '
+        'can never appear',
+      );
       _paymentVerificationService.startPeriodicVerification(
-        intervalMinutes: kDebugMode ? 2 : 240,
+        intervalMinutes: _verificationIntervalMinutes,
       );
       unawaited(_paymentVerificationService.startRealtimeVerification());
 

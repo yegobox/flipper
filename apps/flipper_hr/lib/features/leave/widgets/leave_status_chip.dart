@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
+import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flutter/material.dart';
 
 /// Colour-coded request status pill.
@@ -13,30 +14,12 @@ class LeaveStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final (Color fg, Color bg) = switch (status) {
-      LeaveStatus.approved => (scheme.primary, scheme.primaryContainer),
-      LeaveStatus.pending => (scheme.tertiary, scheme.tertiaryContainer),
-      LeaveStatus.rejected => (scheme.onErrorContainer, scheme.errorContainer),
-      LeaveStatus.cancelled => (
-        scheme.onSurfaceVariant,
-        scheme.surfaceContainerHighest,
-      ),
+    final tone = switch (status) {
+      LeaveStatus.approved => HrTone.positive,
+      LeaveStatus.pending => HrTone.warning,
+      LeaveStatus.rejected => HrTone.danger,
+      LeaveStatus.cancelled => HrTone.neutral,
     };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        status.label,
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: fg,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+    return HrPill(label: status.label, tone: tone);
   }
 }

@@ -473,7 +473,7 @@ class _SidebarAccountFooter extends ConsumerWidget {
         child: collapsed
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 6),
                   child: _CircleAvatar(label: identity.initials, radius: 16),
                 ),
               )
@@ -652,7 +652,7 @@ class _IconAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(HrTokens.radiusSm),
           hoverColor: HrTokens.surface2,
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             child: Icon(icon, size: 20, color: HrTokens.ink2),
           ),
         ),
@@ -772,7 +772,7 @@ class _AccountButton extends ConsumerWidget {
         onSignOut: onSignOut,
         offset: const Offset(0, 40),
         child: Padding(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(6),
           child: _CircleAvatar(
             key: const Key('hr-account-avatar'),
             label: identity.initials,

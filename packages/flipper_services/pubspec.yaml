@@ -7,6 +7,20 @@ repository: https://github.com/yegobox/packages
 environment:
   sdk: '>=3.10.4 <4.0.0'
 
+# Link against the SQLite that ships with the OS instead of downloading a
+# prebuilt one.
+#
+# `sqlite3`'s build hook otherwise fetches a dylib from github.com on every
+# fresh `.dart_tool`, and that download is a hard dependency of the *test*
+# runner: on a machine or CI runner that cannot reach GitHub, `flutter test`
+# fails to start at all — no test in this package runs, whether or not it
+# touches a database. macOS, iOS and Android all ship libsqlite3, so pointing at
+# the system copy removes the network from the critical path.
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+
 dependencies:
   flutter:
     sdk: flutter

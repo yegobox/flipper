@@ -2,6 +2,7 @@ import 'package:flipper_hr/features/billing/application/hr_billing_providers.dar
 import 'package:flipper_hr/features/billing/application/hr_subscription_controller.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/data/hr_msisdn.dart';
+import 'package:flipper_hr/features/billing/presentation/hr_skip_payment_action.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
@@ -153,6 +154,11 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
                           .read(hrSubscriptionControllerProvider.notifier)
                           .reset(),
                       ),
+                      if (payment.stage == HrPaymentStage.idle)
+                        HrSkipPaymentAction(
+                          businessId: businessId,
+                          access: access,
+                        ),
                     ],
                   ),
                 ),

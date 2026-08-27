@@ -180,9 +180,16 @@ mixin CapellaBranchMixin implements BranchInterface {
         arguments: arguments,
       );
 
-      final branches = result.items
-          .map((doc) => Branch.fromMap(Map<String, dynamic>.from(doc.value)))
-          .toList();
+      // Decode per document: a single malformed doc must not wipe out the
+      // whole list and stall startup on "no branches saved locally".
+      final branches = <Branch>[];
+      for (final doc in result.items) {
+        try {
+          branches.add(Branch.fromMap(Map<String, dynamic>.from(doc.value)));
+        } catch (e) {
+          talker.warning('Skipping unparsable branch document: $e');
+        }
+      }
 
       if (branches.isEmpty &&
           !localOnly &&
