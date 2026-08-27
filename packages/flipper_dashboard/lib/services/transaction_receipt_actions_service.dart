@@ -116,7 +116,7 @@ class TransactionReceiptActionsService {
       _hideProgress(context);
       if (!context.mounted) return;
 
-      final filename = _pdfFilename(transaction);
+      final filename = _pdfFilename(transaction, fiscal: resolved.fiscal);
 
       switch (mode) {
         case _ReceiptPresentationMode.share:
@@ -347,8 +347,11 @@ class TransactionReceiptActionsService {
     return parts.isEmpty ? path : parts.last;
   }
 
-  String _pdfFilename(ITransaction transaction) {
-    final stored = transaction.receiptFileName?.trim();
+  /// The stored name belongs to the EBM-signed PDF, so only a fiscal document
+  /// may reuse it — a locally built copy under that name looks like the signed
+  /// receipt on disk.
+  String _pdfFilename(ITransaction transaction, {required bool fiscal}) {
+    final stored = fiscal ? transaction.receiptFileName?.trim() : null;
     if (stored != null && stored.isNotEmpty) {
       return stored.toLowerCase().endsWith('.pdf') ? stored : '$stored.pdf';
     }

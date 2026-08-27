@@ -201,12 +201,6 @@ mixin PlanMixin on DittoCore {
     Map<String, dynamic> a,
     Map<String, dynamic> b,
   ) {
-    final aComplete = _isPlanPaymentComplete(a);
-    final bComplete = _isPlanPaymentComplete(b);
-    if (aComplete != bComplete) {
-      return aComplete ? -1 : 1;
-    }
-
     final na =
         _parseDateTime(a['nextBillingDate']) ??
         _parseDateTime(a['next_billing_date']);
@@ -243,6 +237,16 @@ mixin PlanMixin on DittoCore {
         _parseDateTime(b['last_payment_date']);
     if (pa != null && pb != null && pa != pb) {
       return pb.compareTo(pa);
+    }
+
+    // Payment completeness is the *last* word, not the first: a paid row from a
+    // previous cycle must never outrank a newer unpaid one, or the device keeps
+    // trusting a stale "paid" document. It only breaks ties between rows that
+    // are otherwise equally recent.
+    final aComplete = _isPlanPaymentComplete(a);
+    final bComplete = _isPlanPaymentComplete(b);
+    if (aComplete != bComplete) {
+      return aComplete ? -1 : 1;
     }
     return 0;
   }

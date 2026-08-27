@@ -37,16 +37,23 @@ class _HrSkipPaymentActionState extends ConsumerState<HrSkipPaymentAction> {
       _error = null;
     });
 
+    // Only a failed *skip* is the user's problem. Once the server has recorded
+    // it, a refresh that then trips must not be reported as "could not skip" —
+    // that reads as no skip spent when one already was.
+    var skipped = false;
     try {
       await ref
           .read(hrBillingRepositoryProvider)
           .skipPayment(businessId: widget.businessId);
+      skipped = true;
       ref.invalidate(hrAccessStateProvider(widget.businessId));
       await ref.read(hrAccessStateProvider(widget.businessId).future);
     } on HrBillingException catch (e) {
-      if (mounted) setState(() => _error = e.message);
+      if (!skipped && mounted) setState(() => _error = e.message);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not skip this payment: $e');
+      if (!skipped && mounted) {
+        setState(() => _error = 'Could not skip this payment: $e');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

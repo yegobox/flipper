@@ -1324,8 +1324,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         shiftId: shiftId,
         // Normal Sale unless the operator turned on Proforma/Training mode.
         // This used to hardcode "TS" for sales, which tagged every sale as a
-        // training receipt and blocked sharing/printing it.
-        receiptType: defaultSaleReceiptType(),
+        // training receipt and blocked sharing/printing it. Proforma/Training
+        // are *sale* modes, so an expense stays NS either way.
+        receiptType:
+            isExpense ? TransactionReceptType.NS : defaultSaleReceiptType(),
       );
 
       await ditto.store.execute(

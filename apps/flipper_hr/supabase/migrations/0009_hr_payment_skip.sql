@@ -107,6 +107,13 @@ begin
     into v_max, v_days
     from public.hr_billing_settings where id;
 
+  -- Serialise concurrent skips for the *same* business: without this, two
+  -- calls can both count v_used = v_max - 1 and both insert, spending one
+  -- skip more than the cap allows. Transaction-scoped, so it is released on
+  -- commit/rollback, and keyed on the business, so other businesses are
+  -- unaffected.
+  perform pg_advisory_xact_lock(hashtextextended(v_business, 0));
+
   select count(*)::integer into v_used
     from public.hr_payment_skips
    where business_id::text = v_business;

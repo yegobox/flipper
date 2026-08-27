@@ -256,13 +256,21 @@ mixin PaymentHandler {
       );
     }
 
+    final selectedPlan = plan.selectedPlan;
+    if (selectedPlan == null || selectedPlan.isEmpty) {
+      throw CardCheckoutUnavailable(
+        'This subscription has no plan selected yet, so it cannot be paid. '
+        'Reopen the plan screen, pick a plan and try again.',
+      );
+    }
+
     // Row before request, as on the MoMo rail: if the start call or the browser
     // hand-off dies, the plan already records which rail was chosen, so support
     // can see what the customer was doing. The price is untouched on purpose —
     // this writes the rail, not a new amount.
     await ProxyService.strategy.saveOrUpdatePaymentPlan(
       businessId: business.id,
-      selectedPlan: plan.selectedPlan!,
+      selectedPlan: selectedPlan,
       planTemplateId: plan.planTemplateId,
       additionalDevices: plan.additionalDevices ?? 0,
       isYearlyPlan: plan.isYearlyPlan ?? false,
@@ -283,7 +291,7 @@ mixin PaymentHandler {
       planId: planId,
       branchId: plan.branchId ?? ProxyService.box.getBranchId(),
       planTemplateId: plan.planTemplateId,
-      selectedPlan: plan.selectedPlan,
+      selectedPlan: selectedPlan,
       addons: plan.addons
               ?.map((addon) => addon.addonName)
               .whereType<String>()

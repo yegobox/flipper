@@ -142,7 +142,9 @@ class Branch extends OfflineFirstWithSupabaseModel {
     }
 
     return Branch(
-      id: (map['id'] ?? map['_id'] ?? '').toString(),
+      // Leave a missing id null so the constructor mints a fresh UUID; ''
+      // would be a shared, non-unique id across every id-less map.
+      id: (map['id'] ?? map['_id'])?.toString(),
       name: parseString(map['name']),
       serverId: parseInt(map['serverId'] ?? map['server_id']),
       location: parseString(map['location']),

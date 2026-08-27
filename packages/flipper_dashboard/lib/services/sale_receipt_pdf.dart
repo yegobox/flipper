@@ -105,7 +105,9 @@ class SaleReceiptPdf {
             logoSvg: logoSvg,
             issuer: issuer,
             title: isExpense ? 'Expense record' : 'Sale receipt',
-            copy: fiscalReceipt == null,
+            // Always a copy: this builder only ever renders local data, even
+            // when EBM details are available to quote.
+            copy: true,
           ),
           pw.SizedBox(height: 18),
           _metaBlock(
@@ -176,8 +178,10 @@ class SaleReceiptPdf {
                 ? 'Customer copy generated from Flipper records on '
                     '${DateFormat('dd MMM yyyy HH:mm').format((generatedAt ?? DateTime.now()).toLocal())}. '
                     'This document is not an EBM fiscal receipt.'
-                : 'Reprint of the EBM receipt signed for this sale. '
-                    'Generated ${DateFormat('dd MMM yyyy HH:mm').format((generatedAt ?? DateTime.now()).toLocal())}.',
+                : 'Customer copy generated from Flipper records on '
+                    '${DateFormat('dd MMM yyyy HH:mm').format((generatedAt ?? DateTime.now()).toLocal())}, '
+                    'with the EBM details recorded for this sale copied above. '
+                    'This document is not the EBM-signed receipt.',
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
         ],
