@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,43 @@ void _hideBlockingLoader(
   if (nav.canPop()) nav.pop();
 }
 
+/// Offers "sign out anyway" when the shift could not be verified or closed.
+///
+/// Blocking sign-out on a shift failure is worse than leaving a shift open:
+/// it strands the previous agent's session on a shared device, which is the
+/// exact thing tapping Sign out was meant to prevent — and on a flaky mobile
+/// connection [_kGetCurrentShiftTimeout] fires often enough that sign-out can
+/// become unreachable. An open shift is recoverable (it stays in the ledger and
+/// can be closed on the next sign in); a session that refuses to end is not.
+///
+/// A user *switch* keeps the hard block: aborting it drops back into a working
+/// session, so there is nothing to strand.
+Future<bool> _confirmExitWithoutClosingShift({
+  required BuildContext context,
+  required String title,
+  required String description,
+}) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    useRootNavigator: true,
+    builder: (ctx) => AlertDialog(
+      title: Text(title),
+      content: SingleChildScrollView(child: Text(description)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Sign out anyway'),
+        ),
+      ],
+    ),
+  );
+  return confirmed == true;
+}
+
 double _parseClosingBalance(dynamic raw) {
   if (raw is num) return raw.toDouble();
   if (raw is String) return double.tryParse(raw) ?? 0.0;
@@ -73,7 +111,13 @@ double _parseClosingBalance(dynamic raw) {
 /// that dialog so the confirmation never appears.
 ///
 /// Returns `true` if the caller should proceed to login / complete logout.
-/// Returns `false` if the user cancelled or an error blocked leaving.
+/// Returns `false` only when the user chose to stay — or, for [forUserSwitch],
+/// when the shift could not be verified or closed.
+///
+/// A failure to verify or close a shift never silently cancels a *sign-out*:
+/// the user is offered "Sign out anyway", because a session that cannot be
+/// ended leaves the previous agent signed in on a shared device. Choosing it
+/// leaves the shift open (recoverable on the next sign in) and logs a warning.
 Future<bool> prepareSessionExitAfterShiftHandling({
   required BuildContext context,
   required DialogService dialogService,
@@ -108,18 +152,32 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     if (currentShift != null) {
       // Only close a shift owned by the signed-in agent.
       if (currentShift.userId != userId) {
-        if (context.mounted) {
+        if (!context.mounted) return false;
+        if (forUserSwitch) {
           await dialogService.showCustomDialog(
             variant: DialogType.info,
             title: 'Cannot close shift',
-            description: forUserSwitch
-                ? 'The open shift belongs to another user. Ask that agent '
-                    'to close their shift first, then try switching again.'
-                : 'The open shift belongs to another user. Sign out without '
-                    'closing it, or ask that agent to close their shift first.',
+            description: 'The open shift belongs to another user. Ask that '
+                'agent to close their shift first, then try switching again.',
+          );
+          return false;
+        }
+        // The old copy already told the user they could "sign out without
+        // closing it" — but the code returned false, so they could not.
+        final proceed = await _confirmExitWithoutClosingShift(
+          context: context,
+          title: 'Shift belongs to another user',
+          description: 'The open shift was started by another agent, so it '
+              'cannot be closed from here.\n\nYou can still sign out. The '
+              'shift stays open for that agent to close.',
+        );
+        if (proceed) {
+          talker.warning(
+            'Signing out with shift ${currentShift.id} left open '
+            '(owned by ${currentShift.userId}, not $userId)',
           );
         }
-        return false;
+        return proceed;
       }
 
       final cashSales = currentShift.cashSales ?? 0.0;
@@ -164,14 +222,28 @@ Future<bool> prepareSessionExitAfterShiftHandling({
           note: notes,
         );
       } catch (e) {
-        if (context.mounted) {
+        if (!context.mounted) return false;
+        if (forUserSwitch) {
           await dialogService.showCustomDialog(
             variant: DialogType.info,
             title: 'Could not close shift',
             description: e.toString(),
           );
+          return false;
         }
-        return false;
+        final proceed = await _confirmExitWithoutClosingShift(
+          context: context,
+          title: 'Could not close shift',
+          description: 'The shift could not be closed:\n\n$e\n\nYou can '
+              'sign out anyway. The shift stays open and can be closed the '
+              'next time you sign in.',
+        );
+        if (proceed) {
+          talker.warning(
+            'Signing out with shift ${currentShift.id} left open: $e',
+          );
+        }
+        return proceed;
       }
 
       if (context.mounted) {
@@ -227,37 +299,78 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     }
     return true;
   } on TimeoutException catch (e) {
-    if (context.mounted) {
-      if (!forUserSwitch) {
-        _hideBlockingLoader(
-          context,
-          rootNavigator: loaderUseRootNavigator,
-        );
-      }
-      await dialogService.showCustomDialog(
-        variant: DialogType.info,
-        title: 'Could not verify shift',
-        description:
-            'This is taking too long. Check your connection and try again.\n\n$e',
-      );
-    }
-    return false;
+    return _handleShiftVerificationFailure(
+      context: context,
+      dialogService: dialogService,
+      forUserSwitch: forUserSwitch,
+      loaderUseRootNavigator: loaderUseRootNavigator,
+      userId: userId,
+      blockedDescription:
+          'This is taking too long. Check your connection and try again.\n\n$e',
+      signOutAnywayDescription:
+          'Checking your shift is taking too long — you may be offline.\n\n'
+          'You can sign out anyway. Any open shift stays open and can be '
+          'closed the next time you sign in.',
+      logDetail: 'timed out: $e',
+    );
   } catch (e) {
-    if (context.mounted) {
-      if (!forUserSwitch) {
-        _hideBlockingLoader(
-          context,
-          rootNavigator: loaderUseRootNavigator,
-        );
-      }
-      await dialogService.showCustomDialog(
-        variant: DialogType.info,
-        title: 'Could not verify shift',
-        description:
-            'Please try again. If the problem continues, check your connection.\n\n$e',
-      );
-    }
+    return _handleShiftVerificationFailure(
+      context: context,
+      dialogService: dialogService,
+      forUserSwitch: forUserSwitch,
+      loaderUseRootNavigator: loaderUseRootNavigator,
+      userId: userId,
+      blockedDescription:
+          'Please try again. If the problem continues, check your connection.\n\n$e',
+      signOutAnywayDescription:
+          'Your shift could not be checked:\n\n$e\n\nYou can sign out '
+          'anyway. Any open shift stays open and can be closed the next time '
+          'you sign in.',
+      logDetail: 'failed: $e',
+    );
+  }
+}
+
+/// Shared tail for the two "could not verify the shift" handlers.
+///
+/// A switch-user attempt still hard-stops (it falls back into a live session);
+/// a sign-out offers the escape hatch, because refusing it is what leaves the
+/// device signed in as the previous agent.
+Future<bool> _handleShiftVerificationFailure({
+  required BuildContext context,
+  required DialogService dialogService,
+  required bool forUserSwitch,
+  required bool loaderUseRootNavigator,
+  required String userId,
+  required String blockedDescription,
+  required String signOutAnywayDescription,
+  required String logDetail,
+}) async {
+  if (!context.mounted) return false;
+  if (!forUserSwitch) {
+    _hideBlockingLoader(context, rootNavigator: loaderUseRootNavigator);
+  }
+  if (!context.mounted) return false;
+
+  if (forUserSwitch) {
+    await dialogService.showCustomDialog(
+      variant: DialogType.info,
+      title: 'Could not verify shift',
+      description: blockedDescription,
+    );
     return false;
   }
+
+  final proceed = await _confirmExitWithoutClosingShift(
+    context: context,
+    title: 'Could not verify shift',
+    description: signOutAnywayDescription,
+  );
+  if (proceed) {
+    talker.warning(
+      'Signing out $userId without verifying the shift — lookup $logDetail',
+    );
+  }
+  return proceed;
 }
 
