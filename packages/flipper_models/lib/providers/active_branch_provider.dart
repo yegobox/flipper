@@ -24,6 +24,11 @@ bool _branchIdentityChanged(Branch? a, Branch b) {
 Stream<Branch> activeBranch(Ref ref) async* {
   Branch? lastYielded;
   String? trackedBranchId;
+  // A previous attempt that timed out but is still running in the
+  // background (Future.timeout races a timer, it never cancels the
+  // original call). Re-awaited on the next loop turn instead of starting
+  // a duplicate query, so a hung lookup can't pile up concurrent calls.
+  Future<Branch>? pendingFetch;
 
   while (true) {
     final branchId = ProxyService.box.getBranchId();
@@ -41,17 +46,29 @@ Stream<Branch> activeBranch(Ref ref) async* {
     if (trackedBranchId != branchId) {
       trackedBranchId = branchId;
       lastYielded = null;
+      pendingFetch = null;
     }
 
+    pendingFetch ??=
+        ProxyService.getStrategy(Strategy.capella).activeBranch(
+      branchId: branchId,
+    );
+
     try {
-      final branch = await ProxyService.getStrategy(Strategy.capella)
-          .activeBranch(branchId: branchId)
-          .timeout(const Duration(seconds: 5));
+      final branch = await pendingFetch.timeout(const Duration(seconds: 5));
+      pendingFetch = null;
       if (_branchIdentityChanged(lastYielded, branch)) {
         lastYielded = branch;
         yield branch;
       }
     } catch (error, stackTrace) {
+      if (error is! TimeoutException) {
+        // The original call itself failed, so it's done: safe to issue a
+        // fresh one next turn. On a plain TimeoutException, pendingFetch is
+        // still running and is kept so the next turn re-awaits it instead.
+        pendingFetch = null;
+      }
+
       print('Error fetching active branch: $error');
       print('Stack trace: $stackTrace');
 
