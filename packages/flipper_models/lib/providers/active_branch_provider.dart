@@ -44,9 +44,9 @@ Stream<Branch> activeBranch(Ref ref) async* {
     }
 
     try {
-      final branch = await ProxyService.getStrategy(Strategy.capella).activeBranch(
-        branchId: branchId,
-      );
+      final branch = await ProxyService.getStrategy(Strategy.capella)
+          .activeBranch(branchId: branchId)
+          .timeout(const Duration(seconds: 5));
       if (_branchIdentityChanged(lastYielded, branch)) {
         lastYielded = branch;
         yield branch;
