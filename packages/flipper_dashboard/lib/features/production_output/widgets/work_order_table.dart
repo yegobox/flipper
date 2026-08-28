@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
 import '../models/production_output_models.dart';
+import '../../stock_recount/stock_recount_tokens.dart';
+import '../../stock_recount/stock_recount_icons.dart';
+import '../../stock_recount/stock_recount_helpers.dart';
 
 /// SAP Fiori-inspired Responsive Table widget (ALV-style)
 ///
@@ -310,16 +313,36 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_outlined, size: 48, color: Colors.grey[300]),
-          const SizedBox(height: 16),
+          Container(
+            width: 92,
+            height: 92,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  StockRecountTokens.accentTint2,
+                  StockRecountTokens.accentTint,
+                ],
+              ),
+            ),
+            child: StockRecountIcons.box(
+              size: 40,
+              color: StockRecountTokens.accent,
+            ),
+          ),
+          const SizedBox(height: 22),
           Text(
             'No work orders found',
-            style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+            style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'Create a work order to start tracking production',
-            style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+            textAlign: TextAlign.center,
+            style: StockRecountHelpers.text(
+              size: 14.5,
+              color: StockRecountTokens.ink3,
+            ),
           ),
         ],
       ),

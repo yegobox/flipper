@@ -4,6 +4,9 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import '../../stock_recount/stock_recount_tokens.dart';
+import '../../stock_recount/stock_recount_icons.dart';
+import '../../stock_recount/stock_recount_helpers.dart';
 
 /// SAP Fiori-inspired Smart Form widget for work orders
 ///
@@ -311,6 +314,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   Widget _buildProductField() {
     return TypeAheadField<Variant>(
+      constraints: const BoxConstraints(maxHeight: 260),
       suggestionsCallback: (search) async {
         if (search.isEmpty) return [];
         final branchId = ProxyService.box.getBranchId();
@@ -471,18 +475,47 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         );
       },
       emptyBuilder: (context) => Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-              SizedBox(height: 8),
-              Text(
-                'No products found',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    StockRecountTokens.accentTint2,
+                    StockRecountTokens.accentTint,
+                  ],
+                ),
               ),
-            ],
-          ),
+              child: Center(
+                child: StockRecountIcons.search(
+                  size: 22,
+                  color: StockRecountTokens.accent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'No products found',
+              style: StockRecountHelpers.text(
+                size: 15,
+                weight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Try a different product name or SKU',
+              textAlign: TextAlign.center,
+              style: StockRecountHelpers.text(
+                size: 13,
+                color: StockRecountTokens.ink3,
+              ),
+            ),
+          ],
         ),
       ),
     );
