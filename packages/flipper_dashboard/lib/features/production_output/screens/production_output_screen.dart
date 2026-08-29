@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/production_output_provider.dart';
 import '../models/production_output_models.dart';
+import '../providers/production_output_derived_providers.dart';
 import '../services/production_output_service.dart';
 import '../widgets/object_page_header.dart';
 import '../widgets/analytical_cards.dart';
@@ -11,6 +13,11 @@ import '../widgets/work_order_form.dart';
 import '../widgets/variance_reason_dialog.dart';
 import '../widgets/work_order_bottom_sheet.dart';
 import 'package:flipper_ui/dialogs/WorkOrderDetailsDialog.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
+import '../../stock_recount/stock_recount_tokens.dart';
+import '../../stock_recount/stock_recount_icons.dart';
+import '../../stock_recount/stock_recount_helpers.dart';
+import '../../stock_recount/stock_recount_ui.dart';
 
 /// Main screen for Production Output feature
 ///
@@ -31,34 +38,39 @@ class _ProductionOutputScreenState
     extends ConsumerState<ProductionOutputScreen> {
   final ProductionOutputService _service = ProductionOutputService();
 
-  ProductionSummary _summary = ProductionSummary.empty;
-  List<VarianceDataPoint> _chartData = [];
-  bool _isLoading = true;
   bool _showCreateForm = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
+  /// Re-registers the Ditto observers. Writes reach the UI on their own, so
+  /// this is only for the explicit pull-to-refresh / refresh-button gesture.
+  Future<void> _refresh() async {
+    ref.invalidate(workOrdersStreamProvider);
+    ref.invalidate(actualOutputsStreamProvider);
+    await ref.read(workOrdersStreamProvider.future);
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final summary = await _service.getProductionSummary();
-      final chartData = await _service.getVarianceChartData(days: 7);
-
+  void _openCreateWorkOrder(bool isMobile) {
+    if (isMobile) {
+      // Show bottom sheet on mobile
+      WorkOrderBottomSheet.show(
+        context: context,
+        ref: ref,
+        onSubmit: (data) async {
+          await _service.createWorkOrder(
+            variantId: data['variantId'] as String,
+            variantName: data['variantName'] as String?,
+            plannedQuantity: data['plannedQuantity'] as double,
+            targetDate: data['targetDate'] as DateTime,
+            shiftId: data['shiftId'] as String?,
+            notes: data['notes'] as String?,
+          );
+          // No refetch: the Ditto observer behind workOrdersStreamProvider
+          // pushes the new order as soon as its document lands.
+        },
+      );
+    } else {
+      // Toggle inline form on desktop
       setState(() {
-        _summary = summary;
-        _chartData = chartData;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
+        _showCreateForm = !_showCreateForm;
       });
     }
   }
@@ -66,13 +78,18 @@ class _ProductionOutputScreenState
   @override
   Widget build(BuildContext context) {
     final workOrdersAsync = ref.watch(todayWorkOrdersProvider);
+    final summaryAsync = ref.watch(productionSummaryProvider);
+    final chartAsync = ref.watch(varianceChartDataProvider);
+    final summary = summaryAsync.asData?.value ?? ProductionSummary.empty;
+    final chartData = chartAsync.asData?.value ?? const <VarianceDataPoint>[];
+    final isSummaryLoading = summaryAsync.isLoading;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: RefreshIndicator(
-        onRefresh: _loadData,
+        onRefresh: _refresh,
         child: CustomScrollView(
           slivers: [
             // App bar
@@ -106,7 +123,7 @@ class _ProductionOutputScreenState
                       color: Colors.black54,
                       size: 20,
                     ),
-                    onPressed: _loadData,
+                    onPressed: _refresh,
                     tooltip: 'Refresh',
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.grey[50],
@@ -125,33 +142,7 @@ class _ProductionOutputScreenState
                     left: 4,
                   ),
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      if (isMobile) {
-                        // Show bottom sheet on mobile
-                        WorkOrderBottomSheet.show(
-                          context: context,
-                          ref: ref,
-                          onSubmit: (data) async {
-                            await _service.createWorkOrder(
-                              variantId: data['variantId'] as String,
-                              variantName: data['variantName'] as String?,
-                              plannedQuantity:
-                                  data['plannedQuantity'] as double,
-                              targetDate: data['targetDate'] as DateTime,
-                              shiftId: data['shiftId'] as String?,
-                              notes: data['notes'] as String?,
-                            );
-                            _loadData();
-                            ref.invalidate(todayWorkOrdersProvider);
-                          },
-                        );
-                      } else {
-                        // Toggle inline form on desktop
-                        setState(() {
-                          _showCreateForm = !_showCreateForm;
-                        });
-                      }
-                    },
+                    onPressed: () => _openCreateWorkOrder(isMobile),
                     icon: const Icon(Icons.add, size: 18),
                     label: Text(isMobile ? 'New' : 'New Order'),
                     style: ElevatedButton.styleFrom(
@@ -187,8 +178,6 @@ class _ProductionOutputScreenState
                         setState(() {
                           _showCreateForm = false;
                         });
-                        _loadData();
-                        ref.invalidate(todayWorkOrdersProvider);
                       },
                       onCancel: () {
                         setState(() {
@@ -200,15 +189,15 @@ class _ProductionOutputScreenState
                   ],
                   // Object Page Header with KPIs
                   ObjectPageHeader(
-                    summary: _summary,
-                    isLoading: _isLoading,
+                    summary: summary,
+                    isLoading: isSummaryLoading,
                     isMobile: isMobile,
                   ),
                   const SizedBox(height: 16),
                   // Analytical Cards
                   AnalyticalCards(
-                    summary: _summary,
-                    isLoading: _isLoading,
+                    summary: summary,
+                    isLoading: isSummaryLoading,
                     isMobile: isMobile,
                   ),
                   const SizedBox(height: 16),
@@ -216,8 +205,8 @@ class _ProductionOutputScreenState
                   SizedBox(
                     height: isMobile ? 220 : 280,
                     child: VarianceChart(
-                      dataPoints: _chartData,
-                      isLoading: _isLoading,
+                      dataPoints: chartData,
+                      isLoading: chartAsync.isLoading,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -240,9 +229,8 @@ class _ProductionOutputScreenState
                           workOrders: [],
                           isLoading: true,
                         ),
-                        error: (_, __) => const WorkOrderTable(
-                          workOrders: [],
-                          isLoading: false,
+                        error: (error, stack) => Center(
+                          child: _buildWorkOrdersErrorCard(error, stack),
                         ),
                       ),
                     ),
@@ -301,30 +289,99 @@ class _ProductionOutputScreenState
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
       ),
-      error: (_, __) => _buildEmptyWorkOrdersCard(),
+      error: (error, stack) => _buildWorkOrdersErrorCard(error, stack),
+    );
+  }
+
+  Widget _buildWorkOrdersErrorCard(Object error, StackTrace? stack) {
+    talker.error('ProductionOutput: failed to load work orders', error, stack);
+    return stockRecountCard(
+      borderColor: StockRecountTokens.negBorder,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Center(
+        child: Column(
+          children: [
+            Container(
+              width: 92,
+              height: 92,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: StockRecountTokens.negTint,
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 40,
+                color: StockRecountTokens.neg,
+              ),
+            ),
+            const SizedBox(height: 22),
+            Text(
+              "Couldn't load work orders",
+              style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Check your connection and try again.',
+              textAlign: TextAlign.center,
+              style: StockRecountHelpers.text(
+                size: 14.5,
+                color: StockRecountTokens.ink3,
+              ),
+            ),
+            const SizedBox(height: 22),
+            StockRecountPrimaryButton(
+              label: 'Retry',
+              leading: const Icon(Icons.refresh, size: 18, color: Colors.white),
+              onPressed: _refresh,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildEmptyWorkOrdersCard() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
+    return stockRecountCard(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.assignment_outlined, size: 48, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              'No work orders',
-              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+            Container(
+              width: 92,
+              height: 92,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    StockRecountTokens.accentTint2,
+                    StockRecountTokens.accentTint,
+                  ],
+                ),
+              ),
+              child: StockRecountIcons.box(
+                size: 40,
+                color: StockRecountTokens.accent,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 22),
             Text(
-              'Tap + to create a work order',
-              style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+              'No work orders yet',
+              style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Create a work order to start tracking production output.',
+              textAlign: TextAlign.center,
+              style: StockRecountHelpers.text(
+                size: 14.5,
+                color: StockRecountTokens.ink3,
+              ),
+            ),
+            const SizedBox(height: 22),
+            StockRecountPrimaryButton(
+              label: 'New Work Order',
+              leading: StockRecountIcons.plus(size: 19, color: Colors.white),
+              onPressed: () => _openCreateWorkOrder(true),
             ),
           ],
         ),
@@ -341,99 +398,90 @@ class _ProductionOutputScreenState
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  wo.variantName ?? 'Unknown Product',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+      child: stockRecountCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    wo.variantName ?? 'Unknown Product',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Color(status.color).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  status.label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color(status.color),
-                    fontWeight: FontWeight.w500,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Color(status.color).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Metrics row
-          Row(
-            children: [
-              _buildMetricChip(
-                'Planned',
-                wo.plannedQuantity?.toStringAsFixed(0) ?? '0',
-              ),
-              const SizedBox(width: 12),
-              _buildMetricChip(
-                'Actual',
-                wo.actualQuantity?.toStringAsFixed(0) ?? '0',
-                color: varianceColor,
-              ),
-              const SizedBox(width: 12),
-              _buildMetricChip(
-                'Variance',
-                '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
-                color: varianceColor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Actions row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (wo.status != 'completed') ...[
-                TextButton.icon(
-                  onPressed: () => _showRecordOutputDialog(wo),
-                  icon: const Icon(Icons.add_circle_outline, size: 18),
-                  label: const Text('Record'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Color(VarianceColors.neutral),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                TextButton.icon(
-                  onPressed: () => _completeWorkOrder(wo),
-                  icon: const Icon(Icons.check_circle_outline, size: 18),
-                  label: const Text('Complete'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Color(VarianceColors.positive),
+                  child: Text(
+                    status.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Color(status.color),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 12),
+            // Metrics row
+            Row(
+              children: [
+                _buildMetricChip(
+                  'Planned',
+                  wo.plannedQuantity?.toStringAsFixed(0) ?? '0',
+                ),
+                const SizedBox(width: 12),
+                _buildMetricChip(
+                  'Actual',
+                  wo.actualQuantity?.toStringAsFixed(0) ?? '0',
+                  color: varianceColor,
+                ),
+                const SizedBox(width: 12),
+                _buildMetricChip(
+                  'Variance',
+                  '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
+                  color: varianceColor,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Actions row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (wo.status != 'completed') ...[
+                  TextButton.icon(
+                    onPressed: () => _showRecordOutputDialog(wo),
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: const Text('Record'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Color(VarianceColors.neutral),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: () => _completeWorkOrder(wo),
+                    icon: const Icon(Icons.check_circle_outline, size: 18),
+                    label: const Text('Complete'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Color(VarianceColors.positive),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -473,14 +521,31 @@ class _ProductionOutputScreenState
     );
 
     if (result != null) {
-      await _service.recordActualOutput(
-        workOrderId: workOrder.id as String,
-        actualQuantity: result['quantity'] as double,
-        varianceReason: result['varianceReason'] as String?,
-        notes: null,
-      );
-      _loadData();
-      ref.invalidate(todayWorkOrdersProvider);
+      await _guard('record output', () async {
+        await _service.recordActualOutput(
+          workOrderId: workOrder.id as String,
+          actualQuantity: result['quantity'] as double,
+          varianceReason: result['varianceReason'] as String?,
+          notes: null,
+        );
+      });
+    }
+  }
+
+  /// These handlers are invoked as fire-and-forget callbacks, so an escaping
+  /// error would become an unhandled zone error instead of reaching the user.
+  Future<void> _guard(String action, Future<void> Function() run) async {
+    try {
+      await run();
+    } catch (e, s) {
+      talker.error('ProductionOutput: failed to $action', e, s);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Could not $action. Please try again.',
+          type: NotificationType.error,
+        );
+      }
     }
   }
 
@@ -507,9 +572,10 @@ class _ProductionOutputScreenState
     );
 
     if (confirm == true) {
-      await _service.completeWorkOrder(workOrder.id as String);
-      _loadData();
-      ref.invalidate(todayWorkOrdersProvider);
+      await _guard(
+        'complete this work order',
+        () => _service.completeWorkOrder(workOrder.id as String),
+      );
     }
   }
 
@@ -534,9 +600,10 @@ class _ProductionOutputScreenState
     );
 
     if (confirm == true) {
-      await _service.startWorkOrder(workOrder.id as String);
-      _loadData();
-      ref.invalidate(todayWorkOrdersProvider);
+      await _guard(
+        'start this work order',
+        () => _service.startWorkOrder(workOrder.id as String),
+      );
     }
   }
 }

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import '../../stock_recount/stock_recount_tokens.dart';
+import '../../stock_recount/stock_recount_icons.dart';
+import '../../stock_recount/stock_recount_helpers.dart';
 
 /// SAP Fiori-inspired Smart Form widget for work orders
 ///
@@ -35,7 +40,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   final _formKey = GlobalKey<FormState>();
   final _plannedQtyController = TextEditingController();
   final _notesController = TextEditingController();
-  TextEditingController? _typeAheadController;
+  final TextEditingController _typeAheadController = TextEditingController();
 
   String? _selectedVariantId;
   Variant? _selectedVariant;
@@ -48,9 +53,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     super.initState();
     if (widget.initialVariantId != null) {
       _selectedVariantId = widget.initialVariantId;
-      _typeAheadController = TextEditingController(
-        text: widget.initialVariantName ?? '',
-      );
+      _typeAheadController.text = widget.initialVariantName ?? '';
       // Create a temporary variant object for display if we have the name
       if (widget.initialVariantName != null) {
         _selectedVariant = Variant(
@@ -92,10 +95,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   void dispose() {
     _plannedQtyController.dispose();
     _notesController.dispose();
-    // Only dispose if we created it locally in initState
-    if (widget.initialVariantId != null) {
-      _typeAheadController?.dispose();
-    }
+    _typeAheadController.dispose();
     super.dispose();
   }
 
@@ -110,15 +110,10 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       decoration: isMobile
           ? null
           : BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: StockRecountTokens.surface,
+              border: Border.all(color: StockRecountTokens.line),
+              borderRadius: BorderRadius.circular(StockRecountTokens.radiusLg),
+              boxShadow: StockRecountTokens.cardShadows,
             ),
       child: Form(
         key: _formKey,
@@ -129,29 +124,19 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             // Header (only show on desktop, mobile has bottom sheet header)
             if (!isMobile) ...[
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue[50]!, Colors.blue[100]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  color: StockRecountTokens.accentTint,
+                  borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                        color: StockRecountTokens.surface,
+                        border: Border.all(color: StockRecountTokens.line),
+                        borderRadius: BorderRadius.circular(StockRecountTokens.radiusSm),
                       ),
                       child: Icon(
                         isEdit ? Icons.edit_outlined : Icons.add_circle_outline,
@@ -169,7 +154,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
+                              color: StockRecountTokens.ink1,
                             ),
                           ),
                           SizedBox(height: 4),
@@ -177,7 +162,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                             'Plan production output for your products',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: StockRecountTokens.ink2,
                             ),
                           ),
                         ],
@@ -255,16 +240,16 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _handleSubmit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
+                        backgroundColor: StockRecountTokens.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
                           vertical: 16,
                         ),
-                        elevation: 2,
-                        shadowColor: Colors.blue.withValues(alpha: 0.3),
+                        elevation: 0,
+                        shadowColor: StockRecountTokens.accentRing,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusSm),
                         ),
                       ),
                       child: _isSubmitting
@@ -311,6 +296,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   Widget _buildProductField() {
     return TypeAheadField<Variant>(
+      constraints: const BoxConstraints(maxHeight: 260),
       suggestionsCallback: (search) async {
         if (search.isEmpty) return [];
         final branchId = ProxyService.box.getBranchId();
@@ -328,7 +314,10 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         );
         return paged.variants.cast<Variant>().toList();
       },
-      controller: _typeAheadController, // Use the controller if initialized
+      // Must be a stable, non-null instance: RawTypeAheadField.didUpdateWidget
+      // disposes its internally-created controller the moment `controller`
+      // goes from null to non-null, which used to kill the live controller.
+      controller: _typeAheadController,
       itemBuilder: (context, Variant variant) {
         return Container(
           decoration: BoxDecoration(
@@ -363,13 +352,12 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       },
       onSelected: (Variant variant) {
         setState(() {
-          _typeAheadController?.text = variant.name;
+          _typeAheadController.text = variant.name;
           _selectedVariantId = variant.id;
           _selectedVariant = variant;
         });
       },
       builder: (context, controller, focusNode) {
-        _typeAheadController = controller;
         if (_selectedVariant != null) {
           return InkWell(
             onTap: () {
@@ -471,18 +459,47 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         );
       },
       emptyBuilder: (context) => Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-              SizedBox(height: 8),
-              Text(
-                'No products found',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    StockRecountTokens.accentTint2,
+                    StockRecountTokens.accentTint,
+                  ],
+                ),
               ),
-            ],
-          ),
+              child: Center(
+                child: StockRecountIcons.search(
+                  size: 22,
+                  color: StockRecountTokens.accent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'No products found',
+              style: StockRecountHelpers.text(
+                size: 15,
+                weight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Try a different product name or SKU',
+              textAlign: TextAlign.center,
+              style: StockRecountHelpers.text(
+                size: 13,
+                color: StockRecountTokens.ink3,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -570,7 +587,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   Widget _buildShiftField() {
     return DropdownButtonFormField<String>(
-      value: _selectedShift,
+      initialValue: _selectedShift,
       decoration: InputDecoration(
         labelText: 'Shift (Optional)',
         labelStyle: TextStyle(color: Colors.grey[700]),
@@ -670,9 +687,19 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
       try {
         await widget.onSubmit?.call(data);
-      } catch (e) {
-        // Optionally handle/report errors here
-        print('Error submitting work order: $e');
+      } catch (e, s) {
+        // The form deliberately stays open on failure — this is the single
+        // catch behind every create path (mobile sheet, desktop inline form,
+        // and the incoming-orders "produce" flow), so the user has to be told
+        // here or the tap looks like it did nothing.
+        talker.error('Error submitting work order', e, s);
+        if (mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Could not save the work order. Please try again.',
+            type: NotificationType.error,
+          );
+        }
       } finally {
         if (mounted) {
           setState(() {

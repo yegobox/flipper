@@ -382,12 +382,7 @@ mixin CapellaBranchMixin implements BranchInterface {
   Future<Branch> activeBranch({required String branchId}) async {
     if (dittoService.dittoInstance == null) {
       talker.error('Ditto not initialized for active branch');
-      return Branch(
-        id: branchId,
-        name: 'Branch',
-        businessId: '',
-        isDefault: false,
-      );
+      throw Exception('Ditto not initialized for active branch query');
     }
 
     try {
@@ -397,20 +392,13 @@ mixin CapellaBranchMixin implements BranchInterface {
       );
 
       if (result.items.isEmpty) {
-        // Return default branch if none found
-        return Branch(
-          id: branchId,
-          name: 'Branch',
-          businessId: '',
-          isDefault: false,
-        );
+        throw Exception('Active branch not found for id: $branchId');
       }
 
       final data = Map<String, dynamic>.from(result.items.first.value);
       return Branch.fromMap(data);
     } catch (e) {
       talker.error('Error fetching active branch: $e');
-      await logOut();
       rethrow;
     }
   }
@@ -419,9 +407,7 @@ mixin CapellaBranchMixin implements BranchInterface {
   Stream<Branch> activeBranchStream({required String branchId}) {
     if (dittoService.dittoInstance == null) {
       talker.error('Ditto not initialized for active branch stream');
-      return Stream.value(
-        Branch(id: branchId, name: 'Branch', businessId: '', isDefault: false),
-      );
+      throw Exception('Ditto not initialized for active branch stream');
     }
 
     final controller = StreamController<Branch>.broadcast();
@@ -436,14 +422,8 @@ mixin CapellaBranchMixin implements BranchInterface {
         if (controller.isClosed) return;
 
         if (queryResult.items.isEmpty) {
-          // Return default branch if none found
-          controller.add(
-            Branch(
-              id: branchId,
-              name: 'Branch',
-              businessId: '',
-              isDefault: false,
-            ),
+          controller.addError(
+            Exception('Active branch not found for id: $branchId'),
           );
         } else {
           final data = Map<String, dynamic>.from(queryResult.items.first.value);

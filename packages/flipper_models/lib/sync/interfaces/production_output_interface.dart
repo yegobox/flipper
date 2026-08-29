@@ -69,6 +69,17 @@ abstract class ProductionOutputInterface {
     DateTime? endDate,
   });
 
+  /// Stream of actual output records for real-time updates.
+  ///
+  /// The work-order stream already carries the rolled-up `actualQuantity`, so
+  /// this exists for anything that needs the individual records — notably the
+  /// variance-by-reason breakdown on the production dashboard.
+  Stream<List<dynamic>> actualOutputsStream({
+    required String branchId,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
   /// Get variance summary for a period
   Future<Map<String, dynamic>> getVarianceSummary({
     required String branchId,
