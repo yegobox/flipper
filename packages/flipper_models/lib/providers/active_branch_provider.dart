@@ -63,10 +63,11 @@ Stream<Branch> activeBranch(Ref ref) async* {
       }
     } catch (error, stackTrace) {
       if (error is! TimeoutException) {
-        // The original call itself failed, so it's done: safe to issue a
-        // fresh one next turn. On a plain TimeoutException, pendingFetch is
-        // still running and is kept so the next turn re-awaits it instead.
+        // The original call itself failed, so clear it before propagating.
+        // On a plain TimeoutException, pendingFetch is still running and is
+        // kept so the next turn re-awaits it instead.
         pendingFetch = null;
+        rethrow;
       }
 
       print('Error fetching active branch: $error');
