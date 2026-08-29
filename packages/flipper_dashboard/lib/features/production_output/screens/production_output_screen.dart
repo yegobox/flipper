@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/production_output_provider.dart';
 import '../models/production_output_models.dart';
+import '../providers/production_output_derived_providers.dart';
 import '../services/production_output_service.dart';
 import '../widgets/object_page_header.dart';
 import '../widgets/analytical_cards.dart';
@@ -12,6 +13,7 @@ import '../widgets/work_order_form.dart';
 import '../widgets/variance_reason_dialog.dart';
 import '../widgets/work_order_bottom_sheet.dart';
 import 'package:flipper_ui/dialogs/WorkOrderDetailsDialog.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import '../../stock_recount/stock_recount_tokens.dart';
 import '../../stock_recount/stock_recount_icons.dart';
 import '../../stock_recount/stock_recount_helpers.dart';
@@ -36,34 +38,39 @@ class _ProductionOutputScreenState
     extends ConsumerState<ProductionOutputScreen> {
   final ProductionOutputService _service = ProductionOutputService();
 
-  ProductionSummary _summary = ProductionSummary.empty;
-  List<VarianceDataPoint> _chartData = [];
-  bool _isLoading = true;
   bool _showCreateForm = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
+  /// Re-registers the Ditto observers. Writes reach the UI on their own, so
+  /// this is only for the explicit pull-to-refresh / refresh-button gesture.
+  Future<void> _refresh() async {
+    ref.invalidate(workOrdersStreamProvider);
+    ref.invalidate(actualOutputsStreamProvider);
+    await ref.read(workOrdersStreamProvider.future);
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final summary = await _service.getProductionSummary();
-      final chartData = await _service.getVarianceChartData(days: 7);
-
+  void _openCreateWorkOrder(bool isMobile) {
+    if (isMobile) {
+      // Show bottom sheet on mobile
+      WorkOrderBottomSheet.show(
+        context: context,
+        ref: ref,
+        onSubmit: (data) async {
+          await _service.createWorkOrder(
+            variantId: data['variantId'] as String,
+            variantName: data['variantName'] as String?,
+            plannedQuantity: data['plannedQuantity'] as double,
+            targetDate: data['targetDate'] as DateTime,
+            shiftId: data['shiftId'] as String?,
+            notes: data['notes'] as String?,
+          );
+          // No refetch: the Ditto observer behind workOrdersStreamProvider
+          // pushes the new order as soon as its document lands.
+        },
+      );
+    } else {
+      // Toggle inline form on desktop
       setState(() {
-        _summary = summary;
-        _chartData = chartData;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
+        _showCreateForm = !_showCreateForm;
       });
     }
   }
@@ -98,13 +105,18 @@ class _ProductionOutputScreenState
   @override
   Widget build(BuildContext context) {
     final workOrdersAsync = ref.watch(todayWorkOrdersProvider);
+    final summaryAsync = ref.watch(productionSummaryProvider);
+    final chartAsync = ref.watch(varianceChartDataProvider);
+    final summary = summaryAsync.asData?.value ?? ProductionSummary.empty;
+    final chartData = chartAsync.asData?.value ?? const <VarianceDataPoint>[];
+    final isSummaryLoading = summaryAsync.isLoading;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: RefreshIndicator(
-        onRefresh: _loadData,
+        onRefresh: _refresh,
         child: CustomScrollView(
           slivers: [
             // App bar
@@ -138,7 +150,7 @@ class _ProductionOutputScreenState
                       color: Colors.black54,
                       size: 20,
                     ),
-                    onPressed: _loadData,
+                    onPressed: _refresh,
                     tooltip: 'Refresh',
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.grey[50],
@@ -193,8 +205,6 @@ class _ProductionOutputScreenState
                         setState(() {
                           _showCreateForm = false;
                         });
-                        _loadData();
-                        ref.invalidate(todayWorkOrdersProvider);
                       },
                       onCancel: () {
                         setState(() {
@@ -206,15 +216,15 @@ class _ProductionOutputScreenState
                   ],
                   // Object Page Header with KPIs
                   ObjectPageHeader(
-                    summary: _summary,
-                    isLoading: _isLoading,
+                    summary: summary,
+                    isLoading: isSummaryLoading,
                     isMobile: isMobile,
                   ),
                   const SizedBox(height: 16),
                   // Analytical Cards
                   AnalyticalCards(
-                    summary: _summary,
-                    isLoading: _isLoading,
+                    summary: summary,
+                    isLoading: isSummaryLoading,
                     isMobile: isMobile,
                   ),
                   const SizedBox(height: 16),
@@ -222,8 +232,8 @@ class _ProductionOutputScreenState
                   SizedBox(
                     height: isMobile ? 220 : 280,
                     child: VarianceChart(
-                      dataPoints: _chartData,
-                      isLoading: _isLoading,
+                      dataPoints: chartData,
+                      isLoading: chartAsync.isLoading,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -349,7 +359,7 @@ class _ProductionOutputScreenState
             StockRecountPrimaryButton(
               label: 'Retry',
               leading: const Icon(Icons.refresh, size: 18, color: Colors.white),
-              onPressed: () => ref.invalidate(todayWorkOrdersProvider),
+              onPressed: _refresh,
             ),
           ],
         ),
@@ -538,14 +548,31 @@ class _ProductionOutputScreenState
     );
 
     if (result != null) {
-      await _service.recordActualOutput(
-        workOrderId: workOrder.id as String,
-        actualQuantity: result['quantity'] as double,
-        varianceReason: result['varianceReason'] as String?,
-        notes: null,
-      );
-      _loadData();
-      ref.invalidate(todayWorkOrdersProvider);
+      await _guard('record output', () async {
+        await _service.recordActualOutput(
+          workOrderId: workOrder.id as String,
+          actualQuantity: result['quantity'] as double,
+          varianceReason: result['varianceReason'] as String?,
+          notes: null,
+        );
+      });
+    }
+  }
+
+  /// These handlers are invoked as fire-and-forget callbacks, so an escaping
+  /// error would become an unhandled zone error instead of reaching the user.
+  Future<void> _guard(String action, Future<void> Function() run) async {
+    try {
+      await run();
+    } catch (e, s) {
+      talker.error('ProductionOutput: failed to $action', e, s);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Could not $action. Please try again.',
+          type: NotificationType.error,
+        );
+      }
     }
   }
 
@@ -572,9 +599,10 @@ class _ProductionOutputScreenState
     );
 
     if (confirm == true) {
-      await _service.completeWorkOrder(workOrder.id as String);
-      _loadData();
-      ref.invalidate(todayWorkOrdersProvider);
+      await _guard(
+        'complete this work order',
+        () => _service.completeWorkOrder(workOrder.id as String),
+      );
     }
   }
 
@@ -599,9 +627,10 @@ class _ProductionOutputScreenState
     );
 
     if (confirm == true) {
-      await _service.startWorkOrder(workOrder.id as String);
-      _loadData();
-      ref.invalidate(todayWorkOrdersProvider);
+      await _guard(
+        'start this work order',
+        () => _service.startWorkOrder(workOrder.id as String),
+      );
     }
   }
 }

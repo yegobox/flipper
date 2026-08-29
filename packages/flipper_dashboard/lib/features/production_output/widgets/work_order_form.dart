@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -38,7 +40,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   final _formKey = GlobalKey<FormState>();
   final _plannedQtyController = TextEditingController();
   final _notesController = TextEditingController();
-  TextEditingController? _typeAheadController;
+  final TextEditingController _typeAheadController = TextEditingController();
 
   String? _selectedVariantId;
   Variant? _selectedVariant;
@@ -51,9 +53,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     super.initState();
     if (widget.initialVariantId != null) {
       _selectedVariantId = widget.initialVariantId;
-      _typeAheadController = TextEditingController(
-        text: widget.initialVariantName ?? '',
-      );
+      _typeAheadController.text = widget.initialVariantName ?? '';
       // Create a temporary variant object for display if we have the name
       if (widget.initialVariantName != null) {
         _selectedVariant = Variant(
@@ -95,10 +95,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   void dispose() {
     _plannedQtyController.dispose();
     _notesController.dispose();
-    // Only dispose if we created it locally in initState
-    if (widget.initialVariantId != null) {
-      _typeAheadController?.dispose();
-    }
+    _typeAheadController.dispose();
     super.dispose();
   }
 
@@ -317,7 +314,10 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         );
         return paged.variants.cast<Variant>().toList();
       },
-      controller: _typeAheadController, // Use the controller if initialized
+      // Must be a stable, non-null instance: RawTypeAheadField.didUpdateWidget
+      // disposes its internally-created controller the moment `controller`
+      // goes from null to non-null, which used to kill the live controller.
+      controller: _typeAheadController,
       itemBuilder: (context, Variant variant) {
         return Container(
           decoration: BoxDecoration(
@@ -352,13 +352,12 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       },
       onSelected: (Variant variant) {
         setState(() {
-          _typeAheadController?.text = variant.name;
+          _typeAheadController.text = variant.name;
           _selectedVariantId = variant.id;
           _selectedVariant = variant;
         });
       },
       builder: (context, controller, focusNode) {
-        _typeAheadController = controller;
         if (_selectedVariant != null) {
           return InkWell(
             onTap: () {
@@ -688,9 +687,19 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
       try {
         await widget.onSubmit?.call(data);
-      } catch (e) {
-        // Optionally handle/report errors here
-        print('Error submitting work order: $e');
+      } catch (e, s) {
+        // The form deliberately stays open on failure — this is the single
+        // catch behind every create path (mobile sheet, desktop inline form,
+        // and the incoming-orders "produce" flow), so the user has to be told
+        // here or the tap looks like it did nothing.
+        talker.error('Error submitting work order', e, s);
+        if (mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Could not save the work order. Please try again.',
+            type: NotificationType.error,
+          );
+        }
       } finally {
         if (mounted) {
           setState(() {
