@@ -6,6 +6,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/repository/legacy_preferences_migration.dart';
+import 'package:supabase_models/brick/repository/session_prefs_keys.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
@@ -223,76 +224,16 @@ class SharedPreferenceStorage implements LocalStorage {
     'userIdString',
   };
 
-  /// Millis timestamp of the last [clearSessionKeys]. Used to stop a stale Ditto
-  /// prefs payload from resurrecting a session that was logged out — see
-  /// [attachDittoPersistence].
-  static const String _kSessionClearedAtKey = 'sessionClearedAt';
+  /// Millis timestamp of the last [clearSessionKeys]. Used to stop a stale copy
+  /// of the preferences — the Ditto payload (see [attachDittoPersistence]) or a
+  /// pre-rename `_v<N>.json` file (see [migrateLegacyPreferencesFileIfNeeded]) —
+  /// from resurrecting a session that was logged out.
+  static const String _kSessionClearedAtKey = kSessionClearedAtKey;
 
-  /// Everything that belongs to "who is signed in and what were they doing".
-  ///
-  /// Deliberately excludes device-level prefs that must survive logout:
-  /// `encryptionKey`, `databaseFilename`, `queueFilename`, `dbVersion`,
-  /// `thisDeviceId`, `getServerUrl`, `defaultLanguage`, cached MFA secrets
-  /// (offline authenticator login) and EBM/tax config (`tin`, `bhfId`, `mrc`,
-  /// `vatEnabled`), which are only re-hydrated conditionally after login.
-  static const Set<String> _sessionKeys = {
-    // Identity
-    'userId',
-    'userIdString',
-    'userPhone',
-    'userName',
-    'uid',
-    'isAnonymous',
-    'yegoboxLoggedInUserPermission',
-    'commissionOnlySession',
-    // Tokens / auth state
-    'authComplete',
-    'bearerToken',
-    'token',
-    'UToken',
-    'otp',
-    'getIsTokenRegistered',
-    'pinLogin',
-    'from_login',
-    'freshSignup',
-    // Business / branch selection
-    'businessId',
-    'currentBusinessId',
-    'getBusinessServerId',
-    'branchId',
-    'branchIdString',
-    'currentBranchId',
-    'active_branch_id',
-    'getBranchServerId',
-    'branch_switched',
-    'branch_switching',
-    'last_branch_switch_timestamp',
-    // Landing app / mode
-    'defaultApp',
-    'getDefaultApp',
-    'isPosDefault',
-    'isOrdersDefault',
-    'isProformaMode',
-    'isTrainingMode',
-    // In-flight sale state
-    'transactionId',
-    'currentOrderId',
-    'transactionInProgress',
-    'transactionCompleting',
-    'customerName',
-    'customerTin',
-    'currentSaleCustomerPhoneNumber',
-    'pendingCustomerName',
-    'pendingCustomerTin',
-    'getCashReceived',
-    'getRefundReason',
-    'couponCode',
-    'discountRate',
-    'purchaseCode',
-    // Branch-scoped artifacts
-    'receiptLogoBase64',
-    'lastZReportDate',
-  };
+  /// Session-scoped preferences dropped on logout. Defined in
+  /// `session_prefs_keys.dart` because the legacy-file migration has to know
+  /// the same set to avoid merging a signed-out session back in.
+  static const Set<String> _sessionKeys = kSessionPrefKeys;
 
   @override
   Future<void> clearSessionKeys() async {
@@ -537,16 +478,24 @@ class SharedPreferenceStorage implements LocalStorage {
       _filePath = path.join(directory, '$_kPreferencesKey.json');
       _backupFilePath = path.join(directory, '$_kPreferencesBackupKey.json');
 
-      // One-time migration from the old `_v<dbVersion>.json` naming scheme.
+      // Migration from the old `_v<dbVersion>.json` naming scheme. Both stable
+      // files are passed as siblings so a logout recorded in either one blocks
+      // the legacy snapshot from restoring the session (see that function).
+      final stableFileNames = [
+        path.basename(_filePath),
+        path.basename(_backupFilePath),
+      ];
       await migrateLegacyPreferencesFileIfNeeded(
         directory: directory,
         baseName: _kPreferencesKey,
         targetFileName: path.basename(_filePath),
+        siblingFileNames: stableFileNames,
       );
       await migrateLegacyPreferencesFileIfNeeded(
         directory: directory,
         baseName: _kPreferencesBackupKey,
         targetFileName: path.basename(_backupFilePath),
+        siblingFileNames: stableFileNames,
       );
 
       // Load preferences from file

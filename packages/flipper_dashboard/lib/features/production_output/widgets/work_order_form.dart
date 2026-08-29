@@ -113,15 +113,10 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       decoration: isMobile
           ? null
           : BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: StockRecountTokens.surface,
+              border: Border.all(color: StockRecountTokens.line),
+              borderRadius: BorderRadius.circular(StockRecountTokens.radiusLg),
+              boxShadow: StockRecountTokens.cardShadows,
             ),
       child: Form(
         key: _formKey,
@@ -132,29 +127,19 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             // Header (only show on desktop, mobile has bottom sheet header)
             if (!isMobile) ...[
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue[50]!, Colors.blue[100]!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  color: StockRecountTokens.accentTint,
+                  borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                        color: StockRecountTokens.surface,
+                        border: Border.all(color: StockRecountTokens.line),
+                        borderRadius: BorderRadius.circular(StockRecountTokens.radiusSm),
                       ),
                       child: Icon(
                         isEdit ? Icons.edit_outlined : Icons.add_circle_outline,
@@ -172,7 +157,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
+                              color: StockRecountTokens.ink1,
                             ),
                           ),
                           SizedBox(height: 4),
@@ -180,7 +165,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                             'Plan production output for your products',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: StockRecountTokens.ink2,
                             ),
                           ),
                         ],
@@ -258,16 +243,16 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _handleSubmit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
+                        backgroundColor: StockRecountTokens.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
                           vertical: 16,
                         ),
-                        elevation: 2,
-                        shadowColor: Colors.blue.withValues(alpha: 0.3),
+                        elevation: 0,
+                        shadowColor: StockRecountTokens.accentRing,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusSm),
                         ),
                       ),
                       child: _isSubmitting
@@ -603,7 +588,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   Widget _buildShiftField() {
     return DropdownButtonFormField<String>(
-      value: _selectedShift,
+      initialValue: _selectedShift,
       decoration: InputDecoration(
         labelText: 'Shift (Optional)',
         labelStyle: TextStyle(color: Colors.grey[700]),
