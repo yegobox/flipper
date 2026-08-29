@@ -2,7 +2,7 @@ name: flipper_hr
 description: "Flipper HR — web app served at hr.useflipper.com."
 publish_to: 'none'
 
-version: 1.0.13+14
+version: 1.0.17+18
 
 environment:
   sdk: ^3.9.2
@@ -29,6 +29,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+  # Used only by tool/gen_app_icons.dart, which builds the launcher-icon
+  # masters in assets/icon/ from assets/hr_logo_transparent.png.
+  image: ^4.9.1
 
 dependency_overrides:
   # Mirrors flipper_web: both forks exist because the upstream web
@@ -41,3 +45,5 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/hr_logo_transparent.png

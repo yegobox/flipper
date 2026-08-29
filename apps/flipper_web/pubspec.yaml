@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.782+1698
+version: 1.0.785+1701
 
 
 environment:
@@ -119,12 +119,12 @@ flutter:
 
 flutter_native_splash:
   color: "#06080D"
-  image: assets/flipper_books_logo.png
+  image: assets/accounting_logo_transparent.png
   color_dark: "#06080D"
-  image_dark: assets/flipper_books_logo.png
+  image_dark: assets/accounting_logo_transparent.png
   android_12:
     color: "#06080D"
-    image: assets/flipper_books_logo.png
+    image: assets/accounting_logo_transparent.png
   android: true
   ios: true
   web: true
