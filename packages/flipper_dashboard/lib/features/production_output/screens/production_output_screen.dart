@@ -75,33 +75,6 @@ class _ProductionOutputScreenState
     }
   }
 
-  void _openCreateWorkOrder(bool isMobile) {
-    if (isMobile) {
-      // Show bottom sheet on mobile
-      WorkOrderBottomSheet.show(
-        context: context,
-        ref: ref,
-        onSubmit: (data) async {
-          await _service.createWorkOrder(
-            variantId: data['variantId'] as String,
-            variantName: data['variantName'] as String?,
-            plannedQuantity: data['plannedQuantity'] as double,
-            targetDate: data['targetDate'] as DateTime,
-            shiftId: data['shiftId'] as String?,
-            notes: data['notes'] as String?,
-          );
-          _loadData();
-          ref.invalidate(todayWorkOrdersProvider);
-        },
-      );
-    } else {
-      // Toggle inline form on desktop
-      setState(() {
-        _showCreateForm = !_showCreateForm;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final workOrdersAsync = ref.watch(todayWorkOrdersProvider);

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class BooksStartupSplash extends StatelessWidget {
   const BooksStartupSplash({super.key});
 
-  static const _logoPath = 'assets/flipper_books_logo.png';
+  static const _logoPath = 'assets/accounting_logo_transparent.png';
 
   @override
   Widget build(BuildContext context) {

@@ -71,6 +71,18 @@ class _HrBrandPanelState extends State<HrBrandPanel>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // App logo: assets/hr_logo_transparent.png (see pubspec assets)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/hr_logo_transparent.png',
+                      width: 140,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) => Stack(
@@ -130,8 +142,9 @@ class _HrBrandPanelState extends State<HrBrandPanel>
       child: AnimatedBuilder(
         animation: _float,
         builder: (_, __) {
-          final bob =
-              reduceMotion ? 0.0 : SIMotion.floatY(_float.value, phase: phase);
+          final bob = reduceMotion
+              ? 0.0
+              : SIMotion.floatY(_float.value, phase: phase);
           return Transform.translate(
             offset: Offset(0, bob),
             child: Transform.rotate(angle: rotation, child: child),
@@ -344,8 +357,9 @@ class _MiniPayrollCard extends StatelessWidget {
                           gradient: i == _bars.length - 1
                               ? SITokens.brandGradient
                               : null,
-                          color:
-                              i == _bars.length - 1 ? null : SITokens.blueTint2,
+                          color: i == _bars.length - 1
+                              ? null
+                              : SITokens.blueTint2,
                         ),
                         child: SizedBox(height: _barsHeight * _bars[i]),
                       ),
@@ -407,10 +421,9 @@ class _MiniHireCard extends StatelessWidget {
           ),
           Text(
             'Day 1',
-            style: context.siPinDigit(fontSize: 13).copyWith(
-              fontWeight: FontWeight.w800,
-              color: SITokens.win,
-            ),
+            style: context
+                .siPinDigit(fontSize: 13)
+                .copyWith(fontWeight: FontWeight.w800, color: SITokens.win),
           ),
         ],
       ),
