@@ -4,7 +4,11 @@
     "start_url": "/",
     "scope": "/",
     "display": "minimal-ui",
-    "display_override": ["window-controls-overlay", "minimal-ui", "browser"],
+    "display_override": [
+        "window-controls-overlay",
+        "minimal-ui",
+        "browser"
+    ],
     "background_color": "#ffffff",
     "theme_color": "#1565C0",
     "description": "People and payroll for Flipper businesses.",

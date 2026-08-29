@@ -1,0 +1,34 @@
+# Launcher icons, generated with:
+#   dart run tool/gen_app_icons.dart
+#   dart run flutter_launcher_icons
+#   dart run tool/gen_app_icons.dart --maskable-only
+#
+# The third step is not optional: flutter_launcher_icons writes the maskable web
+# icons as plain copies of the standard icon, ignoring the PWA maskable safe
+# zone, so it overwrites what step one produced.
+#
+# Sources live in assets/icon/ and are derived from assets/hr_logo_transparent.png:
+#   hr_icon_master_1024    full-bleed brand gradient with the HR mark knocked out
+#                          in white, bounding-box fitted to 72% of the canvas
+#   hr_icon_maskable_1024  same plate, mark fitted by its enclosing circle to the
+#                          PWA 80% maskable safe zone
+#
+# android/ios/macos/windows stay off: HR ships web-only, so those platform
+# directories do not exist in this app.
+flutter_launcher_icons:
+  image_path: "assets/icon/hr_icon_master_1024.png"
+
+  android: false
+  ios: false
+  macos:
+    generate: false
+  windows:
+    generate: false
+
+  web:
+    generate: true
+    image_path: "assets/icon/hr_icon_master_1024.png"
+    # Must match web/manifest.json; flutter_launcher_icons rewrites the manifest's
+    # colours from these two values on every run.
+    background_color: "#ffffff"
+    theme_color: "#1565C0"
