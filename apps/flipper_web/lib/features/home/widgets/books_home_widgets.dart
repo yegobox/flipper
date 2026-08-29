@@ -3,8 +3,8 @@ import 'dart:ui';
 
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
+import 'package:flipper_web/widgets/flipper_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 /// Gates hero floats / band visuals (handoff `showDeviceMocks`, default true).
@@ -48,11 +48,9 @@ class FlipperMarkLogo extends StatelessWidget {
 
   final double size;
 
-  static const _asset = 'assets/svg/flipper_mark.svg';
-
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(_asset, width: size, height: size);
+    return FlipperLogo(size: size);
   }
 }
 

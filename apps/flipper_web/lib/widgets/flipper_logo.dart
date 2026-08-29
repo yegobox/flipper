@@ -1,25 +1,27 @@
 import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-/// Official Flipper ring logo (same asset as [flipper_dashboard] POS handoff).
+/// Official Flipper Accounting logo (same asset as favicon, launcher icons and
+/// the startup splash).
 class FlipperLogo extends StatelessWidget {
   const FlipperLogo({super.key, this.size = 30});
 
   final double size;
 
-  static const _assetPath = 'assets/icons/flipper-logo.svg';
+  static const assetPath = 'assets/accounting_logo_transparent.png';
 
   /// Host app: assets at `assets/…`. Embedded in Flipper POS: `packages/flipper_web/…`.
-  static String? get _package => flipperWebIsHostApp ? null : 'flipper_web';
+  static String? get package => flipperWebIsHostApp ? null : 'flipper_web';
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      _assetPath,
-      package: _package,
+    return Image.asset(
+      assetPath,
+      package: package,
       width: size,
       height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
     );
   }
 }
