@@ -583,12 +583,109 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   ),
                 ),
               ),
-              loading: () => Column(
-                children: List.generate(
-                  5,
-                  (index) => const VariantShimmerPlaceholder(),
-                ),
-              ),
+              loading: () {
+                final hasBranch = branchId.isNotEmpty;
+                final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+                final knownTotal = notifier.totalCount;
+
+                // If there's no branch selected, show the empty/placeholder UI
+                if (!hasBranch) {
+                  return Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 24,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            FluentIcons.box_20_regular,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            context.flipperL10n.noBranchSelected,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // If we already know there are zero products for this branch,
+                // show the empty-state immediately instead of shimmer.
+                if (knownTotal != null && knownTotal == 0) {
+                  return Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 24,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            FluentIcons.box_20_regular,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            context.flipperL10n.noProductsYet,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            context.flipperL10n.productsSyncingHint,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 20),
+                          FilledButton.icon(
+                            onPressed: () => ref.invalidate(
+                              outerVariantsProvider(branchId),
+                            ),
+                            icon: const Icon(
+                              FluentIcons.arrow_sync_20_filled,
+                            ),
+                            label: Text(
+                              context.flipperL10n.refreshProducts,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // Fallback: show a smaller shimmer set while loading
+                return Column(
+                  children: List.generate(
+                    3,
+                    (index) => const VariantShimmerPlaceholder(),
+                  ),
+                );
+              },
             );
       },
     );
