@@ -206,6 +206,19 @@ class PaymentVerificationNavigator {
     bool skipCommissionCheck = false,
     bool clearStack = false,
   }) async {
+    // Hard invariant, independent of route names and of the isInitialStartup
+    // grace period: nothing may push a signed-out device into the authenticated
+    // home. Without this, a verification error while sitting on the login or
+    // signup screen fell through to "proceed to main app" and entered the app
+    // with no session.
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) {
+      talker.warning(
+        'Refusing to navigate to authenticated home: no signed-in user',
+      );
+      return;
+    }
+
     if (!skipPersonalCheck) {
       final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
       if (shouldGoToPersonal) {
