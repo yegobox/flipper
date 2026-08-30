@@ -45,6 +45,20 @@ class PaymentVerificationNavigator {
 
   static const _barModeEnabledKey = BarModeBranchSettingsService.enabledKey;
 
+  /// Refuses an authenticated route when no signed-in user remains, and says so.
+  ///
+  /// Call this immediately before every authenticated `navigateTo` rather than
+  /// once on entry. Every path here awaits — the personal-app check, the
+  /// commission check, bar-mode hydration — and logout clears the box
+  /// asynchronously, so a session that existed when the check ran can be gone
+  /// by the time the navigation happens.
+  static bool _refuseWhenSignedOut(String route) {
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId != null && userId.isNotEmpty) return false;
+    talker.warning('Refusing to navigate to $route: no signed-in user');
+    return true;
+  }
+
   /// Verifies payment online and navigates. Use after signup when payment was just completed.
   static Future<PaymentVerificationResponse> verifyAndNavigate({
     bool userInitiated = true,
@@ -157,6 +171,7 @@ class PaymentVerificationNavigator {
 
     final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
     if (shouldGoToPersonal) {
+      if (_refuseWhenSignedOut('PersonalHome')) return;
       talker.info(
         'Navigating to personal app for individual business despite payment verification error',
       );
@@ -182,6 +197,10 @@ class PaymentVerificationNavigator {
   static Future<bool> _navigateCommissionOnlyIfNeeded() async {
     final commissionOnly = await refreshCommissionOnlySession();
     if (!commissionOnly) return false;
+
+    // Reported as handled so callers stop here rather than falling through to
+    // another authenticated route.
+    if (_refuseWhenSignedOut('AgentCommission')) return true;
 
     talker.info(
       'Navigating to agent commission screen for commission-only session',
@@ -210,18 +229,14 @@ class PaymentVerificationNavigator {
     // grace period: nothing may push a signed-out device into the authenticated
     // home. Without this, a verification error while sitting on the login or
     // signup screen fell through to "proceed to main app" and entered the app
-    // with no session.
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (userId == null || userId.isEmpty) {
-      talker.warning(
-        'Refusing to navigate to authenticated home: no signed-in user',
-      );
-      return;
-    }
+    // with no session. Checked again at each navigation below, since the work
+    // in between awaits.
+    if (_refuseWhenSignedOut('authenticated home')) return;
 
     if (!skipPersonalCheck) {
       final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
       if (shouldGoToPersonal) {
+        if (_refuseWhenSignedOut('PersonalHome')) return;
         talker.info('Navigating to personal app for individual business');
         _routerService.navigateTo(PersonalHomeRoute());
         return;
@@ -239,6 +254,7 @@ class PaymentVerificationNavigator {
     await BarModeBranchSettingsService.hydrateForActiveBranch();
 
     if (_shouldOpenBarMode()) {
+      if (_refuseWhenSignedOut('BarMode')) return;
       talker.info('Bar mode launch on start — opening bar register');
       if (clearStack) {
         await _routerService.clearStackAndShow(BarModeRoute());
@@ -247,6 +263,8 @@ class PaymentVerificationNavigator {
       }
       return;
     }
+
+    if (_refuseWhenSignedOut('FlipperApp')) return;
 
     if (clearStack) {
       await _routerService.clearStackAndShow(FlipperAppRoute());
