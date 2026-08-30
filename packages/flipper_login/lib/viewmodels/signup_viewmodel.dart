@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/user_profile_name_service.dart';
 
 /// View model for handling signup business logic
 class SignupViewModel extends BaseViewModel {
@@ -83,8 +84,33 @@ class SignupViewModel extends BaseViewModel {
         business: businessMap,
         flipperHttpClient: ProxyService.http,
       );
+
+      // The server creates the users row with a placeholder name, so the Admin
+      // profile card would show a UUID until it is edited by hand. Write the
+      // name the user just typed through the same path AdminControl uses, so
+      // it is already correct the first time they log in.
+      await _persistUserDisplayName(phoneNumber: phoneNumber);
     } catch (e) {
       rethrow;
     }
+  }
+
+  /// Saves the signup name onto the `users` row. Best-effort: never rethrows,
+  /// because the account itself was created successfully by this point.
+  Future<void> _persistUserDisplayName({String? phoneNumber}) async {
+    final displayName = (name?.trim().isNotEmpty == true)
+        ? name!.trim()
+        : (fullName?.trim() ?? '');
+    if (displayName.isEmpty) return;
+
+    // signup() → login() → sendLoginRequest() has already stored the userId.
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) return;
+
+    await UserProfileNameService.saveNameBestEffort(
+      userId: userId,
+      name: displayName,
+      loginKeys: [phoneNumber, ProxyService.box.getUserPhone()],
+    );
   }
 }
