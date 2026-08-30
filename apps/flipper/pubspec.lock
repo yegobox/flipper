@@ -1247,7 +1247,7 @@ packages:
       path: "../flipper_auth"
       relative: true
     source: path
-    version: "1.0.768+1862"
+    version: "1.0.769+1863"
   flipper_dashboard:
     dependency: "direct main"
     description:
@@ -1359,7 +1359,7 @@ packages:
       path: "../flipper_web"
       relative: true
     source: path
-    version: "1.0.779+1695"
+    version: "1.0.784+1700"
   flowy_svg:
     dependency: "direct overridden"
     description:
