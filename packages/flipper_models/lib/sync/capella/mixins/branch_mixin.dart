@@ -378,6 +378,23 @@ mixin CapellaBranchMixin implements BranchInterface {
     return controller.stream;
   }
 
+  /// Brick-backed read used when the local Ditto store has no document for
+  /// this branch id — e.g. a branch created server-side that this device
+  /// never wrote locally via `saveBranch()` (`branches` is sendOnly).
+  Future<Branch?> _activeBranchFromBrick({required String branchId}) async {
+    try {
+      final results = await repository.get<Branch>(
+        query: Query(where: [Where('id').isExactly(branchId)]),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+      return results.isEmpty ? null : results.first;
+    } catch (e, s) {
+      talker.error('Brick active branch fallback failed: $e');
+      talker.error(s);
+      return null;
+    }
+  }
+
   @override
   Future<Branch> activeBranch({required String branchId}) async {
     if (dittoService.dittoInstance == null) {
@@ -392,6 +409,8 @@ mixin CapellaBranchMixin implements BranchInterface {
       );
 
       if (result.items.isEmpty) {
+        final brickBranch = await _activeBranchFromBrick(branchId: branchId);
+        if (brickBranch != null) return brickBranch;
         throw Exception('Active branch not found for id: $branchId');
       }
 
@@ -415,6 +434,8 @@ mixin CapellaBranchMixin implements BranchInterface {
     final query = "SELECT * FROM branches WHERE id = :id";
     final arguments = {"id": branchId};
 
+    bool fallbackInFlight = false;
+
     final observer = dittoService.dittoInstance!.store.registerObserver(
       query,
       arguments: arguments,
@@ -422,9 +443,19 @@ mixin CapellaBranchMixin implements BranchInterface {
         if (controller.isClosed) return;
 
         if (queryResult.items.isEmpty) {
-          controller.addError(
-            Exception('Active branch not found for id: $branchId'),
-          );
+          if (fallbackInFlight) return;
+          fallbackInFlight = true;
+          _activeBranchFromBrick(branchId: branchId).then((branch) {
+            fallbackInFlight = false;
+            if (controller.isClosed) return;
+            if (branch != null) {
+              controller.add(branch);
+            } else {
+              controller.addError(
+                Exception('Active branch not found for id: $branchId'),
+              );
+            }
+          });
         } else {
           final data = Map<String, dynamic>.from(queryResult.items.first.value);
           final branch = Branch.fromMap(data);

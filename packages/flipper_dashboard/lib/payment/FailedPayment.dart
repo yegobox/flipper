@@ -787,15 +787,15 @@ class _FailedPaymentState extends State<FailedPayment>
     }
 
     if (_waitingForPaymentCompletion) {
+      // No `overlay` here: it renders opaque and full-screen, which would hide
+      // the "Reopen payment page" / "Not now" buttons that
+      // _buildPaymentWaitingContent() already provides below — leaving the
+      // customer stuck on a bare spinner with no way to reopen the link or
+      // back out.
       return PaymentScreenShell(
         title: 'Payment Issue',
         showBack: false,
         actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
-        overlay: PaymentLoadingOverlay(
-          message: _rail.isCard
-              ? 'Complete payment on the card page…'
-              : 'Complete payment on your phone…',
-        ),
         children: [
           _buildPaymentWaitingContent(),
         ],
