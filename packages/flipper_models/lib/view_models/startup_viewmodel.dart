@@ -197,15 +197,27 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> _handlePaymentStatusChange(
     PaymentVerificationResponse response,
   ) async {
+    // The startup grace period is a ONE-SHOT: it exists so the very first
+    // check may navigate off StartUpView, and it deliberately bypasses both
+    // the pre-auth route guard and the recent-activity guard in
+    // PaymentVerificationNavigator. Consume it on the first check whatever the
+    // outcome.
+    //
+    // It used to clear only on `active`. A verification that errors — e.g.
+    // "No active business found" right after logout — left the flag set for
+    // the rest of the session, so every later *periodic* tick still claimed to
+    // be the initial startup, skipped both guards, and pushed a user sitting
+    // on the login/signup screen into the authenticated home once per
+    // interval.
+    final wasInitialStartup = _isInitialStartup;
+    _isInitialStartup = false;
+
     await PaymentVerificationNavigator.handle(
       response,
-      isInitialStartup: _isInitialStartup,
+      isInitialStartup: wasInitialStartup,
       lastUserActivity: _lastUserActivity,
       userActivityThreshold: _userActivityThreshold,
     );
-    if (response.result == PaymentVerificationResult.active) {
-      _isInitialStartup = false;
-    }
   }
 
   /// Handle initial payment verification during startup
@@ -216,15 +228,14 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } catch (e, stackTrace) {
       // If payment verification itself throws an exception, create a response and handle it
       talker.error(e, stackTrace);
-      await PaymentVerificationNavigator.handle(
+      // Routed through _handlePaymentStatusChange so this path consumes the
+      // one-shot startup flag too.
+      await _handlePaymentStatusChange(
         PaymentVerificationResponse(
           result: PaymentVerificationResult.error,
           errorMessage: 'Payment verification failed: $e',
           exception: Exception(e),
         ),
-        isInitialStartup: _isInitialStartup,
-        lastUserActivity: _lastUserActivity,
-        userActivityThreshold: _userActivityThreshold,
       );
     }
   }

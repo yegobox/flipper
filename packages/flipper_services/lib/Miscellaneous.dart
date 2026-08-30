@@ -7,6 +7,7 @@ import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
+import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:http/http.dart' as http;
@@ -139,6 +140,13 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
 
       ProxyService.event.unsubscribeLoginEvent();
       ProxyService.event.resetLoginStatus();
+
+      // Stop background payment verification. The singleton's timer outlives
+      // the session otherwise, so it keeps polling — and navigating — for a
+      // user who has signed out. StartupViewModel restarts it on next login.
+      final paymentVerification = PaymentVerificationService();
+      paymentVerification.stopPeriodicVerification();
+      await paymentVerification.stopRealtimeVerification();
 
       await resetSaleDeviceIdCache();
       await setCommissionOnlySession(false);
