@@ -383,12 +383,38 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       }
 
       // Local-only: avoid Turso pull / Supabase hydrate during startup checks.
-      final business = await ProxyService.strategy.getBusinessById(
+      var business = await ProxyService.strategy.getBusinessById(
         businessId: businessId,
         fetchOnline: false,
       );
       if (business == null) {
-        throw Exception("Business not found locally");
+        // Local copy missing — try an online fetch as a fallback. This can
+        // happen when the app restarts before local syncing/hydration
+        // completed (Ditto/Turso). Prefer a quick online fetch rather than
+        // failing startup immediately.
+        try {
+          talker.warning(
+            'Business not found locally; attempting online fetch...',
+          );
+          // Ensure we have a Future so `.timeout` is available even if the
+          // underlying implementation returns `FutureOr<Business?>`.
+          business = await Future.value(
+            ProxyService.strategy.getBusinessById(
+              businessId: businessId,
+              fetchOnline: true,
+            ),
+          ).timeout(const Duration(seconds: 10));
+          if (business == null) {
+            throw BusinessNotFoundException(
+              term: 'Business not found locally or online',
+            );
+          }
+        } catch (e, st) {
+          talker.error(e, st);
+          throw BusinessNotFoundException(
+            term: 'Business not found locally or online',
+          );
+        }
       }
       talker.warning("Business found: ${business.name}");
 
@@ -399,6 +425,23 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         localOnly: true,
       );
       talker.warning("branches: ${branches.length}");
+
+      // If no branches exist locally, attempt a non-local lookup (Brick/
+      // online) as a fallback. This handles fresh devices or cases where
+      // Ditto hasn't replicated down branches yet.
+      if (branches.isEmpty) {
+        try {
+          talker.warning('No local branches; attempting non-local fetch...');
+          branches = await ProxyService.strategy.branches(
+            businessId: businessId,
+            active: true,
+            localOnly: false,
+          );
+          talker.warning('branches after non-local fetch: ${branches.length}');
+        } catch (e, st) {
+          talker.error('Non-local branches fetch failed', st);
+        }
+      }
 
       if (branches.isEmpty) {
         throw Exception(
