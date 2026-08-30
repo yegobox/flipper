@@ -20,6 +20,7 @@ import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_services/user_profile_name_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -676,61 +677,32 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     }
   }
 
+  /// Shared with signup (`UserProfileNameService`) so a name saved here and a
+  /// name saved at signup land through exactly the same write path.
   Future<bool> _trySaveProfileNameViaRpc({
     required String userId,
     required String loginKey,
     required String name,
-  }) async {
-    final keys = <String>{
-      loginKey,
-      if (loginKey.startsWith('+')) loginKey.substring(1),
-    };
-    final email = _profileEmailFromUser(_profileUser)?.trim();
-    if (email != null && email.isNotEmpty) {
-      keys.add(email);
-    }
-    final phone = _profileUser?.phoneNumber?.trim();
-    if (phone != null && phone.isNotEmpty) {
-      keys.add(phone);
-      if (phone.startsWith('+')) keys.add(phone.substring(1));
-    }
-
-    for (final key in keys) {
-      if (key.isEmpty) continue;
-      try {
-        final result = await Supabase.instance.client.rpc(
-          'update_user_profile_name',
-          params: {
-            'p_user_id': userId,
-            'p_name': name,
-            'p_login_key': key,
-          },
-        );
-        if (result == true) return true;
-      } catch (_) {
-        // Try next key shape (RPC may not be deployed yet).
-      }
-    }
-    return false;
+  }) {
+    return UserProfileNameService.saveViaRpc(
+      userId: userId,
+      name: name,
+      loginKeys: [
+        loginKey,
+        _profileEmailFromUser(_profileUser),
+        _profileUser?.phoneNumber,
+      ],
+    );
   }
 
   Future<void> _trySaveProfileNameViaUserPost({
     required String loginKey,
     required String name,
-  }) async {
-    final apiPhone = loginKey.startsWith('+') || loginKey.contains('@')
-        ? loginKey
-        : '+$loginKey';
-    final response = await ProxyService.http.post(
-      Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode({'phoneNumber': apiPhone, 'name': name}),
+  }) {
+    return UserProfileNameService.saveViaUserPost(
+      loginKey: loginKey,
+      name: name,
     );
-    if (response.statusCode != 200) {
-      throw Exception(
-        'Profile update failed (${response.statusCode}): ${response.body}',
-      );
-    }
   }
 
   Future<void> _verifyProfileNameSaved(String expectedName) async {
