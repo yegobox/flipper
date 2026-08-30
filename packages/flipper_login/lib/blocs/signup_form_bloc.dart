@@ -332,10 +332,15 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     try {
       // Ensure user exists/is initialized first as required by backend
       // This hits /v2/api/user which is a prerequisite for OTP sending
+      // Call sendLoginRequest in "refresh only" mode so we populate
+      // `user_access` without persisting `userId` to local storage. Persisting
+      // `userId` here causes the app to treat the session as authenticated
+      // (auto-login) before OTP verification completes.
       await ProxyService.strategy.sendLoginRequest(
         contactInfo,
         ProxyService.http,
         AppSecrets.apihubProd,
+        refreshUserAccessOnly: true,
       );
 
       final result = await ProxyService.strategy.sendOtpForSignup(contactInfo);
