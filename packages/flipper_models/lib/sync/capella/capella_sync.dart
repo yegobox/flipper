@@ -1826,6 +1826,7 @@ class CapellaSync extends AiStrategyImpl
     String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
+    String? rule,
     required double totalPrice,
     required String paymentMethod,
     String? customerCode,
@@ -1833,7 +1834,7 @@ class CapellaSync extends AiStrategyImpl
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   }) {
-    return _legacy.saveOrUpdatePaymentPlan(businessId: businessId, addons: addons, selectedPlan: selectedPlan, planTemplateId: planTemplateId, additionalDevices: additionalDevices, isYearlyPlan: isYearlyPlan, totalPrice: totalPrice, paymentMethod: paymentMethod, customerCode: customerCode, plan: plan, numberOfPayments: numberOfPayments, flipperHttpClient: flipperHttpClient);
+    return _legacy.saveOrUpdatePaymentPlan(businessId: businessId, addons: addons, selectedPlan: selectedPlan, planTemplateId: planTemplateId, additionalDevices: additionalDevices, isYearlyPlan: isYearlyPlan, rule: rule, totalPrice: totalPrice, paymentMethod: paymentMethod, customerCode: customerCode, plan: plan, numberOfPayments: numberOfPayments, flipperHttpClient: flipperHttpClient);
   }
 
   @override

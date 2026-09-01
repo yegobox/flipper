@@ -57,6 +57,7 @@ dependencies:
   flipper_routing: ^1.0.0
   flipper_analytics: any
   flipper_models: any
+  flipper_payments: any
   flipper_web: any
 
   google_fonts: ^6.1.0

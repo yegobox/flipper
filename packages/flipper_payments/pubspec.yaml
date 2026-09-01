@@ -1,0 +1,33 @@
+name: flipper_payments
+description: Subscriptions and collections shared by every Flipper app — MTN MoMo and card rails, the plan catalogue, entitlement, and the paywall UI.
+version: 0.1.0
+publish_to: none
+
+# Deliberately a leaf package. It must NOT depend on flipper_services,
+# flipper_models or flipper_routing: those sit above flipper_web and flipper_hr
+# in the graph, and depending on them is exactly what kept payments POS-only and
+# made flipper_hr write a second MoMo client. The two things it does need from
+# the host app — an HTTP client and the connector's base URL — come in through
+# PaymentsHttpClient and PaymentsBaseUrlResolver.
+environment:
+  sdk: '>=3.10.4 <4.0.0'
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.2
+  supabase_flutter: ^2.12.0
+  flutter_riverpod: ^3.0.3
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  fluentui_system_icons: ^1.1.273
+  url_launcher: ^6.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

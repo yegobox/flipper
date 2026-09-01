@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/exceptions.dart' show FailedPaymentException;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
+import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -29,7 +30,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   String? _selectedTemplateId;
   final Set<String> _selectedAddonSlugs = {};
   int _additionalDevices = 0;
-  bool _isYearlyPlan = false;
+  BillingCadence _cadence = BillingCadence.monthly;
   double _totalPrice = 0;
   bool _isLoadingCatalog = true;
   String? _catalogError;
@@ -119,8 +120,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       return;
     }
     setState(() {
-      _totalPrice = template.calculateTotal(
-        isYearly: _isYearlyPlan,
+      _totalPrice = template.calculateTotalFor(
+        cadence: _cadence,
         selectedAddonSlugs: _selectedAddonSlugs,
       );
     });
@@ -159,7 +160,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         numberOfPayments: numberOfPayments,
         flipperHttpClient: ProxyService.http,
         additionalDevices: _additionalDevices,
-        isYearlyPlan: _isYearlyPlan,
+        isYearlyPlan: _cadence.isYearly,
+        rule: _cadence.wireValue,
         totalPrice: totalPrice,
       );
 
@@ -228,12 +230,12 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         subtitle:
             'Switch between plans anytime. Yearly billing saves you ${yearlyDiscount.round()}%.',
       ),
-      PaymentSegment2(
-        isYearly: _isYearlyPlan,
+      PaymentCadenceSegment(
+        cadence: _cadence,
         yearlyDiscountPercent: yearlyDiscount,
-        onChanged: (yearly) {
+        onChanged: (cadence) {
           setState(() {
-            _isYearlyPlan = yearly;
+            _cadence = cadence;
             _calculatePrice();
           });
         },
@@ -244,9 +246,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             if (i > 0) const SizedBox(height: 8),
             PaymentPlanTile(
               name: templates[i].name,
-              priceLine: formatPaymentTilePrice(
+              priceLine: formatPaymentTilePriceFor(
                 templates[i],
-                isYearly: _isYearlyPlan,
+                cadence: _cadence,
               ),
               icon: templates[i].resolveIcon(),
               selected: _selectedTemplateId == templates[i].id,
@@ -270,10 +272,10 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           if (i > 0) const SizedBox(height: 8),
           PaymentAddonRow(
             name: template.addons[i].name,
-            priceLine: formatPaymentAddonPrice(
+            priceLine: formatPaymentAddonPriceFor(
               template,
               template.addons[i],
-              isYearly: _isYearlyPlan,
+              cadence: _cadence,
             ),
             enabled: _selectedAddonSlugs.contains(template.addons[i].slug),
             onChanged: (value) {
@@ -296,7 +298,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             planName: template.name,
             addonNames: _selectedAddonNames,
           ),
-          isYearly: _isYearlyPlan,
+          cadence: _cadence,
         ),
       PaymentSplitSection(
         splitEnabled: _splitEnabled,
