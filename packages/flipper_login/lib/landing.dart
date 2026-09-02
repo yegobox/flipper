@@ -156,16 +156,19 @@ class _LandingState extends State<Landing> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // AuthRoute is the Firebase OAuth screen, which only has
+                    // providers wired up on web/mobile. Desktop uses the same
+                    // OTP signup + PIN sign-in as mobile.
                     _buildButton(
                       text: "Create Account",
-                      onPressed: () => _routerService.navigateTo(AuthRoute()),
+                      key: const Key(LoginMaestroIds.landingCreateAccount),
+                      onPressed: _goToCreateAccount,
                     ),
                     const SizedBox(height: 22),
                     _buildButton(
                       text: "Sign In",
                       key: signInButtonKey,
-                      onPressed: () =>
-                          _routerService.clearStackAndShow(AuthRoute()),
+                      onPressed: _goToSignIn,
                     ),
                   ],
                 ),

@@ -5,7 +5,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flutter/material.dart';
 
+import 'package:flipper_login/pin_login_brand_panel.dart';
+import 'package:flipper_login/signin_tokens.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -160,505 +163,450 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   final size = MediaQuery.sizeOf(context);
                   final isMobileLayout =
                       size.shortestSide < 600 || size.width <= 820;
+                  // Same 920 threshold PIN login and flipper_web use for their
+                  // split shell, so all three agree on what "desktop" means.
+                  final useSplitLayout = !isMobileLayout &&
+                      size.width >= SignInTokens.desktopSplitBreakpoint;
                   final maxWidth = isMobileLayout ? 430.0 : 520.0;
                   final horizontalPadding = isMobileLayout ? 22.0 : 32.0;
+
+                  // The step body: intro, the current step's fields, and the
+                  // footer. Desktop puts this on a raised card beside the brand
+                  // panel (the flipper_web signup shell); mobile renders it
+                  // inline exactly as before. Fields, bloc and step gating are
+                  // untouched — this is presentation only.
+                  final stepChildren = <Widget>[
+                    _SignupStepIntro(step: _signupStep),
+                    const SizedBox(height: 22),
+                    if (_signupStep == 0) ...[
+                      components.SignupComponents.buildInputField(
+                        fieldBloc: formBloc.username,
+                        label: 'Username',
+                        icon: Icons.person_outline,
+                        hint: 'Enter your username',
+                      ),
+                      components.SignupComponents.buildInputField(
+                        fieldBloc: formBloc.fullName,
+                        label: 'Full Name',
+                        icon: Icons.badge_outlined,
+                        hint: 'First name, Last name',
+                      ),
+                    ] else if (_signupStep == 1) ...[
+                      components.SignupComponents.buildInputField(
+                        fieldBloc: formBloc.phoneNumber,
+                        label: 'Phone / Email',
+                        icon: Icons.phone_outlined,
+                        hint: '783054874 or your@email.com',
+                        keyboardType: TextInputType.text,
+                        // Dial-code prefix chip — shows when input is a phone number,
+                        // hides automatically when the user types "@" (email mode).
+                        prefix: BlocBuilder<SelectFieldBloc<String, String>,
+                            SelectFieldBlocState<String, String>>(
+                          bloc: formBloc.countryName,
+                          builder: (context, countryState) {
+                            final country = countryState.value ?? 'Rwanda';
+                            final dialCode =
+                                _phoneValidationRules[country]?.dialCode ??
+                                    '+250';
+                            return BlocBuilder<TextFieldBloc,
+                                TextFieldBlocState>(
+                              bloc: formBloc.phoneNumber,
+                              builder: (context, phoneState) {
+                                final isEmail = phoneState.value.contains('@');
+                                if (isEmail) return const SizedBox.shrink();
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  margin: const EdgeInsets.only(right: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4F46E5)
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    dialCode,
+                                    style: const TextStyle(
+                                      color: Color(0xFF4F46E5),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        suffix: BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+                          bloc: formBloc.phoneNumber,
+                          builder: (context, phoneState) {
+                            return StreamBuilder<Map<String, dynamic>>(
+                              stream: formBloc.otpVerificationStatusStream,
+                              initialData: {
+                                'isVerifying': false,
+                                'isVerified': formBloc.isPhoneVerified,
+                                'error': null
+                              },
+                              builder: (context, statusSnapshot) {
+                                final statusData = statusSnapshot.data!;
+                                final isVerifying =
+                                    statusData['isVerifying'] ?? false;
+                                final bool isVerified =
+                                    (statusData['isVerified'] ?? false) &&
+                                        (phoneState.extraData is Map &&
+                                            (phoneState.extraData
+                                                    as Map)['verified'] ==
+                                                true);
+                                final error = statusData['error'];
+
+                                final String phoneValue = phoneState.value;
+                                final phoneHasValue = phoneValue.isNotEmpty;
+
+                                final bool isValidEmailOrPhone =
+                                    _isValidPhoneNumber(
+                                            phoneValue,
+                                            formBloc.countryName.value ??
+                                                'Rwanda') ||
+                                        _isValidEmail(phoneValue);
+
+                                final bool canSend = !isVerified &&
+                                    isValidEmailOrPhone &&
+                                    !_isSendingOtp;
+
+                                if (isVerifying) {
+                                  // Show loading indicator during verification
+                                  return Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          const Color(0xFF4F46E5),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                } else if (error != null && phoneHasValue) {
+                                  // Show "Resend Code" button when verification fails and phone has a value
+                                  return TextButton(
+                                    onPressed: canSend
+                                        ? () async {
+                                            setState(() {
+                                              _isSendingOtp = true;
+                                            });
+                                            try {
+                                              await formBloc.requestOtp();
+                                              if (!mounted) return;
+                                              showSuccessNotification(context,
+                                                  'OTP resent successfully!');
+                                            } catch (e) {
+                                              if (!mounted) return;
+                                              showErrorNotification(context,
+                                                  'Failed to resend OTP: ${e.toString()}');
+                                            } finally {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _isSendingOtp = false;
+                                                });
+                                              }
+                                            }
+                                          }
+                                        : null,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: const Color(0xFF4F46E5),
+                                      disabledForegroundColor: Colors.grey,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                    ),
+                                    child: _isSendingOtp
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Color(0xFF4F46E5)),
+                                            ),
+                                          )
+                                        : const Text('Resend',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600)),
+                                  );
+                                } else if (isVerified && phoneHasValue) {
+                                  // Show checkmark when phone is verified
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 16.0),
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                      size: 24,
+                                    ),
+                                  );
+                                } else {
+                                  // Show "Send Code" button when not verified
+                                  return TextButton(
+                                    onPressed: canSend
+                                        ? () async {
+                                            setState(() {
+                                              _isSendingOtp = true;
+                                            });
+                                            try {
+                                              await formBloc.requestOtp();
+                                              if (!mounted) return;
+                                              showSuccessNotification(context,
+                                                  'OTP sent successfully!');
+                                            } catch (e) {
+                                              if (!mounted) return;
+                                              showErrorNotification(context,
+                                                  'Failed to send OTP: ${e.toString()}');
+                                            } finally {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _isSendingOtp = false;
+                                                });
+                                              }
+                                            }
+                                          }
+                                        : null,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: const Color(0xFF4F46E5),
+                                      disabledForegroundColor: Colors.grey,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                    ),
+                                    child: _isSendingOtp
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Color(0xFF4F46E5)),
+                                            ),
+                                          )
+                                        : const Text('Send Code',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600)),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        ),
+                        showCompleteState: false,
+                      ),
+                      BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+                        bloc: formBloc.otpCode,
+                        builder: (context, state) {
+                          final isEnabled = (state.extraData
+                                  as Map<String, dynamic>?)?['enabled'] ==
+                              true;
+                          if (isEnabled) {
+                            return components.SignupComponents.buildInputField(
+                              fieldBloc: formBloc.otpCode,
+                              label: 'OTP Code',
+                              icon: Icons.lock_outlined,
+                              hint: 'Enter the 6-digit OTP',
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(6),
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              showCompleteState: false,
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      // Add a listener to trigger OTP verification when OTP is complete
+                      StreamBuilder<TextFieldBlocState>(
+                        stream: formBloc.otpCode.stream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            final state = snapshot.data!;
+                            // Trigger verification when OTP reaches 6 digits
+                            if (state.value.length == 6 && state.isValid) {
+                              // Use a post-frame callback to ensure UI updates happen first
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (!mounted) return; // Add mounted check here
+
+                                // Guard against re-triggering verification for the same OTP
+                                if (_isVerifyingOtp ||
+                                    state.value == _lastSubmittedOtp) {
+                                  return;
+                                }
+
+                                // Only verify if not already verified
+                                if (!formBloc.isPhoneVerified) {
+                                  setState(() {
+                                    _isVerifyingOtp = true;
+                                    _lastSubmittedOtp = state.value;
+                                  });
+
+                                  // Cancel any existing subscription to prevent leaks
+                                  _otpVerificationSubscription?.cancel();
+
+                                  // Listen to verification status to show notifications
+                                  _otpVerificationSubscription = formBloc
+                                      .otpVerificationStatusStream
+                                      .listen((status) {
+                                    // Ensure the widget is still mounted before updating UI
+                                    if (!mounted) {
+                                      _otpVerificationSubscription
+                                          ?.cancel(); // Cancel if widget is no longer mounted
+                                      return;
+                                    }
+
+                                    if (!status['isVerifying']) {
+                                      setState(() {
+                                        _isVerifyingOtp = false;
+                                      });
+
+                                      if (status['error'] != null) {
+                                        // Show error notification when verification fails
+                                        showErrorNotification(
+                                            context, status['error']);
+                                      } else if (status['isVerified']) {
+                                        // Show success notification when verification succeeds
+                                        showSuccessNotification(context,
+                                            'Phone number verified successfully!');
+                                      }
+                                      // Cancel subscription after handling the result
+                                      _otpVerificationSubscription?.cancel();
+                                    }
+                                  });
+
+                                  formBloc.manualVerifyOtp();
+                                }
+                              });
+                            }
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ] else ...[
+                      components.SignupComponents.buildDropdownField<
+                          BusinessType>(
+                        fieldBloc: formBloc.businessTypes,
+                        label: 'Usage',
+                        icon: Icons.business_outlined,
+                        itemBuilder: (context, value) => FieldItem(
+                          child: Text(
+                            value.typeName,
+                          ),
+                        ),
+                        onChanged: (value) {
+                          print(
+                            'Usage changed: ${value?.typeName} (id: ${value?.id})',
+                          );
+                          formBloc.businessTypes.updateValue(value);
+                          setState(() {
+                            _showTinField = value?.id != "2";
+                          });
+                        },
+                      ),
+                      if (_showTinField)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: TinInputField(
+                            tinNumberBloc: formBloc.tinNumber,
+                            formBloc: formBloc,
+                            onValidationResult: (isValid, isRelaxed) {
+                              if (isRelaxed) {
+                                formBloc.setTinRelaxed(true);
+                              } else if (isValid) {
+                                formBloc.setTinVerified(true);
+                              } else {
+                                formBloc.setTinVerified(false);
+                              }
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                      components.SignupComponents.buildDropdownField<String>(
+                        fieldBloc: formBloc.countryName,
+                        label: 'Country',
+                        icon: Icons.public_outlined,
+                        itemBuilder: (context, value) => FieldItem(
+                          child: Text(
+                            value,
+                          ),
+                        ),
+                      ),
+                      BlocBuilder<AsyncFieldValidationFormBloc, FormBlocState>(
+                        builder: (context, state) {
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                    SizedBox(
+                        height:
+                            useSplitLayout ? 28 : (isMobileLayout ? 72 : 96)),
+                    _SignupFooter(
+                      step: _signupStep,
+                      formBloc: formBloc,
+                      isLoading: model.registerStart,
+                      onBack: _handleSignupBack,
+                      onContinue: () => _handleSignupContinue(formBloc),
+                    ),
+                  ];
+
+                  final formColumn = Align(
+                    alignment: Alignment.topCenter,
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        useSplitLayout ? 40 : (isMobileLayout ? 18 : 28),
+                        horizontalPadding,
+                        28,
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _SignupStepHeader(
+                                step: _signupStep,
+                                xp: _signupXp(formBloc),
+                                onBack: _handleSignupBack,
+                              ),
+                              const SizedBox(height: 22),
+                              _SignupRewardBanner(xp: _signupXp(formBloc)),
+                              const SizedBox(height: 34),
+                              if (!useSplitLayout)
+                                ...stepChildren
+                              else
+                                FlipperOnboardingPanel(
+                                  padding: const EdgeInsets.all(22),
+                                  children: stepChildren,
+                                ),
+                              const SizedBox(height: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
 
                   return Scaffold(
                     backgroundColor: const Color(0xFFF5F8FD),
                     body: SafeArea(
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.fromLTRB(
-                            horizontalPadding,
-                            isMobileLayout ? 18 : 28,
-                            horizontalPadding,
-                            28,
-                          ),
-                          child: Form(
-                            key: _formKey,
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: maxWidth),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _SignupStepHeader(
-                                    step: _signupStep,
-                                    xp: _signupXp(formBloc),
-                                    onBack: _handleSignupBack,
-                                  ),
-                                  const SizedBox(height: 22),
-                                  _SignupRewardBanner(
-                                    xp: _signupXp(formBloc),
-                                  ),
-                                  const SizedBox(height: 34),
-                                  _SignupStepIntro(step: _signupStep),
-                                  const SizedBox(height: 22),
-                                  if (_signupStep == 0) ...[
-                                    components.SignupComponents.buildInputField(
-                                      fieldBloc: formBloc.username,
-                                      label: 'Username',
-                                      icon: Icons.person_outline,
-                                      hint: 'Enter your username',
-                                    ),
-                                    components.SignupComponents.buildInputField(
-                                      fieldBloc: formBloc.fullName,
-                                      label: 'Full Name',
-                                      icon: Icons.badge_outlined,
-                                      hint: 'First name, Last name',
-                                    ),
-                                  ] else if (_signupStep == 1) ...[
-                                    components.SignupComponents.buildInputField(
-                                      fieldBloc: formBloc.phoneNumber,
-                                      label: 'Phone / Email',
-                                      icon: Icons.phone_outlined,
-                                      hint: '783054874 or your@email.com',
-                                      keyboardType: TextInputType.text,
-                                      // Dial-code prefix chip — shows when input is a phone number,
-                                      // hides automatically when the user types "@" (email mode).
-                                      prefix: BlocBuilder<
-                                          SelectFieldBloc<String, String>,
-                                          SelectFieldBlocState<String, String>>(
-                                        bloc: formBloc.countryName,
-                                        builder: (context, countryState) {
-                                          final country =
-                                              countryState.value ?? 'Rwanda';
-                                          final dialCode =
-                                              _phoneValidationRules[country]
-                                                      ?.dialCode ??
-                                                  '+250';
-                                          return BlocBuilder<TextFieldBloc,
-                                              TextFieldBlocState>(
-                                            bloc: formBloc.phoneNumber,
-                                            builder: (context, phoneState) {
-                                              final isEmail = phoneState.value
-                                                  .contains('@');
-                                              if (isEmail)
-                                                return const SizedBox.shrink();
-                                              return Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 6,
-                                                        vertical: 2),
-                                                margin: const EdgeInsets.only(
-                                                    right: 4),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFF4F46E5)
-                                                      .withValues(alpha: 0.1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  dialCode,
-                                                  style: const TextStyle(
-                                                    color: Color(0xFF4F46E5),
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
-                                      suffix: BlocBuilder<TextFieldBloc,
-                                          TextFieldBlocState>(
-                                        bloc: formBloc.phoneNumber,
-                                        builder: (context, phoneState) {
-                                          return StreamBuilder<
-                                              Map<String, dynamic>>(
-                                            stream: formBloc
-                                                .otpVerificationStatusStream,
-                                            initialData: {
-                                              'isVerifying': false,
-                                              'isVerified':
-                                                  formBloc.isPhoneVerified,
-                                              'error': null
-                                            },
-                                            builder: (context, statusSnapshot) {
-                                              final statusData =
-                                                  statusSnapshot.data!;
-                                              final isVerifying =
-                                                  statusData['isVerifying'] ??
-                                                      false;
-                                              final bool isVerified =
-                                                  (statusData['isVerified'] ??
-                                                          false) &&
-                                                      (phoneState.extraData
-                                                              is Map &&
-                                                          (phoneState.extraData
-                                                                      as Map)[
-                                                                  'verified'] ==
-                                                              true);
-                                              final error = statusData['error'];
-
-                                              final String phoneValue =
-                                                  phoneState.value;
-                                              final phoneHasValue =
-                                                  phoneValue.isNotEmpty;
-
-                                              final bool isValidEmailOrPhone =
-                                                  _isValidPhoneNumber(
-                                                          phoneValue,
-                                                          formBloc.countryName
-                                                                  .value ??
-                                                              'Rwanda') ||
-                                                      _isValidEmail(phoneValue);
-
-                                              final bool canSend =
-                                                  !isVerified &&
-                                                      isValidEmailOrPhone &&
-                                                      !_isSendingOtp;
-
-                                              if (isVerifying) {
-                                                // Show loading indicator during verification
-                                                return Padding(
-                                                  padding: const EdgeInsets.all(
-                                                      12.0),
-                                                  child: SizedBox(
-                                                    width: 16,
-                                                    height: 16,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation<
-                                                              Color>(
-                                                        const Color(0xFF4F46E5),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              } else if (error != null &&
-                                                  phoneHasValue) {
-                                                // Show "Resend Code" button when verification fails and phone has a value
-                                                return TextButton(
-                                                  onPressed: canSend
-                                                      ? () async {
-                                                          setState(() {
-                                                            _isSendingOtp =
-                                                                true;
-                                                          });
-                                                          try {
-                                                            await formBloc
-                                                                .requestOtp();
-                                                            if (!mounted)
-                                                              return;
-                                                            showSuccessNotification(
-                                                                context,
-                                                                'OTP resent successfully!');
-                                                          } catch (e) {
-                                                            if (!mounted)
-                                                              return;
-                                                            showErrorNotification(
-                                                                context,
-                                                                'Failed to resend OTP: ${e.toString()}');
-                                                          } finally {
-                                                            if (mounted) {
-                                                              setState(() {
-                                                                _isSendingOtp =
-                                                                    false;
-                                                              });
-                                                            }
-                                                          }
-                                                        }
-                                                      : null,
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        const Color(0xFF4F46E5),
-                                                    disabledForegroundColor:
-                                                        Colors.grey,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 16),
-                                                  ),
-                                                  child: _isSendingOtp
-                                                      ? const SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    Color(
-                                                                        0xFF4F46E5)),
-                                                          ),
-                                                        )
-                                                      : const Text('Resend',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600)),
-                                                );
-                                              } else if (isVerified &&
-                                                  phoneHasValue) {
-                                                // Show checkmark when phone is verified
-                                                return Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 16.0),
-                                                  child: Icon(
-                                                    Icons.check_circle,
-                                                    color: Colors.green,
-                                                    size: 24,
-                                                  ),
-                                                );
-                                              } else {
-                                                // Show "Send Code" button when not verified
-                                                return TextButton(
-                                                  onPressed: canSend
-                                                      ? () async {
-                                                          setState(() {
-                                                            _isSendingOtp =
-                                                                true;
-                                                          });
-                                                          try {
-                                                            await formBloc
-                                                                .requestOtp();
-                                                            if (!mounted)
-                                                              return;
-                                                            showSuccessNotification(
-                                                                context,
-                                                                'OTP sent successfully!');
-                                                          } catch (e) {
-                                                            if (!mounted)
-                                                              return;
-                                                            showErrorNotification(
-                                                                context,
-                                                                'Failed to send OTP: ${e.toString()}');
-                                                          } finally {
-                                                            if (mounted) {
-                                                              setState(() {
-                                                                _isSendingOtp =
-                                                                    false;
-                                                              });
-                                                            }
-                                                          }
-                                                        }
-                                                      : null,
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        const Color(0xFF4F46E5),
-                                                    disabledForegroundColor:
-                                                        Colors.grey,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 16),
-                                                  ),
-                                                  child: _isSendingOtp
-                                                      ? const SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    Color(
-                                                                        0xFF4F46E5)),
-                                                          ),
-                                                        )
-                                                      : const Text('Send Code',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600)),
-                                                );
-                                              }
-                                            },
-                                          );
-                                        },
-                                      ),
-                                      showCompleteState: false,
-                                    ),
-                                    BlocBuilder<TextFieldBloc,
-                                        TextFieldBlocState>(
-                                      bloc: formBloc.otpCode,
-                                      builder: (context, state) {
-                                        final isEnabled = (state.extraData
-                                                    as Map<String, dynamic>?)?[
-                                                'enabled'] ==
-                                            true;
-                                        if (isEnabled) {
-                                          return components.SignupComponents
-                                              .buildInputField(
-                                            fieldBloc: formBloc.otpCode,
-                                            label: 'OTP Code',
-                                            icon: Icons.lock_outlined,
-                                            hint: 'Enter the 6-digit OTP',
-                                            keyboardType: TextInputType.number,
-                                            inputFormatters: [
-                                              LengthLimitingTextInputFormatter(
-                                                  6),
-                                              FilteringTextInputFormatter
-                                                  .digitsOnly,
-                                            ],
-                                            showCompleteState: false,
-                                          );
-                                        }
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                    // Add a listener to trigger OTP verification when OTP is complete
-                                    StreamBuilder<TextFieldBlocState>(
-                                      stream: formBloc.otpCode.stream,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData) {
-                                          final state = snapshot.data!;
-                                          // Trigger verification when OTP reaches 6 digits
-                                          if (state.value.length == 6 &&
-                                              state.isValid) {
-                                            // Use a post-frame callback to ensure UI updates happen first
-                                            WidgetsBinding.instance
-                                                .addPostFrameCallback((_) {
-                                              if (!mounted)
-                                                return; // Add mounted check here
-
-                                              // Guard against re-triggering verification for the same OTP
-                                              if (_isVerifyingOtp ||
-                                                  state.value ==
-                                                      _lastSubmittedOtp) {
-                                                return;
-                                              }
-
-                                              // Only verify if not already verified
-                                              if (!formBloc.isPhoneVerified) {
-                                                setState(() {
-                                                  _isVerifyingOtp = true;
-                                                  _lastSubmittedOtp =
-                                                      state.value;
-                                                });
-
-                                                // Cancel any existing subscription to prevent leaks
-                                                _otpVerificationSubscription
-                                                    ?.cancel();
-
-                                                // Listen to verification status to show notifications
-                                                _otpVerificationSubscription =
-                                                    formBloc
-                                                        .otpVerificationStatusStream
-                                                        .listen((status) {
-                                                  // Ensure the widget is still mounted before updating UI
-                                                  if (!mounted) {
-                                                    _otpVerificationSubscription
-                                                        ?.cancel(); // Cancel if widget is no longer mounted
-                                                    return;
-                                                  }
-
-                                                  if (!status['isVerifying']) {
-                                                    setState(() {
-                                                      _isVerifyingOtp = false;
-                                                    });
-
-                                                    if (status['error'] !=
-                                                        null) {
-                                                      // Show error notification when verification fails
-                                                      showErrorNotification(
-                                                          context,
-                                                          status['error']);
-                                                    } else if (status[
-                                                        'isVerified']) {
-                                                      // Show success notification when verification succeeds
-                                                      showSuccessNotification(
-                                                          context,
-                                                          'Phone number verified successfully!');
-                                                    }
-                                                    // Cancel subscription after handling the result
-                                                    _otpVerificationSubscription
-                                                        ?.cancel();
-                                                  }
-                                                });
-
-                                                formBloc.manualVerifyOtp();
-                                              }
-                                            });
-                                          }
-                                        }
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                  ] else ...[
-                                    components.SignupComponents
-                                        .buildDropdownField<BusinessType>(
-                                      fieldBloc: formBloc.businessTypes,
-                                      label: 'Usage',
-                                      icon: Icons.business_outlined,
-                                      itemBuilder: (context, value) =>
-                                          FieldItem(
-                                        child: Text(
-                                          value.typeName,
-                                        ),
-                                      ),
-                                      onChanged: (value) {
-                                        print(
-                                          'Usage changed: ${value?.typeName} (id: ${value?.id})',
-                                        );
-                                        formBloc.businessTypes
-                                            .updateValue(value);
-                                        setState(() {
-                                          _showTinField = value?.id != "2";
-                                        });
-                                      },
-                                    ),
-                                    if (_showTinField)
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 16.0),
-                                        child: TinInputField(
-                                          tinNumberBloc: formBloc.tinNumber,
-                                          formBloc: formBloc,
-                                          onValidationResult:
-                                              (isValid, isRelaxed) {
-                                            if (isRelaxed) {
-                                              formBloc.setTinRelaxed(true);
-                                            } else if (isValid) {
-                                              formBloc.setTinVerified(true);
-                                            } else {
-                                              formBloc.setTinVerified(false);
-                                            }
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ),
-                                    components.SignupComponents
-                                        .buildDropdownField<String>(
-                                      fieldBloc: formBloc.countryName,
-                                      label: 'Country',
-                                      icon: Icons.public_outlined,
-                                      itemBuilder: (context, value) =>
-                                          FieldItem(
-                                        child: Text(
-                                          value,
-                                        ),
-                                      ),
-                                    ),
-                                    BlocBuilder<AsyncFieldValidationFormBloc,
-                                        FormBlocState>(
-                                      builder: (context, state) {
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                  ],
-                                  SizedBox(height: isMobileLayout ? 72 : 96),
-                                  _SignupFooter(
-                                    step: _signupStep,
-                                    formBloc: formBloc,
-                                    isLoading: model.registerStart,
-                                    onBack: _handleSignupBack,
-                                    onContinue: () =>
-                                        _handleSignupContinue(formBloc),
-                                  ),
-                                  const SizedBox(height: 18),
-                                ],
-                              ),
+                      child: !useSplitLayout
+                          ? formColumn
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(child: formColumn),
+                                const Expanded(child: PinLoginBrandPanel()),
+                              ],
                             ),
-                          ),
-                        ),
-                      ),
                     ),
                   );
                 }),
@@ -705,7 +653,12 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
 
   void _handleSignupBack() {
     if (_signupStep == 0) {
-      locator<RouterService>().back();
+      // Desktop enters signup by replacing the QR/PIN screen, so there may be
+      // nothing left to pop. Fall back to sign-in rather than dead-ending.
+      final routerService = locator<RouterService>();
+      routerService.pop().then((popped) {
+        if (!popped) routerService.replaceWith(PinLoginRoute());
+      });
       return;
     }
     setState(() => _signupStep -= 1);
