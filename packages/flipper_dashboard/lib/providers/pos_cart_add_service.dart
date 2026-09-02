@@ -59,6 +59,9 @@ class PosCartAddService {
 
     final cartOptimismApplied = !isOrdering;
     if (cartOptimismApplied) {
+      // Registered before the save is queued so a `-` on the resulting ghost
+      // row can abort it (see OptimisticCart.cancelInFlightAdd).
+      ref.read(optimisticCartProvider.notifier).noteAddInFlight(variant.id);
       applyPosCartTapSync(
         ref: ref,
         variant: variant,
@@ -180,6 +183,11 @@ class PosCartAddService {
     } finally {
       if (ref.mounted) {
         ref.read(optimisticOrderCountProvider.notifier).decrement();
+        if (cartOptimismApplied) {
+          ref
+              .read(optimisticCartProvider.notifier)
+              .noteAddSettled(variant.id);
+        }
       }
     }
   }

@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_expanded_line.dart';
@@ -146,6 +147,93 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     _itemErrors.remove(id); // Clear errors on init/update
   }
 
+  /// A cart line's id changes when its optimistic ghost is replaced by the
+  /// saved row. Everything the row's UI keys by item id must follow it —
+  /// otherwise [_removeUnusedControllers] disposes the very controller and
+  /// focus node the user is typing into, [_expandedItemId] keeps pointing at
+  /// the dead ghost id so the panel collapses, and the pending debounced write
+  /// is dropped. Call before [_removeUnusedControllers].
+  void _migrateGhostLineState(List<TransactionItem> lines, bool isOrdering) {
+    if (_quantityControllers.isEmpty && _expandedItemId == null) return;
+
+    final liveIds = <String>{};
+    final realLineByVariant = <String, TransactionItem>{};
+    for (final line in lines) {
+      liveIds.add(line.id);
+      if (OptimisticCartIds.isOptimistic(line.id)) continue;
+      final vid = line.variantId;
+      if (vid == null || vid.isEmpty) continue;
+      realLineByVariant[vid] = line;
+    }
+    if (realLineByVariant.isEmpty) return;
+
+    final staleGhostIds = <String>{
+      ..._quantityControllers.keys,
+      if (_expandedItemId != null) _expandedItemId!,
+    }.where((id) =>
+        OptimisticCartIds.isOptimistic(id) && !liveIds.contains(id)).toList();
+
+    for (final ghostId in staleGhostIds) {
+      final vid = OptimisticCartIds.variantIdOf(ghostId);
+      if (vid == null) continue;
+      final realLine = realLineByVariant[vid];
+      if (realLine == null || realLine.id == ghostId) continue;
+      _moveLineUiState(ghostId, realLine, isOrdering);
+    }
+  }
+
+  void _moveLineUiState(
+    String from,
+    TransactionItem to,
+    bool isOrdering,
+  ) {
+    final toId = to.id;
+    final wasTyping = _quantityFocusNodes[from]?.hasFocus == true;
+    final pendingText = _quantityControllers[from]?.text;
+    final hadPendingWrite = _debounceTimers[from]?.isActive == true;
+
+    void move<V>(Map<String, V> m, {void Function(V)? disposeExisting}) {
+      if (!m.containsKey(from)) return;
+      final existing = m[toId];
+      if (existing != null && disposeExisting != null) disposeExisting(existing);
+      m[toId] = m.remove(from) as V;
+    }
+
+    move<TextEditingController>(_quantityControllers,
+        disposeExisting: (c) => c.dispose());
+    move<FocusNode>(_quantityFocusNodes, disposeExisting: (f) => f.dispose());
+    move<TextEditingController>(_priceControllers,
+        disposeExisting: (c) => c.dispose());
+    move<FocusNode>(_priceFocusNodes, disposeExisting: (f) => f.dispose());
+    move<bool>(_hasItemChanged);
+    move<bool>(_isItemSaving);
+    move<String>(_itemErrors);
+
+    // The ghost's qty notifier is rebuilt from the real line; drop it.
+    _lineDisplayQtyNotifiers.remove(from)?.dispose();
+    _optimisticQtyByItemId.remove(from);
+
+    if (_expandedItemId == from) _expandedItemId = toId;
+
+    // The queued write captured the ghost item, whose id matches no row. Re-arm
+    // it against the saved line so an edit in progress is not silently lost.
+    _debounceTimers.remove(from)?.cancel();
+    if (hadPendingWrite && pendingText != null) {
+      _debounceTimers[toId] = Timer(
+        _debounceDuration,
+        () => _updateQuantityFromTextField(to, pendingText, isOrdering),
+      );
+    }
+
+    if (wasTyping) {
+      // Keep the caret in the field the user is still typing in.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _quantityFocusNodes[toId]?.requestFocus();
+      });
+    }
+  }
+
   void _removeUnusedControllers([List<TransactionItem>? lines]) {
     final ids = (lines ?? _linesForTable).map((e) => e.id).toSet();
     final toRemove = _quantityControllers.keys
@@ -248,6 +336,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     if (lines == null) return;
     // Controllers are created lazily by row widgets as they become visible.
     // Keeping this hook to dispose controllers for removed items.
+    _migrateGhostLineState(lines, ProxyService.box.isOrdering() ?? false);
     _removeUnusedControllers(lines);
   }
 
@@ -294,6 +383,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) {
     _tableCartLines = cartLines;
     final lines = _linesForTable;
+    _migrateGhostLineState(lines, isOrdering);
     _removeUnusedControllers(lines);
 
     return Container(
@@ -599,7 +689,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool readOnly = false,
   }) {
     _ensureController(item);
-    final qtyLocked = OptimisticCartIds.isOptimistic(item.id) || readOnly;
+    // A ghost row (`optimistic:` id) has not reached Ditto yet. `+` is always
+    // safe there — it re-runs the catalog-tap path, the same thing as tapping
+    // the tile twice. `-` is safe only while the queued save can still be
+    // aborted; once it is past the point of no return Ditto would just restore
+    // the qty, so the button goes back to waiting for the real row.
+    final isGhost = OptimisticCartIds.isOptimistic(item.id);
+    final ghostDecrementable = isGhost &&
+        lineRef
+            .watch(optimisticCartProvider)
+            .hasCancellableAdd(item.variantId ?? '');
+    final qtyLocked = (isGhost && !ghostDecrementable) || readOnly;
     return ValueListenableBuilder<double>(
       valueListenable: _lineQtyListenable(item),
       builder: (context, displayQty, _) {
@@ -643,15 +743,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               ? () {}
               : () => _incrementQuantity(item, isOrdering),
           decrementEnabled: !readOnly && displayQty > 0 && !qtyLocked,
-          incrementEnabled: !readOnly && !qtyLocked,
+          incrementEnabled: !readOnly,
           expandedQuantityStepper: isExpanded
               ? PosCartExpandedQtyStepper(
                   qtyText: qtyFormatted,
                   controller: _quantityControllers[item.id]!,
                   focusNode: _quantityFocusNodes[item.id]!,
-                  enabled: !qtyLocked,
+                  enabled: !readOnly,
                   decrementEnabled: displayQty > 0 && !qtyLocked,
-                  incrementEnabled: !qtyLocked,
+                  incrementEnabled: !readOnly,
                   onDecrement: () => _decrementQuantity(item, isOrdering),
                   onIncrement: () => _incrementQuantity(item, isOrdering),
                   onChanged: (value) =>
@@ -807,7 +907,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === -INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
-    final qtyLocked = OptimisticCartIds.isOptimistic(item.id);
+    final isGhost = OptimisticCartIds.isOptimistic(item.id);
+    final qtyLocked = isGhost &&
+        !ref
+            .watch(optimisticCartProvider)
+            .hasCancellableAdd(item.variantId ?? '');
     return ValueListenableBuilder<double>(
       valueListenable: _lineQtyListenable(item),
       builder: (context, displayQty, _) {
@@ -838,7 +942,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               _buildCircularQtyButton(
                 icon: Icons.add,
                 onTap: () => _incrementQuantity(item, isOrdering),
-                enabled: !qtyLocked,
+                enabled: true,
                 id: '${item.id}-add',
               ),
             ],
@@ -1681,9 +1785,35 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     });
   }
 
+  /// `+` on a line that has not reached Ditto yet.
+  ///
+  /// Runs the ordinary catalog-tap path rather than writing against the
+  /// `optimistic:` id (which matches no row). Two queued adds serialise behind
+  /// the persist lock and `saveTransactionItem` does select-then-insert-or-
+  /// update, so the row settles at the right qty and reconciliation drains
+  /// [OptimisticCartState.pendingQtyByVariantId] the same way a double tile tap
+  /// does. Deliberately holds no qty state of its own: the cart must never
+  /// display a qty Ditto does not back, because sale completion reads these
+  /// same lines via `internalTransactionItems`.
+  void _incrementGhostLine(TransactionItem item, bool isOrdering) {
+    final vid = item.variantId ?? '';
+    if (vid.isEmpty) return;
+    final variant =
+        ref.read(optimisticCartProvider).variantSnapshotByVariantId[vid];
+    if (variant == null) return;
+    ref.read(posCartAddServiceProvider).tapAdd(
+          context: context,
+          variant: variant,
+          isOrdering: isOrdering,
+        );
+  }
+
   void _incrementQuantity(TransactionItem item, bool isOrdering) {
     if (item.partOfComposite ?? false) return;
-    if (OptimisticCartIds.isOptimistic(item.id)) return;
+    if (OptimisticCartIds.isOptimistic(item.id)) {
+      _incrementGhostLine(item, isOrdering);
+      return;
+    }
     final vid = item.variantId ?? '';
     final txnId = item.transactionId ?? '';
     if (vid.isEmpty || txnId.isEmpty) return;
@@ -1700,9 +1830,30 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
+  /// `-` on a line that has not reached Ditto yet.
+  ///
+  /// Aborts one queued save and takes the matching qty back out of the
+  /// optimistic cart. The order matters: without the cancellation the in-flight
+  /// write would land and re-inflate the qty, so if there is nothing left to
+  /// cancel this does nothing and the button is disabled anyway
+  /// ([OptimisticCartState.hasCancellableAdd]). Holds no qty state of its own —
+  /// the display stays driven by `pendingQtyByVariantId` and the stream, which
+  /// is what keeps it honest for sale completion.
+  void _decrementGhostLine(TransactionItem item) {
+    final vid = item.variantId ?? '';
+    final txnId = item.transactionId ?? '';
+    if (vid.isEmpty || txnId.isEmpty) return;
+    final notifier = ref.read(optimisticCartProvider.notifier);
+    if (!notifier.cancelInFlightAdd(vid)) return;
+    notifier.rollbackPending(transactionId: txnId, variantId: vid);
+  }
+
   void _decrementQuantity(TransactionItem item, bool isOrdering) {
     if (item.partOfComposite ?? false) return;
-    if (OptimisticCartIds.isOptimistic(item.id)) return;
+    if (OptimisticCartIds.isOptimistic(item.id)) {
+      _decrementGhostLine(item);
+      return;
+    }
     final vid = item.variantId ?? '';
     final txnId = item.transactionId ?? '';
     if (vid.isEmpty || txnId.isEmpty) return;
@@ -1733,11 +1884,29 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
+  /// The saved row for [item]'s variant, or [item] when it is already real.
+  ///
+  /// A typed qty is debounced, so the line can be replaced by its saved row
+  /// between the keystroke and the write. Writing against the stale ghost id
+  /// matches no row and silently does nothing.
+  TransactionItem _liveLineFor(TransactionItem item) {
+    if (!OptimisticCartIds.isOptimistic(item.id)) return item;
+    final vid = item.variantId;
+    if (vid == null || vid.isEmpty) return item;
+    for (final line in _linesForTable) {
+      if (line.variantId != vid) continue;
+      if (OptimisticCartIds.isOptimistic(line.id)) continue;
+      return line;
+    }
+    return item;
+  }
+
   Future<void> _updateQuantityFromTextField(
     TransactionItem item,
     String value,
-    bool isOrdering,
-  ) async {
+    bool isOrdering, {
+    int attempt = 0,
+  }) async {
     if (item.partOfComposite ?? false) return;
 
     final trimmedValue = value.trim();
@@ -1746,9 +1915,26 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final doubleValue = double.tryParse(trimmedValue);
 
     if (doubleValue != null && doubleValue >= 0) {
+      final target = _liveLineFor(item);
+      if (OptimisticCartIds.isOptimistic(target.id)) {
+        // Still unsaved. Wait one more debounce rather than dropping the edit —
+        // the row normally becomes real well inside this window.
+        if (attempt >= 2 || !mounted) return;
+        _debounceTimers[item.id]?.cancel();
+        _debounceTimers[item.id] = Timer(
+          _debounceDuration,
+          () => _updateQuantityFromTextField(
+            item,
+            value,
+            isOrdering,
+            attempt: attempt + 1,
+          ),
+        );
+        return;
+      }
       // Pass only 'qty' to updateTransactionItemInDb
       await _updateTransactionItemInDb(
-        item,
+        target,
         qty: doubleValue,
         isOrdering: isOrdering,
       );

@@ -143,7 +143,20 @@ Future<bool> persistItemToTransaction({
     }
   }
 
+  var itemAddCancelled = false;
+
   await _persistLock.synchronized(() async {
+    // A `-` on the still-unsaved line asked for this add back. It already took
+    // the qty out of the optimistic cart, so abort *without* rolling back again
+    // — writing the row here is exactly what would re-inflate the qty.
+    if (cartOptimismApplied &&
+        ref
+            .read(optimisticCartProvider.notifier)
+            .consumeCancelledAdd(variant.id)) {
+      itemAddCancelled = true;
+      return;
+    }
+
     if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
       rollbackStaleAddAttempt();
       itemAddAbortedStale = true;
@@ -228,6 +241,7 @@ Future<bool> persistItemToTransaction({
     // disappear before the real row was visible, flashing the cart empty.
   });
 
+  if (itemAddCancelled) return false;
   if (itemAddAbortedStale) return false;
   return true;
 }
