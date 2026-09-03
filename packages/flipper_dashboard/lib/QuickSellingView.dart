@@ -13,6 +13,7 @@ import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
+import 'package:flipper_dashboard/utils/frame_sync.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/counter_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -1259,7 +1260,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     if (mounted) {
       setState(() {});
-      await WidgetsBinding.instance.endOfFrame;
+      // Bounded: no frames are produced while the window is backgrounded, and
+      // the completion lock below must be released regardless.
+      await awaitNextFrameOrSkip();
     }
 
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);

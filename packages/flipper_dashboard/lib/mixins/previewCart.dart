@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
 import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
+import 'package:flipper_dashboard/utils/frame_sync.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
 import 'package:flipper_models/helperModels/sale_cart_qty_rows.dart';
@@ -1076,8 +1077,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             }
             // Let the checkout header rebuild with the new cached Txn ID before
             // the toast paints — otherwise the message appears on the old id.
+            // Bounded: a backgrounded window produces no frames, and this must
+            // never gate the release of the Pay spinner below.
             if (mounted) {
-              await WidgetsBinding.instance.endOfFrame;
+              await awaitNextFrameOrSkip();
             }
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
@@ -1094,6 +1097,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     : Colors.green,
                 showCloseButton: true,
               );
+            }
+            // Releasing the spinner needs no BuildContext — only the toast
+            // does. Bundling them meant a defunct context left the button
+            // spinning on a sale that had completed, printed and cleared.
+            if (mounted) {
               ref.read(payButtonStateProvider.notifier).stopLoading();
             }
             _resetDigitalReceiptToggleAfterSale();
