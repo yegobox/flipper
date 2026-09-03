@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
+import 'package:flipper_models/sync/utils/cart_line_seq_cache.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
@@ -77,6 +78,10 @@ String? _dittoDocumentId(Map<String, dynamic> data) {
 /// Minting on a transient empty is destructive — the new row wins the query's
 /// `ORDER BY lastTouched DESC` and orphans the lines already on the old id.
 const int _pendingCartEmptySettleMs = 750;
+
+/// Per-cart `itemSeq` high-water marks, so adding a line is O(1) instead of
+/// asking the store how many lines the cart already has.
+final CartLineSeqCache _cartLineSeqCache = CartLineSeqCache();
 
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
@@ -1646,23 +1651,31 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       } else {
         // Insert new item — assign per-transaction line seq (legacy Brick parity).
         // Do not copy [variation.itemSeq] (catalog field); it breaks cart/export order.
-        // Ask the store for the highest seq, not for every line in the cart.
-        // Scanning them all made each insert cost O(lines), so building a cart
-        // was O(n^2): the 60th tap materialised 59 rows just to add 1. ORDER BY
-        // + LIMIT is fine here — Ditto 5 only rejects ORDER BY in *sync
-        // subscriptions*, and this is a store query (see
-        // transaction_item_mixin.dart:126 for the same shape).
-        int nextItemSeq = 1;
-        final seqResult = await ditto.store.execute(
-          'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId '
-          'ORDER BY itemSeq DESC LIMIT 1',
-          arguments: {'transactionId': pendingTransaction.id},
-        );
-        if (seqResult.items.isNotEmpty) {
-          final maxSeq =
-              (seqResult.items.first.value['itemSeq'] as num?)?.toInt() ?? 0;
+        // Hand out the next seq from an in-memory high-water mark rather than
+        // asking the store on every insert. Asking cost O(lines) per insert —
+        // O(n^2) to build a cart — whether it selected every row (materialising
+        // 59 documents to add the 60th line) or made the store find the max.
+        // Seeding is one query per cart, on the first insert, which for a fresh
+        // cart reads nothing: a whole cart is now O(n).
+        //
+        // ORDER BY is fine in a store query — Ditto 5 only rejects it in *sync
+        // subscriptions* (see transaction_item_mixin.dart:126 for the shape).
+        int? nextItemSeq = _cartLineSeqCache.nextFor(pendingTransaction.id);
+        if (nextItemSeq == null) {
+          final seqResult = await ditto.store.execute(
+            'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId '
+            'ORDER BY itemSeq DESC LIMIT 1',
+            arguments: {'transactionId': pendingTransaction.id},
+          );
+          final maxSeq = seqResult.items.isEmpty
+              ? 0
+              : ((seqResult.items.first.value['itemSeq'] as num?)?.toInt() ?? 0);
           nextItemSeq = maxSeq + 1;
         }
+        _cartLineSeqCache.record(
+          transactionId: pendingTransaction.id,
+          seq: nextItemSeq,
+        );
 
         final double qty = updatableQty ?? 1.0;
         final unitSupply = variation.supplyPrice ?? 0;
