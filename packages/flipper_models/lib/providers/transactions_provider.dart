@@ -4,7 +4,6 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
 import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
-import 'package:flipper_models/helpers/transaction_item_plu_metrics.dart';
 import 'package:flipper_models/helpers/transaction_report_payment_totals.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -18,6 +17,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
+
+// [transactionReportLineMatchesSale] now lives with the other report PLU
+// scoping helpers; re-exported here for the existing importers.
+export 'package:flipper_models/helpers/transaction_report_plu_filters.dart'
+    show transactionReportLineMatchesSale;
 
 part 'transactions_provider.g.dart';
 
@@ -59,21 +63,6 @@ Future<List<TransactionItem>> waitReportPluLinesFromStream({
       branchId: branchId,
     );
   }
-}
-
-bool transactionReportLineMatchesSale(
-  TransactionItem item,
-  Set<String> saleIds,
-) {
-  final tid = item.transactionId?.toString().trim();
-  if (tid == null || tid.isEmpty) return false;
-  if (saleIds.contains(tid)) return true;
-  final compact = tid.replaceAll('-', '').toLowerCase();
-  if (compact.isEmpty) return false;
-  for (final id in saleIds) {
-    if (id.replaceAll('-', '').toLowerCase() == compact) return true;
-  }
-  return false;
 }
 
 /// Chunks [getPaymentSumsByTransactionIds] to avoid huge IN-clause queries.
@@ -409,7 +398,15 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionReportKpiTotals — full-period PLU + payment rollups (batched; not page-limited).
+// transactionReportKpiTotals — full-period rollups for the KPI strip.
+//
+// Every figure here derives from ONE row set: the report's own paging window
+// (the same WHERE [transactionReportSnapshot] pages for the grid). PLU lines
+// are joined to those sales and expenses are read off the same rows, so an
+// empty grid necessarily yields zeros across all four cards. Reading profit
+// from an unjoined `transaction_items` sweep — which also carries pending
+// carts and purchase lines whose supply cost makes profit negative — is what
+// let Net Profit go negative over a period with no reported transactions.
 // ---------------------------------------------------------------------------
 @riverpod
 Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
@@ -424,37 +421,14 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
 
   final forceRealData = !(ProxyService.box.enableDebug() ?? false);
   final capella = ProxyService.getStrategy(Strategy.capella) as CapellaSync;
-  final branchIdForPlu =
-      ProxyService.box.branchIdString() ?? branchId;
 
-  // Full-period PLU for KPIs — not tied to live [transactionItemList] stream.
-  final periodLines = await waitReportPluLinesFromStream(
-    capella: capella,
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchIdForPlu,
-  );
-
-  var pluLineSales = 0.0;
-  var pluGrossProfit = 0.0;
-  var pluLineTax = 0.0;
-  for (final item in periodLines) {
-    // A single malformed line (e.g. null price/qty arriving from Ditto into a
-    // non-nullable field) must not crash the whole KPI computation.
-    try {
-      if (transactionReportCashMovementPluLine(item)) continue;
-      pluLineSales += TransactionItemPluMetrics.lineNetSales(item);
-      pluGrossProfit += TransactionItemPluMetrics.profitMade(item);
-      pluLineTax += TransactionItemPluMetrics.taxPayable(item);
-    } catch (e) {
-      talker.warning('Skipping malformed PLU line in KPI totals: $e');
-    }
-  }
-
+  // --- Pass 1: the report-scope transactions, paged like the grid. ---
+  final saleIds = <String>{};
   var periodByHand = 0.0;
   var periodCredit = 0.0;
   var periodOwed = 0.0;
   var periodSubtotal = 0.0;
+  var periodExpense = 0.0;
 
   const batchTx = 500;
   var offset = 0;
@@ -477,7 +451,13 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     );
 
     for (final tx in scoped) {
-      if (tx.isExpense == true) continue;
+      if (tx.isExpense == true) {
+        periodExpense += tx.subTotal ?? 0.0;
+        continue;
+      }
+      // PLU lines roll up against sales only; expense rows are deducted whole
+      // via [periodExpense], so their lines must not also count as profit.
+      saleIds.add(tx.id.toString());
       final s = sums[tx.id.toString()];
       periodByHand += transactionReportByHandForTotals(tx, s);
       periodCredit += transactionReportCreditForTotals(tx, s);
@@ -492,14 +472,34 @@ Future<TransactionReportKpiTotals> transactionReportKpiTotals(Ref ref) async {
     offset += batch.length;
   }
 
+  // --- Pass 2: PLU lines, scoped to those sales. ---
+  // No sales in range means no lines to weigh: skip the fetch entirely rather
+  // than block on a stream that will never emit for this window.
+  var plu = const TransactionReportPluTotals();
+  if (saleIds.isNotEmpty) {
+    final branchIdForPlu = ProxyService.box.branchIdString() ?? branchId;
+    final periodLines = await waitReportPluLinesFromStream(
+      capella: capella,
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchIdForPlu,
+    );
+    plu = sumReportScopedPluLines(lines: periodLines, saleIds: saleIds);
+    talker.debug(
+      'transactionReportKpiTotals: ${periodLines.length} raw lines → '
+      '${saleIds.length} in-scope sales, gross=${plu.grossProfit}',
+    );
+  }
+
   return TransactionReportKpiTotals(
-    pluLineSales: pluLineSales,
-    pluGrossProfit: pluGrossProfit,
-    pluLineTax: pluLineTax,
+    pluLineSales: plu.lineSales,
+    pluGrossProfit: plu.grossProfit,
+    pluLineTax: plu.lineTax,
     periodByHand: periodByHand,
     periodCredit: periodCredit,
     periodOwed: periodOwed,
     periodSubtotal: periodSubtotal,
+    periodExpense: periodExpense,
   );
 }
 
@@ -790,8 +790,16 @@ DateTime dashboardPeriodStart(String period) {
   return DateTime(now.year - 1, now.month, d);
 }
 
+// autoDispose: this opens a branch-wide transaction_items observer (no
+// transactionId filter). Kept alive, it outlives the dashboard and then wakes on
+// every POS cart write, converting every transaction item in the branch to Dart
+// objects on the UI isolate — which is what dragged a 60-line cart down to about
+// one saved row every few seconds after a visit to the dashboard.
 final dashboardGaugeSnapshotProvider =
-    StreamProvider.family<DashboardGaugeSnapshot, String>((ref, period) {
+    StreamProvider.autoDispose.family<DashboardGaugeSnapshot, String>((
+      ref,
+      period,
+    ) {
       final start = dashboardPeriodStart(period);
       final end = DateTime.now();
       final branchId = ProxyService.box.branchIdString();
@@ -914,8 +922,12 @@ DateTime dashboardPreviousPeriodStart(String period) {
 }
 
 /// Stream gauge snapshot for the period window before [period].
+// autoDispose for the same reason as [dashboardGaugeSnapshotProvider].
 final dashboardPreviousGaugeSnapshotProvider =
-    StreamProvider.family<DashboardGaugeSnapshot, String>((ref, period) {
+    StreamProvider.autoDispose.family<DashboardGaugeSnapshot, String>((
+      ref,
+      period,
+    ) {
       final prevStart = dashboardPreviousPeriodStart(period);
       final prevEnd = dashboardPeriodStart(period);
       final branchId = ProxyService.box.branchIdString();
