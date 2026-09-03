@@ -28,6 +28,14 @@ import 'package:universal_platform/universal_platform.dart';
 
 // adjust if needed
 
+/// The OS print spooler can block indefinitely on an offline or wedged printer,
+/// and on the purchase-code path `printing()` is awaited *before* the sale is
+/// completed — so a stuck printer froze the till with a full cart and a
+/// spinning Pay button. These bound it; a receipt is reprintable, a stuck till
+/// is not.
+const Duration _printerEnumerateTimeout = Duration(seconds: 10);
+const Duration _printerSubmitTimeout = Duration(seconds: 30);
+
 mixin TransactionMixinOld {
   final KeyPadService keypad = getIt<KeyPadService>();
 
@@ -512,7 +520,18 @@ mixin TransactionMixinOld {
         'printed from this device',
       );
     } else {
-      final printers = await Printing.listPrinters();
+      List<Printer> printers;
+      try {
+        printers = await Printing.listPrinters().timeout(
+          _printerEnumerateTimeout,
+        );
+      } catch (e) {
+        talker.warning(
+          '[receipt_presentation] listing printers failed or timed out '
+          '(${_printerEnumerateTimeout.inSeconds}s): $e — continuing with none',
+        );
+        printers = const <Printer>[];
+      }
       if (printers.isEmpty) {
         talker.info(
           '[receipt_presentation] the OS reported no printers; the picker will '
@@ -623,11 +642,40 @@ mixin TransactionMixinOld {
           '[receipt_presentation] sending $copies cop'
           '${copies > 1 ? "ies" : "y"} to "${selectedPrinter.name}"',
         );
+        var submitted = 0;
         for (var i = 0; i < copies; i++) {
-          await Printing.directPrintPdf(
-            printer: selectedPrinter,
-            onLayout: (PdfPageFormat format) async => bytes,
-          );
+          try {
+            // directPrintPdf is FutureOr, so normalise before bounding it.
+            await Future<bool>.value(
+              Printing.directPrintPdf(
+                printer: selectedPrinter,
+                onLayout: (PdfPageFormat format) async => bytes,
+              ),
+            ).timeout(_printerSubmitTimeout);
+            submitted++;
+          } catch (e) {
+            talker.error(
+              '[receipt_presentation] the printer did not accept the receipt '
+              '(copy ${i + 1} of $copies, timeout '
+              '${_printerSubmitTimeout.inSeconds}s): $e',
+            );
+            break;
+          }
+        }
+        if (submitted == 0) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Sale completed. The receipt could not be sent to '
+                  '${selectedPrinter.name} — reprint it from Tickets.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+          return;
         }
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -718,12 +766,26 @@ mixin TransactionMixinOld {
         } catch (_) {}
 
         if (bytes != null && !sendDigitalReceipt) {
-          await printing(
-            bytes,
-            context,
-            transaction: transaction,
-            transactionItems: transactionItems,
-          );
+          // On this path (purchase code / non-deferred) the sale is completed
+          // *after* this returns, so presentation must never decide whether a
+          // sale finishes. RRA has already signed by now: letting a printer
+          // fault throw here rolled the sale back to PENDING while the receipt
+          // existed at RRA, and letting it hang froze the till with a full cart
+          // and a spinning Pay button.
+          try {
+            await printing(
+              bytes,
+              context,
+              transaction: transaction,
+              transactionItems: transactionItems,
+            );
+          } catch (e, s) {
+            talker.error(
+              '[receipt_presentation] printing failed after the receipt was '
+              'signed; completing the sale anyway (reprint from Tickets): $e',
+              s,
+            );
+          }
         }
       }
       return (
