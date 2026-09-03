@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -28,12 +29,15 @@ Future<List<TransactionItem>> validateStockQuantity(
   }
 
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
-  for (final sid in stockIds) {
-    if (!stocksMap.containsKey(sid)) {
+  // Batch misses were re-read one await at a time — a second sequential pass
+  // over the cart, on the Pay path, before the sale can even be priced.
+  await forEachBounded(
+    stockIds.where((sid) => !stocksMap.containsKey(sid)),
+    (sid) async {
       final loaded = await capella.getStockById(id: sid);
       if (loaded != null) stocksMap[sid] = loaded;
-    }
-  }
+    },
+  );
 
   // Aggregate requested qty by stockId so two variants (or lines) sharing one
   // stock row cannot each pass while their combined qty exceeds on-hand.

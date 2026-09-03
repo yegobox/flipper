@@ -20,6 +20,13 @@ import 'package:synchronized/synchronized.dart';
 
 final _persistLock = Lock();
 
+/// Resolves once every cart write queued before this call has finished.
+///
+/// [Lock] is FIFO, so taking a turn behind the queued adds is the same thing as
+/// waiting for them — no polling, no timeout, no dependency on the item stream
+/// having replayed anything back to us.
+Future<void> awaitQueuedCartWrites() => _persistLock.synchronized(() async {});
+
 String? readPendingCartTransactionId(
   Ref ref, {
   required bool isExpense,

@@ -304,4 +304,136 @@ void main() {
       expect(OptimisticCartIds.variantIdOf('ti-1234'), isNull);
     });
   });
+
+  group('idempotent reconciliation', () {
+    // The Pay path reconciles on every ~100ms poll tick while it waits for the
+    // cart to persist. [OptimisticCartState] has no value equality, so an
+    // unchanged reconcile still notified listeners, and posCartDisplayItems
+    // then handed out a fresh List — rebuilding the whole checkout ~10x/second
+    // on a 50-line cart, starving the very Ditto writes the poll waits for.
+    test('a repeated snapshot does not notify listeners', () {
+      var notifications = 0;
+      container.listen(
+        optimisticCartProvider,
+        (_, __) => notifications++,
+        fireImmediately: false,
+      );
+
+      notifier().bindPendingTransaction(_txnId);
+      final items = [
+        _persisted('v1', qty: 1),
+        _persisted('v2', qty: 2),
+      ];
+
+      notifier().reconcileFromPersistedItems(
+        transactionId: _txnId,
+        items: items,
+      );
+      final afterFirst = notifications;
+      expect(afterFirst, greaterThan(0));
+
+      // Same snapshot, three more ticks of the Pay poll.
+      for (var i = 0; i < 3; i++) {
+        notifier().reconcileFromPersistedItems(
+          transactionId: _txnId,
+          items: items,
+        );
+      }
+
+      expect(notifications, afterFirst);
+    });
+
+    test('a changed snapshot still notifies', () {
+      notifier().bindPendingTransaction(_txnId);
+      notifier().reconcileFromPersistedItems(
+        transactionId: _txnId,
+        items: [_persisted('v1', qty: 1)],
+      );
+
+      var notifications = 0;
+      container.listen(
+        optimisticCartProvider,
+        (_, __) => notifications++,
+        fireImmediately: false,
+      );
+
+      // A row lands: the poll must see it.
+      notifier().reconcileFromPersistedItems(
+        transactionId: _txnId,
+        items: [_persisted('v1', qty: 1), _persisted('v2', qty: 3)],
+      );
+
+      expect(notifications, greaterThan(0));
+      expect(state().lastStreamQtySumByVariantId['v2'], 3);
+    });
+  });
+
+  group('waiting for queued cart writes (what Pay waits on)', () {
+    test('resolves immediately when nothing is queued', () async {
+      await notifier().whenQueuedAddsSettle().timeout(
+        const Duration(milliseconds: 100),
+      );
+    });
+
+    test('waits for every queued add, then completes once', () async {
+      notifier().noteAddInFlight('v1');
+      notifier().noteAddInFlight('v2');
+
+      var done = false;
+      final settled = notifier().whenQueuedAddsSettle()
+        ..then((_) => done = true);
+
+      await Future<void>.delayed(Duration.zero);
+      expect(done, isFalse, reason: 'two writes still owed');
+
+      notifier().noteAddSettled('v1');
+      await Future<void>.delayed(Duration.zero);
+      expect(done, isFalse, reason: 'one write still owed');
+
+      notifier().noteAddSettled('v2');
+      await settled.timeout(const Duration(milliseconds: 500));
+      expect(done, isTrue);
+    });
+
+    test('a cancelled add still settles the wait', () async {
+      // `-` on a not-yet-saved line: the persist aborts, but its `finally`
+      // still settles — otherwise Pay would wait forever on a write that was
+      // deliberately abandoned.
+      notifier().noteAddInFlight('v1');
+      final settled = notifier().whenQueuedAddsSettle();
+
+      notifier().cancelInFlightAdd('v1');
+      notifier().consumeCancelledAdd('v1');
+      notifier().noteAddSettled('v1');
+
+      await settled.timeout(const Duration(milliseconds: 500));
+    });
+
+    test('several waiters all resolve on the same drain', () async {
+      notifier().noteAddInFlight('v1');
+      final a = notifier().whenQueuedAddsSettle();
+      final b = notifier().whenQueuedAddsSettle();
+
+      notifier().noteAddSettled('v1');
+
+      await Future.wait([a, b]).timeout(const Duration(milliseconds: 500));
+    });
+
+    test('a later add after a drain gets a fresh wait', () async {
+      notifier().noteAddInFlight('v1');
+      final first = notifier().whenQueuedAddsSettle();
+      notifier().noteAddSettled('v1');
+      await first.timeout(const Duration(milliseconds: 500));
+
+      notifier().noteAddInFlight('v2');
+      var done = false;
+      final second = notifier().whenQueuedAddsSettle()
+        ..then((_) => done = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(done, isFalse);
+
+      notifier().noteAddSettled('v2');
+      await second.timeout(const Duration(milliseconds: 500));
+    });
+  });
 }

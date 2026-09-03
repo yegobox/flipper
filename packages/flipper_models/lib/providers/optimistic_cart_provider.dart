@@ -40,6 +40,28 @@ abstract final class OptimisticCartIds {
   }
 }
 
+bool _qtyMapsEqual(Map<String, double> a, Map<String, double> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (final entry in a.entries) {
+    final other = b[entry.key];
+    if (other == null || other != entry.value) return false;
+  }
+  return true;
+}
+
+/// Snapshots are carried by reference between reconciles, so identity is the
+/// right test — [Variant] has no value equality.
+bool _snapshotMapsEqual(Map<String, Variant> a, Map<String, Variant> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (final entry in a.entries) {
+    if (!b.containsKey(entry.key)) return false;
+    if (!identical(b[entry.key], entry.value)) return false;
+  }
+  return true;
+}
+
 @immutable
 class OptimisticCartState {
   final String? activeTransactionId;
@@ -263,6 +285,29 @@ class OptimisticCart extends _$OptimisticCart {
       next[variantId] = queued - 1;
     }
     state = state.copyWith(inFlightAddsByVariantId: next);
+    _completeIfAllAddsSettled();
+  }
+
+  Completer<void>? _addsSettledCompleter;
+
+  /// Completes once every tap that queued a Ditto save has finished writing.
+  ///
+  /// This is the ledger Pay should wait on. [inFlightAddsByVariantId] is
+  /// incremented synchronously inside `PosCartAddService.tapAdd` and always
+  /// decremented in the persist's `finally`, so it is an exact count of writes
+  /// this session still owes — unlike the item stream, which is a *report* of
+  /// what Ditto has replayed back to us and can lag for reasons that have
+  /// nothing to do with whether the cart is safe to sell.
+  Future<void> whenQueuedAddsSettle() {
+    if (state.inFlightAddsByVariantId.isEmpty) return Future<void>.value();
+    return (_addsSettledCompleter ??= Completer<void>()).future;
+  }
+
+  void _completeIfAllAddsSettled() {
+    if (state.inFlightAddsByVariantId.isNotEmpty) return;
+    final completer = _addsSettledCompleter;
+    _addsSettledCompleter = null;
+    if (completer != null && !completer.isCompleted) completer.complete();
   }
 
   /// Marks one queued add for [variantId] as aborted. Returns false when there
@@ -440,6 +485,21 @@ class OptimisticCart extends _$OptimisticCart {
 
     final nextSnaps = Map<String, Variant>.from(state.variantSnapshotByVariantId)
       ..removeWhere((vid, _) => !nextPending.containsKey(vid));
+
+    // [OptimisticCartState] has no value equality, so assigning an identical
+    // copy still notifies every listener — and [posCartDisplayItemsProvider]
+    // then hands out a fresh List, which rebuilds the whole checkout (see the
+    // top-level `ref.watch(posCartDisplayItemsProvider)` in QuickSellingView).
+    // The Pay path reconciles on every 100ms poll tick, so a large cart spent
+    // its persistence window re-laying out itself instead of draining the Ditto
+    // writes it was waiting for. Skipping a no-op write is invisible to state
+    // and costs nothing: same maps, same grace window.
+    if (state.reconcileAfter == null &&
+        _qtyMapsEqual(state.pendingQtyByVariantId, nextPending) &&
+        _qtyMapsEqual(state.lastStreamQtySumByVariantId, nextLast) &&
+        _snapshotMapsEqual(state.variantSnapshotByVariantId, nextSnaps)) {
+      return;
+    }
 
     state = state.copyWith(
       pendingQtyByVariantId: nextPending,

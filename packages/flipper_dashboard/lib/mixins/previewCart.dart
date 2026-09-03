@@ -2,6 +2,8 @@
 
 import 'dart:async';
 
+import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
+import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
 import 'package:flipper_models/helperModels/sale_cart_qty_rows.dart';
@@ -75,8 +77,12 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
-const _cartPersistPollMs = 100;
-const _cartPersistMaxWaitMs = 8000;
+/// Bound on waiting for the cart writes this session queued.
+///
+/// This is not a "how long might Ditto take to catch up" guess — it only trips
+/// when a save we started never finished, which is a fault, not a slow cart. The
+/// normal path resolves as soon as the last queued write returns.
+const _cartWriteSettleMaxWaitMs = 15000;
 
 Map<String, double> _checkoutCartQtyByVariant(WidgetRef ref) {
   return saleLineQtyByVariantId(
@@ -84,100 +90,99 @@ Map<String, double> _checkoutCartQtyByVariant(WidgetRef ref) {
   );
 }
 
-/// Non-ghost checkout lines already bound to [transactionId] (from the live cart
-/// stream). Prefer these when a one-shot Ditto read lags or is mis-scoped.
-List<TransactionItem> _displayPersistedLinesForTxn(
-  WidgetRef ref,
-  String transactionId,
-) {
-  return ref
-      .read(posCartDisplayItemsProvider)
-      .where(
-        (i) =>
-            !OptimisticCartIds.isOptimistic(i.id) &&
-            i.transactionId == transactionId &&
-            i.active != false,
-      )
-      .toList();
-}
-
-/// Waits until Ditto line qtys match what checkout displays (authoritative read).
+/// Settles the cart for completion, then reads Ditto once.
+///
+/// This deliberately does **not** wait on [transactionItemsStreamProvider]. The
+/// stream exists so a tapped item shows up in the cart immediately; it is a
+/// replay of what Ditto has told us, not evidence about whether the sale is safe
+/// to complete. Waiting for it to "catch up" made Pay hang on a report that had
+/// already done its job, and produced a "still saving" message the cashier could
+/// do nothing about — everything they could see was, from their side, saved.
+///
+/// What Pay actually needs is that every write this session queued has run, and
+/// that is a ledger we own: [OptimisticCart.whenQueuedAddsSettle] counts taps
+/// whose save has not finished, and [awaitQueuedCartWrites] takes a turn behind
+/// the serialized persist queue. Both resolve on their own; neither polls.
 ///
 /// Returns:
-/// - matching lines when UI and Ditto agree (or UI has real stream rows)
-/// - `[]` when the cart is empty (caller should not say "still saving")
-/// - `null` when the cart shows lines that never appear in Capella in time
-Future<List<TransactionItem>?> _pollPersistedCartForDisplay({
+/// - the persisted lines (authoritative) once nothing is owed
+/// - `[]` when the cart is empty
+/// - `null` only when a write we owe never finished, i.e. a line the cashier can
+///   see is genuinely not saved and must not be sold
+Future<List<TransactionItem>?> _settlePersistedCartForCompletion({
   required WidgetRef ref,
   required ITransaction transaction,
   required String transactionId,
 }) async {
   final cartNotifier = ref.read(optimisticCartProvider.notifier);
+  final sw = Stopwatch()..start();
 
-  // Snapshot immediately — do not spin for 8s on an empty cart.
-  final initialCheckoutQty = _checkoutCartQtyByVariant(ref);
-  final dittoFirst = await _getTransactionItems(transaction: transaction);
-  if (initialCheckoutQty.isEmpty) {
-    if (dittoFirst.isNotEmpty) {
+  if (_checkoutCartQtyByVariant(ref).isEmpty) {
+    final ditto = await _getTransactionItems(transaction: transaction);
+    if (ditto.isNotEmpty) {
       cartNotifier.reconcileFromPersistedItems(
         transactionId: transactionId,
-        items: dittoFirst,
+        items: ditto,
       );
-      return dittoFirst;
+      return ditto;
     }
     return const <TransactionItem>[];
   }
 
-  final deadline = DateTime.now().add(
-    const Duration(milliseconds: _cartPersistMaxWaitMs),
+  var settled = true;
+  try {
+    // Taps whose save has not run yet (queued two frames back, or still inside
+    // the persist), then the write queue itself.
+    await cartNotifier.whenQueuedAddsSettle().timeout(
+      const Duration(milliseconds: _cartWriteSettleMaxWaitMs),
+    );
+    await awaitQueuedCartWrites().timeout(
+      const Duration(milliseconds: _cartWriteSettleMaxWaitMs),
+    );
+  } on TimeoutException {
+    settled = false;
+  }
+
+  if (_checkoutCartQtyByVariant(ref).isEmpty) {
+    // Cart emptied while we waited (twin-txn / suppression race). Do not
+    // complete a sale the operator can no longer see.
+    return const <TransactionItem>[];
+  }
+
+  final ditto = await _getTransactionItems(transaction: transaction);
+  cartNotifier.reconcileFromPersistedItems(
+    transactionId: transactionId,
+    items: ditto,
   );
 
-  List<TransactionItem> ditto = dittoFirst;
-  while (true) {
-    final checkoutQty = _checkoutCartQtyByVariant(ref);
-    if (checkoutQty.isEmpty) {
-      // Cart cleared while we waited (e.g. twin-txn / suppress race).
-      return const <TransactionItem>[];
-    }
+  final unsaved = _unsavedCartLines(ref);
+  talker.debug(
+    '[sale_completion_timing] cart_settle_ms=${sw.elapsedMilliseconds} '
+    'persisted_lines=${ditto.length} settled=$settled '
+    'unsaved_lines=${unsaved.length}',
+  );
 
-    cartNotifier.reconcileFromPersistedItems(
-      transactionId: transactionId,
-      items: ditto,
-    );
+  // Decide on evidence, not on the counter: reconcile has just drained the
+  // ghosts against a fresh authoritative read, so "no ghost left" means every
+  // line the cashier can see has a saved row behind it. Ditto *is* the cart —
+  // whether the stream has replayed these rows is irrelevant, because
+  // completion reads these rows and not the display. A stale in-flight counter
+  // (a persist whose owner was disposed mid-write) therefore cannot block a
+  // sale that is in fact fully saved.
+  if (unsaved.isEmpty) return ditto;
 
-    final dittoQty = saleLineQtyByVariantId(
-      saleCartQtyRowsFromTransactionItems(ditto),
-    );
-    if (saleLineQtyMapsMatch(checkoutQty, dittoQty)) {
-      return ditto;
-    }
-
-    final displayLines = _displayPersistedLinesForTxn(ref, transactionId);
-    if (displayLines.isNotEmpty) {
-      final displayQty = saleLineQtyByVariantId(
-        saleCartQtyRowsFromTransactionItems(displayLines),
-      );
-      if (saleLineQtyMapsMatch(checkoutQty, displayQty)) {
-        talker.warning(
-          'Sale completion: Ditto one-shot qty mismatch for txn=$transactionId '
-          '(dittoVariants=${dittoQty.length}, displayVariants=${displayQty.length}); '
-          'using live cart stream rows',
-        );
-        return displayLines;
-      }
-    }
-
-    if (!DateTime.now().isBefore(deadline)) break;
-
-    await Future<void>.delayed(
-      const Duration(milliseconds: _cartPersistPollMs),
-    );
-    ditto = await _getTransactionItems(transaction: transaction);
-  }
   return null;
 }
 
-/// Resolves cart lines for Pay / RRA sign after [_pollPersistedCartForDisplay].
+/// Cart lines still showing as optimistic ghosts: tapped, but no saved row.
+List<TransactionItem> _unsavedCartLines(WidgetRef ref) {
+  return ref
+      .read(posCartDisplayItemsProvider)
+      .where((i) => OptimisticCartIds.isOptimistic(i.id))
+      .toList();
+}
+
+/// Resolves cart lines for Pay / RRA sign after [_settlePersistedCartForCompletion].
 Future<List<TransactionItem>> _resolveTransactionItemsForCompletion({
   required ITransaction transaction,
   required String transactionId,
@@ -419,7 +424,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final discountRate = double.tryParse(discountController.text) ?? 0;
     if (discountRate <= 0 || items.isEmpty) return;
 
+    // Price every line first (pure), then persist with a bounded window. Done
+    // one await at a time this cost one Ditto round trip per line, so a 100-line
+    // cart paid for 100 of them before Pay could even reach the tax call.
     var netTotal = 0.0;
+    final pricings = <String, SaleLinePricing>{};
     for (final item in items) {
       final pricing = SaleLinePricing.compute(
         unitPrice: item.price.toDouble(),
@@ -429,6 +438,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         taxPercentage: item.taxPercentage?.toDouble() ?? 18.0,
       );
       netTotal += pricing.subtotalNet;
+      pricings[item.id] = pricing;
+      // Keep in-memory lines aligned when callers reuse a completion hint.
+      item.dcRt = pricing.dcRt;
+      item.dcAmt = pricing.dcAmt;
+      item.discount = pricing.discount;
+      item.totAmt = pricing.totAmt;
+      item.taxAmt = pricing.taxAmt;
+      item.taxblAmt = pricing.taxblAmt;
+    }
+
+    await forEachBounded(items, (item) async {
+      final pricing = pricings[item.id]!;
       await capella.updateTransactionItem(
         transactionItemId: item.id,
         ignoreForReport: false,
@@ -438,15 +459,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         totAmt: pricing.totAmt,
         taxAmt: pricing.taxAmt,
         taxblAmt: pricing.taxblAmt,
+        // Discount fields trip `affectsLineTotals`, so each line update was
+        // running _recalculateTransactionSubTotal: a full SELECT of every line
+        // in the cart plus a transaction write, per line — O(N²) for one Pay.
+        // Those intermediate values were wrong anyway (that recalc sums
+        // price*qty, ignoring the discount being applied) and were overwritten
+        // by the authoritative `subTotal: netTotal` write below.
+        skipParentSaleSubtotalRecalc: true,
       );
-      // Keep in-memory lines aligned when callers reuse a completion hint.
-      item.dcRt = pricing.dcRt;
-      item.dcAmt = pricing.dcAmt;
-      item.discount = pricing.discount;
-      item.totAmt = pricing.totAmt;
-      item.taxAmt = pricing.taxAmt;
-      item.taxblAmt = pricing.taxblAmt;
-    }
+    });
 
     await capella.updateTransaction(
       transaction: transaction,
@@ -683,33 +704,41 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             );
         persistedCart = items.isNotEmpty ? items : null;
       } else {
-        persistedCart = await _pollPersistedCartForDisplay(
+        persistedCart = await _settlePersistedCartForCompletion(
           ref: ref,
           transaction: transaction,
           transactionId: transactionId,
         );
       }
       if (persistedCart == null) {
-        final hasPending = ref
-            .read(optimisticCartProvider.notifier)
-            .hasPendingFor(transactionId);
-        final displayItems = ref.read(posCartDisplayItemsProvider);
-        final hasGhosts =
-            displayItems.any((i) => OptimisticCartIds.isOptimistic(i.id));
-        final checkoutQty = _checkoutCartQtyByVariant(ref);
-        final displayTxnIds = displayItems
-            .map((i) => i.transactionId)
-            .whereType<String>()
-            .toSet();
+        // `null` now means one thing only: a write this session queued never
+        // finished, so a line the cashier can see has no saved row. Name it —
+        // the old "cart is still saving" told them to wait for something they
+        // had no way to observe or influence.
+        final unsaved = _unsavedCartLines(ref);
+        final names = unsaved
+            .map((i) => i.name.trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
         talker.warning(
-          'Sale completion blocked: cart not fully persisted txn=$transactionId '
-          'pending=$hasPending ghosts=$hasGhosts checkoutVariants=${checkoutQty.length} '
-          'displayTxnIds=$displayTxnIds displayCount=${displayItems.length}',
+          'Sale completion blocked: queued cart writes did not finish '
+          'txn=$transactionId unsaved=${unsaved.length} '
+          'names=${names.take(5).toList()} '
+          'displayCount=${ref.read(posCartDisplayItemsProvider).length}',
         );
         if (mounted && context.mounted) {
+          final subject = names.isEmpty
+              ? 'One item'
+              : names.length == 1
+                  ? names.first
+                  : names.length == 2
+                      ? '${names[0]} and ${names[1]}'
+                      : '${names[0]}, ${names[1]} and ${names.length - 2} more';
+          final plural = names.length == 1 || names.isEmpty ? 'it' : 'them';
           showCustomSnackBarUtil(
             context,
-            'Cart is still saving. Wait a moment and try again.',
+            '$subject could not be saved to this sale. '
+            'Remove $plural from the cart and add $plural again.',
             backgroundColor: Colors.orange,
             showCloseButton: true,
           );

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -30,14 +31,17 @@ Future<Map<String, double>> loadPreSaleStockLevelsForLines(
   if (stockIds.isEmpty) return {};
 
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
-  for (final sid in stockIds) {
-    if (!stocksMap.containsKey(sid)) {
+  // Batch misses were re-read one await at a time; on a large cart that is a
+  // second sequential pass over the whole line set.
+  await forEachBounded(
+    stockIds.where((sid) => !stocksMap.containsKey(sid)),
+    (sid) async {
       final loaded = await capella.getStockById(id: sid);
       if (loaded != null && loaded.branchId.isNotEmpty) {
         stocksMap[sid] = loaded;
       }
-    }
-  }
+    },
+  );
 
   final out = <String, double>{};
   for (final sid in stockIds) {
@@ -104,14 +108,17 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   }
 
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
-  for (final sid in stockIds) {
-    if (!stocksMap.containsKey(sid)) {
+  // Batch misses were re-read one await at a time; on a large cart that is a
+  // second sequential pass over the whole line set.
+  await forEachBounded(
+    stockIds.where((sid) => !stocksMap.containsKey(sid)),
+    (sid) async {
       final loaded = await capella.getStockById(id: sid);
       if (loaded != null && loaded.branchId.isNotEmpty) {
         stocksMap[sid] = loaded;
       }
-    }
-  }
+    },
+  );
 
   final itemsNeedingDeduction = candidateItems.where((item) {
     return !saleLineAlreadyStockDeducted(
@@ -212,11 +219,16 @@ Future<void> _deferMarkItemsQuantityShipped({
   required Map<String, Variant> variantsMap,
 }) async {
   try {
-    for (final item in items) {
-      final v = variantsMap[item.variantId!];
-      final sid = v?.stockId;
-      if (sid == null || !deductedStockIds.contains(sid)) continue;
+    // One Ditto round trip per line, awaited before the till says "Payment
+    // Successful" — the single biggest per-item cost on the Pay path. The work
+    // is independent and idempotent per line, so a bounded window is safe and
+    // turns 100 sequential trips into ~13.
+    final shippable = items.where((item) {
+      final sid = variantsMap[item.variantId!]?.stockId;
+      return sid != null && deductedStockIds.contains(sid);
+    }).toList();
 
+    await forEachBounded(shippable, (item) async {
       item.quantityShipped = item.qty.toInt();
       await capella.updateTransactionItem(
         transactionItemId: item.id,
@@ -224,7 +236,7 @@ Future<void> _deferMarkItemsQuantityShipped({
         ignoreForReport: false,
         skipParentSaleSubtotalRecalc: true,
       );
-    }
+    });
   } catch (e, s) {
     talker.warning('Deferred quantityShipped update failed: $e\n$s');
   }
