@@ -89,7 +89,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           return;
         }
       }
-      talker.warning(
+      // Routine: the total changes on every cart edit and on every sale. At
+      // warning it read like a fault and buried the lines that are one.
+      talker.debug(
         "PaymentMethodsCard: Total changed from ${oldWidget.totalPayable} to ${widget.totalPayable}",
       );
       WidgetsBinding.instance.addPostFrameCallback((_) {
