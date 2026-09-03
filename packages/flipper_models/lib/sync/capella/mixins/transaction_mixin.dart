@@ -71,6 +71,13 @@ String? _dittoDocumentId(Map<String, dynamic> data) {
   return data['_id']?.toString();
 }
 
+/// How long an empty pending-cart query must stay empty before we accept that
+/// the cart really left and mint a replacement.
+///
+/// Minting on a transient empty is destructive — the new row wins the query's
+/// `ORDER BY lastTouched DESC` and orphans the lines already on the old id.
+const int _pendingCartEmptySettleMs = 750;
+
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
   Talker get talker;
@@ -3543,12 +3550,46 @@ mixin CapellaTransactionMixin implements TransactionInterface {
                 return;
               }
 
+              final vanishedId = lastEmitted!.id;
               lastEmitted = null;
               unawaited(() async {
                 try {
+                  // An empty result is not proof the cart is gone. Replication
+                  // can drop this query to zero rows for a moment (a session
+                  // rebase/NACK is enough) while the row is perfectly fine.
+                  // Minting here is destructive: the new row carries a fresh
+                  // lastTouched, wins this query's ORDER BY, and becomes "the
+                  // cart" — orphaning every line already added to the old id.
+                  // So settle first and look again before creating anything.
+                  await Future<void>.delayed(
+                    const Duration(milliseconds: _pendingCartEmptySettleMs),
+                  );
+                  if (controller.isClosed) return;
+
+                  final recheck = await activeDitto.store.execute(
+                    query,
+                    arguments: arguments,
+                  );
+                  if (recheck.items.isNotEmpty) {
+                    final data = Map<String, dynamic>.from(
+                      recheck.items.first.value,
+                    );
+                    if (_dittoRowStatusIsPending(data)) {
+                      talker.info(
+                        'pendingTransaction: empty result was transient '
+                        '(cart $vanishedId); re-emitting instead of minting a '
+                        'second pending row',
+                      );
+                      emitPendingFromRow(data);
+                      return;
+                    }
+                  }
+
                   talker.info(
-                    'pendingTransaction: query went empty after an active cart; '
-                    'ensuring next pending transaction (branch=$branchId)',
+                    'pendingTransaction: query still empty after '
+                    '${_pendingCartEmptySettleMs}ms (cart $vanishedId really '
+                    'left); ensuring next pending transaction '
+                    '(branch=$branchId)',
                   );
                   await _ensureNextPendingCartIfNeeded(
                     branchId: branchId,
