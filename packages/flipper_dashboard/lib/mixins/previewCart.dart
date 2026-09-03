@@ -77,17 +77,69 @@ Future<List<TransactionItem>> _getTransactionItems({
   return items;
 }
 
-/// Bound on waiting for the cart writes this session queued.
+/// Give up on the queued cart writes after this long *without the backlog
+/// shrinking*.
 ///
-/// This is not a "how long might Ditto take to catch up" guess — it only trips
-/// when a save we started never finished, which is a fault, not a slow cart. The
-/// normal path resolves as soon as the last queued write returns.
-const _cartWriteSettleMaxWaitMs = 15000;
+/// Not a guess at how long a cart takes: adds are serialised behind one persist
+/// lock, so a 60-line cart legitimately drains for many seconds. A flat deadline
+/// punished exactly the big carts it was meant to protect — Pay refused with a
+/// dozen writes still in flight and landing normally.
+const _cartWriteStallMs = 8000;
+
+/// Ceiling on the whole wait, however well it is progressing.
+const _cartWriteCeilingMs = 60000;
+
+/// Poll interval for the in-memory backlog counter (no Ditto, no provider
+/// writes — nothing like the display churn the old cart poll caused).
+const _cartWriteProgressPollMs = 200;
 
 Map<String, double> _checkoutCartQtyByVariant(WidgetRef ref) {
   return saleLineQtyByVariantId(
     saleCartQtyRowsFromTransactionItems(ref.read(posCartDisplayItemsProvider)),
   );
+}
+
+/// Waits for the queued-add backlog to drain, for as long as it keeps shrinking.
+///
+/// Returns false only when the backlog stops moving — a write that will never
+/// finish — not merely because a big cart is taking its time.
+Future<bool> awaitQueuedCartWritesWhileProgressing(OptimisticCart cart) async {
+  final started = DateTime.now();
+  var lastCount = cart.queuedAddCount;
+  var lastProgressAt = started;
+
+  while (lastCount > 0) {
+    await Future.any([
+      cart.whenQueuedAddsSettle(),
+      Future<void>.delayed(
+        const Duration(milliseconds: _cartWriteProgressPollMs),
+      ),
+    ]);
+
+    final count = cart.queuedAddCount;
+    if (count == 0) return true;
+
+    final now = DateTime.now();
+    if (count < lastCount) {
+      lastCount = count;
+      lastProgressAt = now;
+    }
+    if (now.difference(lastProgressAt).inMilliseconds >= _cartWriteStallMs) {
+      talker.warning(
+        'Cart settle: $count queued write(s) stopped making progress after '
+        '${now.difference(started).inMilliseconds}ms',
+      );
+      return false;
+    }
+    if (now.difference(started).inMilliseconds >= _cartWriteCeilingMs) {
+      talker.warning(
+        'Cart settle: $count queued write(s) still outstanding at the '
+        '${_cartWriteCeilingMs}ms ceiling',
+      );
+      return false;
+    }
+  }
+  return true;
 }
 
 /// Settles the cart for completion, then reads Ditto once.
@@ -129,18 +181,17 @@ Future<List<TransactionItem>?> _settlePersistedCartForCompletion({
     return const <TransactionItem>[];
   }
 
-  var settled = true;
-  try {
-    // Taps whose save has not run yet (queued two frames back, or still inside
-    // the persist), then the write queue itself.
-    await cartNotifier.whenQueuedAddsSettle().timeout(
-      const Duration(milliseconds: _cartWriteSettleMaxWaitMs),
-    );
-    await awaitQueuedCartWrites().timeout(
-      const Duration(milliseconds: _cartWriteSettleMaxWaitMs),
-    );
-  } on TimeoutException {
-    settled = false;
+  // Taps whose save has not run yet (queued two frames back, or still inside
+  // the persist), then the write queue itself.
+  var settled = await awaitQueuedCartWritesWhileProgressing(cartNotifier);
+  if (settled) {
+    try {
+      await awaitQueuedCartWrites().timeout(
+        const Duration(milliseconds: _cartWriteStallMs),
+      );
+    } on TimeoutException {
+      settled = false;
+    }
   }
 
   if (_checkoutCartQtyByVariant(ref).isEmpty) {

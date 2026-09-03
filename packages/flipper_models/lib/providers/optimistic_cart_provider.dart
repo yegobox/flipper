@@ -298,6 +298,14 @@ class OptimisticCart extends _$OptimisticCart {
   /// this session still owes — unlike the item stream, which is a *report* of
   /// what Ditto has replayed back to us and can lag for reasons that have
   /// nothing to do with whether the cart is safe to sell.
+  /// How many queued Ditto saves this session still owes.
+  ///
+  /// Adds are serialised behind one persist lock, so on a big cart this drains
+  /// steadily rather than all at once — a caller waiting on it should watch this
+  /// fall rather than impose a flat deadline.
+  int get queuedAddCount =>
+      state.inFlightAddsByVariantId.values.fold<int>(0, (sum, n) => sum + n);
+
   Future<void> whenQueuedAddsSettle() {
     if (state.inFlightAddsByVariantId.isEmpty) return Future<void>.value();
     return (_addsSettledCompleter ??= Completer<void>()).future;
