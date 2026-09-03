@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
@@ -237,6 +238,15 @@ Future<bool> persistItemToTransaction({
         partOfComposite: false,
       );
       if (!saved) {
+        // The write did not happen, so the ghost must not survive it. Left
+        // standing it is a line the cashier can see, believes is in the cart,
+        // and that no row backs — it inflates the on-screen total and the
+        // reconciliation that retires ghosts can never fire for it.
+        talker.warning(
+          'saveTransactionItem returned false for variant=${variant.id} on '
+          'txn=${pendingTransaction.id}; rolling the cart line back',
+        );
+        rollbackStaleAddAttempt();
         return;
       }
     }

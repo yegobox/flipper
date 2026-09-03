@@ -155,21 +155,47 @@ Future<List<TransactionItem>?> _settlePersistedCartForCompletion({
     items: ditto,
   );
 
-  final unsaved = _unsavedCartLines(ref);
+  var unsaved = _unsavedCartLines(ref);
+
+  if (settled && unsaved.isNotEmpty) {
+    // Nothing is owed — every tap's write has run and the queue is empty — so
+    // Ditto holds the whole cart and these ghosts are stale bookkeeping, not
+    // unsaved lines. Reconciliation only retires a ghost when the persisted qty
+    // for its variant *increases*, so a ghost whose row landed under a
+    // different variant id, or at an unchanged qty, survives forever. Blocking
+    // on that refused Pay on carts that were completely saved.
+    talker.warning(
+      'Cart settle: dropping ${unsaved.length} stale ghost line(s) on '
+      'txn=$transactionId after every queued write finished '
+      '(variants=${unsaved.map((i) => i.variantId).toList()}, '
+      'names=${unsaved.map((i) => i.name).toList()}); '
+      'Ditto holds ${ditto.length} line(s)',
+    );
+    for (final line in unsaved) {
+      final variantId =
+          line.variantId ?? OptimisticCartIds.variantIdOf(line.id);
+      if (variantId == null || variantId.isEmpty) continue;
+      cartNotifier.clearPendingForVariant(
+        transactionId: transactionId,
+        variantId: variantId,
+      );
+    }
+    unsaved = _unsavedCartLines(ref);
+  }
+
   talker.debug(
     '[sale_completion_timing] cart_settle_ms=${sw.elapsedMilliseconds} '
     'persisted_lines=${ditto.length} settled=$settled '
     'unsaved_lines=${unsaved.length}',
   );
 
-  // Decide on evidence, not on the counter: reconcile has just drained the
-  // ghosts against a fresh authoritative read, so "no ghost left" means every
-  // line the cashier can see has a saved row behind it. Ditto *is* the cart —
-  // whether the stream has replayed these rows is irrelevant, because
-  // completion reads these rows and not the display. A stale in-flight counter
-  // (a persist whose owner was disposed mid-write) therefore cannot block a
-  // sale that is in fact fully saved.
-  if (unsaved.isEmpty) return ditto;
+  // Two independent reasons to proceed, and both must be exhausted before a
+  // sale is refused:
+  //  - nothing is owed (the ledger drained), so Ditto is the cart; or
+  //  - no ghost is left, so nothing the operator can see is missing a row.
+  // Only a write we owe that never finished, *and* left a visible line behind,
+  // blocks the sale.
+  if (settled || unsaved.isEmpty) return ditto;
 
   return null;
 }
