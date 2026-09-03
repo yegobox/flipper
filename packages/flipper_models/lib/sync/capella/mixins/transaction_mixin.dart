@@ -1646,17 +1646,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       } else {
         // Insert new item — assign per-transaction line seq (legacy Brick parity).
         // Do not copy [variation.itemSeq] (catalog field); it breaks cart/export order.
+        // Ask the store for the highest seq, not for every line in the cart.
+        // Scanning them all made each insert cost O(lines), so building a cart
+        // was O(n^2): the 60th tap materialised 59 rows just to add 1. ORDER BY
+        // + LIMIT is fine here — Ditto 5 only rejects ORDER BY in *sync
+        // subscriptions*, and this is a store query (see
+        // transaction_item_mixin.dart:126 for the same shape).
         int nextItemSeq = 1;
         final seqResult = await ditto.store.execute(
-          'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId',
+          'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId '
+          'ORDER BY itemSeq DESC LIMIT 1',
           arguments: {'transactionId': pendingTransaction.id},
         );
         if (seqResult.items.isNotEmpty) {
-          var maxSeq = 0;
-          for (final row in seqResult.items) {
-            final seq = (row.value['itemSeq'] as num?)?.toInt() ?? 0;
-            if (seq > maxSeq) maxSeq = seq;
-          }
+          final maxSeq =
+              (seqResult.items.first.value['itemSeq'] as num?)?.toInt() ?? 0;
           nextItemSeq = maxSeq + 1;
         }
 
