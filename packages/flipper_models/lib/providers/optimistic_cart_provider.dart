@@ -469,11 +469,12 @@ class OptimisticCart extends _$OptimisticCart {
         final p = nextPending[vid] ?? 0;
         final remaining = p - inc;
         if (remaining <= 0) {
-          talker.warning(
-            'OptimisticCart[$source]: clearing pending for variant=$vid '
-            'txn=$transactionId (was pending=$p, stream now shows qty=$now) — '
-            'cart display now depends entirely on transactionItemsStreamProvider '
-            'having caught up.',
+          // Success, once per line: the saved row has fully accounted for the
+          // ghost, so the ghost retires. Logged at warning it fired 60 times on
+          // a 60-line cart and read like a fault report.
+          talker.debug(
+            'OptimisticCart[$source]: ghost settled for variant=$vid '
+            'txn=$transactionId (pending=$p, saved qty=$now)',
           );
           nextPending.remove(vid);
         } else {

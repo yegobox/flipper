@@ -387,7 +387,9 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   return streamAsync.when(
     data: (raw) {
       if (raw.isEmpty) {
-        talker.warning(
+        // Normal between sales and on a freshly minted cart, so debug: at
+        // warning this fired on every rebuild of an empty cart.
+        talker.debug(
           'posCartDisplayItemsProvider: no-pending branch, '
           'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
           'has 0 rows this frame — cart will render empty unless another '
@@ -397,7 +399,9 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
       return merge(raw);
     },
     loading: () {
-      talker.warning(
+      // Every cold subscription passes through here (checkout open, branch
+      // switch); it is not a fault.
+      talker.debug(
         'posCartDisplayItemsProvider: no-pending branch, '
         'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
         'is still loading — rendering empty rows this frame.',
