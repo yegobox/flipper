@@ -507,12 +507,16 @@ mixin TransactionMixinOld {
     final resolvedPdfFilename =
         pdfFilename ?? receiptPdfFilename(transaction);
     if (Platform.isAndroid || Platform.isIOS) {
-      print("can't direct pring on ios, android using direct printer.");
+      talker.info(
+        '[receipt_presentation] no printer UI on iOS/Android — receipt not '
+        'printed from this device',
+      );
     } else {
       final printers = await Printing.listPrinters();
       if (printers.isEmpty) {
         talker.info(
-          'No OS printers enumerated; showing picker with Save as PDF only.',
+          '[receipt_presentation] the OS reported no printers; the picker will '
+          'offer Save as PDF only',
         );
       }
 
@@ -530,7 +534,11 @@ mixin TransactionMixinOld {
           selectedPrinter = printers.firstWhere(
             (p) => p.name == savedPrinterName,
           );
-          talker.info("Using default printer: ${selectedPrinter.name}");
+          talker.info(
+            '[receipt_presentation] printing directly on the saved default '
+            'printer "${selectedPrinter.name}" — no picker is shown once a '
+            'default exists',
+          );
         } catch (e) {
           talker.warning("Default printer not found in available printers");
         }
@@ -541,7 +549,9 @@ mixin TransactionMixinOld {
         if (printers.length == 1) {
           selectedPrinter = printers.first;
           talker.info(
-            "Auto-selecting single available printer: ${selectedPrinter.name}",
+            '[receipt_presentation] only one printer attached '
+            '("${selectedPrinter.name}"); adopting it as the default, so no '
+            'picker will be shown for later sales either',
           );
           ProxyService.box.writeString(
             key: 'defaultPrinter',
@@ -553,6 +563,10 @@ mixin TransactionMixinOld {
       if (selectedPrinter == null) {
         // If we have context and it's mounted, ask user
         if (context.mounted) {
+          talker.info(
+            '[receipt_presentation] no default printer and '
+            '${printers.length} attached — showing the picker',
+          );
           final result = await showPrinterPickerDialog(
             context: context,
             printers: printers,
@@ -563,7 +577,9 @@ mixin TransactionMixinOld {
             invoiceNumber: transaction?.invoiceNumber,
           );
           if (result == null) {
-            talker.info("Printer selection cancelled by user.");
+            talker.info(
+              '[receipt_presentation] picker cancelled — receipt not printed',
+            );
             return;
           }
           selectedPrinter = result.printer;
@@ -578,7 +594,8 @@ mixin TransactionMixinOld {
           }
         } else {
           talker.warning(
-            "Cannot pick printer: Context not mounted and no default printer.",
+            '[receipt_presentation] cannot pick a printer: no default saved and '
+            'the screen is gone — receipt not printed',
           );
           return;
         }
@@ -602,6 +619,10 @@ mixin TransactionMixinOld {
       }
 
       if (selectedPrinter != null) {
+        talker.info(
+          '[receipt_presentation] sending $copies cop'
+          '${copies > 1 ? "ies" : "y"} to "${selectedPrinter.name}"',
+        );
         for (var i = 0; i < copies; i++) {
           await Printing.directPrintPdf(
             printer: selectedPrinter,
@@ -740,20 +761,85 @@ mixin TransactionMixinOld {
             presentationReceiptForPdf: presentationReceipt,
           );
       final bytes = responseFrom.bytes;
-      if (!context.mounted) return;
+
+      // Every exit below used to be silent, so a signed EBM sale that printed
+      // nothing looked identical to one that printed fine. Say which it was.
+      if (bytes == null) {
+        talker.warning(
+          '[receipt_presentation] skipped: receipt PDF produced no bytes '
+          'txn=${transaction.id}',
+        );
+        return;
+      }
+      if (sendDigitalReceipt) {
+        talker.info(
+          '[receipt_presentation] skipped: digital receipt is ON — sending by '
+          'SMS instead of printing txn=${transaction.id}',
+        );
+        return;
+      }
+      if (!context.mounted) {
+        // The checkout screen was torn down while the sale finished. A picker
+        // needs a context; a saved default printer does not. Print anyway
+        // rather than silently dropping the receipt for a completed sale.
+        talker.warning(
+          '[receipt_presentation] host context gone before print '
+          'txn=${transaction.id} — trying the saved default printer',
+        );
+        final printed = await _printOnSavedDefaultPrinter(bytes);
+        talker.warning(
+          '[receipt_presentation] context-free fallback '
+          '${printed ? "printed on the default printer" : "found no default printer; receipt not printed"} '
+          'txn=${transaction.id}',
+        );
+        return;
+      }
       try {
         formKey.currentState?.reset();
       } catch (_) {}
-      if (bytes != null && !sendDigitalReceipt) {
-        await printing(
-          bytes,
-          context,
-          transaction: transaction,
-          transactionItems: transactionItems,
-        );
-      }
+      await printing(
+        bytes,
+        context,
+        transaction: transaction,
+        transactionItems: transactionItems,
+      );
     } catch (e, s) {
-      talker.error('Deferred receipt print failed: $e', s);
+      talker.error('[receipt_presentation] deferred receipt print failed: $e', s);
+    }
+  }
+
+  /// Prints [bytes] on the saved default printer, with no [BuildContext].
+  ///
+  /// Returns false when there is nothing to print to — no default saved, or the
+  /// saved one is no longer attached — in which case the caller must say so
+  /// rather than treat the receipt as delivered.
+  Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
+    if (Platform.isAndroid || Platform.isIOS) return false;
+    final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
+    if (savedPrinterName == null || savedPrinterName.trim().isEmpty) {
+      return false;
+    }
+    try {
+      final printers = await Printing.listPrinters();
+      Printer? match;
+      for (final printer in printers) {
+        if (printer.name == savedPrinterName) {
+          match = printer;
+          break;
+        }
+      }
+      if (match == null) return false;
+      await Printing.directPrintPdf(
+        printer: match,
+        onLayout: (PdfPageFormat format) async => bytes,
+      );
+      return true;
+    } catch (e, s) {
+      talker.error(
+        '[receipt_presentation] default-printer fallback failed: $e',
+        s,
+      );
+      return false;
     }
   }
 
