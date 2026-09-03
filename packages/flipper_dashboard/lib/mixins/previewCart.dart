@@ -275,6 +275,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
 
+  /// Stamps each digital-payment attempt so a timer left over from an earlier
+  /// attempt (double-tap on Pay) cannot act on the current one's channel.
+  int _digitalPaymentAttempt = 0;
+
   /// Queues SMS after PDF upload when the digital-receipt toggle is on.
   /// Branch SMS is already required for the toggle to be shown in Quick Selling.
   Future<bool> resolveSendDigitalReceipt(String transactionId) async {
@@ -1428,20 +1432,65 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         "👂 Realtime listener active - Will trigger when payment status = 'completed'",
       );
 
+      // Retire the previous attempt before arming this one. Left running, its
+      // timer fires against *this* attempt's channel and unsubscribes a live
+      // listener (Pay tapped twice inside the 60s window), after which no
+      // confirmation can ever arrive.
+      final int paymentAttempt = ++_digitalPaymentAttempt;
+      _paymentTimeout?.cancel();
+      _paymentTimeout = null;
+      await _paymentStatusSubscription?.cancel();
+      _paymentStatusSubscription = null;
+      final previousChannel = _paymentStatusChannel;
+      _paymentStatusChannel = null;
+      if (previousChannel != null) {
+        // Not awaited: unsubscribe carries its own socket timeout and this is
+        // the Pay hot path.
+        unawaited(() async {
+          try {
+            await previousChannel.unsubscribe();
+          } catch (e) {
+            talker.warning(
+              'Could not unsubscribe previous payment channel: $e',
+            );
+          }
+        }());
+      }
+
       // Add timeout for payment confirmation (60 seconds)
       // Store timer reference for cleanup in dispose()
       _paymentTimeout = Timer(Duration(seconds: 60), () {
-        if (!_isProcessingPayment) {
-          talker.warning("⏰ Payment confirmation timeout after 60 seconds");
-          onPaymentFailed?.call(
-            'Payment confirmation timeout. Please try again.',
+        // A newer attempt owns the channel now — leave it alone.
+        if (paymentAttempt != _digitalPaymentAttempt) return;
+        if (_isProcessingPayment) return;
+
+        talker.warning("⏰ Payment confirmation timeout after 60 seconds");
+        _paymentStatusChannel?.unsubscribe();
+        _paymentStatusChannel = null;
+
+        // The sale is no longer in flight: release the completion lock (else
+        // every later cart tap is silently dropped by [PosCartAddService]) and
+        // drop the Pay spinner, which is otherwise never cleared on this path.
+        ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+        ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+        if (mounted) {
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+        }
+
+        const timeoutMessage =
+            'Payment confirmation timeout. Please try again.';
+        onPaymentFailed?.call(timeoutMessage);
+        // Hosts that pass no [onPaymentFailed] would otherwise show nothing at
+        // all — the till just sat on a dead spinner.
+        if (onPaymentFailed == null && mounted && context.mounted) {
+          showCustomSnackBarUtil(
+            context,
+            timeoutMessage,
+            backgroundColor: Colors.red,
+            showCloseButton: true,
           );
-          _paymentStatusChannel?.unsubscribe();
         }
       });
-
-      // Cancel any existing subscription
-      await _paymentStatusSubscription?.cancel();
 
       // Create channel with callback
       final channel = Supabase.instance.client
@@ -1609,6 +1658,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 );
                 _isProcessingPayment = false; // Reset flag on error
                 _paymentTimeout?.cancel(); // Cancel timeout on error
+                // Completion died after the customer paid: the sale is no
+                // longer in flight, so release the lock that otherwise makes
+                // every later cart tap a silent no-op.
+                ProxyService.box.writeBool(
+                  key: 'transactionCompleting',
+                  value: false,
+                );
                 onPaymentFailed?.call(
                   e.toString().replaceAll('Exception: ', ''),
                 );

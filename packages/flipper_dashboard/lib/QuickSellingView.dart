@@ -2470,8 +2470,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                           key: 'transactionCompleting',
                                           value: true,
                                         );
+                                        bool waitingForPayment = false;
                                         try {
-                                          await startCompleteTransactionFlow(
+                                          waitingForPayment =
+                                              await startCompleteTransactionFlow(
                                             immediateCompletion:
                                                 immediateCompleteTransaction,
                                             completeTransaction: () async {
@@ -2504,11 +2506,35 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                           );
                                           rethrow;
                                         }
+                                        // Release the completion lock on every
+                                        // exit that is not "still waiting for a
+                                        // digital payment". The flow returns
+                                        // false without throwing on its guard
+                                        // paths (cart still saving, out of
+                                        // stock, cancelled purchase code) —
+                                        // left set, the flag makes every later
+                                        // cart tap a silent no-op in
+                                        // [PosCartAddService].
+                                        if (!waitingForPayment) {
+                                          await ProxyService.box.writeBool(
+                                            key: 'transactionCompleting',
+                                            value: false,
+                                          );
+                                        }
                                         ref
                                                 .read(previewingCart.notifier)
                                                 .state =
                                             false;
-                                        return true;
+                                        // Per [CompleteTransaction]: true means
+                                        // "an out-of-band payment is still
+                                        // pending, keep the spinner". This used
+                                        // to return an unconditional true —
+                                        // meaning "handled" — which left
+                                        // [PreviewSaleButton] unable to tell a
+                                        // finished sale from one still waiting
+                                        // on MoMo, so it could never release
+                                        // the spinner itself.
+                                        return waitingForPayment;
                                       },
                                       // [PreviewSaleButton] delegates clearing the
                                       // Pay spinner to this callback, so these
@@ -3185,8 +3211,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   key: 'transactionCompleting',
                   value: true,
                 );
+                bool waitingForPayment = false;
                 try {
-                  await startCompleteTransactionFlow(
+                  waitingForPayment = await startCompleteTransactionFlow(
                     immediateCompletion: false,
                     completeTransaction: () async {
                       await _onQuickSellComplete(transaction);
@@ -3215,6 +3242,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     e,
                     s,
                   );
+                  return;
+                }
+                // See the Pay-button path: only a pending digital payment may
+                // keep the completion lock — or the spinner — held past this
+                // point. This path has no [PreviewSaleButton] to release it.
+                if (!waitingForPayment) {
+                  await ProxyService.box.writeBool(
+                    key: 'transactionCompleting',
+                    value: false,
+                  );
+                  if (mounted) {
+                    loadingNotifier.stopLoading(ButtonType.pay);
+                  }
                 }
               }());
             });
