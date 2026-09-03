@@ -160,6 +160,12 @@ Future<bool> _hydrateVariantEbmFields(Variant variant) async {
   return !_variantTinMissing(variant);
 }
 
+/// Wall-clock budget for a single interactive `trnsSales/saveSales` attempt.
+///
+/// Deliberately much tighter than the 120s default used by bulk/background tax
+/// calls (item registration, stock sync): a cashier is blocked on this one.
+const Duration _saleSignRequestTimeout = Duration(seconds: 20);
+
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   static final Map<String, Configurations> _taxConfigByBranchAndType = {};
   String itemPrefix = "flip-";
@@ -175,7 +181,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     _talker = Talker();
     _dio = Dio(
       BaseOptions(
-        connectTimeout: const Duration(seconds: 120),
+        // A connect timeout only covers the TCP/TLS handshake — a reachable tax
+        // server answers in well under a second, so 120s here bought nothing and
+        // cost the cashier two minutes of dead Pay button per attempt when the
+        // EBM box or the apihub hop was down.
+        connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 120),
         sendTimeout: const Duration(seconds: 120),
       ),
@@ -1058,7 +1068,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       RwApiResponse? successData;
       for (var saveAttempt = 0; saveAttempt < 3; saveAttempt++) {
-        final response = await sendPostRequest(url, requestData);
+        // This runs on the Pay hot path with the cashier watching a spinner, and
+        // the loop below can send up to three requests. At the inherited 120s
+        // bound a hung tax server held the till for up to six minutes before it
+        // reported anything; RRA answers a healthy saveSales in seconds.
+        final response = await sendPostRequest(
+          url,
+          requestData,
+          sendTimeout: _saleSignRequestTimeout,
+          receiveTimeout: _saleSignRequestTimeout,
+        );
 
         if (response.statusCode != 200) {
           throw Exception(
