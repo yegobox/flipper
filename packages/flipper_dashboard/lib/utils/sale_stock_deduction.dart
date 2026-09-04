@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
+import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -336,6 +337,17 @@ Future<void> runLocalStockDeductionThenScheduleRra({
   );
 
   if (isProformaOrTraining) return;
+
+  // A branch with no EBM registration has no RRA to report stock to. Without
+  // this the till spent the wait on a call that could only fail, on a sale
+  // that was never going to be signed (`branch=no_tax_receipt`).
+  if (!await ebmWillSignReceipt()) {
+    talker.debug(
+      'Skipping post-sale RRA stock sync: branch is not EBM-registered '
+      '(txn=$transactionId)',
+    );
+    return;
+  }
 
   final highestInvcNo = resolvePostSaleInvoiceNo(
     invoiceNumber: transaction.invoiceNumber,

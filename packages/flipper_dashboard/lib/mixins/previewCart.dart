@@ -1093,11 +1093,25 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (!reviewWorkflowDefersStock) {
               // Awaited here, so it is the operator's wait despite the
               // "deferred" name — the trace must say so.
+              // Not awaited: on a 60-line cart this took 131s of a 215s
+              // Pay, writing stock per line through the same congested store
+              // the cart writes go through. The sale is recorded and the money
+              // collected by this point, so holding the till while stock rows
+              // drain buys the operator nothing they can act on. It still runs,
+              // and still reports its own timing when it lands.
               final stockSw = Stopwatch()..start();
-              await awaitPostSaleStockDeduction();
-              logSaleCompletionStage(
-                'post_sale_stock_deduction',
-                stockSw.elapsedMilliseconds,
+              unawaited(
+                awaitPostSaleStockDeduction()
+                    .then((_) {
+                      talker.debug(
+                        '[sale_completion_timing] '
+                        'post_sale_stock_deduction_ms='
+                        '${stockSw.elapsedMilliseconds} deferred_after_ui=true',
+                      );
+                    })
+                    .catchError((Object e, StackTrace st) {
+                      talker.error('Post-sale stock deduction failed: $e', st);
+                    }),
               );
             }
             final deferredPayments = mark.deferredPayments;
