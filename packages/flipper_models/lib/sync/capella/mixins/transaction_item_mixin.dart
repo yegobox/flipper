@@ -671,6 +671,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         // add path's cache honest whatever changed the rows — a delete, a qty
         // edit, bar mode, or another device — instead of relying on every
         // mutation site remembering to invalidate.
+        //
+        // This query is filtered (active / doneWithTransaction / branchId), so
+        // what it reports is not always the whole cart, and [seed] replaces the
+        // entry wholesale. The add path therefore treats a cache *miss* as
+        // unproven and confirms it against the store before inserting — see
+        // saveTransactionItem — so an omitted row can no longer become a
+        // duplicate line for the same variant.
         if (transactionId != null && transactionId.isNotEmpty) {
           cartLineDocCache.seed(
             transactionId: transactionId,

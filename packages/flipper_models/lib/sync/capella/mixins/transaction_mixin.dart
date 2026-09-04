@@ -1601,10 +1601,44 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           rows: seed.items.map((d) => Map<String, dynamic>.from(d.value)),
         );
       }
-      final existingLine = cartLineDocCache.lineFor(
+      var existingLine = cartLineDocCache.lineFor(
         transactionId: pendingTransaction.id,
         variantId: variation.id,
       );
+      // A miss is not proof the line is absent. The cart's own observer also
+      // seeds this cache (`transactionItemsStreams`), and that query is
+      // *filtered* — active, doneWithTransaction and branchId — so a line the
+      // filter excludes is dropped from a cache that claims to be complete. A
+      // line another device just added to the same cart is missing for the same
+      // reason. Inserting on a false miss writes a second row for the variant.
+      // One indexed read, only when the variant is not cached — never on the
+      // repeat tap this cache exists for. Unfiltered, to match the seed above.
+      if (existingLine == null) {
+        final confirm = await ditto.store.execute(
+          'SELECT _id, id, qty, variantId, remainingStock, supplyPriceAtSale, '
+          'supplyPrice, dcRt, taxTyCd, taxPercentage '
+          'FROM transaction_items '
+          'WHERE transactionId = :transactionId AND variantId = :variantId '
+          'LIMIT 1',
+          arguments: {
+            'transactionId': pendingTransaction.id,
+            'variantId': variation.id,
+          },
+        );
+        if (confirm.items.isNotEmpty) {
+          existingLine = Map<String, dynamic>.from(confirm.items.first.value);
+          talker.warning(
+            'cartLineDocCache miss for variant ${variation.id} on cart '
+            '${pendingTransaction.id} was wrong — the store has the line; '
+            'updating it instead of inserting a duplicate.',
+          );
+          cartLineDocCache.record(
+            transactionId: pendingTransaction.id,
+            variantId: variation.id,
+            row: existingLine,
+          );
+        }
+      }
       final lookupMs = lookupSw.elapsedMilliseconds;
       var seqMs = 0;
       var upsertMs = 0;
