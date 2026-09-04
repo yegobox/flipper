@@ -260,13 +260,6 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
-    return expenseTransactions.fold<double>(
-      0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
-    );
-  }
-
   Widget _buildSummaryCardsRow() {
     return Consumer(
       builder: (context, ref, _) {
@@ -274,44 +267,14 @@ class DataViewState extends ConsumerState<DataView>
         final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
         final kpi = kpiAsync.value ?? const TransactionReportKpiTotals();
 
+        /// Gross, VAT and expenses all come from the one report-scope rollup,
+        /// so this can never show a figure the grid has no rows for.
         Widget netProfit() {
-          final bid = ProxyService.box.getBranchId();
-          if (bid == null) {
-            return _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit - kpi.pluLineTax,
-              loading,
-              Colors.purple,
-            );
-          }
-          final expAsync = ref.watch(
-            expensesStreamProvider(
-              startDate: widget.startDate,
-              endDate: widget.endDate,
-              branchId: bid,
-            ),
-          );
-          return expAsync.when(
-            data: (expenseTxs) => _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit -
-                  kpi.pluLineTax -
-                  _sumExpenseSubtotals(expenseTxs),
-              loading,
-              Colors.purple,
-            ),
-            loading: () => _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit - kpi.pluLineTax,
-              true,
-              Colors.purple,
-            ),
-            error: (_, __) => _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit - kpi.pluLineTax,
-              loading,
-              Colors.purple,
-            ),
+          return _buildSummaryCard(
+            'Net Profit',
+            kpi.netProfit,
+            loading,
+            Colors.purple,
           );
         }
 
@@ -342,44 +305,14 @@ class DataViewState extends ConsumerState<DataView>
         final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
         final kpi = kpiAsync.value ?? const TransactionReportKpiTotals();
 
+        /// Gross, VAT and expenses all come from the one report-scope rollup,
+        /// so this can never show a figure the grid has no rows for.
         Widget netProfit() {
-          final bid = ProxyService.box.getBranchId();
-          if (bid == null) {
-            return _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit - kpi.pluLineTax,
-              loading,
-              Colors.purple,
-            );
-          }
-          final expAsync = ref.watch(
-            expensesStreamProvider(
-              startDate: widget.startDate,
-              endDate: widget.endDate,
-              branchId: bid,
-            ),
-          );
-          return expAsync.when(
-            data: (expenseTxs) => _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit -
-                  kpi.pluLineTax -
-                  _sumExpenseSubtotals(expenseTxs),
-              loading,
-              Colors.purple,
-            ),
-            loading: () => _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit - kpi.pluLineTax,
-              true,
-              Colors.purple,
-            ),
-            error: (_, __) => _buildSummaryCard(
-              'Net Profit',
-              kpi.pluGrossProfit - kpi.pluLineTax,
-              loading,
-              Colors.purple,
-            ),
+          return _buildSummaryCard(
+            'Net Profit',
+            kpi.netProfit,
+            loading,
+            Colors.purple,
           );
         }
 
@@ -1458,13 +1391,11 @@ class DataViewState extends ConsumerState<DataView>
         startDate: widget.startDate,
       );
       if (!isStockRecount) {
-        final expenseSum = expenseTransactions.fold<double>(
-          0.0,
-          (sum, tx) => sum + (tx.subTotal ?? 0.0),
-        );
+        // Same definition as the on-screen Net Profit card: gross, VAT and
+        // expenses all taken from the report-scope rollup, so the export and
+        // the screen can never disagree.
         config.grossProfit = kpiTotals.pluGrossProfit;
-        config.netProfit =
-            kpiTotals.pluGrossProfit - kpiTotals.pluLineTax - expenseSum;
+        config.netProfit = kpiTotals.netProfit;
       }
 
       List<TransactionItem>? detailLines;

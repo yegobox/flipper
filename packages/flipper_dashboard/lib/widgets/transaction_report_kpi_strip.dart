@@ -11,25 +11,18 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class TransactionReportKpiStrip extends ConsumerWidget {
   const TransactionReportKpiStrip({
     super.key,
-    required this.startDate,
-    required this.endDate,
     required this.showDetailed,
     this.metrics = ReportMetrics.comfortable,
   });
 
-  final DateTime startDate;
-  final DateTime endDate;
+  /// The period is not passed in: every card reads
+  /// [transactionReportKpiTotalsProvider], which watches the global
+  /// [dateRangeProvider] the grid pages against. Keeping one source of the
+  /// window is what stops the cards and the grid disagreeing.
   final bool showDetailed;
 
   /// Height-aware sizing; defaults to the legacy (large screen) values.
   final ReportMetrics metrics;
-
-  double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
-    return expenseTransactions.fold<double>(
-      0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
-    );
-  }
 
   Widget _summaryCard(
     String label,
@@ -107,12 +100,11 @@ class TransactionReportKpiStrip extends ConsumerWidget {
     );
   }
 
-  Widget _netProfitCard(
-    WidgetRef ref,
-    AsyncValue<TransactionReportKpiTotals> kpiAsync,
-  ) {
-    final bid = ProxyService.box.getBranchId();
-
+  /// Net Profit comes from the same rollup as the other three cards
+  /// ([TransactionReportKpiTotals.netProfit] = in-scope gross − VAT −
+  /// in-scope expenses), so it can never report a figure for a period whose
+  /// grid is empty.
+  Widget _netProfitCard(AsyncValue<TransactionReportKpiTotals> kpiAsync) {
     if (kpiAsync.isLoading && !kpiAsync.hasValue) {
       return _summaryCard('Net Profit', 0.0, true, Colors.purple);
     }
@@ -120,44 +112,15 @@ class TransactionReportKpiStrip extends ConsumerWidget {
     // asData?.value (not .value) so an AsyncError degrades to zeros instead of
     // rethrowing synchronously and crashing the whole KPI strip.
     final kpi = kpiAsync.asData?.value ?? const TransactionReportKpiTotals();
-    final gross = kpi.pluGrossProfit;
-    final tax = kpi.pluLineTax;
-    final kpiLoading = kpiAsync.isLoading;
-
-    if (bid == null) {
-      return _summaryCard('Net Profit', gross - tax, kpiLoading, Colors.purple);
-    }
-
-    final expAsync = ref.watch(
-      expensesStreamProvider(
-        startDate: startDate,
-        endDate: endDate,
-        branchId: bid,
-      ),
-    );
-
-    return expAsync.when(
-      data: (expenseTxs) => _summaryCard(
-        'Net Profit',
-        gross - tax - _sumExpenseSubtotals(expenseTxs),
-        kpiLoading,
-        Colors.purple,
-      ),
-      loading: () =>
-          _summaryCard('Net Profit', gross - tax, true, Colors.purple),
-      // Expenses failed to load: never show `gross - tax` as a final figure —
-      // that silently drops the expense deduction and overstates Net Profit.
-      // Keep the card in its loading state; the live stream re-emits and
-      // self-heals when the backend recovers.
-      error: (_, __) =>
-          _summaryCard('Net Profit', gross - tax, true, Colors.purple),
+    return _summaryCard(
+      'Net Profit',
+      kpi.netProfit,
+      kpiAsync.isLoading,
+      Colors.purple,
     );
   }
 
-  Widget _twoCardRow(
-    WidgetRef ref,
-    AsyncValue<TransactionReportKpiTotals> kpiAsync,
-  ) {
+  Widget _twoCardRow(AsyncValue<TransactionReportKpiTotals> kpiAsync) {
     final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
     final kpi = kpiAsync.asData?.value;
 
@@ -173,16 +136,13 @@ class TransactionReportKpiStrip extends ConsumerWidget {
           ),
         ),
         SizedBox(width: metrics.kpiGap),
-        Expanded(child: _netProfitCard(ref, kpiAsync)),
+        Expanded(child: _netProfitCard(kpiAsync)),
         SizedBox(width: metrics.kpiGap),
       ],
     );
   }
 
-  Widget _fourCardRow(
-    WidgetRef ref,
-    AsyncValue<TransactionReportKpiTotals> kpiAsync,
-  ) {
+  Widget _fourCardRow(AsyncValue<TransactionReportKpiTotals> kpiAsync) {
     final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
     final kpi = kpiAsync.asData?.value;
     // Collected = Total Sales (subTotal) − Owed, so the cards partition exactly.
@@ -202,7 +162,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
           ),
         ),
         SizedBox(width: metrics.kpiGap),
-        Expanded(child: _netProfitCard(ref, kpiAsync)),
+        Expanded(child: _netProfitCard(kpiAsync)),
         SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
@@ -230,8 +190,8 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kpiAsync = ref.watch(transactionReportKpiTotalsProvider);
     if (showDetailed) {
-      return _twoCardRow(ref, kpiAsync);
+      return _twoCardRow(kpiAsync);
     }
-    return _fourCardRow(ref, kpiAsync);
+    return _fourCardRow(kpiAsync);
   }
 }
