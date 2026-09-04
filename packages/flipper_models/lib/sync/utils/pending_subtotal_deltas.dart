@@ -3,9 +3,9 @@ import 'dart:async';
 /// Gathers cart subtotal deltas so a burst of taps costs one parent-row write.
 ///
 /// Writing the parent `transactions` document per cart line cost 2.5s of every
-/// 5.2s tap: the collection has no index, so the read-modify-write walks it,
-/// and the write then wakes every branch-wide `SELECT * FROM transactions`
-/// observer, each of which walks it again.
+/// 5.2s tap: the read-modify-write scanned an unindexed collection, and the
+/// write then woke every branch-wide `SELECT * FROM transactions` observer to
+/// scan it again. Indexes cut the scan; this still removes N-1 of N writes.
 ///
 /// Nothing needs that field per line — the cart total on screen is computed
 /// from the items, park and send-to-till overwrite it with the live total

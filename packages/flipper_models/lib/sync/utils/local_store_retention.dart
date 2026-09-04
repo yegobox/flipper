@@ -2,11 +2,11 @@ import 'package:flipper_models/helperModels/talker.dart';
 
 /// How much sales history a device keeps locally.
 ///
-/// Ditto has no DQL indexes, so every `WHERE …` walks the collection at
-/// roughly 0.2ms a document. At 5,789 line items and 9,984 transactions a
-/// single cart write was spending 5.2s in three such walks. Query cost is a
-/// function of how many documents live on the device, so the only fix that
-/// helps *every* query rather than one code path is to keep fewer of them.
+/// Sales history is the only collection on a till that grows without bound,
+/// and it costs on two axes: query time and device storage. Indexes
+/// (`local_store_indexes.dart`) fix the first — they are the reason a cart
+/// write no longer walks 5,789 documents to find one line. This caps the
+/// second, and keeps replication from pulling down history nobody asked for.
 ///
 /// Older history is still reachable: a report that asks for a date range
 /// registers its own subscription for that range (see the `createdAt` bound

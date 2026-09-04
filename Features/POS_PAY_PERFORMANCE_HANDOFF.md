@@ -29,9 +29,12 @@ theory is wrong and the cause is elsewhere.
 Measured, not judged: 16.4s, then 29.3s, then a cart that never drained.
 Chasing it down gave the root cause of the whole session's symptoms.
 
-**Ditto has no DQL indexes** (there is no index API in `ditto_live` 5.0.3, and
-the only `createIndex` in the project is an empty stub in `DatabaseProvider`).
-Every `WHERE …` walks the collection at roughly **0.2ms a document**. The
+**Nothing but `_id` was indexed.** Ditto indexes `_id` and no other field
+unless you create the index yourself, so every `WHERE …` walked the collection
+at roughly **0.2ms a document**. (I first reported that Ditto has no indexes at
+all — wrong, and the user caught it. Indexes exist from SDK 4.12.0; they are
+created by *executing DQL*, `CREATE INDEX IF NOT EXISTS … ON … (field)`, not
+through an SDK method, which is why grepping for an API found nothing.) The
 device held 5,789 `transaction_items` and 9,984 `transactions`, so one pass
 cost ~1.2s — and a single cart write made three of them:
 
@@ -43,7 +46,15 @@ The INSERT was 15ms. Everything else was reading. That is why writes got
 slower as history accumulated, why a 60-line cart left 23 writes outstanding
 at the 60s ceiling, and why `update_transaction` cost 3.3s at completion.
 
-Two fixes landed:
+Three fixes landed:
+
+- `INDEXES` — `local_store_indexes.dart` creates single-field indexes on the
+  fields the app filters on constantly (`transaction_items.transactionId` /
+  `.variantId`, `transactions.branchId` / `.status` / `.createdAt`, plus
+  `variants` and `stocks`), at Ditto setup, before sync starts. Local to the
+  device, not replicated. Composite indexes would suit
+  `(status, createdAt)` but need SDK 5.1.0; the project pins 5.0.3, and from
+  4.13.0 a query can combine several single-field indexes anyway.
 
 - `063f08a16` — the parent-row subtotal bump is gathered and written once per
   burst instead of once per line. It walked the *bigger* collection and then
@@ -51,7 +62,9 @@ Two fixes landed:
   again, per line. Nothing needs it per line: the on-screen total is computed
   from the items, park/send-to-till overwrite it with the live total, and
   completion recomputes it from the finished lines.
-- `231c598b0` — 30-day retention (the user's call, asked explicitly). Both
+- `231c598b0` — 30-day retention (the user's call — but asked while the index
+  claim above was still wrong, so it is worth revisiting: with indexes it caps
+  storage and replication rather than query time). Both
   halves are required: subscriptions narrowed in `prepareDqlSyncSubscription`
   (eviction alone is futile — an active subscription pulls the document back)
   and eviction of history past the window (windowing alone does not remove

@@ -2061,13 +2061,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   /// Reports how much of the local store a cart write's queries have to walk.
   ///
-  /// A cart write's SELECTs took seconds while its INSERT took 15ms, and there
-  /// are no DQL indexes, so every `WHERE transactionId = …` is a scan. That
-  /// leaves two very different causes with the same symptom: too many
-  /// documents on the device (fix the sync scope) or a store too busy to
-  /// answer (fix what is loading it). Counting the rows and timing the walk
-  /// separates them — a small collection that still takes seconds is
-  /// congestion, not size.
+  /// A cart write's SELECTs took seconds while its INSERT took 15ms, because
+  /// the fields they filter on were unindexed and every `WHERE transactionId =
+  /// …` was a full scan (see `local_store_indexes.dart`). Keep the probe: it is
+  /// how we tell an index is doing its job, and it still separates size from
+  /// congestion if a query goes slow again.
   ///
   /// Runs once per session, unawaited, after a write has already completed.
   Future<void> _logLocalStoreScanCostOnce() async {
