@@ -120,14 +120,18 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   void dispose() {
     final container = _container;
     if (container != null) {
-      clearPinnedPosCartTransactionContainer(container);
       // Never clear settling without re-parking — that left a PENDING till
       // ticket invisible on the Tickets list after a system back / swipe-away.
       // Effective, not live: read off the container's pending-cart providers
       // (never the route's own stale [widget.transaction]) so a completed sale
       // — which suppresses its id and drops the cache — cannot look like a
       // ticket that still needs parking.
+      //
+      // Read *before* dropping the pin: a recovered session resolves through
+      // [pinnedPosCartTransactionIdProvider], which is how this route holds its
+      // ticket, so clearing first can leave nothing to re-park.
       final settling = container.read(effectiveSettlingTillTicketProvider);
+      clearPinnedPosCartTransactionContainer(container);
       if (settling != null && !_settlingLeaveHandled) {
         unawaited(_reparkSettlingViaContainer(container, settling));
       }
