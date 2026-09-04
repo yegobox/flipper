@@ -21,6 +21,16 @@ import 'package:synchronized/synchronized.dart';
 
 final _persistLock = Lock();
 
+/// When the last cart write released the persist lock.
+///
+/// The gap between one write finishing and the next starting is the number
+/// that separates "the store is slow" from "the main isolate is busy": the
+/// writes are serialized, so an idle queue means nothing was competing for the
+/// lock, while a long gap with taps outstanding means the isolate was doing
+/// something else (rebuilding the cart, converting every row an observer
+/// replayed) instead of running the next write.
+DateTime? _lastCartWriteFinishedAt;
+
 /// Resolves once every cart write queued before this call has finished.
 ///
 /// [Lock] is FIFO, so taking a turn behind the queued adds is the same thing as
@@ -153,7 +163,13 @@ Future<bool> persistItemToTransaction({
 
   var itemAddCancelled = false;
 
+  final queuedAtLock = DateTime.now();
   await _persistLock.synchronized(() async {
+    final lockSw = Stopwatch()..start();
+    final sincePrev = _lastCartWriteFinishedAt == null
+        ? -1
+        : queuedAtLock.difference(_lastCartWriteFinishedAt!).inMilliseconds;
+    var storeMs = -1;
     // A `-` on the still-unsaved line asked for this add back. It already took
     // the qty out of the optimistic cart, so abort *without* rolling back again
     // — writing the row here is exactly what would re-inflate the qty.
@@ -210,6 +226,7 @@ Future<bool> persistItemToTransaction({
         if (vid == null || vid.isEmpty) continue;
         final compositeVariant = variantsMap[vid];
         if (compositeVariant != null) {
+          final storeSw = Stopwatch()..start();
           final okComposite = await capella.saveTransactionItem(
             variation: compositeVariant,
             doneWithTransaction: false,
@@ -221,12 +238,14 @@ Future<bool> persistItemToTransaction({
             partOfComposite: true,
             compositePrice: composite.actualPrice,
           );
+          storeMs = (storeMs < 0 ? 0 : storeMs) + storeSw.elapsedMilliseconds;
           if (!okComposite) {
             throw StateError('saveTransactionItem failed (composite line)');
           }
         }
       }
     } else {
+      final storeSw = Stopwatch()..start();
       final saved = await capella.saveTransactionItem(
         variation: variant,
         doneWithTransaction: false,
@@ -237,6 +256,7 @@ Future<bool> persistItemToTransaction({
         pendingTransaction: pendingTransaction,
         partOfComposite: false,
       );
+      storeMs = storeSw.elapsedMilliseconds;
       if (!saved) {
         // The write did not happen, so the ghost must not survive it. Left
         // standing it is a line the cashier can see, believes is in the cart,
@@ -256,11 +276,43 @@ Future<bool> persistItemToTransaction({
     // Ditto read here used to confirm-and-clear faster, but that raced ahead
     // of the live stream the cart actually renders from: the ghost would
     // disappear before the real row was visible, flashing the cart empty.
+    _lastCartWriteFinishedAt = DateTime.now();
+    _logCartWriteTiming(
+      ref: ref,
+      storeMs: storeMs,
+      lockHoldMs: lockSw.elapsedMilliseconds,
+      sincePrevMs: sincePrev,
+    );
   });
 
   if (itemAddCancelled) return false;
   if (itemAddAbortedStale) return false;
   return true;
+}
+
+/// Reports what one cart write cost, and what happened between writes.
+///
+/// A backlog that will not drain is either slow writes or a busy isolate, and
+/// the two want opposite fixes. `store_ms` is the write; `since_prev_ms` is
+/// dead time between writes, which the store cannot explain.
+void _logCartWriteTiming({
+  required Ref ref,
+  required int storeMs,
+  required int lockHoldMs,
+  required int sincePrevMs,
+}) {
+  final queued = ref.read(optimisticCartProvider.notifier).queuedAddCount;
+  final lines = ref.read(posCartDisplayItemsProvider).length;
+  final message =
+      '[cart_write] store_ms=$storeMs lock_hold_ms=$lockHoldMs '
+      'since_prev_ms=$sincePrevMs queued=$queued lines=$lines';
+  // A cart write is a handful of local store calls; a second is not a slow
+  // write, it is a symptom, and it is what stalls Pay on a large cart.
+  if (storeMs >= 1000 || sincePrevMs >= 1000) {
+    talker.warning(message);
+  } else {
+    talker.debug(message);
+  }
 }
 
 Future<bool> handlePersistFailure({
