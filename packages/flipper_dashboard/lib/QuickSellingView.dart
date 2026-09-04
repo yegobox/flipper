@@ -2730,7 +2730,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required AsyncValue<ITransaction> transactionAsyncValue,
     required CoreViewModel model,
   }) {
-    final settling = ref.watch(settlingTillTicketProvider);
+    // Effective, not live: a resumed ticket whose in-memory settling session was
+    // dropped (reload / restart) must still show the banner and its way back.
+    final settling = ref.watch(effectiveSettlingTillTicketProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3988,7 +3990,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Future<void> _backToNewSaleFromSettling() async {
     if (_backToNewSaleBusy) return;
-    final settling = ref.read(settlingTillTicketProvider);
+    // Matches the banner: works for a session rebuilt from the resumed ticket
+    // as well as a live Collect hand-off.
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling == null) return;
 
     setState(() => _backToNewSaleBusy = true);

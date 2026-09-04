@@ -165,6 +165,50 @@ class SettlingTillTicket {
   final ITransaction? ticketSnapshot;
 }
 
+/// Short human reference for a ticket — `reference` when set, else a truncated
+/// transaction id. Mirrors what the tickets list and the settling banner show.
+String settlingTicketDisplayRef(ITransaction ticket) {
+  final reference = ticket.reference?.trim();
+  if (reference != null && reference.isNotEmpty) return reference.toUpperCase();
+  final id = ticket.id;
+  if (id.length >= 6) return id.substring(0, 6).toUpperCase();
+  return id.toUpperCase();
+}
+
+/// Rebuilds a settling session from a resumed till ticket still sitting in the
+/// cart.
+///
+/// [settlingTillTicketProvider] is in-memory only, so a reload / restart / route
+/// rebuild between Collect and Pay dropped it while the ticket stayed PENDING on
+/// screen — the checkout then rendered the ticket's lines with no settling
+/// banner and no way back to a new sale. Resume keeps `ticketName` (only park
+/// writes it, and a freshly minted pending cart never has one), so a PENDING row
+/// carrying one is a resumed ticket and can seed a session again.
+///
+/// `createdAt` is the park stamp ([parkSaleTicketFast] writes it, resume leaves
+/// it alone), so the banner's elapsed time stays honest.
+SettlingTillTicket? recoverSettlingTillTicketFromResumedCart(
+  ITransaction? ticket,
+) {
+  if (ticket == null || ticket.id.isEmpty) return null;
+  if ((ticket.status ?? '').toLowerCase() != PENDING.toLowerCase()) return null;
+  final ticketName = ticket.ticketName?.trim() ?? '';
+  if (ticketName.isEmpty) return null;
+
+  return SettlingTillTicket(
+    transactionId: ticket.id,
+    displayRef: settlingTicketDisplayRef(ticket),
+    // The sender is not recoverable from the row — resume overwrites `agentId`
+    // with the collector — so fall back to the same generic name Collect uses.
+    creatorName: 'Staff',
+    createdAt: ticket.createdAt ?? ticket.lastTouched ?? DateTime.now(),
+    branchId: ticket.branchId,
+    ticketName: ticketName,
+    ticketNote: ticket.note,
+    ticketSnapshot: ticket,
+  );
+}
+
 /// Non-null while a Manager/Admin is settling a queued till ticket in the cart.
 final settlingTillTicketProvider =
     StateProvider<SettlingTillTicket?>((ref) => null);

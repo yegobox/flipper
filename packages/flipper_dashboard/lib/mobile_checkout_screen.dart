@@ -327,9 +327,22 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     }
   }
 
+  /// Live settling session, else one rebuilt from the resumed ticket itself.
+  ///
+  /// [settlingTillTicketProvider] is in-memory only, so a reload / restart
+  /// between Collect and Pay left this screen showing a resumed ticket with no
+  /// settling banner — and therefore no way back to a new sale.
+  SettlingTillTicket? _effectiveSettling(ITransaction txn) {
+    return ref.read(settlingTillTicketProvider) ??
+        recoverSettlingTillTicketFromResumedCart(txn);
+  }
+
   Future<void> _backToNewSaleFromSettling() async {
     if (_backToNewSaleBusy) return;
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = _effectiveSettling(
+      ref.read(transactionByIdProvider(_transactionId)).value ??
+          widget.transaction,
+    );
     if (settling == null) return;
 
     setState(() => _backToNewSaleBusy = true);
@@ -1150,6 +1163,10 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                 .fold<double>(0, (s, i) => s + _displayQtyFor(i))
                 .round();
 
+            // The banner (and its "Back to new sale") stays put even when the
+            // in-memory settling session was lost — see [_effectiveSettling].
+            final bannerSettling = settling ?? _effectiveSettling(txn);
+
             var footerPrimaryLabel = !canCollect
                 ? 'Send to Till →'
                 : digitalEnabled && items.isNotEmpty
@@ -1183,7 +1200,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
                       Navigator.of(context).pop();
                     },
                   ),
-                  if (settling != null) _buildSettlingBanner(settling),
+                  if (bannerSettling != null)
+                    _buildSettlingBanner(bannerSettling),
                   Expanded(
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),

@@ -171,6 +171,34 @@ the display. See `project_pos_cart_display_truth` in memory.
    windowing, so the lines come back — but only online. Ditto has no subqueries
    (`reference_ditto_dql_limits`), so eviction cannot join items to open tickets.
 
+10. **A recovered settling session only drives the banner.** `settlingTillTicketProvider`
+   is in-memory, so a reload / restart / re-created scope between Collect and Pay
+   used to leave a resumed ticket rendering as a plain cart — PENDING on screen,
+   no settling banner, and therefore no "Back to new sale" (the user's report:
+   "sometimes a resumed ticket has the button and sometimes not"). Fixed by
+   deriving the session from the row instead: `resumeSaleTicketFast` leaves
+   `ticketName` and the park `createdAt` alone and only park ever writes
+   `ticketName`, so a PENDING row carrying one *is* a resumed ticket —
+   `recoverSettlingTillTicketFromResumedCart` (`pos_payment_role_provider.dart`)
+   rebuilds a session from it, and `effectiveSettlingTillTicketProvider`
+   (`pos_cart_display_provider.dart`) prefers the live session, falling back to
+   recovery off the pending-cart rows the checkout already observes (cache, then
+   stream, honouring the pin) so no extra Ditto observer lands on the POS hot
+   path. Suppressed ids and ordering mode return null, so the banner cannot flash
+   back after a re-park or a completed sale.
+
+   **Only the banner and its "Back to new sale" handler read the effective
+   provider.** The other four behaviours that the live session drives — Pay
+   binding (completion targets the ticket, not the collector's empty cart),
+   read-only cart, hidden Save-ticket, and mobile's `PopScope` auto-re-park — are
+   still keyed off `settlingTillTicketProvider` alone. So after a reload the
+   banner is back but the cart is editable again, and backing out of mobile
+   checkout will not auto-re-park. Deliberate: a wrong recovery is cosmetic in
+   the banner and charges the wrong transaction in Pay binding. Making recovery
+   feed all five is the follow-up; the race to test first is tapping "Back to new
+   sale" and re-adopting the ticket before Ditto reports it PARKED (the
+   suppressed-id guard is what stands in the way today).
+
 ## Diagnostics added this session
 
 Grep these first; they were built for exactly this problem.
@@ -218,6 +246,9 @@ switched … discarding them`, the fingerprint of a stolen cart.
   never swapped for an empty one; the completion hand-off always hands over.
 - `flipper_models/test/optimistic_cart_reconcile_test.dart` — idempotent
   reconciliation; the settle ledger, including a cancelled add still settling.
+- `flipper_models/test/settling_till_ticket_recovery_test.dart` — which rows count
+  as a resumed till ticket: PENDING + `ticketName` recovers, a plain pending cart
+  / a parked or completed row does not.
 
 Known-flaky under parallel load: `pos_cart_tap_sync_perf_test.dart` (timing
 budget) and occasionally a suite failing at "loading". Both pass in isolation.

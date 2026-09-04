@@ -64,6 +64,47 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
   return optId;
 });
 
+/// Settling session for the cart on screen: the live hand-off when one is set,
+/// else one rebuilt from the resumed ticket itself.
+///
+/// [settlingTillTicketProvider] lives only in memory, so anything that drops it
+/// mid-collection (a web reload, an app restart, a re-created provider scope)
+/// left the resumed ticket rendering as a plain cart — no settling banner and,
+/// with it, no "Back to new sale". Read this wherever the banner / return action
+/// is shown so both are always available for a resumed ticket; Pay binding and
+/// cart scoping still key off the live session only.
+///
+/// Reads the pending-cart rows the checkout already observes (cache, then
+/// stream) rather than opening another [transactionByIdProvider] observer on
+/// the POS hot path.
+final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((ref) {
+  final live = ref.watch(settlingTillTicketProvider);
+  if (live != null) return live;
+
+  // Purchases (ordering mode) never go through the till queue.
+  if (_posCartIsExpense()) return null;
+
+  final pinnedId = ref.watch(pinnedPosCartTransactionIdProvider);
+  final candidates = <ITransaction?>[
+    ref.watch(cachedPendingCartTransactionProvider(false)),
+    ref.watch(pendingTransactionStreamProvider(isExpense: false)).asData?.value,
+  ];
+  final row = candidates.firstWhere(
+    (t) =>
+        t != null &&
+        t.id.isNotEmpty &&
+        (pinnedId == null || pinnedId.isEmpty || t.id == pinnedId),
+    orElse: () => null,
+  );
+  if (row == null) return null;
+
+  // A just-settled / just-re-parked ticket is suppressed before its row leaves
+  // PENDING; recovering from it would flash the banner back on.
+  if (ref.watch(suppressedCartTransactionIdProvider) == row.id) return null;
+
+  return recoverSettlingTillTicketFromResumedCart(row);
+});
+
 /// Transaction id used to merge Ditto line items with optimistic ghosts.
 final posCartMergeTxnIdProvider = Provider.family<String, bool>((ref, isExpense) {
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));
