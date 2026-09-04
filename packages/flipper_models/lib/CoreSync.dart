@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+import 'package:flipper_models/sync/utils/local_store_retention.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
@@ -318,6 +319,19 @@ class CoreSync extends AiStrategyImpl
       // Perform online-specific configuration
       await firebaseLogin();
       await SupabaseSessionService.ensureAccessToken();
+
+      // Trim sales history past the retention window. Only on an online login:
+      // history that has not reached the cloud exists nowhere else, and this
+      // deletes the local copy. Deferred so it never competes with the initial
+      // replication burst — it is housekeeping, not startup work.
+      Timer(const Duration(minutes: 3), () {
+        unawaited(
+          evictAgedLocalHistory(
+            ditto: dittoService.dittoInstance,
+            isOnline: true,
+          ),
+        );
+      });
     }
   }
 

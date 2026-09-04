@@ -1,3 +1,5 @@
+import 'package:flipper_models/sync/utils/local_store_retention.dart';
+
 /// Ditto 5 [Sync.registerSubscription] rejects `ORDER BY`, `LIMIT`, and
 /// `OFFSET` on subscription queries by default.
 ///
@@ -36,14 +38,23 @@ Map<String, dynamic> dqlArgumentsForSubscription(
 }
 
 /// Sanitized DQL and matching arguments for [Sync.registerSubscription].
+///
+/// Open-ended sales-history subscriptions are also narrowed to the retained
+/// window — see [applyLocalHistoryWindow]. Every subscription in the project
+/// is registered through here, which is the only place that can hold that line
+/// without each of the sixty call sites remembering to.
 DqlSyncPrepared prepareDqlSyncSubscription(
   String query,
   Map<String, dynamic>? arguments,
 ) {
-  final dql = dqlForSyncSubscription(query);
+  final sanitized = dqlForSyncSubscription(query);
+  final windowed = applyLocalHistoryWindow(
+    sanitized,
+    arguments ?? const <String, dynamic>{},
+  );
   return (
-    dql: dql,
-    arguments: dqlArgumentsForSubscription(dql, arguments),
+    dql: windowed.dql,
+    arguments: dqlArgumentsForSubscription(windowed.dql, windowed.arguments),
   );
 }
 
