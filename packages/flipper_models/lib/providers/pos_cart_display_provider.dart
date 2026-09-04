@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
@@ -81,6 +82,64 @@ final posCartMergeTxnIdProvider = Provider.family<String, bool>((ref, isExpense)
   );
 });
 
+/// Whether an emitted pending cart may replace the one currently on screen.
+///
+/// Pure so the rule can be tested without Ditto. The rule exists because the
+/// pending-cart observer emits `items.first ORDER BY lastTouched DESC`: a row
+/// minted a moment ago outranks the cart the cashier is filling, so adopting
+/// every emission let a freshly minted empty cart wipe a cart full of lines.
+bool shouldAdoptEmittedPendingCart({
+  required String currentCartId,
+  required String incomingCartId,
+  required bool currentHasLines,
+  required bool incomingHasLines,
+  String? suppressedCartId,
+  required bool completing,
+}) {
+  if (incomingCartId.isEmpty) return false;
+  if (currentCartId.isEmpty || currentCartId == incomingCartId) return true;
+  // Completion hand-off: the sold cart is suppressed and must be handed over.
+  if (suppressedCartId != null &&
+      suppressedCartId.isNotEmpty &&
+      suppressedCartId == currentCartId) {
+    return true;
+  }
+  if (completing) return true;
+  // The only refusal: a cart with lines being replaced by an empty one.
+  if (currentHasLines && !incomingHasLines) return false;
+  return true;
+}
+
+/// Drops the cached cart when it is no longer a PENDING row.
+///
+/// Pairs with the "refuse to swap an active cart" guard below: the guard is only
+/// safe because a cart that has actually left PENDING stops being defended.
+Future<void> _releaseCachedCartIfNotPending(
+  Ref ref, {
+  required bool isExpense,
+  required String transactionId,
+}) async {
+  try {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) return;
+    final txn = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getTransaction(id: transactionId, branchId: branchId);
+    if (txn != null && txn.status == PENDING) return;
+    talker.warning(
+      'posCartStreamReconciliation: held cart $transactionId is '
+      '${txn == null ? "gone" : "status=${txn.status}"} — releasing it so the '
+      'next pending cart can take over.',
+    );
+    clearCachedPendingCartTransaction(ref, isExpense: isExpense);
+  } catch (e, s) {
+    talker.warning(
+      'posCartStreamReconciliation: could not verify held cart '
+      '$transactionId: $e\n$s',
+    );
+  }
+}
+
 /// Side-effect wiring: cache + bind bootstrap → real id + stream reconciliation.
 /// Subscribed via [ref.listen] from checkout (not [ref.watch]) to avoid extra rebuilds.
 final posCartStreamReconciliationProvider = Provider<void>((ref) {
@@ -89,10 +148,74 @@ final posCartStreamReconciliationProvider = Provider<void>((ref) {
   final isExpense = _posCartIsExpense();
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
 
+  /// Lines the cashier can see for [transactionId]: saved rows plus ghosts.
+  bool cartHasLines(String transactionId) {
+    if (transactionId.isEmpty) return false;
+    if (ref
+        .read(optimisticCartProvider.notifier)
+        .hasPendingFor(transactionId)) {
+      return true;
+    }
+    final cached = readCachedPendingCartTransaction(ref, isExpense: isExpense);
+    final cachedBranch = cached?.branchId?.trim();
+    final rowsBranchId = cachedBranch != null && cachedBranch.isNotEmpty
+        ? cachedBranch
+        : (ProxyService.box.getBranchId() ?? '0');
+    final rows = ref
+        .read(
+          transactionItemsStreamProvider(
+            transactionId: transactionId,
+            branchId: rowsBranchId,
+          ),
+        )
+        .value;
+    return rows != null && rows.any((i) => i.active != false);
+  }
+
   void syncPendingTransaction(ITransaction txn) {
     final pinned = ref.read(pinnedPosCartTransactionIdProvider);
     if (pinned != null && pinned.isNotEmpty && txn.id != pinned) {
       return;
+    }
+
+    // Never let a cart the cashier is filling be replaced by an empty one.
+    //
+    // The observer behind this stream emits `items.first ORDER BY lastTouched
+    // DESC`, so a PENDING row minted a moment ago outranks the cart in front of
+    // the operator. That is exactly what happens when replication makes the
+    // pending query blink empty: `_ensureNextPendingCartIfNeeded` mints a second
+    // id, it wins the ordering, and adopting it here re-resolved the display to
+    // an empty sale — 57 scanned lines vanishing in one frame, orphaned on the
+    // old id. A genuine switch (a cart that itself has lines) is still adopted.
+    final current = readCachedPendingCartTransaction(ref, isExpense: isExpense);
+    final currentId = current?.id ?? '';
+    if (currentId.isNotEmpty && currentId != txn.id) {
+      if (!shouldAdoptEmittedPendingCart(
+        currentCartId: currentId,
+        incomingCartId: txn.id,
+        currentHasLines: cartHasLines(currentId),
+        incomingHasLines: cartHasLines(txn.id),
+        suppressedCartId: ref.read(suppressedCartTransactionIdProvider),
+        completing:
+            ProxyService.box.readBool(key: 'transactionCompleting') ?? false,
+      )) {
+        talker.warning(
+          'posCartStreamReconciliation: refusing to swap the active cart '
+          '$currentId (has lines) for empty pending ${txn.id}. Keeping the '
+          'cart on screen; verifying the held cart is still pending.',
+        );
+        // Self-heal: if the cart we just defended is not actually PENDING any
+        // more, release it so the next emission is adopted. Without this a
+        // stale cached id could hold the till on a dead cart.
+        unawaited(
+          _releaseCachedCartIfNotPending(
+            ref,
+            isExpense: isExpense,
+            transactionId: currentId,
+          ),
+        );
+        return;
+      }
     }
     // A different pending sale is now active — stop suppressing the previously
     // completed one (it will never come back as the cart, so this is the only
@@ -264,7 +387,9 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
   return streamAsync.when(
     data: (raw) {
       if (raw.isEmpty) {
-        talker.warning(
+        // Normal between sales and on a freshly minted cart, so debug: at
+        // warning this fired on every rebuild of an empty cart.
+        talker.debug(
           'posCartDisplayItemsProvider: no-pending branch, '
           'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
           'has 0 rows this frame — cart will render empty unless another '
@@ -274,7 +399,9 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
       return merge(raw);
     },
     loading: () {
-      talker.warning(
+      // Every cold subscription passes through here (checkout open, branch
+      // switch); it is not a fault.
+      talker.debug(
         'posCartDisplayItemsProvider: no-pending branch, '
         'transactionItemsStreamProvider(txn=$mergeTxnId, branch=$mergeBranchId) '
         'is still loading — rendering empty rows this frame.',

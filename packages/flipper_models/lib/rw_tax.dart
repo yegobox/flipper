@@ -16,6 +16,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/rra_bcd.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
@@ -160,6 +161,12 @@ Future<bool> _hydrateVariantEbmFields(Variant variant) async {
   return !_variantTinMissing(variant);
 }
 
+/// Wall-clock budget for a single interactive `trnsSales/saveSales` attempt.
+///
+/// Deliberately much tighter than the 120s default used by bulk/background tax
+/// calls (item registration, stock sync): a cashier is blocked on this one.
+const Duration _saleSignRequestTimeout = Duration(seconds: 20);
+
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   static final Map<String, Configurations> _taxConfigByBranchAndType = {};
   String itemPrefix = "flip-";
@@ -175,7 +182,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     _talker = Talker();
     _dio = Dio(
       BaseOptions(
-        connectTimeout: const Duration(seconds: 120),
+        // A connect timeout only covers the TCP/TLS handshake — a reachable tax
+        // server answers in well under a second, so 120s here bought nothing and
+        // cost the cashier two minutes of dead Pay button per attempt when the
+        // EBM box or the apihub hop was down.
+        connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 120),
         sendTimeout: const Duration(seconds: 120),
       ),
@@ -592,6 +603,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       /// first remove fields for imports
       final itemJson = variation.toFlipperJson();
+
+      // RRA caps `bcd` at 20 characters; register the same trimmed barcode
+      // saveSales will later send for this variant (null is dropped below).
+      itemJson['bcd'] = rraSafeBcd(variation.bcd);
       itemJson.removeWhere(
         (key, value) =>
             [
@@ -1058,7 +1073,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       RwApiResponse? successData;
       for (var saveAttempt = 0; saveAttempt < 3; saveAttempt++) {
-        final response = await sendPostRequest(url, requestData);
+        // This runs on the Pay hot path with the cashier watching a spinner, and
+        // the loop below can send up to three requests. At the inherited 120s
+        // bound a hung tax server held the till for up to six minutes before it
+        // reported anything; RRA answers a healthy saveSales in seconds.
+        final response = await sendPostRequest(
+          url,
+          requestData,
+          sendTimeout: _saleSignRequestTimeout,
+          receiveTimeout: _saleSignRequestTimeout,
+        );
 
         if (response.statusCode != 200) {
           throw Exception(
@@ -1070,11 +1094,20 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           final msg = data.resultMsg;
-          if (saveAttempt < 2 && _rwTaxIsQtyUnitCdCodeValueError(msg)) {
-            talker.warning(
-              'RRA rejected qtyUnitCd; defaulting transaction lines and variants to U and retrying saveSales.',
-            );
-            await _healQtyUnitCdToDefaultUnits(items);
+          final bcdTooLong = isRraBcdSizeError(msg);
+          if (saveAttempt < 2 &&
+              (bcdTooLong || _rwTaxIsQtyUnitCdCodeValueError(msg))) {
+            if (bcdTooLong) {
+              talker.warning(
+                'RRA rejected bcd as too long; trimming barcodes to $kRraBcdMaxLength characters on lines and variants and retrying saveSales.',
+              );
+              await _healOversizedBarcodes(items);
+            } else {
+              talker.warning(
+                'RRA rejected qtyUnitCd; defaulting transaction lines and variants to U and retrying saveSales.',
+              );
+              await _healQtyUnitCdToDefaultUnits(items);
+            }
             final retryFutures = items
                 .asMap()
                 .entries
@@ -1220,6 +1253,35 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
   }
 
+  /// Cuts oversized barcodes down to RRA's 20-character `bcd` limit on line
+  /// items and their variants, so the retry — and every later sale of the same
+  /// variant — carries a barcode the server accepts.
+  Future<void> _healOversizedBarcodes(List<TransactionItem> items) async {
+    final repository = Repository();
+    for (final line in items) {
+      final safe = rraSafeBcd(line.bcd);
+      if (safe != null && safe != line.bcd) {
+        line.bcd = safe;
+        line.lastTouched = DateTime.now().toUtc();
+        await repository.upsert<TransactionItem>(
+          line,
+          policy: OfflineFirstUpsertPolicy.optimisticLocal,
+        );
+      }
+      final vid = line.variantId;
+      if (vid == null) continue;
+      final variant = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getVariant(id: vid);
+      if (variant == null) continue;
+      final safeVariantBcd = rraSafeBcd(variant.bcd);
+      if (safeVariantBcd == null || safeVariantBcd == variant.bcd) continue;
+      variant.bcd = safeVariantBcd;
+      variant.lastTouched = DateTime.now().toUtc();
+      await repository.upsert<Variant>(variant);
+    }
+  }
+
   // Helper function to map TransactionItem to JSON
   Future<Configurations> _taxConfigForType(String taxType) async {
     final branchId = ProxyService.box.getBranchId()!;
@@ -1345,7 +1407,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       isrcRt: 0,
       isrcAmt: 0,
       taxTyCd: item.taxTyCd,
-      bcd: item.bcd,
+      bcd: rraSafeBcd(item.bcd),
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
       orgnNatCd: item.orgnNatCd ?? "RW",
@@ -1789,7 +1851,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     data['rcptTyCd'] = rcptTyCd;
     data['itemList'] = variants.map((variant) {
       variant.qty = variant.stock?.currentStock ?? 0;
-      return variant.toFlipperJson();
+      final json = variant.toFlipperJson();
+      // RRA caps `bcd` at 20 characters — trim rather than fail the purchase.
+      final safeBcd = rraSafeBcd(variant.bcd);
+      if (safeBcd == null) {
+        json.remove('bcd');
+      } else {
+        json['bcd'] = safeBcd;
+      }
+      return json;
     }).toList();
     final talker = Talker();
     try {

@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
@@ -44,9 +45,41 @@ class PreviewSaleButton extends ConsumerWidget {
         loadingNotifier.startLoading(buttonType); // Start loading
 
         // Call the transaction function
-        await completeTransaction?.call(immediateCompletion);
+        //
+        // The digital-payment path returns *while still waiting* for the
+        // customer to confirm on their phone, so its only exit is
+        // [onPaymentFailed]. Passing null here left the 60s timeout with
+        // nothing to call: no error, and a Pay button that spun forever with
+        // `onPressed: null` — the till could not even retry.
+        final stillWaitingForPayment =
+            await completeTransaction?.call(
+              immediateCompletion,
+              null,
+              (String error) {
+                if (!ref.context.mounted) return;
+                loadingNotifier.stopLoading(buttonType);
+                showCustomSnackBarUtil(
+                  ref.context,
+                  error,
+                  backgroundColor: Colors.red,
+                  showCloseButton: true,
+                );
+              },
+            ) ??
+            false;
 
-        // The transaction function is responsible for stopping the loading state.
+        // Release the spinner here rather than trusting the flow to do it.
+        // Every stopLoading() down the completion path is guarded by the *host*
+        // widget's `mounted` / `context.mounted` (QuickSellingView, the checkout
+        // shell). When that host is torn down or its context goes defunct
+        // mid-sale — a layout swap, a pop, a rebuild after the cart clears —
+        // none of those guards fire, while this button is a different widget
+        // that stays mounted and keeps rendering a dead spinner with
+        // `onPressed: null`. Stopping again when the flow already stopped is a
+        // no-op; only a pending out-of-band payment keeps it spinning.
+        if (!stillWaitingForPayment && ref.context.mounted) {
+          loadingNotifier.stopLoading(buttonType);
+        }
       } catch (e) {
         if (ref.context.mounted) {
           loadingNotifier.stopLoading(buttonType); // Stop loading on error

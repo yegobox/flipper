@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flipper_services/ebm_sync_service.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -300,15 +299,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.clearStackAndShow(LoginRoute());
       return;
     } else if (e is BusinessNotFoundException || e == NeedSignUpException) {
-      if (Platform.isWindows) {
-        // Handle BusinessNotFoundException for desktop.
-        _handleBusinessNotFoundForDesktop();
-        return;
-      } else {
-        // Handle BusinessNotFoundException for mobile.
-        _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
-        return;
-      }
+      // Every platform onboards the same way: a signed-in user without a
+      // business goes to signup and creates one. Windows used to be bounced
+      // back to the login screen here, which left desktop with no way in.
+      _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+      return;
     } else if (e is SubscriptionError) {
       _routerService.navigateTo(PaymentPlanUIRoute());
       return;
@@ -344,15 +339,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // check if there is any view navigated to
       return;
     }
-  }
-
-  /// Handles BusinessNotFoundException specifically for the desktop platform.
-  void _handleBusinessNotFoundForDesktop() {
-    ProxyService.notie.sendData(
-      'Could not login business with user ${ProxyService.box.getUserId()} not found!',
-    );
-    logOut();
-    _routerService.clearStackAndShow(LoginRoute());
   }
 
   bool isTestEnvironment() {

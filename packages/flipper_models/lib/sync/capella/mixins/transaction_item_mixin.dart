@@ -536,6 +536,29 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     );
   }
 
+  /// Compact log line for a cart snapshot: totals plus the duplicate-variant
+  /// signal, without dumping every id.
+  String _summarizeItems(List<TransactionItem> items) {
+    if (items.isEmpty) return '0 rows';
+    final qtyByVariant = <String, num>{};
+    num totalQty = 0;
+    for (final item in items) {
+      final key = item.variantId ?? '?';
+      qtyByVariant[key] = (qtyByVariant[key] ?? 0) + item.qty;
+      totalQty += item.qty;
+    }
+    final dupRows = items.length - qtyByVariant.length;
+    final sample = qtyByVariant.entries
+        .take(3)
+        .map((e) => '${_shortId(e.key)}x${e.value}')
+        .join(' ');
+    final more = qtyByVariant.length > 3 ? ' +${qtyByVariant.length - 3}' : '';
+    return '${items.length} rows, ${qtyByVariant.length} variants, qty $totalQty'
+        '${dupRows > 0 ? ', $dupRows dup row(s)' : ''} [$sample$more]';
+  }
+
+  String _shortId(String id) => id.length <= 8 ? id : id.substring(0, 8);
+
   @override
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
@@ -643,9 +666,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
           }
         }
         talker.debug(
-          'transactionItemsStreams onChange txn=$transactionId branch=$branchId: '
-          '${items.length} item(s) '
-          '(variantIds=${items.map((i) => '${i.variantId}:${i.qty}').toList()})',
+          'transactionItemsStreams onChange txn=${transactionId ?? '-'}: '
+          '${_summarizeItems(items)}',
         );
         controller.add(items);
       },
@@ -668,7 +690,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
             }
           }
           talker.debug(
-            'transactionItemsStreams initial seed: ${items.length} items',
+            'transactionItemsStreams seed txn=${transactionId ?? '-'}: '
+            '${_summarizeItems(items)}',
           );
           if (!controller.isClosed) controller.add(items);
         })

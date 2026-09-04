@@ -81,7 +81,16 @@ class CheckoutController with AnalyticsTrackingMixin {
         },
         paymentMethods: ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );
-      
+
+      // Only a pending digital payment keeps the completion lock held. The flow
+      // also returns false *without throwing* on its guard paths (cart still
+      // saving, out of stock, cancelled purchase code); leaving the flag set
+      // there makes every later cart tap a silent no-op in [PosCartAddService].
+      if (isWaitingForPayment != true) {
+        ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+        ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+      }
+
       return isWaitingForPayment;
     } catch (e) {
       ProxyService.box.writeBool(key: 'transactionCompleting', value: false);

@@ -36,6 +36,19 @@ void main() {
       expect(await box.authComplete(), isFalse);
     });
 
+    test('clear() leaves the same tombstone clearSessionKeys() does', () async {
+      // The QR/PIN login and signup screens call clear() right after logout.
+      // If that wiped `sessionClearedAt`, the legacy-file migration and the
+      // Ditto merge lost their proof of logout and signed the user back in.
+      await box.writeString(key: 'userId', value: 'user-1');
+
+      await box.clear();
+
+      expect(box.getUserId(), isNull);
+      expect(box.readInt(key: 'sessionClearedAt'), isNotNull);
+      expect(box.readInt(key: 'sessionClearedAt'), greaterThan(0));
+    });
+
     test('keeps device-level preferences', () async {
       await box.writeString(key: 'userId', value: 'user-1');
       await box.writeString(key: 'encryptionKey', value: 'key-1');

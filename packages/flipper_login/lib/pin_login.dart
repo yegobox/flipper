@@ -12,6 +12,7 @@ import 'package:flipper_login/signin_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
@@ -20,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 enum AuthMethod { authenticator, sms }
 
@@ -428,9 +430,7 @@ class _PinLoginState extends State<PinLogin>
           alwaysHydrate: false,
         );
         final entered = int.tryParse(pinString);
-        if (fromDb != null &&
-            entered != null &&
-            fromDb.pin == entered) {
+        if (fromDb != null && entered != null && fromDb.pin == entered) {
           return _iPinFromBrickPin(fromDb);
         }
       } catch (_) {}
@@ -452,8 +452,8 @@ class _PinLoginState extends State<PinLogin>
 
   IPin? _iPinFromBrickPin(Pin pin) {
     final userId = pin.userId?.trim();
-    final phone = pin.phoneNumber?.trim() ??
-        ProxyService.box.getUserPhone()?.trim();
+    final phone =
+        pin.phoneNumber?.trim() ?? ProxyService.box.getUserPhone()?.trim();
     if (userId == null ||
         userId.isEmpty ||
         phone == null ||
@@ -600,6 +600,16 @@ class _PinLoginState extends State<PinLogin>
     );
   }
 
+  /// Desktop reaches PIN login straight from the QR screen, so this is the
+  /// only place a new desktop user can get to signup. Clear the half-filled
+  /// login draft first so signup starts from a clean box, exactly as
+  /// [Landing] does on mobile.
+  void _goToCreateAccount() {
+    ProxyService.box.remove(key: 'userPhone');
+    ProxyService.box.remove(key: 'userId');
+    locator<RouterService>().navigateTo(SignUpViewRoute(countryNm: 'Rwanda'));
+  }
+
   bool _useSignInDesktopLayout(BoxConstraints constraints) {
     return constraints.maxWidth >= SignInTokens.desktopSplitBreakpoint;
   }
@@ -721,6 +731,27 @@ class _PinLoginState extends State<PinLogin>
                       style: context.signInText(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        color: SignInTokens.blue,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: Semantics(
+                  key: const Key(LoginMaestroIds.pinCreateAccount),
+                  identifier: LoginMaestroIds.pinCreateAccount,
+                  label: 'Create an account',
+                  button: true,
+                  enabled: !_isProcessing && !_isDone,
+                  child: TextButton(
+                    onPressed:
+                        (_isProcessing || _isDone) ? null : _goToCreateAccount,
+                    child: Text(
+                      "New to Flipper? Create an account",
+                      style: context.signInText(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
                         color: SignInTokens.blue,
                       ),
                     ),

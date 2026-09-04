@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
@@ -91,6 +92,13 @@ mixin SyncMixin on DittoCore {
       debugPrint(
         'ℹ️  File lock conflicts are prevented by using unique directories per instance',
       );
+    }
+
+    // Before sync starts pouring documents in: Ditto indexes only `_id`, so
+    // without these every `WHERE branchId = …` / `WHERE transactionId = …`
+    // walks the collection. Local, not replicated, and cheap to re-assert.
+    if (!isLoginDitto) {
+      unawaited(ensureLocalStoreIndexes(ditto: ditto));
     }
 
     if (!isLoginDitto && !kIsWeb) {

@@ -1102,7 +1102,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
     final dataConnectorUrl = _resolveDataConnectorUrl(ebm);
     if (dataConnectorUrl == null) {
       talker.warning(
-        'Bulk RRA: no data-connector URL on EBM; using default http://127.0.0.1:8084/',
+        'Bulk RRA: no data-connector URL on EBM; using default $kDataConnectorFallbackBaseUrl',
       );
     } else {
       talker.info('Bulk RRA using data-connector at $dataConnectorUrl');

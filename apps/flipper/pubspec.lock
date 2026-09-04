@@ -1311,6 +1311,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1-dev.7"
+  flipper_payments:
+    dependency: "direct overridden"
+    description:
+      path: "../../packages/flipper_payments"
+      relative: true
+    source: path
+    version: "0.1.0"
   flipper_personal:
     dependency: "direct overridden"
     description:
@@ -1359,7 +1366,7 @@ packages:
       path: "../flipper_web"
       relative: true
     source: path
-    version: "1.0.784+1700"
+    version: "1.0.786+1702"
   flowy_svg:
     dependency: "direct overridden"
     description:

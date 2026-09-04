@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/transaction_item_line_order.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
@@ -26,6 +28,38 @@ abstract final class OptimisticCartIds {
     required String transactionId,
     required String variantId,
   }) => '$prefix$transactionId:$variantId';
+
+  /// Recovers the variant from a [ghostLineId], so UI state keyed by line id can
+  /// follow a row across the ghost -> saved-row id change. Returns null for any
+  /// id that is not a ghost.
+  static String? variantIdOf(String id) {
+    if (!isOptimistic(id)) return null;
+    final sep = id.lastIndexOf(':');
+    if (sep < 0 || sep + 1 >= id.length) return null;
+    return id.substring(sep + 1);
+  }
+}
+
+bool _qtyMapsEqual(Map<String, double> a, Map<String, double> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (final entry in a.entries) {
+    final other = b[entry.key];
+    if (other == null || other != entry.value) return false;
+  }
+  return true;
+}
+
+/// Snapshots are carried by reference between reconciles, so identity is the
+/// right test — [Variant] has no value equality.
+bool _snapshotMapsEqual(Map<String, Variant> a, Map<String, Variant> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (final entry in a.entries) {
+    if (!b.containsKey(entry.key)) return false;
+    if (!identical(b[entry.key], entry.value)) return false;
+  }
+  return true;
 }
 
 @immutable
@@ -39,6 +73,10 @@ class OptimisticCartState {
   final Map<String, Variant> variantSnapshotByVariantId;
   /// Ignore stream reconciliation briefly after a tap so ghosts are not cleared early.
   final DateTime? reconcileAfter;
+  /// Adds queued by [PosCartAddService] whose Ditto save has not run yet.
+  final Map<String, int> inFlightAddsByVariantId;
+  /// Queued adds a `-` tap asked to abort before they reach the save.
+  final Map<String, int> cancelledAddsByVariantId;
 
   const OptimisticCartState({
     this.activeTransactionId,
@@ -46,6 +84,8 @@ class OptimisticCartState {
     this.lastStreamQtySumByVariantId = const {},
     this.variantSnapshotByVariantId = const {},
     this.reconcileAfter,
+    this.inFlightAddsByVariantId = const {},
+    this.cancelledAddsByVariantId = const {},
   });
 
   OptimisticCartState copyWith({
@@ -54,6 +94,8 @@ class OptimisticCartState {
     Map<String, double>? lastStreamQtySumByVariantId,
     Map<String, Variant>? variantSnapshotByVariantId,
     DateTime? reconcileAfter,
+    Map<String, int>? inFlightAddsByVariantId,
+    Map<String, int>? cancelledAddsByVariantId,
     bool clearReconcileAfter = false,
     bool clearTransaction = false,
   }) {
@@ -70,12 +112,44 @@ class OptimisticCartState {
       reconcileAfter: clearReconcileAfter
           ? null
           : (reconcileAfter ?? this.reconcileAfter),
+      inFlightAddsByVariantId:
+          inFlightAddsByVariantId ?? this.inFlightAddsByVariantId,
+      cancelledAddsByVariantId:
+          cancelledAddsByVariantId ?? this.cancelledAddsByVariantId,
     );
   }
 
   bool hasPendingFor(String transactionId) {
     if (!_appliesToTransaction(transactionId)) return false;
     return pendingQtyByVariantId.values.any((q) => q > 0);
+  }
+
+  /// True when a queued add for [variantId] can still be aborted before its
+  /// Ditto save runs. This is what makes `-` on a not-yet-saved line safe: the
+  /// qty can only be taken back if the write that would restore it is stopped.
+  bool hasCancellableAdd(String variantId) {
+    final queued = inFlightAddsByVariantId[variantId] ?? 0;
+    final cancelled = cancelledAddsByVariantId[variantId] ?? 0;
+    return queued - cancelled > 0;
+  }
+
+  /// True when a mutation aimed at [transactionId] targets the active cart.
+  ///
+  /// Callers resolve the cart id from different providers — some hand over the
+  /// real pending id, some [OptimisticCartBootstrap.txnId] (which is only ever
+  /// a placeholder for "the cart being built right now") — and bind can land
+  /// between the tap and the rollback. Strict equality made those mutations
+  /// silently no-op, stranding the ghost line. There is only ever one active
+  /// optimistic cart, and a genuine cart switch discards pending qty in
+  /// [ensureOptimisticCartTransaction], so treating the sentinel as a wildcard
+  /// on either side is safe.
+  bool matchesActiveCart(String transactionId) {
+    if (transactionId.isEmpty) return false;
+    final active = activeTransactionId;
+    if (active == null || active.isEmpty) return false;
+    if (active == transactionId) return true;
+    return OptimisticCartBootstrap.isBootstrap(active) ||
+        OptimisticCartBootstrap.isBootstrap(transactionId);
   }
 
   /// True when [pendingQtyByVariantId] should merge into [transactionId]'s cart.
@@ -134,8 +208,22 @@ OptimisticCartState addOptimisticPendingLine(
 
 @Riverpod(keepAlive: true)
 class OptimisticCart extends _$OptimisticCart {
+  Timer? _graceTimer;
+  String? _deferredTransactionId;
+  List<TransactionItem>? _deferredItems;
+
   @override
-  OptimisticCartState build() => const OptimisticCartState();
+  OptimisticCartState build() {
+    ref.onDispose(_cancelDeferredReconcile);
+    return const OptimisticCartState();
+  }
+
+  void _cancelDeferredReconcile() {
+    _graceTimer?.cancel();
+    _graceTimer = null;
+    _deferredTransactionId = null;
+    _deferredItems = null;
+  }
 
   void _ensureTransaction(String transactionId) {
     state = ensureOptimisticCartTransaction(state, transactionId);
@@ -176,12 +264,95 @@ class OptimisticCart extends _$OptimisticCart {
     );
   }
 
+  /// Called by [PosCartAddService] when a tap queues a Ditto save.
+  void noteAddInFlight(String variantId) {
+    if (variantId.isEmpty) return;
+    final next = Map<String, int>.from(state.inFlightAddsByVariantId);
+    next[variantId] = (next[variantId] ?? 0) + 1;
+    state = state.copyWith(inFlightAddsByVariantId: next);
+  }
+
+  /// Called when that save finishes, aborts, or throws — always paired with
+  /// [noteAddInFlight] so a stuck persist cannot strand a cancellation token.
+  void noteAddSettled(String variantId) {
+    if (variantId.isEmpty) return;
+    final queued = state.inFlightAddsByVariantId[variantId] ?? 0;
+    if (queued <= 0) return;
+    final next = Map<String, int>.from(state.inFlightAddsByVariantId);
+    if (queued - 1 <= 0) {
+      next.remove(variantId);
+    } else {
+      next[variantId] = queued - 1;
+    }
+    state = state.copyWith(inFlightAddsByVariantId: next);
+    _completeIfAllAddsSettled();
+  }
+
+  Completer<void>? _addsSettledCompleter;
+
+  /// Completes once every tap that queued a Ditto save has finished writing.
+  ///
+  /// This is the ledger Pay should wait on. [inFlightAddsByVariantId] is
+  /// incremented synchronously inside `PosCartAddService.tapAdd` and always
+  /// decremented in the persist's `finally`, so it is an exact count of writes
+  /// this session still owes — unlike the item stream, which is a *report* of
+  /// what Ditto has replayed back to us and can lag for reasons that have
+  /// nothing to do with whether the cart is safe to sell.
+  /// How many queued Ditto saves this session still owes.
+  ///
+  /// Adds are serialised behind one persist lock, so on a big cart this drains
+  /// steadily rather than all at once — a caller waiting on it should watch this
+  /// fall rather than impose a flat deadline.
+  int get queuedAddCount =>
+      state.inFlightAddsByVariantId.values.fold<int>(0, (sum, n) => sum + n);
+
+  Future<void> whenQueuedAddsSettle() {
+    if (state.inFlightAddsByVariantId.isEmpty) return Future<void>.value();
+    return (_addsSettledCompleter ??= Completer<void>()).future;
+  }
+
+  void _completeIfAllAddsSettled() {
+    if (state.inFlightAddsByVariantId.isNotEmpty) return;
+    final completer = _addsSettledCompleter;
+    _addsSettledCompleter = null;
+    if (completer != null && !completer.isCompleted) completer.complete();
+  }
+
+  /// Marks one queued add for [variantId] as aborted. Returns false when there
+  /// is nothing left to cancel, in which case the caller must not take the qty
+  /// back — the save is already past the point of no return and Ditto would
+  /// simply restore it.
+  bool cancelInFlightAdd(String variantId) {
+    if (variantId.isEmpty) return false;
+    if (!state.hasCancellableAdd(variantId)) return false;
+    final next = Map<String, int>.from(state.cancelledAddsByVariantId);
+    next[variantId] = (next[variantId] ?? 0) + 1;
+    state = state.copyWith(cancelledAddsByVariantId: next);
+    return true;
+  }
+
+  /// Consumed by the persist just before it writes. True means this add was
+  /// cancelled and must not be saved.
+  bool consumeCancelledAdd(String variantId) {
+    if (variantId.isEmpty) return false;
+    final cancelled = state.cancelledAddsByVariantId[variantId] ?? 0;
+    if (cancelled <= 0) return false;
+    final next = Map<String, int>.from(state.cancelledAddsByVariantId);
+    if (cancelled - 1 <= 0) {
+      next.remove(variantId);
+    } else {
+      next[variantId] = cancelled - 1;
+    }
+    state = state.copyWith(cancelledAddsByVariantId: next);
+    return true;
+  }
+
   void rollbackPending({
     required String transactionId,
     required String variantId,
     double count = 1,
   }) {
-    if (state.activeTransactionId != transactionId) return;
+    if (!state.matchesActiveCart(transactionId)) return;
     final next = Map<String, double>.from(state.pendingQtyByVariantId);
     final cur = next[variantId] ?? 0;
     final nextVal = cur - count;
@@ -206,13 +377,52 @@ class OptimisticCart extends _$OptimisticCart {
   }) {
     if (transactionId.isEmpty) return;
     final grace = state.reconcileAfter;
-    if (grace != null && DateTime.now().isBefore(grace)) {
+    final now = DateTime.now();
+    if (grace != null && now.isBefore(grace)) {
+      // The item INSERT is normally the only thing that fires the Ditto items
+      // observer for this cart, so dropping this emission used to strand the
+      // ghost line until some unrelated mutation arrived — often the user's
+      // next tap, and on a quiet cart never. Buffer it and replay once the
+      // grace expires instead. Replaying is safe because these items come from
+      // the same [transactionItemsStreamProvider] the cart renders from (not
+      // the direct Ditto read removed in 2f81f24a6), and the `inc > 0` guard in
+      // [_reconcileStreamItems] still refuses to clear pending qty that the
+      // persisted rows have not caught up with yet.
+      _deferredTransactionId = transactionId;
+      _deferredItems = items;
+      _graceTimer?.cancel();
+      _graceTimer = Timer(grace.difference(now), _replayDeferredReconcile);
       return;
     }
+    _cancelDeferredReconcile();
     _reconcileStreamItems(
       transactionId: transactionId,
       items: items,
       source: 'stream',
+    );
+  }
+
+  void _replayDeferredReconcile() {
+    final transactionId = _deferredTransactionId;
+    final items = _deferredItems;
+    if (transactionId == null || transactionId.isEmpty || items == null) {
+      _cancelDeferredReconcile();
+      return;
+    }
+    // A tap landing after the timer was armed pushes the grace forward; wait
+    // it out rather than clearing the fresh window with a stale emission.
+    final grace = state.reconcileAfter;
+    final now = DateTime.now();
+    if (grace != null && now.isBefore(grace)) {
+      _graceTimer?.cancel();
+      _graceTimer = Timer(grace.difference(now), _replayDeferredReconcile);
+      return;
+    }
+    _cancelDeferredReconcile();
+    _reconcileStreamItems(
+      transactionId: transactionId,
+      items: items,
+      source: 'stream-deferred',
     );
   }
 
@@ -222,6 +432,7 @@ class OptimisticCart extends _$OptimisticCart {
     required List<TransactionItem> items,
   }) {
     if (transactionId.isEmpty) return;
+    _cancelDeferredReconcile();
     _reconcileStreamItems(
       transactionId: transactionId,
       items: items,
@@ -266,11 +477,12 @@ class OptimisticCart extends _$OptimisticCart {
         final p = nextPending[vid] ?? 0;
         final remaining = p - inc;
         if (remaining <= 0) {
-          talker.warning(
-            'OptimisticCart[$source]: clearing pending for variant=$vid '
-            'txn=$transactionId (was pending=$p, stream now shows qty=$now) — '
-            'cart display now depends entirely on transactionItemsStreamProvider '
-            'having caught up.',
+          // Success, once per line: the saved row has fully accounted for the
+          // ghost, so the ghost retires. Logged at warning it fired 60 times on
+          // a 60-line cart and read like a fault report.
+          talker.debug(
+            'OptimisticCart[$source]: ghost settled for variant=$vid '
+            'txn=$transactionId (pending=$p, saved qty=$now)',
           );
           nextPending.remove(vid);
         } else {
@@ -282,6 +494,21 @@ class OptimisticCart extends _$OptimisticCart {
 
     final nextSnaps = Map<String, Variant>.from(state.variantSnapshotByVariantId)
       ..removeWhere((vid, _) => !nextPending.containsKey(vid));
+
+    // [OptimisticCartState] has no value equality, so assigning an identical
+    // copy still notifies every listener — and [posCartDisplayItemsProvider]
+    // then hands out a fresh List, which rebuilds the whole checkout (see the
+    // top-level `ref.watch(posCartDisplayItemsProvider)` in QuickSellingView).
+    // The Pay path reconciles on every 100ms poll tick, so a large cart spent
+    // its persistence window re-laying out itself instead of draining the Ditto
+    // writes it was waiting for. Skipping a no-op write is invisible to state
+    // and costs nothing: same maps, same grace window.
+    if (state.reconcileAfter == null &&
+        _qtyMapsEqual(state.pendingQtyByVariantId, nextPending) &&
+        _qtyMapsEqual(state.lastStreamQtySumByVariantId, nextLast) &&
+        _snapshotMapsEqual(state.variantSnapshotByVariantId, nextSnaps)) {
+      return;
+    }
 
     state = state.copyWith(
       pendingQtyByVariantId: nextPending,
@@ -295,7 +522,7 @@ class OptimisticCart extends _$OptimisticCart {
     required String transactionId,
     required String variantId,
   }) {
-    if (state.activeTransactionId != transactionId) return;
+    if (!state.matchesActiveCart(transactionId)) return;
     final next = Map<String, double>.from(state.pendingQtyByVariantId);
     next.remove(variantId);
     final snaps = Map<String, Variant>.from(state.variantSnapshotByVariantId);
@@ -308,7 +535,13 @@ class OptimisticCart extends _$OptimisticCart {
 
   void clearForTransaction(String transactionId) {
     if (state.activeTransactionId != transactionId) return;
-    state = const OptimisticCartState();
+    // Deliberately keeps in-flight/cancelled counters: their owning persists
+    // are still running and will settle them. Dropping them here would let a
+    // later add consume a stale cancellation.
+    state = OptimisticCartState(
+      inFlightAddsByVariantId: state.inFlightAddsByVariantId,
+      cancelledAddsByVariantId: state.cancelledAddsByVariantId,
+    );
   }
 
   bool hasPendingFor(String transactionId) => state.hasPendingFor(transactionId);

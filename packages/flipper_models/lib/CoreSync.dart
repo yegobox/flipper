@@ -3,7 +3,9 @@ import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+import 'package:flipper_models/sync/utils/local_store_retention.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -317,6 +319,19 @@ class CoreSync extends AiStrategyImpl
       // Perform online-specific configuration
       await firebaseLogin();
       await SupabaseSessionService.ensureAccessToken();
+
+      // Trim sales history past the retention window. Only on an online login:
+      // history that has not reached the cloud exists nowhere else, and this
+      // deletes the local copy. Deferred so it never competes with the initial
+      // replication burst — it is housekeeping, not startup work.
+      Timer(const Duration(minutes: 3), () {
+        unawaited(
+          evictAgedLocalHistory(
+            ditto: dittoService.dittoInstance,
+            isOnline: true,
+          ),
+        );
+      });
     }
   }
 
@@ -1614,6 +1629,7 @@ class CoreSync extends AiStrategyImpl
     String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
+    String? rule,
     required double totalPrice,
     // required String payStackUserId,
     required String paymentMethod,
@@ -1624,10 +1640,17 @@ class CoreSync extends AiStrategyImpl
   }) async {
     try {
       final num = ProxyService.box.numberOfPayments() ?? numberOfPayments;
-      // compute next billing date
-      final nextBillingDate = isYearlyPlan
-          ? DateTime.now().add(Duration(days: 365 * num))
-          : DateTime.now().add(Duration(days: 30 * num));
+      // `rule` is what data-connector actually bills on. Precedence matters:
+      // an explicit rule wins, then the rule already on the plan, and only then
+      // `isYearlyPlan` — which cannot say "daily". Without the middle step, any
+      // caller that re-saves a plan without passing a rule (PaymentHandler does,
+      // on every settlement) would silently downgrade a daily plan to monthly.
+      final storedRule = rule ?? plan?.rule;
+      final cadence = storedRule != null
+          ? BillingCadence.fromWire(storedRule)
+          : (isYearlyPlan ? BillingCadence.yearly : BillingCadence.monthly);
+      final nextBillingDate =
+          DateTime.now().add(Duration(days: cadence.periodDays * num));
       // Fetch existing plan and addons
       final existingPlanAddons = await _fetchExistingAddons(businessId);
 
@@ -1647,6 +1670,7 @@ class CoreSync extends AiStrategyImpl
         numberOfPayments: numberOfPayments,
         additionalDevices: additionalDevices,
         isYearlyPlan: isYearlyPlan,
+        cadence: cadence,
         totalPrice: totalPrice,
         // payStackUserId: payStackUserId,
         paymentMethod: paymentMethod,
@@ -1741,6 +1765,7 @@ class CoreSync extends AiStrategyImpl
     String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
+    required BillingCadence cadence,
     required double totalPrice,
     required String paymentMethod,
     required List<PlanAddon> addons,
@@ -1757,8 +1782,9 @@ class CoreSync extends AiStrategyImpl
       'selected_plan': selectedPlan,
       if (planTemplateId != null) 'plan_template_id': planTemplateId,
       'additional_devices': additionalDevices,
+      // Kept for released clients that still read it; it cannot express daily.
       'is_yearly_plan': isYearlyPlan,
-      'rule': isYearlyPlan ? 'yearly' : 'monthly',
+      'rule': cadence.wireValue,
       'total_price': totalPrice.toInt(),
       'payment_method': paymentMethod,
       'payment_completed_by_user': false,
@@ -1779,7 +1805,7 @@ class CoreSync extends AiStrategyImpl
       planTemplateId: planTemplateId,
       additionalDevices: additionalDevices,
       isYearlyPlan: isYearlyPlan,
-      rule: isYearlyPlan ? 'yearly' : 'monthly',
+      rule: cadence.wireValue,
       totalPrice: totalPrice.toInt(),
       createdAt: plan?.createdAt ?? now,
       numberOfPayments: numberOfPayments,

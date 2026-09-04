@@ -350,10 +350,6 @@ class TransactionListState extends ConsumerState<TransactionList>
         );
         _metrics = metrics;
 
-        final kpiStart =
-            startDate ?? DateTime.now().subtract(const Duration(days: 7));
-        final kpiEnd = endDate ?? DateTime.now();
-
         return Container(
           decoration: const BoxDecoration(color: Color(0xFFF2F4F7)),
           child: Padding(
@@ -368,8 +364,6 @@ class TransactionListState extends ConsumerState<TransactionList>
                   _buildTopHeader(context, startDate, endDate, isDesktop),
                   SizedBox(height: metrics.sectionGap),
                   TransactionReportKpiStrip(
-                    startDate: kpiStart,
-                    endDate: kpiEnd,
                     showDetailed: showDetailed,
                     metrics: metrics,
                   ),

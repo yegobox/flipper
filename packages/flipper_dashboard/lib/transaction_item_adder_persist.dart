@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
@@ -19,6 +20,23 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:synchronized/synchronized.dart';
 
 final _persistLock = Lock();
+
+/// When the last cart write released the persist lock.
+///
+/// The gap between one write finishing and the next starting is the number
+/// that separates "the store is slow" from "the main isolate is busy": the
+/// writes are serialized, so an idle queue means nothing was competing for the
+/// lock, while a long gap with taps outstanding means the isolate was doing
+/// something else (rebuilding the cart, converting every row an observer
+/// replayed) instead of running the next write.
+DateTime? _lastCartWriteFinishedAt;
+
+/// Resolves once every cart write queued before this call has finished.
+///
+/// [Lock] is FIFO, so taking a turn behind the queued adds is the same thing as
+/// waiting for them — no polling, no timeout, no dependency on the item stream
+/// having replayed anything back to us.
+Future<void> awaitQueuedCartWrites() => _persistLock.synchronized(() async {});
 
 String? readPendingCartTransactionId(
   Ref ref, {
@@ -143,7 +161,31 @@ Future<bool> persistItemToTransaction({
     }
   }
 
+  var itemAddCancelled = false;
+
+  final queuedAtLock = DateTime.now();
   await _persistLock.synchronized(() async {
+    final lockSw = Stopwatch()..start();
+    final grantedAt = DateTime.now();
+    // Time this write spent behind the ones ahead of it...
+    final lockWaitMs = grantedAt.difference(queuedAtLock).inMilliseconds;
+    // ...as against time the queue sat idle with nothing running, which no
+    // store call can account for.
+    final idleMs = _lastCartWriteFinishedAt == null
+        ? -1
+        : grantedAt.difference(_lastCartWriteFinishedAt!).inMilliseconds;
+    var storeMs = -1;
+    // A `-` on the still-unsaved line asked for this add back. It already took
+    // the qty out of the optimistic cart, so abort *without* rolling back again
+    // — writing the row here is exactly what would re-inflate the qty.
+    if (cartOptimismApplied &&
+        ref
+            .read(optimisticCartProvider.notifier)
+            .consumeCancelledAdd(variant.id)) {
+      itemAddCancelled = true;
+      return;
+    }
+
     if (ref.read(pendingCartSaleSessionProvider) != sessionAtStart) {
       rollbackStaleAddAttempt();
       itemAddAbortedStale = true;
@@ -189,6 +231,7 @@ Future<bool> persistItemToTransaction({
         if (vid == null || vid.isEmpty) continue;
         final compositeVariant = variantsMap[vid];
         if (compositeVariant != null) {
+          final storeSw = Stopwatch()..start();
           final okComposite = await capella.saveTransactionItem(
             variation: compositeVariant,
             doneWithTransaction: false,
@@ -200,12 +243,14 @@ Future<bool> persistItemToTransaction({
             partOfComposite: true,
             compositePrice: composite.actualPrice,
           );
+          storeMs = (storeMs < 0 ? 0 : storeMs) + storeSw.elapsedMilliseconds;
           if (!okComposite) {
             throw StateError('saveTransactionItem failed (composite line)');
           }
         }
       }
     } else {
+      final storeSw = Stopwatch()..start();
       final saved = await capella.saveTransactionItem(
         variation: variant,
         doneWithTransaction: false,
@@ -216,7 +261,17 @@ Future<bool> persistItemToTransaction({
         pendingTransaction: pendingTransaction,
         partOfComposite: false,
       );
+      storeMs = storeSw.elapsedMilliseconds;
       if (!saved) {
+        // The write did not happen, so the ghost must not survive it. Left
+        // standing it is a line the cashier can see, believes is in the cart,
+        // and that no row backs — it inflates the on-screen total and the
+        // reconciliation that retires ghosts can never fire for it.
+        talker.warning(
+          'saveTransactionItem returned false for variant=${variant.id} on '
+          'txn=${pendingTransaction.id}; rolling the cart line back',
+        );
+        rollbackStaleAddAttempt();
         return;
       }
     }
@@ -226,10 +281,46 @@ Future<bool> persistItemToTransaction({
     // Ditto read here used to confirm-and-clear faster, but that raced ahead
     // of the live stream the cart actually renders from: the ghost would
     // disappear before the real row was visible, flashing the cart empty.
+    _lastCartWriteFinishedAt = DateTime.now();
+    _logCartWriteTiming(
+      ref: ref,
+      storeMs: storeMs,
+      lockHoldMs: lockSw.elapsedMilliseconds,
+      lockWaitMs: lockWaitMs,
+      idleMs: idleMs,
+    );
   });
 
+  if (itemAddCancelled) return false;
   if (itemAddAbortedStale) return false;
   return true;
+}
+
+/// Reports what one cart write cost, and what happened between writes.
+///
+/// A backlog that will not drain is either slow writes or a busy isolate, and
+/// the two want opposite fixes. `store_ms` is the write itself, `wait_ms` is
+/// time queued behind earlier writes, and `idle_ms` is dead time with nothing
+/// running at all — which no store call can account for.
+void _logCartWriteTiming({
+  required Ref ref,
+  required int storeMs,
+  required int lockHoldMs,
+  required int lockWaitMs,
+  required int idleMs,
+}) {
+  final queued = ref.read(optimisticCartProvider.notifier).queuedAddCount;
+  final lines = ref.read(posCartDisplayItemsProvider).length;
+  final message =
+      '[cart_write] store_ms=$storeMs lock_hold_ms=$lockHoldMs '
+      'wait_ms=$lockWaitMs idle_ms=$idleMs queued=$queued lines=$lines';
+  // A cart write is a handful of local store calls; a second is not a slow
+  // write, it is a symptom, and it is what stalls Pay on a large cart.
+  if (storeMs >= 1000 || idleMs >= 1000) {
+    talker.warning(message);
+  } else {
+    talker.debug(message);
+  }
 }
 
 Future<bool> handlePersistFailure({

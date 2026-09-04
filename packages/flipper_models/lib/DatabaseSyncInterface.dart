@@ -472,6 +472,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? planTemplateId,
     required int additionalDevices,
     required bool isYearlyPlan,
+    /// `daily` | `monthly` | `yearly`. Null keeps the older
+    /// monthly-or-yearly behaviour, which cannot express a daily plan.
+    String? rule,
     required double totalPrice,
     // required String payStackUserId,
     required String paymentMethod,

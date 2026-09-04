@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
+import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -84,7 +85,7 @@ class _FailedPaymentState extends State<FailedPayment>
   // Plan switching state - allows user to switch/upgrade plan before retry
   SubscriptionPlanCatalog? _catalog;
   String? _switchPlanTemplateId;
-  bool _switchPlanIsYearly = false;
+  BillingCadence _switchPlanCadence = BillingCadence.monthly;
   final Set<String> _switchPlanAddonSlugs = {};
   bool _planWasActive = false;
 
@@ -387,7 +388,13 @@ class _FailedPaymentState extends State<FailedPayment>
     if (plan == null) return;
     final template = _switchTemplateForPlan(plan);
     _switchPlanTemplateId = template?.id ?? _catalog?.firstOrNull?.id;
-    _switchPlanIsYearly = plan.isYearlyPlan ?? false;
+    // `rule` first: `is_yearly_plan` cannot express a daily plan, so reading it
+    // alone is what made a daily subscription show as Monthly here.
+    _switchPlanCadence = plan.rule != null
+        ? BillingCadence.fromWire(plan.rule)
+        : ((plan.isYearlyPlan ?? false)
+            ? BillingCadence.yearly
+            : BillingCadence.monthly);
     _switchPlanAddonSlugs
       ..clear()
       ..addAll(_savedAddonSlugsForPlan(plan));
@@ -446,8 +453,8 @@ class _FailedPaymentState extends State<FailedPayment>
   double _calculateSwitchPlanPrice() {
     final template = _selectedSwitchTemplate;
     if (template == null) return 0;
-    return template.calculateTotal(
-      isYearly: _switchPlanIsYearly,
+    return template.calculateTotalFor(
+      cadence: _switchPlanCadence,
       selectedAddonSlugs: _switchPlanAddonSlugs,
     );
   }
@@ -456,7 +463,7 @@ class _FailedPaymentState extends State<FailedPayment>
   bool _switchUiDiffersFromPlan(Plan p) {
     final savedTemplate = _switchTemplateForPlan(p);
     if (_switchPlanTemplateId != savedTemplate?.id) return true;
-    if (_switchPlanIsYearly != (p.isYearlyPlan ?? false)) return true;
+    if (_switchPlanCadence != BillingCadence.fromWire(p.rule)) return true;
     final savedSlugs = _savedAddonSlugsForPlan(p);
     if (savedSlugs.length != _switchPlanAddonSlugs.length) return true;
     for (final slug in _switchPlanAddonSlugs) {
@@ -481,11 +488,11 @@ class _FailedPaymentState extends State<FailedPayment>
       selectedPlan: template?.name ?? base.selectedPlan,
       planTemplateId: template?.id ?? base.planTemplateId,
       additionalDevices: base.additionalDevices ?? 0,
-      isYearlyPlan: _switchPlanIsYearly,
+      isYearlyPlan: _switchPlanCadence.isYearly,
       totalPrice: price.toInt(),
       createdAt: base.createdAt,
       paymentCompletedByUser: base.paymentCompletedByUser,
-      rule: _switchPlanIsYearly ? 'yearly' : 'monthly',
+      rule: _switchPlanCadence.wireValue,
       paymentMethod: base.paymentMethod ?? 'MTNMOMO',
       nextBillingDate: base.nextBillingDate,
       numberOfPayments: base.numberOfPayments ?? 1,
@@ -1015,11 +1022,11 @@ class _FailedPaymentState extends State<FailedPayment>
                 ],
               ),
             ),
-          PaymentSegment2(
-            isYearly: _switchPlanIsYearly,
+          PaymentCadenceSegment(
+            cadence: _switchPlanCadence,
             yearlyDiscountPercent: yearlyDiscount,
-            onChanged: (yearly) {
-              setState(() => _switchPlanIsYearly = yearly);
+            onChanged: (cadence) {
+              setState(() => _switchPlanCadence = cadence);
             },
           ),
           const SizedBox(height: 12),
@@ -1027,9 +1034,9 @@ class _FailedPaymentState extends State<FailedPayment>
             if (i > 0) const SizedBox(height: 8),
             PaymentPlanTile(
               name: templates[i].name,
-              priceLine: formatPaymentTilePrice(
+              priceLine: formatPaymentTilePriceFor(
                 templates[i],
-                isYearly: _switchPlanIsYearly,
+                cadence: _switchPlanCadence,
               ),
               icon: templates[i].resolveIcon(),
               selected: _switchPlanTemplateId == templates[i].id,
@@ -1054,10 +1061,10 @@ class _FailedPaymentState extends State<FailedPayment>
             for (final addon in template.addons) ...[
               PaymentAddonRow(
                 name: addon.name,
-                priceLine: formatPaymentAddonPrice(
+                priceLine: formatPaymentAddonPriceFor(
                   template,
                   addon,
-                  isYearly: _switchPlanIsYearly,
+                  cadence: _switchPlanCadence,
                 ),
                 enabled: _switchPlanAddonSlugs.contains(addon.slug),
                 onChanged: (selected) {
@@ -1077,7 +1084,7 @@ class _FailedPaymentState extends State<FailedPayment>
             label: 'New plan total',
             total: _calculateSwitchPlanPrice(),
             subtitle: template?.name ?? '',
-            isYearly: _switchPlanIsYearly,
+            cadence: _switchPlanCadence,
           ),
         ],
       ),
@@ -1559,7 +1566,7 @@ class _FailedPaymentState extends State<FailedPayment>
       ),
       PaymentSummaryRow(
         label: 'Billing',
-        value: plan.isYearlyPlan == true ? 'Yearly' : 'Monthly',
+        value: BillingCadence.fromWire(plan.rule).label,
       ),
       if (plan.additionalDevices != null && plan.additionalDevices! > 0)
         PaymentSummaryRow(
@@ -1645,7 +1652,8 @@ class _FailedPaymentState extends State<FailedPayment>
         selectedPlan: _selectedSwitchTemplate?.name ?? effectivePlan.selectedPlan ?? 'Mobile',
         planTemplateId: _selectedSwitchTemplate?.id,
         additionalDevices: effectivePlan.additionalDevices ?? 0,
-        isYearlyPlan: _switchPlanIsYearly,
+        isYearlyPlan: _switchPlanCadence.isYearly,
+        rule: _switchPlanCadence.wireValue,
         totalPrice: _calculateSwitchPlanPrice(),
         paymentMethod: 'MTNMOMO',
         plan: effectivePlan,

@@ -35,7 +35,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   late final Stream<DesktopLoginStatus> _loginStatusStream;
   late final Stream<List<ConnectivityResult>> _connectivityStream;
   bool _loginSetupScheduled = false;
-  bool _switchingToPinLogin = false;
+  bool _leavingQrLogin = false;
 
   /// Cache the QR widget to avoid expensive re-builds
   late final Widget _qrWidget;
@@ -74,31 +74,41 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   /// Ditto + subscription once; avoids [ViewModelBuilder.reactive] rebuild churn on resize.
   Future<void> _ensureDesktopLoginSetup() async {
-    if (_loginSetupScheduled || !mounted || _switchingToPinLogin) return;
+    if (_loginSetupScheduled || !mounted || _leavingQrLogin) return;
     _loginSetupScheduled = true;
 
     await ProxyService.box.clear();
-    if (!mounted || _switchingToPinLogin) return;
+    if (!mounted || _leavingQrLogin) return;
 
     final appService = locator<AppService>();
     // New QR code every visit → new login_ditto store; never reuse a channel that
     // may still hold a consumed broadcast from a previous session.
     await appService.initDittoForLogin(_loginCode);
-    if (!mounted || _switchingToPinLogin) return;
+    if (!mounted || _leavingQrLogin) return;
 
     ProxyService.event.subscribeLoginEvent(channel: _loginCode.split('-')[1]);
   }
 
-  void _switchToPinLogin() {
-    if (_switchingToPinLogin) return;
+  /// Leave the QR screen for [route], releasing the temporary `login-*` Ditto
+  /// identity first. Signup and PIN login both open Ditto under a real userId,
+  /// so the QR identity must not still be holding the singleton.
+  void _leaveQrLogin(Future<dynamic> Function() navigate) {
+    if (_leavingQrLogin) return;
 
-    _switchingToPinLogin = true;
+    _leavingQrLogin = true;
     LoginInfo().redirecting = true;
     // Stop QR polling synchronously; heavy Ditto.close runs in background.
     ProxyService.event.unsubscribeLoginEvent();
     unawaited(locator<AppService>().beginQrLoginTeardown());
-    unawaited(_routerService.replaceWith(PinLoginRoute()));
+    unawaited(navigate());
   }
+
+  void _switchToPinLogin() =>
+      _leaveQrLogin(() => _routerService.replaceWith(PinLoginRoute()));
+
+  void _createAccount() => _leaveQrLogin(
+        () => _routerService.replaceWith(SignUpViewRoute(countryNm: 'Rwanda')),
+      );
 
   @override
   void dispose() {
@@ -289,216 +299,251 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              const Spacer(),
-              SizedBox(
-                height: 250.0,
-                width: 250.0,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: _qrWidget,
-                    ),
-                    StreamBuilder<DesktopLoginStatus>(
-                      stream: _loginStatusStream,
-                      builder: (context, statusSnapshot) {
-                        return _qrStatusOverlay(statusSnapshot.data);
-                      },
-                    ),
-                  ],
+    // Scrolls instead of overflowing: the QR, the store badges and both
+    // sign-in/sign-up actions do not fit a short desktop window.
+    return Container(
+      color: Colors.white,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            // Scaffold hands this view loose constraints, so without an
+            // explicit minWidth the column shrink-wraps to 380 and hugs the
+            // left edge. Filling the viewport lets crossAxisAlignment centre it.
+            constraints: BoxConstraints(
+              minWidth: constraints.hasBoundedWidth ? constraints.maxWidth : 0,
+              minHeight:
+                  constraints.hasBoundedHeight ? constraints.maxHeight : 0,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 250.0,
+                  width: 250.0,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: _qrWidget,
+                      ),
+                      StreamBuilder<DesktopLoginStatus>(
+                        stream: _loginStatusStream,
+                        builder: (context, statusSnapshot) {
+                          return _qrStatusOverlay(statusSnapshot.data);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              StreamBuilder<DesktopLoginStatus>(
-                stream: _loginStatusStream,
-                builder: (context, statusSnapshot) {
-                  return _loginStatusBanner(statusSnapshot.data);
-                },
-              ),
-              SizedBox(
-                width: 380,
-                child: Text(
-                  'Log in to Flipper by QR Code',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 20,
-                      color: Colors.black),
+                StreamBuilder<DesktopLoginStatus>(
+                  stream: _loginStatusStream,
+                  builder: (context, statusSnapshot) {
+                    return _loginStatusBanner(statusSnapshot.data);
+                  },
                 ),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: 380,
-                child: Text('1. Open Flipper on your phone',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 15,
-                        color: Colors.black)),
-              ),
-              SizedBox(
-                  width: 380,
-                  child: Text('2. Go to Profile Icon > LongPress on it.',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 15,
-                          color: Colors.black))),
-              SizedBox(
+                SizedBox(
                   width: 380,
                   child: Text(
-                      '3. Point your phone at this screen to confirm login',
+                    'Log in to Flipper by QR Code',
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 20,
+                        color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: 380,
+                  child: Text('1. Open Flipper on your phone',
                       style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w400,
                           fontSize: 15,
-                          color: Colors.black))),
-              const SizedBox(height: 30),
-              // Companion app download section
-              SizedBox(
-                width: 340,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Don't have the Flipper app? Download it:",
+                          color: Colors.black)),
+                ),
+                SizedBox(
+                    width: 380,
+                    child: Text('2. Go to Profile Icon > LongPress on it.',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                            color: Colors.black))),
+                SizedBox(
+                    width: 380,
+                    child: Text(
+                        '3. Point your phone at this screen to confirm login',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                            color: Colors.black))),
+                const SizedBox(height: 30),
+                // Companion app download section
+                SizedBox(
+                  width: 340,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Don't have the Flipper app? Download it:",
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // App Store button with visual feedback
+                          MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                splashColor: Colors.blue.withValues(alpha: 0.3),
+                                hoverColor: Colors.grey.withValues(alpha: 0.1),
+                                onTap: () {
+                                  // iOS App Store link
+                                  launchUrl(Uri.parse(
+                                      'https://apps.apple.com/rw/app/flipperrw/id6711352372'));
+                                  // Show a snackbar for feedback
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Opening App Store...'),
+                                      duration: Duration(seconds: 1),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SvgPicture.asset(
+                                    'assets/appstore.svg',
+                                    package: 'flipper_login',
+                                    height: 40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Play Store button with visual feedback
+                          MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                splashColor:
+                                    Colors.green.withValues(alpha: 0.3),
+                                hoverColor: Colors.grey.withValues(alpha: 0.1),
+                                onTap: () {
+                                  // Google Play Store link
+                                  launchUrl(Uri.parse(
+                                      'https://play.google.com/store/apps/details?id=rw.flipper&hl=en'));
+                                  // Show a snackbar for feedback
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Opening Play Store...'),
+                                      duration: Duration(seconds: 1),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: SvgPicture.asset(
+                                    'assets/playstore.svg',
+                                    package: 'flipper_login',
+                                    height: 40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: 380,
+                  child: OutlinedButton(
+                    key: const Key('pinLogin_desktop'),
+                    child: const Text(
+                      'Switch to PIN login',
+                      style: TextStyle(color: Color(0xff006AFE)),
+                    ),
+                    style: ButtonStyle(
+                      shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+                          (states) => RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8))),
+                      side: WidgetStateProperty.resolveWith<BorderSide>(
+                          (states) => BorderSide(
+                                color: const Color(0xff006AFE)
+                                    .withValues(alpha: 0.1),
+                              )),
+                      backgroundColor: WidgetStateProperty.all<Color>(
+                          const Color(0xff006AFE).withValues(alpha: 0.1)),
+                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.hovered)) {
+                            return const Color(0xff006AFE)
+                                .withValues(alpha: 0.1);
+                          }
+                          if (states.contains(WidgetState.focused) ||
+                              states.contains(WidgetState.pressed)) {
+                            return const Color(0xff006AFE)
+                                .withValues(alpha: 0.2);
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    onPressed: _switchToPinLogin,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: 380,
+                  child: TextButton(
+                    key: const Key('createAccount_desktop'),
+                    onPressed: _createAccount,
+                    child: Text(
+                      'New to Flipper? Create an account',
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w500,
                         fontSize: 15,
-                        color: Colors.black,
+                        color: const Color(0xff006AFE),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // App Store button with visual feedback
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              splashColor: Colors.blue.withValues(alpha: 0.3),
-                              hoverColor: Colors.grey.withValues(alpha: 0.1),
-                              onTap: () {
-                                // iOS App Store link
-                                launchUrl(Uri.parse(
-                                    'https://apps.apple.com/rw/app/flipperrw/id6711352372'));
-                                // Show a snackbar for feedback
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Opening App Store...'),
-                                    duration: Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SvgPicture.asset(
-                                  'assets/appstore.svg',
-                                  package: 'flipper_login',
-                                  height: 40,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Play Store button with visual feedback
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              splashColor: Colors.green.withValues(alpha: 0.3),
-                              hoverColor: Colors.grey.withValues(alpha: 0.1),
-                              onTap: () {
-                                // Google Play Store link
-                                launchUrl(Uri.parse(
-                                    'https://play.google.com/store/apps/details?id=rw.flipper&hl=en'));
-                                // Show a snackbar for feedback
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Opening Play Store...'),
-                                    duration: Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SvgPicture.asset(
-                                  'assets/playstore.svg',
-                                  package: 'flipper_login',
-                                  height: 40,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: 380,
-                child: OutlinedButton(
-                  key: const Key('pinLogin_desktop'),
-                  child: const Text(
-                    'Switch to PIN login',
-                    style: TextStyle(color: Color(0xff006AFE)),
                   ),
-                  style: ButtonStyle(
-                    shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-                        (states) => RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8))),
-                    side: WidgetStateProperty.resolveWith<BorderSide>(
-                        (states) => BorderSide(
-                              color: const Color(0xff006AFE)
-                                  .withValues(alpha: 0.1),
-                            )),
-                    backgroundColor: WidgetStateProperty.all<Color>(
-                        const Color(0xff006AFE).withValues(alpha: 0.1)),
-                    overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                      (Set<WidgetState> states) {
-                        if (states.contains(WidgetState.hovered)) {
-                          return const Color(0xff006AFE).withValues(alpha: 0.1);
-                        }
-                        if (states.contains(WidgetState.focused) ||
-                            states.contains(WidgetState.pressed)) {
-                          return const Color(0xff006AFE).withValues(alpha: 0.2);
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  onPressed: _switchToPinLogin,
                 ),
-              ),
-              // show a text to show if device is offline
-              StreamBuilder<List<ConnectivityResult>>(
-                stream: _connectivityStream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    if (snapshot.data!.contains(ConnectivityResult.none)) {
-                      return const Text(
-                        'Device is offline',
-                        style: TextStyle(color: Colors.red),
-                      );
+                // show a text to show if device is offline
+                StreamBuilder<List<ConnectivityResult>>(
+                  stream: _connectivityStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      if (snapshot.data!.contains(ConnectivityResult.none)) {
+                        return const Text(
+                          'Device is offline',
+                          style: TextStyle(color: Colors.red),
+                        );
+                      }
                     }
-                  }
-                  return const SizedBox();
-                },
-              ),
-              const Spacer(),
-            ],
-          )),
+                    return const SizedBox();
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

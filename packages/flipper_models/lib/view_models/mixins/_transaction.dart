@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
+import 'package:flipper_models/helpers/sale_completion_trace.dart';
 import 'package:flipper_models/helpers/sale_completion_collect.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -27,6 +28,14 @@ import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 // adjust if needed
+
+/// The OS print spooler can block indefinitely on an offline or wedged printer,
+/// and on the purchase-code path `printing()` is awaited *before* the sale is
+/// completed — so a stuck printer froze the till with a full cart and a
+/// spinning Pay button. These bound it; a receipt is reprintable, a stuck till
+/// is not.
+const Duration _printerEnumerateTimeout = Duration(seconds: 10);
+const Duration _printerSubmitTimeout = Duration(seconds: 30);
 
 mixin TransactionMixinOld {
   final KeyPadService keypad = getIt<KeyPadService>();
@@ -74,6 +83,7 @@ mixin TransactionMixinOld {
       if (businessId == null || branchId == null) {
         throw Exception('Business ID or Branch ID not found');
       }
+      final preambleSw = Stopwatch()..start();
       final taxEnabled = await ProxyService.getStrategy(
         Strategy.capella,
       ).isTaxEnabled(businessId: businessId, branchId: branchId);
@@ -83,6 +93,11 @@ mixin TransactionMixinOld {
       ).ebm(branchId: branchId, fetchRemote: false);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
+      logSaleCompletionStage(
+        'finalize_preamble',
+        preambleSw.elapsedMilliseconds,
+        extra: 'tax_enabled=$taxEnabled has_ebm=${ebm != null}',
+      );
 
       final isLoan = transaction.isLoan == true;
       final isFullyPaid =
@@ -109,6 +124,7 @@ mixin TransactionMixinOld {
         'transactionId=${transaction.id}',
       );
       if (deferForReview) {
+        SaleCompletionTrace.current?.note('branch=defer_for_review');
         if (skipTransactionPersist) {
           // Record payment fields in memory; onComplete persists the balances.
           applySalePaymentFieldsInMemory(
@@ -163,7 +179,12 @@ mixin TransactionMixinOld {
             skipTransactionPersist: skipTransactionPersist,
           );
         }
+        final reviewCompleteSw = Stopwatch()..start();
         await _awaitPossibleFuture(onComplete());
+        logSaleCompletionStage(
+          'on_complete',
+          reviewCompleteSw.elapsedMilliseconds,
+        );
         return RwApiResponse(
           resultCd: "001",
           resultMsg: "Payment recorded — pending review",
@@ -187,6 +208,7 @@ mixin TransactionMixinOld {
 
         // Quick-selling: RRA sign → persist sale → UI success, then PDF/print.
         if (deferPersistTaxReceiptFields) {
+          SaleCompletionTrace.current?.note('branch=quick_sell_sign');
           final completionSw = Stopwatch()..start();
           final signSw = Stopwatch()..start();
           final signOutcome = await handleReceiptGeneration(
@@ -201,9 +223,7 @@ mixin TransactionMixinOld {
             transactionItems: preloadedLineItemsForCollectPayment,
             customer: customer,
           );
-          talker.debug(
-            '[sale_completion_timing] rra_sign_ms=${signSw.elapsedMilliseconds}',
-          );
+          logSaleCompletionStage('rra_sign', signSw.elapsedMilliseconds);
           response = signOutcome.response;
           if (response.resultCd != "000") {
             throw Exception(response.resultMsg);
@@ -271,14 +291,13 @@ mixin TransactionMixinOld {
               skipTransactionPersist: skipTransactionPersist,
             );
           }
-          talker.debug(
-            '[sale_completion_timing] collect_payment_ms=${collectSw.elapsedMilliseconds}',
+          logSaleCompletionStage(
+            'collect_payment',
+            collectSw.elapsedMilliseconds,
           );
           final onCompleteSw = Stopwatch()..start();
           await _awaitPossibleFuture(onComplete());
-          talker.debug(
-            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
-          );
+          logSaleCompletionStage('on_complete', onCompleteSw.elapsedMilliseconds);
 
           // Print before heavy Ditto writes (createReceipt/updateCounters) so PDF
           // generation is not stuck behind a congested store queue.
@@ -297,18 +316,18 @@ mixin TransactionMixinOld {
           } catch (e, s) {
             talker.error('Receipt print after sale failed: $e', s);
           }
-          talker.debug(
-            '[sale_completion_timing] present_receipt_ms=${printSw.elapsedMilliseconds}',
-          );
+          logSaleCompletionStage('present_receipt', printSw.elapsedMilliseconds);
 
           scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
-          talker.debug(
-            '[sale_completion_timing] finalize_payment_quick_sell_ms='
-            '${completionSw.elapsedMilliseconds}',
+          logSaleCompletionStage(
+            'finalize_payment_quick_sell',
+            completionSw.elapsedMilliseconds,
           );
           return response;
         }
 
+        SaleCompletionTrace.current?.note('branch=tax_receipt');
+        final receiptSw = Stopwatch()..start();
         final receiptOutcome = await handleReceiptGeneration(
           formKey: formKey,
           context: context,
@@ -320,10 +339,15 @@ mixin TransactionMixinOld {
           transactionItems: preloadedLineItemsForCollectPayment,
           customer: customer,
         );
+        logSaleCompletionStage(
+          'receipt_generation',
+          receiptSw.elapsedMilliseconds,
+        );
         response = receiptOutcome.response;
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
         } else {
+          final afterTaxSw = Stopwatch()..start();
           await _completeTransactionAfterTaxValidation(
             transaction,
             customerName: customerNameController.text,
@@ -332,11 +356,17 @@ mixin TransactionMixinOld {
             tenderAmount: amount,
             skipTransactionPersist: skipTransactionPersist,
           );
+          logSaleCompletionStage(
+            'complete_after_tax_validation',
+            afterTaxSw.elapsedMilliseconds,
+          );
         }
       } else {
+        SaleCompletionTrace.current?.note('branch=no_tax_receipt');
         // For non-tax enabled scenarios OR partial loan payments, complete the transaction data update
         // but it won't be marked as COMPLETE in the DB yet if it's a partial loan payment
         // because collectPayment (called inside) only updates cashReceived and balance.
+        final noTaxSw = Stopwatch()..start();
         await _completeTransactionAfterTaxValidation(
           transaction,
           customerName: customerNameController.text,
@@ -345,6 +375,10 @@ mixin TransactionMixinOld {
           tenderAmount: amount,
           skipTransactionPersist: skipTransactionPersist,
         );
+        logSaleCompletionStage(
+          'complete_after_tax_validation',
+          noTaxSw.elapsedMilliseconds,
+        );
 
         // Branch is not EBM-registered (or EBM/tax checks above failed for
         // another reason): there's no RRA-signed receipt to print, but the
@@ -352,38 +386,56 @@ mixin TransactionMixinOld {
         // receipt instead. Only for a real, fully paid sale completion —
         // never for partial loan payments, which never got a receipt either.
         if (!isLoan && shouldComplete && isFullyPaid && !sendDigitalReceipt) {
-          try {
-            final items = preloadedLineItemsForCollectPayment ??
-                await ProxyService.getStrategy(
-                  Strategy.capella,
-                ).transactionItems(transactionId: transaction.id);
-            if (items.isNotEmpty) {
-              final bytes = await TaxController(object: transaction)
-                  .buildNonFiscalReceiptPdfBytes(
-                transaction: transaction,
-                transactionItems: items,
-                deferPresentation: true,
-              );
-              if (bytes != null) {
-                try {
-                  formKey.currentState?.reset();
-                } catch (_) {}
-                await printing(
-                  bytes,
-                  context,
+          // Not awaited: building this PDF and pushing it at a printer took
+          // 15.8s of a 28.7s Pay, and it ran *before* onComplete, so the cart
+          // stayed on screen and the spinner kept turning until the printer was
+          // done. Nothing here decides whether the sale finished — the sale is
+          // already recorded, and on this branch there is no RRA signature to
+          // wait for either. It prints while the till is free again.
+          final plainReceiptSw = Stopwatch()..start();
+          unawaited(() async {
+            try {
+              final items = preloadedLineItemsForCollectPayment ??
+                  await ProxyService.getStrategy(
+                    Strategy.capella,
+                  ).transactionItems(transactionId: transaction.id);
+              if (items.isNotEmpty) {
+                final bytes = await TaxController(object: transaction)
+                    .buildNonFiscalReceiptPdfBytes(
                   transaction: transaction,
                   transactionItems: items,
+                  deferPresentation: true,
                 );
+                if (bytes != null) {
+                  try {
+                    formKey.currentState?.reset();
+                  } catch (_) {}
+                  await printing(
+                    bytes,
+                    context,
+                    transaction: transaction,
+                    transactionItems: items,
+                  );
+                }
               }
+            } catch (e, s) {
+              talker.error('Non-fiscal receipt print failed: $e', s);
             }
-          } catch (e, s) {
-            talker.error('Non-fiscal receipt print failed: $e', s);
-          }
+            talker.debug(
+              '[sale_completion_timing] non_fiscal_receipt_ms='
+              '${plainReceiptSw.elapsedMilliseconds} deferred_after_ui=true',
+            );
+          }());
         }
       }
 
       if (response == null) {
+        final tailCompleteSw = Stopwatch()..start();
         await _awaitPossibleFuture(onComplete());
+        logSaleCompletionStage(
+          'on_complete',
+          tailCompleteSw.elapsedMilliseconds,
+        );
         return RwApiResponse(
           resultCd: "001",
           resultMsg: isLoan && !isFullyPaid
@@ -393,7 +445,12 @@ mixin TransactionMixinOld {
       }
 
       // Only call onComplete on success, not on error
+      final successCompleteSw = Stopwatch()..start();
       await _awaitPossibleFuture(onComplete());
+      logSaleCompletionStage(
+        'on_complete',
+        successCompleteSw.elapsedMilliseconds,
+      );
 
       return response;
     } catch (e) {
@@ -507,12 +564,27 @@ mixin TransactionMixinOld {
     final resolvedPdfFilename =
         pdfFilename ?? receiptPdfFilename(transaction);
     if (Platform.isAndroid || Platform.isIOS) {
-      print("can't direct pring on ios, android using direct printer.");
+      talker.info(
+        '[receipt_presentation] no printer UI on iOS/Android — receipt not '
+        'printed from this device',
+      );
     } else {
-      final printers = await Printing.listPrinters();
+      List<Printer> printers;
+      try {
+        printers = await Printing.listPrinters().timeout(
+          _printerEnumerateTimeout,
+        );
+      } catch (e) {
+        talker.warning(
+          '[receipt_presentation] listing printers failed or timed out '
+          '(${_printerEnumerateTimeout.inSeconds}s): $e — continuing with none',
+        );
+        printers = const <Printer>[];
+      }
       if (printers.isEmpty) {
         talker.info(
-          'No OS printers enumerated; showing picker with Save as PDF only.',
+          '[receipt_presentation] the OS reported no printers; the picker will '
+          'offer Save as PDF only',
         );
       }
 
@@ -530,7 +602,11 @@ mixin TransactionMixinOld {
           selectedPrinter = printers.firstWhere(
             (p) => p.name == savedPrinterName,
           );
-          talker.info("Using default printer: ${selectedPrinter.name}");
+          talker.info(
+            '[receipt_presentation] printing directly on the saved default '
+            'printer "${selectedPrinter.name}" — no picker is shown once a '
+            'default exists',
+          );
         } catch (e) {
           talker.warning("Default printer not found in available printers");
         }
@@ -541,7 +617,9 @@ mixin TransactionMixinOld {
         if (printers.length == 1) {
           selectedPrinter = printers.first;
           talker.info(
-            "Auto-selecting single available printer: ${selectedPrinter.name}",
+            '[receipt_presentation] only one printer attached '
+            '("${selectedPrinter.name}"); adopting it as the default, so no '
+            'picker will be shown for later sales either',
           );
           ProxyService.box.writeString(
             key: 'defaultPrinter',
@@ -553,6 +631,10 @@ mixin TransactionMixinOld {
       if (selectedPrinter == null) {
         // If we have context and it's mounted, ask user
         if (context.mounted) {
+          talker.info(
+            '[receipt_presentation] no default printer and '
+            '${printers.length} attached — showing the picker',
+          );
           final result = await showPrinterPickerDialog(
             context: context,
             printers: printers,
@@ -563,7 +645,9 @@ mixin TransactionMixinOld {
             invoiceNumber: transaction?.invoiceNumber,
           );
           if (result == null) {
-            talker.info("Printer selection cancelled by user.");
+            talker.info(
+              '[receipt_presentation] picker cancelled — receipt not printed',
+            );
             return;
           }
           selectedPrinter = result.printer;
@@ -578,7 +662,8 @@ mixin TransactionMixinOld {
           }
         } else {
           talker.warning(
-            "Cannot pick printer: Context not mounted and no default printer.",
+            '[receipt_presentation] cannot pick a printer: no default saved and '
+            'the screen is gone — receipt not printed',
           );
           return;
         }
@@ -602,11 +687,44 @@ mixin TransactionMixinOld {
       }
 
       if (selectedPrinter != null) {
+        talker.info(
+          '[receipt_presentation] sending $copies cop'
+          '${copies > 1 ? "ies" : "y"} to "${selectedPrinter.name}"',
+        );
+        var submitted = 0;
         for (var i = 0; i < copies; i++) {
-          await Printing.directPrintPdf(
-            printer: selectedPrinter,
-            onLayout: (PdfPageFormat format) async => bytes,
-          );
+          try {
+            // directPrintPdf is FutureOr, so normalise before bounding it.
+            await Future<bool>.value(
+              Printing.directPrintPdf(
+                printer: selectedPrinter,
+                onLayout: (PdfPageFormat format) async => bytes,
+              ),
+            ).timeout(_printerSubmitTimeout);
+            submitted++;
+          } catch (e) {
+            talker.error(
+              '[receipt_presentation] the printer did not accept the receipt '
+              '(copy ${i + 1} of $copies, timeout '
+              '${_printerSubmitTimeout.inSeconds}s): $e',
+            );
+            break;
+          }
+        }
+        if (submitted == 0) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Sale completed. The receipt could not be sent to '
+                  '${selectedPrinter.name} — reprint it from Tickets.',
+                ),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+          return;
         }
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -697,12 +815,26 @@ mixin TransactionMixinOld {
         } catch (_) {}
 
         if (bytes != null && !sendDigitalReceipt) {
-          await printing(
-            bytes,
-            context,
-            transaction: transaction,
-            transactionItems: transactionItems,
-          );
+          // On this path (purchase code / non-deferred) the sale is completed
+          // *after* this returns, so presentation must never decide whether a
+          // sale finishes. RRA has already signed by now: letting a printer
+          // fault throw here rolled the sale back to PENDING while the receipt
+          // existed at RRA, and letting it hang froze the till with a full cart
+          // and a spinning Pay button.
+          try {
+            await printing(
+              bytes,
+              context,
+              transaction: transaction,
+              transactionItems: transactionItems,
+            );
+          } catch (e, s) {
+            talker.error(
+              '[receipt_presentation] printing failed after the receipt was '
+              'signed; completing the sale anyway (reprint from Tickets): $e',
+              s,
+            );
+          }
         }
       }
       return (
@@ -740,20 +872,85 @@ mixin TransactionMixinOld {
             presentationReceiptForPdf: presentationReceipt,
           );
       final bytes = responseFrom.bytes;
-      if (!context.mounted) return;
+
+      // Every exit below used to be silent, so a signed EBM sale that printed
+      // nothing looked identical to one that printed fine. Say which it was.
+      if (bytes == null) {
+        talker.warning(
+          '[receipt_presentation] skipped: receipt PDF produced no bytes '
+          'txn=${transaction.id}',
+        );
+        return;
+      }
+      if (sendDigitalReceipt) {
+        talker.info(
+          '[receipt_presentation] skipped: digital receipt is ON — sending by '
+          'SMS instead of printing txn=${transaction.id}',
+        );
+        return;
+      }
+      if (!context.mounted) {
+        // The checkout screen was torn down while the sale finished. A picker
+        // needs a context; a saved default printer does not. Print anyway
+        // rather than silently dropping the receipt for a completed sale.
+        talker.warning(
+          '[receipt_presentation] host context gone before print '
+          'txn=${transaction.id} — trying the saved default printer',
+        );
+        final printed = await _printOnSavedDefaultPrinter(bytes);
+        talker.warning(
+          '[receipt_presentation] context-free fallback '
+          '${printed ? "printed on the default printer" : "found no default printer; receipt not printed"} '
+          'txn=${transaction.id}',
+        );
+        return;
+      }
       try {
         formKey.currentState?.reset();
       } catch (_) {}
-      if (bytes != null && !sendDigitalReceipt) {
-        await printing(
-          bytes,
-          context,
-          transaction: transaction,
-          transactionItems: transactionItems,
-        );
-      }
+      await printing(
+        bytes,
+        context,
+        transaction: transaction,
+        transactionItems: transactionItems,
+      );
     } catch (e, s) {
-      talker.error('Deferred receipt print failed: $e', s);
+      talker.error('[receipt_presentation] deferred receipt print failed: $e', s);
+    }
+  }
+
+  /// Prints [bytes] on the saved default printer, with no [BuildContext].
+  ///
+  /// Returns false when there is nothing to print to — no default saved, or the
+  /// saved one is no longer attached — in which case the caller must say so
+  /// rather than treat the receipt as delivered.
+  Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
+    if (Platform.isAndroid || Platform.isIOS) return false;
+    final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
+    if (savedPrinterName == null || savedPrinterName.trim().isEmpty) {
+      return false;
+    }
+    try {
+      final printers = await Printing.listPrinters();
+      Printer? match;
+      for (final printer in printers) {
+        if (printer.name == savedPrinterName) {
+          match = printer;
+          break;
+        }
+      }
+      if (match == null) return false;
+      await Printing.directPrintPdf(
+        printer: match,
+        onLayout: (PdfPageFormat format) async => bytes,
+      );
+      return true;
+    } catch (e, s) {
+      talker.error(
+        '[receipt_presentation] default-printer fallback failed: $e',
+        s,
+      );
+      return false;
     }
   }
 

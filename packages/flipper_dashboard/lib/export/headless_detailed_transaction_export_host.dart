@@ -180,13 +180,11 @@ class DetailedTransactionReportExportHostState
       startDate: startDate,
     );
 
-    final expenseSum = expenseTransactions.fold<double>(
-      0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
-    );
+    // Same definition as the on-screen Net Profit card: gross, VAT and
+    // expenses all taken from the report-scope rollup. [expenseTransactions]
+    // still feeds the export's expense table below.
     config.grossProfit = kpiTotals.pluGrossProfit;
-    config.netProfit =
-        kpiTotals.pluGrossProfit - kpiTotals.pluLineTax - expenseSum;
+    config.netProfit = kpiTotals.netProfit;
 
     final path = await exportDataGrid(
       workBookKey: _dummyWorkBookKey,

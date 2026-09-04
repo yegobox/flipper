@@ -8,6 +8,7 @@ class TransactionReportKpiTotals {
     this.periodCredit = 0,
     this.periodOwed = 0,
     this.periodSubtotal = 0,
+    this.periodExpense = 0,
   });
 
   /// Sum of PLU line revenue (price × qty) for non-expense sales in scope.
@@ -34,4 +35,17 @@ class TransactionReportKpiTotals {
   /// `periodSubtotal == collected + periodOwed`, where collected =
   /// `periodSubtotal - periodOwed`.
   final double periodSubtotal;
+
+  /// Sum of `subTotal` for the expense (cash-out / purchase) rows **in report
+  /// scope** — the same rows the grid lists. Deducted from Net Profit.
+  ///
+  /// Sourced from the report's own paging window rather than a separate
+  /// expense stream, so an expense can never reduce Net Profit without also
+  /// being visible in the grid.
+  final double periodExpense;
+
+  /// The Net Profit headline: in-scope gross profit, less line VAT, less
+  /// in-scope expenses. Every term comes from the same row set, so an empty
+  /// report necessarily yields 0.
+  double get netProfit => pluGrossProfit - pluLineTax - periodExpense;
 }

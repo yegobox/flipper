@@ -5,10 +5,15 @@ mixin NetworkHelper {
   Dio? get dioInstance;
   dynamic get talkerInstance;
 
+  /// [sendTimeout] / [receiveTimeout] default to the historical 120s. Interactive
+  /// calls that a cashier waits on (receipt signing) pass a much tighter bound —
+  /// see `generateReceiptSignature`.
   Future<Response> sendPostRequest(
     String baseUrl,
-    Map<String, dynamic>? data,
-  ) async {
+    Map<String, dynamic>? data, {
+    Duration sendTimeout = const Duration(seconds: 120),
+    Duration receiveTimeout = const Duration(seconds: 120),
+  }) async {
     final headers = {'Content-Type': 'application/json'};
 
     try {
@@ -21,8 +26,8 @@ mixin NetworkHelper {
           // BaseOptions (Dio instance), not per-request Options. Set it on
           // dioInstance's BaseOptions if a connect timeout is needed.
           headers: headers,
-          sendTimeout: const Duration(seconds: 120),
-          receiveTimeout: const Duration(seconds: 120),
+          sendTimeout: sendTimeout,
+          receiveTimeout: receiveTimeout,
         ),
       );
       print('Response received: ${response.statusCode}');

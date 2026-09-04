@@ -31,7 +31,6 @@ import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
-import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
@@ -1012,18 +1011,22 @@ class _RowItemState extends ConsumerState<RowItem>
 
     return Consumer(
       builder: (context, ref, _) {
-        final txnId = ref.watch(
-          posCartPendingTransactionIdProvider(widget.isOrdering),
-        );
-        if (txnId == null || txnId.isEmpty) {
-          return _buildPlusOnlyButton(textTheme, colorScheme);
-        }
-
+        // Qty drives the stepper, not the pending transaction id: that id is
+        // null for the whole bootstrap window (see
+        // [posCartPendingTransactionIdProvider]), which left this row showing a
+        // plus-only button for seconds after the tap even though the qty was
+        // already correct on the same frame. The id is only needed to address
+        // the decrement, and [_decrementVariantFromCart] resolves its own
+        // fallback when it is empty.
         final displayQty = ref.watch(posCartQtyForVariantProvider(v.id));
 
         if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
+
+        final txnId =
+            ref.watch(posCartPendingTransactionIdProvider(widget.isOrdering)) ??
+                '';
 
         return _buildStepper(
           textTheme: textTheme,
@@ -1218,7 +1221,9 @@ class _RowItemState extends ConsumerState<RowItem>
           transactionId: txnForOpt,
           variantId: variantId,
         );
-    ref.read(optimisticOrderCountProvider.notifier).decrement();
+    // [optimisticOrderCountProvider] counts in-flight persists, not cart size —
+    // PosCartAddService._runPersist already decrements it in its `finally`, so
+    // decrementing here too drove the counter negative.
   }
 
   Future<void> _decrementOne({

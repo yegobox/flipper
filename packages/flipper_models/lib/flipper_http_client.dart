@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart' as secrets;
+import 'package:flipper_payments/flipper_payments.dart' show PaymentsHttpClient;
 
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -25,7 +26,12 @@ class DefaultFlipperHttpClient with FlipperHttpClient {
   http.Client get _inner => _client;
 }
 
-abstract class HttpClientInterface {
+/// Declared as a [PaymentsHttpClient] so the shared payment rails
+/// (`flipper_payments`) accept the app's own client directly. The two `get` /
+/// `post` signatures below already matched; naming the interface is what makes
+/// `MomoClient(ProxyService.http)` keep compiling now that the rails live in a
+/// package that cannot see this one.
+abstract class HttpClientInterface implements PaymentsHttpClient {
   Future<http.StreamedResponse> send(http.BaseRequest request);
   Future<http.Response> get(Uri url, {Map<String, String>? headers});
   Future<http.Response> post(Uri url,

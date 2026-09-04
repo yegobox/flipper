@@ -3,8 +3,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/inventory_movement.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
-import 'package:flipper_models/providers/transactions_provider.dart'
-    show transactionReportLineMatchesSale;
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';

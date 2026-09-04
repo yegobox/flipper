@@ -8,6 +8,7 @@ environment:
 dependencies:
   get: ^4.6.1
   flipper_models: any
+  flipper_payments: any
   flipper_routing: ^1.0.0
   shared_preferences: ^2.2.2
   timeago: ^3.4.0

@@ -1,4 +1,5 @@
 // ignore_for_file: avoid_print
+import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
@@ -198,6 +199,13 @@ class DittoSingleton {
       print(
         '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
       );
+
+      // Every flow that gets a store comes through here, which is why the
+      // indexes are asserted here rather than in a service wrapper: the POS
+      // reaches Ditto without going through DittoService.setDitto, so a hook
+      // there never ran. Unawaited — building an index over existing documents
+      // must not hold up startup; queries pick it up once it exists.
+      unawaited(ensureLocalStoreIndexes(ditto: _ditto));
 
       // Required for server connections before sync.start.
       await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {

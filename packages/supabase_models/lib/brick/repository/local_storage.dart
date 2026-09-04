@@ -810,6 +810,13 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> clear() async {
     _cache.clear();
+    // A full clear wipes the session too, so it must leave the same tombstone
+    // [clearSessionKeys] does. Without it, `sessionClearedAt` disappears and
+    // both [mergeDittoPreferences] and [migrateLegacyPreferencesFileIfNeeded]
+    // lose the only proof a logout happened — so the previous user's session is
+    // merged back in on the next launch. The QR/PIN login and signup screens
+    // both call clear() right after logout, which is exactly when that bites.
+    _cache[_kSessionClearedAtKey] = DateTime.now().millisecondsSinceEpoch;
     await _savePreferences();
     // Logout must durably wipe the Ditto prefs copy. A backgrounded flush
     // (see [_scheduleDittoFlush]) could be lost on app-kill and then resurrect

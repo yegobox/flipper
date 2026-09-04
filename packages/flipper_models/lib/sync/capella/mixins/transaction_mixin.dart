@@ -1,7 +1,12 @@
 import 'dart:async';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
+import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
+import 'package:flipper_models/sync/utils/local_store_indexes.dart';
+import 'package:flipper_models/sync/utils/pending_subtotal_deltas.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
+import 'package:flipper_models/sync/utils/cart_line_seq_cache.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
@@ -70,6 +75,18 @@ String? _dittoDocumentId(Map<String, dynamic> data) {
   if (id != null && id.isNotEmpty) return id;
   return data['_id']?.toString();
 }
+
+/// How long an empty pending-cart query must stay empty before we accept that
+/// the cart really left and mint a replacement.
+///
+/// Minting on a transient empty is destructive — the new row wins the query's
+/// `ORDER BY lastTouched DESC` and orphans the lines already on the old id.
+const int _pendingCartEmptySettleMs = 750;
+
+/// Per-cart `itemSeq` high-water marks, so adding a line is O(1) instead of
+/// asking the store how many lines the cart already has.
+final CartLineSeqCache _cartLineSeqCache = CartLineSeqCache();
+final CartLineDocCache _cartLineDocCache = CartLineDocCache();
 
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
@@ -365,8 +382,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final controller = StreamController<List<ITransaction>>.broadcast();
       dynamic observer;
 
-      observer = ditto.store.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'transactionsStream',
+        collection: 'transactions',
+        query: query,
         arguments: arguments,
         onChange: (queryResult) {
           if (controller.isClosed) return;
@@ -525,8 +545,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
               if (cancelled || controller.isClosed) return;
 
-              observer = ditto.store.registerObserver(
-                query,
+              observer = registerTrackedObserver(
+                ditto: ditto,
+                name: 'openPosTicketsTransactionsStream',
+                collection: 'transactions',
+                query: query,
                 arguments: arguments,
                 onChange: (queryResult) {
                   unawaited(emitIfOpen(queryResult));
@@ -667,8 +690,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
               if (cancelled || controller.isClosed) return;
 
-              observer = ditto.store.registerObserver(
-                query,
+              observer = registerTrackedObserver(
+                ditto: ditto,
+                name: 'reviewQueueTransactionsStream',
+                collection: 'transactions',
+                query: query,
                 arguments: arguments,
                 onChange: (queryResult) {
                   unawaited(emitIfOpen(queryResult));
@@ -1557,24 +1583,39 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return false;
       }
 
-      // 1. Check if item exists in transaction (narrow columns — hot path).
-      final query =
-          "SELECT _id, id, qty, remainingStock, supplyPriceAtSale, supplyPrice FROM transaction_items WHERE transactionId = :transactionId AND variantId = :variantId LIMIT 1";
-      final args = {
-        'transactionId': pendingTransaction.id,
-        'variantId': variation.id,
-      };
-
-      final result = await ditto.store.execute(query, arguments: args);
+      // 1. Does this cart already have a line for this variant?
+      //
+      // Asked per tap this cost 2-4.6s on a 60-line cart — longer than reading
+      // the whole collection — because every cart write, the observer replaying
+      // all N rows after it, and replication were all queued on the same store.
+      // The cart's own lines are ours: seed once, then answer from memory.
+      final lookupSw = Stopwatch()..start();
+      if (!_cartLineDocCache.isSeeded(pendingTransaction.id)) {
+        final seed = await ditto.store.execute(
+          'SELECT _id, id, qty, variantId, remainingStock, supplyPriceAtSale, '
+          'supplyPrice, dcRt, taxTyCd, taxPercentage '
+          'FROM transaction_items WHERE transactionId = :transactionId',
+          arguments: {'transactionId': pendingTransaction.id},
+        );
+        _cartLineDocCache.seed(
+          transactionId: pendingTransaction.id,
+          rows: seed.items.map((d) => Map<String, dynamic>.from(d.value)),
+        );
+      }
+      final existingLine = _cartLineDocCache.lineFor(
+        transactionId: pendingTransaction.id,
+        variantId: variation.id,
+      );
+      final lookupMs = lookupSw.elapsedMilliseconds;
+      var seqMs = 0;
+      var upsertMs = 0;
 
       // Optimize SubTotal calculation by avoiding full re-fetch of items
       double delta = 0.0;
 
-      if (result.items.isNotEmpty) {
+      if (existingLine != null) {
         // Update existing item
-        final existingItemData = Map<String, dynamic>.from(
-          result.items.first.value,
-        );
+        final existingItemData = Map<String, dynamic>.from(existingLine);
         final double currentQty = (existingItemData['qty'] as num).toDouble();
         final double newQty = updatableQty ?? (currentQty + 1);
         final double qtyDelta = newQty - currentQty;
@@ -1616,6 +1657,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           taxPercentage: taxPct.toDouble(),
         );
 
+        final upsertSw = Stopwatch()..start();
         await ditto.store.execute(
           "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, dcRt = :dcRt, dcAmt = :dcAmt, discount = :discount, taxblAmt = :taxblAmt, taxAmt = :taxAmt, updatedAt = :updatedAt WHERE _id = :id",
           arguments: {
@@ -1635,23 +1677,51 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           },
         );
 
+        upsertMs = upsertSw.elapsedMilliseconds;
+        _cartLineDocCache.record(
+          transactionId: pendingTransaction.id,
+          variantId: variation.id,
+          row: {
+            ...existingItemData,
+            'qty': newQty,
+            'remainingStock': newRemainingStock,
+            'supplyPriceAtSale': unitSupply,
+            'supplyPrice': unitSupply,
+            'dcRt': newPricing.dcRt,
+          },
+        );
+
         delta = newPricing.subtotalNet - oldPricing.subtotalNet;
       } else {
         // Insert new item — assign per-transaction line seq (legacy Brick parity).
         // Do not copy [variation.itemSeq] (catalog field); it breaks cart/export order.
-        int nextItemSeq = 1;
-        final seqResult = await ditto.store.execute(
-          'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId',
-          arguments: {'transactionId': pendingTransaction.id},
-        );
-        if (seqResult.items.isNotEmpty) {
-          var maxSeq = 0;
-          for (final row in seqResult.items) {
-            final seq = (row.value['itemSeq'] as num?)?.toInt() ?? 0;
-            if (seq > maxSeq) maxSeq = seq;
-          }
+        // Hand out the next seq from an in-memory high-water mark rather than
+        // asking the store on every insert. Asking cost O(lines) per insert —
+        // O(n^2) to build a cart — whether it selected every row (materialising
+        // 59 documents to add the 60th line) or made the store find the max.
+        // Seeding is one query per cart, on the first insert, which for a fresh
+        // cart reads nothing: a whole cart is now O(n).
+        //
+        // ORDER BY is fine in a store query — Ditto 5 only rejects it in *sync
+        // subscriptions* (see transaction_item_mixin.dart:126 for the shape).
+        final seqSw = Stopwatch()..start();
+        int? nextItemSeq = _cartLineSeqCache.nextFor(pendingTransaction.id);
+        if (nextItemSeq == null) {
+          final seqResult = await ditto.store.execute(
+            'SELECT itemSeq FROM transaction_items WHERE transactionId = :transactionId '
+            'ORDER BY itemSeq DESC LIMIT 1',
+            arguments: {'transactionId': pendingTransaction.id},
+          );
+          final maxSeq = seqResult.items.isEmpty
+              ? 0
+              : ((seqResult.items.first.value['itemSeq'] as num?)?.toInt() ?? 0);
           nextItemSeq = maxSeq + 1;
         }
+        seqMs = seqSw.elapsedMilliseconds;
+        _cartLineSeqCache.record(
+          transactionId: pendingTransaction.id,
+          seq: nextItemSeq,
+        );
 
         final double qty = updatableQty ?? 1.0;
         final unitSupply = variation.supplyPrice ?? 0;
@@ -1721,9 +1791,27 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final docMap = await TransactionItemDittoAdapter.instance
             .toDittoDocument(newItem);
 
+        final insertSw = Stopwatch()..start();
         await ditto.store.execute(
           "INSERT INTO transaction_items DOCUMENTS (:doc)",
           arguments: {'doc': docMap},
+        );
+        upsertMs = insertSw.elapsedMilliseconds;
+        _cartLineDocCache.record(
+          transactionId: pendingTransaction.id,
+          variantId: variation.id,
+          row: {
+            '_id': docMap['_id'],
+            'id': newItem.id,
+            'variantId': variation.id,
+            'qty': qty,
+            'remainingStock': newItem.remainingStock,
+            'supplyPriceAtSale': unitSupply,
+            'supplyPrice': unitSupply,
+            'dcRt': pricing.dcRt,
+            'taxTyCd': variation.taxTyCd,
+            'taxPercentage': variation.taxPercentage,
+          },
         );
         // Ensure we pass the created item to background sync to prevent duplicates
         item = newItem;
@@ -1731,11 +1819,33 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         delta = pricing.subtotalNet;
       }
 
+      var subtotalMs = 0;
       if (updatePendingTransactionSubtotal && delta != 0) {
-        await dittoAdjustTransactionSubtotalByDelta(
+        final subtotalSw = Stopwatch()..start();
+        _scheduleSubtotalDelta(
           transactionId: pendingTransaction.id,
           delta: delta,
         );
+        subtotalMs = subtotalSw.elapsedMilliseconds;
+      }
+
+      // Which store call a slow cart write spent its time in. The subtotal
+      // bump writes the *transactions* document, which every branch-wide
+      // `SELECT * FROM transactions` observer wakes on; the item calls do not.
+      // Separating them says whether a stalled cart is the line write or the
+      // parent-row write it triggers.
+      unawaited(_logLocalStoreScanCostOnce());
+
+      final storeTotalMs = lookupMs + seqMs + upsertMs + subtotalMs;
+      final storeBreakdown =
+          '[cart_write_store] lookup_ms=$lookupMs seq_ms=$seqMs '
+          'upsert_ms=$upsertMs subtotal_ms=$subtotalMs '
+          'mode=${existingLine != null ? 'update' : 'insert'} '
+          'total_ms=$storeTotalMs';
+      if (storeTotalMs >= 1000) {
+        talker.warning(storeBreakdown);
+      } else {
+        talker.debug(storeBreakdown);
       }
 
       return true;
@@ -1802,6 +1912,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       if (itemRow.items.isEmpty) return;
 
       final d = Map<String, dynamic>.from(itemRow.items.first.value);
+
+      // This writes a line behind the add path's cache; leaving the cached copy
+      // in place would let the next tap compute a qty from a stale row.
+      _cartLineDocCache.forget(d['transactionId']?.toString() ?? '');
 
       final double oldQtyFromDb = (d['qty'] as num).toDouble();
       // incrementQty with null qty means +1 (see TransactionItemTable / brick mixin).
@@ -1998,6 +2112,84 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   /// register fields — use read + scalar SET instead).
   /// Adjust transaction subtotal in Ditto (read + scalar SET). Public so
   /// [CapellaTransactionItemMixin] can bump subtotal after inserting a line.
+  /// Whether the one-shot local-store probe has already run this session.
+  static bool _loggedLocalStoreScanCost = false;
+
+  /// Reports how much of the local store a cart write's queries have to walk.
+  ///
+  /// A cart write's SELECTs took seconds while its INSERT took 15ms, because
+  /// the fields they filter on were unindexed and every `WHERE transactionId =
+  /// …` was a full scan (see `local_store_indexes.dart`). Keep the probe: it is
+  /// how we tell an index is doing its job, and it still separates size from
+  /// congestion if a query goes slow again.
+  ///
+  /// Runs once per session, unawaited, after a write has already completed.
+  Future<void> _logLocalStoreScanCostOnce() async {
+    if (_loggedLocalStoreScanCost) return;
+    _loggedLocalStoreScanCost = true;
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return;
+
+      // Idempotent: covers any init path that does not run through
+      // setupDittoWithSync, and says on the log whether the indexes are there.
+      await ensureLocalStoreIndexes(ditto: ditto);
+
+      final itemsSw = Stopwatch()..start();
+      final items = await ditto.store.execute(
+        'SELECT _id FROM transaction_items',
+      );
+      final itemsMs = itemsSw.elapsedMilliseconds;
+
+      final txnsSw = Stopwatch()..start();
+      final txns = await ditto.store.execute('SELECT _id FROM transactions');
+      final txnsMs = txnsSw.elapsedMilliseconds;
+
+      talker.warning(
+        '[local_store_scan] transaction_items=${items.items.length} rows '
+        'in ${itemsMs}ms; transactions=${txns.items.length} rows '
+        'in ${txnsMs}ms',
+      );
+    } catch (e) {
+      talker.warning('[local_store_scan] probe failed: $e');
+    }
+  }
+
+  /// Cart subtotal deltas not yet written to the parent transaction document.
+  static final PendingSubtotalDeltas _pendingSubtotalDeltas =
+      PendingSubtotalDeltas();
+
+  /// Defers the parent-row subtotal write until a burst of taps stops.
+  ///
+  /// See [PendingSubtotalDeltas] for why the per-line write is not needed and
+  /// what must discard a gathered delta.
+  void _scheduleSubtotalDelta({
+    required String transactionId,
+    required double delta,
+  }) {
+    _pendingSubtotalDeltas.add(
+      transactionId: transactionId,
+      delta: delta,
+      onFlush: (id, summed) =>
+          dittoAdjustTransactionSubtotalByDelta(transactionId: id, delta: summed),
+    );
+  }
+
+  /// Writes the gathered delta for [transactionId] now, if any is owed.
+  Future<void> flushPendingSubtotalDelta({
+    required String transactionId,
+  }) {
+    return _pendingSubtotalDeltas.flush(
+      transactionId: transactionId,
+      onFlush: (id, summed) =>
+          dittoAdjustTransactionSubtotalByDelta(transactionId: id, delta: summed),
+    );
+  }
+
+  /// Drops the gathered delta for [transactionId] without writing it.
+  static void _discardPendingSubtotalDelta(String transactionId) =>
+      _pendingSubtotalDeltas.discard(transactionId);
+
   Future<void> dittoAdjustTransactionSubtotalByDelta({
     required String transactionId,
     required double delta,
@@ -2033,7 +2225,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required double unitPrice,
     required double qtyDelta,
   }) async {
-    await dittoAdjustTransactionSubtotalByDelta(
+    _scheduleSubtotalDelta(
       transactionId: transactionId,
       delta: unitPrice * qtyDelta,
     );
@@ -2162,7 +2354,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (status != null) {
       addUpdate('status', status);
     }
-    addUpdate('subTotal', subTotal ?? transaction?.subTotal);
+    final resolvedSubTotal = subTotal ?? transaction?.subTotal;
+    if (resolvedSubTotal != null && targetId.isNotEmpty) {
+      // An absolute subtotal supersedes any gathered cart delta; applying the
+      // delta afterwards would add cart lines twice to a finished total.
+      _discardPendingSubtotalDelta(targetId);
+      _cartLineDocCache.forget(targetId);
+    }
+    addUpdate('subTotal', resolvedSubTotal);
     addUpdate('taxAmount', transaction?.taxAmount);
     addUpdate('cashierName', cashierName);
     final resolvedUpdatedAt =
@@ -2494,6 +2693,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           'DELETE FROM transaction_items WHERE transactionId IN (:ids)',
           arguments: {'ids': chunk},
         );
+        for (final id in chunk) {
+          _cartLineDocCache.forget(id.toString());
+        }
         await txn.execute(
           'DELETE FROM transactions WHERE id IN (:ids)',
           arguments: {'ids': chunk},
@@ -2751,6 +2953,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'Retry after cart lines finish saving.',
       );
     }
+    // Past the guard: this park is writing an absolute subtotal, so a gathered
+    // cart delta must not land on top of it afterwards.
+    _discardPendingSubtotalDelta(targetId);
+    _cartLineDocCache.forget(targetId);
 
     // POS tickets list filters `isOriginalTransaction = true`; ensure park
     // always lands in that set (kitchen already skips this check).
@@ -2946,6 +3152,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'DELETE FROM transaction_items WHERE transactionId = :id',
         arguments: {'id': transaction.id},
       );
+      _cartLineDocCache.forget(transaction.id);
 
       talker.info(
         'Successfully deleted transaction and items: ${transaction.id}',
@@ -3543,12 +3750,46 @@ mixin CapellaTransactionMixin implements TransactionInterface {
                 return;
               }
 
+              final vanishedId = lastEmitted!.id;
               lastEmitted = null;
               unawaited(() async {
                 try {
+                  // An empty result is not proof the cart is gone. Replication
+                  // can drop this query to zero rows for a moment (a session
+                  // rebase/NACK is enough) while the row is perfectly fine.
+                  // Minting here is destructive: the new row carries a fresh
+                  // lastTouched, wins this query's ORDER BY, and becomes "the
+                  // cart" — orphaning every line already added to the old id.
+                  // So settle first and look again before creating anything.
+                  await Future<void>.delayed(
+                    const Duration(milliseconds: _pendingCartEmptySettleMs),
+                  );
+                  if (controller.isClosed) return;
+
+                  final recheck = await activeDitto.store.execute(
+                    query,
+                    arguments: arguments,
+                  );
+                  if (recheck.items.isNotEmpty) {
+                    final data = Map<String, dynamic>.from(
+                      recheck.items.first.value,
+                    );
+                    if (_dittoRowStatusIsPending(data)) {
+                      talker.info(
+                        'pendingTransaction: empty result was transient '
+                        '(cart $vanishedId); re-emitting instead of minting a '
+                        'second pending row',
+                      );
+                      emitPendingFromRow(data);
+                      return;
+                    }
+                  }
+
                   talker.info(
-                    'pendingTransaction: query went empty after an active cart; '
-                    'ensuring next pending transaction (branch=$branchId)',
+                    'pendingTransaction: query still empty after '
+                    '${_pendingCartEmptySettleMs}ms (cart $vanishedId really '
+                    'left); ensuring next pending transaction '
+                    '(branch=$branchId)',
                   );
                   await _ensureNextPendingCartIfNeeded(
                     branchId: branchId,
