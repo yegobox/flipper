@@ -1781,6 +1781,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       // `SELECT * FROM transactions` observer wakes on; the item calls do not.
       // Separating them says whether a stalled cart is the line write or the
       // parent-row write it triggers.
+      unawaited(_logLocalStoreScanCostOnce());
+
       final storeTotalMs = lookupMs + seqMs + upsertMs + subtotalMs;
       final storeBreakdown =
           '[cart_write_store] lookup_ms=$lookupMs seq_ms=$seqMs '
@@ -2053,6 +2055,47 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   /// register fields — use read + scalar SET instead).
   /// Adjust transaction subtotal in Ditto (read + scalar SET). Public so
   /// [CapellaTransactionItemMixin] can bump subtotal after inserting a line.
+  /// Whether the one-shot local-store probe has already run this session.
+  static bool _loggedLocalStoreScanCost = false;
+
+  /// Reports how much of the local store a cart write's queries have to walk.
+  ///
+  /// A cart write's SELECTs took seconds while its INSERT took 15ms, and there
+  /// are no DQL indexes, so every `WHERE transactionId = …` is a scan. That
+  /// leaves two very different causes with the same symptom: too many
+  /// documents on the device (fix the sync scope) or a store too busy to
+  /// answer (fix what is loading it). Counting the rows and timing the walk
+  /// separates them — a small collection that still takes seconds is
+  /// congestion, not size.
+  ///
+  /// Runs once per session, unawaited, after a write has already completed.
+  Future<void> _logLocalStoreScanCostOnce() async {
+    if (_loggedLocalStoreScanCost) return;
+    _loggedLocalStoreScanCost = true;
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) return;
+
+      final itemsSw = Stopwatch()..start();
+      final items = await ditto.store.execute(
+        'SELECT _id FROM transaction_items',
+      );
+      final itemsMs = itemsSw.elapsedMilliseconds;
+
+      final txnsSw = Stopwatch()..start();
+      final txns = await ditto.store.execute('SELECT _id FROM transactions');
+      final txnsMs = txnsSw.elapsedMilliseconds;
+
+      talker.warning(
+        '[local_store_scan] transaction_items=${items.items.length} rows '
+        'in ${itemsMs}ms; transactions=${txns.items.length} rows '
+        'in ${txnsMs}ms',
+      );
+    } catch (e) {
+      talker.warning('[local_store_scan] probe failed: $e');
+    }
+  }
+
   Future<void> dittoAdjustTransactionSubtotalByDelta({
     required String transactionId,
     required double delta,
