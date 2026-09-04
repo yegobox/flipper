@@ -309,6 +309,14 @@ List<PaymentLineForSaleCompletion> paymentLinesForSaleCompletion(
       .toList();
 }
 
+/// The CREDIT slice of the tender — what the customer is taking on account.
+double sumCreditTenderFromPaymentMethods(List<Payment> paymentMethods) {
+  final sum = paymentLinesForSaleCompletion(paymentMethods)
+      .where((p) => p.method.toUpperCase() == 'CREDIT')
+      .fold<double>(0, (s, p) => s + p.amount);
+  return sum > _tenderEpsilon ? sum : 0.0;
+}
+
 double sumTenderFromPaymentMethods(List<Payment> paymentMethods) {
   final sum = paymentLinesForSaleCompletion(paymentMethods)
       .fold<double>(0, (s, p) => s + p.amount);
@@ -1880,6 +1888,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         return false;
       }
 
+      // A CREDIT line is not money in the drawer: it parks the sale as a loan,
+      // and [finalizePayment] must not read it as payment received.
+      final creditTenderAmount = sumCreditTenderFromPaymentMethods(
+        paymentMethods,
+      );
+
       // Prefer live customer TIN over a stale denormalized ticket field so
       // clearing TIN on the customer no longer forces a purchase-code dialog.
       Customer? liveCustomer = customer;
@@ -1921,6 +1935,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               transaction: transaction,
               context: context,
               customer: liveCustomer,
+              creditTenderAmount: creditTenderAmount,
             );
 
         // If user cancelled or dialog didn't complete, propagate false
@@ -1964,6 +1979,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           deferPersistTaxReceiptFields: true,
           sendDigitalReceipt: sendDigitalReceipt,
           customer: liveCustomer,
+          creditTenderAmount: creditTenderAmount,
           onSuccess: () {
             ref.read(payButtonStateProvider.notifier).stopLoading();
           },
@@ -2046,6 +2062,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function onComplete,
     required BuildContext context,
     Customer? customer,
+    double creditTenderAmount = 0.0,
   }) async {
     if (transaction.customerTin != null &&
         transaction.customerTin!.isNotEmpty) {
@@ -2074,6 +2091,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               skipTransactionPersist: true,
               sendDigitalReceiptFuture: sendDigitalReceiptFuture,
               customer: customer,
+              creditTenderAmount: creditTenderAmount,
             ),
             child: Builder(
               builder: (context) {

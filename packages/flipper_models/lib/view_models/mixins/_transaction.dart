@@ -76,6 +76,10 @@ mixin TransactionMixinOld {
 
     /// When set (e.g. POS checkout), skips [resolveCustomerForReceipt] DB lookup.
     Customer? customer,
+
+    /// The CREDIT slice of [amount] — money the customer still owes. It parks
+    /// the sale as a loan and never counts as payment received.
+    double creditTenderAmount = 0.0,
   }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -99,28 +103,42 @@ mixin TransactionMixinOld {
         extra: 'tax_enabled=$taxEnabled has_ebm=${ebm != null}',
       );
 
+      // A sale is receipted once, when it first leaves the till: the goods go
+      // out and stock is deducted then, whether the customer paid in full,
+      // underpaid, or took the lot on CREDIT. Both of those last two park the
+      // ticket as a loan, and both still get the receipt for the FULL sale.
+      // Only a later installment on an already-parked loan skips it — that sale
+      // was receipted when it happened (reprint it from the transaction list).
       final isLoan = transaction.isLoan == true;
-      final isFullyPaid =
-          ((transaction.cashReceived ?? 0) + amount) >=
-          (transaction.subTotal ?? 0);
-      final shouldComplete = !isLoan || isFullyPaid;
+      final receiptDecision = decideSalePaymentReceipt(
+        transactionAlreadyLoan: isLoan,
+        priorNonCreditPaid: transaction.cashReceived ?? 0,
+        tenderAmount: amount,
+        creditTenderAmount: creditTenderAmount,
+        saleTotal: transaction.subTotal ?? 0,
+      );
+      final isFullyPaid = receiptDecision.isFullyPaid;
+      final parksAsLoan = receiptDecision.parksAsLoan;
+      final issueReceiptNow = receiptDecision.issueReceiptNow;
 
       // Ticket Review + Handover workflow (opt-in per business): when enabled, a
       // fully-paid sale is only FLAGGED paid at Pay — payment is recorded and the
       // caller's onComplete persists status `pendingReview`. Tax signing, RRA
       // receipt, fiscal counters and stock deduction are ALL deferred to the
       // Stock Manager's handover step (see [finalizeSaleForHandover] + the
-      // handover action). Loan / partial / parked sales are never deferred and
-      // behave exactly as today. When the setting is OFF this branch is skipped
-      // and completion is byte-identical to before.
+      // handover action). A sale that parks as a loan — underpaid, or any part
+      // of it on CREDIT — is never deferred: it is signed, receipted and its
+      // stock deducted right here, at the till. When the setting is OFF this
+      // branch is skipped entirely.
       final ticketReviewWorkflowEnabled =
           ProxyService.settings.enableTicketReviewWorkflow;
       final deferForReview =
-          ticketReviewWorkflowEnabled && !isLoan && shouldComplete && isFullyPaid;
+          ticketReviewWorkflowEnabled && !isLoan && !parksAsLoan;
       talker.debug(
         '[ticket_review_workflow] finalizePayment: '
         'ticketReviewWorkflowEnabled=$ticketReviewWorkflowEnabled '
-        'isLoan=$isLoan isFullyPaid=$isFullyPaid deferForReview=$deferForReview '
+        'isLoan=$isLoan isFullyPaid=$isFullyPaid parksAsLoan=$parksAsLoan '
+        'deferForReview=$deferForReview '
         'transactionId=${transaction.id}',
       );
       if (deferForReview) {
@@ -191,15 +209,14 @@ mixin TransactionMixinOld {
         );
       }
 
-      // Skip receipt generation entirely for loan tickets — additional payments
-      // on resumed loans should never trigger a receipt.
+      // Sign and print for every first completion, including one that parks as
+      // a loan — the supply happened now, so it is fiscalised now. Additional
+      // payments on a resumed loan re-sign nothing.
       if (taxEnabled &&
           ebm?.taxServerUrl != null &&
           hasUser &&
           !isTaxServiceStoped &&
-          !isLoan &&
-          shouldComplete &&
-          isFullyPaid) {
+          issueReceiptNow) {
         ProxyService.box.writeString(
           key: "getServerUrl",
           value: ebm!.taxServerUrl!,
@@ -382,10 +399,10 @@ mixin TransactionMixinOld {
 
         // Branch is not EBM-registered (or EBM/tax checks above failed for
         // another reason): there's no RRA-signed receipt to print, but the
-        // sale is still a completed sale, so print a plain, non-fiscal
-        // receipt instead. Only for a real, fully paid sale completion —
-        // never for partial loan payments, which never got a receipt either.
-        if (!isLoan && shouldComplete && isFullyPaid && !sendDigitalReceipt) {
+        // sale still happened, so print a plain, non-fiscal receipt instead.
+        // It covers the full sale, so a credit or part-paid ticket gets one
+        // too; only later installments on a resumed loan skip it.
+        if (issueReceiptNow && !sendDigitalReceipt) {
           // Not awaited: building this PDF and pushing it at a printer took
           // 15.8s of a 28.7s Pay, and it ran *before* onComplete, so the cart
           // stayed on screen and the spinner kept turning until the printer was
@@ -438,9 +455,7 @@ mixin TransactionMixinOld {
         );
         return RwApiResponse(
           resultCd: "001",
-          resultMsg: isLoan && !isFullyPaid
-              ? "Payment recorded"
-              : "Sale completed",
+          resultMsg: parksAsLoan ? "Payment recorded" : "Sale completed",
         );
       }
 

@@ -619,7 +619,9 @@ class TaxController<OBJ> {
           : 0.toStringAsFixed(2),
       items: transactionItems,
       cash: transaction.subTotal!,
-      received: transaction.cashReceived!,
+      // A credit / part-paid sale is receipted for the full amount, and its
+      // cashReceived can still be null at signing time — never bang it.
+      received: transaction.cashReceived ?? 0,
       payMode: paymentTypes.isEmpty
           ? "CASH".toPaymentType()
           : paymentTypes.last.paymentMethod?.toPaymentType() ?? "CASH",
