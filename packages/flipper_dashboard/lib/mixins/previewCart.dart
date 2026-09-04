@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
 import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
 import 'package:flipper_dashboard/utils/frame_sync.dart';
+import 'package:flipper_models/helpers/sale_completion_trace.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
 import 'package:flipper_models/helperModels/sale_cart_qty_rows.dart';
@@ -235,10 +236,12 @@ Future<List<TransactionItem>?> _settlePersistedCartForCompletion({
     unsaved = _unsavedCartLines(ref);
   }
 
-  talker.debug(
-    '[sale_completion_timing] cart_settle_ms=${sw.elapsedMilliseconds} '
-    'persisted_lines=${ditto.length} settled=$settled '
-    'unsaved_lines=${unsaved.length}',
+  logSaleCompletionStage(
+    'cart_settle',
+    sw.elapsedMilliseconds,
+    extra:
+        'persisted_lines=${ditto.length} settled=$settled '
+        'unsaved_lines=${unsaved.length}',
   );
 
   // Two independent reasons to proceed, and both must be exhausted before a
@@ -580,6 +583,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     String? completionCashierName;
     bool transactionWasMarkedCompleted = false;
     final flowWatch = Stopwatch()..start();
+    SaleCompletionTrace.begin();
     final capella = ProxyService.getStrategy(Strategy.capella);
 
     try {
@@ -628,9 +632,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           branchId: branchIdInt,
         );
       }
-      talker.debug(
-        '[sale_completion_timing] resolve_transaction_ms=${resolveSw.elapsedMilliseconds} '
-        'total_ms=${flowWatch.elapsedMilliseconds}',
+      logSaleCompletionStage(
+        'resolve_transaction',
+        resolveSw.elapsedMilliseconds,
+        extra: 'total_ms=${flowWatch.elapsedMilliseconds}',
       );
 
       if (resolved == null) {
@@ -662,9 +667,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           // Best-effort: completion should still work offline.
         }
       }
-      talker.debug(
-        '[sale_completion_timing] cashier_lookup_ms=${cashierSw.elapsedMilliseconds} '
-        'total_ms=${flowWatch.elapsedMilliseconds}',
+      logSaleCompletionStage(
+        'cashier_lookup',
+        cashierSw.elapsedMilliseconds,
+        extra: 'total_ms=${flowWatch.elapsedMilliseconds}',
       );
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
@@ -861,9 +867,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         hint: transactionItemsHint,
         persistedCart: cartForCompletion,
       );
-      talker.debug(
-        '[sale_completion_timing] load_transaction_items_ms=${itemsSw.elapsedMilliseconds} '
-        'count=${transactionItems.length} total_ms=${flowWatch.elapsedMilliseconds}',
+      logSaleCompletionStage(
+        'load_transaction_items',
+        itemsSw.elapsedMilliseconds,
+        extra:
+            'count=${transactionItems.length} '
+            'total_ms=${flowWatch.elapsedMilliseconds}',
       );
       if (transactionItems.isEmpty) {
         talker.warning(
@@ -918,9 +927,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           transactionItems: transactionItems,
           transactionId: transactionId,
         );
-        talker.debug(
-          '[sale_completion_timing] pre_sale_stock_snapshot_ms='
-          '${snapshotSw.elapsedMilliseconds} total_ms=${flowWatch.elapsedMilliseconds}',
+        logSaleCompletionStage(
+          'pre_sale_stock_snapshot',
+          snapshotSw.elapsedMilliseconds,
+          extra: 'total_ms=${flowWatch.elapsedMilliseconds}',
         );
         // Local stock decrement runs after RRA sign via [awaitPostSaleStockDeduction]
         // so Pay stays within the 5s budget (Ditto write queue was blocking ~30s+).
@@ -1150,6 +1160,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           .replaceAll("Exception: ", "");
       _handlePaymentError(errorMessage, s, context);
       rethrow;
+    } finally {
+      // Deferred stock / receipt work runs after this returns; it is not part
+      // of the operator's wait and must not land in this sale's breakdown.
+      SaleCompletionTrace.end();
     }
   }
 
@@ -1173,9 +1187,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     } catch (e, s) {
       talker.error('Deferred sale payment persist failed: $e', s);
     }
-    talker.debug(
-      '[sale_completion_timing] save_payments_ms=${paySw.elapsedMilliseconds} '
-      'deferred_after_ui=true',
+    logSaleCompletionStage(
+      'save_payments',
+      paySw.elapsedMilliseconds,
+      extra: 'deferred_after_ui=true',
     );
   }
 
@@ -1271,9 +1286,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         );
       }
     }
-    talker.debug(
-      '[sale_completion_timing] agent_commission_ms=${commSw.elapsedMilliseconds} '
-      'has_hints=$hasAgentCommissionHints',
+    logSaleCompletionStage(
+      'agent_commission',
+      commSw.elapsedMilliseconds,
+      extra: 'has_hints=$hasAgentCommissionHints',
     );
 
     // The pending cart was minted with whatever sale mode was active when it
@@ -1319,9 +1335,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // updateTransaction's unawaited ensure avoids a parallel mint.
       deferEnsureNextPendingCart: true,
     );
-    talker.debug(
-      '[sale_completion_timing] update_transaction_ms=${txnSw.elapsedMilliseconds}',
-    );
+    logSaleCompletionStage('update_transaction', txnSw.elapsedMilliseconds);
     // Keep the in-memory row aligned with what we just persisted. collectPayment
     // / applySalePaymentFieldsInMemory may have mutated cashReceived to a
     // cumulative total and remainingBalance to 0 before this mark; if those
@@ -1347,14 +1361,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           saleCompletionFastPath: true,
         );
       }
-      talker.debug(
-        '[sale_completion_timing] save_payments_ms=${paySw.elapsedMilliseconds}',
-      );
+      logSaleCompletionStage('save_payments', paySw.elapsedMilliseconds);
     }
 
-    talker.debug(
-      '[sale_completion_timing] mark_completed_tx_ms=${markSw.elapsedMilliseconds} '
-      'defer_payments=$deferPaymentPersist',
+    logSaleCompletionStage(
+      'mark_completed_tx',
+      markSw.elapsedMilliseconds,
+      extra: 'defer_payments=$deferPaymentPersist',
     );
 
     // Prime the next pending *during* mark (receipt / payment UI still up) so

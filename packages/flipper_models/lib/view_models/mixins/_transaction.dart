@@ -4,6 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helpers/deferred_sale_receipt_persist.dart';
+import 'package:flipper_models/helpers/sale_completion_trace.dart';
 import 'package:flipper_models/helpers/sale_completion_collect.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -209,9 +210,7 @@ mixin TransactionMixinOld {
             transactionItems: preloadedLineItemsForCollectPayment,
             customer: customer,
           );
-          talker.debug(
-            '[sale_completion_timing] rra_sign_ms=${signSw.elapsedMilliseconds}',
-          );
+          logSaleCompletionStage('rra_sign', signSw.elapsedMilliseconds);
           response = signOutcome.response;
           if (response.resultCd != "000") {
             throw Exception(response.resultMsg);
@@ -279,14 +278,13 @@ mixin TransactionMixinOld {
               skipTransactionPersist: skipTransactionPersist,
             );
           }
-          talker.debug(
-            '[sale_completion_timing] collect_payment_ms=${collectSw.elapsedMilliseconds}',
+          logSaleCompletionStage(
+            'collect_payment',
+            collectSw.elapsedMilliseconds,
           );
           final onCompleteSw = Stopwatch()..start();
           await _awaitPossibleFuture(onComplete());
-          talker.debug(
-            '[sale_completion_timing] on_complete_ms=${onCompleteSw.elapsedMilliseconds}',
-          );
+          logSaleCompletionStage('on_complete', onCompleteSw.elapsedMilliseconds);
 
           // Print before heavy Ditto writes (createReceipt/updateCounters) so PDF
           // generation is not stuck behind a congested store queue.
@@ -305,14 +303,12 @@ mixin TransactionMixinOld {
           } catch (e, s) {
             talker.error('Receipt print after sale failed: $e', s);
           }
-          talker.debug(
-            '[sale_completion_timing] present_receipt_ms=${printSw.elapsedMilliseconds}',
-          );
+          logSaleCompletionStage('present_receipt', printSw.elapsedMilliseconds);
 
           scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
-          talker.debug(
-            '[sale_completion_timing] finalize_payment_quick_sell_ms='
-            '${completionSw.elapsedMilliseconds}',
+          logSaleCompletionStage(
+            'finalize_payment_quick_sell',
+            completionSw.elapsedMilliseconds,
           );
           return response;
         }
