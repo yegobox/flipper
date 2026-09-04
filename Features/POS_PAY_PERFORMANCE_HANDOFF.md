@@ -24,32 +24,44 @@ value `PreviewSaleButton` waits on. Both awaits are now bounded by
 **Confirm this first.** If the spinner still sticks with the window focused, the
 theory is wrong and the cause is elsewhere.
 
-### Open item 2 — is completion still inside the 5s budget?
+### Open item 2 — answered: completion was over budget, and why
 
-Unresolved, and it must be answered with the timing log, not by eyeballing log
-volume. Ask for one sale's worth of:
+Measured, not judged: 16.4s, then 29.3s, then a cart that never drained.
+Chasing it down gave the root cause of the whole session's symptoms.
+
+**Ditto has no DQL indexes** (there is no index API in `ditto_live` 5.0.3, and
+the only `createIndex` in the project is an empty stub in `DatabaseProvider`).
+Every `WHERE …` walks the collection at roughly **0.2ms a document**. The
+device held 5,789 `transaction_items` and 9,984 `transactions`, so one pass
+cost ~1.2s — and a single cart write made three of them:
 
 ```
-[sale_completion_timing] cart_settle_ms=… persisted_lines=… settled=… unsaved_lines=…
-[sale_completion_timing] rra_sign_ms=…
-[sale_completion_timing] flow_total_sync_completion_ms=…
-[sale_completion_timing] over_budget_ms=… target_ms=5000     ← only present when over
+[cart_write_store] lookup_ms=1565 seq_ms=1029 upsert_ms=15 subtotal_ms=2554 total_ms=5163
 ```
 
-`persisted_lines` should match the cart's line count. `over_budget_ms` absent
-means you are inside budget (`kSaleCompletionTargetMs`, 5000ms, in
-`flipper_dashboard/lib/utils/sale_completion_budget.dart`).
+The INSERT was 15ms. Everything else was reading. That is why writes got
+slower as history accumulated, why a 60-line cart left 23 writes outstanding
+at the 60s ceiling, and why `update_transaction` cost 3.3s at completion.
+
+Two fixes landed:
+
+- `063f08a16` — the parent-row subtotal bump is gathered and written once per
+  burst instead of once per line. It walked the *bigger* collection and then
+  woke every branch-wide `SELECT * FROM transactions` observer to walk it
+  again, per line. Nothing needs it per line: the on-screen total is computed
+  from the items, park/send-to-till overwrite it with the live total, and
+  completion recomputes it from the finished lines.
+- `231c598b0` — 30-day retention (the user's call, asked explicitly). Both
+  halves are required: subscriptions narrowed in `prepareDqlSyncSubscription`
+  (eviction alone is futile — an active subscription pulls the document back)
+  and eviction of history past the window (windowing alone does not remove
+  what the device already holds).
 
 ### Open item 3 — unexplained: 17 × "Total changed from 880.0 to 0.0"
 
-There is exactly one `PaymentMethodsCard` (constructed at
-`QuickSellingView.dart:3335`), so after the first `didUpdateWidget` its
-`oldWidget.totalPayable` should be 0 and the line should not repeat. Seventeen
-repeats with the same `880 → 0` means either the parent is alternating
-880/0/880/0 (the `0 → 880` direction would also log, so the pasted excerpt may
-have been filtered), or that card is being built in more than one place.
-
-Not chased. Worth chasing only if the timing log shows completion over budget.
+Still unexplained, still not chased. Note the sale that produced the 29.3s
+breakdown never reached `rra_sign`, so it took one of the non-signing branches
+in `finalizePayment`; the `branch=` note on the over-budget line now says which.
 
 ## Architecture decisions that must not be undone
 
@@ -63,6 +75,13 @@ then reads Ditto once. `transactionItemsStreamProvider` is a *report* of what
 Ditto replayed back to us — it is what makes a tapped item appear instantly, and
 it is not evidence that a sale is safe to complete. The original code polled it
 every 100ms for 8s and refused Pay on carts that were fully saved.
+
+**Measure before theorising — the numbers overturned three theories in a row.**
+The endOfFrame stall, the rebuild cost (`posCartDisplayItemsProvider` in the
+top-level build over a non-lazy `Column`), and "the store is congested" were all
+plausible, and all wrong. `store_ms=10373` on a *four-line* cart killed the
+rebuild theory in one line; `upsert_ms=15` alongside `lookup_ms=1565` killed the
+congestion theory. Each measurement cost one sale.
 
 **Wait on progress, not on a deadline.** The bound is "the queued-add backlog
 stopped shrinking for 8s" (`awaitQueuedCartWritesWhileProgressing`), with a 60s
@@ -129,6 +148,15 @@ the display. See `project_pos_cart_display_truth` in memory.
 7. **Receipt printer has no UI.** The first time a till sees exactly one printer
    it is silently adopted as the permanent default, and nothing outside the
    ticket reprint can change it. Product decision pending — see `5080778b7`.
+8. **The per-tap variant lookup is still a full scan** (~1.5s). It could be
+   served from an in-memory cart line map the way `CartLineSeqCache` serves the
+   seq, but a negative answer from that cache is only safe if no other device
+   adds to the same open cart — get it wrong and a variant gets two rows.
+   Retention shrinks this scan; it does not remove it.
+9. **An old parked ticket's lines can be evicted** while the ticket itself is
+   kept. Resuming it subscribes by `transactionId`, which is exempt from
+   windowing, so the lines come back — but only online. Ditto has no subqueries
+   (`reference_ditto_dql_limits`), so eviction cannot join items to open tickets.
 
 ## Diagnostics added this session
 
@@ -145,6 +173,17 @@ Grep these first; they were built for exactly this problem.
   to steal the cart.
 - `pendingTransaction: empty result was transient … re-emitting` — the settle
   prevented a mint.
+- `[cart_write] store_ms=… wait_ms=… idle_ms=… queued=… lines=…` — one cart
+  write. `store_ms` is the write, `idle_ms` is dead time no store call explains.
+- `[cart_write_store] lookup_ms=… seq_ms=… upsert_ms=… subtotal_ms=…` — which
+  store call a slow write spent its time in.
+- `[local_store_scan] transaction_items=N rows in Xms; transactions=M rows` —
+  once per session, on the first cart write: how much the queries have to walk.
+- `[local_store_retention] evicted …` — the retention sweep.
+
+The over-budget warning now carries its own breakdown (`name=took@at`, plus a
+`branch=` note), so a slow sale explains itself on one line instead of needing
+the scrollback. Stages that finish outside the flow are dropped, not attributed.
 
 Log levels were corrected twice: routine events (`ghost settled`, `0 rows this
 frame`, `is still loading`, `Total changed`) are now `debug`. What remains at
