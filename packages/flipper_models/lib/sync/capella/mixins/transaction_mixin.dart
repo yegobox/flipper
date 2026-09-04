@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'package:flipper_models/sync/utils/pending_subtotal_deltas.dart';
@@ -381,8 +382,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final controller = StreamController<List<ITransaction>>.broadcast();
       dynamic observer;
 
-      observer = ditto.store.registerObserver(
-        query,
+      observer = registerTrackedObserver(
+        ditto: ditto,
+        name: 'transactionsStream',
+        collection: 'transactions',
+        query: query,
         arguments: arguments,
         onChange: (queryResult) {
           if (controller.isClosed) return;
@@ -541,8 +545,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
               if (cancelled || controller.isClosed) return;
 
-              observer = ditto.store.registerObserver(
-                query,
+              observer = registerTrackedObserver(
+                ditto: ditto,
+                name: 'openPosTicketsTransactionsStream',
+                collection: 'transactions',
+                query: query,
                 arguments: arguments,
                 onChange: (queryResult) {
                   unawaited(emitIfOpen(queryResult));
@@ -683,8 +690,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
               if (cancelled || controller.isClosed) return;
 
-              observer = ditto.store.registerObserver(
-                query,
+              observer = registerTrackedObserver(
+                ditto: ditto,
+                name: 'reviewQueueTransactionsStream',
+                collection: 'transactions',
+                query: query,
                 arguments: arguments,
                 onChange: (queryResult) {
                   unawaited(emitIfOpen(queryResult));
