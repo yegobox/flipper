@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'package:flipper_models/sync/utils/pending_subtotal_deltas.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
@@ -2074,6 +2075,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) return;
+
+      // Idempotent: covers any init path that does not run through
+      // setupDittoWithSync, and says on the log whether the indexes are there.
+      await ensureLocalStoreIndexes(ditto: ditto);
 
       final itemsSw = Stopwatch()..start();
       final items = await ditto.store.execute(

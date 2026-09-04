@@ -48,18 +48,48 @@ Future<void> ensureLocalStoreIndexes({required dynamic ditto}) async {
 
   final sw = Stopwatch()..start();
   var created = 0;
+  var failed = 0;
   for (final statement in localStoreIndexStatements()) {
     try {
       await ditto.store.execute(statement);
       created++;
     } catch (e) {
-      talker.warning('[local_store_index] failed: $statement — $e');
+      // `IF NOT EXISTS` may not be accepted by every SDK version; a rejected
+      // statement leaves the field unindexed and the failure silent, so try
+      // the plain form before giving up on it.
+      final plain = statement.replaceFirst('CREATE INDEX IF NOT EXISTS ', 'CREATE INDEX ');
+      try {
+        await ditto.store.execute(plain);
+        created++;
+      } catch (e2) {
+        failed++;
+        talker.warning('[local_store_index] failed: $plain — $e2');
+      }
     }
   }
-  talker.info(
-    '[local_store_index] ensured $created index(es) in '
-    '${sw.elapsedMilliseconds}ms',
+  talker.warning(
+    '[local_store_index] created/ensured $created index(es), $failed failed, '
+    'in ${sw.elapsedMilliseconds}ms',
   );
+  await logLocalStoreIndexes(ditto: ditto);
+}
+
+/// Logs the indexes the store actually holds.
+///
+/// The only way to tell "the index was created" from "the query ignored it".
+Future<void> logLocalStoreIndexes({required dynamic ditto}) async {
+  if (ditto == null) return;
+  try {
+    final result = await ditto.store.execute('SELECT * FROM system:indexes');
+    final described = result.items
+        .map((doc) => Map<String, dynamic>.from(doc.value).toString())
+        .join(' | ');
+    talker.warning(
+      '[local_store_index] store holds ${result.items.length}: $described',
+    );
+  } catch (e) {
+    talker.warning('[local_store_index] cannot list system:indexes — $e');
+  }
 }
 
 bool _ensured = false;
