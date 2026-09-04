@@ -386,38 +386,46 @@ mixin TransactionMixinOld {
         // receipt instead. Only for a real, fully paid sale completion —
         // never for partial loan payments, which never got a receipt either.
         if (!isLoan && shouldComplete && isFullyPaid && !sendDigitalReceipt) {
+          // Not awaited: building this PDF and pushing it at a printer took
+          // 15.8s of a 28.7s Pay, and it ran *before* onComplete, so the cart
+          // stayed on screen and the spinner kept turning until the printer was
+          // done. Nothing here decides whether the sale finished — the sale is
+          // already recorded, and on this branch there is no RRA signature to
+          // wait for either. It prints while the till is free again.
           final plainReceiptSw = Stopwatch()..start();
-          try {
-            final items = preloadedLineItemsForCollectPayment ??
-                await ProxyService.getStrategy(
-                  Strategy.capella,
-                ).transactionItems(transactionId: transaction.id);
-            if (items.isNotEmpty) {
-              final bytes = await TaxController(object: transaction)
-                  .buildNonFiscalReceiptPdfBytes(
-                transaction: transaction,
-                transactionItems: items,
-                deferPresentation: true,
-              );
-              if (bytes != null) {
-                try {
-                  formKey.currentState?.reset();
-                } catch (_) {}
-                await printing(
-                  bytes,
-                  context,
+          unawaited(() async {
+            try {
+              final items = preloadedLineItemsForCollectPayment ??
+                  await ProxyService.getStrategy(
+                    Strategy.capella,
+                  ).transactionItems(transactionId: transaction.id);
+              if (items.isNotEmpty) {
+                final bytes = await TaxController(object: transaction)
+                    .buildNonFiscalReceiptPdfBytes(
                   transaction: transaction,
                   transactionItems: items,
+                  deferPresentation: true,
                 );
+                if (bytes != null) {
+                  try {
+                    formKey.currentState?.reset();
+                  } catch (_) {}
+                  await printing(
+                    bytes,
+                    context,
+                    transaction: transaction,
+                    transactionItems: items,
+                  );
+                }
               }
+            } catch (e, s) {
+              talker.error('Non-fiscal receipt print failed: $e', s);
             }
-          } catch (e, s) {
-            talker.error('Non-fiscal receipt print failed: $e', s);
-          }
-          logSaleCompletionStage(
-            'non_fiscal_receipt',
-            plainReceiptSw.elapsedMilliseconds,
-          );
+            talker.debug(
+              '[sale_completion_timing] non_fiscal_receipt_ms='
+              '${plainReceiptSw.elapsedMilliseconds} deferred_after_ui=true',
+            );
+          }());
         }
       }
 
