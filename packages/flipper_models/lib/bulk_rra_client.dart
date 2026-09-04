@@ -246,17 +246,43 @@ class BulkSaveResult {
   final bool isEbmEnabled;
 }
 
+/// Fallback data-connector base URL when the branch has no `Ebm.dataConnectorUrl`.
+///
+/// Always production: a localhost default silently breaks every data-connector
+/// call (daily report download/preview/merge/archive, bulk RRA) on real devices.
+const String kDataConnectorFallbackBaseUrl = 'https://prod.api.yegobox.com/';
+
+/// True when [url] points at this machine, so no real device can reach it.
+///
+/// EBM records seeded during local development keep `http://localhost:8084`,
+/// which is a connection-refused on every install that is not the dev machine.
+bool isLoopbackDataConnectorUrl(String url) {
+  final host = Uri.tryParse(url.trim())?.host.toLowerCase();
+  if (host == null || host.isEmpty) return false;
+  return host == 'localhost' ||
+      host == '127.0.0.1' ||
+      host == '0.0.0.0' ||
+      host == '::1' ||
+      host == '[::1]';
+}
+
 /// Resolves data-connector base URL from [Ebm.dataConnectorUrl] (not the RRA tax URL).
 Future<String> resolveDataConnectorBaseUrl({String? dataConnectorUrl}) async {
   final configured = dataConnectorUrl?.trim();
   if (configured != null && configured.isNotEmpty) {
+    if (isLoopbackDataConnectorUrl(configured)) {
+      talker.warning(
+        'EBM data-connector URL $configured is loopback; using $kDataConnectorFallbackBaseUrl',
+      );
+      return kDataConnectorFallbackBaseUrl;
+    }
     final normalized =
         configured.endsWith('/') ? configured : '$configured/';
     talker.info('Bulk RRA using data-connector at $normalized');
     return normalized;
   }
   talker.warning(
-    'No data-connector URL configured on EBM; defaulting to http://127.0.0.1:8084/',
+    'No data-connector URL configured on EBM; defaulting to $kDataConnectorFallbackBaseUrl',
   );
-  return 'http://127.0.0.1:8084/';
+  return kDataConnectorFallbackBaseUrl;
 }
