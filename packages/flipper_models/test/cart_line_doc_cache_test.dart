@@ -30,6 +30,28 @@ void main() {
         'doc-2');
   });
 
+  test('seeding replaces — a partial snapshot silently drops other lines', () {
+    cache.seed(transactionId: 'txn-1', rows: [
+      {'variantId': 'v1', '_id': 'doc-1', 'qty': 3},
+      {'variantId': 'v2', '_id': 'doc-2', 'qty': 1},
+    ]);
+
+    // What the cart's observer supplies: its query is filtered (active /
+    // doneWithTransaction / branchId), so a line the filter excludes — or one
+    // another device added — simply is not in the rows it seeds with.
+    cache.seed(transactionId: 'txn-1', rows: [
+      {'variantId': 'v1', '_id': 'doc-1', 'qty': 3},
+    ]);
+
+    expect(
+      cache.lineFor(transactionId: 'txn-1', variantId: 'v2'),
+      isNull,
+      reason: 'a miss here can be a lie, so the add path must confirm one '
+          'against the store before inserting — otherwise v2 gets a second row',
+    );
+    expect(cache.isSeeded('txn-1'), isTrue);
+  });
+
   test('rows without a variant id are not indexable and are skipped', () {
     cache.seed(transactionId: 'txn-1', rows: [
       {'_id': 'doc-1', 'qty': 3},

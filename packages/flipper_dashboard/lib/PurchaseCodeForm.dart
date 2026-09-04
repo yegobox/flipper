@@ -26,6 +26,9 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   final Future<bool>? sendDigitalReceiptFuture;
   final Customer? customer;
 
+  /// The CREDIT slice of [amount] — owed, not collected. See [finalizePayment].
+  final double creditTenderAmount;
+
   PurchaseCodeFormBloc({
     required this.customerNameController,
     required this.countryCodeController,
@@ -39,6 +42,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
     this.skipTransactionPersist = false,
     this.sendDigitalReceiptFuture,
     this.customer,
+    this.creditTenderAmount = 0.0,
   }) {
     addFieldBlocs(fieldBlocs: [purchaseCode]);
   }
@@ -64,6 +68,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         deferPersistTaxReceiptFields: skipTransactionPersist,
         sendDigitalReceipt: sendDigitalReceipt,
         customer: customer,
+        creditTenderAmount: creditTenderAmount,
       );
 
       if (response.resultCd == "000") {

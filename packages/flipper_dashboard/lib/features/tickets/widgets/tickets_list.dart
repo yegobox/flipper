@@ -928,8 +928,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
     }
 
-    // Already settling this ticket — just return to checkout.
-    final currentSettling = ref.read(settlingTillTicketProvider);
+    // Already settling this ticket — just return to checkout. Effective, not
+    // live: a session rebuilt from the cart (its in-memory hand-off was lost)
+    // still owns a PENDING ticket, and collecting a second one without
+    // re-parking it first would strand it off the till queue.
+    final currentSettling = ref.read(effectiveSettlingTillTicketProvider);
     if (currentSettling != null &&
         currentSettling.transactionId == ticket.id) {
       logHandoff('already-settling-close');
@@ -1046,13 +1049,44 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       final branchId =
           settling.branchId ?? ProxyService.box.getBranchId() ?? '';
-      final txn = settling.ticketSnapshot ??
+      // Collect forces its snapshot to PENDING at hand-off, so it can be
+      // trusted; a recovered snapshot is only as fresh as the cart row it came
+      // from, so re-read before parking on it.
+      var txn = (settling.recovered ? null : settling.ticketSnapshot) ??
           await ProxyService.getStrategy(Strategy.capella).getTransaction(
             id: settling.transactionId,
             branchId: branchId,
           );
-      if (txn != null &&
-          (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
+      // Nothing locally: ask the server once before concluding anything. A
+      // ticket collected on another device may not have replicated here yet,
+      // and this hand-off now refuses to proceed on an unresolved row — so
+      // reading "not synced" as "not there" would block Collect outright.
+      txn ??= await ProxyService.getStrategy(Strategy.capella).getTransaction(
+        id: settling.transactionId,
+        branchId: branchId,
+        awaitRemote: true,
+      );
+      if (txn == null) {
+        // Unresolved is not the same as gone: this lookup is branch-scoped and
+        // local, and the re-read above means recovered sessions always reach
+        // it. Reporting success here would clear the session and let the caller
+        // collect the next ticket while this one stays PENDING and off the
+        // list — the exact orphan this method exists to prevent. Fail like the
+        // catch below so the hand-off aborts and the session survives.
+        talker.warning(
+          'Re-park previous settling ticket: ${settling.transactionId} did not '
+          'resolve — settling kept, hand-off aborted.',
+        );
+        if (mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Could not return the current ticket to the till. Try again.',
+            backgroundColor: Colors.red,
+          );
+        }
+        return false;
+      }
+      if ((txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
         await ref.read(parkTransactionProvider.notifier).park(
               ticketName: pendingSaleCartReparkTicketName(
                 id: settling.transactionId,
@@ -1066,6 +1100,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               customerId: txn.customerId,
             );
       }
+      // Parked, or confirmed to have left PENDING already: session finished.
       ref.read(settlingTillTicketProvider.notifier).state = null;
       clearPinnedPosCartTransactionIfWidget(
         ref,

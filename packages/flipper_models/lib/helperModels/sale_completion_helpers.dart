@@ -226,6 +226,62 @@ DerivedSaleCompletionState deriveSaleCompletionState({
   );
 }
 
+/// Receipt + park outcome for a single tender against a sale.
+class SalePaymentReceiptDecision {
+  const SalePaymentReceiptDecision({
+    required this.isFullyPaid,
+    required this.parksAsLoan,
+    required this.issueReceiptNow,
+  });
+
+  /// True when the sale total is covered by money actually collected (credit
+  /// never counts — it is still owed).
+  final bool isFullyPaid;
+
+  /// True when this tender leaves the ticket parked as a loan, either because
+  /// part of the sale went on CREDIT or because the customer underpaid.
+  final bool parksAsLoan;
+
+  /// True when this payment should produce the sale's receipt.
+  final bool issueReceiptNow;
+}
+
+/// Decides whether a tender issues the sale's receipt, and whether it parks the
+/// ticket as a loan.
+///
+/// A sale is receipted **once**, when it first leaves the till: the goods are
+/// handed over at that moment whether the customer paid in full, paid only part
+/// of it, or took the whole thing on credit — and stock leaves then too. So
+/// [SalePaymentReceiptDecision.issueReceiptNow] is true for every first
+/// completion, and false only for a later installment on a ticket that is
+/// already a loan ([transactionAlreadyLoan]): that sale was receipted when it
+/// happened, and the receipt can be reprinted from the transaction list.
+///
+/// [creditTenderAmount] is the CREDIT slice of [tenderAmount] — money the
+/// customer still owes, so it never counts toward
+/// [SalePaymentReceiptDecision.isFullyPaid]. [priorNonCreditPaid] is what the
+/// ticket already collected before this tender (a resumed loan's earlier
+/// installments); pass 0 for a fresh sale.
+SalePaymentReceiptDecision decideSalePaymentReceipt({
+  required bool transactionAlreadyLoan,
+  required double priorNonCreditPaid,
+  required double tenderAmount,
+  required double creditTenderAmount,
+  required double saleTotal,
+}) {
+  final credit = creditTenderAmount < 0 ? 0.0 : creditTenderAmount;
+  final nonCreditTenderRaw = tenderAmount - credit;
+  final nonCreditTender = nonCreditTenderRaw < 0 ? 0.0 : nonCreditTenderRaw;
+  final isFullyPaid =
+      (priorNonCreditPaid + nonCreditTender + _paymentEpsilon) >= saleTotal;
+  final parksAsLoan = credit > _paymentEpsilon || !isFullyPaid;
+  return SalePaymentReceiptDecision(
+    isFullyPaid: isFullyPaid,
+    parksAsLoan: parksAsLoan,
+    issueReceiptNow: !transactionAlreadyLoan,
+  );
+}
+
 /// Scales non-CREDIT rows so their sum does not exceed [saleTotal] (matches PreviewCartMixin).
 List<PaymentLineForSaleCompletion> normalizePaymentLinesToSaleTotal({
   required List<PaymentLineForSaleCompletion> paymentMethods,

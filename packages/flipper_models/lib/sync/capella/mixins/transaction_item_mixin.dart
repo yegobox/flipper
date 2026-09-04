@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
@@ -68,6 +69,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         "INSERT INTO transaction_items DOCUMENTS (:doc)",
         arguments: {'doc': docMap},
       );
+      cartLineDocCache.forget(item.transactionId ?? '');
       final lineTotal =
           item.totAmt?.toDouble() ??
           (item.price.toDouble() * item.qty.toDouble());
@@ -665,6 +667,25 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
             talker.error('Error converting transaction item: $e');
           }
         }
+        // Ditto has just told us what this cart holds. Adopting it keeps the
+        // add path's cache honest whatever changed the rows — a delete, a qty
+        // edit, bar mode, or another device — instead of relying on every
+        // mutation site remembering to invalidate.
+        //
+        // This query is filtered (active / doneWithTransaction / branchId), so
+        // what it reports is not always the whole cart, and [seed] replaces the
+        // entry wholesale. The add path therefore treats a cache *miss* as
+        // unproven and confirms it against the store before inserting — see
+        // saveTransactionItem — so an omitted row can no longer become a
+        // duplicate line for the same variant.
+        if (transactionId != null && transactionId.isNotEmpty) {
+          cartLineDocCache.seed(
+            transactionId: transactionId,
+            rows: queryResult.items.map(
+              (doc) => Map<String, dynamic>.from(doc.value),
+            ),
+          );
+        }
         talker.debug(
           'transactionItemsStreams onChange txn=${transactionId ?? '-'}: '
           '${_summarizeItems(items)}',
@@ -770,6 +791,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
           )
           .join(', ');
 
+      // The add path caches this cart's lines by variant; a row changed here
+      // (qty stepper, discount, refund flag) must not stay cached as it was.
+      cartLineDocCache.forgetAll();
       final query =
           'UPDATE transaction_items SET $setClause WHERE _id = :id OR id = :id';
       final arguments = Map<String, dynamic>.from(updates);

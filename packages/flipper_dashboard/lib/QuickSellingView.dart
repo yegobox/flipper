@@ -271,7 +271,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   /// its row has loaded), else the pending cart that owns the on-screen lines.
   ITransaction? _activeCheckoutTransaction() {
     final isExpense = ProxyService.box.isOrdering() ?? false;
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
       final ticket =
           ref.read(transactionByIdProvider(settling.transactionId)).value ??
@@ -498,7 +498,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final isExpense = ProxyService.box.isOrdering() ?? false;
     // Prefer the till ticket being settled so the header matches the settling
     // banner; otherwise show the operator's own pending cart.
-    final settling = ref.watch(settlingTillTicketProvider);
+    final settling = ref.watch(effectiveSettlingTillTicketProvider);
     final cachedPending =
         ref.watch(cachedPendingCartTransactionProvider(isExpense));
     final streamedPending = ref
@@ -558,7 +558,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     final showSaveTicket =
         transaction != null &&
-        ref.watch(settlingTillTicketProvider) == null &&
+        ref.watch(effectiveSettlingTillTicketProvider) == null &&
         ref.watch(posCartDisplayItemsProvider.select((l) => l.isNotEmpty));
 
     return Padding(
@@ -842,7 +842,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Customer details come from the queued ticket while settling; don't pop the
     // operator's own capture panel open in that case.
-    final settling = ref.read(settlingTillTicketProvider) != null;
+    final settling = ref.read(effectiveSettlingTillTicketProvider) != null;
     if (!settling && !_customerFieldsExpanded && mounted) {
       setState(() => _customerFieldsExpanded = true);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1091,7 +1091,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
 
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     // Prefer the settling ticket id when present — Pay may have been bound to a
     // stale pending-cart closure before ticketSnapshot loaded.
     final soldId =
@@ -1393,7 +1393,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         );
         // While settling a till ticket, customer fields come from that ticket
         // (see settlingTillTicketProvider listen below) — not the collector's
-        // own pending cart.
+        // own pending cart. Live session only: a *recovered* session's ticket
+        // IS this pending row, so prefilling from it is both correct and the
+        // only prefill that will run (the listen below never fires for a
+        // session that was rebuilt rather than handed over).
         if (ref.read(settlingTillTicketProvider) != null) return;
         // After park/invalidate, Riverpod emits AsyncLoading that still carries
         // the previous parked row. Prefilling from that re-injects the handed-off
@@ -1504,7 +1507,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // payment init, and — critically — completion) from that ticket rather than
     // the collector's own pending cart. Prefer the live row, else the snapshot
     // captured at Collect so Pay never binds to an empty pending twin.
-    final settlingTicket = ref.watch(settlingTillTicketProvider);
+    final settlingTicket = ref.watch(effectiveSettlingTillTicketProvider);
     final settlingTxn = settlingTicket == null
         ? null
         : (ref.watch(transactionByIdProvider(settlingTicket.transactionId)).value ??
@@ -2730,7 +2733,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required AsyncValue<ITransaction> transactionAsyncValue,
     required CoreViewModel model,
   }) {
-    final settling = ref.watch(settlingTillTicketProvider);
+    // Effective, not live: a resumed ticket whose in-memory settling session was
+    // dropped (reload / restart) must still show the banner and its way back.
+    final settling = ref.watch(effectiveSettlingTillTicketProvider);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2760,7 +2765,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required bool isTransferMode,
     bool includePinnedHeader = true,
   }) {
-    final settling = ref.watch(settlingTillTicketProvider);
+    final settling = ref.watch(effectiveSettlingTillTicketProvider);
     final isSettling = settling != null;
     // View-only staff get a read-only cart table (no price/qty/delete controls).
     final readOnlyCart = isSettling || !ref.watch(canSellProvider);
@@ -3009,7 +3014,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // it as a fixed sibling below QuickSellingView, so it is never literally
     // missing — just painted over). Force the scrollable fallback here so the
     // whole pane scrolls instead of overflowing.
-    final isSettling = ref.watch(settlingTillTicketProvider) != null;
+    final isSettling = ref.watch(effectiveSettlingTillTicketProvider) != null;
 
     final pinnedBottomColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3851,7 +3856,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // cleared locally. parkSaleTicketFast mints the replacement pending cart
     // unawaited, so waiting on the pending stream leaves the parked ticket
     // rendered as the cart for as long as Ditto takes to reconcile.
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling != null) {
       // A settling session scopes posCartDisplayItemsProvider straight to the
       // ticket's item stream, which outranks every clear below.
@@ -3988,13 +3993,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Future<void> _backToNewSaleFromSettling() async {
     if (_backToNewSaleBusy) return;
-    final settling = ref.read(settlingTillTicketProvider);
+    // Matches the banner: works for a session rebuilt from the resumed ticket
+    // as well as a live Collect hand-off.
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling == null) return;
 
     setState(() => _backToNewSaleBusy = true);
     final branchId = ProxyService.box.getBranchId() ?? '';
     try {
-      ITransaction? txn = settling.ticketSnapshot;
+      // Collect forces its snapshot to PENDING at hand-off; a recovered
+      // snapshot is only as fresh as the cart row it came from, so re-read the
+      // row before parking on it.
+      ITransaction? txn = settling.recovered ? null : settling.ticketSnapshot;
       try {
         txn ??= await ProxyService.getStrategy(Strategy.capella).getTransaction(
           id: settling.transactionId,

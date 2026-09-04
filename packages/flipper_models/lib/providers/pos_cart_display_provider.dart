@@ -64,6 +64,60 @@ final posCartPendingTransactionIdProvider = Provider.family<String?, bool>((
   return optId;
 });
 
+/// Settling session for the cart on screen: the live hand-off when one is set,
+/// else one rebuilt from the resumed ticket itself.
+///
+/// [settlingTillTicketProvider] lives only in memory, so anything that drops it
+/// mid-collection (a web reload, an app restart, a re-created provider scope)
+/// left the resumed ticket rendering as a plain cart: no settling banner, no
+/// "Back to new sale", an editable cart, and Pay bound to whatever the pending
+/// stream happened to emit. Everything that asks "am I collecting a ticket?"
+/// reads this; only the hand-off paths themselves (Collect / Resume / re-park /
+/// completion) read and write [settlingTillTicketProvider] directly.
+///
+/// Resolution order mirrors [posCartPendingTransactionIdProvider]: a pin wins
+/// (mobile checkout and ticket resume pin their sale), then the cache, then the
+/// pending stream. The pinned row is looked up through [transactionByIdProvider]
+/// only when neither of those already holds it, so the common POS path opens no
+/// extra Ditto observer.
+///
+/// Returns null for a suppressed id — a just-completed or just-re-parked ticket
+/// is suppressed before its row leaves PENDING, and recovering from it would
+/// flash the banner back on (or, worse, re-park a sale that just completed).
+final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((ref) {
+  final live = ref.watch(settlingTillTicketProvider);
+  if (live != null) return live;
+
+  // Purchases (ordering mode) never go through the till queue.
+  if (_posCartIsExpense()) return null;
+
+  final cached = ref.watch(cachedPendingCartTransactionProvider(false));
+  final streamed = ref
+      .watch(pendingTransactionStreamProvider(isExpense: false))
+      .asData
+      ?.value;
+  final pinnedId = ref.watch(pinnedPosCartTransactionIdProvider);
+
+  // Only when the pinned sale is held by neither of the rows the checkout is
+  // already observing — so the common POS path opens no extra Ditto observer.
+  final needsLookup = pinnedId != null &&
+      pinnedId.isNotEmpty &&
+      cached?.id != pinnedId &&
+      streamed?.id != pinnedId;
+
+  return recoverSettlingTillTicketFromResumedCart(
+    settlingRecoveryCartRow(
+      cached: cached,
+      streamed: streamed,
+      pinnedRow: needsLookup
+          ? ref.watch(transactionByIdProvider(pinnedId)).asData?.value
+          : null,
+      pinnedId: pinnedId,
+      suppressedId: ref.watch(suppressedCartTransactionIdProvider),
+    ),
+  );
+});
+
 /// Transaction id used to merge Ditto line items with optimistic ghosts.
 final posCartMergeTxnIdProvider = Provider.family<String, bool>((ref, isExpense) {
   final pendingId = ref.watch(posCartPendingTransactionIdProvider(isExpense));

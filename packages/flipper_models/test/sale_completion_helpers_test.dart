@@ -397,4 +397,84 @@ void main() {
       expect(stamp!.day, 7, reason: 'sold on the 7th, not the cart-mint day');
     });
   });
+
+  group('decideSalePaymentReceipt', () {
+    test('a fully paid cash sale issues its receipt and does not park', () {
+      final d = decideSalePaymentReceipt(
+        transactionAlreadyLoan: false,
+        priorNonCreditPaid: 0,
+        tenderAmount: 1000,
+        creditTenderAmount: 0,
+        saleTotal: 1000,
+      );
+      expect(d.isFullyPaid, true);
+      expect(d.parksAsLoan, false);
+      expect(d.issueReceiptNow, true);
+    });
+
+    test('a part-paid sale parks as a loan and still issues the receipt', () {
+      final d = decideSalePaymentReceipt(
+        transactionAlreadyLoan: false,
+        priorNonCreditPaid: 0,
+        tenderAmount: 400,
+        creditTenderAmount: 0,
+        saleTotal: 1000,
+      );
+      expect(d.isFullyPaid, false);
+      expect(d.parksAsLoan, true);
+      expect(d.issueReceiptNow, true);
+    });
+
+    test('a full CREDIT sale is not paid, parks, and still gets a receipt', () {
+      final d = decideSalePaymentReceipt(
+        transactionAlreadyLoan: false,
+        priorNonCreditPaid: 0,
+        tenderAmount: 1000,
+        creditTenderAmount: 1000,
+        saleTotal: 1000,
+      );
+      expect(d.isFullyPaid, false);
+      expect(d.parksAsLoan, true);
+      expect(d.issueReceiptNow, true);
+    });
+
+    test('cash plus credit still parks — the credit half is owed, not paid', () {
+      final d = decideSalePaymentReceipt(
+        transactionAlreadyLoan: false,
+        priorNonCreditPaid: 0,
+        tenderAmount: 1000,
+        creditTenderAmount: 600,
+        saleTotal: 1000,
+      );
+      expect(d.isFullyPaid, false);
+      expect(d.parksAsLoan, true);
+      expect(d.issueReceiptNow, true);
+    });
+
+    test('a later installment on a parked loan issues no second receipt', () {
+      final d = decideSalePaymentReceipt(
+        transactionAlreadyLoan: true,
+        priorNonCreditPaid: 400,
+        tenderAmount: 600,
+        creditTenderAmount: 0,
+        saleTotal: 1000,
+      );
+      expect(d.isFullyPaid, true, reason: 'the loan is settled by this tender');
+      expect(d.parksAsLoan, false);
+      expect(d.issueReceiptNow, false,
+          reason: 'it was receipted when the goods went out');
+    });
+
+    test('a sub-epsilon shortfall counts as paid, not as a loan', () {
+      final d = decideSalePaymentReceipt(
+        transactionAlreadyLoan: false,
+        priorNonCreditPaid: 0,
+        tenderAmount: 999.99999,
+        creditTenderAmount: 0,
+        saleTotal: 1000,
+      );
+      expect(d.isFullyPaid, true);
+      expect(d.parksAsLoan, false);
+    });
+  });
 }

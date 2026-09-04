@@ -120,10 +120,18 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   void dispose() {
     final container = _container;
     if (container != null) {
-      clearPinnedPosCartTransactionContainer(container);
       // Never clear settling without re-parking — that left a PENDING till
       // ticket invisible on the Tickets list after a system back / swipe-away.
-      final settling = container.read(settlingTillTicketProvider);
+      // Effective, not live: read off the container's pending-cart providers
+      // (never the route's own stale [widget.transaction]) so a completed sale
+      // — which suppresses its id and drops the cache — cannot look like a
+      // ticket that still needs parking.
+      //
+      // Read *before* dropping the pin: a recovered session resolves through
+      // [pinnedPosCartTransactionIdProvider], which is how this route holds its
+      // ticket, so clearing first can leave nothing to re-park.
+      final settling = container.read(effectiveSettlingTillTicketProvider);
+      clearPinnedPosCartTransactionContainer(container);
       if (settling != null && !_settlingLeaveHandled) {
         unawaited(_reparkSettlingViaContainer(container, settling));
       }
@@ -138,13 +146,28 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   ) async {
     try {
       final branchId = settling.branchId ?? _branchId;
-      final txn = settling.ticketSnapshot ??
+      // A recovered snapshot is only as fresh as the pending row it came from,
+      // and this path runs unattended (system back / swipe-away) — re-read the
+      // row so a sale that has since completed is never parked back into the
+      // till queue. Collect's own snapshot is forced PENDING at hand-off.
+      final txn = (settling.recovered ? null : settling.ticketSnapshot) ??
           await ProxyService.getStrategy(Strategy.capella).getTransaction(
             id: settling.transactionId,
             branchId: branchId,
           );
-      if (txn != null &&
-          (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
+      if (txn == null) {
+        // Unresolved is not the same as gone. This lookup is branch-scoped and
+        // local, so it can miss a row that is still PENDING — and the re-read
+        // above means recovered sessions always reach it. Clearing here would
+        // strand the ticket: PENDING, off the till queue, on nobody's cart.
+        // Keep the session so the next POS surface can finish the re-park.
+        tv_talk.talker.warning(
+          'Mobile checkout dispose re-park: ticket ${settling.transactionId} '
+          'did not resolve — settling kept, not cleared.',
+        );
+        return;
+      }
+      if ((txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
         await ParkTransactionService.park(
           ticketName: pendingSaleCartReparkTicketName(
             id: settling.transactionId,
@@ -158,6 +181,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           customerId: txn.customerId,
         );
       }
+      // Parked, or confirmed to have left PENDING already (completed, sent for
+      // review): either way this session is finished.
       container.read(settlingTillTicketProvider.notifier).state = null;
       _settlingLeaveHandled = true;
     } catch (e, st) {
@@ -195,7 +220,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     // Bind the on-screen sale — settling snapshot first, else the same id as
     // this checkout route. Unconditionally reading the pending stream parked
     // the collector's empty twin while settling (desktop had the same bug).
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     final streamedPending =
         ref.read(pendingTransactionStreamProvider(isExpense: false)).value;
     final ITransaction txn;
@@ -329,7 +354,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
 
   Future<void> _backToNewSaleFromSettling() async {
     if (_backToNewSaleBusy) return;
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling == null) return;
 
     setState(() => _backToNewSaleBusy = true);
@@ -621,7 +646,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
   }
 
   Future<void> _navigateToSuccessScreen({required double total}) async {
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     final wasSettling = settling != null;
     final items = await ref.read(
       transactionItemsStreamProvider(
@@ -829,7 +854,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
     String? providerPhone,
     Customer? attached,
   }) {
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     final settlingThisTicket =
         settling != null && settling.transactionId == txn.id;
     final candidates = settlingThisTicket
@@ -1002,7 +1027,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
       });
 
     final transactionAsync = ref.watch(transactionByIdProvider(_transactionId));
-    final settling = ref.watch(settlingTillTicketProvider);
+    final settling = ref.watch(effectiveSettlingTillTicketProvider);
     final customerPhone = ref.watch(customerPhoneNumberProvider);
     final digitalEnabled =
         ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
@@ -1149,6 +1174,7 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             final itemCount = items
                 .fold<double>(0, (s, i) => s + _displayQtyFor(i))
                 .round();
+
 
             var footerPrimaryLabel = !canCollect
                 ? 'Send to Till →'

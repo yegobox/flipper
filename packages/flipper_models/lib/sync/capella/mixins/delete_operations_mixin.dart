@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/interfaces/delete_operations_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -73,6 +74,10 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
       talker.info('Deleted transaction item $id from Ditto');
 
       final txnId = transactionId ?? transactionItemId.transactionId;
+      // The add path caches this cart's lines; a deleted row left cached makes
+      // the next tap on that product update a document that no longer exists,
+      // so the line never comes back.
+      cartLineDocCache.forget(txnId ?? '');
       if (txnId != null) {
         final contrib =
             transactionItemId.price.toDouble() * transactionItemId.qty.toDouble();

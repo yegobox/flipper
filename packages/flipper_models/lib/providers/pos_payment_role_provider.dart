@@ -138,6 +138,7 @@ class SettlingTillTicket {
     this.ticketNote,
     this.seedItems = const <TransactionItem>[],
     this.ticketSnapshot,
+    this.recovered = false,
   });
 
   final String transactionId;
@@ -163,6 +164,94 @@ class SettlingTillTicket {
   /// this sale before [transactionByIdProvider] resolves (avoids completing
   /// the collector's empty pending cart).
   final ITransaction? ticketSnapshot;
+
+  /// True when this session was rebuilt from the cart row itself
+  /// ([recoverSettlingTillTicketFromResumedCart]) instead of being handed over
+  /// by Collect/Resume.
+  ///
+  /// Collect forces `ticketSnapshot.status = PENDING` at hand-off, so re-park
+  /// paths can trust it; a recovered snapshot is only as fresh as the pending
+  /// row it came from, so **re-read the row before parking on it** — parking a
+  /// sale that has since completed would resurrect it as a ticket.
+  final bool recovered;
+}
+
+/// Short human reference for a ticket — `reference` when set, else a truncated
+/// transaction id. Mirrors what the tickets list and the settling banner show.
+String settlingTicketDisplayRef(ITransaction ticket) {
+  final reference = ticket.reference?.trim();
+  if (reference != null && reference.isNotEmpty) return reference.toUpperCase();
+  final id = ticket.id;
+  if (id.length >= 6) return id.substring(0, 6).toUpperCase();
+  return id.toUpperCase();
+}
+
+/// Rebuilds a settling session from a resumed till ticket still sitting in the
+/// cart.
+///
+/// [settlingTillTicketProvider] is in-memory only, so a reload / restart / route
+/// rebuild between Collect and Pay dropped it while the ticket stayed PENDING on
+/// screen — the checkout then rendered the ticket's lines with no settling
+/// banner and no way back to a new sale. Resume keeps `ticketName` (only park
+/// writes it, and a freshly minted pending cart never has one), so a PENDING row
+/// carrying one is a resumed ticket and can seed a session again.
+///
+/// `createdAt` is the park stamp ([parkSaleTicketFast] writes it, resume leaves
+/// it alone), so the banner's elapsed time stays honest.
+SettlingTillTicket? recoverSettlingTillTicketFromResumedCart(
+  ITransaction? ticket,
+) {
+  if (ticket == null || ticket.id.isEmpty) return null;
+  if ((ticket.status ?? '').toLowerCase() != PENDING.toLowerCase()) return null;
+  final ticketName = ticket.ticketName?.trim() ?? '';
+  if (ticketName.isEmpty) return null;
+
+  return SettlingTillTicket(
+    transactionId: ticket.id,
+    displayRef: settlingTicketDisplayRef(ticket),
+    // The sender is not recoverable from the row — resume overwrites `agentId`
+    // with the collector — so fall back to the same generic name Collect uses.
+    creatorName: 'Staff',
+    createdAt: ticket.createdAt ?? ticket.lastTouched ?? DateTime.now(),
+    branchId: ticket.branchId,
+    ticketName: ticketName,
+    ticketNote: ticket.note,
+    ticketSnapshot: ticket,
+    recovered: true,
+  );
+}
+
+/// The cart row a settling session may be rebuilt from, or null.
+///
+/// Pure so the precedence and the suppression guard can be tested without Ditto.
+/// Mirrors [posCartPendingTransactionIdProvider]: a pin wins outright (mobile
+/// checkout and ticket resume pin their sale, and while a pin is held the cache
+/// / stream may still be pointing at the operator's other cart), otherwise the
+/// cache is preferred over the stream. [pinnedRow] is the pinned id looked up
+/// directly — only needed when neither [cached] nor [streamed] holds it.
+///
+/// A suppressed id yields null: a just-completed or just-re-parked ticket is
+/// suppressed *before* its row leaves PENDING, and rebuilding a session from it
+/// would re-show the banner over the next sale, or re-park a completed one.
+ITransaction? settlingRecoveryCartRow({
+  ITransaction? cached,
+  ITransaction? streamed,
+  ITransaction? pinnedRow,
+  String? pinnedId,
+  String? suppressedId,
+}) {
+  if (pinnedId != null && pinnedId.isNotEmpty) {
+    if (suppressedId == pinnedId) return null;
+    for (final candidate in [cached, streamed, pinnedRow]) {
+      if (candidate != null && candidate.id == pinnedId) return candidate;
+    }
+    return null;
+  }
+
+  final row = (cached != null && cached.id.isNotEmpty) ? cached : streamed;
+  if (row == null || row.id.isEmpty) return null;
+  if (suppressedId != null && suppressedId == row.id) return null;
+  return row;
 }
 
 /// Non-null while a Manager/Admin is settling a queued till ticket in the cart.
