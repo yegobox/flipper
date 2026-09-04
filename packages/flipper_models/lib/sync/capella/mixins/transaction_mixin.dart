@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/sync/utils/pending_subtotal_deltas.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
@@ -1769,7 +1770,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       var subtotalMs = 0;
       if (updatePendingTransactionSubtotal && delta != 0) {
         final subtotalSw = Stopwatch()..start();
-        await dittoAdjustTransactionSubtotalByDelta(
+        _scheduleSubtotalDelta(
           transactionId: pendingTransaction.id,
           delta: delta,
         );
@@ -2096,6 +2097,41 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
   }
 
+  /// Cart subtotal deltas not yet written to the parent transaction document.
+  static final PendingSubtotalDeltas _pendingSubtotalDeltas =
+      PendingSubtotalDeltas();
+
+  /// Defers the parent-row subtotal write until a burst of taps stops.
+  ///
+  /// See [PendingSubtotalDeltas] for why the per-line write is not needed and
+  /// what must discard a gathered delta.
+  void _scheduleSubtotalDelta({
+    required String transactionId,
+    required double delta,
+  }) {
+    _pendingSubtotalDeltas.add(
+      transactionId: transactionId,
+      delta: delta,
+      onFlush: (id, summed) =>
+          dittoAdjustTransactionSubtotalByDelta(transactionId: id, delta: summed),
+    );
+  }
+
+  /// Writes the gathered delta for [transactionId] now, if any is owed.
+  Future<void> flushPendingSubtotalDelta({
+    required String transactionId,
+  }) {
+    return _pendingSubtotalDeltas.flush(
+      transactionId: transactionId,
+      onFlush: (id, summed) =>
+          dittoAdjustTransactionSubtotalByDelta(transactionId: id, delta: summed),
+    );
+  }
+
+  /// Drops the gathered delta for [transactionId] without writing it.
+  static void _discardPendingSubtotalDelta(String transactionId) =>
+      _pendingSubtotalDeltas.discard(transactionId);
+
   Future<void> dittoAdjustTransactionSubtotalByDelta({
     required String transactionId,
     required double delta,
@@ -2131,7 +2167,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required double unitPrice,
     required double qtyDelta,
   }) async {
-    await dittoAdjustTransactionSubtotalByDelta(
+    _scheduleSubtotalDelta(
       transactionId: transactionId,
       delta: unitPrice * qtyDelta,
     );
@@ -2260,7 +2296,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (status != null) {
       addUpdate('status', status);
     }
-    addUpdate('subTotal', subTotal ?? transaction?.subTotal);
+    final resolvedSubTotal = subTotal ?? transaction?.subTotal;
+    if (resolvedSubTotal != null && targetId.isNotEmpty) {
+      // An absolute subtotal supersedes any gathered cart delta; applying the
+      // delta afterwards would add cart lines twice to a finished total.
+      _discardPendingSubtotalDelta(targetId);
+    }
+    addUpdate('subTotal', resolvedSubTotal);
     addUpdate('taxAmount', transaction?.taxAmount);
     addUpdate('cashierName', cashierName);
     final resolvedUpdatedAt =
@@ -2849,6 +2891,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'Retry after cart lines finish saving.',
       );
     }
+    // Past the guard: this park is writing an absolute subtotal, so a gathered
+    // cart delta must not land on top of it afterwards.
+    _discardPendingSubtotalDelta(targetId);
 
     // POS tickets list filters `isOriginalTransaction = true`; ensure park
     // always lands in that set (kitchen already skips this check).
