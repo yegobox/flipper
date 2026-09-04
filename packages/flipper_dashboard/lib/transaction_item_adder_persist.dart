@@ -166,9 +166,14 @@ Future<bool> persistItemToTransaction({
   final queuedAtLock = DateTime.now();
   await _persistLock.synchronized(() async {
     final lockSw = Stopwatch()..start();
-    final sincePrev = _lastCartWriteFinishedAt == null
+    final grantedAt = DateTime.now();
+    // Time this write spent behind the ones ahead of it...
+    final lockWaitMs = grantedAt.difference(queuedAtLock).inMilliseconds;
+    // ...as against time the queue sat idle with nothing running, which no
+    // store call can account for.
+    final idleMs = _lastCartWriteFinishedAt == null
         ? -1
-        : queuedAtLock.difference(_lastCartWriteFinishedAt!).inMilliseconds;
+        : grantedAt.difference(_lastCartWriteFinishedAt!).inMilliseconds;
     var storeMs = -1;
     // A `-` on the still-unsaved line asked for this add back. It already took
     // the qty out of the optimistic cart, so abort *without* rolling back again
@@ -281,7 +286,8 @@ Future<bool> persistItemToTransaction({
       ref: ref,
       storeMs: storeMs,
       lockHoldMs: lockSw.elapsedMilliseconds,
-      sincePrevMs: sincePrev,
+      lockWaitMs: lockWaitMs,
+      idleMs: idleMs,
     );
   });
 
@@ -293,22 +299,24 @@ Future<bool> persistItemToTransaction({
 /// Reports what one cart write cost, and what happened between writes.
 ///
 /// A backlog that will not drain is either slow writes or a busy isolate, and
-/// the two want opposite fixes. `store_ms` is the write; `since_prev_ms` is
-/// dead time between writes, which the store cannot explain.
+/// the two want opposite fixes. `store_ms` is the write itself, `wait_ms` is
+/// time queued behind earlier writes, and `idle_ms` is dead time with nothing
+/// running at all — which no store call can account for.
 void _logCartWriteTiming({
   required Ref ref,
   required int storeMs,
   required int lockHoldMs,
-  required int sincePrevMs,
+  required int lockWaitMs,
+  required int idleMs,
 }) {
   final queued = ref.read(optimisticCartProvider.notifier).queuedAddCount;
   final lines = ref.read(posCartDisplayItemsProvider).length;
   final message =
       '[cart_write] store_ms=$storeMs lock_hold_ms=$lockHoldMs '
-      'since_prev_ms=$sincePrevMs queued=$queued lines=$lines';
+      'wait_ms=$lockWaitMs idle_ms=$idleMs queued=$queued lines=$lines';
   // A cart write is a handful of local store calls; a second is not a slow
   // write, it is a symptom, and it is what stalls Pay on a large cart.
-  if (storeMs >= 1000 || sincePrevMs >= 1000) {
+  if (storeMs >= 1000 || idleMs >= 1000) {
     talker.warning(message);
   } else {
     talker.debug(message);

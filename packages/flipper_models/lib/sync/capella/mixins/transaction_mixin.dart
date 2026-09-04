@@ -1577,7 +1577,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'variantId': variation.id,
       };
 
+      final lookupSw = Stopwatch()..start();
       final result = await ditto.store.execute(query, arguments: args);
+      final lookupMs = lookupSw.elapsedMilliseconds;
+      var seqMs = 0;
+      var upsertMs = 0;
 
       // Optimize SubTotal calculation by avoiding full re-fetch of items
       double delta = 0.0;
@@ -1628,6 +1632,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           taxPercentage: taxPct.toDouble(),
         );
 
+        final upsertSw = Stopwatch()..start();
         await ditto.store.execute(
           "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, dcRt = :dcRt, dcAmt = :dcAmt, discount = :discount, taxblAmt = :taxblAmt, taxAmt = :taxAmt, updatedAt = :updatedAt WHERE _id = :id",
           arguments: {
@@ -1647,6 +1652,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           },
         );
 
+        upsertMs = upsertSw.elapsedMilliseconds;
+
         delta = newPricing.subtotalNet - oldPricing.subtotalNet;
       } else {
         // Insert new item — assign per-transaction line seq (legacy Brick parity).
@@ -1660,6 +1667,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         //
         // ORDER BY is fine in a store query — Ditto 5 only rejects it in *sync
         // subscriptions* (see transaction_item_mixin.dart:126 for the shape).
+        final seqSw = Stopwatch()..start();
         int? nextItemSeq = _cartLineSeqCache.nextFor(pendingTransaction.id);
         if (nextItemSeq == null) {
           final seqResult = await ditto.store.execute(
@@ -1672,6 +1680,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
               : ((seqResult.items.first.value['itemSeq'] as num?)?.toInt() ?? 0);
           nextItemSeq = maxSeq + 1;
         }
+        seqMs = seqSw.elapsedMilliseconds;
         _cartLineSeqCache.record(
           transactionId: pendingTransaction.id,
           seq: nextItemSeq,
@@ -1745,21 +1754,43 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final docMap = await TransactionItemDittoAdapter.instance
             .toDittoDocument(newItem);
 
+        final insertSw = Stopwatch()..start();
         await ditto.store.execute(
           "INSERT INTO transaction_items DOCUMENTS (:doc)",
           arguments: {'doc': docMap},
         );
+        upsertMs = insertSw.elapsedMilliseconds;
         // Ensure we pass the created item to background sync to prevent duplicates
         item = newItem;
 
         delta = pricing.subtotalNet;
       }
 
+      var subtotalMs = 0;
       if (updatePendingTransactionSubtotal && delta != 0) {
+        final subtotalSw = Stopwatch()..start();
         await dittoAdjustTransactionSubtotalByDelta(
           transactionId: pendingTransaction.id,
           delta: delta,
         );
+        subtotalMs = subtotalSw.elapsedMilliseconds;
+      }
+
+      // Which store call a slow cart write spent its time in. The subtotal
+      // bump writes the *transactions* document, which every branch-wide
+      // `SELECT * FROM transactions` observer wakes on; the item calls do not.
+      // Separating them says whether a stalled cart is the line write or the
+      // parent-row write it triggers.
+      final storeTotalMs = lookupMs + seqMs + upsertMs + subtotalMs;
+      final storeBreakdown =
+          '[cart_write_store] lookup_ms=$lookupMs seq_ms=$seqMs '
+          'upsert_ms=$upsertMs subtotal_ms=$subtotalMs '
+          'mode=${result.items.isNotEmpty ? 'update' : 'insert'} '
+          'total_ms=$storeTotalMs';
+      if (storeTotalMs >= 1000) {
+        talker.warning(storeBreakdown);
+      } else {
+        talker.debug(storeBreakdown);
       }
 
       return true;
