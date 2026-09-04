@@ -894,6 +894,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           .where((item) => item.itemTyCd != "3")
           .toList();
 
+      final stockCheckSw = Stopwatch()..start();
       final saleSettingsSvc = locator<SettingsService>();
       allowSellingBelowStock =
           await saleSettingsSvc.isAllowSellingBelowStock();
@@ -910,9 +911,20 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           return false;
         }
       }
+      logSaleCompletionStage(
+        'stock_validation',
+        stockCheckSw.elapsedMilliseconds,
+        extra: 'lines=${itemsToValidate.length} '
+            'allow_below_stock=$allowSellingBelowStock',
+      );
 
+      final proformaSw = Stopwatch()..start();
       final bool isProformaOrTraining =
           await TurboTaxService.handleProformaOrTrainingMode();
+      logSaleCompletionStage(
+        'proforma_training_check',
+        proformaSw.elapsedMilliseconds,
+      );
 
       final receiptTypeForStock = getFilterType(
         transactionType: transaction.receiptType,
@@ -983,13 +995,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       if (!isValid) return false;
 
+      final digitalFlagSw = Stopwatch()..start();
       final isDigitalPaymentEnabled = await ProxyService.getStrategy(
         Strategy.capella,
       ).isBranchEnableForPayment(
             currentBranchId: branchId,
             fetchRemote: false,
           );
+      logSaleCompletionStage(
+        'digital_payment_flag',
+        digitalFlagSw.elapsedMilliseconds,
+      );
 
+      final customerSw = Stopwatch()..start();
       Customer? customer = await _resolveAttachedCustomerForSale(
         transaction: transaction,
         hint: attachedCustomerHint,
@@ -998,6 +1016,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             isDigitalPaymentEnabled ||
             (transaction.customerId != null &&
                 transaction.customerId!.isNotEmpty),
+      );
+
+      logSaleCompletionStage(
+        'resolve_customer',
+        customerSw.elapsedMilliseconds,
+        extra: 'found=${customer != null}',
       );
 
       final String? ticketName =
@@ -1036,6 +1060,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         return true;
       } else {
         // Process cash payment or skip digital payment if immediateCompletion is true
+        final finalStepSw = Stopwatch()..start();
         await _finalStepInCompletingTransaction(
           customer: customer,
           transaction: transaction,
@@ -1066,7 +1091,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 ProxyService.settings.enableTicketReviewWorkflow &&
                 !mark.wasLoan;
             if (!reviewWorkflowDefersStock) {
+              // Awaited here, so it is the operator's wait despite the
+              // "deferred" name — the trace must say so.
+              final stockSw = Stopwatch()..start();
               await awaitPostSaleStockDeduction();
+              logSaleCompletionStage(
+                'post_sale_stock_deduction',
+                stockSw.elapsedMilliseconds,
+              );
             }
             final deferredPayments = mark.deferredPayments;
             if (deferredPayments != null && deferredPayments.isNotEmpty) {
@@ -1080,11 +1112,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             // Empty the cart and drop the completing lock *before* snackbar /
             // stopLoading. Otherwise the operator can tap products onto the
             // just-sent ticket while the old cart is still on screen.
+            final clearSw = Stopwatch()..start();
             try {
               await _invokeCompleteTransactionCallback(completeTransaction);
             } catch (e, s) {
               talker.error('Error in completeTransaction callback: $e', s);
             }
+            logSaleCompletionStage('clear_cart', clearSw.elapsedMilliseconds);
             // Let the checkout header rebuild with the new cached Txn ID before
             // the toast paints — otherwise the message appears on the old id.
             // Bounded: a backgrounded window produces no frames, and this must
@@ -1117,6 +1151,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             _resetDigitalReceiptToggleAfterSale();
           },
         );
+        logSaleCompletionStage('final_step', finalStepSw.elapsedMilliseconds);
         talker.debug(
           '[sale_completion_timing] flow_total_sync_completion_ms=${flowWatch.elapsedMilliseconds}',
         );

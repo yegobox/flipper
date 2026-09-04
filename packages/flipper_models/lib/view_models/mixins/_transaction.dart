@@ -83,6 +83,7 @@ mixin TransactionMixinOld {
       if (businessId == null || branchId == null) {
         throw Exception('Business ID or Branch ID not found');
       }
+      final preambleSw = Stopwatch()..start();
       final taxEnabled = await ProxyService.getStrategy(
         Strategy.capella,
       ).isTaxEnabled(businessId: businessId, branchId: branchId);
@@ -92,6 +93,11 @@ mixin TransactionMixinOld {
       ).ebm(branchId: branchId, fetchRemote: false);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
+      logSaleCompletionStage(
+        'finalize_preamble',
+        preambleSw.elapsedMilliseconds,
+        extra: 'tax_enabled=$taxEnabled has_ebm=${ebm != null}',
+      );
 
       final isLoan = transaction.isLoan == true;
       final isFullyPaid =
@@ -118,6 +124,7 @@ mixin TransactionMixinOld {
         'transactionId=${transaction.id}',
       );
       if (deferForReview) {
+        SaleCompletionTrace.current?.note('branch=defer_for_review');
         if (skipTransactionPersist) {
           // Record payment fields in memory; onComplete persists the balances.
           applySalePaymentFieldsInMemory(
@@ -172,7 +179,12 @@ mixin TransactionMixinOld {
             skipTransactionPersist: skipTransactionPersist,
           );
         }
+        final reviewCompleteSw = Stopwatch()..start();
         await _awaitPossibleFuture(onComplete());
+        logSaleCompletionStage(
+          'on_complete',
+          reviewCompleteSw.elapsedMilliseconds,
+        );
         return RwApiResponse(
           resultCd: "001",
           resultMsg: "Payment recorded — pending review",
@@ -196,6 +208,7 @@ mixin TransactionMixinOld {
 
         // Quick-selling: RRA sign → persist sale → UI success, then PDF/print.
         if (deferPersistTaxReceiptFields) {
+          SaleCompletionTrace.current?.note('branch=quick_sell_sign');
           final completionSw = Stopwatch()..start();
           final signSw = Stopwatch()..start();
           final signOutcome = await handleReceiptGeneration(
@@ -313,6 +326,8 @@ mixin TransactionMixinOld {
           return response;
         }
 
+        SaleCompletionTrace.current?.note('branch=tax_receipt');
+        final receiptSw = Stopwatch()..start();
         final receiptOutcome = await handleReceiptGeneration(
           formKey: formKey,
           context: context,
@@ -324,10 +339,15 @@ mixin TransactionMixinOld {
           transactionItems: preloadedLineItemsForCollectPayment,
           customer: customer,
         );
+        logSaleCompletionStage(
+          'receipt_generation',
+          receiptSw.elapsedMilliseconds,
+        );
         response = receiptOutcome.response;
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
         } else {
+          final afterTaxSw = Stopwatch()..start();
           await _completeTransactionAfterTaxValidation(
             transaction,
             customerName: customerNameController.text,
@@ -336,11 +356,17 @@ mixin TransactionMixinOld {
             tenderAmount: amount,
             skipTransactionPersist: skipTransactionPersist,
           );
+          logSaleCompletionStage(
+            'complete_after_tax_validation',
+            afterTaxSw.elapsedMilliseconds,
+          );
         }
       } else {
+        SaleCompletionTrace.current?.note('branch=no_tax_receipt');
         // For non-tax enabled scenarios OR partial loan payments, complete the transaction data update
         // but it won't be marked as COMPLETE in the DB yet if it's a partial loan payment
         // because collectPayment (called inside) only updates cashReceived and balance.
+        final noTaxSw = Stopwatch()..start();
         await _completeTransactionAfterTaxValidation(
           transaction,
           customerName: customerNameController.text,
@@ -349,6 +375,10 @@ mixin TransactionMixinOld {
           tenderAmount: amount,
           skipTransactionPersist: skipTransactionPersist,
         );
+        logSaleCompletionStage(
+          'complete_after_tax_validation',
+          noTaxSw.elapsedMilliseconds,
+        );
 
         // Branch is not EBM-registered (or EBM/tax checks above failed for
         // another reason): there's no RRA-signed receipt to print, but the
@@ -356,6 +386,7 @@ mixin TransactionMixinOld {
         // receipt instead. Only for a real, fully paid sale completion —
         // never for partial loan payments, which never got a receipt either.
         if (!isLoan && shouldComplete && isFullyPaid && !sendDigitalReceipt) {
+          final plainReceiptSw = Stopwatch()..start();
           try {
             final items = preloadedLineItemsForCollectPayment ??
                 await ProxyService.getStrategy(
@@ -383,11 +414,20 @@ mixin TransactionMixinOld {
           } catch (e, s) {
             talker.error('Non-fiscal receipt print failed: $e', s);
           }
+          logSaleCompletionStage(
+            'non_fiscal_receipt',
+            plainReceiptSw.elapsedMilliseconds,
+          );
         }
       }
 
       if (response == null) {
+        final tailCompleteSw = Stopwatch()..start();
         await _awaitPossibleFuture(onComplete());
+        logSaleCompletionStage(
+          'on_complete',
+          tailCompleteSw.elapsedMilliseconds,
+        );
         return RwApiResponse(
           resultCd: "001",
           resultMsg: isLoan && !isFullyPaid
@@ -397,7 +437,12 @@ mixin TransactionMixinOld {
       }
 
       // Only call onComplete on success, not on error
+      final successCompleteSw = Stopwatch()..start();
       await _awaitPossibleFuture(onComplete());
+      logSaleCompletionStage(
+        'on_complete',
+        successCompleteSw.elapsedMilliseconds,
+      );
 
       return response;
     } catch (e) {

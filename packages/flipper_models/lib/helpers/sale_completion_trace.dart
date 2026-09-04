@@ -22,25 +22,47 @@ class SaleCompletionTrace {
 
   static void end() => _current = null;
 
-  final List<MapEntry<String, int>> _stages = <MapEntry<String, int>>[];
+  final Stopwatch _flow = Stopwatch()..start();
+  final List<_TracedStage> _stages = <_TracedStage>[];
+  final List<String> _notes = <String>[];
 
   void record(String stage, int ms) {
     // A runaway flow must not grow this without bound.
     if (_stages.length >= 64) return;
-    _stages.add(MapEntry(stage, ms));
+    _stages.add(_TracedStage(stage, ms, _flow.elapsedMilliseconds));
   }
 
-  /// Stages worth reading, in the order they finished.
+  /// Records a fact that is not a duration — which branch the sale took.
+  void note(String note) {
+    if (_notes.length >= 8 || _notes.contains(note)) return;
+    _notes.add(note);
+  }
+
+  /// Stages worth reading, in the order they finished, as `name=took@at`.
   ///
-  /// An enclosing stage finishes after the stages inside it, so these do not
-  /// sum to the total — read it as "what had happened by then", not a split.
+  /// `at` is milliseconds from the start of the flow to when the stage
+  /// finished. Durations alone cannot show a gap: the first breakdown of a
+  /// 29s sale listed 5.6s of stages and no hint that the other 24s was in
+  /// code nobody had timed. With `at`, a gap between one stage ending and the
+  /// next starting is visible on the line itself.
   String summary({int minMs = 100}) {
     final parts = <String>[
       for (final stage in _stages)
-        if (stage.value >= minMs) '${stage.key}=${stage.value}',
+        if (stage.tookMs >= minMs) '${stage.name}=${stage.tookMs}@${stage.atMs}',
+      ..._notes,
     ];
     return parts.join(' ');
   }
+}
+
+class _TracedStage {
+  const _TracedStage(this.name, this.tookMs, this.atMs);
+
+  final String name;
+  final int tookMs;
+
+  /// Flow-relative milliseconds at which the stage finished.
+  final int atMs;
 }
 
 /// Logs one completion stage and records it on the active trace.

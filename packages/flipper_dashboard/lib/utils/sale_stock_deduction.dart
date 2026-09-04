@@ -1,3 +1,4 @@
+import 'package:flipper_models/helpers/sale_completion_trace.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -90,9 +91,11 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   }).toList();
 
   if (isProformaOrTraining || candidateItems.isEmpty) {
-    talker.debug(
-      '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
-      'skipped=${isProformaOrTraining ? "proforma_training" : "no_stock_lines"}',
+    logSaleCompletionStage(
+      'deferred_stock_deduction',
+      sw.elapsedMilliseconds,
+      extra:
+          'skipped=${isProformaOrTraining ? "proforma_training" : "no_stock_lines"}',
     );
     return originalStockQuantities;
   }
@@ -130,9 +133,10 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
   }).toList();
 
   if (itemsNeedingDeduction.isEmpty) {
-    talker.debug(
-      '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
-      'skipped=already_deducted',
+    logSaleCompletionStage(
+      'deferred_stock_deduction',
+      sw.elapsedMilliseconds,
+      extra: 'skipped=already_deducted',
     );
     return originalStockQuantities;
   }
@@ -205,9 +209,11 @@ Future<Map<String, double>> applyDeferredSaleStockDeduction({
     );
   }
 
-  talker.debug(
-    '[sale_completion_timing] deferred_stock_deduction_ms=${sw.elapsedMilliseconds} '
-    'lines=${itemsNeedingDeduction.length} stocks=${deductByStockId.length}',
+  logSaleCompletionStage(
+    'deferred_stock_deduction',
+    sw.elapsedMilliseconds,
+    extra:
+        'lines=${itemsNeedingDeduction.length} stocks=${deductByStockId.length}',
   );
   return originalStockQuantities;
 }
