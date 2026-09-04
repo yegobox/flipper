@@ -928,8 +928,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
     }
 
-    // Already settling this ticket — just return to checkout.
-    final currentSettling = ref.read(settlingTillTicketProvider);
+    // Already settling this ticket — just return to checkout. Effective, not
+    // live: a session rebuilt from the cart (its in-memory hand-off was lost)
+    // still owns a PENDING ticket, and collecting a second one without
+    // re-parking it first would strand it off the till queue.
+    final currentSettling = ref.read(effectiveSettlingTillTicketProvider);
     if (currentSettling != null &&
         currentSettling.transactionId == ticket.id) {
       logHandoff('already-settling-close');
@@ -1046,7 +1049,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       final branchId =
           settling.branchId ?? ProxyService.box.getBranchId() ?? '';
-      final txn = settling.ticketSnapshot ??
+      // Collect forces its snapshot to PENDING at hand-off, so it can be
+      // trusted; a recovered snapshot is only as fresh as the cart row it came
+      // from, so re-read before parking on it.
+      final txn = (settling.recovered ? null : settling.ticketSnapshot) ??
           await ProxyService.getStrategy(Strategy.capella).getTransaction(
             id: settling.transactionId,
             branchId: branchId,

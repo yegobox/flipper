@@ -234,7 +234,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   /// Prefer the till ticket being collected over the operator's pending cart
   /// so [PosDefaultView]'s Pay bar is wired to the same txn as the cart UI.
   ITransaction? _activeCheckoutTransaction(ITransaction? pending) {
-    final settling = ref.watch(settlingTillTicketProvider);
+    final settling = ref.watch(effectiveSettlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
       final ticket =
           ref.watch(transactionByIdProvider(settling.transactionId)).value;
@@ -269,7 +269,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   /// Action-path variant (Pay / ticket navigation): logs the redirect once per
   /// tap instead of on every rebuild.
   ITransaction? _resolveActiveCheckoutTransaction(ITransaction? pending) {
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
       final ticket =
           ref.read(transactionByIdProvider(settling.transactionId)).value;
@@ -428,7 +428,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     // Capture the settling ticket before clearing so we can also unwind the
     // resume pin/cache below.
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     // End any till-settling session so the operator's next cart is no longer
     // scoped to the collected ticket (posCartDisplayItemsProvider keys off it).
     ref.read(settlingTillTicketProvider.notifier).state = null;
@@ -511,7 +511,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     // startCompleteTransactionFlow), not the operator's own pending cart passed
     // here. Validate the ticket's customer; if its row has not resolved yet,
     // defer to the flow rather than risk a false block.
-    final settling = ref.read(settlingTillTicketProvider);
+    final settling = ref.read(effectiveSettlingTillTicketProvider);
     final ITransaction target;
     if (settling != null && settling.transactionId.isNotEmpty) {
       final ticket =

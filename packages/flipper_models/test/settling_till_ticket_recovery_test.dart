@@ -80,4 +80,66 @@ void main() {
       expect(recoverSettlingTillTicketFromResumedCart(null), isNull);
     });
   });
+
+  group('settlingRecoveryCartRow', () {
+    final cached = _txn(status: 'pending', ticketName: 'A', id: 'cached');
+    final streamed = _txn(status: 'pending', ticketName: 'B', id: 'streamed');
+    final pinned = _txn(status: 'pending', ticketName: 'C', id: 'pinned');
+
+    test('prefers the cache over the stream when nothing is pinned', () {
+      expect(
+        settlingRecoveryCartRow(cached: cached, streamed: streamed)?.id,
+        'cached',
+      );
+      expect(settlingRecoveryCartRow(streamed: streamed)?.id, 'streamed');
+      expect(settlingRecoveryCartRow(), isNull);
+    });
+
+    test('a pin wins over both, wherever the pinned row is found', () {
+      expect(
+        settlingRecoveryCartRow(
+          cached: cached,
+          streamed: pinned,
+          pinnedId: 'pinned',
+        )?.id,
+        'pinned',
+      );
+      expect(
+        settlingRecoveryCartRow(
+          cached: cached,
+          streamed: streamed,
+          pinnedRow: pinned,
+          pinnedId: 'pinned',
+        )?.id,
+        'pinned',
+      );
+    });
+
+    test('a pin nothing resolves yields no row — never a different cart', () {
+      expect(
+        settlingRecoveryCartRow(
+          cached: cached,
+          streamed: streamed,
+          pinnedId: 'pinned',
+        ),
+        isNull,
+      );
+    });
+
+    test('a suppressed id yields no row, pinned or not', () {
+      expect(
+        settlingRecoveryCartRow(cached: cached, suppressedId: 'cached'),
+        isNull,
+      );
+      expect(
+        settlingRecoveryCartRow(
+          cached: cached,
+          pinnedRow: pinned,
+          pinnedId: 'pinned',
+          suppressedId: 'pinned',
+        ),
+        isNull,
+      );
+    });
+  });
 }

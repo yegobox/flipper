@@ -138,6 +138,7 @@ class SettlingTillTicket {
     this.ticketNote,
     this.seedItems = const <TransactionItem>[],
     this.ticketSnapshot,
+    this.recovered = false,
   });
 
   final String transactionId;
@@ -163,6 +164,16 @@ class SettlingTillTicket {
   /// this sale before [transactionByIdProvider] resolves (avoids completing
   /// the collector's empty pending cart).
   final ITransaction? ticketSnapshot;
+
+  /// True when this session was rebuilt from the cart row itself
+  /// ([recoverSettlingTillTicketFromResumedCart]) instead of being handed over
+  /// by Collect/Resume.
+  ///
+  /// Collect forces `ticketSnapshot.status = PENDING` at hand-off, so re-park
+  /// paths can trust it; a recovered snapshot is only as fresh as the pending
+  /// row it came from, so **re-read the row before parking on it** — parking a
+  /// sale that has since completed would resurrect it as a ticket.
+  final bool recovered;
 }
 
 /// Short human reference for a ticket — `reference` when set, else a truncated
@@ -206,7 +217,41 @@ SettlingTillTicket? recoverSettlingTillTicketFromResumedCart(
     ticketName: ticketName,
     ticketNote: ticket.note,
     ticketSnapshot: ticket,
+    recovered: true,
   );
+}
+
+/// The cart row a settling session may be rebuilt from, or null.
+///
+/// Pure so the precedence and the suppression guard can be tested without Ditto.
+/// Mirrors [posCartPendingTransactionIdProvider]: a pin wins outright (mobile
+/// checkout and ticket resume pin their sale, and while a pin is held the cache
+/// / stream may still be pointing at the operator's other cart), otherwise the
+/// cache is preferred over the stream. [pinnedRow] is the pinned id looked up
+/// directly — only needed when neither [cached] nor [streamed] holds it.
+///
+/// A suppressed id yields null: a just-completed or just-re-parked ticket is
+/// suppressed *before* its row leaves PENDING, and rebuilding a session from it
+/// would re-show the banner over the next sale, or re-park a completed one.
+ITransaction? settlingRecoveryCartRow({
+  ITransaction? cached,
+  ITransaction? streamed,
+  ITransaction? pinnedRow,
+  String? pinnedId,
+  String? suppressedId,
+}) {
+  if (pinnedId != null && pinnedId.isNotEmpty) {
+    if (suppressedId == pinnedId) return null;
+    for (final candidate in [cached, streamed, pinnedRow]) {
+      if (candidate != null && candidate.id == pinnedId) return candidate;
+    }
+    return null;
+  }
+
+  final row = (cached != null && cached.id.isNotEmpty) ? cached : streamed;
+  if (row == null || row.id.isEmpty) return null;
+  if (suppressedId != null && suppressedId == row.id) return null;
+  return row;
 }
 
 /// Non-null while a Manager/Admin is settling a queued till ticket in the cart.

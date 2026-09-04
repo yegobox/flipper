@@ -611,7 +611,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // own pending cart. The desktop checkout is bound to
       // [pendingTransactionStreamProvider], which can hand completion the
       // operator's empty pending-cart id during the settling hand-off.
-      final settlingTicket = ref.read(settlingTillTicketProvider);
+      final settlingTicket = ref.read(effectiveSettlingTillTicketProvider);
       if (settlingTicket != null &&
           settlingTicket.transactionId.isNotEmpty &&
           settlingTicket.transactionId != transactionId) {
