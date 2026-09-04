@@ -18,6 +18,15 @@
 /// than raising its qty. Completion reads the persisted lines back and
 /// reconciles, and money is computed from those rows, so the exposure is a
 /// duplicated display line — the same class of exposure the seq cache accepts.
+/// The cache the cart add path reads and every cart mutation must keep honest.
+///
+/// Shared, because the paths that change a cart line live in five different
+/// mixins: the add path here, the qty stepper, bar-mode tabs, line deletes and
+/// the move-lines-between-carts path. A private instance meant a delete could
+/// leave a row cached that no longer exists — the next tap on that product then
+/// updated a deleted document and the line never came back.
+final CartLineDocCache cartLineDocCache = CartLineDocCache();
+
 class CartLineDocCache {
   CartLineDocCache({this.maxTrackedCarts = 8}) : assert(maxTrackedCarts > 0);
 

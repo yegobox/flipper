@@ -86,7 +86,6 @@ const int _pendingCartEmptySettleMs = 750;
 /// Per-cart `itemSeq` high-water marks, so adding a line is O(1) instead of
 /// asking the store how many lines the cart already has.
 final CartLineSeqCache _cartLineSeqCache = CartLineSeqCache();
-final CartLineDocCache _cartLineDocCache = CartLineDocCache();
 
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
@@ -1590,19 +1589,19 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       // all N rows after it, and replication were all queued on the same store.
       // The cart's own lines are ours: seed once, then answer from memory.
       final lookupSw = Stopwatch()..start();
-      if (!_cartLineDocCache.isSeeded(pendingTransaction.id)) {
+      if (!cartLineDocCache.isSeeded(pendingTransaction.id)) {
         final seed = await ditto.store.execute(
           'SELECT _id, id, qty, variantId, remainingStock, supplyPriceAtSale, '
           'supplyPrice, dcRt, taxTyCd, taxPercentage '
           'FROM transaction_items WHERE transactionId = :transactionId',
           arguments: {'transactionId': pendingTransaction.id},
         );
-        _cartLineDocCache.seed(
+        cartLineDocCache.seed(
           transactionId: pendingTransaction.id,
           rows: seed.items.map((d) => Map<String, dynamic>.from(d.value)),
         );
       }
-      final existingLine = _cartLineDocCache.lineFor(
+      final existingLine = cartLineDocCache.lineFor(
         transactionId: pendingTransaction.id,
         variantId: variation.id,
       );
@@ -1678,7 +1677,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
 
         upsertMs = upsertSw.elapsedMilliseconds;
-        _cartLineDocCache.record(
+        cartLineDocCache.record(
           transactionId: pendingTransaction.id,
           variantId: variation.id,
           row: {
@@ -1797,7 +1796,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           arguments: {'doc': docMap},
         );
         upsertMs = insertSw.elapsedMilliseconds;
-        _cartLineDocCache.record(
+        cartLineDocCache.record(
           transactionId: pendingTransaction.id,
           variantId: variation.id,
           row: {
@@ -1915,7 +1914,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       // This writes a line behind the add path's cache; leaving the cached copy
       // in place would let the next tap compute a qty from a stale row.
-      _cartLineDocCache.forget(d['transactionId']?.toString() ?? '');
+      cartLineDocCache.forget(d['transactionId']?.toString() ?? '');
 
       final double oldQtyFromDb = (d['qty'] as num).toDouble();
       // incrementQty with null qty means +1 (see TransactionItemTable / brick mixin).
@@ -2359,7 +2358,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       // An absolute subtotal supersedes any gathered cart delta; applying the
       // delta afterwards would add cart lines twice to a finished total.
       _discardPendingSubtotalDelta(targetId);
-      _cartLineDocCache.forget(targetId);
+      cartLineDocCache.forget(targetId);
     }
     addUpdate('subTotal', resolvedSubTotal);
     addUpdate('taxAmount', transaction?.taxAmount);
@@ -2694,7 +2693,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           arguments: {'ids': chunk},
         );
         for (final id in chunk) {
-          _cartLineDocCache.forget(id.toString());
+          cartLineDocCache.forget(id.toString());
         }
         await txn.execute(
           'DELETE FROM transactions WHERE id IN (:ids)',
@@ -2956,7 +2955,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Past the guard: this park is writing an absolute subtotal, so a gathered
     // cart delta must not land on top of it afterwards.
     _discardPendingSubtotalDelta(targetId);
-    _cartLineDocCache.forget(targetId);
+    cartLineDocCache.forget(targetId);
 
     // POS tickets list filters `isOriginalTransaction = true`; ensure park
     // always lands in that set (kitchen already skips this check).
@@ -3152,7 +3151,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'DELETE FROM transaction_items WHERE transactionId = :id',
         arguments: {'id': transaction.id},
       );
-      _cartLineDocCache.forget(transaction.id);
+      cartLineDocCache.forget(transaction.id);
 
       talker.info(
         'Successfully deleted transaction and items: ${transaction.id}',
@@ -3860,6 +3859,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'UPDATE transaction_items SET transactionId = :toId WHERE transactionId = :fromId',
         arguments: {'toId': to.id, 'fromId': from.id},
       );
+      // Lines just moved carts: both the cart that lost them and the one that
+      // gained them are stale in the add path's cache.
+      cartLineDocCache.forget(from.id);
+      cartLineDocCache.forget(to.id);
 
       // Move payment records
       await ditto.store.execute(

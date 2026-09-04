@@ -1,3 +1,4 @@
+import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
@@ -574,6 +575,7 @@ mixin CapellaBarMixin implements BarInterface {
       'INSERT INTO transaction_items DOCUMENTS (:doc)',
       arguments: {'doc': doc},
     );
+    cartLineDocCache.forget(transactionId);
     await _adjustSubtotal(
       transactionId,
       line.price.toDouble() * line.qty.toDouble(),
@@ -613,6 +615,7 @@ mixin CapellaBarMixin implements BarInterface {
         'lastTouched': nowIso,
       },
     );
+    cartLineDocCache.forget(transactionId);
     final newTotal = line.price.toDouble() * clamped.toDouble();
     await _adjustSubtotal(transactionId, newTotal - oldTotal);
   }
@@ -663,6 +666,7 @@ mixin CapellaBarMixin implements BarInterface {
       'DELETE FROM transaction_items WHERE _id = :id OR id = :id',
       arguments: {'id': lineId},
     );
+    cartLineDocCache.forget(transactionId);
     await _adjustSubtotal(transactionId, -lineTotal);
   }
 
