@@ -151,8 +151,19 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
             id: settling.transactionId,
             branchId: branchId,
           );
-      if (txn != null &&
-          (txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
+      if (txn == null) {
+        // Unresolved is not the same as gone. This lookup is branch-scoped and
+        // local, so it can miss a row that is still PENDING — and the re-read
+        // above means recovered sessions always reach it. Clearing here would
+        // strand the ticket: PENDING, off the till queue, on nobody's cart.
+        // Keep the session so the next POS surface can finish the re-park.
+        tv_talk.talker.warning(
+          'Mobile checkout dispose re-park: ticket ${settling.transactionId} '
+          'did not resolve — settling kept, not cleared.',
+        );
+        return;
+      }
+      if ((txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
         await ParkTransactionService.park(
           ticketName: pendingSaleCartReparkTicketName(
             id: settling.transactionId,
@@ -166,6 +177,8 @@ class _MobileCheckoutScreenState extends ConsumerState<MobileCheckoutScreen>
           customerId: txn.customerId,
         );
       }
+      // Parked, or confirmed to have left PENDING already (completed, sent for
+      // review): either way this session is finished.
       container.read(settlingTillTicketProvider.notifier).state = null;
       _settlingLeaveHandled = true;
     } catch (e, st) {

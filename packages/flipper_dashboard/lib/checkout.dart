@@ -236,8 +236,13 @@ class CheckOutState extends ConsumerState<CheckOut>
   ITransaction? _activeCheckoutTransaction(ITransaction? pending) {
     final settling = ref.watch(effectiveSettlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
+      // Snapshot fallback, like QuickSellingView: while the row provider is
+      // still loading, falling through would bind the Pay bar to the
+      // collector's own (usually empty) pending cart instead of the ticket.
+      // Identity is all this needs — completion re-reads the row by id.
       final ticket =
-          ref.watch(transactionByIdProvider(settling.transactionId)).value;
+          ref.watch(transactionByIdProvider(settling.transactionId)).value ??
+          settling.ticketSnapshot;
       if (ticket != null) return ticket;
     }
     return _cartDisplayOwnerTransaction(pending, listen: true) ?? pending;
@@ -272,7 +277,8 @@ class CheckOutState extends ConsumerState<CheckOut>
     final settling = ref.read(effectiveSettlingTillTicketProvider);
     if (settling != null && settling.transactionId.isNotEmpty) {
       final ticket =
-          ref.read(transactionByIdProvider(settling.transactionId)).value;
+          ref.read(transactionByIdProvider(settling.transactionId)).value ??
+          settling.ticketSnapshot;
       if (ticket != null) return ticket;
     }
     final owner = _cartDisplayOwnerTransaction(
