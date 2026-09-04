@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/sync/utils/rra_bcd.dart';
 import 'package:flipper_services/constants.dart';
 
 double _roundMoney(num value) =>
@@ -94,8 +95,8 @@ Map<String, dynamic> mapRraStockIoItemToJson(
       'modrNm': item.modrNm ?? effectiveModId,
     };
 
-    final bcd = item.bcd;
-    if (bcd != null && bcd.isNotEmpty) {
+    final bcd = rraSafeBcd(item.bcd);
+    if (bcd != null) {
       line['bcd'] = bcd;
     }
 
