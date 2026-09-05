@@ -24,6 +24,10 @@ abstract class VariantInterface {
     List<String>? taxTyCds,
     bool scanMode = false,
     String? itemTyCd,
+
+    /// Skips the COUNT(*) pass when the caller already knows the total for this
+    /// filter (page switching re-uses the count taken on the first page).
+    bool countTotal = true,
   });
   Future<Variant?> getVariant({required String id});
 

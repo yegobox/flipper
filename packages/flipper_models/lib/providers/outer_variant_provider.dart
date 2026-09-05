@@ -27,6 +27,21 @@ class OuterVariants extends _$OuterVariants {
 
   String _currentSearch = '';
   int _searchGeneration = 0;
+
+  /// Non-null while the user is driving the explicit page bar: state then shows
+  /// exactly that page instead of every cached page flattened together.
+  int? _viewPage;
+
+  /// Bumped whenever the page cache is thrown away (build/search/refresh) so an
+  /// in-flight page fetch or prefetch cannot land on top of newer data.
+  int _cacheGeneration = 0;
+
+  /// Bumped on every page-bar tap; only the newest tap is allowed to paint.
+  int _pageRequestGeneration = 0;
+
+  /// Fetches in flight per page (taps + prefetch), so a double tap or a tap
+  /// racing its own prefetch shares one query instead of issuing two.
+  final Map<int, Future<PagedVariants>> _inFlightPages = {};
   int? _totalCount;
   int? _itemsPerPage;
   bool _isVatEnabled = false;
@@ -39,6 +54,31 @@ class OuterVariants extends _$OuterVariants {
       out.addAll(_pageCache[k]!);
     }
     return out;
+  }
+
+  /// What the UI should show right now: a single page in page-bar mode, the
+  /// whole contiguous cache in scroll ("load more") mode.
+  List<Variant> _currentView() {
+    final page = _viewPage;
+    if (page != null) {
+      return List<Variant>.from(_pageCache[page] ?? const <Variant>[]);
+    }
+    return _flattenContiguousPages();
+  }
+
+  /// Drops the pages furthest from [anchor] so jumping around the page bar keeps
+  /// the neighbourhood the user is actually browsing hot.
+  void _evictPagesFarFrom(int anchor) {
+    while (_pageCache.length > _maxCachedPages) {
+      final farthest = _pageCache.keys.reduce(
+        (a, b) => (a - anchor).abs() >= (b - anchor).abs() ? a : b,
+      );
+      _pageCache.remove(farthest);
+      talker.info(
+        'OuterVariants: evicted page $farthest from cache '
+        '(max $_maxCachedPages pages in memory)',
+      );
+    }
   }
 
   void _repackFromFlatList(List<Variant> flat) {
@@ -110,7 +150,7 @@ class OuterVariants extends _$OuterVariants {
     }
     _totalCount = paged.totalCount;
 
-    _pageCache.clear();
+    _resetPageCache();
     _pageCache[0] = List<Variant>.from(paged.variants);
     _firstCachedPage = 0;
     _lastCachedPage = 0;
@@ -139,7 +179,7 @@ class OuterVariants extends _$OuterVariants {
   Future<void> _applySearchQuery(String searchString) async {
     final generation = ++_searchGeneration;
     _currentSearch = searchString;
-    _pageCache.clear();
+    _resetPageCache();
     _firstCachedPage = 0;
     _lastCachedPage = -1;
 
@@ -151,7 +191,7 @@ class OuterVariants extends _$OuterVariants {
       _pageCache[0] = List<Variant>.from(paged.variants);
       _firstCachedPage = 0;
       _lastCachedPage = 0;
-      state = AsyncValue.data(_flattenContiguousPages());
+      state = AsyncValue.data(_currentView());
     } catch (error, stackTrace) {
       if (generation != _searchGeneration) return;
       state = AsyncValue.error(error, stackTrace);
@@ -188,6 +228,7 @@ class OuterVariants extends _$OuterVariants {
     int page,
     String searchString, {
     bool fetchRemote = false,
+    bool countTotal = true,
   }) async {
     talker.info(
       'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")',
@@ -208,6 +249,7 @@ class OuterVariants extends _$OuterVariants {
       itemsPerPage: _itemsPerPage!,
       taxTyCds: taxTyCds,
       scanMode: currentScanMode,
+      countTotal: countTotal,
     );
 
     talker.info(
@@ -219,6 +261,9 @@ class OuterVariants extends _$OuterVariants {
 
   /// Loads the next page of variants for pagination.
   Future<void> loadMore() async {
+    // Scrolling past the end is a request for a continuous list, so leave
+    // page-bar mode rather than appending a page nobody is looking at.
+    _leavePagedMode();
     if (_totalCount == null ||
         (_lastCachedPage + 1) * _itemsPerPage! >= _totalCount!) {
       return;
@@ -239,7 +284,7 @@ class OuterVariants extends _$OuterVariants {
     }
     _syncBoundsFromCache();
 
-    state = AsyncValue.data(_flattenContiguousPages());
+    state = AsyncValue.data(_currentView());
   }
 
   /// Method to be called when VAT settings change to force a full refresh.
@@ -267,11 +312,39 @@ class OuterVariants extends _$OuterVariants {
     if (generation != _searchGeneration) return;
     _currentSearch = '';
     _totalCount = paged.totalCount;
-    _pageCache.clear();
+    _resetPageCache();
     _pageCache[0] = List<Variant>.from(paged.variants);
     _firstCachedPage = 0;
     _lastCachedPage = 0;
-    state = AsyncValue.data(_flattenContiguousPages());
+    state = AsyncValue.data(_currentView());
+  }
+
+  /// Switches back to the continuous ("load more") view, keeping the cached
+  /// pages that sit in one unbroken run around the page being shown so the
+  /// flattened list has no holes in it.
+  void _leavePagedMode() {
+    final anchor = _viewPage;
+    if (anchor == null) return;
+    _viewPage = null;
+
+    // Only pages *after* the anchor are kept: prepending earlier pages would
+    // shove the list the user is looking at down the screen.
+    final low = anchor;
+    var high = anchor;
+    while (_pageCache.containsKey(high + 1)) {
+      high++;
+    }
+    _pageCache.removeWhere((page, _) => page < low || page > high);
+    _syncBoundsFromCache();
+  }
+
+  /// Clears every cached page and leaves page-bar mode, invalidating any fetch
+  /// or prefetch still in flight.
+  void _resetPageCache() {
+    _pageCache.clear();
+    _inFlightPages.clear();
+    _viewPage = null;
+    _cacheGeneration++;
   }
 
   /// Add newly created variants to the provider without full reload.
@@ -298,7 +371,10 @@ class OuterVariants extends _$OuterVariants {
       newList = newList.sublist(0, maxItems);
     }
     _repackFromFlatList(newList);
-    state = AsyncValue.data(_flattenContiguousPages());
+    // The repack renumbers pages from 0 and the new rows sit at the top, so a
+    // page-bar view has to follow them back to the first page.
+    if (_viewPage != null) _viewPage = 0;
+    state = AsyncValue.data(_currentView());
   }
 
   /// Removes a variant from the state.
@@ -313,7 +389,7 @@ class OuterVariants extends _$OuterVariants {
         return;
       }
       _repackFromFlatList(newList);
-      state = AsyncValue.data(_flattenContiguousPages());
+      state = AsyncValue.data(_currentView());
       return;
     }
     final keys = _pageCache.keys.toList();
@@ -326,22 +402,98 @@ class OuterVariants extends _$OuterVariants {
       }
     }
     _syncBoundsFromCache();
-    state = AsyncValue.data(_flattenContiguousPages());
+    state = AsyncValue.data(_currentView());
   }
 
   /// Saves stock data to cache.
 
-  /// Public helper: fetch a specific page and replace current cache.
+  /// Switches the visible page. A page still in [_pageCache] swaps in
+  /// synchronously — no query, no await — so re-visiting a page the user has
+  /// already seen is instant; only a cold page hits the store.
   Future<void> fetchPage(int page) async {
-    final paged = await _fetchVariants(branchId, page, _currentSearch);
-    _pageCache
-      ..clear()
-      ..[page] = List<Variant>.from(paged.variants);
-    _firstCachedPage = page;
-    _lastCachedPage = page;
-    _totalCount = paged.totalCount;
-    state = AsyncValue.data(_flattenContiguousPages());
+    if (page < 0) return;
+    final requestGeneration = ++_pageRequestGeneration;
+    final cacheGeneration = _cacheGeneration;
+
+    if (_pageCache.containsKey(page)) {
+      _viewPage = page;
+      _syncBoundsFromCache();
+      state = AsyncValue.data(_currentView());
+      return;
+    }
+
+    final PagedVariants paged;
+    try {
+      paged = await _fetchPageOnce(
+        page,
+        // The total only changes when the filter changes, and that path clears
+        // the cache — so skip the COUNT(*) scan on every page hop.
+        countTotal: _totalCount == null,
+      );
+    } catch (e) {
+      talker.warning('OuterVariants: page $page fetch failed: $e');
+      return;
+    }
+    if (cacheGeneration != _cacheGeneration) return;
+
+    _pageCache[page] = List<Variant>.from(paged.variants);
+    // A newer tap already won: keep the page for later, but do not paint it.
+    if (requestGeneration != _pageRequestGeneration) {
+      _evictPagesFarFrom(_viewPage ?? page);
+      _syncBoundsFromCache();
+      return;
+    }
+    if (paged.totalCount != null) _totalCount = paged.totalCount;
+    _viewPage = page;
+    _evictPagesFarFrom(page);
+    _syncBoundsFromCache();
+    state = AsyncValue.data(_currentView());
   }
+
+  /// Warms a page in the background without touching what is on screen, so the
+  /// next/previous tap resolves from cache.
+  Future<void> prefetchPage(int page) async {
+    if (page < 0) return;
+    if (_pageCache.containsKey(page) || _inFlightPages.containsKey(page))
+      return;
+    final total = _totalCount;
+    if (total != null && page * itemsPerPage >= total) return;
+
+    final cacheGeneration = _cacheGeneration;
+    try {
+      final paged = await _fetchPageOnce(page, countTotal: false);
+      if (cacheGeneration != _cacheGeneration) return;
+      if (paged.variants.isEmpty) return;
+      _pageCache[page] = List<Variant>.from(paged.variants);
+      _evictPagesFarFrom(_viewPage ?? page);
+      _syncBoundsFromCache();
+      // Deliberately no state emission: prefetching must not repaint the grid.
+    } catch (e) {
+      talker.warning('OuterVariants: prefetch of page $page failed: $e');
+    }
+  }
+
+  /// One query per page at a time; callers arriving while it is running join it.
+  Future<PagedVariants> _fetchPageOnce(int page, {required bool countTotal}) {
+    final existing = _inFlightPages[page];
+    if (existing != null) return existing;
+    final future = _fetchVariants(
+      branchId,
+      page,
+      _currentSearch,
+      countTotal: countTotal,
+    );
+    _inFlightPages[page] = future;
+    return future.whenComplete(() {
+      if (identical(_inFlightPages[page], future)) _inFlightPages.remove(page);
+    });
+  }
+
+  /// Whether [page] can be shown without a round trip.
+  bool hasPageCached(int page) => _pageCache.containsKey(page);
+
+  /// The page the page-bar is currently showing, or null in scroll mode.
+  int? get viewPage => _viewPage;
 
   /// Return items for a given page (sliced from the locally cached variants).
   List<Variant> getPageItems(int page) {
