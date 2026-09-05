@@ -125,6 +125,10 @@ mixin CapellaVariantMixin implements VariantInterface {
     bool fetchRemote = false,
     List<String>? taxTyCds,
     String? itemTyCd,
+
+    /// Skips the COUNT(*) pass when the caller already knows the total for this
+    /// filter (page switching re-uses the count taken on the first page).
+    bool countTotal = true,
   }) async {
     final logService = LogService();
     try {
@@ -404,7 +408,10 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Prepare count query if pagination enabled (skip during catalog text search —
       // LIKE across thousands of variants is slow and blocks showing the first page).
-      if (page != null && itemsPerPage != null && !isCatalogTextSearch) {
+      if (countTotal &&
+          page != null &&
+          itemsPerPage != null &&
+          !isCatalogTextSearch) {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
@@ -476,7 +483,10 @@ mixin CapellaVariantMixin implements VariantInterface {
         } catch (e) {
           talker.warning('Count query failed: $e');
         }
-      } else if (isCatalogTextSearch && page != null && itemsPerPage != null) {
+      } else if (countTotal &&
+          isCatalogTextSearch &&
+          page != null &&
+          itemsPerPage != null) {
         final base = page * itemsPerPage + items.length;
         totalCount = items.length < itemsPerPage ? base : base + 1;
       }
@@ -541,7 +551,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
       return PagedVariants(
         variants: pagedVariants,
-        totalCount: totalCount ?? pagedVariants.length,
+        // With countTotal off the caller keeps its own total; reporting the
+        // page length here would overwrite it with a per-page number.
+        totalCount: totalCount ?? (countTotal ? pagedVariants.length : null),
       );
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');

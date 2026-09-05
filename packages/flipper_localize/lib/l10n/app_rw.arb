@@ -178,6 +178,8 @@
     "cannotDeletePartialPaymentItems": "Ntushobora gusiba ibicuruzwa mu gurisha rifite ubwishyu bw'igice",
     "deleteAllItems": "Siba ibicuruzwa byose",
     "confirmRemoveAllTransactionItems": "Uremeza ko ushaka gukura ibicuruzwa byose muri iri gurisha?",
+    "plusMoreItems": "+{count} ibindi",
+    "actionCannotBeUndone": "Iki gikorwa ntigisubizwa inyuma.",
     "deleteAll": "Siba byose",
     "allItemsRemovedSuccessfully": "Ibicuruzwa byose byakuweho neza",
     "errorRemovingItems": "Ikosa mu gukura ibicuruzwa: {error}",

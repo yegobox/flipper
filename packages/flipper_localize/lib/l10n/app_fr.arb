@@ -178,6 +178,8 @@
     "cannotDeletePartialPaymentItems": "Impossible de supprimer des articles d'une transaction avec paiements partiels",
     "deleteAllItems": "Supprimer tous les articles",
     "confirmRemoveAllTransactionItems": "Voulez-vous vraiment retirer tous les articles de cette transaction ?",
+    "plusMoreItems": "+{count} de plus",
+    "actionCannotBeUndone": "Cette action est irréversible.",
     "deleteAll": "Tout supprimer",
     "allItemsRemovedSuccessfully": "Tous les articles ont été retirés avec succès",
     "errorRemovingItems": "Erreur lors du retrait des articles : {error}",

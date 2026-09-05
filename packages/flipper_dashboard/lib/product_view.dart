@@ -64,6 +64,21 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final ScrollController _scrollController = ScrollController();
   // Pagination state
   int _currentPage = 0;
+
+  /// True only while a page the cache does not hold is being fetched; cached
+  /// pages switch synchronously and never raise this.
+  bool _isPageLoading = false;
+
+  /// Identifies the newest page tap so a slow earlier fetch cannot resurrect
+  /// its spinner (or its prefetch) after the user has moved on.
+  int _pageNavToken = 0;
+
+  /// Page whose neighbours have already been warmed.
+  int? _prefetchedAround;
+
+  /// Whether the previous provider emission came from the page bar; leaving
+  /// page-bar mode is not an eviction and must not move the scroll offset.
+  bool _wasPagedMode = false;
   Timer? _debounce;
   Timer? _branchSwitchTimer;
   int _lastCheckedBranchSwitchTimestamp = 0;
@@ -95,6 +110,30 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       outerVariantsProvider(branchId),
       (prev, next) {
         final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+
+        // Page-bar mode renders one page at a time and starts it at the top,
+        // so cache evictions there must not nudge the scroll offset.
+        final viewPage = notifier.viewPage;
+        if (viewPage == null && _wasPagedMode) {
+          _wasPagedMode = false;
+          _lastFirstCachedPage = notifier.firstCachedPage;
+          return;
+        }
+        if (viewPage != null) {
+          _wasPagedMode = true;
+          _lastFirstCachedPage = notifier.firstCachedPage;
+          if (viewPage != _currentPage && mounted) {
+            // The provider moved the view itself (e.g. new products landed on
+            // page 0); keep the page bar honest.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && notifier.viewPage == viewPage) {
+                setState(() => _currentPage = viewPage);
+              }
+            });
+          }
+          return;
+        }
+
         final first = notifier.firstCachedPage;
         final lastSeen = _lastFirstCachedPage;
         _lastFirstCachedPage = first;
@@ -238,13 +277,38 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _goToPage(int page) async {
+    if (page == _currentPage && !_isPageLoading) return;
     final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+    final token = ++_pageNavToken;
+
+    // Cached pages swap in on this frame — only a cold page shows progress.
+    final isCached = notifier.hasPageCached(page);
     setState(() {
       _currentPage = page;
+      _isPageLoading = !isCached;
     });
-    // Ensure page data is loaded
+    _jumpListToTop();
+
     await notifier.fetchPage(page);
+    if (!mounted || token != _pageNavToken) return;
+    if (_isPageLoading) setState(() => _isPageLoading = false);
+    _jumpListToTop();
+    _prefetchNeighbours(notifier, page);
+  }
+
+  void _jumpListToTop() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.offset == 0) return;
+    _scrollController.jumpTo(0);
+  }
+
+  /// Warms the pages on either side so the common next/previous tap is instant.
+  void _prefetchNeighbours(OuterVariants notifier, int page) {
+    if (_prefetchedAround == page) return;
+    _prefetchedAround = page;
+    unawaited(notifier.prefetchPage(page + 1));
+    if (page > 0) unawaited(notifier.prefetchPage(page - 1));
   }
 
   @override
@@ -463,7 +527,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         if (currentSearch.isNotEmpty && _currentPage != 0) {
           // Use setState to trigger UI update
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _currentPage = 0);
+            if (!mounted) return;
+            _pageNavToken++;
+            _prefetchedAround = null;
+            setState(() {
+              _currentPage = 0;
+              _isPageLoading = false;
+            });
           });
         }
 
@@ -710,6 +780,14 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final loadedCount = variants.length;
     final estimatedTotalPages = notifier.estimatedTotalPages();
 
+    // Warm the neighbours of the first page too, so the first "next" tap is as
+    // instant as the ones after it.
+    if (_prefetchedAround == null && estimatedTotalPages > 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _prefetchNeighbours(notifier, _currentPage);
+      });
+    }
+
     final isMobileLayout =
         paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
@@ -770,34 +848,57 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         ),
         const SizedBox(height: 14),
         Expanded(
-          child: showProductList && !isMobileLayout
-              ? ColoredBox(
-                  color: PosTokens.posBg,
-                  child: _buildMainContentSection(
-                    context,
-                    model,
-                    _shouldApplySorting(ref)
-                        ? _sortVariants(variants, ref)
-                        : variants,
-                    showProductList,
-                    startDate,
-                    endDate,
-                    ref,
-                    paneWidth: paneWidth,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: showProductList && !isMobileLayout
+                    ? ColoredBox(
+                        color: PosTokens.posBg,
+                        child: _buildMainContentSection(
+                          context,
+                          model,
+                          _shouldApplySorting(ref)
+                              ? _sortVariants(variants, ref)
+                              : variants,
+                          showProductList,
+                          startDate,
+                          endDate,
+                          ref,
+                          paneWidth: paneWidth,
+                        ),
+                      )
+                    : _buildMainContentSection(
+                        context,
+                        model,
+                        _shouldApplySorting(ref)
+                            ? _sortVariants(variants, ref)
+                            : variants,
+                        showProductList,
+                        startDate,
+                        endDate,
+                        ref,
+                        paneWidth: paneWidth,
+                      ),
+              ),
+              // A cold page keeps the grid in place under a light veil rather
+              // than emptying the pane, so switching pages never flashes.
+              if (_isPageLoading)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: ColoredBox(
+                      color: PosTokens.posBg.withValues(alpha: 0.55),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                      ),
+                    ),
                   ),
-                )
-              : _buildMainContentSection(
-                  context,
-                  model,
-                  _shouldApplySorting(ref)
-                      ? _sortVariants(variants, ref)
-                      : variants,
-                  showProductList,
-                  startDate,
-                  endDate,
-                  ref,
-                  paneWidth: paneWidth,
                 ),
+            ],
+          ),
         ),
         if (estimatedTotalPages > 0 &&
             !(isMobileLayout && widget.suppressMobilePagination))

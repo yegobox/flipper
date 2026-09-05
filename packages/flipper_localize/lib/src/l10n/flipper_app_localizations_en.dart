@@ -595,6 +595,14 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
       'Are you sure you want to remove all items from this transaction?';
 
   @override
+  String plusMoreItems(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String get actionCannotBeUndone => 'This action cannot be undone.';
+
+  @override
   String get deleteAll => 'Delete All';
 
   @override
