@@ -599,6 +599,14 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
       'Una hakika unataka kuondoa bidhaa zote kutoka muamala huu?';
 
   @override
+  String plusMoreItems(int count) {
+    return '+$count zaidi';
+  }
+
+  @override
+  String get actionCannotBeUndone => 'Kitendo hiki hakiwezi kutenduliwa.';
+
+  @override
   String get deleteAll => 'Futa zote';
 
   @override

@@ -178,6 +178,8 @@
     "cannotDeletePartialPaymentItems": "Haiwezi kufuta bidhaa kutoka muamala wenye malipo ya sehemu",
     "deleteAllItems": "Futa bidhaa zote",
     "confirmRemoveAllTransactionItems": "Una hakika unataka kuondoa bidhaa zote kutoka muamala huu?",
+    "plusMoreItems": "+{count} zaidi",
+    "actionCannotBeUndone": "Kitendo hiki hakiwezi kutenduliwa.",
     "deleteAll": "Futa zote",
     "allItemsRemovedSuccessfully": "Bidhaa zote zimeondolewa kwa mafanikio",
     "errorRemovingItems": "Hitilafu wakati wa kuondoa bidhaa: {error}",

@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/tickets/widgets/review_queue_banner.d
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -1894,9 +1895,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  /// Whole quantities read as `2`, fractional ones keep two decimals.
+  String _confirmQtyText(num qty) =>
+      qty % 1 == 0 ? qty.toStringAsFixed(0) : qty.toStringAsFixed(2);
+
   Future<void> _deleteAllItems(
-    AsyncValue<ITransaction> transactionAsyncValue,
-  ) async {
+    AsyncValue<ITransaction> transactionAsyncValue, {
+    List<TransactionItem>? cartItems,
+  }) async {
     if (!ref.read(canSellProvider)) return; // view-only: no cart edits
     // Real prior payments only — not tender mirrored into cashReceived.
     if (_effectiveAlreadyPaid(transactionAsyncValue.value) > 0.01) {
@@ -1907,26 +1913,32 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    final currency = ProxyService.box.defaultCurrency();
+    final confirmed = await showDestructiveConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.flipperL10n.deleteAllItems),
-        content: Text(context.flipperL10n.confirmRemoveAllTransactionItems),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.flipperL10n.cancel),
+      title: context.flipperL10n.deleteAllItems,
+      message: cartItems == null
+          ? context.flipperL10n.confirmRemoveAllTransactionItems
+          : context.flipperL10n.confirmRemoveAllItemsCount(cartItems.length),
+      confirmLabel: context.flipperL10n.deleteAll,
+      footnote: context.flipperL10n.actionCannotBeUndone,
+      lines: [
+        for (final item in cartItems ?? const <TransactionItem>[])
+          DestructiveConfirmLine(
+            label: item.name.extractNameAndNumber(),
+            meta:
+                '${_confirmQtyText(item.qty)} × '
+                '${item.price.toCurrencyFormatted(symbol: currency)}',
+            trailing: (item.price * item.qty).toCurrencyFormatted(symbol: ''),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.flipperL10n.deleteAll),
-          ),
-        ],
+      ],
+      totalLabel: context.flipperL10n.totalAmount,
+      totalValue: totalAfterDiscountAndShipping.toCurrencyFormatted(
+        symbol: currency,
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       // No `getBranchId()!`: without an active branch there is nothing sensible
       // to query, so say so instead of throwing out of the button handler.
       final branchId = ProxyService.box.getBranchId();
@@ -2048,7 +2060,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                               ) >
                               0.01
                           ? null
-                          : () => _deleteAllItems(transactionAsyncValue),
+                          : () => _deleteAllItems(
+                              transactionAsyncValue,
+                              cartItems: items,
+                            ),
                       icon: const Icon(Icons.delete_sweep, size: 18),
                       label: Text(context.flipperL10n.deleteAll),
                       style: TextButton.styleFrom(
