@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/business_type.dart';
+import '../../core/signup_contact.dart';
 import 'signup_providers.dart';
 
 class SignupView extends ConsumerStatefulWidget {
@@ -21,41 +22,15 @@ class _SignupViewState extends ConsumerState<SignupView> {
   late final TextEditingController _phoneController;
   late final TextEditingController _tinController;
 
-  final Map<String, String> _dialCodes = {
-    'Rwanda': '+250',
-    'Kenya': '+254',
-    'Uganda': '+256',
-    'Tanzania': '+255',
-    'Burundi': '+257',
-  };
-
-  String _dialCode(String country) => _dialCodes[country] ?? '+250';
-
-  String _stripDial(String phone) {
-    for (final code in _dialCodes.values) {
-      if (phone.startsWith(code)) return phone.substring(code.length);
-    }
-    return phone;
-  }
-
-  String _withDial(String phone, String country) {
-    final code = _dialCode(country);
-    final cleaned = phone.trim();
-    if (cleaned.isEmpty) return code;
-    for (final c in _dialCodes.values) {
-      if (cleaned.startsWith(c)) return cleaned;
-    }
-    var local = cleaned;
-    if (local.startsWith('0')) local = local.substring(1);
-    return '$code$local';
-  }
-
   @override
   void initState() {
     super.initState();
     final state = ref.read(signupFormProvider);
+    // Holds only what the user types: the local phone digits, or a full email.
+    // The dial code is rendered as a prefix instead of being baked into the
+    // text, so an email can be typed into the same field.
     _phoneController = TextEditingController(
-      text: _withDial(state.phoneNumber ?? '', state.country),
+      text: localPhonePart(state.phoneNumber ?? ''),
     );
     _phoneController.addListener(() {
       ref.read(signupFormProvider.notifier).updatePhoneNumber(_phoneController.text);
@@ -284,7 +259,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     const SizedBox(height: 18),
 
                     // Phone
-                    _FieldLabel(label: 'Phone number'),
+                    _FieldLabel(label: 'Phone / Email'),
                     _buildPhoneField(formState),
                     const SizedBox(height: 18),
 
@@ -352,11 +327,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
                           (v == null || v.isEmpty) ? 'Please select a country' : null,
                       onChanged: (v) {
                         if (v != null) {
+                          // The field keeps the local part; the notifier
+                          // re-applies the new country's dial code.
                           ref.read(signupFormProvider.notifier).updateCountry(v);
-                          _phoneController.text = _withDial(
-                            _stripDial(_phoneController.text),
-                            v,
-                          );
                         }
                       },
                     ),
@@ -492,20 +465,30 @@ class _SignupViewState extends ConsumerState<SignupView> {
   }
 
   Widget _buildPhoneField(SignupFormState state) {
+    // Mirrors the mobile signup field: the dial-code chip shows while the input
+    // is a phone number and disappears as soon as the user types '@'.
+    final isEmail = looksLikeEmailContact(state.phoneNumber ?? '');
     return TextFormField(
       controller: _phoneController,
-      keyboardType: TextInputType.phone,
+      keyboardType: TextInputType.text,
       validator: (v) {
-        final raw = v ?? '';
-        if (raw.isEmpty) return 'Phone number is required';
+        final raw = (v ?? '').trim();
+        if (raw.isEmpty) return 'Phone number or email is required';
+        if (looksLikeEmailContact(raw)) {
+          return isEmailContact(raw)
+              ? null
+              : 'Please enter a valid email address';
+        }
         if (raw.replaceAll(RegExp(r'[^0-9+]'), '').length < 9) {
           return 'Please enter a valid phone number';
         }
         return null;
       },
       decoration: siInputDecoration(
-        hintText: 'Enter your phone number',
+        hintText: '783054874 or your@email.com',
         prefixIcon: Icons.phone_outlined,
+      ).copyWith(
+        prefix: isEmail ? null : _DialCodeChip(code: signupDialCode(state.country)),
       ),
     );
   }
@@ -593,6 +576,33 @@ class _SignupViewState extends ConsumerState<SignupView> {
 }
 
 // ── Field label above input ───────────────────────────────────────────────────
+
+/// Dial-code prefix shown inside the phone field, matching the chip the mobile
+/// signup form renders. Hidden while the field holds an email.
+class _DialCodeChip extends StatelessWidget {
+  final String code;
+  const _DialCodeChip({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      margin: const EdgeInsets.only(right: 4),
+      decoration: BoxDecoration(
+        color: SITokens.blue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        code,
+        style: const TextStyle(
+          color: SITokens.blue,
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
 
 class _FieldLabel extends StatelessWidget {
   final String label;

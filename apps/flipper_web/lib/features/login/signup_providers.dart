@@ -8,6 +8,7 @@ import 'package:flipper_models/ippis_service.dart';
 import '../../models/business_type.dart';
 import '../../repositories/signup_repository.dart';
 import '../../core/api_login_key.dart';
+import '../../core/signup_contact.dart';
 import '../../core/secrets.dart';
 
 part 'signup_providers.g.dart';
@@ -256,11 +257,23 @@ class SignupForm extends _$SignupForm {
   }
 
   void updateCountry(String country) {
-    state = state.copyWith(country: country);
+    // The dial code applied to a phone number depends on the country, so an
+    // already-entered number has to be re-normalized. Emails are untouched.
+    final phone = state.phoneNumber;
+    state = state.copyWith(
+      country: country,
+      phoneNumber: (phone == null || phone.isEmpty)
+          ? phone
+          : normalizeSignupContact(phone, country: country),
+    );
   }
 
   void updatePhoneNumber(String phoneNumber) {
-    state = state.copyWith(phoneNumber: phoneNumber);
+    // The field takes a phone number or an email. Store the canonical value:
+    // emails as typed, phone numbers with the country dial code.
+    state = state.copyWith(
+      phoneNumber: normalizeSignupContact(phoneNumber, country: state.country),
+    );
   }
 
   Future<bool> submitForm() async {
