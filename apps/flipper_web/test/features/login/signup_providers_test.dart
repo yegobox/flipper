@@ -266,16 +266,32 @@ void main() {
       expect(state.isValid, equals(false));
     });
 
-    test('isValid returns false when fullName does not have two parts', () {
-      final businessType = BusinessType(id: '1', typeName: 'Flipper Retailer');
-
+    test('isValid accepts a single-word fullName, as mobile does', () {
+      // Mobile validates this field with FieldBlocValidators.required only.
+      // Requiring two words rejected real single names, and the error gave no
+      // hint that a space was what it was asking for.
       final state = SignupFormState(
         username: 'testuser',
-        fullName: 'User', // Only one name
-        businessType: businessType,
-        tinNumber: '123456789',
+        fullName: 'Murag',
+        businessType: BusinessType(id: '2', typeName: 'Individual'),
         country: 'Rwanda',
         isUsernameAvailable: true,
+        phoneNumber: '+250788517078',
+        verifiedContact: '+250788517078',
+      );
+
+      expect(state.isValid, equals(true));
+    });
+
+    test('isValid still rejects a blank fullName', () {
+      final state = SignupFormState(
+        username: 'testuser',
+        fullName: '   ',
+        businessType: BusinessType(id: '2', typeName: 'Individual'),
+        country: 'Rwanda',
+        isUsernameAvailable: true,
+        phoneNumber: '+250788517078',
+        verifiedContact: '+250788517078',
       );
 
       expect(state.isValid, equals(false));

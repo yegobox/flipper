@@ -52,8 +52,21 @@ class _SignupViewState extends ConsumerState<SignupView> {
     });
   }
 
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Held so dispose() can clear our snackbars without a BuildContext lookup.
+    _messenger = ScaffoldMessenger.of(context);
+  }
+
   @override
   void dispose() {
+    // The messenger lives above the router, so anything still showing would
+    // follow the user onto the next screen — a "Code sent to …" from signup
+    // was surviving all the way onto the sign-in page.
+    _messenger?.clearSnackBars();
     _phoneController.dispose();
     _tinController.dispose();
     _otpController.dispose();
@@ -62,6 +75,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
   void _showError(String message) {
     if (!mounted) return;
+    // Replace whatever is showing. Queued snackbars play one after another,
+    // which reads as one message that will not go away.
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -78,8 +94,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
     );
   }
 
-  void _showSuccess(String message) {
+  /// [offerSignIn] adds the "Sign in" shortcut. Only the account-created
+  /// message wants it — offering it on "Code sent to …" invited the user to
+  /// abandon a signup they were halfway through.
+  void _showSuccess(String message, {bool offerSignIn = false}) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -87,17 +107,19 @@ class _SignupViewState extends ConsumerState<SignupView> {
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(8),
         duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'Sign in',
-          textColor: Colors.white,
-          onPressed: () {
-            try {
-              context.go('/login');
-            } catch (_) {
-              Navigator.pop(context);
-            }
-          },
-        ),
+        action: offerSignIn
+            ? SnackBarAction(
+                label: 'Sign in',
+                textColor: Colors.white,
+                onPressed: () {
+                  try {
+                    context.go('/login');
+                  } catch (_) {
+                    Navigator.pop(context);
+                  }
+                },
+              )
+            : null,
       ),
     );
   }
@@ -106,7 +128,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
   int _completedCount(SignupFormState s) {
     int count = 0;
     if (s.username.length >= 4 && s.isUsernameAvailable == true) count++;
-    if (s.fullName.trim().split(' ').length >= 2) count++;
+    if (s.fullName.trim().isNotEmpty) count++;
     if (s.isPhoneVerified) count++;
     if (s.businessType != null) count++;
     if (_showTinField && (s.tinDetails != null || s.isTinValidationRelaxed)) {
@@ -258,9 +280,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
                       prefixIcon: Icons.badge_outlined,
                       initialValue: formState.fullName,
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Full name is required';
-                        if (v.trim().split(' ').length < 2) {
-                          return 'Please enter first and last name';
+                        // Mobile only requires this to be non-empty
+                        // (FieldBlocValidators.required). Demanding two words
+                        // rejected perfectly real single names and gave no hint
+                        // that a space was what it wanted.
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Full name is required';
                         }
                         return null;
                       },
@@ -420,7 +445,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
     final success = await ref.read(signupFormProvider.notifier).submitForm();
     if (!mounted) return;
     if (success) {
-      _showSuccess('Account created successfully!');
+      _showSuccess('Account created successfully!', offerSignIn: true);
       try {
         context.go('/login');
       } catch (_) {

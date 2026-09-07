@@ -133,7 +133,8 @@ class SignupFormState {
 
   bool get isValid {
     final isUsernameValid = username.length >= 4 && isUsernameAvailable == true;
-    final isFullNameValid = fullName.trim().split(' ').length >= 2;
+    // Mobile requires only that this is filled in, so web must not be stricter.
+    final isFullNameValid = fullName.trim().isNotEmpty;
     final isBusinessTypeValid = businessType != null;
 
     // TIN is required except for business type with id '2' (Individual)
@@ -493,10 +494,8 @@ class SignupForm extends _$SignupForm {
       return false;
     }
 
-    if (state.fullName.isEmpty || state.fullName.trim().split(' ').length < 2) {
-      state = state.copyWith(
-        errorMessage: 'Please enter your full name (first and last name)',
-      );
+    if (state.fullName.trim().isEmpty) {
+      state = state.copyWith(errorMessage: 'Please enter your full name');
       return false;
     }
 
