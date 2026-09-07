@@ -11,6 +11,71 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flipper_models/helperModels/business_type.dart';
 
+import '../core/api_login_key.dart';
+
+/// apihub sits behind HTTP basic auth; without these headers every call comes
+/// back as 401 "Authentication required". The mobile client
+/// (`FlipperHttpClient._getHeaders`) attaches the same credentials to every
+/// apihub request, so anything talking to apihub from web must too.
+Map<String, String> apiHubHeaders() {
+  final credentials =
+      '${AppSecrets.publicUsername}:${AppSecrets.publicPassword}';
+  return {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Authorization': 'Basic ${base64Encode(utf8.encode(credentials))}',
+  };
+}
+
+/// The body POST `/v2/api/business` expects, byte-for-byte the one the mobile
+/// app sends — see `SignupViewModel.registerTenant`
+/// (packages/flipper_models/lib/view_models/signup_viewmodel.dart) and
+/// `CoreSync.signup`, which strips `businessTypeId` before sending.
+///
+/// `businessTypeId` is deliberately absent: the server defaults it to 1, and
+/// mobile has always let it. Sending the picked id (2 for Individual) made
+/// web-created businesses skip the subscription check `AuthMixin` waives for
+/// `businessTypeId == 2`, and changed which app `Booting.setDefaultApp` lands
+/// the user in.
+///
+/// `type` is the literal `'Business'` mobile sends, not the business-type enum
+/// name — web was writing 'INDIVIDUAL' / 'BUSINESS' / 'ENTERPRISE' into that
+/// column.
+Map<String, dynamic> buildBusinessRegistrationPayload({
+  required String username,
+  required String fullName,
+  required String businessTypeId,
+  required String tinNumber,
+  required String country,
+  String? phoneNumber,
+  Object? userId,
+  DateTime? createdAt,
+}) {
+  final isIndividual = businessTypeId == BusinessTypeEnum.INDIVIDUAL.id;
+  // Mobile's fallback TIN for individuals and for a blank field.
+  const placeholderTin = 999909695;
+  final tin = (isIndividual || tinNumber.trim().isEmpty)
+      ? placeholderTin
+      : (int.tryParse(tinNumber.trim()) ?? placeholderTin);
+
+  return {
+    'name': username,
+    'fullName': fullName,
+    'latitude': '1',
+    'longitude': '1',
+    'phoneNumber': phoneNumber,
+    'currency': 'RWF',
+    'createdAt': (createdAt ?? DateTime.now()).toIso8601String(),
+    // Ensure userId is sent as a string regardless of incoming type
+    'userId': userId?.toString(),
+    'tinNumber': tin,
+    'type': 'Business',
+    'bhfid': '00',
+    'referredBy': 'Organic',
+    'country': country,
+  };
+}
+
 final signupRepositoryProvider = Provider<SignupRepository>((ref) {
   final analytics = ref.watch(productAnalyticsProvider);
   return SignupRepository(analytics: analytics);
@@ -28,17 +93,7 @@ class SignupRepository {
   static String get _apiHubDomain =>
       kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain;
 
-  /// apihub sits behind HTTP basic auth; without these headers every call
-  /// comes back as 401 "Authentication required".
-  Map<String, String> _apiHubHeaders() {
-    final credentials =
-        '${AppSecrets.publicUsername}:${AppSecrets.publicPassword}';
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': 'Basic ${base64Encode(utf8.encode(credentials))}',
-    };
-  }
+  Map<String, String> _apiHubHeaders() => apiHubHeaders();
 
   Future<bool> checkUsernameAvailability(String username) async {
     if (username.length < 3) {
@@ -96,26 +151,15 @@ class SignupRepository {
     Object? userId, // Accept flexible userId (int or String)
   }) async {
     try {
-      // Construct the registration payload based on CoreSync's signup method
-      final Map<String, dynamic> payload = {
-        'name': username,
-        'fullName': fullName,
-        'businessTypeId': businessTypeId,
-        'tinNumber': tinNumber,
-        'country': country,
-        'currency': 'RWF', // Default currency
-        'longitude': 1.0,
-        'latitude': 1.0,
-        'bhfid': '00',
-        // Ensure userId is sent as a string regardless of incoming type
-        'userId': userId?.toString(),
-        'type': BusinessTypeEnum.fromId(businessTypeId).name,
-      };
-
-      // Add phone number if available
-      if (phoneNumber != null && phoneNumber.isNotEmpty) {
-        payload['phoneNumber'] = phoneNumber;
-      }
+      final Map<String, dynamic> payload = buildBusinessRegistrationPayload(
+        username: username,
+        fullName: fullName,
+        businessTypeId: businessTypeId,
+        tinNumber: tinNumber,
+        country: country,
+        phoneNumber: phoneNumber,
+        userId: userId,
+      );
 
       // Log the registration attempt (can be removed in production)
       if (kDebugMode) {
@@ -200,6 +244,106 @@ class SignupRepository {
         throw Exception('Registration failed: ${e.toString()}');
       }
     }
+  }
+
+  Map<String, dynamic> _decodeOrEmpty(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
+    } catch (_) {
+      return <String, dynamic>{};
+    }
+  }
+
+  /// POST `/v2/api/user` — returns the id of the user behind [contact],
+  /// creating it when apihub has not seen the contact before.
+  ///
+  /// apihub wants the user to exist before it will send a signup OTP, which is
+  /// why the mobile bloc calls `sendLoginRequest(..., refreshUserAccessOnly:
+  /// true)` before `sendOtpForSignup`.
+  Future<String?> lookupOrCreateUserId(String contact) async {
+    final http.Response response;
+    try {
+      response = await _httpClient.post(
+        Uri.parse('$_apiHubDomain/v2/api/user'),
+        headers: _apiHubHeaders(),
+        body: jsonEncode({'phoneNumber': normalizeApiUserLoginKey(contact)}),
+      );
+    } catch (e) {
+      if (kDebugMode) print('User lookup error: $e');
+      throw Exception(
+        'Network error while starting registration. Please try again.',
+      );
+    }
+
+    if (response.statusCode != 200) {
+      if (kDebugMode) {
+        print('User lookup failed: ${response.statusCode} - ${response.body}');
+      }
+      throw Exception(
+        'Could not start registration (${response.statusCode}). '
+        'Please try again.',
+      );
+    }
+
+    return _decodeOrEmpty(response.body)['id']?.toString();
+  }
+
+  /// POST `/v2/api/login/send-otp-signup` — mirrors
+  /// `AuthMixin.sendOtpForSignup`, including its 409 "contact already exists"
+  /// conflict, which is what stops a second account being opened on a phone
+  /// number that already has one.
+  Future<Map<String, dynamic>> sendSignupOtp(String contact) async {
+    final http.Response response;
+    try {
+      response = await _httpClient.post(
+        Uri.parse('$_apiHubDomain/v2/api/login/send-otp-signup'),
+        headers: _apiHubHeaders(),
+        body: jsonEncode({'contact': contact}),
+      );
+    } catch (e) {
+      if (kDebugMode) print('Send OTP error: $e');
+      throw Exception('Network error while sending the code. Please try again.');
+    }
+
+    if (response.statusCode == 200) {
+      return _decodeOrEmpty(response.body);
+    }
+    if (response.statusCode == 409) {
+      throw Exception(
+        _decodeOrEmpty(response.body)['error'] ?? 'Contact already exists',
+      );
+    }
+    throw Exception(
+      _decodeOrEmpty(response.body)['error'] ?? 'Failed to send OTP for signup',
+    );
+  }
+
+  /// POST `/v2/api/login/verify-otp-signup` — mirrors
+  /// `AuthMixin.verifyOtpForSignup`. The caller reads `verified`.
+  Future<Map<String, dynamic>> verifySignupOtp(
+    String contact,
+    String otp,
+  ) async {
+    final http.Response response;
+    try {
+      response = await _httpClient.post(
+        Uri.parse('$_apiHubDomain/v2/api/login/verify-otp-signup'),
+        headers: _apiHubHeaders(),
+        body: jsonEncode({'contact': contact, 'otp': otp}),
+      );
+    } catch (e) {
+      if (kDebugMode) print('Verify OTP error: $e');
+      throw Exception('Network error while checking the code. Please try again.');
+    }
+
+    if (response.statusCode == 200) {
+      return _decodeOrEmpty(response.body);
+    }
+    throw Exception(
+      _decodeOrEmpty(response.body)['error'] ??
+          'Failed to verify OTP for signup',
+    );
   }
 
   Future<List<BusinessType>> getBusinessTypes() async {

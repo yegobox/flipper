@@ -76,13 +76,36 @@ class IppisBusiness {
   }
 }
 
+/// Thrown when IPPIS itself could not answer: unreachable, rejected our
+/// credentials, blocked the request (the service sends no CORS headers, so
+/// every call from Flutter web fails this way) or returned a 5xx.
+///
+/// Callers must treat this as "validation unavailable" and relax the TIN
+/// check — the same thing the mobile signup form does — instead of telling the
+/// user their TIN is unknown. A TIN IPPIS genuinely does not know still comes
+/// back as `null` from [IppisService.getBusinessDetails].
+///
+/// The message keeps the literal "Server Error" wording the mobile
+/// `TinInputField` matches on.
+class IppisUnavailableException implements Exception {
+  IppisUnavailableException([this.message = 'Server Error']);
+
+  final String message;
+
+  @override
+  String toString() => 'IppisUnavailableException: $message';
+}
+
 class IppisService {
   final String _baseUrl = "https://ippis.rw/api";
 
+  /// Throws [IppisUnavailableException] when the service cannot be reached or
+  /// refuses our credentials.
   Future<String?> authenticate() async {
+    final http.Response response;
     try {
       final url = Uri.parse('$_baseUrl/authenticate');
-      final response = await http.post(
+      response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -90,47 +113,60 @@ class IppisService {
           "secretKey": AppSecrets.ippisSecretKey,
         }),
       );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        return data['token'];
-      }
-      return null;
     } catch (e) {
       print("Error authenticating ippis: $e");
-      return null;
+      throw IppisUnavailableException("Server Error: $e");
     }
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return data['token'];
+    }
+
+    print("Error authenticating ippis: ${response.statusCode}");
+    throw IppisUnavailableException(
+      "Server Error: authenticate returned ${response.statusCode}",
+    );
   }
 
+  /// Returns the business behind [tin], or `null` when IPPIS has no record of
+  /// it. Throws [IppisUnavailableException] when the lookup could not be
+  /// performed at all.
   Future<IppisBusiness?> getBusinessDetails(String tin) async {
-    try {
-      final token = await authenticate();
-      if (token == null) return null;
+    final token = await authenticate();
+    if (token == null) {
+      throw IppisUnavailableException("Server Error: no token returned");
+    }
 
+    final http.Response response;
+    try {
       final url = Uri.parse('$_baseUrl/raa-business-details?tin=$tin');
-      final response = await http.get(
+      response = await http.get(
         url,
         headers: {
           'Authorization': token,
           'Content-Type': 'application/json',
         },
       );
-
-      if (response.statusCode == 200) {
-        return IppisBusiness.fromJson(jsonDecode(response.body));
-      } else if (response.statusCode == 404) {
-        // Handle "No data found" implicitly by returning null
-        return null;
-      } else if (response.statusCode == 500) {
-        throw Exception("Server Error");
-      }
-      return null;
     } catch (e) {
-      if (e.toString().contains("Server Error")) {
-        rethrow;
-      }
       print("Error fetching business details: $e");
+      throw IppisUnavailableException("Server Error: $e");
+    }
+
+    if (response.statusCode == 200) {
+      try {
+        return IppisBusiness.fromJson(jsonDecode(response.body));
+      } catch (e) {
+        print("Error parsing business details: $e");
+        throw IppisUnavailableException("Server Error: malformed response");
+      }
+    }
+    if (response.statusCode == 404) {
+      // IPPIS answered and has no record of this TIN.
       return null;
     }
+    throw IppisUnavailableException(
+      "Server Error: lookup returned ${response.statusCode}",
+    );
   }
 }

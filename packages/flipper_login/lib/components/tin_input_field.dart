@@ -111,6 +111,14 @@ class _TinInputFieldState extends State<TinInputField> {
         });
         widget.onValidationResult?.call(false, false);
       }
+    } on IppisUnavailableException {
+      // IPPIS could not answer (unreachable / 5xx). Relax validation rather
+      // than telling the user their TIN is unknown.
+      if (mounted) {
+        showErrorNotification(
+            context, 'Service Unavailable: Validation skipped');
+        widget.onValidationResult?.call(false, true);
+      }
     } catch (e) {
       if (e.toString().contains("Server Error")) {
         // Relax validation

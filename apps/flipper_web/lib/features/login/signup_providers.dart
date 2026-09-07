@@ -1,15 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flipper_models/ippis_service.dart';
 
 import '../../models/business_type.dart';
 import '../../repositories/signup_repository.dart';
-import '../../core/api_login_key.dart';
 import '../../core/signup_contact.dart';
-import '../../core/secrets.dart';
 
 part 'signup_providers.g.dart';
 
@@ -29,6 +25,31 @@ class SignupFormState {
   final IppisBusiness? tinDetails;
   final String? tinError;
 
+  /// IPPIS could not be reached, so the TIN was accepted without a lookup —
+  /// the same relaxation the mobile signup form applies (`setTinRelaxed` in
+  /// packages/flipper_login/lib/blocs/signup_form_bloc.dart). Always true on
+  /// web today: ippis.rw sends no CORS headers, so the browser can never call
+  /// it directly.
+  final bool isTinValidationRelaxed;
+
+  /// The signup OTP has been sent, so the code field is live. Mirrors the
+  /// mobile bloc enabling `otpCode` after `requestOtp()` succeeds.
+  final bool isOtpRequested;
+  final bool isSendingOtp;
+  final bool isVerifyingOtp;
+  final String otpCode;
+  final String? otpError;
+
+  /// The contact apihub confirmed. Kept so that editing the phone/email — or
+  /// switching country, which re-applies a different dial code — drops the
+  /// verification, exactly as the mobile bloc's `phoneNumber` listener does.
+  final String? verifiedContact;
+
+  bool get isPhoneVerified =>
+      verifiedContact != null &&
+      verifiedContact!.isNotEmpty &&
+      verifiedContact == phoneNumber;
+
   SignupFormState({
     this.username = '',
     this.fullName = '',
@@ -43,6 +64,13 @@ class SignupFormState {
     this.isValidatingTin = false,
     this.tinDetails,
     this.tinError,
+    this.isTinValidationRelaxed = false,
+    this.isOtpRequested = false,
+    this.isSendingOtp = false,
+    this.isVerifyingOtp = false,
+    this.otpCode = '',
+    this.otpError,
+    this.verifiedContact,
   });
 
   SignupFormState copyWith({
@@ -61,6 +89,13 @@ class SignupFormState {
     bool? isValidatingTin,
     Object? tinDetails = _unset, // Use Object? and default to sentinel
     Object? tinError = _unset, // Use Object? and default to sentinel
+    bool? isTinValidationRelaxed,
+    bool? isOtpRequested,
+    bool? isSendingOtp,
+    bool? isVerifyingOtp,
+    String? otpCode,
+    Object? otpError = _unset,
+    Object? verifiedContact = _unset,
   }) {
     return SignupFormState(
       username: username ?? this.username,
@@ -82,6 +117,17 @@ class SignupFormState {
       tinError: tinError == _unset
           ? this.tinError
           : (tinError as String?), // Identity check
+      isTinValidationRelaxed:
+          isTinValidationRelaxed ?? this.isTinValidationRelaxed,
+      isOtpRequested: isOtpRequested ?? this.isOtpRequested,
+      isSendingOtp: isSendingOtp ?? this.isSendingOtp,
+      isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
+      otpCode: otpCode ?? this.otpCode,
+      otpError:
+          otpError == _unset ? this.otpError : (otpError as String?),
+      verifiedContact: verifiedContact == _unset
+          ? this.verifiedContact
+          : (verifiedContact as String?),
     );
   }
 
@@ -92,18 +138,30 @@ class SignupFormState {
 
     // TIN is required except for business type with id '2' (Individual)
     final needsTin = businessType?.id != '2';
-    // If TIN is needed, it must be valid length AND successfully validated (tinDetails != null)
+    // If TIN is needed it must be the right length and must not have been
+    // rejected by IPPIS. A lookup we could not perform at all does not block
+    // signup — mobile relaxes the same way when IPPIS is down.
     final isTinNumberValid =
         !needsTin ||
-        (tinNumber.length >= 9 && tinDetails != null && tinError == null);
+        (tinNumber.length >= 9 &&
+            (tinDetails != null || isTinValidationRelaxed) &&
+            tinError == null);
 
     final isCountryValid = country.isNotEmpty;
+
+    // Mobile keeps a `_phoneVerificationField` that fails validation until the
+    // OTP is confirmed, so an unverified contact can never sign up. A blank
+    // contact stays valid here because the form's own field validator is what
+    // requires one (and unit tests submit without a phone).
+    final hasContact = phoneNumber != null && phoneNumber!.isNotEmpty;
+    final isContactVerified = !hasContact || isPhoneVerified;
 
     return isUsernameValid &&
         isFullNameValid &&
         isBusinessTypeValid &&
         isTinNumberValid &&
-        isCountryValid;
+        isCountryValid &&
+        isContactVerified;
   }
 }
 
@@ -205,6 +263,7 @@ class SignupForm extends _$SignupForm {
       isValidatingTin: false, // Stop any previous validation indicator
       tinError: null,
       tinDetails: null,
+      isTinValidationRelaxed: false,
     );
 
     // If the TIN has the required length, trigger validation
@@ -215,7 +274,11 @@ class SignupForm extends _$SignupForm {
 
   Future<void> validateTin(String tinToValidate) async {
     // Set loading state for the current validation request
-    state = state.copyWith(isValidatingTin: true, tinError: null);
+    state = state.copyWith(
+      isValidatingTin: true,
+      tinError: null,
+      isTinValidationRelaxed: false,
+    );
 
     try {
       final ippisService = IppisService();
@@ -230,11 +293,22 @@ class SignupForm extends _$SignupForm {
       if (business != null) {
         state = state.copyWith(isValidatingTin: false, tinDetails: business);
       } else {
+        // IPPIS answered and does not know this TIN.
         state = state.copyWith(
           isValidatingTin: false,
           tinError: 'No data found for this TIN',
         );
       }
+    } on IppisUnavailableException {
+      // Could not reach IPPIS at all — on web that is every call, since
+      // ippis.rw refuses browser origins. Relax instead of blocking signup,
+      // matching the mobile form's `setTinRelaxed`.
+      if (state.tinNumber != tinToValidate) return;
+      state = state.copyWith(
+        isValidatingTin: false,
+        tinError: null,
+        isTinValidationRelaxed: true,
+      );
     } catch (e) {
       // Before applying the error, also check if the TIN has changed
       if (state.tinNumber != tinToValidate) {
@@ -242,7 +316,8 @@ class SignupForm extends _$SignupForm {
       }
       state = state.copyWith(
         isValidatingTin: false,
-        tinError: 'Error validating TIN',
+        tinError: null,
+        isTinValidationRelaxed: true,
       );
     }
   }
@@ -253,6 +328,7 @@ class SignupForm extends _$SignupForm {
       tinDetails: null,
       tinError: null,
       isValidatingTin: false,
+      isTinValidationRelaxed: false,
     );
   }
 
@@ -260,9 +336,9 @@ class SignupForm extends _$SignupForm {
     // The dial code applied to a phone number depends on the country, so an
     // already-entered number has to be re-normalized. Emails are untouched.
     final phone = state.phoneNumber;
-    state = state.copyWith(
+    _applyContact(
       country: country,
-      phoneNumber: (phone == null || phone.isEmpty)
+      contact: (phone == null || phone.isEmpty)
           ? phone
           : normalizeSignupContact(phone, country: country),
     );
@@ -271,12 +347,136 @@ class SignupForm extends _$SignupForm {
   void updatePhoneNumber(String phoneNumber) {
     // The field takes a phone number or an email. Store the canonical value:
     // emails as typed, phone numbers with the country dial code.
-    state = state.copyWith(
-      phoneNumber: normalizeSignupContact(phoneNumber, country: state.country),
+    _applyContact(
+      contact: normalizeSignupContact(phoneNumber, country: state.country),
     );
   }
 
+  /// Stores the canonical contact and, when it no longer matches the one
+  /// apihub confirmed, tears the OTP state down so the user has to verify the
+  /// new number. The mobile bloc does this from its `phoneNumber` listener.
+  void _applyContact({String? contact, String? country}) {
+    final changedAwayFromVerified = state.verifiedContact != null &&
+        state.verifiedContact != contact;
+
+    state = state.copyWith(
+      country: country,
+      phoneNumber: contact,
+      isOtpRequested: changedAwayFromVerified ? false : null,
+      otpCode: changedAwayFromVerified ? '' : null,
+      otpError: changedAwayFromVerified ? null : _unset,
+      verifiedContact: changedAwayFromVerified ? null : _unset,
+    );
+  }
+
+  /// Sends the signup OTP to the contact currently in the form.
+  ///
+  /// Same two steps the mobile bloc's `requestOtp` takes: make sure apihub
+  /// knows the user, then ask it to send the code.
+  Future<bool> requestOtp() async {
+    final contact = state.phoneNumber;
+    if (contact == null || contact.isEmpty) {
+      state = state.copyWith(
+        otpError: 'Enter a phone number or email first.',
+      );
+      return false;
+    }
+    if (state.isSendingOtp) return false;
+
+    state = state.copyWith(isSendingOtp: true, otpError: null);
+
+    try {
+      await _signupRepository.lookupOrCreateUserId(contact);
+      await _signupRepository.sendSignupOtp(contact);
+      state = state.copyWith(
+        isSendingOtp: false,
+        isOtpRequested: true,
+        otpCode: '',
+        otpError: null,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        isSendingOtp: false,
+        otpError: _readableError(e, fallback: 'Failed to send the code.'),
+      );
+      return false;
+    }
+  }
+
+  /// Verifies [otp] against the contact in the form. Mirrors the mobile
+  /// bloc's `manualVerifyOtp`: a wrong code clears the verification rather
+  /// than throwing, so the user can simply retype it.
+  Future<bool> verifyOtp(String otp) async {
+    final contact = state.phoneNumber;
+    if (contact == null || contact.isEmpty) return false;
+    if (state.isVerifyingOtp) return false;
+
+    state = state.copyWith(isVerifyingOtp: true, otpError: null);
+
+    try {
+      final result = await _signupRepository.verifySignupOtp(contact, otp);
+
+      // The contact may have been edited while the request was in flight.
+      if (state.phoneNumber != contact) {
+        state = state.copyWith(isVerifyingOtp: false);
+        return false;
+      }
+
+      if (result['verified'] == true) {
+        state = state.copyWith(
+          isVerifyingOtp: false,
+          otpError: null,
+          verifiedContact: contact,
+        );
+        return true;
+      }
+
+      state = state.copyWith(
+        isVerifyingOtp: false,
+        otpError: result['error']?.toString() ??
+            'That code is not right. Please try again.',
+        verifiedContact: null,
+      );
+      return false;
+    } catch (e) {
+      if (state.phoneNumber != contact) {
+        state = state.copyWith(isVerifyingOtp: false);
+        return false;
+      }
+      state = state.copyWith(
+        isVerifyingOtp: false,
+        otpError: _readableError(e, fallback: 'Could not check that code.'),
+        verifiedContact: null,
+      );
+      return false;
+    }
+  }
+
+  /// Stores the typed code and verifies it as soon as it is 6 digits long,
+  /// the way the mobile form auto-submits a complete OTP.
+  Future<void> updateOtpCode(String otp) async {
+    state = state.copyWith(otpCode: otp, otpError: null);
+    if (otp.length == 6 && !state.isPhoneVerified) {
+      await verifyOtp(otp);
+    }
+  }
+
+  String _readableError(Object e, {required String fallback}) {
+    final text = e.toString();
+    if (text.contains('Exception:')) {
+      final message = text.split('Exception:').last.trim();
+      if (message.isNotEmpty) return message;
+    }
+    return fallback;
+  }
+
   Future<bool> submitForm() async {
+    // A second tap while the first request is in flight used to create a
+    // duplicate business (the flag was only set after the username re-check
+    // awaited). Refuse re-entry outright.
+    if (state.isSubmitting) return false;
+
     // Reset error state at the beginning
     state = state.copyWith(errorMessage: null);
 
@@ -316,6 +516,19 @@ class SignupForm extends _$SignupForm {
 
     if (state.country.isEmpty) {
       state = state.copyWith(errorMessage: 'Please select a country');
+      return false;
+    }
+
+    // Mobile refuses to sign up an unverified contact ("OTP is required to
+    // proceed with signup."). Without this, a mistyped number gets a business
+    // and a PIN it can never receive.
+    final contact = state.phoneNumber;
+    if (contact != null && contact.isNotEmpty && !state.isPhoneVerified) {
+      state = state.copyWith(
+        errorMessage: state.isOtpRequested
+            ? 'Enter the code we sent to $contact to continue.'
+            : 'Verify $contact first — tap "Send code".',
+      );
       return false;
     }
 
@@ -380,44 +593,30 @@ class SignupForm extends _$SignupForm {
         return true;
       }
 
-      // Otherwise, perform auth lookup to get user id and then register
-      final httpClient = http.Client();
-      final response = await httpClient.post(
-        Uri.parse(
-          '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user',
-        ),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'phoneNumber': normalizeApiUserLoginKey(phoneNumber),
-        }),
+      // Otherwise, perform auth lookup to get user id and then register.
+      // Anything other than 200 throws, and the catch below turns it into a
+      // message instead of a bare "Failed to create account".
+      final userIdStr = await _signupRepository.lookupOrCreateUserId(
+        phoneNumber,
       );
 
-      if (response.statusCode == 200) {
-        final userJson = jsonDecode(response.body) as Map<String, dynamic>;
-        final userIdRaw = userJson['id'];
-        final String? userIdStr = userIdRaw?.toString();
+      final result = await _signupRepository.registerBusiness(
+        username: state.username,
+        fullName: state.fullName,
+        businessTypeId: state.businessType!.id,
+        tinNumber: state.tinNumber,
+        country: state.country,
+        phoneNumber: phoneNumber,
+        userId: userIdStr,
+      );
 
-        final result = await _signupRepository.registerBusiness(
-          username: state.username,
-          fullName: state.fullName,
-          businessTypeId: state.businessType!.id,
-          tinNumber: state.tinNumber,
-          country: state.country,
-          phoneNumber: phoneNumber,
-          userId: userIdStr,
-        );
-
-        if (result.containsKey('error')) {
-          throw Exception(result['error']?.toString() ?? 'Registration failed');
-        }
-
-        // POST /v2/api/business already provisions the PIN and sends SMS — do not POST /pin again.
-        state = state.copyWith(isSubmitting: false);
-        return true;
+      if (result.containsKey('error')) {
+        throw Exception(result['error']?.toString() ?? 'Registration failed');
       }
 
+      // POST /v2/api/business already provisions the PIN and sends SMS — do not POST /pin again.
       state = state.copyWith(isSubmitting: false);
-      return false;
+      return true;
     } catch (e) {
       String errorMessage;
       if (e.toString().contains('Exception:')) {
