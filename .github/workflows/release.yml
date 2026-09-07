@@ -192,6 +192,29 @@ jobs:
           jq '.hosting.site = "yegobox-2ee43"' firebase.json > "$tmp" && mv "$tmp" firebase.json
           echo "Hosting site set to: $(jq -r '.hosting.site' firebase.json)"
 
+      - name: Resolve Firebase preview channel
+        id: web_channel
+        if: github.ref != 'refs/heads/main'
+        run: |
+          # One stable channel per branch, so the preview URL survives repeated
+          # pushes to the same branch and no other branch can overwrite it.
+          #
+          # This used to be `format('pr-{0}', github.event.commits.id)`, but
+          # `github.event.commits` is an ARRAY, so `.id` resolved to an empty
+          # string: every push from every branch deployed to one shared channel
+          # literally named `pr-`, and whoever pushed last owned the URL.
+          #
+          # Channel ids may only contain [a-z0-9-], and the resulting hostname
+          # (`<site>--<channel>-<hash>.web.app`) must stay under 63 chars, hence
+          # the slugify + truncate.
+          slug=$(printf '%s' "${GITHUB_REF_NAME}" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -e 's/[^a-z0-9-]/-/g' -e 's/--*/-/g' -e 's/^-//' -e 's/-$//' \
+            | cut -c1-20 \
+            | sed -e 's/-$//')
+          echo "id=pr-${slug:-build}" >> "$GITHUB_OUTPUT"
+          echo "Preview channel: pr-${slug:-build}"
+
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
         uses: FirebaseExtended/action-hosting-deploy@v0.9.0
@@ -201,8 +224,9 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
           # On main -> deploy to the live channel (serves yegobox-2ee43.web.app
           # AND the connected custom domain flipper.yegobox.com). Other branches
-          # get an ephemeral preview channel for QA.
-          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || format('pr-{0}', github.event.commits.id) }}
+          # get an ephemeral preview channel for QA, keyed by branch — see the
+          # step above.
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || steps.web_channel.outputs.id }}
           projectId: yegobox-2ee43
       - name: Echo Flipper Web URL
         # The live-channel deploy above publishes to the default `yegobox-2ee43`
@@ -293,8 +317,10 @@ jobs:
           # apps/flipper_hr/firebase.json pins hosting.site to `flipper-hr`, so no
           # jq retarget is needed: main deploys live to that site (which owns
           # hr.useflipper.com) and other branches get a preview channel on it.
-          # Preview channels are keyed by run_number — flipper_web's
-          # `github.event.commits.id` resolves to an empty string on most events.
+          # Preview channels are keyed by run_number, so each run gets a fresh
+          # URL. (flipper_web instead keys its channel by branch, so its preview
+          # URL is stable across pushes — either is fine, they are just
+          # different trade-offs.)
           channelId: ${{ github.ref == 'refs/heads/main' && 'live' || format('preview-{0}', github.run_number) }}
           projectId: yegobox-2ee43
 
