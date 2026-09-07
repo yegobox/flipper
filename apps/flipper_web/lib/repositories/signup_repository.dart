@@ -25,47 +25,65 @@ class SignupRepository {
   final ProductAnalytics _analytics;
   late final http.Client _httpClient;
 
+  static String get _apiHubDomain =>
+      kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain;
+
+  /// apihub sits behind HTTP basic auth; without these headers every call
+  /// comes back as 401 "Authentication required".
+  Map<String, String> _apiHubHeaders() {
+    final credentials =
+        '${AppSecrets.publicUsername}:${AppSecrets.publicPassword}';
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': 'Basic ${base64Encode(utf8.encode(credentials))}',
+    };
+  }
+
   Future<bool> checkUsernameAvailability(String username) async {
     if (username.length < 3) {
       return false;
     }
 
+    final http.Response response;
     try {
-      final response = await _httpClient.get(
+      response = await _httpClient.get(
         Uri.parse(
-          '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/search?name=$username',
+          '$_apiHubDomain/v2/api/search?name=${Uri.encodeQueryComponent(username)}',
         ),
-        headers: {'Content-Type': 'application/json'},
+        headers: _apiHubHeaders(),
       );
-
-      // A 404 response means the username is not found in the system,
-      // which means it's available to be used
-      if (response.statusCode == 404) {
-        return true; // Username is available
-      } else if (response.statusCode == 200) {
-        // Username exists in the system (found)
-        return false; // Username is not available
-      }
-      return false; // Default to unavailable for other status codes
     } catch (e) {
       if (kDebugMode) {
         print('Username availability check error: $e');
       }
-
-      // Network errors should be propagated to show error state
-      if (e.toString().contains('SocketException') ||
-          e.toString().contains('HttpException') ||
-          e.toString().contains('timeout')) {
-        throw Exception(
-          'Network error while checking username. Please try again.',
-        );
-      }
-
-      // For demo purposes or when network is unavailable, simulate username availability check with a simple rule
-      // In production, you would use the actual API response
-      return username.length >= 4 &&
-          !['admin', 'system', 'user', 'test'].contains(username.toLowerCase());
+      throw Exception(
+        'Network error while checking username. Please try again.',
+      );
     }
+
+    // A 404 response means the username is not found in the system,
+    // which means it's available to be used
+    if (response.statusCode == 404) {
+      return true; // Username is available
+    }
+    if (response.statusCode == 200) {
+      // Username exists in the system (found)
+      return false; // Username is not available
+    }
+
+    // Anything else (401, 5xx, ...) tells us nothing about the username, so
+    // surface it as an error instead of falsely reporting "not available".
+    if (kDebugMode) {
+      print(
+        'Username availability check failed: '
+        '${response.statusCode} - ${response.body}',
+      );
+    }
+    throw Exception(
+      'Could not verify username availability (${response.statusCode}). '
+      'Please try again.',
+    );
   }
 
   Future<Map<String, dynamic>> registerBusiness({
@@ -106,13 +124,8 @@ class SignupRepository {
 
       // Make the actual API call to register the user
       final response = await _httpClient.post(
-        Uri.parse(
-          '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/business',
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        Uri.parse('$_apiHubDomain/v2/api/business'),
+        headers: _apiHubHeaders(),
         body: jsonEncode(payload),
       );
 

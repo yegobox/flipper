@@ -54,7 +54,9 @@ class SignupFormState {
     bool? isSubmitting,
     String? errorMessage,
     bool? isCheckingUsername,
-    bool? isUsernameAvailable,
+    // Sentinel-defaulted so an explicit null clears the previous answer
+    // instead of silently keeping it.
+    Object? isUsernameAvailable = _unset,
     bool? isValidatingTin,
     Object? tinDetails = _unset, // Use Object? and default to sentinel
     Object? tinError = _unset, // Use Object? and default to sentinel
@@ -69,7 +71,9 @@ class SignupFormState {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: errorMessage,
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
-      isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
+      isUsernameAvailable: isUsernameAvailable == _unset
+          ? this.isUsernameAvailable
+          : (isUsernameAvailable as bool?), // Identity check
       isValidatingTin: isValidatingTin ?? this.isValidatingTin,
       tinDetails: tinDetails == _unset
           ? this.tinDetails
@@ -170,11 +174,15 @@ class SignupForm extends _$SignupForm {
         );
       }
     } catch (e) {
-      // Handle error while checking username
+      // Handle error while checking username. A failed check says nothing
+      // about the username, so leave availability unknown rather than
+      // showing "Username is not available".
       if (_lastCheckedUsername == username) {
+        // Allow a retry on the next keystroke / submit.
+        _lastCheckedUsername = null;
         state = state.copyWith(
           isCheckingUsername: false,
-          isUsernameAvailable: false,
+          isUsernameAvailable: null,
           errorMessage: 'Error checking username availability',
         );
       }
