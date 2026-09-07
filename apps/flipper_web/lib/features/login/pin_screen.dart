@@ -270,7 +270,7 @@ class _PinScreenState extends ConsumerState<PinScreen>
             const SizedBox(height: 10),
             Text(
               _isPinVerified
-                  ? 'Enter the code from your ${_otpType == _OtpType.sms ? 'SMS message' : 'authenticator app'} to continue.'
+                  ? 'Enter the code ${_otpType == _OtpType.sms ? 'we sent you' : 'from your authenticator app'} to continue.'
                   : 'Enter your PIN to manage your business securely.',
               style: context.siText(
                 fontSize: compact ? 15 : 16,
@@ -442,14 +442,14 @@ class _PinScreenState extends ConsumerState<PinScreen>
                 child: _toggleItem('Authenticator', _OtpType.authenticator, compact),
               ),
               Expanded(
-                child: _toggleItem('SMS', _OtpType.sms, compact),
+                child: _toggleItem('SMS / Email', _OtpType.sms, compact),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          isAuthenticator ? 'Authenticator Code' : 'SMS Code',
+          isAuthenticator ? 'Authenticator Code' : 'SMS / Email Code',
           style: context.siText(
             fontSize: compact ? 13 : 14,
             fontWeight: FontWeight.w700,
