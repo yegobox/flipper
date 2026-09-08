@@ -16,7 +16,7 @@ void main() {
       expect(find.text('PIN'), findsOneWidget);
       expect(find.text('Sign in'), findsOneWidget);
       expect(find.byType(FlipperGradientButton), findsOneWidget);
-      expect(find.text('SMS'), findsNothing);
+      expect(find.text('SMS / Email'), findsNothing);
       expect(find.text('Authenticator'), findsNothing);
     });
 
@@ -32,10 +32,10 @@ void main() {
         await tester.pump();
 
         expect(find.text('Verify your identity'), findsOneWidget);
-        expect(find.text('SMS'), findsOneWidget);
+        expect(find.text('SMS / Email'), findsOneWidget);
         expect(find.text('Authenticator'), findsOneWidget);
         expect(find.text('Authenticator Code'), findsOneWidget);
-        expect(find.text('SMS Code'), findsNothing);
+        expect(find.text('SMS / Email Code'), findsNothing);
       });
 
       testWidgets('toggles to SMS and updates UI', (tester) async {
@@ -46,10 +46,10 @@ void main() {
         );
         await tester.pump();
 
-        await tester.tap(find.text('SMS'));
+        await tester.tap(find.text('SMS / Email'));
         await tester.pumpAndSettle();
 
-        expect(find.text('SMS Code'), findsOneWidget);
+        expect(find.text('SMS / Email Code'), findsOneWidget);
         expect(find.text('Authenticator Code'), findsNothing);
       });
 
@@ -63,14 +63,14 @@ void main() {
         );
         await tester.pump();
 
-        await tester.tap(find.text('SMS'));
+        await tester.tap(find.text('SMS / Email'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Authenticator'));
         await tester.pumpAndSettle();
 
         expect(find.text('Authenticator Code'), findsOneWidget);
-        expect(find.text('SMS Code'), findsNothing);
+        expect(find.text('SMS / Email Code'), findsNothing);
       });
     });
   });

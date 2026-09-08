@@ -598,6 +598,14 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Uremeza ko ushaka gukura ibicuruzwa byose muri iri gurisha?';
 
   @override
+  String plusMoreItems(int count) {
+    return '+$count ibindi';
+  }
+
+  @override
+  String get actionCannotBeUndone => 'Iki gikorwa ntigisubizwa inyuma.';
+
+  @override
   String get deleteAll => 'Siba byose';
 
   @override

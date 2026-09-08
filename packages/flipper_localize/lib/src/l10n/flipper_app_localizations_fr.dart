@@ -604,6 +604,14 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Voulez-vous vraiment retirer tous les articles de cette transaction ?';
 
   @override
+  String plusMoreItems(int count) {
+    return '+$count de plus';
+  }
+
+  @override
+  String get actionCannotBeUndone => 'Cette action est irréversible.';
+
+  @override
   String get deleteAll => 'Tout supprimer';
 
   @override

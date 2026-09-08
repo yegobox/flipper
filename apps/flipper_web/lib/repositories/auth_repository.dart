@@ -170,7 +170,18 @@ class AuthRepository {
   Future<bool> _completeOtpLogin(Map<String, dynamic> responseData) async {
     final refreshToken = responseData['refreshToken'] as String?;
     if (refreshToken == null || refreshToken.isEmpty) {
-      throw Exception('Login succeeded but no Supabase refresh token was returned');
+      // Web needs a Supabase session for RLS, so there is nothing to fall back
+      // on here — mobile gets by on `token` alone because it does not use
+      // Supabase auth for its reads. Name the keys the server did send: which
+      // ones are present is what says whether the account is unusual or the
+      // endpoint stopped minting sessions. Keys only, never values.
+      final keys = (responseData.keys.toList()..sort()).join(', ');
+      debugPrint('verify-otp 200 without refreshToken; keys: [$keys]');
+      throw Exception(
+        'Signed in, but the server did not return a Supabase session '
+        '(response fields: ${keys.isEmpty ? 'none' : keys}). '
+        'Please report this — your account is fine.',
+      );
     }
 
     final pinUserId = responseData['userId']?.toString().trim();

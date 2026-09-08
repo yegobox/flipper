@@ -744,6 +744,19 @@
     "@confirmRemoveAllTransactionItems": {
         "description": "Confirmation message for deleting all transaction items"
     },
+    "plusMoreItems": "+{count} more",
+    "@plusMoreItems": {
+        "description": "Trailing row when a preview list is truncated",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "actionCannotBeUndone": "This action cannot be undone.",
+    "@actionCannotBeUndone": {
+        "description": "Warning footnote on destructive confirmation dialogs"
+    },
     "deleteAll": "Delete All",
     "@deleteAll": {
         "description": "Delete all action"

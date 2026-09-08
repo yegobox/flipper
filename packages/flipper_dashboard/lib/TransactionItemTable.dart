@@ -12,6 +12,8 @@ import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_expanded_line.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -53,6 +55,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, bool> _isItemSaving = {};
   final Map<String, bool> _hasItemChanged = {};
   final Map<String, String> _itemErrors = {};
+
+  /// Why the last delete failed, so the confirmation dialog can say it out loud
+  /// instead of only logging it.
+  String? _lastDeleteError;
   String? _expandedItemId;
   final Map<String, GlobalKey> _rowKeys = {};
   ScrollController? _cartItemsScrollController;
@@ -1299,70 +1305,46 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === ENHANCED INTERACTION METHODS ===
   void _showDeleteAllConfirmation(bool isOrdering) {
-    showDialog(
+    final items = List<TransactionItem>.from(_visibleTransactionItems);
+    if (items.isEmpty) return;
+    final currency = ProxyService.box.defaultCurrency();
+
+    showDestructiveConfirmDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        var isDeleting = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              title: Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
-                  const SizedBox(width: 8),
-                  Text(context.flipperL10n.deleteAllItems),
-                ],
-              ),
-              content: Text(
-                context.flipperL10n.confirmRemoveAllItemsCount(
-                  _visibleTransactionItems.length,
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isDeleting
-                      ? null
-                      : () => Navigator.of(dialogContext).pop(),
-                  child: Text(context.flipperL10n.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: isDeleting
-                      ? null
-                      : () async {
-                          setDialogState(() => isDeleting = true);
-                          final success = await _deleteAllItems(isOrdering);
-                          if (!dialogContext.mounted) return;
-                          if (success) {
-                            Navigator.of(dialogContext).pop();
-                          } else {
-                            setDialogState(() => isDeleting = false);
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[400],
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(108, 40),
-                  ),
-                  child: isDeleting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(context.flipperL10n.deleteAll),
-                ),
-              ],
-            );
-          },
-        );
+      title: context.flipperL10n.deleteAllItems,
+      message: context.flipperL10n.confirmRemoveAllItemsCount(items.length),
+      confirmLabel: context.flipperL10n.deleteAll,
+      footnote: context.flipperL10n.actionCannotBeUndone,
+      lines: [for (final item in items) _confirmLineFor(item, currency)],
+      totalLabel: context.flipperL10n.totalAmount,
+      totalValue: grandTotal.toDouble().toCurrencyFormatted(symbol: currency),
+      onConfirm: () async {
+        final ok = await _deleteAllItems(isOrdering);
+        if (!ok && mounted) _showDeleteFailure();
+        return ok;
       },
+    );
+  }
+
+  /// The cart line as the confirmation preview shows it: same name, same
+  /// `qty × unit` detail and same line total the user was just looking at.
+  DestructiveConfirmLine _confirmLineFor(TransactionItem item, String currency) {
+    final qty = _formatQty(_displayQtyFor(item));
+    final unit = _formatCartMoney(item.price.toDouble());
+    return DestructiveConfirmLine(
+      label: _getItemName(item),
+      meta: '$qty × $currency $unit',
+      trailing: _getItemTotal(item),
+    );
+  }
+
+  void _showDeleteFailure() {
+    final error = _lastDeleteError;
+    showErrorNotification(
+      context,
+      error == null
+          ? context.flipperL10n.failedToRemoveItem
+          : context.flipperL10n.errorRemovingItems(error),
     );
   }
 
@@ -1403,6 +1385,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       return true;
     } catch (e, s) {
       talker.error(context.flipperL10n.errorDeletingItems(e.toString()), s);
+      _lastDeleteError = e.toString();
       setState(() {
         for (final item in itemsToDelete) {
           _optimisticallyDeletedItemIds.remove(item.id);
@@ -1421,67 +1404,19 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   void _showDeleteConfirmation(TransactionItem item, bool isOrdering) {
-    showDialog(
+    final currency = ProxyService.box.defaultCurrency();
+
+    showDestructiveConfirmDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        var isDeleting = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              title: Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
-                  const SizedBox(width: 8),
-                  Text(context.flipperL10n.confirmDelete),
-                ],
-              ),
-              content: Text(
-                context.flipperL10n.confirmRemoveNamedItem(_getItemName(item)),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isDeleting
-                      ? null
-                      : () => Navigator.of(dialogContext).pop(),
-                  child: Text(context.flipperL10n.cancel),
-                ),
-                ElevatedButton(
-                  onPressed: isDeleting
-                      ? null
-                      : () async {
-                          setDialogState(() => isDeleting = true);
-                          final success = await _deleteItem(item, isOrdering);
-                          if (!dialogContext.mounted) return;
-                          if (success) {
-                            Navigator.of(dialogContext).pop();
-                          } else {
-                            setDialogState(() => isDeleting = false);
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[400],
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(88, 40),
-                  ),
-                  child: isDeleting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Text(context.flipperL10n.delete),
-                ),
-              ],
-            );
-          },
-        );
+      title: context.flipperL10n.confirmDelete,
+      message: context.flipperL10n.confirmRemoveNamedItem(_getItemName(item)),
+      confirmLabel: context.flipperL10n.delete,
+      footnote: context.flipperL10n.actionCannotBeUndone,
+      lines: [_confirmLineFor(item, currency)],
+      onConfirm: () async {
+        final ok = await _deleteItem(item, isOrdering);
+        if (!ok && mounted) _showDeleteFailure();
+        return ok;
       },
     );
   }
@@ -2065,6 +2000,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       return true;
     } catch (e, s) {
       talker.error(context.flipperL10n.errorDeletingItem(e.toString()), s);
+      _lastDeleteError = e.toString();
       setState(() {
         _optimisticallyDeletedItemIds.remove(item.id);
         _itemErrors[item.id] = context.flipperL10n.failedToDeleteItem;

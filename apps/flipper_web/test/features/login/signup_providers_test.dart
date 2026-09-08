@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/login/signup_providers.dart';
@@ -15,6 +17,43 @@ class MockSignupRepository extends SignupRepository {
   bool checkUsernameResult = true;
   Map<String, dynamic> registerUserResult = {};
   String? errorMessage;
+
+  /// When set, `registerBusiness` blocks on it so a second submit can be
+  /// attempted while the first is still in flight.
+  Completer<void>? registerGate;
+  int registerCallCount = 0;
+
+  // --- OTP
+  String userIdResult = 'user-1';
+  String? sendOtpError;
+  bool otpVerifies = true;
+  String? verifyOtpError;
+  List<String> sentOtpContacts = [];
+  List<String> lookedUpContacts = [];
+  List<({String contact, String otp})> verifiedOtps = [];
+
+  @override
+  Future<String> lookupOrCreateUserId(String contact) async {
+    lookedUpContacts.add(contact);
+    return userIdResult;
+  }
+
+  @override
+  Future<Map<String, dynamic>> sendSignupOtp(String contact) async {
+    if (sendOtpError != null) throw Exception(sendOtpError);
+    sentOtpContacts.add(contact);
+    return {'sent': true};
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifySignupOtp(
+    String contact,
+    String otp,
+  ) async {
+    verifiedOtps.add((contact: contact, otp: otp));
+    if (verifyOtpError != null) throw Exception(verifyOtpError);
+    return {'verified': otpVerifies, if (!otpVerifies) 'error': 'Wrong code'};
+  }
 
   List<String> checkedUsernames = [];
   Map<String, dynamic> lastRegistrationParams = {};
@@ -50,6 +89,11 @@ class MockSignupRepository extends SignupRepository {
       'phoneNumber': phoneNumber,
       'userId': userId,
     };
+
+    registerCallCount++;
+    if (registerGate != null) {
+      await registerGate!.future;
+    }
 
     registeredUsers.add(
       RegisteredUser(
@@ -222,16 +266,32 @@ void main() {
       expect(state.isValid, equals(false));
     });
 
-    test('isValid returns false when fullName does not have two parts', () {
-      final businessType = BusinessType(id: '1', typeName: 'Flipper Retailer');
-
+    test('isValid accepts a single-word fullName, as mobile does', () {
+      // Mobile validates this field with FieldBlocValidators.required only.
+      // Requiring two words rejected real single names, and the error gave no
+      // hint that a space was what it was asking for.
       final state = SignupFormState(
         username: 'testuser',
-        fullName: 'User', // Only one name
-        businessType: businessType,
-        tinNumber: '123456789',
+        fullName: 'Murag',
+        businessType: BusinessType(id: '2', typeName: 'Individual'),
         country: 'Rwanda',
         isUsernameAvailable: true,
+        phoneNumber: '+250788517078',
+        verifiedContact: '+250788517078',
+      );
+
+      expect(state.isValid, equals(true));
+    });
+
+    test('isValid still rejects a blank fullName', () {
+      final state = SignupFormState(
+        username: 'testuser',
+        fullName: '   ',
+        businessType: BusinessType(id: '2', typeName: 'Individual'),
+        country: 'Rwanda',
+        isUsernameAvailable: true,
+        phoneNumber: '+250788517078',
+        verifiedContact: '+250788517078',
       );
 
       expect(state.isValid, equals(false));
@@ -497,6 +557,241 @@ void main() {
       expect(result, equals(false));
       expect(notifier.state.isSubmitting, equals(false));
       expect(notifier.state.errorMessage, contains('Test error'));
+    });
+
+    test('submitForm refuses to run twice concurrently', () async {
+      // Two taps on "Create account" used to register two businesses,
+      // because isSubmitting was only set after the username re-check awaited.
+      final gate = Completer<void>();
+      mockRepository
+        ..checkUsernameResult = true
+        ..registerGate = gate;
+
+      notifier.state = SignupFormState(
+        username: 'testuser',
+        fullName: 'Test User',
+        businessType: BusinessType(id: '2', typeName: 'Individual'),
+        country: 'Rwanda',
+        isUsernameAvailable: true,
+      );
+
+      final first = notifier.submitForm();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(await notifier.submitForm(), equals(false),
+          reason: 'second submit must be refused while the first is running');
+
+      gate.complete();
+      expect(await first, equals(true));
+      expect(mockRepository.registerCallCount, equals(1));
+    });
+  });
+
+  group('SignupFormState TIN relaxation', () {
+    SignupFormState retailerState({
+      String tinNumber = '107148510',
+      bool relaxed = false,
+      String? tinError,
+    }) {
+      return SignupFormState(
+        username: 'testuser',
+        fullName: 'Test User',
+        businessType: BusinessType(id: '1', typeName: 'Flipper Retailer'),
+        tinNumber: tinNumber,
+        country: 'Rwanda',
+        isUsernameAvailable: true,
+        isTinValidationRelaxed: relaxed,
+        tinError: tinError,
+      );
+    }
+
+    test('an unreachable IPPIS does not block a non-Individual signup', () {
+      // ippis.rw refuses browser origins, so the lookup can never succeed on
+      // web. Mobile relaxes the same way when IPPIS is down.
+      expect(retailerState(relaxed: true).isValid, equals(true));
+    });
+
+    test('a TIN IPPIS actively rejected still blocks', () {
+      expect(
+        retailerState(tinError: 'No data found for this TIN').isValid,
+        equals(false),
+      );
+    });
+
+    test('relaxation does not waive the TIN length requirement', () {
+      expect(retailerState(tinNumber: '1234', relaxed: true).isValid,
+          equals(false));
+    });
+  });
+
+  group('signup OTP', () {
+    late ProviderContainer container;
+    late MockSignupRepository mockRepository;
+    late SignupForm notifier;
+
+    setUp(() {
+      mockRepository = MockSignupRepository();
+      container = ProviderContainer(
+        overrides: [signupRepositoryProvider.overrideWithValue(mockRepository)],
+      );
+      notifier = container.read(signupFormProvider.notifier);
+    });
+
+    tearDown(() => container.dispose());
+
+    SignupFormState readyState() => SignupFormState(
+          username: 'testuser',
+          fullName: 'Test User',
+          businessType: BusinessType(id: '2', typeName: 'Individual'),
+          country: 'Rwanda',
+          isUsernameAvailable: true,
+          phoneNumber: '+250788517078',
+        );
+
+    test('requestOtp creates the user before asking for a code', () async {
+      notifier.updatePhoneNumber('788517078');
+
+      expect(await notifier.requestOtp(), isTrue);
+
+      // apihub wants the user to exist first — the mobile bloc calls
+      // sendLoginRequest before sendOtpForSignup for the same reason.
+      expect(mockRepository.lookedUpContacts, equals(['+250788517078']));
+      expect(mockRepository.sentOtpContacts, equals(['+250788517078']));
+      expect(notifier.state.isOtpRequested, isTrue);
+    });
+
+    test('a rejected contact surfaces the error and enables no code field',
+        () async {
+      mockRepository.sendOtpError = 'Contact already exists';
+      notifier.updatePhoneNumber('788517078');
+
+      expect(await notifier.requestOtp(), isFalse);
+      expect(notifier.state.otpError, equals('Contact already exists'));
+      expect(notifier.state.isOtpRequested, isFalse);
+    });
+
+    test('a complete code verifies itself', () async {
+      notifier.updatePhoneNumber('788517078');
+      await notifier.requestOtp();
+
+      await notifier.updateOtpCode('12345');
+      expect(mockRepository.verifiedOtps, isEmpty,
+          reason: 'a partial code must not be sent');
+
+      await notifier.updateOtpCode('123456');
+
+      expect(mockRepository.verifiedOtps.single.otp, equals('123456'));
+      expect(notifier.state.isPhoneVerified, isTrue);
+    });
+
+    test('a wrong code leaves the contact unverified', () async {
+      mockRepository.otpVerifies = false;
+      notifier.updatePhoneNumber('788517078');
+      await notifier.requestOtp();
+
+      expect(await notifier.verifyOtp('000000'), isFalse);
+      expect(notifier.state.isPhoneVerified, isFalse);
+      expect(notifier.state.otpError, equals('Wrong code'));
+    });
+
+    test('editing the contact drops an existing verification', () async {
+      notifier.updatePhoneNumber('788517078');
+      await notifier.requestOtp();
+      await notifier.verifyOtp('123456');
+      expect(notifier.state.isPhoneVerified, isTrue);
+
+      notifier.updatePhoneNumber('788517079');
+
+      expect(notifier.state.isPhoneVerified, isFalse);
+      expect(notifier.state.isOtpRequested, isFalse);
+      expect(notifier.state.otpCode, equals(''));
+    });
+
+    test('switching country re-applies the dial code and drops verification',
+        () async {
+      notifier.updatePhoneNumber('788517078');
+      await notifier.requestOtp();
+      await notifier.verifyOtp('123456');
+
+      notifier.updateCountry('Kenya');
+
+      expect(notifier.state.phoneNumber, equals('+254788517078'));
+      expect(notifier.state.isPhoneVerified, isFalse);
+    });
+
+    test('an unverified contact is not a valid form', () {
+      final state = readyState();
+      expect(state.isPhoneVerified, isFalse);
+      expect(state.isValid, isFalse);
+    });
+
+    test('the same form is valid once the contact is verified', () {
+      final state = readyState().copyWith(verifiedContact: '+250788517078');
+      expect(state.isValid, isTrue);
+    });
+
+    test('submitForm refuses an unverified contact', () async {
+      notifier.state = readyState();
+
+      expect(await notifier.submitForm(), isFalse);
+      expect(notifier.state.errorMessage, contains('Send code'));
+      expect(mockRepository.registeredUsers, isEmpty);
+    });
+
+    test('submitForm registers once the contact is verified', () async {
+      notifier.state =
+          readyState().copyWith(verifiedContact: '+250788517078');
+
+      expect(await notifier.submitForm(), isTrue);
+      expect(mockRepository.registeredUsers.single.phoneNumber,
+          equals('+250788517078'));
+      expect(mockRepository.registeredUsers.single.userId, equals('user-1'));
+    });
+  });
+
+  group('buildBusinessRegistrationPayload', () {
+    Map<String, dynamic> payloadFor(String businessTypeId, String tin) {
+      return buildBusinessRegistrationPayload(
+        username: 'ecobe',
+        fullName: 'SISSI Ernest',
+        businessTypeId: businessTypeId,
+        tinNumber: tin,
+        country: 'Rwanda',
+        phoneNumber: '+250788517078',
+        userId: 42,
+      );
+    }
+
+    test('omits businessTypeId, as CoreSync.signup does', () {
+      // Sending it made web businesses land on business_type_id = 2, which
+      // skips the subscription check AuthMixin waives for individuals.
+      expect(payloadFor('1', '107148510').containsKey('businessTypeId'),
+          isFalse);
+    });
+
+    test("sends the literal type 'Business' mobile sends", () {
+      expect(payloadFor('3', '107148510')['type'], equals('Business'));
+      expect(payloadFor('2', '')['type'], equals('Business'));
+    });
+
+    test('sends tinNumber as an int', () {
+      expect(payloadFor('1', '107148510')['tinNumber'], equals(107148510));
+    });
+
+    test("falls back to mobile's placeholder TIN for individuals", () {
+      expect(payloadFor('2', '107148510')['tinNumber'], equals(999909695));
+      expect(payloadFor('1', '')['tinNumber'], equals(999909695));
+    });
+
+    test('carries the fields mobile sends', () {
+      final payload = payloadFor('1', '107148510');
+      expect(payload['referredBy'], equals('Organic'));
+      expect(payload['latitude'], equals('1'));
+      expect(payload['longitude'], equals('1'));
+      expect(payload['bhfid'], equals('00'));
+      expect(payload['currency'], equals('RWF'));
+      expect(payload['userId'], equals('42'));
+      expect(payload['createdAt'], isNotNull);
     });
   });
 }

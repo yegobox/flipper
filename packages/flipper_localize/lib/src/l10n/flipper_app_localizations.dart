@@ -1173,6 +1173,18 @@ abstract class FlipperAppLocalizations {
   /// **'Are you sure you want to remove all items from this transaction?'**
   String get confirmRemoveAllTransactionItems;
 
+  /// Trailing row when a preview list is truncated
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more'**
+  String plusMoreItems(int count);
+
+  /// Warning footnote on destructive confirmation dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get actionCannotBeUndone;
+
   /// Delete all action
   ///
   /// In en, this message translates to:

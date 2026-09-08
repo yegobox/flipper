@@ -32,6 +32,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -113,6 +114,17 @@ Future<void> _dumpInitErrorToFile(String errorText) async {
   }
 }
 
+/// Renders a startup failure for the failure screen, the clipboard and
+/// `init_error.log` from one place, so what a user photographs is exactly what
+/// support reads back.
+String _formatInitError(Object error, StackTrace stackTrace) {
+  if (error is AppInitException) {
+    return '[${error.stepLabel}] ${error.stepId}\n'
+        '${error.cause}\n\n${error.stackTrace}';
+  }
+  return '$error\n\n$stackTrace';
+}
+
 bool skipDependencyInitialization = false;
 
 String _analyticsPlatformName() {
@@ -123,6 +135,264 @@ String _analyticsPlatformName() {
   if (UniversalPlatform.isWindows) return 'windows';
   if (UniversalPlatform.isLinux) return 'linux';
   return 'unknown';
+}
+
+/// One unit of application startup.
+///
+/// Startup used to be a single straight-line `await` chain under one 60s
+/// budget: any step that threw — or the whole chain overrunning — killed the
+/// app into a dead-end "Initialization Failed" screen with no way back except
+/// force-quitting. Most of those steps are not needed to open a till.
+///
+/// Each step now carries its own budget and says whether the app can run
+/// without it. Only an [isCritical] step can stop startup; everything else is
+/// reported and skipped, so a flaky network or a wedged optional SDK degrades
+/// a feature instead of bricking the app.
+class _InitStep {
+  const _InitStep({
+    required this.id,
+    required this.label,
+    required this.run,
+    this.isCritical = false,
+    this.budget = const Duration(seconds: 20),
+  });
+
+  /// Stable identifier used in telemetry and on the failure screen.
+  final String id;
+
+  /// Human-readable name shown while the step runs.
+  final String label;
+
+  /// Whether a failure here must stop startup.
+  final bool isCritical;
+
+  /// Hard ceiling for this step. A hang costs this much, not the whole app.
+  final Duration budget;
+
+  final Future<void> Function() run;
+}
+
+/// Thrown when a critical startup step fails, carrying the step that broke so
+/// the failure screen can name it instead of showing an anonymous error.
+class AppInitException implements Exception {
+  AppInitException({
+    required this.stepId,
+    required this.stepLabel,
+    required this.cause,
+    required this.stackTrace,
+  });
+
+  final String stepId;
+  final String stepLabel;
+  final Object cause;
+  final StackTrace stackTrace;
+
+  @override
+  String toString() => 'Startup failed at "$stepLabel" [$stepId]: $cause';
+}
+
+/// Steps that will not be run again by a retry pass.
+///
+/// A critical step lands here only on success, so retrying resumes exactly at
+/// the step that broke. An optional step lands here whether it succeeded or
+/// failed — retrying startup because the database was locked should not spend
+/// another 20s waiting on the SDK that already timed out.
+final Set<String> _finishedInitSteps = <String>{};
+
+/// Drives the label under the startup spinner so a slow boot shows progress
+/// rather than an indefinite blank wait.
+final ValueNotifier<String> initProgressLabel = ValueNotifier<String>('');
+
+void _reportInitFailure(
+  _InitStep step,
+  Object error,
+  StackTrace stackTrace,
+) {
+  try {
+    Sentry.captureException(
+      error,
+      stackTrace: stackTrace,
+      hint: Hint.withMap({
+        'context': 'App initialization step failed',
+        'step': step.id,
+        'critical': step.isCritical.toString(),
+        'error_type': error.runtimeType.toString(),
+      }),
+    );
+  } catch (e) {
+    debugPrint('Failed to report init step failure to Sentry: $e');
+  }
+
+  // `Crash` is only registered once the dependency graph step has run, and a
+  // step before it can fail first.
+  try {
+    if (getIt.isRegistered<Crash>()) {
+      GlobalErrorHandler.logError(
+        error,
+        stackTrace: stackTrace,
+        type: 'initialization_error',
+        context: {
+          'step': step.id,
+          'critical': step.isCritical,
+          'error_type': error.runtimeType.toString(),
+        },
+      );
+    }
+  } catch (e) {
+    debugPrint('Failed to report init step failure to Crashlytics: $e');
+  }
+}
+
+Future<void> _runInitStep(_InitStep step) async {
+  if (_finishedInitSteps.contains(step.id)) {
+    debugPrint('⏭️  [init] ${step.id} already done, skipping');
+    return;
+  }
+
+  initProgressLabel.value = step.label;
+  final watch = Stopwatch()..start();
+  try {
+    await step.run().timeout(
+      step.budget,
+      onTimeout: () => throw TimeoutException(
+        '${step.label} timed out after ${step.budget.inSeconds}s',
+        step.budget,
+      ),
+    );
+    _finishedInitSteps.add(step.id);
+    debugPrint('✅ [init] ${step.id} in ${watch.elapsedMilliseconds}ms');
+  } catch (error, stackTrace) {
+    debugPrint(
+        '❌ [init] ${step.id} failed after ${watch.elapsedMilliseconds}ms: $error');
+    _reportInitFailure(step, error, stackTrace);
+
+    if (step.isCritical) {
+      throw AppInitException(
+        stepId: step.id,
+        stepLabel: step.label,
+        cause: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    // Optional: the app runs without it. Don't pay for it again on a retry.
+    _finishedInitSteps.add(step.id);
+    debugPrint('⚠️  [init] continuing without ${step.id}');
+  }
+}
+
+/// Analytics must never be able to stop a till from opening, so it is a step
+/// like any other rather than an unguarded `await` in the middle of startup.
+Future<void> _initializeAnalytics() async {
+  await FlipperAnalytics.initialize(
+    appName: 'flipper',
+    platformName: _analyticsPlatformName(),
+    projectToken: AppSecrets.postHogProjectToken,
+    store: RepositoryAnalyticsEventStore(),
+    contextProvider: CallbackAnalyticsContextProvider(
+      appName: 'flipper',
+      platformName: _analyticsPlatformName(),
+      buildMode: kDebugMode ? 'debug' : 'release',
+      userIdGetter: () => ProxyService.box.getUserId()?.toString(),
+      businessIdGetter: () => ProxyService.box.getBusinessId(),
+      branchIdGetter: () => ProxyService.box.getBranchId(),
+    ),
+  );
+}
+
+List<_InitStep> _buildInitSteps() => <_InitStep>[
+      // Firebase already swallows its own errors; the budget only bounds a hang.
+      const _InitStep(
+        id: 'firebase',
+        label: 'Connecting services',
+        budget: Duration(seconds: 25),
+        run: _initializeFirebase,
+      ),
+      // Nothing can resolve a service without this.
+      _InitStep(
+        id: 'locator',
+        label: 'Preparing app',
+        isCritical: true,
+        budget: const Duration(seconds: 15),
+        run: () async {
+          loc.setupLocator(stackedRouter: stackedRouter);
+          setupDialogUi();
+          setupBottomSheetUi();
+        },
+      ),
+      const _InitStep(
+        id: 'platform',
+        label: 'Setting up device',
+        budget: Duration(seconds: 30),
+        run: initializeDependencies,
+      ),
+      _InitStep(
+        id: 'error-handler',
+        label: 'Setting up diagnostics',
+        budget: const Duration(seconds: 5),
+        run: () async => GlobalErrorHandler.initialize(),
+      ),
+      // The local Brick/SQLite store. Without it there is nothing to read or
+      // sell from, so this one genuinely blocks startup — but a locked or busy
+      // database is transient, which is what the automatic retry is for.
+      const _InitStep(
+        id: 'database',
+        label: 'Opening local database',
+        isCritical: true,
+        budget: Duration(seconds: 45),
+        run: _initializeSupabase,
+      ),
+      // ProxyService.box and every sync strategy come from here.
+      const _InitStep(
+        id: 'dependencies',
+        label: 'Loading services',
+        isCritical: true,
+        budget: Duration(seconds: 30),
+        run: initDependencies,
+      ),
+      const _InitStep(
+        id: 'analytics',
+        label: 'Starting analytics',
+        budget: Duration(seconds: 12),
+        run: _initializeAnalytics,
+      ),
+      // Cognito/S3. Product images and remote auth degrade without it; the POS
+      // does not. AmplifyConfigHelper keeps retrying in the background.
+      _InitStep(
+        id: 'amplify',
+        label: 'Connecting cloud storage',
+        budget: const Duration(seconds: 20),
+        run: () => AmplifyConfigHelper.configureAmplify(),
+      ),
+      const _InitStep(
+        id: 'ditto-registry',
+        label: 'Preparing sync',
+        budget: Duration(seconds: 20),
+        run: DittoSyncRegistry.registerDefaults,
+      ),
+      _InitStep(
+        id: 'background',
+        label: 'Finishing up',
+        budget: const Duration(seconds: 5),
+        run: () async {
+          unawaited(PersonalGoalNotificationService.instance.initialize());
+          // Register the on-device AI engine (no-op on Android/web → cloud only).
+          initLocalAi();
+        },
+      ),
+    ];
+
+/// Runs every startup step in order, resuming from wherever a previous attempt
+/// stopped. Throws [AppInitException] only when a critical step fails.
+Future<void> initializeApp() async {
+  if (skipDependencyInitialization) return;
+
+  debugPrint('🚀 [init] starting (${_finishedInitSteps.length} steps done)');
+  for (final step in _buildInitSteps()) {
+    await _runInitStep(step);
+  }
+  initProgressLabel.value = '';
+  debugPrint('🎉 [init] completed');
 }
 
 // net info: billers
@@ -140,225 +410,215 @@ Future<void> main() async {
     debugPrint('${record.level.name}: ${record.time}: ${record.message}');
   });
 
-  // Centralized initialization function
-  Future<void> initializeApp() async {
-    if (!skipDependencyInitialization) {
-      debugPrint('🚀 [main] initializeApp starting...');
+  runApp(const AppBootstrap());
+}
 
-      debugPrint('� [main] Step 1: _initializeFirebase...');
-      await _initializeFirebase();
+/// Owns the startup attempt so it can be run again in place.
+///
+/// A failed start is recoverable here: the user taps "Try again" and the
+/// pipeline resumes at the step that broke, without force-quitting the app.
+/// One retry happens automatically and silently first, because the common
+/// critical failures — a busy SQLite file, a half-open database — clear on a
+/// second attempt a second later.
+class AppBootstrap extends StatefulWidget {
+  const AppBootstrap({super.key});
 
-      debugPrint('� [main] Step 2: setupLocator...');
-      loc.setupLocator(stackedRouter: stackedRouter);
-      setupDialogUi();
-      setupBottomSheetUi();
+  @override
+  State<AppBootstrap> createState() => _AppBootstrapState();
+}
 
-      debugPrint('� [main] Step 3: initializeDependencies...');
-      await initializeDependencies();
+class _AppBootstrapState extends State<AppBootstrap> {
+  late Future<void> _initialization;
+  bool _autoRetryUsed = false;
 
-      debugPrint('🚀 [main] Step 4: GlobalErrorHandler.initialize...');
-      GlobalErrorHandler.initialize();
+  @override
+  void initState() {
+    super.initState();
+    _initialization = _initializeWithAutoRetry();
+  }
 
-      debugPrint('� [main] Step 5: _initializeSupabase...');
-      await _initializeSupabase();
-
-      debugPrint('🚀 [main] Step 6: initDependencies...');
-      await initDependencies();
-
-      await FlipperAnalytics.initialize(
-        appName: 'flipper',
-        platformName: _analyticsPlatformName(),
-        projectToken: AppSecrets.postHogProjectToken,
-        store: RepositoryAnalyticsEventStore(),
-        contextProvider: CallbackAnalyticsContextProvider(
-          appName: 'flipper',
-          platformName: _analyticsPlatformName(),
-          buildMode: kDebugMode ? 'debug' : 'release',
-          userIdGetter: () => ProxyService.box.getUserId()?.toString(),
-          businessIdGetter: () => ProxyService.box.getBusinessId(),
-          branchIdGetter: () => ProxyService.box.getBranchId(),
-        ),
-      );
-
-      debugPrint('🚀 [main] Step 7: Amplify configuration...');
-      // Amplify Keychain/Cognito is mobile-only; desktop release should not
-      // block startup when configuration fails (e.g. Windows POS builds).
-      final shouldBlock = !kDebugMode &&
-          !AppSecrets.isTestEnvironment() &&
-          (UniversalPlatform.isAndroid ||
-              (UniversalPlatform.isIOS && !UniversalPlatform.isWeb));
-      await AmplifyConfigHelper.configureAmplify(block: shouldBlock);
-
-      debugPrint('🚀 [main] Step 8: DittoSyncRegistry.registerDefaults...');
-      await DittoSyncRegistry.registerDefaults();
-
-      debugPrint('🚀 [main] Step 9: PersonalGoalNotificationService...');
-      unawaited(PersonalGoalNotificationService.instance.initialize());
-
-      debugPrint('🎉 [main] initializeApp completed successfully!');
-
-      // Register the on-device AI engine (no-op on Android/web → cloud only).
-      initLocalAi();
+  Future<void> _initializeWithAutoRetry() async {
+    try {
+      try {
+        await initializeApp();
+      } on AppInitException catch (e) {
+        if (_autoRetryUsed) rethrow;
+        _autoRetryUsed = true;
+        debugPrint('🔁 [init] auto-retrying after failure at ${e.stepId}');
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        await initializeApp();
+      }
+    } catch (error, stackTrace) {
+      // Persist the full error so packaged builds with no attached console
+      // (MSIX, a release APK in a shop) can still surface the cause.
+      await _dumpInitErrorToFile(_formatInitError(error, stackTrace));
+      rethrow;
     }
   }
 
-  runApp(
-    FutureBuilder(
-      future: initializeApp().timeout(
-        const Duration(seconds: 60),
-        onTimeout: () {
-          debugPrint('❌ App initialization timed out after 60 seconds');
+  void _retry() {
+    setState(() {
+      _initialization = _initializeWithAutoRetry();
+    });
+  }
 
-          final exception = TimeoutException(
-            'App initialization timed out',
-            const Duration(seconds: 60),
-          );
-
-          // Report to telemetry (fire-and-forget)
-          try {
-            Sentry.captureException(
-              exception,
-              stackTrace: StackTrace.current,
-              hint: Hint.withMap({
-                'context': 'App initialization timeout',
-                'timeout_duration': '60 seconds',
-              }),
-            );
-          } catch (e) {
-            debugPrint('Failed to report timeout to telemetry: $e');
-          }
-
-          throw exception;
-        },
-      ),
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initialization,
       builder: (context, snapshot) {
-        debugPrint(
-            '🎬 [main] FutureBuilder snapshot: ${snapshot.connectionState} | hasError: ${snapshot.hasError} | hasData: ${snapshot.hasData}');
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            // Remove splash screen before showing error
-            FlutterNativeSplash.remove();
-            // Log full error to Sentry/monitoring
-            debugPrint('❌ App initialization error: ${snapshot.error}');
-            if (snapshot.stackTrace != null) {
-              debugPrint('Stack trace: ${snapshot.stackTrace}');
-            }
-//
-            // Report to telemetry systems
-            try {
-              final stackTrace = snapshot.stackTrace ?? StackTrace.current;
-              Sentry.captureException(
-                snapshot.error,
-                stackTrace: stackTrace,
-                hint: Hint.withMap({
-                  'context': 'App initialization failed',
-                  'error_type': snapshot.error.runtimeType.toString(),
-                }),
-              );
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _StartupProgress();
+        }
 
-              // initDependencies (step 6) registers Crash; step 5 can fail first.
-              if (getIt.isRegistered<Crash>()) {
-                GlobalErrorHandler.logError(
-                  snapshot.error!,
-                  stackTrace: stackTrace,
-                  type: 'initialization_error',
-                  context: {
-                    'error_type': snapshot.error.runtimeType.toString(),
-                  },
-                );
-              }
-            } catch (e) {
-              debugPrint('Failed to report error to telemetry: $e');
-            }
+        if (snapshot.hasError) {
+          FlutterNativeSplash.remove();
+          final error = snapshot.error!;
+          final stackTrace = snapshot.stackTrace ?? StackTrace.current;
+          debugPrint('❌ App initialization error: $error');
+          debugPrint('Stack trace: $stackTrace');
 
-            // Persist the full error to a log file so packaged (MSIX) builds,
-            // which have no attached console, can still surface the cause.
-            final errorText =
-                '${snapshot.error}\n\n${snapshot.stackTrace ?? StackTrace.current}';
-            unawaited(_dumpInitErrorToFile(errorText));
+          final stepLabel =
+              error is AppInitException ? error.stepLabel : 'Startup';
 
-            // Show error screen. In non-release builds, reveal the actual error
-            // (and stack) so the failing step is visible without Sentry access.
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              home: Scaffold(
-                backgroundColor: Colors.white,
-                body: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        color: Colors.red,
-                        size: 64,
+          return _StartupFailure(
+            stepLabel: stepLabel,
+            details: _formatInitError(error, stackTrace),
+            onRetry: _retry,
+          );
+        }
+
+        FlutterNativeSplash.remove();
+        debugPrint('🎬 [main] Splash removed, returning FlipperApp');
+        return const FlipperApp();
+      },
+    );
+  }
+}
+
+/// Loading screen that names the step in flight, so a slow start reads as
+/// progress instead of a frozen app.
+class _StartupProgress extends StatelessWidget {
+  const _StartupProgress();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 20),
+              ValueListenableBuilder<String>(
+                valueListenable: initProgressLabel,
+                builder: (context, label, _) => Text(
+                  label,
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Recoverable failure screen: names the failing step, offers a retry that
+/// resumes the pipeline, and lets the user copy the full error for support.
+class _StartupFailure extends StatelessWidget {
+  const _StartupFailure({
+    required this.stepLabel,
+    required this.details,
+    required this.onRetry,
+  });
+
+  final String stepLabel;
+  final String details;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 64),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Initialization Failed',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'The app could not finish starting at "$stepLabel". '
+                    'Tap Try again — it will resume from that step.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Try again'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(
+                        ClipboardData(text: '[$stepLabel]\n$details'),
+                      );
+                    },
+                    icon: const Icon(Icons.copy_all, size: 18),
+                    label: const Text('Copy error details'),
+                  ),
+                  const SizedBox(height: 16),
+                  // Shown in every build: without it a field failure is a
+                  // photograph of a screen that says nothing actionable.
+                  Theme(
+                    data: ThemeData(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      title: const Text(
+                        'Technical details',
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Initialization Failed',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          'Something went wrong while starting the app. Please try again.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      ),
-                      // Reveal the raw error/stack only in non-release builds.
-                      // Production users see the friendly message above; the
-                      // full detail is still written to init_error.log.
-                      if (!kReleaseMode) ...[
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 320),
-                            child: SingleChildScrollView(
-                              child: SelectableText(
-                                errorText,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
+                      childrenPadding: EdgeInsets.zero,
+                      children: [
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 260),
+                          child: SingleChildScrollView(
+                            child: SelectableText(
+                              details,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.black54,
                               ),
                             ),
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          }
-
-          // Remove splash screen immediately when initialization is done
-          FlutterNativeSplash.remove();
-          debugPrint('🎬 [main] Splash removed, returning FlipperApp');
-
-          // Return FlipperApp.
-          return const FlipperApp();
-        } else {
-          // While initializing, show the loading screen.
-          // The native splash is preserved until the future completes.
-          return const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: Scaffold(
-              backgroundColor: Colors.white,
-              body: Center(
-                child: CircularProgressIndicator(),
+                ],
               ),
             ),
-          );
-        }
-      },
-    ),
-  );
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Keep in sync with [DevicePreview.enabled] on [FlipperApp].

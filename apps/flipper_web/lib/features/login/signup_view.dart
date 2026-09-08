@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/business_type.dart';
+import '../../core/signup_contact.dart';
 import 'signup_providers.dart';
 
 class SignupView extends ConsumerStatefulWidget {
@@ -20,42 +21,17 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
   late final TextEditingController _phoneController;
   late final TextEditingController _tinController;
-
-  final Map<String, String> _dialCodes = {
-    'Rwanda': '+250',
-    'Kenya': '+254',
-    'Uganda': '+256',
-    'Tanzania': '+255',
-    'Burundi': '+257',
-  };
-
-  String _dialCode(String country) => _dialCodes[country] ?? '+250';
-
-  String _stripDial(String phone) {
-    for (final code in _dialCodes.values) {
-      if (phone.startsWith(code)) return phone.substring(code.length);
-    }
-    return phone;
-  }
-
-  String _withDial(String phone, String country) {
-    final code = _dialCode(country);
-    final cleaned = phone.trim();
-    if (cleaned.isEmpty) return code;
-    for (final c in _dialCodes.values) {
-      if (cleaned.startsWith(c)) return cleaned;
-    }
-    var local = cleaned;
-    if (local.startsWith('0')) local = local.substring(1);
-    return '$code$local';
-  }
+  late final TextEditingController _otpController;
 
   @override
   void initState() {
     super.initState();
     final state = ref.read(signupFormProvider);
+    // Holds only what the user types: the local phone digits, or a full email.
+    // The dial code is rendered as a prefix instead of being baked into the
+    // text, so an email can be typed into the same field.
     _phoneController = TextEditingController(
-      text: _withDial(state.phoneNumber ?? '', state.country),
+      text: localPhonePart(state.phoneNumber ?? ''),
     );
     _phoneController.addListener(() {
       ref.read(signupFormProvider.notifier).updatePhoneNumber(_phoneController.text);
@@ -66,17 +42,47 @@ class _SignupViewState extends ConsumerState<SignupView> {
         ref.read(signupFormProvider.notifier).updateTinNumber(_tinController.text);
       }
     });
+    // The notifier verifies as soon as the code is 6 digits long, the way the
+    // mobile form auto-submits a complete OTP.
+    _otpController = TextEditingController(text: state.otpCode);
+    _otpController.addListener(() {
+      if (_otpController.text != ref.read(signupFormProvider).otpCode) {
+        ref.read(signupFormProvider.notifier).updateOtpCode(_otpController.text);
+      }
+    });
   }
+
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Held so dispose() can clear our snackbars without a BuildContext lookup.
+    _messenger = ScaffoldMessenger.of(context);
+  }
+
+  /// Set when a message is deliberately left up for the screen we are
+  /// navigating to, so [dispose] does not wipe it on the way out.
+  bool _handOffSnackBar = false;
 
   @override
   void dispose() {
+    // The messenger lives above the router, so anything still showing would
+    // follow the user onto the next screen — a "Code sent to …" from signup
+    // was surviving all the way onto the sign-in page. The account-created
+    // confirmation is the one message that is *meant* to make that trip.
+    if (!_handOffSnackBar) _messenger?.clearSnackBars();
     _phoneController.dispose();
     _tinController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
   void _showError(String message) {
     if (!mounted) return;
+    // Replace whatever is showing. Queued snackbars play one after another,
+    // which reads as one message that will not go away.
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -95,6 +101,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
   void _showSuccess(String message) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -102,17 +109,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(8),
         duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'Sign in',
-          textColor: Colors.white,
-          onPressed: () {
-            try {
-              context.go('/login');
-            } catch (_) {
-              Navigator.pop(context);
-            }
-          },
-        ),
       ),
     );
   }
@@ -121,10 +117,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
   int _completedCount(SignupFormState s) {
     int count = 0;
     if (s.username.length >= 4 && s.isUsernameAvailable == true) count++;
-    if (s.fullName.trim().split(' ').length >= 2) count++;
-    if (s.phoneNumber?.isNotEmpty == true) count++;
+    if (s.fullName.trim().isNotEmpty) count++;
+    if (s.isPhoneVerified) count++;
     if (s.businessType != null) count++;
-    if (_showTinField && s.tinDetails != null) count++;
+    if (_showTinField && (s.tinDetails != null || s.isTinValidationRelaxed)) {
+      count++;
+    }
     if (s.country.isNotEmpty) count++;
     return count;
   }
@@ -271,9 +269,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
                       prefixIcon: Icons.badge_outlined,
                       initialValue: formState.fullName,
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Full name is required';
-                        if (v.trim().split(' ').length < 2) {
-                          return 'Please enter first and last name';
+                        // Mobile only requires this to be non-empty
+                        // (FieldBlocValidators.required). Demanding two words
+                        // rejected perfectly real single names and gave no hint
+                        // that a space was what it wanted.
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Full name is required';
                         }
                         return null;
                       },
@@ -284,8 +285,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     const SizedBox(height: 18),
 
                     // Phone
-                    _FieldLabel(label: 'Phone number'),
+                    _FieldLabel(label: 'Phone / Email'),
                     _buildPhoneField(formState),
+                    _buildOtpSection(formState),
                     const SizedBox(height: 18),
 
                     // Business type
@@ -337,6 +339,21 @@ class _SignupViewState extends ConsumerState<SignupView> {
                             ),
                           ),
                         ),
+                      // Mobile shows "Service Unavailable: Validation skipped"
+                      // and lets signup continue; say the same here rather
+                      // than blocking on a lookup we could not perform.
+                      if (formState.isTinValidationRelaxed)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            'TIN lookup unavailable — validation skipped.',
+                            style: context.siText(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: SITokens.ink3,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 18),
                     ],
 
@@ -352,11 +369,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
                           (v == null || v.isEmpty) ? 'Please select a country' : null,
                       onChanged: (v) {
                         if (v != null) {
+                          // The field keeps the local part; the notifier
+                          // re-applies the new country's dial code.
                           ref.read(signupFormProvider.notifier).updateCountry(v);
-                          _phoneController.text = _withDial(
-                            _stripDial(_phoneController.text),
-                            v,
-                          );
                         }
                       },
                     ),
@@ -400,6 +415,15 @@ class _SignupViewState extends ConsumerState<SignupView> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final formState = ref.read(signupFormProvider);
+    final contact = formState.phoneNumber;
+    if (contact != null && contact.isNotEmpty && !formState.isPhoneVerified) {
+      _showError(
+        formState.isOtpRequested
+            ? 'Enter the code we sent to $contact to continue.'
+            : 'Verify $contact first — tap "Send code".',
+      );
+      return;
+    }
     if (formState.isUsernameAvailable != true) {
       _showError(
         'Please choose a different username. The current one is not available or has not been verified.',
@@ -410,6 +434,12 @@ class _SignupViewState extends ConsumerState<SignupView> {
     final success = await ref.read(signupFormProvider.notifier).submitForm();
     if (!mounted) return;
     if (success) {
+      // The message has to outlive this view: signing up navigates straight to
+      // the sign-in screen, and the confirmation is what tells the user their
+      // account exists once they get there. It carried a "Sign in" action that
+      // no one could ever tap — dispose() cleared the snackbar in the same
+      // frame as the navigation it duplicated.
+      _handOffSnackBar = true;
       _showSuccess('Account created successfully!');
       try {
         context.go('/login');
@@ -492,22 +522,153 @@ class _SignupViewState extends ConsumerState<SignupView> {
   }
 
   Widget _buildPhoneField(SignupFormState state) {
+    // Mirrors the mobile signup field: the dial-code chip shows while the input
+    // is a phone number and disappears as soon as the user types '@'.
+    final isEmail = looksLikeEmailContact(state.phoneNumber ?? '');
     return TextFormField(
       controller: _phoneController,
-      keyboardType: TextInputType.phone,
+      keyboardType: TextInputType.text,
       validator: (v) {
-        final raw = v ?? '';
-        if (raw.isEmpty) return 'Phone number is required';
+        final raw = (v ?? '').trim();
+        if (raw.isEmpty) return 'Phone number or email is required';
+        if (looksLikeEmailContact(raw)) {
+          return isEmailContact(raw)
+              ? null
+              : 'Please enter a valid email address';
+        }
         if (raw.replaceAll(RegExp(r'[^0-9+]'), '').length < 9) {
           return 'Please enter a valid phone number';
         }
         return null;
       },
       decoration: siInputDecoration(
-        hintText: 'Enter your phone number',
+        hintText: '783054874 or your@email.com',
         prefixIcon: Icons.phone_outlined,
+        suffixIcon: _buildOtpAction(state),
+      ).copyWith(
+        prefix: isEmail ? null : _DialCodeChip(code: signupDialCode(state.country)),
       ),
     );
+  }
+
+  /// Whether the contact currently typed is complete enough to send a code to,
+  /// using the same rules as the field's own validator.
+  bool _contactLooksSendable(SignupFormState state) {
+    final raw = (state.phoneNumber ?? '').trim();
+    if (raw.isEmpty) return false;
+    if (looksLikeEmailContact(raw)) return isEmailContact(raw);
+    return raw.replaceAll(RegExp(r'[^0-9]'), '').length >= 9;
+  }
+
+  /// The send / resend / verified affordance inside the contact field — the
+  /// mobile form puts the same control in the same place.
+  Widget? _buildOtpAction(SignupFormState state) {
+    if (state.isPhoneVerified) {
+      return const Icon(Icons.verified, color: SITokens.win);
+    }
+    if (state.isSendingOtp || state.isVerifyingOtp) {
+      return const SizedBox(
+        width: 20,
+        height: 20,
+        child: Padding(
+          padding: EdgeInsets.all(8),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    final canSend = _contactLooksSendable(state);
+    return TextButton(
+      onPressed: canSend ? _handleSendOtp : null,
+      child: Text(
+        state.isOtpRequested ? 'Resend' : 'Send code',
+        style: context.siText(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          color: canSend ? SITokens.blue : SITokens.ink3,
+        ),
+      ),
+    );
+  }
+
+  /// The 6-digit code field. Only appears once a code has been sent, and
+  /// disappears again once the contact is verified.
+  Widget _buildOtpSection(SignupFormState state) {
+    if (state.isPhoneVerified) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Text(
+          '${state.phoneNumber} verified.',
+          style: context.siText(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: SITokens.win,
+          ),
+        ),
+      );
+    }
+
+    if (!state.isOtpRequested) {
+      if (state.otpError != null) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            state.otpError!,
+            style: context.siText(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: SITokens.danger,
+            ),
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _FieldLabel(label: 'Verification code'),
+          TextFormField(
+            controller: _otpController,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            decoration: siInputDecoration(
+              hintText: 'Enter the 6-digit code',
+              prefixIcon: Icons.lock_outline_rounded,
+            ).copyWith(counterText: ''),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              state.otpError ?? 'We sent a code to ${state.phoneNumber}.',
+              style: context.siText(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: state.otpError != null ? SITokens.danger : SITokens.ink3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleSendOtp() async {
+    final requestedFor = ref.read(signupFormProvider).phoneNumber;
+    final sent = await ref.read(signupFormProvider.notifier).requestOtp();
+    if (!mounted) return;
+    final state = ref.read(signupFormProvider);
+    // The contact was edited while the code was on its way: the outcome belongs
+    // to a number that is no longer in the field, so report nothing about it.
+    if (state.phoneNumber != requestedFor) return;
+    if (sent) {
+      _otpController.clear();
+      _showSuccess('Code sent to ${state.phoneNumber}');
+    } else {
+      _showError(state.otpError ?? 'Failed to send the code.');
+    }
   }
 
   Widget _buildTinField(SignupFormState state) {
@@ -531,6 +692,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
       );
     } else if (state.tinError != null) {
       suffix = const Icon(Icons.cancel, color: SITokens.danger);
+    } else if (state.isTinValidationRelaxed) {
+      suffix = const Icon(Icons.help_outline, color: SITokens.ink3);
     }
 
     return _buildInputField(
@@ -565,6 +728,10 @@ class _SignupViewState extends ConsumerState<SignupView> {
       value: value,
       onChanged: onChanged,
       validator: validator,
+      // Without this the "Please select a business type" error painted by a
+      // failed submit stays on screen after the user picks a value, until the
+      // next submit re-runs the validators.
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       isExpanded: true,
       menuMaxHeight: 300,
       itemHeight: 48,
@@ -593,6 +760,33 @@ class _SignupViewState extends ConsumerState<SignupView> {
 }
 
 // ── Field label above input ───────────────────────────────────────────────────
+
+/// Dial-code prefix shown inside the phone field, matching the chip the mobile
+/// signup form renders. Hidden while the field holds an email.
+class _DialCodeChip extends StatelessWidget {
+  final String code;
+  const _DialCodeChip({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      margin: const EdgeInsets.only(right: 4),
+      decoration: BoxDecoration(
+        color: SITokens.blue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        code,
+        style: const TextStyle(
+          color: SITokens.blue,
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+}
 
 class _FieldLabel extends StatelessWidget {
   final String label;

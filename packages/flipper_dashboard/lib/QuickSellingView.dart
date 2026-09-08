@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/tickets/widgets/review_queue_banner.d
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -1894,9 +1895,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  /// Whole quantities read as `2`, fractional ones keep two decimals.
+  String _confirmQtyText(num qty) =>
+      qty % 1 == 0 ? qty.toStringAsFixed(0) : qty.toStringAsFixed(2);
+
   Future<void> _deleteAllItems(
-    AsyncValue<ITransaction> transactionAsyncValue,
-  ) async {
+    AsyncValue<ITransaction> transactionAsyncValue, {
+    List<TransactionItem>? cartItems,
+  }) async {
     if (!ref.read(canSellProvider)) return; // view-only: no cart edits
     // Real prior payments only — not tender mirrored into cashReceived.
     if (_effectiveAlreadyPaid(transactionAsyncValue.value) > 0.01) {
@@ -1907,89 +1913,103 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    final currency = ProxyService.box.defaultCurrency();
+    await showDestructiveConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.flipperL10n.deleteAllItems),
-        content: Text(context.flipperL10n.confirmRemoveAllTransactionItems),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.flipperL10n.cancel),
+      title: context.flipperL10n.deleteAllItems,
+      message: cartItems == null
+          ? context.flipperL10n.confirmRemoveAllTransactionItems
+          : context.flipperL10n.confirmRemoveAllItemsCount(cartItems.length),
+      confirmLabel: context.flipperL10n.deleteAll,
+      footnote: context.flipperL10n.actionCannotBeUndone,
+      lines: [
+        for (final item in cartItems ?? const <TransactionItem>[])
+          DestructiveConfirmLine(
+            label: item.name.extractNameAndNumber(),
+            meta:
+                '${_confirmQtyText(item.qty)} × '
+                '${item.price.toCurrencyFormatted(symbol: currency)}',
+            trailing: (item.price * item.qty).toCurrencyFormatted(symbol: ''),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.flipperL10n.deleteAll),
-          ),
-        ],
+      ],
+      totalLabel: context.flipperL10n.totalAmount,
+      totalValue: totalAfterDiscountAndShipping.toCurrencyFormatted(
+        symbol: currency,
       ),
+      // The delete runs from inside the dialog, so it stays up — buttons
+      // disabled, spinner on the confirm button — until the lines are actually
+      // gone, instead of closing onto a cart that changes underneath.
+      onConfirm: () => _removeAllCartItems(transactionAsyncValue),
     );
+  }
 
-    if (confirmed == true) {
-      // No `getBranchId()!`: without an active branch there is nothing sensible
-      // to query, so say so instead of throwing out of the button handler.
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null || branchId.isEmpty) {
-        if (mounted) {
-          showErrorNotification(
-            context,
-            context.flipperL10n.currentBranchIsMissing,
-          );
-        }
-        return;
-      }
-      var items = <TransactionItem>[];
-      // Lines already deactivated in Capella must stay hidden if a later line
-      // in the loop throws — restoring all of them showed items that no longer
-      // exist.
-      final deactivatedItemIds = <String>{};
-      try {
-        items = await ref.read(
-          transactionItemsStreamProvider(
-            transactionId: transactionAsyncValue.value?.id ?? "",
-            branchId: branchId,
-          ).future,
+  /// Deactivates every line of the cart. Returns false when nothing was
+  /// removed, which leaves the confirm dialog open above the message saying why.
+  Future<bool> _removeAllCartItems(
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) async {
+    // No `getBranchId()!`: without an active branch there is nothing sensible
+    // to query, so say so instead of throwing out of the button handler.
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      if (mounted) {
+        showErrorNotification(
+          context,
+          context.flipperL10n.currentBranchIsMissing,
         );
+      }
+      return false;
+    }
+    var items = <TransactionItem>[];
+    // Lines already deactivated in Capella must stay hidden if a later line
+    // in the loop throws — restoring all of them showed items that no longer
+    // exist.
+    final deactivatedItemIds = <String>{};
+    try {
+      items = await ref.read(
+        transactionItemsStreamProvider(
+          transactionId: transactionAsyncValue.value?.id ?? "",
+          branchId: branchId,
+        ).future,
+      );
 
+      setState(() {
+        for (final item in items) {
+          _optimisticallyDeletedItemIds.add(item.id);
+          _optimisticQtyByItemId.remove(item.id);
+        }
+      });
+
+      for (final item in items) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+          transactionItemId: item.id.toString(),
+          active: false,
+          ignoreForReport: false,
+        );
+        deactivatedItemIds.add(item.id);
+      }
+
+      if (mounted) {
+        showSuccessNotification(
+          context,
+          context.flipperL10n.allItemsRemovedSuccessfully,
+        );
+      }
+      return true;
+    } catch (e) {
+      if (mounted) {
         setState(() {
           for (final item in items) {
-            _optimisticallyDeletedItemIds.add(item.id);
-            _optimisticQtyByItemId.remove(item.id);
+            if (deactivatedItemIds.contains(item.id)) continue;
+            _optimisticallyDeletedItemIds.remove(item.id);
           }
         });
-
-        for (final item in items) {
-          await ProxyService.getStrategy(
-            Strategy.capella,
-          ).updateTransactionItem(
-            transactionItemId: item.id.toString(),
-            active: false,
-            ignoreForReport: false,
-          );
-          deactivatedItemIds.add(item.id);
-        }
-
-        if (mounted) {
-          showSuccessNotification(
-            context,
-            context.flipperL10n.allItemsRemovedSuccessfully,
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            for (final item in items) {
-              if (deactivatedItemIds.contains(item.id)) continue;
-              _optimisticallyDeletedItemIds.remove(item.id);
-            }
-          });
-          showErrorNotification(
-            context,
-            context.flipperL10n.errorRemovingItems(e.toString()),
-          );
-        }
+        showErrorNotification(
+          context,
+          context.flipperL10n.errorRemovingItems(e.toString()),
+        );
       }
+      return false;
     }
   }
 
@@ -2048,7 +2068,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                               ) >
                               0.01
                           ? null
-                          : () => _deleteAllItems(transactionAsyncValue),
+                          : () => _deleteAllItems(
+                              transactionAsyncValue,
+                              cartItems: items,
+                            ),
                       icon: const Icon(Icons.delete_sweep, size: 18),
                       label: Text(context.flipperL10n.deleteAll),
                       style: TextButton.styleFrom(

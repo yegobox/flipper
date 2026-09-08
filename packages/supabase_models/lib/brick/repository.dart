@@ -47,8 +47,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Flag to track if the singleton has been explicitly disposed and its resources released.
   static bool _isDisposed = false;
   static final Completer<void> _readyCompleter = Completer<void>();
-  // Flag to prevent multiple concurrent calls to initializeSupabaseAndConfigure.
-  static bool _isInitializing = false;
+  // The in-flight initialization attempt, if any. Concurrent callers await it
+  // rather than returning early: a caller that returns while initialization is
+  // still running goes on to touch `Repository()` and hits
+  // "Repository not initialized", which reads as a hard startup failure even
+  // though the real attempt was merely still in progress.
+  static Future<void>? _initializationInFlight;
 
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
@@ -441,13 +445,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String supabaseUrl,
     required String supabaseAnonKey,
   }) async {
-    // Prevent concurrent initialization attempts
-    if (_isInitializing) {
+    // Join an attempt that is already running instead of racing it.
+    final inFlight = _initializationInFlight;
+    if (inFlight != null) {
       _logger.info(
-          'Repository initialization already in progress, waiting or skipping.');
-      // You might want to await a Completer here if multiple callers need to wait
-      // for the first initialization to complete. For simplicity, we just return.
-      return;
+          'Repository initialization already in progress, awaiting it.');
+      return inFlight;
     }
 
     // If already initialized and not disposed, skip re-initialization
@@ -458,10 +461,25 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return;
     }
 
-    _isInitializing = true;
     _logger.info(
         'Starting Repository initialization (first time or after disposal).');
 
+    final attempt = _initialize(
+      supabaseUrl: supabaseUrl,
+      supabaseAnonKey: supabaseAnonKey,
+    );
+    _initializationInFlight = attempt;
+    try {
+      await attempt;
+    } finally {
+      _initializationInFlight = null;
+    }
+  }
+
+  static Future<void> _initialize({
+    required String supabaseUrl,
+    required String supabaseAnonKey,
+  }) async {
     try {
       print('🚀 [Repository] Starting _configureAndInitializeDatabase...');
       await _configureAndInitializeDatabase(
@@ -475,9 +493,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       print('❌ [Repository] Initialization failed: $e');
       print('❌ [Repository] Stack trace: $s');
       rethrow;
-    } finally {
-      // Ensure the initialization flag is reset
-      _isInitializing = false;
     }
   }
 
