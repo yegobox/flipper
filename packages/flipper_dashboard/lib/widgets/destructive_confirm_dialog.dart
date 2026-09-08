@@ -102,7 +102,25 @@ class _DestructiveConfirmDialogState extends State<_DestructiveConfirmDialog> {
       return;
     }
     setState(() => _busy = true);
-    final ok = await onConfirm();
+    final bool ok;
+    try {
+      ok = await onConfirm();
+    } catch (e, stack) {
+      // A throwing callback used to leave the dialog busy forever: buttons
+      // disabled and `canPop: false`, so the user could not even dismiss it.
+      // Reported rather than rethrown out of a tap handler, so the failure is
+      // still visible in the logs while the dialog goes back to being usable.
+      if (mounted) setState(() => _busy = false);
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: e,
+          stack: stack,
+          library: 'flipper_dashboard',
+          context: ErrorDescription('while running a destructive confirmation'),
+        ),
+      );
+      return;
+    }
     if (!mounted) return;
     if (ok) {
       Navigator.of(context).pop(true);

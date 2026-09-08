@@ -281,6 +281,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final token = ++_pageNavToken;
+    final previousPage = _currentPage;
 
     // Cached pages swap in on this frame — only a cold page shows progress.
     final isCached = notifier.hasPageCached(page);
@@ -290,8 +291,23 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     });
     _jumpListToTop();
 
-    await notifier.fetchPage(page);
+    final loaded = await notifier.fetchPage(page);
     if (!mounted || token != _pageNavToken) return;
+    if (!loaded) {
+      // The grid still shows `previousPage`, so the page bar has to say so too
+      // — highlighting a page whose rows never arrived reads as an empty page.
+      setState(() {
+        _currentPage = previousPage;
+        _isPageLoading = false;
+      });
+      ScaffoldMessenger.of(context).clearSnackBars();
+      showCustomSnackBarUtil(
+        context,
+        context.flipperL10n.errorLoadingProducts,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
     if (_isPageLoading) setState(() => _isPageLoading = false);
     _jumpListToTop();
     _prefetchNeighbours(notifier, page);

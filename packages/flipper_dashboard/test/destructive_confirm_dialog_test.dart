@@ -87,4 +87,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Remove it?'), findsNothing);
   });
+
+  testWidgets('a throwing onConfirm leaves the dialog usable', (tester) async {
+    await tester.pumpWidget(host((context) {
+      showDestructiveConfirmDialog(
+        context: context,
+        title: 'Delete',
+        message: 'Remove it?',
+        confirmLabel: 'Delete All',
+        onConfirm: () async => throw Exception('delete blew up'),
+      );
+    }));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Delete All'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isA<Exception>());
+
+    // Still open, and no longer busy: the user can retry or back out.
+    expect(find.text('Remove it?'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove it?'), findsNothing);
+  });
 }

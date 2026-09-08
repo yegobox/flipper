@@ -357,16 +357,22 @@ class SignupForm extends _$SignupForm {
   /// apihub confirmed, tears the OTP state down so the user has to verify the
   /// new number. The mobile bloc does this from its `phoneNumber` listener.
   void _applyContact({String? contact, String? country}) {
-    final changedAwayFromVerified = state.verifiedContact != null &&
-        state.verifiedContact != contact;
+    // Every piece of OTP state belongs to the contact it was made for, not just
+    // a verified one: a code sent to the old number left the code field open
+    // and typing into it verified the *new* contact against that request.
+    final movedOn = contact != null && contact != state.phoneNumber;
+    final hasOtpState = state.verifiedContact != null ||
+        state.isOtpRequested ||
+        state.otpCode.isNotEmpty;
+    final resetOtp = movedOn && hasOtpState;
 
     state = state.copyWith(
       country: country,
       phoneNumber: contact,
-      isOtpRequested: changedAwayFromVerified ? false : null,
-      otpCode: changedAwayFromVerified ? '' : null,
-      otpError: changedAwayFromVerified ? null : _unset,
-      verifiedContact: changedAwayFromVerified ? null : _unset,
+      isOtpRequested: resetOtp ? false : null,
+      otpCode: resetOtp ? '' : null,
+      otpError: resetOtp ? null : _unset,
+      verifiedContact: resetOtp ? null : _unset,
     );
   }
 
@@ -388,7 +394,17 @@ class SignupForm extends _$SignupForm {
 
     try {
       await _signupRepository.lookupOrCreateUserId(contact);
+      // The field stays editable while this runs. A code on its way to the old
+      // contact must not open the code field for the new one.
+      if (state.phoneNumber != contact) {
+        state = state.copyWith(isSendingOtp: false);
+        return false;
+      }
       await _signupRepository.sendSignupOtp(contact);
+      if (state.phoneNumber != contact) {
+        state = state.copyWith(isSendingOtp: false);
+        return false;
+      }
       state = state.copyWith(
         isSendingOtp: false,
         isOtpRequested: true,
@@ -397,6 +413,10 @@ class SignupForm extends _$SignupForm {
       );
       return true;
     } catch (e) {
+      if (state.phoneNumber != contact) {
+        state = state.copyWith(isSendingOtp: false);
+        return false;
+      }
       state = state.copyWith(
         isSendingOtp: false,
         otpError: _readableError(e, fallback: 'Failed to send the code.'),

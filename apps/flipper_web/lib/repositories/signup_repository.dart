@@ -261,7 +261,7 @@ class SignupRepository {
   /// apihub wants the user to exist before it will send a signup OTP, which is
   /// why the mobile bloc calls `sendLoginRequest(..., refreshUserAccessOnly:
   /// true)` before `sendOtpForSignup`.
-  Future<String?> lookupOrCreateUserId(String contact) async {
+  Future<String> lookupOrCreateUserId(String contact) async {
     final http.Response response;
     try {
       response = await _httpClient.post(
@@ -286,7 +286,19 @@ class SignupRepository {
       );
     }
 
-    return _decodeOrEmpty(response.body)['id']?.toString();
+    // A 200 without a usable id is not a user: registering against it would
+    // POST /v2/api/business with `userId: null` and orphan the business.
+    final id = _decodeOrEmpty(response.body)['id']?.toString();
+    if (id == null || id.isEmpty) {
+      if (kDebugMode) {
+        print('User lookup returned no id: ${response.body}');
+      }
+      throw Exception(
+        'Could not start registration: the server returned no account id. '
+        'Please try again.',
+      );
+    }
+    return id;
   }
 
   /// POST `/v2/api/login/send-otp-signup` — mirrors

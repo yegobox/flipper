@@ -31,6 +31,17 @@ void main() {
       );
     });
 
+    test('strips separators the user typed into the number', () {
+      expect(
+        normalizeSignupContact('078-305 4874', country: 'Rwanda'),
+        '+250783054874',
+      );
+      expect(
+        normalizeSignupContact('+250 783 054 874', country: 'Rwanda'),
+        '+250783054874',
+      );
+    });
+
     test('passes an email through untouched', () {
       expect(
         normalizeSignupContact('user@example.com', country: 'Rwanda'),
@@ -59,6 +70,10 @@ void main() {
   group('localPhonePart', () {
     test('strips a known dial code for display', () {
       expect(localPhonePart('+250783054874'), '783054874');
+    });
+
+    test('strips separators along with the dial code', () {
+      expect(localPhonePart('+250 783-054-874'), '783054874');
     });
 
     test('leaves an email alone', () {

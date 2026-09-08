@@ -661,9 +661,13 @@ class _SignupViewState extends ConsumerState<SignupView> {
   }
 
   Future<void> _handleSendOtp() async {
+    final requestedFor = ref.read(signupFormProvider).phoneNumber;
     final sent = await ref.read(signupFormProvider.notifier).requestOtp();
     if (!mounted) return;
     final state = ref.read(signupFormProvider);
+    // The contact was edited while the code was on its way: the outcome belongs
+    // to a number that is no longer in the field, so report nothing about it.
+    if (state.phoneNumber != requestedFor) return;
     if (sent) {
       _otpController.clear();
       _showSuccess('Code sent to ${state.phoneNumber}');

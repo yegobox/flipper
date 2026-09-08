@@ -402,6 +402,14 @@ class OuterVariants extends _$OuterVariants {
       }
     }
     _syncBoundsFromCache();
+    // Removing the last row of the visible page drops that page from the cache
+    // entirely; leaving _viewPage on the missing key painted an empty grid even
+    // though other cached pages still hold variants.
+    final view = _viewPage;
+    if (view != null && !_pageCache.containsKey(view) && _pageCache.isNotEmpty) {
+      final keys = _pageCache.keys.toList()..sort();
+      _viewPage = keys.lastWhere((k) => k < view, orElse: () => keys.first);
+    }
     state = AsyncValue.data(_currentView());
   }
 
@@ -410,8 +418,14 @@ class OuterVariants extends _$OuterVariants {
   /// Switches the visible page. A page still in [_pageCache] swaps in
   /// synchronously — no query, no await — so re-visiting a page the user has
   /// already seen is instant; only a cold page hits the store.
-  Future<void> fetchPage(int page) async {
-    if (page < 0) return;
+  ///
+  /// Returns false only when the page could not be loaded — the grid then still
+  /// shows the previous page, so the caller must put its own page selection back
+  /// rather than leave the page bar pointing at rows that were never loaded.
+  /// A tap that was superseded (a newer tap, or a cache reset) returns true:
+  /// nothing failed, and whoever superseded it owns the view.
+  Future<bool> fetchPage(int page) async {
+    if (page < 0) return false;
     final requestGeneration = ++_pageRequestGeneration;
     final cacheGeneration = _cacheGeneration;
 
@@ -419,7 +433,7 @@ class OuterVariants extends _$OuterVariants {
       _viewPage = page;
       _syncBoundsFromCache();
       state = AsyncValue.data(_currentView());
-      return;
+      return true;
     }
 
     final PagedVariants paged;
@@ -432,22 +446,23 @@ class OuterVariants extends _$OuterVariants {
       );
     } catch (e) {
       talker.warning('OuterVariants: page $page fetch failed: $e');
-      return;
+      return false;
     }
-    if (cacheGeneration != _cacheGeneration) return;
+    if (cacheGeneration != _cacheGeneration) return true;
 
     _pageCache[page] = List<Variant>.from(paged.variants);
     // A newer tap already won: keep the page for later, but do not paint it.
     if (requestGeneration != _pageRequestGeneration) {
       _evictPagesFarFrom(_viewPage ?? page);
       _syncBoundsFromCache();
-      return;
+      return true;
     }
     if (paged.totalCount != null) _totalCount = paged.totalCount;
     _viewPage = page;
     _evictPagesFarFrom(page);
     _syncBoundsFromCache();
     state = AsyncValue.data(_currentView());
+    return true;
   }
 
   /// Warms a page in the background without touching what is on screen, so the

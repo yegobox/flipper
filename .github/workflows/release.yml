@@ -106,6 +106,13 @@ jobs:
           files: packages/flipper_dashboard/coverage/lcov.info,apps/flipper_web/coverage/lcov.info
   build_web_deploy_firebase:
     runs-on: ubuntu-latest
+    # One deploy per branch at a time. Two pushes in quick succession used to
+    # build in parallel and release to the same channel in whatever order they
+    # finished, so the older commit could end up serving the preview URL (or
+    # flipper.yegobox.com on main). The superseded run is cancelled instead.
+    concurrency:
+      group: web-deploy-${{ github.ref }}
+      cancel-in-progress: true
     # needs: [unit-testing]
     # if: false
     steps:
@@ -207,13 +214,21 @@ jobs:
           # Channel ids may only contain [a-z0-9-], and the resulting hostname
           # (`<site>--<channel>-<hash>.web.app`) must stay under 63 chars, hence
           # the slugify + truncate.
+          #
+          # The slug alone is not unique: it lowercases, replaces every other
+          # character with `-` and truncates, so `fix/pos-payment-perf-a` and
+          # `fix/pos_payment_perf_b` can collapse onto one channel and overwrite
+          # each other's preview. A short digest of the full ref keeps them apart
+          # while staying inside the hostname budget.
           slug=$(printf '%s' "${GITHUB_REF_NAME}" \
             | tr '[:upper:]' '[:lower:]' \
             | sed -e 's/[^a-z0-9-]/-/g' -e 's/--*/-/g' -e 's/^-//' -e 's/-$//' \
-            | cut -c1-20 \
+            | cut -c1-14 \
             | sed -e 's/-$//')
-          echo "id=pr-${slug:-build}" >> "$GITHUB_OUTPUT"
-          echo "Preview channel: pr-${slug:-build}"
+          ref_hash=$(printf '%s' "${GITHUB_REF_NAME}" | sha1sum | cut -c1-6)
+          channel="pr-${slug:-build}-${ref_hash}"
+          echo "id=${channel}" >> "$GITHUB_OUTPUT"
+          echo "Preview channel: ${channel}"
 
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web

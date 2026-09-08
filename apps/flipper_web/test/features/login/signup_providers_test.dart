@@ -24,7 +24,7 @@ class MockSignupRepository extends SignupRepository {
   int registerCallCount = 0;
 
   // --- OTP
-  String? userIdResult = 'user-1';
+  String userIdResult = 'user-1';
   String? sendOtpError;
   bool otpVerifies = true;
   String? verifyOtpError;
@@ -33,7 +33,7 @@ class MockSignupRepository extends SignupRepository {
   List<({String contact, String otp})> verifiedOtps = [];
 
   @override
-  Future<String?> lookupOrCreateUserId(String contact) async {
+  Future<String> lookupOrCreateUserId(String contact) async {
     lookedUpContacts.add(contact);
     return userIdResult;
   }

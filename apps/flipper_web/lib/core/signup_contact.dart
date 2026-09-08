@@ -25,25 +25,42 @@ bool looksLikeEmailContact(String raw) => raw.contains('@');
 
 String signupDialCode(String country) => kSignupDialCodes[country] ?? '+250';
 
+/// Separators people type into a phone field: spaces, dashes (including the
+/// unicode ones a phone keyboard offers), dots and brackets.
+final RegExp _phoneSeparators = RegExp(r'[\s().\u2010-\u2015-]');
+
+/// A phone number with its separators removed, so `078 305 4874`,
+/// `078-305-4874` and `(078) 305 4874` all reach apihub as the same contact —
+/// the OTP is sent to it, the account is keyed on it, and a stray space made
+/// those two different numbers. Emails never go through here.
+String _canonicalPhone(String raw) => raw.replaceAll(_phoneSeparators, '');
+
 /// The local part shown in the input, with any known dial code removed.
 String localPhonePart(String raw) {
   final cleaned = raw.trim();
   if (looksLikeEmailContact(cleaned)) return cleaned;
+  final digits = _canonicalPhone(cleaned);
   for (final code in kSignupDialCodes.values) {
-    if (cleaned.startsWith(code)) return cleaned.substring(code.length);
+    if (digits.startsWith(code)) return digits.substring(code.length);
   }
-  return cleaned;
+  return digits;
 }
 
 /// The canonical value to send to the API.
 ///
-/// Emails pass through untouched; phone numbers get [country]'s dial code, with
-/// any other known dial code or leading zero replaced. Empty input stays empty
-/// so an untouched field never counts as filled in.
+/// Emails pass through untouched; phone numbers lose their separators and get
+/// [country]'s dial code, with any other known dial code or leading zero
+/// replaced. Empty input stays empty so an untouched field never counts as
+/// filled in.
 String normalizeSignupContact(String raw, {required String country}) {
-  final cleaned = raw.trim();
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return '';
+  if (looksLikeEmailContact(trimmed)) return trimmed;
+
+  // Canonicalize before matching dial codes: `+250 783…` has to be recognized
+  // as already carrying its code.
+  final cleaned = _canonicalPhone(trimmed);
   if (cleaned.isEmpty) return '';
-  if (looksLikeEmailContact(cleaned)) return cleaned;
 
   final code = signupDialCode(country);
   if (cleaned.startsWith(code)) return cleaned;

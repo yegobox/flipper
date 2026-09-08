@@ -40,13 +40,29 @@ class AmplifyConfigHelper {
     }
   }
 
+  /// Plugin registration, started at most once.
+  ///
+  /// The timeout below does not cancel the call it gives up on, so a retry that
+  /// started registration again would add the same plugins twice — Amplify
+  /// rejects that, and every later attempt would fail for a reason that has
+  /// nothing to do with why the first one was slow. Retries therefore wait on
+  /// the original future; only a registration that actually failed is retried.
+  static Future<void>? _pluginsAdded;
+
+  static Future<void> _addPluginsOnce() {
+    return _pluginsAdded ??= Amplify.addPlugins([
+      AmplifyAuthCognito(),
+      AmplifyStorageS3(),
+    ]).onError<Object>((e, s) {
+      _pluginsAdded = null;
+      Error.throwWithStackTrace(e, s);
+    });
+  }
+
   static Future<void> _configureOnce() async {
     try {
       safePrint('🚀 [AmplifyConfigHelper] Adding plugins...');
-      await Amplify.addPlugins([
-        AmplifyAuthCognito(),
-        AmplifyStorageS3(),
-      ]).timeout(
+      await _addPluginsOnce().timeout(
         const Duration(seconds: 15),
         onTimeout: () {
           safePrint('⚠️ [AmplifyConfigHelper] addPlugins timed out');
