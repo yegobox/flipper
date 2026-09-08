@@ -281,7 +281,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final token = ++_pageNavToken;
-    final previousPage = _currentPage;
+    // What the provider is actually painting, which is what a failed fetch
+    // leaves on screen. `_currentPage` is only this widget's copy of it, and
+    // the notifier is shared.
+    final previousPage = notifier.viewPage ?? _currentPage;
 
     // Cached pages swap in on this frame — only a cold page shows progress.
     final isCached = notifier.hasPageCached(page);

@@ -61,12 +61,17 @@ class _SignupViewState extends ConsumerState<SignupView> {
     _messenger = ScaffoldMessenger.of(context);
   }
 
+  /// Set when a message is deliberately left up for the screen we are
+  /// navigating to, so [dispose] does not wipe it on the way out.
+  bool _handOffSnackBar = false;
+
   @override
   void dispose() {
     // The messenger lives above the router, so anything still showing would
     // follow the user onto the next screen — a "Code sent to …" from signup
-    // was surviving all the way onto the sign-in page.
-    _messenger?.clearSnackBars();
+    // was surviving all the way onto the sign-in page. The account-created
+    // confirmation is the one message that is *meant* to make that trip.
+    if (!_handOffSnackBar) _messenger?.clearSnackBars();
     _phoneController.dispose();
     _tinController.dispose();
     _otpController.dispose();
@@ -94,10 +99,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
     );
   }
 
-  /// [offerSignIn] adds the "Sign in" shortcut. Only the account-created
-  /// message wants it — offering it on "Code sent to …" invited the user to
-  /// abandon a signup they were halfway through.
-  void _showSuccess(String message, {bool offerSignIn = false}) {
+  void _showSuccess(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).removeCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -107,19 +109,6 @@ class _SignupViewState extends ConsumerState<SignupView> {
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(8),
         duration: const Duration(seconds: 4),
-        action: offerSignIn
-            ? SnackBarAction(
-                label: 'Sign in',
-                textColor: Colors.white,
-                onPressed: () {
-                  try {
-                    context.go('/login');
-                  } catch (_) {
-                    Navigator.pop(context);
-                  }
-                },
-              )
-            : null,
       ),
     );
   }
@@ -445,7 +434,13 @@ class _SignupViewState extends ConsumerState<SignupView> {
     final success = await ref.read(signupFormProvider.notifier).submitForm();
     if (!mounted) return;
     if (success) {
-      _showSuccess('Account created successfully!', offerSignIn: true);
+      // The message has to outlive this view: signing up navigates straight to
+      // the sign-in screen, and the confirmation is what tells the user their
+      // account exists once they get there. It carried a "Sign in" action that
+      // no one could ever tap — dispose() cleared the snackbar in the same
+      // frame as the navigation it duplicated.
+      _handOffSnackBar = true;
+      _showSuccess('Account created successfully!');
       try {
         context.go('/login');
       } catch (_) {

@@ -377,11 +377,22 @@ class OuterVariants extends _$OuterVariants {
     state = AsyncValue.data(_currentView());
   }
 
+  /// The count behind "x of y products" and the page bar. Only a filter change
+  /// re-runs the COUNT(*), so a delete has to keep it honest itself or the
+  /// total stays one too high for the rest of the session.
+  void _dropOneFromTotal() {
+    final total = _totalCount;
+    if (total != null && total > 0) _totalCount = total - 1;
+  }
+
   /// Removes a variant from the state.
   void removeVariantById(String variantId) {
     if (state.value == null) return;
     if (_pageCache.isEmpty) {
-      final newList = state.value!.where((v) => v.id != variantId).toList();
+      final existing = state.value!;
+      final newList = existing.where((v) => v.id != variantId).toList();
+      // Nothing matched: the variant was already gone, so the total stands.
+      if (newList.length != existing.length) _dropOneFromTotal();
       if (newList.isEmpty) {
         _firstCachedPage = 0;
         _lastCachedPage = -1;
@@ -392,15 +403,21 @@ class OuterVariants extends _$OuterVariants {
       state = AsyncValue.data(_currentView());
       return;
     }
+    var removed = false;
     final keys = _pageCache.keys.toList();
     for (final k in keys) {
       final chunk = _pageCache[k];
       if (chunk == null) continue;
-      _pageCache[k] = chunk.where((v) => v.id != variantId).toList();
-      if (_pageCache[k]!.isEmpty) {
+      final kept = chunk.where((v) => v.id != variantId).toList();
+      // An id lives on one page, so this can only fire once — and never at all
+      // when the variant was not cached, which must leave the total alone.
+      if (kept.length != chunk.length) removed = true;
+      _pageCache[k] = kept;
+      if (kept.isEmpty) {
         _pageCache.remove(k);
       }
     }
+    if (removed) _dropOneFromTotal();
     _syncBoundsFromCache();
     // Removing the last row of the visible page drops that page from the cache
     // entirely; leaving _viewPage on the missing key painted an empty grid even
