@@ -196,7 +196,13 @@ class _HotelFolioBody extends ConsumerWidget {
         border: Border.all(color: HotelTokens.line),
       ),
       child: Text(
-        'No charges yet. Post the room charge to start this folio.',
+        // The reason belongs on screen, not only in a toast that has already
+        // gone by the time anyone wonders why the folio is empty.
+        HotelModeSettings.autoPostRoomCharge
+            ? 'No charges yet. Post the room charge to start this folio.'
+            : 'Automatic room charge is off for this branch.\n'
+                  'Use + Room charge above, or turn it back on in '
+                  'Settings → Hotel Mode.',
         textAlign: TextAlign.center,
         style: GoogleFonts.outfit(
           fontSize: 13,
