@@ -46,50 +46,55 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
         HotelModeSettings.setLaunchOnStart(true);
       }
       if (!mounted) return;
-      if (HotelModeSettings.requirePin) {
-        ref.read(hotelModeProvider.notifier).setScreen(HotelScreen.lock);
-      } else {
-        await _signInSignedInTenant();
-      }
+      await _resolveEntry();
     });
   }
 
-  /// PIN entry off: the desk runs as whoever is signed into the app, so charges
-  /// still get attributed to a real tenant rather than to nobody.
+  /// Decides the opening screen once branch settings are known.
   ///
-  /// If the signed-in user does not match a staff record, the desk stays
-  /// locked. Falling back to the first tenant in the list would attribute
-  /// every charge to a stranger, and would hand out that tenant's rights —
-  /// including settling folios if they happen to be a manager.
-  Future<void> _signInSignedInTenant() async {
-    if (!mounted) return;
-    if (ref.read(hotelModeProvider).activeClerk != null) return;
+  /// The desk stays on [HotelScreen.starting] until this resolves, so a branch
+  /// that does not use a PIN never flashes a lock screen it will dismiss by
+  /// itself, and a branch that does use one never shows the desk first.
+  Future<void> _resolveEntry() async {
+    final notifier = ref.read(hotelModeProvider.notifier);
+    try {
+      if (ref.read(hotelModeProvider).activeClerk != null) {
+        notifier.setScreen(HotelScreen.dashboard);
+        return;
+      }
+
+      if (HotelModeSettings.requirePin) {
+        notifier.resolveEntry(requirePin: true);
+        return;
+      }
+
+      // PIN entry off: the desk runs as whoever is signed into the app, so
+      // charges are still attributed to a real tenant. A signed-in user who
+      // matches no staff record gets the lock rather than someone else's
+      // identity — and someone else's rights.
+      final signedIn = await _signedInStaffMember();
+      if (!mounted) return;
+
+      notifier.resolveEntry(requirePin: false, signedInClerk: signedIn);
+      if (signedIn == null) {
+        notifier.showToast('Sign in with your PIN to open the desk');
+      }
+    } catch (e) {
+      // Never leave the desk on the starting screen, and never open it on a
+      // failure: an unreadable setting is not permission to skip the lock.
+      if (mounted) notifier.resolveEntry(requirePin: true);
+    }
+  }
+
+  Future<Tenant?> _signedInStaffMember() async {
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) return null;
 
     final staff = await ref.read(hotelStaffProvider.future);
-    if (!mounted || staff.isEmpty) return;
-
-    final userId = ProxyService.box.getUserId()?.trim();
-    if (userId == null || userId.isEmpty) {
-      ref.read(hotelModeProvider.notifier).setScreen(HotelScreen.lock);
-      return;
-    }
-
-    Tenant? me;
     for (final tenant in staff) {
-      if (tenant.userId?.trim() == userId) {
-        me = tenant;
-        break;
-      }
+      if (tenant.userId?.trim() == userId) return tenant;
     }
-
-    if (me == null) {
-      ref.read(hotelModeProvider.notifier).setScreen(HotelScreen.lock);
-      ref
-          .read(hotelModeProvider.notifier)
-          .showToast('Sign in with your PIN to open the desk');
-      return;
-    }
-    ref.read(hotelModeProvider.notifier).login(me);
+    return null;
   }
 
   @override
@@ -97,6 +102,10 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     final hotel = ref.watch(hotelModeProvider);
 
     final Widget screen = switch (hotel.screen) {
+      HotelScreen.starting => const ColoredBox(
+        color: HotelTokens.posBg,
+        child: Center(child: CircularProgressIndicator()),
+      ),
       HotelScreen.lock => const HotelLockScreen(),
       HotelScreen.dashboard => const HotelDashboardScreen(),
       HotelScreen.rooms => const HotelRoomsScreen(),

@@ -17,11 +17,15 @@ import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 /// Screens of the front-desk machine.
-enum HotelScreen { lock, dashboard, rooms, calendar, quotes, folio }
+/// [starting] is the gate: the host cannot know whether this branch requires a
+/// PIN until branch settings have hydrated, and showing the lock before that
+/// makes a security gate flash up and then dismiss itself, which reads as the
+/// desk letting anyone in.
+enum HotelScreen { starting, lock, dashboard, rooms, calendar, quotes, folio }
 
 class HotelModeState {
   const HotelModeState({
-    this.screen = HotelScreen.lock,
+    this.screen = HotelScreen.starting,
     this.activeClerk,
     this.activeRoom,
     this.activeStay,
@@ -85,6 +89,18 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
   @override
   HotelModeState build() => const HotelModeState();
 
+  /// Resolves the opening screen once branch settings are known.
+  ///
+  /// Fails safe: anything other than an explicit "this branch does not use a
+  /// PIN, and the signed-in user is a known staff member" lands on the lock.
+  void resolveEntry({required bool requirePin, Tenant? signedInClerk}) {
+    if (!requirePin && signedInClerk != null) {
+      login(signedInClerk);
+      return;
+    }
+    state = state.copyWith(screen: HotelScreen.lock);
+  }
+
   /// Signs [clerk] onto the shared register and opens the day's overview.
   void login(Tenant clerk) {
     state = state.copyWith(activeClerk: clerk, screen: HotelScreen.dashboard);
@@ -111,7 +127,9 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
 
   /// Guards the transitions that need a signed-in clerk or a bound stay.
   void setScreen(HotelScreen screen) {
-    if (screen != HotelScreen.lock && state.activeClerk == null) {
+    if (screen != HotelScreen.lock &&
+        screen != HotelScreen.starting &&
+        state.activeClerk == null) {
       state = state.copyWith(screen: HotelScreen.lock);
       return;
     }

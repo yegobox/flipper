@@ -42,9 +42,36 @@ void main() {
   final manager = Tenant(id: 'm1', userId: 'u2', name: 'Ada', type: 'Admin');
 
   group('shared register', () {
-    test('opens locked with nobody signed in', () {
+    test('opens on the starting gate, not on the lock', () {
+      // Showing the lock before branch settings are known makes it flash up
+      // and dismiss itself on a branch that does not use a PIN.
+      expect(read().screen, HotelScreen.starting);
+      expect(read().activeClerk, isNull);
+    });
+
+    test('a PIN branch resolves to the lock', () {
+      notifier().resolveEntry(requirePin: true);
       expect(read().screen, HotelScreen.lock);
       expect(read().activeClerk, isNull);
+    });
+
+    test('a no-PIN branch resolves straight to the desk as that clerk', () {
+      notifier().resolveEntry(requirePin: false, signedInClerk: clerk);
+      expect(read().screen, HotelScreen.dashboard);
+      expect(read().activeClerk, clerk);
+    });
+
+    test('no-PIN with an unrecognised user still locks', () {
+      // Opening the desk for someone with no staff record would attribute
+      // their charges to nobody, or to whoever happened to be first.
+      notifier().resolveEntry(requirePin: false);
+      expect(read().screen, HotelScreen.lock);
+      expect(read().activeClerk, isNull);
+    });
+
+    test('the starting gate is never a way past the clerk check', () {
+      notifier().setScreen(HotelScreen.dashboard);
+      expect(read().screen, HotelScreen.lock);
     });
 
     test('login signs the clerk on and opens the day overview', () {
@@ -79,6 +106,7 @@ void main() {
 
   group('screen guards', () {
     test('cannot leave the lock without a clerk', () {
+      notifier().resolveEntry(requirePin: true);
       notifier().setScreen(HotelScreen.rooms);
       expect(read().screen, HotelScreen.lock);
       notifier().setScreen(HotelScreen.folio);
