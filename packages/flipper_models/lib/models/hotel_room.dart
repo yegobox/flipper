@@ -35,6 +35,7 @@ class HotelRoom {
     required this.nightlyRate,
     this.housekeeping = HotelHousekeeping.clean,
     this.ordinal = 0,
+    this.variantId,
   });
 
   final String id;
@@ -59,6 +60,16 @@ class HotelRoom {
   final HotelHousekeeping housekeeping;
   final int ordinal;
 
+  /// The RRA tourism-tax service item this room is registered as.
+  ///
+  /// A room is not a good; RRA takes accommodation as an `itemTyCd` `3`
+  /// service at 3% TT. Until this is set the room exists only to us, and its
+  /// nightly charge cannot be invoiced correctly. See `hotel_room_rra.dart`.
+  final String? variantId;
+
+  bool get isRegisteredWithRra =>
+      variantId != null && variantId!.trim().isNotEmpty;
+
   /// A room under maintenance can never be sold, whatever its stay state is.
   bool get isSellable => housekeeping != HotelHousekeeping.outOfOrder;
 
@@ -73,6 +84,7 @@ class HotelRoom {
     double? nightlyRate,
     HotelHousekeeping? housekeeping,
     int? ordinal,
+    String? variantId,
   }) {
     return HotelRoom(
       id: id ?? this.id,
@@ -85,6 +97,7 @@ class HotelRoom {
       nightlyRate: nightlyRate ?? this.nightlyRate,
       housekeeping: housekeeping ?? this.housekeeping,
       ordinal: ordinal ?? this.ordinal,
+      variantId: variantId ?? this.variantId,
     );
   }
 
@@ -101,6 +114,7 @@ class HotelRoom {
       'nightlyRate': nightlyRate,
       'housekeeping': hotelHousekeepingToString(housekeeping),
       'ordinal': ordinal,
+      'variantId': variantId,
     };
   }
 
@@ -128,6 +142,9 @@ class HotelRoom {
       nightlyRate: toDouble(raw['nightlyRate']),
       housekeeping: hotelHousekeepingFromString(raw['housekeeping']?.toString()),
       ordinal: toInt(raw['ordinal']),
+      variantId: (raw['variantId']?.toString().trim().isEmpty ?? true)
+          ? null
+          : raw['variantId'].toString().trim(),
     );
   }
 }

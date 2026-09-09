@@ -1055,14 +1055,30 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String clerkTenantId,
     required String clerkName,
   }) async {
-    final settings = await hotelBranchSettings(branchId: stay.branchId);
-    final variantId = settings?.roomChargeVariantId;
-    if (settings == null || !settings.canAutoPostRoomCharge) {
-      talker.info(
-        'hotel: skipping room charge for stay ${stay.id} — '
-        'branch ${stay.branchId} has no room-charge product configured.',
-      );
-      return;
+    // The room's own RRA item first: accommodation is a tourism-tax service,
+    // and billing it against some other branch-level product would invoice it
+    // as an ordinary good at VAT. The branch fallback only exists for rooms
+    // created before rooms carried their own registration.
+    final rooms = await hotelRooms(branchId: stay.branchId);
+    String? variantId;
+    for (final room in rooms) {
+      if (room.id == stay.roomId && room.isRegisteredWithRra) {
+        variantId = room.variantId;
+        break;
+      }
+    }
+
+    if (variantId == null) {
+      final settings = await hotelBranchSettings(branchId: stay.branchId);
+      if (settings == null || !settings.canAutoPostRoomCharge) {
+        talker.warning(
+          'hotel: no room charge posted for stay ${stay.id} — room '
+          '${stay.roomName} is not registered with RRA and branch '
+          '${stay.branchId} has no fallback product.',
+        );
+        return;
+      }
+      variantId = settings.roomChargeVariantId;
     }
 
     final nights = stay.nights;

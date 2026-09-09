@@ -7,6 +7,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -82,7 +83,35 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     return next;
   }
 
-  Future<void> _save(HotelRoom room) => _run(() => _sync.saveHotelRoom(room));
+  Future<void> _save(HotelRoom room) => _run(() async {
+    await _sync.saveHotelRoom(room);
+    // RRA holds the room's name and price, so an edit that stops there would
+    // keep invoicing the old ones.
+    if (room.isRegisteredWithRra) {
+      await HotelRoomRraService.syncRoomToRra(room);
+    }
+  });
+
+  /// Registers [room] with RRA as a tourism-tax service item.
+  ///
+  /// Best effort: the room is already saved, and a branch without EBM
+  /// configured should still be able to lay out its floors. The row shows the
+  /// unregistered state so nobody is surprised at checkout.
+  Future<void> _register(HotelRoom room) async {
+    await _run(() async {
+      try {
+        await HotelRoomRraService.registerRoom(room);
+      } catch (e) {
+        if (mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Room ${room.name} saved, but not registered with RRA: $e',
+            backgroundColor: Colors.orange.shade800,
+          );
+        }
+      }
+    });
+  }
 
   /// Rooms on [floorId] as the store has them right now.
   ///
@@ -126,19 +155,19 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
       suggestion = asNumber == null ? '$suggestion+' : '${asNumber + 1}';
     }
 
-    await _save(
-      HotelRoom(
-        id: const Uuid().v4(),
-        branchId: branchId,
-        floorId: floor.id,
-        floorName: floor.name,
-        name: suggestion,
-        roomType: template?.roomType ?? 'Double',
-        capacity: template?.capacity ?? 2,
-        nightlyRate: template?.nightlyRate ?? 50000,
-        ordinal: current.length,
-      ),
+    final room = HotelRoom(
+      id: const Uuid().v4(),
+      branchId: branchId,
+      floorId: floor.id,
+      floorName: floor.name,
+      name: suggestion,
+      roomType: template?.roomType ?? 'Double',
+      capacity: template?.capacity ?? 2,
+      nightlyRate: template?.nightlyRate ?? 50000,
+      ordinal: current.length,
     );
+    await _save(room);
+    await _register(room);
   }
 
   Future<void> _addFloor() async {
@@ -159,19 +188,19 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     }
 
     // A floor exists only through its rooms, so it starts with one.
-    await _save(
-      HotelRoom(
-        id: const Uuid().v4(),
-        branchId: branchId,
-        floorId: floorId,
-        floorName: name.trim(),
-        name: suggestion,
-        roomType: 'Double',
-        capacity: 2,
-        nightlyRate: 50000,
-        ordinal: current.length,
-      ),
+    final room = HotelRoom(
+      id: const Uuid().v4(),
+      branchId: branchId,
+      floorId: floorId,
+      floorName: name.trim(),
+      name: suggestion,
+      roomType: 'Double',
+      capacity: 2,
+      nightlyRate: 50000,
+      ordinal: current.length,
     );
+    await _save(room);
+    await _register(room);
   }
 
   Future<void> _deleteRoom(HotelRoom room, List<HotelStay> stays) async {
@@ -386,6 +415,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
               locked: !hotelRoomCanBeDeleted(room: room, stays: stays),
               busy: _busy,
               onSave: _save,
+              onRegister: () => _register(room),
               onDelete: () => _deleteRoom(room, stays),
             ),
           const SizedBox(height: 8),
@@ -514,6 +544,7 @@ class _RoomRow extends StatefulWidget {
     required this.locked,
     required this.busy,
     required this.onSave,
+    required this.onRegister,
     required this.onDelete,
   });
 
@@ -524,6 +555,7 @@ class _RoomRow extends StatefulWidget {
   final bool locked;
   final bool busy;
   final Future<void> Function(HotelRoom) onSave;
+  final VoidCallback onRegister;
   final VoidCallback onDelete;
 
   @override
@@ -668,6 +700,27 @@ class _RoomRowState extends State<_RoomRow> {
             value: widget.room.capacity,
             onChanged: widget.busy ? null : _setCapacity,
           );
+          // A room RRA does not know about cannot have its nights invoiced as
+          // accommodation, so the state is on the row rather than buried.
+          final rraBadge = widget.room.isRegisteredWithRra
+              ? const Tooltip(
+                  message: 'Registered with RRA as a tourism-tax service',
+                  child: Icon(
+                    Icons.verified_outlined,
+                    size: 17,
+                    color: HotelTokens.vacantInk,
+                  ),
+                )
+              : IconButton(
+                  tooltip: 'Not registered with RRA — tap to register',
+                  onPressed: widget.busy ? null : widget.onRegister,
+                  icon: const Icon(
+                    Icons.gpp_maybe_outlined,
+                    size: 17,
+                    color: HotelTokens.dirtyInk,
+                  ),
+                );
+
           final delete = IconButton(
             tooltip: widget.locked
                 ? 'Occupied or booked — cannot delete'
@@ -689,6 +742,7 @@ class _RoomRowState extends State<_RoomRow> {
                     Expanded(child: number),
                     const SizedBox(width: 8),
                     capacity,
+                    rraBadge,
                     delete,
                   ],
                 ),
@@ -713,6 +767,7 @@ class _RoomRowState extends State<_RoomRow> {
               capacity,
               const SizedBox(width: 10),
               rate,
+              rraBadge,
               delete,
             ],
           );

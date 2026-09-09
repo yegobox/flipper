@@ -11,6 +11,7 @@ HotelRoom _room({
   required String name,
   String floorId = 'ground',
   String floorName = 'Ground Floor',
+  String? variantId,
 }) => HotelRoom(
   id: id,
   branchId: 'b1',
@@ -20,6 +21,7 @@ HotelRoom _room({
   roomType: 'Double',
   capacity: 2,
   nightlyRate: 50000,
+  variantId: variantId,
 );
 
 HotelStay _stay({required String roomId}) => HotelStay(
@@ -95,6 +97,21 @@ void main() {
       await _pump(tester, rooms: [_room(id: 'r1', name: '101')]);
       expect(find.text('Add room'), findsOneWidget);
       expect(find.text('Add a floor or wing'), findsOneWidget);
+    });
+
+    testWidgets('flags a room RRA does not know about', (tester) async {
+      // Its nights cannot be invoiced as accommodation until it is registered,
+      // so the row says so rather than looking finished.
+      await _pump(
+        tester,
+        rooms: [
+          _room(id: 'r1', name: '101'),
+          _room(id: 'r2', name: '102', variantId: 'v2'),
+        ],
+      );
+
+      expect(find.byIcon(Icons.gpp_maybe_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.verified_outlined), findsOneWidget);
     });
 
     testWidgets('a room with a guest is locked against deletion', (

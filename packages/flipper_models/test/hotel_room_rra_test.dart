@@ -1,0 +1,171 @@
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/models/hotel_room.dart';
+import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('hotelRraRoomTypeCd', () {
+    test('maps the four names RRA itself uses', () {
+      expect(hotelRraRoomTypeCd('Single'), '01');
+      expect(hotelRraRoomTypeCd('Double'), '02');
+      expect(hotelRraRoomTypeCd('Suite'), '03');
+      expect(hotelRraRoomTypeCd('Deluxe'), '04');
+    });
+
+    test('is case and whitespace insensitive', () {
+      expect(hotelRraRoomTypeCd('  dOUBLE '), '02');
+    });
+
+    test('a twin sells as a double', () {
+      expect(hotelRraRoomTypeCd('Twin'), '02');
+    });
+
+    test('every suite tier collapses to the suite code', () {
+      expect(hotelRraRoomTypeCd('Junior Suite'), '03');
+      expect(hotelRraRoomTypeCd('Executive Suite'), '03');
+      expect(hotelRraRoomTypeCd('Presidential'), '03');
+    });
+
+    test('deluxe wins over suite when a name carries both', () {
+      // "Deluxe Suite" is a deluxe room, not a plain suite.
+      expect(hotelRraRoomTypeCd('Deluxe Suite'), '04');
+    });
+
+    test('an unknown or empty name falls back the way AddRoomDialog does', () {
+      expect(hotelRraRoomTypeCd('Garden Bungalow'), '03');
+      expect(hotelRraRoomTypeCd(''), '03');
+      expect(hotelRraRoomTypeCd('   '), '03');
+    });
+  });
+
+  group('applyHotelRoomRraFields', () {
+    HotelRoom room({
+      String name = '204',
+      String type = 'Deluxe',
+      double rate = 85000,
+    }) => HotelRoom(
+      id: 'r1',
+      branchId: 'b1',
+      floorId: 'first',
+      floorName: 'First Floor',
+      name: name,
+      roomType: type,
+      capacity: 2,
+      nightlyRate: rate,
+    );
+
+    test('stamps accommodation as a tourism-tax service, not a good', () {
+      final variant = applyHotelRoomRraFields(
+        variant: Variant(branchId: 'b1', name: 'x'),
+        room: room(),
+      );
+
+      // rw_tax.dart drops ttCatCd/propertyTyCd/roomTypeCd from anything that
+      // is not itemTyCd '3', so these four travel together or not at all.
+      expect(variant.itemTyCd, '3');
+      expect(variant.ttCatCd, 'TT');
+      expect(variant.propertyTyCd, '01');
+      expect(variant.roomTypeCd, '04');
+    });
+
+    test('bills tourism tax at 3%, not VAT', () {
+      final variant = applyHotelRoomRraFields(
+        variant: Variant(branchId: 'b1', name: 'x'),
+        room: room(),
+      );
+      expect(variant.taxPercentage, 3.0);
+      expect(variant.taxName, 'TT');
+    });
+
+    test('a night is not a carton', () {
+      final variant = applyHotelRoomRraFields(
+        variant: Variant(branchId: 'b1', name: 'x'),
+        room: room(),
+      );
+      expect(variant.pkgUnitCd, 'NT');
+    });
+
+    test('carries the room number and rate onto every price field', () {
+      final variant = applyHotelRoomRraFields(
+        variant: Variant(branchId: 'b1', name: 'stale'),
+        room: room(name: '301', rate: 120000),
+      );
+
+      expect(variant.name, '301');
+      expect(variant.itemNm, '301');
+      expect(variant.retailPrice, 120000);
+      expect(variant.prc, 120000);
+      expect(variant.dftPrc, 120000);
+    });
+
+    test('a rename or re-rate updates an already-registered item', () {
+      final variant = Variant(
+        branchId: 'b1',
+        name: '204',
+        itemCd: 'RW1NTXU0000001',
+        itemTyCd: '3',
+        ttCatCd: 'TT',
+      );
+
+      applyHotelRoomRraFields(variant: variant, room: room(name: '205'));
+
+      expect(variant.name, '205');
+      // The registration itself survives; only the details move.
+      expect(variant.itemCd, 'RW1NTXU0000001');
+    });
+  });
+
+  group('isHotelRoomVariantRegistered', () {
+    test('needs an itemCd and the tourism-tax service coding', () {
+      expect(isHotelRoomVariantRegistered(null), isFalse);
+      expect(
+        isHotelRoomVariantRegistered(Variant(branchId: 'b1', name: 'x')),
+        isFalse,
+      );
+      expect(
+        isHotelRoomVariantRegistered(
+          Variant(branchId: 'b1', name: 'x', itemCd: 'X', itemTyCd: '2'),
+        ),
+        isFalse,
+        reason: 'a good is not a room',
+      );
+      expect(
+        isHotelRoomVariantRegistered(
+          Variant(
+            branchId: 'b1',
+            name: 'x',
+            itemCd: 'X',
+            itemTyCd: '3',
+            ttCatCd: 'TT',
+          ),
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('HotelRoom', () {
+    test('knows whether it is registered, and round-trips its variant', () {
+      const unregistered = HotelRoom(
+        id: 'r1',
+        branchId: 'b1',
+        floorId: 'g',
+        floorName: 'G',
+        name: '101',
+        roomType: 'Double',
+        capacity: 2,
+        nightlyRate: 50000,
+      );
+      expect(unregistered.isRegisteredWithRra, isFalse);
+
+      final registered = unregistered.copyWith(variantId: 'v1');
+      expect(registered.isRegisteredWithRra, isTrue);
+      expect(HotelRoom.fromJson(registered.toJson()).variantId, 'v1');
+      expect(
+        HotelRoom.fromJson(unregistered.toJson()).variantId,
+        isNull,
+        reason: 'an absent variant must not read back as an empty string',
+      );
+    });
+  });
+}
