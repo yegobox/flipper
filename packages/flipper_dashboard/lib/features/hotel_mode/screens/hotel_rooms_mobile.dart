@@ -17,7 +17,10 @@ class HotelRoomsMobileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomsAsync = ref.watch(hotelRoomsProvider);
-    final stays = ref.watch(hotelStaysProvider).value ?? const <HotelStay>[];
+    final staysAsync = ref.watch(hotelStaysProvider);
+    // Falling back to an empty stay list would classify every occupied room as
+    // vacant and offer check-in on a room that already holds a guest.
+    final stays = staysAsync.value ?? const <HotelStay>[];
     final counts = ref.watch(hotelOccupancyProvider);
     final grouped = ref.watch(hotelRoomsByFloorProvider);
 
@@ -90,20 +93,46 @@ class HotelRoomsMobileScreen extends ConsumerWidget {
           ),
           _floorBar(ref, stays),
           Expanded(
-            child: roomsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (_) => _list(context, ref, grouped, stays),
-            ),
+            child: staysAsync.hasError
+                ? _loadFailure(staysAsync.error!)
+                : roomsAsync.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: _loadFailure2,
+                    data: (_) => staysAsync.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _list(context, ref, grouped, stays),
+                  ),
           ),
         ],
       ),
     );
   }
 
+  /// Occupancy drives check-in decisions, so a load failure is shown rather
+  /// than rendered as an empty board.
+  Widget _loadFailure(Object error) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        'Could not load the board.\n$error',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.outfit(
+          fontSize: 13,
+          color: HotelTokens.lossInk,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  );
+
+  Widget _loadFailure2(Object error, StackTrace _) => _loadFailure(error);
+
   Widget _floorBar(WidgetRef ref, List<HotelStay> stays) {
     final rooms = ref.watch(hotelRoomsProvider).value ?? const <HotelRoom>[];
-    final selected = ref.watch(hotelModeProvider).floorFilter;
+    final selected = ref.watch(
+      hotelModeProvider.select((state) => state.floorFilter),
+    );
 
     final floors = <(String, String)>[];
     final seen = <String>{};

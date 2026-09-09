@@ -372,6 +372,22 @@ void main() {
       );
     });
 
+    test('a quote parked in the expired state can never be converted', () {
+      // hotelQuotationIsExpired only inspects the validity date of a *live*
+      // quote, so the expired status has to be rejected in its own right.
+      expect(
+        hotelQuotationCanConvert(quote(status: HotelQuotationStatus.expired)),
+        isFalse,
+      );
+    });
+
+    test('an accepted quote is still convertible until it expires', () {
+      expect(
+        hotelQuotationCanConvert(quote(status: HotelQuotationStatus.accepted)),
+        isTrue,
+      );
+    });
+
     test('an expired quote reads as Expired whatever its stored status', () {
       expect(
         hotelQuotationStatusLabel(

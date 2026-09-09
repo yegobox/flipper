@@ -14,11 +14,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 class _Floor {
-  const _Floor({
-    required this.id,
-    required this.name,
-    required this.rooms,
-  });
+  const _Floor({required this.id, required this.name, required this.rooms});
 
   final String id;
   final String name;
@@ -56,22 +52,33 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     ];
   }
 
-  Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
-    setState(() => _busy = true);
-    try {
-      await action();
-    } catch (e) {
-      if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          '$e',
-          backgroundColor: Colors.red.shade600,
-        );
+  /// Serialises writes instead of dropping them.
+  ///
+  /// `_busy` disables the buttons, but the text fields stay editable, and
+  /// their focus-loss callbacks fire whenever they like. Returning early on
+  /// `_busy` discarded those edits while the row went on displaying them.
+  Future<void> _queue = Future<void>.value();
+
+  Future<void> _run(Future<void> Function() action) {
+    final next = _queue.then((_) async {
+      if (mounted) setState(() => _busy = true);
+      try {
+        await action();
+      } catch (e) {
+        if (mounted) {
+          showCustomSnackBarUtil(
+            context,
+            '$e',
+            backgroundColor: Colors.red.shade600,
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _busy = false);
       }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    });
+    // Keep the chain alive even if one link fails.
+    _queue = next.catchError((_) {});
+    return next;
   }
 
   Future<void> _save(HotelRoom room) => _run(() => _sync.saveHotelRoom(room));
@@ -94,9 +101,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     while (hotelRoomNumberIsTaken(rooms: allRooms, name: suggestion) &&
         guard++ < 500) {
       final asNumber = int.tryParse(suggestion);
-      suggestion = asNumber == null
-          ? '$suggestion+'
-          : '${asNumber + 1}';
+      suggestion = asNumber == null ? '$suggestion+' : '${asNumber + 1}';
     }
 
     final branchId = ProxyService.box.getBranchId();
@@ -310,7 +315,11 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     );
   }
 
-  Widget _floorCard(_Floor floor, List<HotelRoom> allRooms, List<HotelStay> stays) {
+  Widget _floorCard(
+    _Floor floor,
+    List<HotelRoom> allRooms,
+    List<HotelStay> stays,
+  ) {
     return BarCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,7 +405,10 @@ Future<String?> _promptName(BuildContext context, {required String title}) {
   return showDialog<String>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+      title: Text(
+        title,
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+      ),
       content: TextField(
         controller: controller,
         autofocus: true,
@@ -499,6 +511,9 @@ class _RoomRowState extends State<_RoomRow> {
   late final TextEditingController _nameController;
   late final TextEditingController _typeController;
   late final TextEditingController _rateController;
+  final _nameFocus = FocusNode();
+  final _typeFocus = FocusNode();
+  final _rateFocus = FocusNode();
   String? _nameError;
 
   @override
@@ -511,11 +526,34 @@ class _RoomRowState extends State<_RoomRow> {
     );
   }
 
+  /// The parent keys rows by room id, so this State survives while the room
+  /// stream pushes new values into [widget.room]. Without this the fields keep
+  /// stale text, and the next focus change commits it back over whatever
+  /// another device just wrote. Fields the clerk is typing in are left alone.
+  @override
+  void didUpdateWidget(_RoomRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_nameFocus.hasFocus && widget.room.name != oldWidget.room.name) {
+      _nameController.text = widget.room.name;
+    }
+    if (!_typeFocus.hasFocus &&
+        widget.room.roomType != oldWidget.room.roomType) {
+      _typeController.text = widget.room.roomType;
+    }
+    if (!_rateFocus.hasFocus &&
+        widget.room.nightlyRate != oldWidget.room.nightlyRate) {
+      _rateController.text = widget.room.nightlyRate.round().toString();
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _typeController.dispose();
     _rateController.dispose();
+    _nameFocus.dispose();
+    _typeFocus.dispose();
+    _rateFocus.dispose();
     super.dispose();
   }
 
@@ -578,6 +616,7 @@ class _RoomRowState extends State<_RoomRow> {
             width: stacked ? null : 96,
             child: _field(
               controller: _nameController,
+              focusNode: _nameFocus,
               hint: 'No.',
               errorText: _nameError,
               onCommit: _commitName,
@@ -586,6 +625,7 @@ class _RoomRowState extends State<_RoomRow> {
           );
           final type = _field(
             controller: _typeController,
+            focusNode: _typeFocus,
             hint: 'Type',
             onCommit: _commitType,
           );
@@ -593,6 +633,7 @@ class _RoomRowState extends State<_RoomRow> {
             width: stacked ? null : 130,
             child: _field(
               controller: _rateController,
+              focusNode: _rateFocus,
               hint: 'Rate',
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -659,6 +700,7 @@ class _RoomRowState extends State<_RoomRow> {
 
   Widget _field({
     required TextEditingController controller,
+    required FocusNode focusNode,
     required String hint,
     required VoidCallback onCommit,
     String? errorText,
@@ -668,6 +710,7 @@ class _RoomRowState extends State<_RoomRow> {
     List<TextInputFormatter>? inputFormatters,
   }) {
     return Focus(
+      focusNode: focusNode,
       onFocusChange: (hasFocus) {
         if (!hasFocus) onCommit();
       },
@@ -725,7 +768,10 @@ class _CapacityStepper extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _btn(Icons.remove, value > 1 ? () => onChanged?.call(value - 1) : null),
+          _btn(
+            Icons.remove,
+            value > 1 ? () => onChanged?.call(value - 1) : null,
+          ),
           SizedBox(
             width: 42,
             child: Row(
@@ -748,10 +794,7 @@ class _CapacityStepper extends StatelessWidget {
               ],
             ),
           ),
-          _btn(
-            Icons.add,
-            value < 12 ? () => onChanged?.call(value + 1) : null,
-          ),
+          _btn(Icons.add, value < 12 ? () => onChanged?.call(value + 1) : null),
         ],
       ),
     );

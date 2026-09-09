@@ -22,7 +22,9 @@ class HotelFolioScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final stay = ref.watch(hotelModeProvider).activeStay;
+    final stay = ref.watch(
+      hotelModeProvider.select((state) => state.activeStay),
+    );
     if (stay == null) {
       // Defensive: the notifier refuses this transition, but a rebuild
       // racing a checkout could still land here.
@@ -212,6 +214,9 @@ class _HotelFolioBody extends ConsumerWidget {
     List<TransactionItem> lines,
   ) {
     final total = hotelFolioTotal(lines);
+    final settling = ref.watch(
+      hotelModeProvider.select((state) => state.checkOutInFlight),
+    );
     return Row(
       children: [
         Expanded(
@@ -242,24 +247,31 @@ class _HotelFolioBody extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: HotelTokens.gradBtn,
-              borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-            ),
-            child: TextButton(
-              onPressed: () => _checkOut(context, ref, total),
-              style: TextButton.styleFrom(
-                minimumSize: const Size.fromHeight(
-                  HotelTokens.mobilePrimaryButtonHeight,
-                ),
+          child: Opacity(
+            opacity: settling ? 0.6 : 1,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: HotelTokens.gradBtn,
+                borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
               ),
-              child: Text(
-                'Check out · ${hotelMoney(total.round())}',
-                style: GoogleFonts.outfit(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+              child: TextButton(
+                onPressed: settling
+                    ? null
+                    : () => _checkOut(context, ref, total),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size.fromHeight(
+                    HotelTokens.mobilePrimaryButtonHeight,
+                  ),
+                ),
+                child: Text(
+                  settling
+                      ? 'Settling…'
+                      : 'Check out · ${hotelMoney(total.round())}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -310,13 +322,22 @@ class _HotelFolioBody extends ConsumerWidget {
     final result = await HotelCheckOutDialog.show(context, total: total);
     if (result == null) return;
 
-    await HotelDeskActions.checkOut(
-      ref: ref,
-      stay: stay,
-      folio: folio,
-      paymentType: result.paymentType,
-      cashReceived: result.cashReceived,
-      customerChangeDue: result.changeDue,
-    );
+    // Re-checked after the dialog: it is awaited, so another tap could have
+    // started settling this same folio while it was open.
+    if (ref.read(hotelModeProvider).checkOutInFlight) return;
+    notifier.beginCheckOut();
+    try {
+      await HotelDeskActions.checkOut(
+        ref: ref,
+        stay: stay,
+        folio: folio,
+        paymentType: result.paymentType,
+        cashReceived: result.cashReceived,
+        customerChangeDue: result.changeDue,
+      );
+    } catch (e) {
+      notifier.endCheckOut();
+      notifier.showToast('Checkout failed: $e');
+    }
   }
 }

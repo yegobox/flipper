@@ -8,7 +8,6 @@ import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
-import 'package:flipper_models/sync/utils/ditto_transaction_line.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
@@ -889,37 +888,46 @@ mixin CapellaHotelMixin implements HotelInterface {
     );
   }
 
-  /// Current `subTotal` straight off the folio document.
+  /// Rewrites a line's qty, price and every RRA amount derived from them.
   ///
-  /// Deliberately not [hotelFolio]: hydrating a whole [ITransaction] — which
-  /// fetches its relationships — to read one number is wasted work on a path
-  /// that runs for every line the desk touches. Returns null when there is no
-  /// such document.
-  Future<double?> _folioSubTotalRaw(String transactionId) async {
-    final ditto = dittoHandle;
-    if (ditto == null) return null;
-    final result = await ditto.store.execute(
-      'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
-      arguments: {'id': transactionId},
-    );
-    final items = result.items as Iterable<dynamic>;
-    if (items.isEmpty) return null;
-    final raw = Map<String, dynamic>.from(items.first.value as Map);
-    return dittoOptNum(raw['subTotal'])?.toDouble() ?? 0;
-  }
-
-  Future<void> _adjustSubtotal(String transactionId, double delta) async {
+  /// `taxblAmt`, `taxAmt`, `totAmt` and the discount fields are functions of
+  /// qty x price. Changing either without recomputing leaves a folio whose tax
+  /// figures contradict its own lines, and [checkOutGuest] would invoice that.
+  Future<void> _repriceLine({
+    required TransactionItem line,
+    required num qty,
+    required num unitPrice,
+  }) async {
     final ditto = dittoHandle;
     if (ditto == null) return;
-    final current = await _folioSubTotalRaw(transactionId);
-    if (current == null) return;
+
+    final taxTyCd = line.taxTyCd ?? 'B';
+    final taxPct = (line.taxPercentage ?? 18.0).toDouble();
+    final pricing = SaleLinePricing.compute(
+      unitPrice: unitPrice.toDouble(),
+      qty: qty.toDouble(),
+      dcRt: (line.dcRt ?? 0).toDouble(),
+      taxTyCd: taxTyCd,
+      taxPercentage: taxPct,
+    );
+
     final nowIso = DateTime.now().toUtc().toIso8601String();
     await ditto.store.execute(
-      'UPDATE transactions SET subTotal = :subTotal, updatedAt = :updatedAt, '
-      'lastTouched = :lastTouched WHERE _id = :id OR id = :id',
+      'UPDATE transaction_items SET qty = :qty, price = :price, prc = :price, '
+      'discount = :discount, dcRt = :dcRt, dcAmt = :dcAmt, '
+      'taxblAmt = :taxblAmt, taxAmt = :taxAmt, totAmt = :totAmt, '
+      'updatedAt = :updatedAt, lastTouched = :lastTouched '
+      'WHERE _id = :id OR id = :id',
       arguments: {
-        'id': transactionId,
-        'subTotal': current + delta,
+        'id': line.id,
+        'qty': qty,
+        'price': unitPrice,
+        'discount': pricing.discount,
+        'dcRt': pricing.dcRt,
+        'dcAmt': pricing.dcAmt,
+        'taxblAmt': pricing.taxblAmt,
+        'taxAmt': pricing.taxAmt,
+        'totAmt': pricing.totAmt,
         'updatedAt': nowIso,
         'lastTouched': nowIso,
       },
@@ -1038,10 +1046,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       arguments: {'doc': doc},
     );
     cartLineDocCache.forget(transactionId);
-    await _adjustSubtotal(
-      transactionId,
-      line.price.toDouble() * line.qty.toDouble(),
-    );
+    await refreshFolioSubTotal(transactionId: transactionId);
   }
 
   @override
@@ -1093,28 +1098,15 @@ mixin CapellaHotelMixin implements HotelInterface {
     final line = _hotelFindLine(lines, lineId);
     if (line == null) return;
 
-    final oldTotal = line.price.toDouble() * line.qty.toDouble();
     final clamped = qty.clamp(0, stockCap);
-
     if (clamped <= 0) {
       await deleteFolioLine(lineId: lineId, transactionId: transactionId);
       return;
     }
 
-    final nowIso = DateTime.now().toUtc().toIso8601String();
-    await ditto.store.execute(
-      'UPDATE transaction_items SET qty = :qty, updatedAt = :updatedAt, '
-      'lastTouched = :lastTouched WHERE _id = :id OR id = :id',
-      arguments: {
-        'id': lineId,
-        'qty': clamped,
-        'updatedAt': nowIso,
-        'lastTouched': nowIso,
-      },
-    );
+    await _repriceLine(line: line, qty: clamped, unitPrice: line.price);
     cartLineDocCache.forget(transactionId);
-    final newTotal = line.price.toDouble() * clamped.toDouble();
-    await _adjustSubtotal(transactionId, newTotal - oldTotal);
+    await refreshFolioSubTotal(transactionId: transactionId);
   }
 
   @override
@@ -1130,23 +1122,9 @@ mixin CapellaHotelMixin implements HotelInterface {
     final line = _hotelFindLine(lines, lineId);
     if (line == null) return;
 
-    final oldTotal = line.price.toDouble() * line.qty.toDouble();
-    final newTotal = price.toDouble() * line.qty.toDouble();
-    final nowIso = DateTime.now().toUtc().toIso8601String();
-
-    await ditto.store.execute(
-      'UPDATE transaction_items SET price = :price, prc = :price, '
-      'updatedAt = :updatedAt, lastTouched = :lastTouched '
-      'WHERE _id = :id OR id = :id',
-      arguments: {
-        'id': lineId,
-        'price': price,
-        'updatedAt': nowIso,
-        'lastTouched': nowIso,
-      },
-    );
+    await _repriceLine(line: line, qty: line.qty, unitPrice: price);
     cartLineDocCache.forget(transactionId);
-    await _adjustSubtotal(transactionId, newTotal - oldTotal);
+    await refreshFolioSubTotal(transactionId: transactionId);
   }
 
   @override
@@ -1161,13 +1139,12 @@ mixin CapellaHotelMixin implements HotelInterface {
     final line = _hotelFindLine(lines, lineId);
     if (line == null) return;
 
-    final lineTotal = line.price.toDouble() * line.qty.toDouble();
     await ditto.store.execute(
       'DELETE FROM transaction_items WHERE _id = :id OR id = :id',
       arguments: {'id': lineId},
     );
     cartLineDocCache.forget(transactionId);
-    await _adjustSubtotal(transactionId, -lineTotal);
+    await refreshFolioSubTotal(transactionId: transactionId);
   }
 
   @override

@@ -7,6 +7,7 @@ class HotelBranchSettings {
     this.managerCheckout = true,
     this.requirePin = true,
     this.autoLogout = false,
+    this.launchOnStart = false,
     this.checkOutHour = 11,
     this.roomChargeVariantId,
     this.updatedAt,
@@ -32,6 +33,11 @@ class HotelBranchSettings {
   /// Return to the PIN lock after a checkout completes.
   final bool autoLogout;
 
+  /// Whether post-login lands on the front desk. Normally follows [enabled],
+  /// but a device can opt out, so it is stored rather than derived — deriving
+  /// it let every hydrate overwrite that choice.
+  final bool launchOnStart;
+
   /// House checkout time (0–23), used to default the departure date/time.
   final int checkOutHour;
 
@@ -53,8 +59,12 @@ class HotelBranchSettings {
     bool? managerCheckout,
     bool? requirePin,
     bool? autoLogout,
+    bool? launchOnStart,
     int? checkOutHour,
     String? roomChargeVariantId,
+    /// `copyWith` cannot pass null to mean "clear", so clearing the branch's
+    /// room-charge product needs its own flag.
+    bool clearRoomChargeVariantId = false,
     DateTime? updatedAt,
   }) {
     return HotelBranchSettings(
@@ -64,8 +74,11 @@ class HotelBranchSettings {
       managerCheckout: managerCheckout ?? this.managerCheckout,
       requirePin: requirePin ?? this.requirePin,
       autoLogout: autoLogout ?? this.autoLogout,
+      launchOnStart: launchOnStart ?? this.launchOnStart,
       checkOutHour: checkOutHour ?? this.checkOutHour,
-      roomChargeVariantId: roomChargeVariantId ?? this.roomChargeVariantId,
+      roomChargeVariantId: clearRoomChargeVariantId
+          ? null
+          : (roomChargeVariantId ?? this.roomChargeVariantId),
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -80,9 +93,12 @@ class HotelBranchSettings {
       'managerCheckout': managerCheckout,
       'requirePin': requirePin,
       'autoLogout': autoLogout,
+      'launchOnStart': launchOnStart,
       'checkOutHour': checkOutHour,
-      if (roomChargeVariantId != null)
-        'roomChargeVariantId': roomChargeVariantId,
+      // Written even when null: Ditto's ON ID CONFLICT DO UPDATE leaves
+      // omitted fields untouched, so omitting it would keep a cleared product
+      // alive on every other device.
+      'roomChargeVariantId': roomChargeVariantId,
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
   }
@@ -104,12 +120,16 @@ class HotelBranchSettings {
 
     final branchId = (raw['branchId'] ?? raw['id'] ?? raw['_id'] ?? '')
         .toString();
+    final enabled = toBool(raw['enabled'], fallback: false);
     final updatedRaw = raw['updatedAt'];
     final variantId = raw['roomChargeVariantId']?.toString();
 
     return HotelBranchSettings(
       branchId: branchId,
-      enabled: toBool(raw['enabled'], fallback: false),
+      enabled: enabled,
+      // Documents written before this field existed fall back to
+      // the old derived behaviour.
+      launchOnStart: toBool(raw['launchOnStart'], fallback: enabled),
       autoPostRoomCharge: toBool(raw['autoPostRoomCharge'], fallback: true),
       managerCheckout: toBool(raw['managerCheckout'], fallback: true),
       requirePin: toBool(raw['requirePin'], fallback: true),

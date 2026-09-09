@@ -27,6 +27,7 @@ class HotelModeState {
     this.activeFolio,
     this.toastMessage,
     this.showManagerModal = false,
+    this.checkOutInFlight = false,
     this.floorFilter,
   });
 
@@ -39,6 +40,11 @@ class HotelModeState {
 
   /// Manager-approval keypad is up (checkout needs elevation).
   final bool showManagerModal;
+
+  /// A checkout is being settled. The button stays disabled until it lands,
+  /// because a second tap re-settles the same folio and overwrites the
+  /// payment type, tender and checkout timestamps of the first.
+  final bool checkOutInFlight;
 
   /// `null` = all floors.
   final String? floorFilter;
@@ -56,6 +62,7 @@ class HotelModeState {
     String? toastMessage,
     bool clearToast = false,
     bool? showManagerModal,
+    bool? checkOutInFlight,
     String? floorFilter,
     bool clearFloorFilter = false,
   }) {
@@ -67,6 +74,7 @@ class HotelModeState {
       activeFolio: clearFolio ? null : (activeFolio ?? this.activeFolio),
       toastMessage: clearToast ? null : (toastMessage ?? this.toastMessage),
       showManagerModal: showManagerModal ?? this.showManagerModal,
+      checkOutInFlight: checkOutInFlight ?? this.checkOutInFlight,
       floorFilter: clearFloorFilter ? null : (floorFilter ?? this.floorFilter),
     );
   }
@@ -90,6 +98,7 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
       clearFolio: true,
       screen: HotelScreen.lock,
       showManagerModal: false,
+      checkOutInFlight: false,
     );
   }
 
@@ -110,6 +119,14 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
       return;
     }
     state = state.copyWith(screen: screen);
+  }
+
+  void beginCheckOut() {
+    state = state.copyWith(checkOutInFlight: true);
+  }
+
+  void endCheckOut() {
+    state = state.copyWith(checkOutInFlight: false);
   }
 
   void showManagerPin() {
@@ -158,7 +175,7 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
   void afterCheckOut({required String message, bool autoLogout = false}) {
     if (autoLogout) {
       logout();
-      state = state.copyWith(toastMessage: message);
+      state = state.copyWith(toastMessage: message, checkOutInFlight: false);
       return;
     }
     state = state.copyWith(
@@ -167,6 +184,7 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
       clearFolio: true,
       screen: HotelScreen.rooms,
       toastMessage: message,
+      checkOutInFlight: false,
     );
   }
 
@@ -233,7 +251,6 @@ final hotelFolioForStayProvider = FutureProvider.family<ITransaction?, String>((
   ).hotelFolio(transactionId: transactionId);
 });
 
-
 final hotelQuotationsProvider = StreamProvider<List<HotelQuotation>>((ref) {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return Stream.value(const <HotelQuotation>[]);
@@ -275,7 +292,6 @@ final hotelSortedQuotationsProvider = Provider<List<HotelQuotation>>((ref) {
   return quotes;
 });
 
-
 /// Open folios behind in-house stays — the money the desk has not collected.
 final hotelOpenFoliosProvider = StreamProvider<List<ITransaction>>((ref) {
   final branchId = ProxyService.box.getBranchId();
@@ -295,8 +311,8 @@ final hotelMetricsProvider = Provider<HotelDeskMetrics>((ref) {
     rooms: rooms,
     stays: stays,
     folios: ref.watch(hotelOpenFoliosProvider).value ?? const <ITransaction>[],
-    quotations: ref.watch(hotelQuotationsProvider).value ??
-        const <HotelQuotation>[],
+    quotations:
+        ref.watch(hotelQuotationsProvider).value ?? const <HotelQuotation>[],
   );
 });
 

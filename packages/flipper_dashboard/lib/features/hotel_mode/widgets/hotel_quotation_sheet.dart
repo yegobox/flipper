@@ -44,9 +44,11 @@ class HotelQuotationSheet extends StatefulWidget {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => Padding(
+        // Read from the sheet's own context, and only the inset: the caller's
+        // context keeps the pre-keyboard value, leaving the fields covered.
+        builder: (sheetContext) => Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
           child: sheet,
         ),
@@ -142,7 +144,9 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
 
   double get _total {
     final rate = _money(_rateController);
-    final gross = rate * _nights + _money(_extrasController) -
+    final gross =
+        rate * _nights +
+        _money(_extrasController) -
         _money(_discountController);
     return gross < 0 ? 0 : gross;
   }
@@ -157,11 +161,20 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
     if (picked == null) return;
     setState(() {
       _checkIn = hotelDateOnly(picked);
-      // The chosen room may not survive the new dates.
-      if (_room != null && !_sellableRooms.any((r) => r.id == _room!.id)) {
-        _room = null;
-      }
+      _dropRoomIfUnsellable();
     });
+  }
+
+  /// Dates *and* party size decide which rooms are sellable, so every control
+  /// that moves either has to re-check the chosen room. Otherwise a clerk can
+  /// pick a double, raise the party to six, and quote a room that cannot
+  /// sleep them.
+  void _dropRoomIfUnsellable() {
+    final room = _room;
+    if (room == null) return;
+    if (!_sellableRooms.any((candidate) => candidate.id == room.id)) {
+      _room = null;
+    }
   }
 
   void _submit() {
@@ -276,7 +289,10 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                     value: _nights,
                     min: 1,
                     max: 60,
-                    onChanged: (v) => setState(() => _nights = v),
+                    onChanged: (v) => setState(() {
+                      _nights = v;
+                      _dropRoomIfUnsellable();
+                    }),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -286,7 +302,10 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                     value: _adults,
                     min: 1,
                     max: 10,
-                    onChanged: (v) => setState(() => _adults = v),
+                    onChanged: (v) => setState(() {
+                      _adults = v;
+                      _dropRoomIfUnsellable();
+                    }),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -296,7 +315,10 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                     value: _children,
                     min: 0,
                     max: 10,
-                    onChanged: (v) => setState(() => _children = v),
+                    onChanged: (v) => setState(() {
+                      _children = v;
+                      _dropRoomIfUnsellable();
+                    }),
                   ),
                 ),
               ],
@@ -516,7 +538,9 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                   onTap: () => setState(() {
                     _room = room;
                     if (_money(_rateController) == 0) {
-                      _rateController.text = room.nightlyRate.round().toString();
+                      _rateController.text = room.nightlyRate
+                          .round()
+                          .toString();
                     }
                     _error = null;
                   }),
@@ -524,9 +548,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: selected
-                          ? HotelTokens.ink1
-                          : HotelTokens.surface2,
+                      color: selected ? HotelTokens.ink1 : HotelTokens.surface2,
                       borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
                       border: Border.all(
                         color: selected ? HotelTokens.ink1 : HotelTokens.line,
@@ -541,9 +563,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                           style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: selected
-                                ? Colors.white
-                                : HotelTokens.ink1,
+                            color: selected ? Colors.white : HotelTokens.ink1,
                           ),
                         ),
                         Text(
@@ -551,9 +571,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                           style: GoogleFonts.outfit(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w600,
-                            color: selected
-                                ? Colors.white70
-                                : HotelTokens.ink3,
+                            color: selected ? Colors.white70 : HotelTokens.ink3,
                           ),
                         ),
                       ],

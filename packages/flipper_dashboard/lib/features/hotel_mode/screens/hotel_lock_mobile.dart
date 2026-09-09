@@ -21,6 +21,9 @@ class HotelLockMobileScreen extends ConsumerStatefulWidget {
 class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
   Tenant? _selected;
 
+  /// The tenant whose PIN actually verified.
+  Tenant? _verified;
+
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(hotelStaffProvider);
@@ -59,7 +62,10 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
               BarMobilePeopleStrip(
                 staff: staff,
                 selected: _selected,
-                onSelect: (p) => setState(() => _selected = p),
+                onSelect: (p) => setState(() {
+                  _selected = p;
+                  _verified = null;
+                }),
               ),
               const SizedBox(height: 20),
               BarKeypad(
@@ -72,17 +78,21 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
                 avatarLabel: _selected == null
                     ? null
                     : hotelClerkInitials(_selected!.name),
-                avatarColor:
-                    _selected == null ? null : HotelTokens.occupiedInk,
+                avatarColor: _selected == null ? null : HotelTokens.occupiedInk,
+                // Captured at verification time, not re-read here: the
+                // people strip stays tappable while the PIN check awaits, so
+                // a valid PIN could otherwise sign in a different tenant.
                 verifyPin: (pin) async {
                   final selected = _selected;
                   if (selected == null) return false;
-                  return barVerifyStaffPin(selected, pin);
+                  final ok = await barVerifyStaffPin(selected, pin);
+                  _verified = ok ? selected : null;
+                  return ok;
                 },
                 onSubmit: (_) {
-                  final selected = _selected;
-                  if (selected != null) {
-                    ref.read(hotelModeProvider.notifier).login(selected);
+                  final verified = _verified;
+                  if (verified != null) {
+                    ref.read(hotelModeProvider.notifier).login(verified);
                   }
                 },
               ),

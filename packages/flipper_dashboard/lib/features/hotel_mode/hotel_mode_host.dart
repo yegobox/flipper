@@ -56,6 +56,11 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
 
   /// PIN entry off: the desk runs as whoever is signed into the app, so charges
   /// still get attributed to a real tenant rather than to nobody.
+  ///
+  /// If the signed-in user does not match a staff record, the desk stays
+  /// locked. Falling back to the first tenant in the list would attribute
+  /// every charge to a stranger, and would hand out that tenant's rights —
+  /// including settling folios if they happen to be a manager.
   Future<void> _signInSignedInTenant() async {
     if (!mounted) return;
     if (ref.read(hotelModeProvider).activeClerk != null) return;
@@ -64,14 +69,27 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     if (!mounted || staff.isEmpty) return;
 
     final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) {
+      ref.read(hotelModeProvider.notifier).setScreen(HotelScreen.lock);
+      return;
+    }
+
     Tenant? me;
     for (final tenant in staff) {
-      if (userId != null && tenant.userId?.trim() == userId) {
+      if (tenant.userId?.trim() == userId) {
         me = tenant;
         break;
       }
     }
-    ref.read(hotelModeProvider.notifier).login(me ?? staff.first);
+
+    if (me == null) {
+      ref.read(hotelModeProvider.notifier).setScreen(HotelScreen.lock);
+      ref
+          .read(hotelModeProvider.notifier)
+          .showToast('Sign in with your PIN to open the desk');
+      return;
+    }
+    ref.read(hotelModeProvider.notifier).login(me);
   }
 
   @override
@@ -99,10 +117,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
             children: [
               AnimatedSwitcher(
                 duration: HotelTokens.fadeIn,
-                child: KeyedSubtree(
-                  key: ValueKey(hotel.screen),
-                  child: screen,
-                ),
+                child: KeyedSubtree(key: ValueKey(hotel.screen), child: screen),
               ),
               if (hotel.showManagerModal) const HotelManagerPinModal(),
               if (hotel.toastMessage != null)

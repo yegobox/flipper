@@ -91,6 +91,8 @@ abstract final class HotelModeBranchSettingsService {
     final settings = HotelBranchSettings(
       branchId: branchId,
       enabled: _readLocalEnabled(),
+      launchOnStart:
+          ProxyService.box.readBool(key: launchOnStartKey) ?? _readLocalEnabled(),
       autoPostRoomCharge:
           ProxyService.box.readBool(key: autoPostRoomChargeKey) ?? true,
       managerCheckout:
@@ -167,7 +169,7 @@ abstract final class HotelModeBranchSettingsService {
   static void _applyToLocalCache(HotelBranchSettings settings) {
     final box = ProxyService.box;
     box.writeBool(key: enabledKey, value: settings.enabled);
-    box.writeBool(key: launchOnStartKey, value: settings.enabled);
+    box.writeBool(key: launchOnStartKey, value: settings.launchOnStart);
     box.writeBool(
       key: autoPostRoomChargeKey,
       value: settings.autoPostRoomCharge,

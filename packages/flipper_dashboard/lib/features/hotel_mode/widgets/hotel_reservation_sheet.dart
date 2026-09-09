@@ -69,9 +69,11 @@ class HotelReservationSheet extends StatefulWidget {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => Padding(
+        // Read from the sheet's own context, and only the inset: the caller's
+        // context keeps the pre-keyboard value, leaving the fields covered.
+        builder: (sheetContext) => Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
           child: sheet,
         ),
@@ -152,7 +154,8 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
     }
     if (_adults + _children > widget.room.capacity) {
       setState(
-        () => _error = 'Room ${widget.room.name} sleeps ${widget.room.capacity}',
+        () =>
+            _error = 'Room ${widget.room.name} sleeps ${widget.room.capacity}',
       );
       return;
     }
@@ -604,7 +607,10 @@ class HotelSheetStepper extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _button(Icons.remove, value > min ? () => onChanged(value - 1) : null),
+              _button(
+                Icons.remove,
+                value > min ? () => onChanged(value - 1) : null,
+              ),
               Text(
                 '$value',
                 style: GoogleFonts.jetBrainsMono(
@@ -613,7 +619,10 @@ class HotelSheetStepper extends StatelessWidget {
                   color: HotelTokens.ink1,
                 ),
               ),
-              _button(Icons.add, value < max ? () => onChanged(value + 1) : null),
+              _button(
+                Icons.add,
+                value < max ? () => onChanged(value + 1) : null,
+              ),
             ],
           ),
         ),

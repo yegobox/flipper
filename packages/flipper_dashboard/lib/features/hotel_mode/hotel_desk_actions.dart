@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -17,7 +18,8 @@ import 'package:supabase_models/brick/models/variant.model.dart';
 /// Screens stay declarative; every write goes through here so the desktop and
 /// mobile shells can never drift apart in behaviour.
 abstract final class HotelDeskActions {
-  static dynamic get _sync => ProxyService.getStrategy(Strategy.capella);
+  static DatabaseSyncInterface get _sync =>
+      ProxyService.getStrategy(Strategy.capella);
 
   /// Check [guestName] into [room] and open the folio screen on it.
   static Future<HotelStay?> checkIn({
@@ -49,7 +51,7 @@ abstract final class HotelDeskActions {
       adults: adults,
       children: children,
       note: note,
-    ) as HotelStay;
+    );
 
     if (HotelModeSettings.autoPostRoomCharge) {
       // Best effort: an unconfigured room-charge product must not block the
@@ -67,8 +69,7 @@ abstract final class HotelDeskActions {
       }
     }
 
-    final folio = await _sync.hotelFolio(transactionId: stay.transactionId)
-        as ITransaction?;
+    final folio = await _sync.hotelFolio(transactionId: stay.transactionId);
     ref
         .read(hotelModeProvider.notifier)
         .openFolio(room: room, stay: stay, folio: folio);
@@ -100,7 +101,7 @@ abstract final class HotelDeskActions {
         adults: draft.adults,
         children: draft.children,
         note: draft.note,
-      ) as HotelStay;
+      );
 
       ref
           .read(hotelModeProvider.notifier)
@@ -123,7 +124,7 @@ abstract final class HotelDeskActions {
       stay: stay,
       clerkTenantId: clerk.id,
       clerkName: clerk.name ?? 'Front desk',
-    ) as HotelStay;
+    );
 
     if (HotelModeSettings.autoPostRoomCharge) {
       try {
@@ -139,9 +140,7 @@ abstract final class HotelDeskActions {
       }
     }
 
-    final folio =
-        await _sync.hotelFolio(transactionId: arrived.transactionId)
-            as ITransaction?;
+    final folio = await _sync.hotelFolio(transactionId: arrived.transactionId);
     ref
         .read(hotelModeProvider.notifier)
         .openFolio(room: room, stay: arrived, folio: folio);
@@ -152,9 +151,7 @@ abstract final class HotelDeskActions {
   static Future<void> saveQuotation(HotelQuotation quotation) =>
       _sync.saveHotelQuotation(quotation);
 
-  static Future<void> deleteQuotation({
-    required String id,
-  }) async {
+  static Future<void> deleteQuotation({required String id}) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
     await _sync.deleteHotelQuotation(id: id, branchId: branchId);
@@ -189,8 +186,7 @@ abstract final class HotelDeskActions {
     required HotelRoom room,
     required HotelStay stay,
   }) async {
-    final folio = await _sync.hotelFolio(transactionId: stay.transactionId)
-        as ITransaction?;
+    final folio = await _sync.hotelFolio(transactionId: stay.transactionId);
     ref
         .read(hotelModeProvider.notifier)
         .openFolio(room: room, stay: stay, folio: folio);
@@ -278,9 +274,7 @@ abstract final class HotelDeskActions {
   }) async {
     await _sync.refreshFolioSubTotal(transactionId: stay.transactionId);
     final fresh =
-        await _sync.hotelFolio(transactionId: stay.transactionId)
-            as ITransaction? ??
-        folio;
+        await _sync.hotelFolio(transactionId: stay.transactionId) ?? folio;
 
     await _sync.checkOutGuest(
       stay: stay,

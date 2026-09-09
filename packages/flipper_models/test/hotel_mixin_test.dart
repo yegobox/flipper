@@ -485,6 +485,50 @@ void main() {
       expect(lines.single.price, 2000);
     });
 
+    test('a stale stored subtotal is corrected by any line edit', () async {
+      // Recomputing from lines, rather than adding a delta to what is stored,
+      // means two overlapping edits cannot leave the folio inconsistent.
+      ditto.store.seed('transactions', _folioDoc(subTotal: 999999));
+
+      await sync.setFolioLineQty(
+        lineId: 'l1',
+        transactionId: 't1',
+        qty: 2,
+        stockCap: 99,
+      );
+      expect(subTotal(), 3000);
+    });
+
+    test('editing qty rewrites the RRA amounts derived from it', () async {
+      // A folio settled with tax figures that contradict its own lines would
+      // be invoiced to RRA that way.
+      await sync.setFolioLineQty(
+        lineId: 'l1',
+        transactionId: 't1',
+        qty: 4,
+        stockCap: 99,
+      );
+
+      final doc = ditto.store.docs('transaction_items').single;
+      expect(doc['qty'], 4);
+      expect((doc['totAmt'] as num).toDouble(), closeTo(6000, 0.01));
+      expect(doc['taxblAmt'], isNotNull);
+      expect(doc['taxAmt'], isNotNull);
+    });
+
+    test('editing price rewrites the RRA amounts derived from it', () async {
+      await sync.setFolioLinePrice(
+        lineId: 'l1',
+        transactionId: 't1',
+        price: 2000,
+      );
+
+      final doc = ditto.store.docs('transaction_items').single;
+      expect(doc['price'], 2000);
+      expect(doc['prc'], 2000);
+      expect((doc['totAmt'] as num).toDouble(), closeTo(4000, 0.01));
+    });
+
     test('an unknown line changes nothing', () async {
       await sync.setFolioLineQty(
         lineId: 'nope',

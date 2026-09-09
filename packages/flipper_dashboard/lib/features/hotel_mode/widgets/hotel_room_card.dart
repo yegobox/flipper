@@ -46,65 +46,88 @@ class _HotelRoomCardState extends State<HotelRoomCard> {
       cursor: blocked ? SystemMouseCursors.basic : SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: blocked ? null : widget.onTap,
-        onLongPress: widget.onLongPress,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          padding: EdgeInsets.all(widget.compact ? 12 : 15),
-          decoration: BoxDecoration(
-            color: HotelTokens.surface,
+      child: Semantics(
+        button: !blocked,
+        enabled: !blocked,
+        label: _semanticLabel(state),
+        child: Material(
+          color: Colors.transparent,
+          // InkWell rather than GestureDetector: the room card is the primary
+          // control on the board, and GestureDetector gives it no focus node,
+          // no keyboard activation and no button semantics.
+          child: InkWell(
+            onTap: blocked ? null : widget.onTap,
+            onLongPress: widget.onLongPress,
             borderRadius: BorderRadius.circular(HotelTokens.radiusLg),
-            border: Border.all(
-              color: _hover && !blocked ? colors.ink : HotelTokens.line,
-              width: 1.5,
-            ),
-            boxShadow: _hover && !blocked
-                ? HotelTokens.shadow2
-                : HotelTokens.shadow1,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              padding: EdgeInsets.all(widget.compact ? 12 : 15),
+              decoration: BoxDecoration(
+                color: HotelTokens.surface,
+                borderRadius: BorderRadius.circular(HotelTokens.radiusLg),
+                border: Border.all(
+                  color: _hover && !blocked ? colors.ink : HotelTokens.line,
+                  width: 1.5,
+                ),
+                boxShadow: _hover && !blocked
+                    ? HotelTokens.shadow2
+                    : HotelTokens.shadow1,
+              ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Text(
-                      widget.room.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        fontSize: widget.compact ? 20 : 23,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                        color: HotelTokens.ink1,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.room.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: widget.compact ? 20 : 23,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                            color: HotelTokens.ink1,
+                          ),
+                        ),
                       ),
+                      HotelStatePill(state: state, compact: widget.compact),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${widget.room.roomType} · ${widget.room.capacity} guest'
+                    '${widget.room.capacity == 1 ? '' : 's'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: HotelTokens.ink3,
                     ),
                   ),
-                  HotelStatePill(state: state, compact: widget.compact),
+                  const Spacer(),
+                  _footer(state, colors.ink),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${widget.room.roomType} · ${widget.room.capacity} guest'
-                '${widget.room.capacity == 1 ? '' : 's'}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: HotelTokens.ink3,
-                ),
-              ),
-              const Spacer(),
-              _footer(state, colors.ink),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  /// What a screen reader announces for the card.
+  String _semanticLabel(HotelRoomState state) {
+    final stay = widget.stay;
+    final base =
+        'Room ${widget.room.name}, ${widget.room.roomType}, '
+        '${hotelRoomStateLabel(state)}';
+    if (stay != null) return '$base, ${stay.guestName}';
+    if (state == HotelRoomState.vacant) return '$base, tap to check in';
+    return base;
   }
 
   Widget _footer(HotelRoomState state, Color ink) {

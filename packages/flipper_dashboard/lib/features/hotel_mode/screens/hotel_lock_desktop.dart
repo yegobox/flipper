@@ -26,6 +26,9 @@ class _HotelLockDesktopScreenState
     extends ConsumerState<HotelLockDesktopScreen> {
   Tenant? _selected;
 
+  /// The tenant whose PIN actually verified.
+  Tenant? _verified;
+
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(hotelStaffProvider);
@@ -90,17 +93,24 @@ class _HotelLockDesktopScreenState
                           avatarColor: _selected == null
                               ? null
                               : HotelTokens.occupiedInk,
+                          // The tenant is captured at verification time and
+                          // signed in from that capture: the people list stays
+                          // tappable while the PIN check awaits, so re-reading
+                          // _selected here could sign in someone else on a
+                          // valid PIN.
                           verifyPin: (pin) async {
                             final selected = _selected;
                             if (selected == null) return false;
-                            return barVerifyStaffPin(selected, pin);
+                            final ok = await barVerifyStaffPin(selected, pin);
+                            _verified = ok ? selected : null;
+                            return ok;
                           },
                           onSubmit: (_) {
-                            final selected = _selected;
-                            if (selected != null) {
+                            final verified = _verified;
+                            if (verified != null) {
                               ref
                                   .read(hotelModeProvider.notifier)
-                                  .login(selected);
+                                  .login(verified);
                             }
                           },
                         ),
@@ -166,7 +176,10 @@ class _HotelLockDesktopScreenState
       color: selected ? HotelTokens.blueTint : HotelTokens.surface,
       borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
       child: InkWell(
-        onTap: () => setState(() => _selected = person),
+        onTap: () => setState(() {
+          _selected = person;
+          _verified = null;
+        }),
         borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),

@@ -50,9 +50,11 @@ class HotelCheckInSheet extends StatefulWidget {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => Padding(
+        // Read from the sheet's own context, and only the inset: the caller's
+        // context keeps the pre-keyboard value, leaving the fields covered.
+        builder: (sheetContext) => Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
           ),
           child: HotelCheckInSheet(room: room),
         ),
@@ -192,17 +194,23 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _stepper('Nights', _nights, 1, 60, (v) {
-                setState(() => _nights = v);
-              })),
+              Expanded(
+                child: _stepper('Nights', _nights, 1, 60, (v) {
+                  setState(() => _nights = v);
+                }),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _stepper('Adults', _adults, 1, 10, (v) {
-                setState(() => _adults = v);
-              })),
+              Expanded(
+                child: _stepper('Adults', _adults, 1, 10, (v) {
+                  setState(() => _adults = v);
+                }),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _stepper('Children', _children, 0, 10, (v) {
-                setState(() => _children = v);
-              })),
+              Expanded(
+                child: _stepper('Children', _children, 0, 10, (v) {
+                  setState(() => _children = v);
+                }),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -227,10 +235,11 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
                       HotelTokens.mobilePrimaryButtonHeight,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        HotelTokens.radiusMd,
+                      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+                      side: const BorderSide(
+                        color: HotelTokens.line,
+                        width: 1.5,
                       ),
-                      side: const BorderSide(color: HotelTokens.line, width: 1.5),
                     ),
                   ),
                   child: Text(

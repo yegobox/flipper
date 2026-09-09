@@ -76,20 +76,45 @@ class FlipperApp extends HookConsumerWidget {
       return;
     }
 
-    await HotelModeSettings.hydrateForActiveBranch();
+    // Act on what the local cache already knows before waiting on the network.
+    // `hydrateForActiveBranch` blocks for up to 12 seconds when a branch has no
+    // remote document, and doing that for hotel first left a bar-only branch
+    // sitting on POS for the whole timeout.
+    if (_navigateToCachedServiceMode(router, routeAtStart)) {
+      HotelModeSettings.startWatchingActiveBranch();
+      BarModeSettings.startWatchingActiveBranch();
+      return;
+    }
+
+    // Nothing cached: hydrate both together rather than end to end, so the
+    // cold path costs one timeout instead of two.
+    await Future.wait([
+      HotelModeSettings.hydrateForActiveBranch(),
+      BarModeSettings.hydrateForActiveBranch(),
+    ]);
     HotelModeSettings.startWatchingActiveBranch();
-    await BarModeSettings.hydrateForActiveBranch();
     BarModeSettings.startWatchingActiveBranch();
 
-    if (router.router.current.name != routeAtStart) return;
+    _navigateToCachedServiceMode(router, routeAtStart);
+  }
+
+  /// Navigates to whichever service mode the local cache reports, hotel first.
+  /// Returns whether it navigated.
+  bool _navigateToCachedServiceMode(
+    RouterService router,
+    String? routeAtStart,
+  ) {
+    if (router.router.current.name != routeAtStart) return false;
 
     if (HotelModeSettings.enabled) {
       router.navigateTo(HotelModeRoute());
-      return;
+      return true;
     }
     if (BarModeSettings.enabled) {
       router.navigateTo(BarModeRoute());
+      return true;
     }
+    return false;
   }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {
@@ -230,16 +255,14 @@ class _DashboardShortcutLaunchHostState
     final boxed = ProxyService.box.readString(
       key: kPendingLauncherShortcutPageKey,
     );
-    final target =
-        (cold != null && cold.isNotEmpty) ? cold : boxed;
+    final target = (cold != null && cold.isNotEmpty) ? cold : boxed;
     if (!mounted || target == null || target.isEmpty) return;
 
     final ctx = context;
     if (!ctx.mounted) return;
 
     final width = MediaQuery.sizeOf(ctx).width;
-    final isBigScreen =
-        width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    final isBigScreen = width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
     try {
       await navigateToDashboardAppPage(
         context: ctx,

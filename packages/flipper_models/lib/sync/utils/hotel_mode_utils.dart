@@ -314,9 +314,20 @@ bool hotelQuotationIsExpired(HotelQuotation quotation, {DateTime? now}) {
 
 /// Whether the desk may still turn [quotation] into a reservation.
 bool hotelQuotationCanConvert(HotelQuotation quotation, {DateTime? now}) {
-  if (quotation.status == HotelQuotationStatus.converted) return false;
-  if (quotation.status == HotelQuotationStatus.declined) return false;
-  return !hotelQuotationIsExpired(quotation, now: now);
+  switch (quotation.status) {
+    // A withdrawn, refused or already-booked offer must never hold inventory
+    // again. `expired` is listed explicitly because [hotelQuotationIsExpired]
+    // only looks at the validity date of a *live* quotation, so a quote parked
+    // in the expired state would otherwise slip through.
+    case HotelQuotationStatus.converted:
+    case HotelQuotationStatus.declined:
+    case HotelQuotationStatus.expired:
+      return false;
+    case HotelQuotationStatus.draft:
+    case HotelQuotationStatus.sent:
+    case HotelQuotationStatus.accepted:
+      return !hotelQuotationIsExpired(quotation, now: now);
+  }
 }
 
 String hotelQuotationStatusLabel(

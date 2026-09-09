@@ -157,6 +157,43 @@ void main() {
     });
   });
 
+  group('checkout in flight', () {
+    test('is off until a settle starts', () {
+      notifier().login(clerk);
+      expect(read().checkOutInFlight, isFalse);
+    });
+
+    test('blocks a second settle of the same folio', () {
+      notifier().login(clerk);
+      notifier().openFolio(room: _room(), stay: _stay());
+
+      notifier().beginCheckOut();
+      expect(read().checkOutInFlight, isTrue);
+    });
+
+    test('a failed settle releases the guard so the desk can retry', () {
+      notifier().login(clerk);
+      notifier().beginCheckOut();
+      notifier().endCheckOut();
+      expect(read().checkOutInFlight, isFalse);
+    });
+
+    test('a completed checkout clears it', () {
+      notifier().login(clerk);
+      notifier().openFolio(room: _room(), stay: _stay());
+      notifier().beginCheckOut();
+      notifier().afterCheckOut(message: 'done');
+      expect(read().checkOutInFlight, isFalse);
+    });
+
+    test('handing over the desk clears it', () {
+      notifier().login(clerk);
+      notifier().beginCheckOut();
+      notifier().logout();
+      expect(read().checkOutInFlight, isFalse);
+    });
+  });
+
   group('after checkout', () {
     test('returns to the room board and keeps the clerk by default', () {
       notifier().login(clerk);

@@ -24,7 +24,10 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomsAsync = ref.watch(hotelRoomsProvider);
-    final stays = ref.watch(hotelStaysProvider).value ?? const <HotelStay>[];
+    final staysAsync = ref.watch(hotelStaysProvider);
+    // See the mobile board: an empty fallback would show occupied rooms as
+    // vacant and offer check-in on them.
+    final stays = staysAsync.value ?? const <HotelStay>[];
 
     return Container(
       color: HotelTokens.posBg,
@@ -33,11 +36,16 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
           _header(context, ref, stays),
           _floorBar(ref),
           Expanded(
-            child: roomsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('$e')),
-              data: (_) => _board(context, ref, stays),
-            ),
+            child: staysAsync.hasError
+                ? _loadFailure(staysAsync.error!)
+                : roomsAsync.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => _loadFailure(e),
+                    data: (_) => staysAsync.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _board(context, ref, stays),
+                  ),
           ),
         ],
       ),
@@ -163,10 +171,27 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
     );
   }
 
+  Widget _loadFailure(Object error) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        'Could not load the board.\n$error',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.outfit(
+          fontSize: 13.5,
+          color: HotelTokens.lossInk,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  );
+
   Widget _floorBar(WidgetRef ref) {
     final rooms = ref.watch(hotelRoomsProvider).value ?? const <HotelRoom>[];
     final stays = ref.watch(hotelStaysProvider).value ?? const <HotelStay>[];
-    final selected = ref.watch(hotelModeProvider).floorFilter;
+    final selected = ref.watch(
+      hotelModeProvider.select((state) => state.floorFilter),
+    );
 
     final floors = <(String, String)>[];
     final seen = <String>{};
