@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
@@ -6,6 +8,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
@@ -53,27 +56,51 @@ abstract final class HotelDeskActions {
       note: note,
     );
 
-    if (HotelModeSettings.autoPostRoomCharge) {
-      // Best effort: an unconfigured room-charge product must not block the
-      // guest from getting a key. The desk can post the charge manually.
-      try {
-        await _sync.postRoomCharge(
-          stay: stay,
-          clerkTenantId: clerk.id,
-          clerkName: clerk.name ?? 'Front desk',
-        );
-      } catch (e) {
-        ref
-            .read(hotelModeProvider.notifier)
-            .showToast('Room charge not posted: $e');
-      }
-    }
-
+    // Open the folio first. Registering a room with RRA is a network round
+    // trip, and the desk should not watch a spinner with a guest in front of
+    // it — the charge arrives on the folio's own observer when it lands.
     final folio = await _sync.hotelFolio(transactionId: stay.transactionId);
     ref
         .read(hotelModeProvider.notifier)
         .openFolio(room: room, stay: stay, folio: folio);
+
+    if (HotelModeSettings.autoPostRoomCharge) {
+      unawaited(
+        chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk),
+      );
+    }
     return stay;
+  }
+
+  /// Bills [stay]'s nights, registering the room with RRA first if nobody has.
+  ///
+  /// Rooms from the default plan carry no RRA item, so the first guest in one
+  /// used to open a folio of zero with no way to bill it short of an admin
+  /// visiting Rooms & floors. Registering on first use makes that invisible.
+  ///
+  /// Best effort by design: a branch with no EBM configuration still gets its
+  /// guest a key, and the desk gets told why the charge is missing.
+  static Future<void> chargeRoomToFolio({
+    required WidgetRef ref,
+    required HotelRoom room,
+    required HotelStay stay,
+    required Tenant clerk,
+  }) async {
+    final notifier = ref.read(hotelModeProvider.notifier);
+    try {
+      if (!room.isRegisteredWithRra) {
+        await HotelRoomRraService.registerRoom(room);
+      }
+      await _sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: clerk.id,
+        clerkName: clerk.name ?? 'Front desk',
+      );
+    } on StateError catch (e) {
+      notifier.showToast(e.message);
+    } catch (e) {
+      notifier.showToast('Room charge not posted: $e');
+    }
   }
 
   /// Hold [room] for a future arrival. Surfaces the clash as a toast rather
@@ -127,17 +154,9 @@ abstract final class HotelDeskActions {
     );
 
     if (HotelModeSettings.autoPostRoomCharge) {
-      try {
-        await _sync.postRoomCharge(
-          stay: arrived,
-          clerkTenantId: clerk.id,
-          clerkName: clerk.name ?? 'Front desk',
-        );
-      } catch (e) {
-        ref
-            .read(hotelModeProvider.notifier)
-            .showToast('Room charge not posted: $e');
-      }
+      unawaited(
+        chargeRoomToFolio(ref: ref, room: room, stay: arrived, clerk: clerk),
+      );
     }
 
     final folio = await _sync.hotelFolio(transactionId: arrived.transactionId);
@@ -243,16 +262,28 @@ abstract final class HotelDeskActions {
     );
   }
 
+  /// The folio's own "Room charge" button. Looks the room up so it can be
+  /// registered on demand, exactly as check-in does.
   static Future<void> postRoomCharge({
     required WidgetRef ref,
     required HotelStay stay,
     required Tenant clerk,
   }) async {
-    await _sync.postRoomCharge(
-      stay: stay,
-      clerkTenantId: clerk.id,
-      clerkName: clerk.name ?? 'Front desk',
-    );
+    final rooms = await _sync.hotelRooms(branchId: stay.branchId);
+    HotelRoom? room;
+    for (final candidate in rooms) {
+      if (candidate.id == stay.roomId) {
+        room = candidate;
+        break;
+      }
+    }
+    if (room == null) {
+      ref
+          .read(hotelModeProvider.notifier)
+          .showToast('Room ${stay.roomName} is no longer on this branch');
+      return;
+    }
+    await chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk);
   }
 
   static Future<void> cancelStay({

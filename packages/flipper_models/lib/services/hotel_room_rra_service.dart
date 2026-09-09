@@ -1,3 +1,4 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -14,7 +15,11 @@ import 'package:uuid/uuid.dart';
 /// accommodation at 3% TT, so registration is part of creating a room rather
 /// than an optional extra.
 abstract final class HotelRoomRraService {
-  static dynamic get _sync => ProxyService.getStrategy(Strategy.capella);
+  // Typed, not dynamic: this runs on the check-in path now, and a wrong
+  // method name here would surface as a NoSuchMethodError in front of a
+  // guest rather than as a compile error.
+  static DatabaseSyncInterface get _sync =>
+      ProxyService.getStrategy(Strategy.capella);
 
   /// Whether [branchId] files with RRA at all.
   ///
@@ -22,7 +27,7 @@ abstract final class HotelRoomRraService {
   /// should not offer it and nothing should warn about it.
   static Future<bool> branchSupportsRra(String branchId) async {
     try {
-      final ebm = await _sync.ebm(branchId: branchId) as Ebm?;
+      final ebm = await _sync.ebm(branchId: branchId);
       return hotelBranchSupportsRra(ebm);
     } catch (e) {
       talker.warning('hotel: could not read EBM for branch $branchId: $e');
@@ -44,7 +49,7 @@ abstract final class HotelRoomRraService {
     // reached RRA must finish that variant rather than mint a second one.
     Variant? pending;
     if (room.isRegisteredWithRra) {
-      final existing = await _sync.getVariant(id: room.variantId!) as Variant?;
+      final existing = await _sync.getVariant(id: room.variantId!);
       if (isHotelRoomVariantRegistered(existing)) return room;
       pending = existing;
     }
@@ -55,7 +60,7 @@ abstract final class HotelRoomRraService {
       throw StateError('No active business; cannot register room ${room.name}');
     }
 
-    final branchEbm = await _sync.ebm(branchId: branchId) as Ebm?;
+    final branchEbm = await _sync.ebm(branchId: branchId);
     if (!hotelBranchSupportsRra(branchEbm)) {
       talker.info(
         'hotel: branch $branchId is not on EBM, so room ${room.name} is kept '
@@ -66,7 +71,7 @@ abstract final class HotelRoomRraService {
     final ebm = branchEbm!;
 
     final business = await _sync.getBusiness(businessId: businessId)
-        as Business?;
+       ;
 
     // Rooms are exempt-or-VAT coded the same way AddRoomDialog codes them;
     // the 3% tourism tax rides on ttCatCd, not on taxTyCd.
@@ -99,7 +104,12 @@ abstract final class HotelRoomRraService {
         tinNumber: ebm.tinNumber,
         bhFId: ebm.bhfId,
         createItemCode: false,
-      ) as Product?;
+        // The room's variant is registered below through
+        // registerVariantWithRraForAdd, which skips the stock steps for an
+        // itemTyCd '3' service. Letting createProduct call RRA as well would
+        // register the placeholder product as a second item.
+        skipRRaCall: true,
+      );
 
       if (product == null) {
         throw StateError('Could not create a product for room ${room.name}');
@@ -193,13 +203,13 @@ abstract final class HotelRoomRraService {
   static Future<void> syncRoomToRra(HotelRoom room) async {
     if (!room.isRegisteredWithRra) return;
 
-    final variant = await _sync.getVariant(id: room.variantId!) as Variant?;
+    final variant = await _sync.getVariant(id: room.variantId!);
     if (variant == null) return;
 
     applyHotelRoomRraFields(variant: variant, room: room);
     await Repository().upsert<Variant>(variant);
 
-    final ebm = await _sync.ebm(branchId: room.branchId) as Ebm?;
+    final ebm = await _sync.ebm(branchId: room.branchId);
     if (!hotelBranchSupportsRra(ebm)) return;
 
     final serverUrl = await ProxyService.box.getServerUrl() ?? '';
