@@ -127,7 +127,7 @@ class HeroTopBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 6, 13, 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: AppColors.wash(0.03),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: AppColors.line2),
       ),
@@ -146,8 +146,8 @@ class HeroTopBadge extends StatelessWidget {
           Text.rich(
             TextSpan(
               style: AppText.small.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.ink2),
-              children: const [
-                TextSpan(text: 'Flipper Books · powered by '),
+              children: [
+                const TextSpan(text: 'Flipper Books · powered by '),
                 TextSpan(
                   text: 'Flow AI',
                   style: TextStyle(color: AppColors.ink0, fontWeight: FontWeight.w600),
@@ -537,14 +537,14 @@ class PrimaryButton extends StatelessWidget {
           children: [
             Text(
               label,
-              style: AppText.buttonLabel.copyWith(fontSize: fontSize, color: AppColors.ink0),
+              style: AppText.buttonLabel.copyWith(fontSize: fontSize, color: AppColors.onBrand),
             ),
             if (showArrow) ...[
               const SizedBox(width: 9),
               BooksLineIcon(
                 BooksIcon.arrowRight,
                 size: compact ? 16 : 18,
-                color: AppColors.ink0,
+                color: AppColors.onBrand,
               ),
             ],
           ],
@@ -582,7 +582,7 @@ class GhostButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: padX),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.02),
+          color: AppColors.wash(0.02),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: AppColors.line2),
         ),
@@ -629,7 +629,7 @@ class WhiteButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppText.buttonPadX),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppColors.ink0,
+          color: AppColors.cardOnBrand,
           borderRadius: BorderRadius.circular(999),
           boxShadow: AppShadow.whiteCard,
         ),
@@ -685,7 +685,7 @@ class OutlineWhiteButton extends StatelessWidget {
           label,
           style: AppText.buttonLabel.copyWith(
             fontSize: 15.5,
-            color: AppColors.ink0,
+            color: AppColors.onBrand,
           ),
         ),
       ),
@@ -710,7 +710,7 @@ class TrustChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
+        color: AppColors.wash(0.02),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: AppColors.line),
       ),
@@ -726,7 +726,7 @@ class TrustChip extends StatelessWidget {
                 if (bold != null && bold!.isNotEmpty) ...[
                   TextSpan(
                     text: bold,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.ink0,
                       fontWeight: FontWeight.w700,
                     ),
@@ -757,7 +757,7 @@ class MostPopularTag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('★', style: TextStyle(fontSize: 11.5, color: AppColors.popularTagInk)),
+          Text('★', style: TextStyle(fontSize: 11.5, color: AppColors.popularTagInk)),
           const SizedBox(width: 4),
           Text(
             'Most Popular',
@@ -873,7 +873,7 @@ class HeroBackground extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.blue.withValues(alpha: 0.30),
+                        AppColors.glow(AppColors.blue, 0.30),
                         Colors.transparent,
                       ],
                       stops: const [0, 0.7],
@@ -894,7 +894,7 @@ class HeroBackground extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.cyan.withValues(alpha: 0.20),
+                    AppColors.glow(AppColors.cyan, 0.20),
                     Colors.transparent,
                   ],
                   stops: const [0, 0.7],
@@ -913,7 +913,7 @@ class HeroBackground extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.violet.withValues(alpha: 0.18),
+                    AppColors.glow(AppColors.violet, 0.18),
                     Colors.transparent,
                   ],
                   stops: const [0, 0.7],
@@ -932,7 +932,9 @@ class HeroBackground extends StatelessWidget {
                 stops: const [0, 0.75],
               ).createShader(rect),
               blendMode: BlendMode.dstIn,
-              child: CustomPaint(painter: _HeroGridPainter()),
+              child: CustomPaint(
+                painter: _HeroGridPainter(color: AppColors.wash(0.035)),
+              ),
             ),
           ),
         ),
@@ -943,10 +945,14 @@ class HeroBackground extends StatelessWidget {
 }
 
 class _HeroGridPainter extends CustomPainter {
+  _HeroGridPainter({required this.color});
+
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.035)
+      ..color = color
       ..strokeWidth = 1;
     for (var x = 0.0; x <= size.width; x += 64) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
@@ -957,7 +963,8 @@ class _HeroGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _HeroGridPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class DashedOutlineContainer extends StatelessWidget {

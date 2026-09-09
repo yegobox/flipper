@@ -141,7 +141,7 @@ class _BkTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.015),
+        color: AppColors.wash(0.015),
         border: Border(bottom: BorderSide(color: AppColors.line)),
       ),
       child: Padding(
@@ -158,7 +158,7 @@ class _BkTopBar extends StatelessWidget {
                     height: 11,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.14),
+                      color: AppColors.wash(0.14),
                     ),
                   ),
                 ),
@@ -407,7 +407,7 @@ class _BkKpi extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.02),
+        color: AppColors.wash(0.02),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.line),
       ),
@@ -448,18 +448,12 @@ class _RevenueChart extends StatelessWidget {
 
   final List<double> chartHeights;
 
-  static const _barGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xD93F86FF), Color(0x403F86FF)],
-  );
-
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.015),
+        color: AppColors.wash(0.015),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.line),
       ),
@@ -521,7 +515,7 @@ class _ChartBar extends StatelessWidget {
           bottomLeft: Radius.circular(3),
           bottomRight: Radius.circular(3),
         ),
-        gradient: highlight ? AppGrad.brand : _RevenueChart._barGradient,
+        gradient: highlight ? AppGrad.brand : AppGrad.chartBar,
         boxShadow: highlight ? AppShadow.cyanGlow : null,
       ),
     );
@@ -529,19 +523,19 @@ class _ChartBar extends StatelessWidget {
 }
 
 class _ProfitLossPanel extends StatelessWidget {
-  static final _footerLabelStyle = AppText.small.copyWith(
-    fontSize: 13,
-    height: 1.1,
-    fontWeight: FontWeight.w700,
-    color: AppColors.green,
-  );
+  static TextStyle get _footerLabelStyle => AppText.small.copyWith(
+        fontSize: 13,
+        height: 1.1,
+        fontWeight: FontWeight.w700,
+        color: AppColors.green,
+      );
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.015),
+        color: AppColors.wash(0.015),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.line),
       ),
@@ -637,24 +631,18 @@ class _ProfitLossPanel extends StatelessWidget {
 class _FlowToast extends StatelessWidget {
   const _FlowToast();
 
-  static const _bg = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFA161E32), Color(0xFA0E1422)],
-  );
-
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 290,
       padding: const EdgeInsets.fromLTRB(15, 14, 15, 14),
       decoration: BoxDecoration(
-        gradient: _bg,
+        gradient: AppGrad.toastFill,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.cyan.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.75),
+            color: AppColors.shadow(0.75),
             blurRadius: 60,
             spreadRadius: -18,
             offset: const Offset(0, 24),
@@ -707,18 +695,18 @@ class _FlowToast extends StatelessWidget {
           Text.rich(
             TextSpan(
               style: AppText.body.copyWith(fontSize: 12.5, color: AppColors.ink2, height: 1.45),
-              children: const [
-                TextSpan(text: 'New sale on '),
+              children: [
+                const TextSpan(text: 'New sale on '),
                 TextSpan(
                   text: 'Flipper POS',
                   style: TextStyle(color: AppColors.ink0, fontWeight: FontWeight.w600),
                 ),
-                TextSpan(text: ' — categorized to '),
+                const TextSpan(text: ' — categorized to '),
                 TextSpan(
                   text: 'Sales Revenue',
                   style: TextStyle(color: AppColors.ink0, fontWeight: FontWeight.w600),
                 ),
-                TextSpan(text: ' and reconciled to MoMo.'),
+                const TextSpan(text: ' and reconciled to MoMo.'),
               ],
             ),
           ),
@@ -768,7 +756,7 @@ class _PosPhoneMock extends StatelessWidget {
         border: Border.all(color: AppColors.line2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.8),
+            color: AppColors.shadow(0.8),
             blurRadius: 80,
             spreadRadius: -24,
             offset: const Offset(0, 40),
@@ -778,7 +766,7 @@ class _PosPhoneMock extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: ColoredBox(
-          color: const Color(0xFF0D1320),
+          color: AppColors.mockScreen,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -816,7 +804,7 @@ class _PosPhoneMock extends StatelessWidget {
                   height: 32,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: AppColors.wash(0.05),
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: Row(
@@ -854,7 +842,7 @@ class _PosPhoneMock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: AppColors.wash(0.03),
         borderRadius: BorderRadius.circular(11),
       ),
       child: Row(
@@ -872,7 +860,7 @@ class _PosPhoneMock extends StatelessWidget {
               style: AppText.small.copyWith(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: AppColors.ink0,
+                color: AppColors.onBrand,
               ),
             ),
           ),
@@ -904,12 +892,16 @@ class _PosPhoneMock extends StatelessWidget {
           Container(
             width: 24,
             height: 24,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.blue,
             ),
             child: const Center(
-              child: BooksLineIcon(BooksIcon.plus, size: 13, color: AppColors.ink0),
+              child: BooksLineIcon(
+                BooksIcon.plus,
+                size: 13,
+                color: AppColors.onBrand,
+              ),
             ),
           ),
         ],

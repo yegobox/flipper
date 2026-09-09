@@ -72,8 +72,8 @@ class AuthWrapper extends ConsumerWidget {
         }
       },
       loading: () => Theme(
-        data: BooksHomeTheme.data,
-        child: const Scaffold(
+        data: BooksHomeTheme.of(Theme.of(context).brightness),
+        child: Scaffold(
           backgroundColor: AppColors.bg,
           body: Center(
             child: CircularProgressIndicator(color: AppColors.violet),

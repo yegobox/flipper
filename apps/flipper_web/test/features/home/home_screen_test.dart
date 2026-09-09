@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
+import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 
 void main() {
@@ -10,7 +11,10 @@ void main() {
       booksHomeShowDeviceMocks = true;
     });
 
-    Future<void> pumpHomeScreen(WidgetTester tester) async {
+    Future<void> pumpHomeScreen(
+      WidgetTester tester, {
+      ThemeMode themeMode = ThemeMode.light,
+    }) async {
       tester.view.physicalSize = const Size(1920, 4000);
       tester.view.devicePixelRatio = 1.0;
       booksHomeShowDeviceMocks = false;
@@ -18,6 +22,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            theme: ThemeData(brightness: Brightness.light),
+            darkTheme: ThemeData(brightness: Brightness.dark),
+            themeMode: themeMode,
             home: MediaQuery(
               data: const MediaQueryData(disableAnimations: true),
               child: const HomeScreen(),
@@ -62,6 +69,37 @@ void main() {
       expect(find.text('12,400+'), findsWidgets);
       expect(find.text('RWF 1.2B'), findsOneWidget);
       expect(find.text('99.9%'), findsOneWidget);
+    });
+
+    testWidgets('renders light by default', (WidgetTester tester) async {
+      await pumpHomeScreen(tester);
+
+      expect(AppColors.palette, BooksPalette.light);
+      expect(AppColors.bg, BooksPalette.light.bg);
+
+      final scaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byType(HomeScreen),
+          matching: find.byType(Scaffold),
+        ),
+      );
+      expect(scaffold.backgroundColor, BooksPalette.light.bg);
+    });
+
+    testWidgets('follows the app theme mode into dark', (
+      WidgetTester tester,
+    ) async {
+      await pumpHomeScreen(tester, themeMode: ThemeMode.dark);
+
+      expect(AppColors.palette, BooksPalette.dark);
+
+      final scaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byType(HomeScreen),
+          matching: find.byType(Scaffold),
+        ),
+      );
+      expect(scaffold.backgroundColor, BooksPalette.dark.bg);
     });
   });
 }

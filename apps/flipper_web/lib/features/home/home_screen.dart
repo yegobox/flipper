@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Public entry for the Flipper Books marketing landing page.
+///
+/// The page follows the app's theme mode (light by default) — see
+/// [BooksHomeTheme.of], which installs the matching marketing palette.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Theme(
-      data: BooksHomeTheme.data,
+      data: BooksHomeTheme.of(Theme.of(context).brightness),
       child: const BooksHomePage(),
     );
   }
