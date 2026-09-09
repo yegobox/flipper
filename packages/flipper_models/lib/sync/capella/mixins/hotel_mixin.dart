@@ -9,6 +9,7 @@ import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
+import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
@@ -1179,9 +1180,25 @@ mixin CapellaHotelMixin implements HotelInterface {
     }
 
     if (variantId == null || variantId.isEmpty) {
-      // Loudly, not silently. This used to log a warning and return, which
-      // left the desk looking at a folio of RWF 0 for a guest who is in the
-      // room, with nothing on screen explaining why.
+      // A branch that is not on EBM has no registered items by design, and
+      // rooms there are deliberately kept off RRA. It still runs a hotel and
+      // still bills guests, so record the nights as a plain line rather than
+      // refusing: a folio that can never total anything is worse than one that
+      // is simply not fiscalised.
+      final ebm = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).ebm(branchId: stay.branchId);
+
+      if (!hotelBranchSupportsRra(ebm)) {
+        await _postUnfiscalisedRoomCharge(
+          stay: stay,
+          clerkTenantId: clerkTenantId,
+          clerkName: clerkName,
+        );
+        return;
+      }
+
+      // On an EBM branch a missing item is a real problem, so say so loudly.
       throw StateError(
         'Room ${stay.roomName} has no RRA item to bill its nights against. '
         'Register the room under Settings → Hotel Mode → Rooms & floors, or '
@@ -1205,6 +1222,54 @@ mixin CapellaHotelMixin implements HotelInterface {
       clerkTenantId: clerkTenantId,
       clerkName: clerkName,
       qty: nights,
+    );
+  }
+
+  /// Bills the nights on a branch that is not registered for EBM.
+  ///
+  /// No `itemCd`, no tax codes — there is no registered item to carry them and
+  /// inventing one would put a fabricated code on a fiscal document. The line
+  /// still totals, so the desk can take the money.
+  Future<void> _postUnfiscalisedRoomCharge({
+    required HotelStay stay,
+    required String clerkTenantId,
+    required String clerkName,
+  }) async {
+    final ditto = dittoHandle;
+    if (ditto == null) throw StateError('Ditto not initialized');
+
+    final nights = stay.nights;
+    final now = DateTime.now().toUtc().toIso8601String();
+    final id = const Uuid().v4();
+
+    await ditto.store.execute(
+      'INSERT INTO transaction_items DOCUMENTS (:doc)',
+      arguments: {
+        'doc': {
+          '_id': id,
+          'id': id,
+          'transactionId': stay.transactionId,
+          'branchId': stay.branchId,
+          'name': hotelRoomChargeName(roomName: stay.roomName, nights: nights),
+          'qty': nights,
+          'price': stay.nightlyRate,
+          'prc': stay.nightlyRate,
+          'discount': 0,
+          'active': true,
+          'loggedByTenantId': clerkTenantId,
+          'loggedByName': clerkName,
+          'createdAt': now,
+          'updatedAt': now,
+          'lastTouched': now,
+        },
+      },
+    );
+    cartLineDocCache.forget(stay.transactionId);
+    await refreshFolioSubTotal(transactionId: stay.transactionId);
+
+    talker.info(
+      'hotel: branch ${stay.branchId} is not on EBM — billed room '
+      '${stay.roomName} ($nights night(s)) without RRA fields.',
     );
   }
 

@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
@@ -68,6 +69,16 @@ abstract final class HotelDeskActions {
       unawaited(
         chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk),
       );
+    } else {
+      // Deliberate, but it used to leave the desk with a folio of zero and no
+      // trace of the decision anywhere — not in the log, not on screen.
+      talker.info(
+        'hotel: room charge skipped for ${stay.roomName} — '
+        '"Post the room charge at check-in" is off for this branch.',
+      );
+      ref
+          .read(hotelModeProvider.notifier)
+          .showToast('Auto room charge is off — use + Room charge');
     }
     return stay;
   }
@@ -87,18 +98,30 @@ abstract final class HotelDeskActions {
     required Tenant clerk,
   }) async {
     final notifier = ref.read(hotelModeProvider.notifier);
+    // Logged at every step: a toast lasts three seconds and this runs in the
+    // background, so without a trail a folio of zero has no explanation by the
+    // time anyone asks.
+    talker.info(
+      'hotel: charging room ${room.name} to folio ${stay.transactionId} '
+      '(registered=${room.isRegisteredWithRra})',
+    );
     try {
       if (!room.isRegisteredWithRra) {
+        talker.info('hotel: registering room ${room.name} with RRA…');
         await HotelRoomRraService.registerRoom(room);
+        talker.info('hotel: room ${room.name} registered');
       }
       await _sync.postRoomCharge(
         stay: stay,
         clerkTenantId: clerk.id,
         clerkName: clerk.name ?? 'Front desk',
       );
+      talker.info('hotel: room charge posted for ${room.name}');
     } on StateError catch (e) {
+      talker.error('hotel: room charge failed for ${room.name}: ${e.message}');
       notifier.showToast(e.message);
-    } catch (e) {
+    } catch (e, st) {
+      talker.error('hotel: room charge failed for ${room.name}', e, st);
       notifier.showToast('Room charge not posted: $e');
     }
   }

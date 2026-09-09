@@ -11,6 +11,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:mockito/mockito.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/ebm.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -72,9 +73,17 @@ class _FakeBox extends Mock implements LocalStorage {
 /// Strategy stub for the one call the mixin makes outward: looking up the
 /// variant behind a charge.
 class _FakeStrategy extends Mock implements DatabaseSyncInterface {
-  _FakeStrategy(this._byId);
+  _FakeStrategy(this._byId, {this.branchEbm});
 
   final Map<String, Variant> _byId;
+
+  /// null means the branch is not registered for EBM, which is what decides
+  /// whether a room charge can carry RRA fields at all.
+  final Ebm? branchEbm;
+
+  @override
+  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async =>
+      branchEbm;
 
   @override
   Future<Variant?> getVariant({
@@ -387,11 +396,27 @@ void main() {
       );
     });
 
-    test('an unregistered room says so instead of billing nothing', () async {
-      // The reported bug: a seeded room has no RRA item and the branch has no
-      // fallback product, so the charge could not post. It used to log a
-      // warning and return, leaving the desk on a folio of RWF 0 for a guest
-      // who is standing in the room.
+    test('an unregistered room on an EBM branch says so', () async {
+      // On a fiscalised branch a missing item is a real problem: the nights
+      // cannot be invoiced, so it must be reported rather than billed blind.
+      await getIt.reset();
+      getIt.registerSingleton<LocalStorage>(_FakeBox());
+      final onEbm = _FakeStrategy(
+        {'v-room': roomNight},
+        branchEbm: Ebm(
+          bhfId: '00',
+          tinNumber: 123456789,
+          dvcSrlNo: 'dvc',
+          businessId: 'biz1',
+          branchId: _branch,
+          mrc: 'mrc',
+        ),
+      );
+      getIt.registerSingleton<SyncStrategy>(
+        SyncStrategy(capella: onEbm, cloudSync: onEbm),
+        instanceName: 'strategy',
+      );
+
       final room = await savedRoom();
       final stay = await sync.checkInGuest(
         branchId: _branch,
@@ -418,6 +443,42 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('a branch not on EBM still bills the nights, without RRA fields',
+        () async {
+      // A property that is not registered for EBM still runs a hotel. Refusing
+      // to record the charge leaves a folio that can never total anything,
+      // which is worse than one that is simply not fiscalised.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 85000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 2);
+      expect(lines.single.price, 85000);
+      // No fabricated fiscal identity on an unregistered line.
+      expect(lines.single.itemCd, isNull);
+
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.subTotal, 170000);
     });
 
     test('a registered room bills its nights against its own RRA item',
