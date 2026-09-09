@@ -138,12 +138,13 @@ abstract final class HotelRoomRraService {
         serverUrl: serverUrl,
         ebm: ebm,
       );
-    } catch (_) {
+    } catch (error) {
       await _recoverFailedRegistration(
         repository: repository,
         room: room,
         variant: variant,
         mintedProduct: mintedProduct,
+        error: error,
       );
       rethrow;
     }
@@ -175,8 +176,24 @@ abstract final class HotelRoomRraService {
     required HotelRoom room,
     required Variant variant,
     required Product? mintedProduct,
+    required Object error,
   }) async {
     try {
+      // RRA turning the item down is deterministic, and it holds nothing, so
+      // the attempt is undone rather than parked for a resume that would
+      // replay the same payload for the same answer forever.
+      if (hotelRraRejectedRegistration(error)) {
+        if (mintedProduct != null) {
+          await repository.delete<Variant>(variant);
+          await repository.delete<Product>(mintedProduct);
+        }
+        talker.error(
+          'hotel: RRA rejected room ${room.name} — $error. The room is left '
+          'unregistered; it will not be retried until the cause is fixed.',
+        );
+        return;
+      }
+
       if (hotelRoomRegistrationCanRollBack(variant)) {
         if (mintedProduct != null) {
           await repository.delete<Variant>(variant);

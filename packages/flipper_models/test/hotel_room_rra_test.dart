@@ -115,6 +115,41 @@ void main() {
     });
   });
 
+  group('hotelRraRejectedRegistration', () {
+    test('an RRA rejection is recognised so it is not retried forever', () {
+      // registerVariantWithRraForAdd throws with RRA's own message when
+      // saveItems answers anything but 000.
+      expect(
+        hotelRraRejectedRegistration(
+          Exception(
+            'RRA saveItems failed for 107: Request parameter error : '
+            '<ttCatCd> (603)',
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        hotelRraRejectedRegistration(
+          Exception('RRA saveStockItems failed for 107: bad (881)'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a transient failure is not a rejection', () {
+      // RRA may well hold the item after a timeout, so the attempt is resumed
+      // rather than rolled back.
+      expect(
+        hotelRraRejectedRegistration(Exception('SocketException: timeout')),
+        isFalse,
+      );
+      expect(
+        hotelRraRejectedRegistration(StateError('Ditto not initialized')),
+        isFalse,
+      );
+    });
+  });
+
   group('isHotelRoomVariantRegistered', () {
     test('needs an itemCd and the tourism-tax service coding', () {
       expect(isHotelRoomVariantRegistered(null), isFalse);

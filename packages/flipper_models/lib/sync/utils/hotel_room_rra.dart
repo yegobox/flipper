@@ -140,6 +140,23 @@ bool hotelBranchSupportsRra(Ebm? ebm) {
   return ebm.tinNumber != 0 && ebm.bhfId.trim().isNotEmpty;
 }
 
+/// Whether RRA explicitly rejected the registration.
+///
+/// [registerVariantWithRraForAdd] throws with RRA's own `resultMsg` and
+/// `resultCd` when `saveItems` answers anything but `000`. A rejection means
+/// RRA did **not** take the item, so the locally allocated `itemCd` is not an
+/// identity it holds — unlike a timeout, where it may well have.
+///
+/// The distinction matters: a rejection is deterministic. Resuming it replays
+/// the same payload for the same answer forever, leaving a half-registered
+/// room behind every time.
+bool hotelRraRejectedRegistration(Object error) {
+  final message = error.toString();
+  return message.contains('RRA saveItems failed') ||
+      message.contains('RRA saveStockItems failed') ||
+      message.contains('RRA saveStockMaster failed');
+}
+
 /// Whether a failed registration attempt can drop [variant] and its product.
 ///
 /// Only while the item never reached RRA. Once `saveItems` has answered, the
