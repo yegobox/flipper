@@ -2,6 +2,8 @@ import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_host.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
@@ -33,6 +35,11 @@ class InventoryApp extends HookConsumerWidget {
   }
 
   Widget _salesContent(bool isScanningMode, WidgetRef ref) {
+    if (HotelModeSettings.enabled) {
+      return const HotelModeHost()
+          .shouldViewTheApp(ref, featureName: AppFeature.Sales)
+          .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+    }
     if (BarModeSettings.enabled) {
       return const BarModeHost()
           .shouldViewTheApp(ref, featureName: AppFeature.Sales)
@@ -95,6 +102,14 @@ class InventoryApp extends HookConsumerWidget {
 
     // Sales (0 / default): require open shift before any POS interaction.
     final salesBody = () {
+      // Hotel Mode owns the whole sales pane. The front desk is a full-screen
+      // surface with its own room board and folio — dropping it into the cart
+      // half of the catalog+cart split would leave the product grid rendered
+      // beside it with nothing to add to.
+      if (HotelModeSettings.enabled) {
+        return buildMainContent(isScanningMode, ref);
+      }
+
       if (isScanningMode) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.start,

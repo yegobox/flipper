@@ -167,6 +167,15 @@ class SharedPreferenceStorage implements LocalStorage {
     'barFloorFirst',
     'barManagerSettle',
     'barAutoLogout',
+    // Hotel Mode (branch-synced via Ditto; local cache for sync reads)
+    'hotelModeEnabled',
+    'hotelModeLaunchOnStart',
+    'hotelAutoPostRoomCharge',
+    'hotelManagerCheckout',
+    'hotelRequirePin',
+    'hotelAutoLogout',
+    'hotelCheckOutHour',
+    'hotelRoomChargeVariantId',
     // Add new preference keys above this line
   };
 

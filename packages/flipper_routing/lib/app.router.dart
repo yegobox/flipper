@@ -500,6 +500,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    HotelModeRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.HotelModeHost(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     CashbookRoute.name: (routeData) {
       final args = routeData.argsAs<CashbookArgs>();
       return _i4.CustomPage<dynamic>(
@@ -822,6 +830,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           BarModeRoute.name,
           path: '/bar-mode',
+        ),
+        _i4.RouteConfig(
+          HotelModeRoute.name,
+          path: '/hotel-mode',
         ),
         _i4.RouteConfig(
           CashbookRoute.name,
@@ -2117,6 +2129,18 @@ class BarModeRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'BarModeHost';
+}
+
+/// generated route for
+/// [_i1.HotelModeHost]
+class HotelModeRoute extends _i4.PageRouteInfo<void> {
+  HotelModeRoute()
+      : super(
+          HotelModeRoute.name,
+          path: '/hotel-mode',
+        );
+
+  static const String name = 'HotelModeHost';
 }
 
 /// generated route for

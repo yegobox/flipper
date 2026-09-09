@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mode_admin_section.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_mode_admin_section.dart';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
@@ -1300,6 +1301,8 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                   _buildQuickActions(context),
                   const SizedBox(height: 28),
                   const BarModeAdminSection(),
+                  const SizedBox(height: 28),
+                  const HotelModeAdminSection(),
                   const SizedBox(height: 28),
                   _buildMainSections(context),
                 ],

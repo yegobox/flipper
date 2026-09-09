@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -51,7 +52,7 @@ class FlipperApp extends HookConsumerWidget {
     _requestPermissions();
     ProxyService.status.updateStatusColor();
     unawaited(getIt<SettingsService>().hydrateToggleStatesFromSettings());
-    unawaited(_redirectToBarModeWhenBranchEnabled());
+    unawaited(_redirectToServiceModeWhenBranchEnabled());
     // ProxyService.dynamicLink.handleDynamicLink(context);
     if (isAndroid || isIos) {
       _startNFCForModel(model);
@@ -60,18 +61,35 @@ class FlipperApp extends HookConsumerWidget {
 
   void _handleResumedState() => ProxyService.status.updateStatusColor();
 
-  /// Safety net when a login path lands on [FlipperApp] before branch settings hydrate.
-  Future<void> _redirectToBarModeWhenBranchEnabled() async {
+  /// Safety net when a login path lands on [FlipperApp] before branch settings
+  /// hydrate.
+  ///
+  /// Hotel Mode is checked first and wins: the two service modes are mutually
+  /// exclusive, but a branch that switched from bar to hotel can still have a
+  /// stale `enabled: true` on its `bar_branch_settings` document, and pushing
+  /// [BarModeRoute] then drops the front desk onto the bar's table floor.
+  Future<void> _redirectToServiceModeWhenBranchEnabled() async {
     final router = locator<RouterService>();
     final routeAtStart = router.router.current.name;
-    if (routeAtStart == BarModeRoute.name) return;
+    if (routeAtStart == BarModeRoute.name ||
+        routeAtStart == HotelModeRoute.name) {
+      return;
+    }
 
+    await HotelModeSettings.hydrateForActiveBranch();
+    HotelModeSettings.startWatchingActiveBranch();
     await BarModeSettings.hydrateForActiveBranch();
     BarModeSettings.startWatchingActiveBranch();
-    if (!BarModeSettings.enabled) return;
+
     if (router.router.current.name != routeAtStart) return;
 
-    router.navigateTo(BarModeRoute());
+    if (HotelModeSettings.enabled) {
+      router.navigateTo(HotelModeRoute());
+      return;
+    }
+    if (BarModeSettings.enabled) {
+      router.navigateTo(BarModeRoute());
+    }
   }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {
