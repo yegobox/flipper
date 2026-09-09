@@ -37,7 +37,7 @@ class NotificationHandler {
         // Check if this is an order notification
         if (payload['type'] == 'inventory_request') {
           // Navigate to the inventory request view
-          _routerService.navigateTo(const InventoryRequestMobileViewRoute());
+          _routerService.navigateTo(InventoryRequestMobileViewRoute());
         } else if (payload['type'] == 'delegation') {
           await _openDelegationsDashboard();
         }
@@ -135,7 +135,7 @@ class NotificationHandler {
     try {
       final currentName = _routerService.router.current.name;
       if (currentName != FlipperAppRoute.name) {
-        await _routerService.navigateTo(const FlipperAppRoute());
+        await _routerService.navigateTo(FlipperAppRoute());
       }
     } catch (e) {
       talker.error('Error navigating to delegations dashboard: $e');

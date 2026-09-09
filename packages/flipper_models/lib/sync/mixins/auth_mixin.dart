@@ -58,15 +58,14 @@ mixin AuthMixin implements AuthInterface {
       final defaultApp = ProxyService.box.getDefaultApp();
       final branchId = ProxyService.box.getBranchId() ?? thePin.branchId;
 
-      if (defaultApp == "2") {
-        final routerService = locator<RouterService>();
-        routerService.navigateTo(SocialHomeViewRoute());
+      // `defaultApp == "2"` used to open the social home screen. That screen
+      // is gone and its route had no page registered, so this branch was a
+      // dead end at runtime; those users now land on the ordinary
+      // authenticated home like everyone else.
+      if (branchId == null) {
+        locator<RouterService>().navigateTo(LoginChoicesRoute());
       } else {
-        if (branchId == null) {
-          locator<RouterService>().navigateTo(LoginChoicesRoute());
-        } else {
-          await PaymentVerificationNavigator.navigateToAuthenticatedHome();
-        }
+        await PaymentVerificationNavigator.navigateToAuthenticatedHome();
       }
     } catch (e) {
       print(e); // Log or handle error during login completion

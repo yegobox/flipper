@@ -134,7 +134,7 @@ class PaymentVerificationNavigator {
     }
 
     final currentRoute = _routerService.router.current.name;
-    if (currentRoute == BarModeRoute.name) {
+    if (currentRoute == BarModeHostRoute.name) {
       talker.info('Already in bar mode — skipping home navigation');
       return;
     }
@@ -175,7 +175,7 @@ class PaymentVerificationNavigator {
       talker.info(
         'Navigating to personal app for individual business despite payment verification error',
       );
-      _routerService.navigateTo(PersonalHomeRoute());
+      _routerService.navigateTo(PersonalHomeScreenRoute());
       return;
     }
 
@@ -205,7 +205,7 @@ class PaymentVerificationNavigator {
     talker.info(
       'Navigating to agent commission screen for commission-only session',
     );
-    _routerService.navigateTo(const AgentCommissionRoute());
+    _routerService.navigateTo(AgentCommissionScreenRoute());
     return true;
   }
 
@@ -238,7 +238,7 @@ class PaymentVerificationNavigator {
       if (shouldGoToPersonal) {
         if (_refuseWhenSignedOut('PersonalHome')) return;
         talker.info('Navigating to personal app for individual business');
-        _routerService.navigateTo(PersonalHomeRoute());
+        _routerService.navigateTo(PersonalHomeScreenRoute());
         return;
       }
     }
@@ -257,9 +257,9 @@ class PaymentVerificationNavigator {
       if (_refuseWhenSignedOut('BarMode')) return;
       talker.info('Bar mode launch on start — opening bar register');
       if (clearStack) {
-        await _routerService.clearStackAndShow(BarModeRoute());
+        await _routerService.clearStackAndShow(BarModeHostRoute());
       } else {
-        _routerService.navigateTo(BarModeRoute());
+        _routerService.navigateTo(BarModeHostRoute());
       }
       return;
     }

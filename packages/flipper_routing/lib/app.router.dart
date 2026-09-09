@@ -1,95 +1,90 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // StackedRouterGenerator
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:ui' as _i8;
-
-import 'package:firebase_auth/firebase_auth.dart' as _i7;
 import 'package:flipper_dashboard/QuickSellingView.dart' as _i2;
-import 'package:flipper_models/db_model_export.dart' as _i9;
+import 'package:flipper_models/db_model_export.dart' as _i7;
+import 'package:flutter/foundation.dart' as _i6;
 import 'package:flutter/material.dart' as _i5;
 import 'package:stacked/stacked.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
-import 'package:flipper_personal/flipper_personal.dart' as _i10;
 
 import 'all_routes.dart' as _i1;
 
-final stackedRouter =
-    StackedRouterWeb(navigatorKey: _i3.StackedService.navigatorKey);
+final stackedRouter = StackedRouterWeb(
+  navigatorKey: _i3.StackedService.navigatorKey,
+);
 
 class StackedRouterWeb extends _i4.RootStackRouter {
   StackedRouterWeb({_i5.GlobalKey<_i5.NavigatorState>? navigatorKey})
-      : super(navigatorKey);
+    : super(navigatorKey);
 
   @override
   final Map<String, _i4.PageFactory> pagesMap = {
     StartUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<StartUpViewArgs>(
-          orElse: () => const StartUpViewArgs());
+        orElse: () => const StartUpViewArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.StartUpView(
-          key: args.key,
-          invokeLogin: args.invokeLogin,
-        ),
+        child: _i1.StartUpView(key: args.key, invokeLogin: args.invokeLogin),
         opaque: true,
         barrierDismissible: false,
       );
     },
-
     SignUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<SignUpViewArgs>(
-          orElse: () => const SignUpViewArgs());
+        orElse: () => const SignUpViewArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.SignUpView(
-          key: args.key,
-          countryNm: args.countryNm,
-        ),
+        child: _i1.SignUpView(key: args.key, countryNm: args.countryNm),
         opaque: true,
         barrierDismissible: false,
       );
     },
-   
     FlipperAppRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i1.FlipperApp(),
-        opaque: true,
-        barrierDismissible: false,
+      final args = routeData.argsAs<FlipperAppArgs>(
+        orElse: () => const FlipperAppArgs(),
       );
-    },
-    PersonalHomeRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i10.PersonalHomeScreen(),
+        child: _i1.FlipperApp(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     FailedPaymentRoute.name: (routeData) {
+      final args = routeData.argsAs<FailedPaymentArgs>(
+        orElse: () => const FailedPaymentArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.FailedPayment(),
+        child: _i1.FailedPayment(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     LoginRoute.name: (routeData) {
+      final args = routeData.argsAs<LoginArgs>(orElse: () => const LoginArgs());
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Login(),
+        child: _i1.Login(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     LandingRoute.name: (routeData) {
+      final args = routeData.argsAs<LandingArgs>(
+        orElse: () => const LandingArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Landing(),
+        child: _i1.Landing(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -103,9 +98,26 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     CountryPickerRoute.name: (routeData) {
+      final args = routeData.argsAs<CountryPickerArgs>(
+        orElse: () => const CountryPickerArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.CountryPicker(),
+        child: _i1.CountryPicker(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    AiScreenRoute.name: (routeData) {
+      final args = routeData.argsAs<AiScreenArgs>(
+        orElse: () => const AiScreenArgs(),
+      );
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.AiScreen(
+          key: args.key,
+          onPurchaseCredits: args.onPurchaseCredits,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -125,30 +137,23 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     InventoryRequestMobileViewRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i1.InventoryRequestMobileView(),
-        opaque: true,
-        barrierDismissible: false,
+      final args = routeData.argsAs<InventoryRequestMobileViewArgs>(
+        orElse: () => const InventoryRequestMobileViewArgs(),
       );
-    },
-    CreditAppRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.CreditApp(),
+        child: _i1.InventoryRequestMobileView(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     AddProductViewRoute.name: (routeData) {
       final args = routeData.argsAs<AddProductViewArgs>(
-          orElse: () => const AddProductViewArgs());
+        orElse: () => const AddProductViewArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.AddProductView(
-          key: args.key,
-          productId: args.productId,
-        ),
+        child: _i1.AddProductView(key: args.key, productId: args.productId),
         opaque: true,
         barrierDismissible: false,
       );
@@ -168,13 +173,11 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     AddDiscountRoute.name: (routeData) {
       final args = routeData.argsAs<AddDiscountArgs>(
-          orElse: () => const AddDiscountArgs());
+        orElse: () => const AddDiscountArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.AddDiscount(
-          key: args.key,
-          discount: args.discount,
-        ),
+        child: _i1.AddDiscount(key: args.key, discount: args.discount),
         opaque: true,
         barrierDismissible: false,
       );
@@ -192,8 +195,9 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     ColorTileRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<ColorTileArgs>(orElse: () => const ColorTileArgs());
+      final args = routeData.argsAs<ColorTileArgs>(
+        orElse: () => const ColorTileArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ColorTile(key: args.key),
@@ -218,17 +222,15 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<AddVariationArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.AddVariation(
-          key: args.key,
-          productId: args.productId,
-        ),
+        child: _i1.AddVariation(key: args.key, productId: args.productId),
         opaque: true,
         barrierDismissible: false,
       );
     },
     AddCategoryRoute.name: (routeData) {
       final args = routeData.argsAs<AddCategoryArgs>(
-          orElse: () => const AddCategoryArgs());
+        orElse: () => const AddCategoryArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddCategory(key: args.key),
@@ -240,10 +242,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<ListUnitsArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.ListUnits(
-          key: args.key,
-          type: args.type,
-        ),
+        child: _i1.ListUnits(key: args.key, type: args.type),
         opaque: true,
         barrierDismissible: false,
       );
@@ -252,10 +251,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<SellArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Sell(
-          key: args.key,
-          product: args.product,
-        ),
+        child: _i1.Sell(key: args.key, product: args.product),
         opaque: true,
         barrierDismissible: false,
       );
@@ -309,7 +305,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     SwitchBranchViewRoute.name: (routeData) {
       final args = routeData.argsAs<SwitchBranchViewArgs>(
-          orElse: () => const SwitchBranchViewArgs());
+        orElse: () => const SwitchBranchViewArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.SwitchBranchView(key: args.key),
@@ -318,8 +315,9 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     OrderViewRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<OrderViewArgs>(orElse: () => const OrderViewArgs());
+      final args = routeData.argsAs<OrderViewArgs>(
+        orElse: () => const OrderViewArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.OrderView(key: args.key),
@@ -328,17 +326,23 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     OrdersRoute.name: (routeData) {
+      final args = routeData.argsAs<OrdersArgs>(
+        orElse: () => const OrdersArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Orders(),
+        child: _i1.Orders(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     CustomersRoute.name: (routeData) {
+      final args = routeData.argsAs<CustomersArgs>(
+        orElse: () => const CustomersArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Customers(),
+        child: _i1.Customers(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -353,8 +357,9 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     PinLoginRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<PinLoginArgs>(orElse: () => const PinLoginArgs());
+      final args = routeData.argsAs<PinLoginArgs>(
+        orElse: () => const PinLoginArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PinLogin(key: args.key),
@@ -363,66 +368,79 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     DevicesRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<DevicesArgs>(orElse: () => const DevicesArgs());
+      final args = routeData.argsAs<DevicesArgs>(
+        orElse: () => const DevicesArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Devices(
-          key: args.key,
-          pin: args.pin,
-        ),
+        child: _i1.Devices(key: args.key, pin: args.pin),
         opaque: true,
         barrierDismissible: false,
       );
     },
-    TaxConfigurationRoute.name: (routeData) {
-      final args = routeData.argsAs<TaxConfigurationArgs>();
+    SystemConfigRoute.name: (routeData) {
+      final args = routeData.argsAs<SystemConfigArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.SystemConfig(
-          key: args.key,
-          showheader: args.showheader,
-        ),
+        child: _i1.SystemConfig(key: args.key, showheader: args.showheader),
         opaque: true,
         barrierDismissible: false,
       );
     },
     PrintingRoute.name: (routeData) {
+      final args = routeData.argsAs<PrintingArgs>(
+        orElse: () => const PrintingArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Printing(),
+        child: _i1.Printing(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     BackUpRoute.name: (routeData) {
+      final args = routeData.argsAs<BackUpArgs>(
+        orElse: () => const BackUpArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.BackUp(),
+        child: _i1.BackUp(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     LoginChoicesRoute.name: (routeData) {
+      final args = routeData.argsAs<LoginChoicesArgs>(
+        orElse: () => const LoginChoicesArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.LoginChoices(),
+        child: _i1.LoginChoices(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     TenantManagementRoute.name: (routeData) {
+      final args = routeData.argsAs<TenantManagementArgs>(
+        orElse: () => const TenantManagementArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.TenantManagement(),
+        child: _i1.TenantManagement(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
-    AgentCommissionRoute.name: (routeData) {
+    AgentCommissionScreenRoute.name: (routeData) {
+      final args = routeData.argsAs<AgentCommissionScreenArgs>(
+        orElse: () => const AgentCommissionScreenArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.AgentCommissionScreen(),
+        child: _i1.AgentCommissionScreen(
+          key: args.key,
+          embeddedInDashboard: args.embeddedInDashboard,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -431,10 +449,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<DrawerScreenArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.DrawerScreen(
-          key: args.key,
-          open: args.open,
-        ),
+        child: _i1.DrawerScreen(key: args.key, open: args.open),
         opaque: true,
         barrierDismissible: false,
       );
@@ -465,8 +480,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    AppsRoute.name: (routeData) {
-      final args = routeData.argsAs<AppsArgs>();
+    MobileViewRoute.name: (routeData) {
+      final args = routeData.argsAs<MobileViewArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.MobileView(
@@ -481,29 +496,33 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     CheckOutRoute.name: (routeData) {
       final args = routeData.argsAs<CheckOutArgs>(
-          orElse: () => const CheckOutArgs(isBigScreen: false));
+        orElse: () => const CheckOutArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.CheckOut(
-          key: args.key,
-          isBigScreen: args.isBigScreen,
-        ),
+        child: _i1.CheckOut(key: args.key, isBigScreen: args.isBigScreen),
         opaque: true,
         barrierDismissible: false,
       );
     },
-    BarModeRoute.name: (routeData) {
+    BarModeHostRoute.name: (routeData) {
+      final args = routeData.argsAs<BarModeHostArgs>(
+        orElse: () => const BarModeHostArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.BarModeHost(),
+        child: _i1.BarModeHost(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
-    HotelModeRoute.name: (routeData) {
+    HotelModeHostRoute.name: (routeData) {
+      final args = routeData.argsAs<HotelModeHostArgs>(
+        orElse: () => const HotelModeHostArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.HotelModeHost(),
+        child: _i1.HotelModeHost(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -512,17 +531,15 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<CashbookArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Cashbook(
-          key: args.key,
-          isBigScreen: args.isBigScreen,
-        ),
+        child: _i1.Cashbook(key: args.key, isBigScreen: args.isBigScreen),
         opaque: true,
         barrierDismissible: false,
       );
     },
     SettingPageRoute.name: (routeData) {
       final args = routeData.argsAs<SettingPageArgs>(
-          orElse: () => const SettingPageArgs());
+        orElse: () => const SettingPageArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.SettingPage(key: args.key),
@@ -531,16 +548,20 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     TransactionsRoute.name: (routeData) {
+      final args = routeData.argsAs<TransactionsArgs>(
+        orElse: () => const TransactionsArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.Transactions(),
+        child: _i1.Transactions(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     SecurityRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<SecurityArgs>(orElse: () => const SecurityArgs());
+      final args = routeData.argsAs<SecurityArgs>(
+        orElse: () => const SecurityArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Security(key: args.key),
@@ -549,17 +570,23 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     ReportsDashboardRoute.name: (routeData) {
+      final args = routeData.argsAs<ReportsDashboardArgs>(
+        orElse: () => const ReportsDashboardArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.ReportsDashboard(),
+        child: _i1.ReportsDashboard(key: args.key, isInDialog: args.isInDialog),
         opaque: true,
         barrierDismissible: false,
       );
     },
     AdminControlRoute.name: (routeData) {
+      final args = routeData.argsAs<AdminControlArgs>(
+        orElse: () => const AdminControlArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.AdminControl(),
+        child: _i1.AdminControl(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -579,12 +606,12 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         child: _i2.QuickSellingView(
           key: args.key,
           formKey: args.formKey,
-          countryCodeController: args.countryCodeController,
           discountController: args.discountController,
           receivedAmountController: args.receivedAmountController,
           deliveryNoteCotroller: args.deliveryNoteCotroller,
           customerPhoneNumberController: args.customerPhoneNumberController,
           paymentTypeController: args.paymentTypeController,
+          countryCodeController: args.countryCodeController,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -592,7 +619,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     PaymentPlanUIRoute.name: (routeData) {
       final args = routeData.argsAs<PaymentPlanUIArgs>(
-          orElse: () => const PaymentPlanUIArgs());
+        orElse: () => const PaymentPlanUIArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PaymentPlanUI(
@@ -615,18 +643,40 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<WaitingOrdersPlacedArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.WaitingOrdersPlaced(
-          args.orderId,
-          key: args.key,
-        ),
+        child: _i1.WaitingOrdersPlaced(args.orderId, key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    CreditAppRoute.name: (routeData) {
+      final args = routeData.argsAs<CreditAppArgs>(
+        orElse: () => const CreditAppArgs(),
+      );
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.CreditApp(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     ShiftHistoryViewRoute.name: (routeData) {
+      final args = routeData.argsAs<ShiftHistoryViewArgs>(
+        orElse: () => const ShiftHistoryViewArgs(),
+      );
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.ShiftHistoryView(),
+        child: _i1.ShiftHistoryView(key: args.key, onBack: args.onBack),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    PersonalHomeScreenRoute.name: (routeData) {
+      final args = routeData.argsAs<PersonalHomeScreenArgs>(
+        orElse: () => const PersonalHomeScreenArgs(),
+      );
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.PersonalHomeScreen(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -635,286 +685,100 @@ class StackedRouterWeb extends _i4.RootStackRouter {
 
   @override
   List<_i4.RouteConfig> get routes => [
-        _i4.RouteConfig(
-          StartUpViewRoute.name,
-          path: '/',
-        ),
-        _i4.RouteConfig(
-          SignUpViewRoute.name,
-          path: '/sign-up-view',
-        ),
-        _i4.RouteConfig(
-          FlipperAppRoute.name,
-          path: '/flipper-app',
-        ),
-        _i4.RouteConfig(
-          PersonalHomeRoute.name,
-          path: '/personal-home',
-        ),
-        _i4.RouteConfig(
-          FailedPaymentRoute.name,
-          path: '/failed-payment',
-        ),
-        _i4.RouteConfig(
-          LoginRoute.name,
-          path: '/Login',
-        ),
-        _i4.RouteConfig(
-          LandingRoute.name,
-          path: '/Landing',
-        ),
-        _i4.RouteConfig(
-          AuthRoute.name,
-          path: '/Auth',
-        ),
-        _i4.RouteConfig(
-          CountryPickerRoute.name,
-          path: '/country-picker',
-        ),
-        _i4.RouteConfig(
-          PhoneInputScreenRoute.name,
-          path: '/phone-input-screen',
-        ),
-        _i4.RouteConfig(
-          InventoryRequestMobileViewRoute.name,
-          path: '/inventory-request-mobile-view',
-        ),
-        _i4.RouteConfig(
-          CreditAppRoute.name,
-          path: '/credit-app',
-        ),
-        _i4.RouteConfig(
-          AddProductViewRoute.name,
-          path: '/add-product-view',
-        ),
-        _i4.RouteConfig(
-          AddToFavoritesRoute.name,
-          path: '/add-to-favorites',
-        ),
-        _i4.RouteConfig(
-          AddDiscountRoute.name,
-          path: '/add-discount',
-        ),
-        _i4.RouteConfig(
-          ListCategoriesRoute.name,
-          path: '/list-categories',
-        ),
-        _i4.RouteConfig(
-          ColorTileRoute.name,
-          path: '/color-tile',
-        ),
-        _i4.RouteConfig(
-          ReceiveStockRoute.name,
-          path: '/receive-stock',
-        ),
-        _i4.RouteConfig(
-          AddVariationRoute.name,
-          path: '/add-variation',
-        ),
-        _i4.RouteConfig(
-          AddCategoryRoute.name,
-          path: '/add-category',
-        ),
-        _i4.RouteConfig(
-          ListUnitsRoute.name,
-          path: '/list-units',
-        ),
-        _i4.RouteConfig(
-          SellRoute.name,
-          path: '/Sell',
-        ),
-        _i4.RouteConfig(
-          PaymentsRoute.name,
-          path: '/Payments',
-        ),
-        _i4.RouteConfig(
-          PaymentConfirmationRoute.name,
-          path: '/payment-confirmation',
-        ),
-        _i4.RouteConfig(
-          TransactionDetailRoute.name,
-          path: '/transaction-detail',
-        ),
-        _i4.RouteConfig(
-          SettingsScreenRoute.name,
-          path: '/settings-screen',
-        ),
-        _i4.RouteConfig(
-          SwitchBranchViewRoute.name,
-          path: '/switch-branch-view',
-        ),
-        _i4.RouteConfig(
-          ScannViewRoute.name,
-          path: '/scann-view',
-        ),
-        _i4.RouteConfig(
-          OrderViewRoute.name,
-          path: '/order-view',
-        ),
-        _i4.RouteConfig(
-          OrdersRoute.name,
-          path: '/Orders',
-        ),
-        _i4.RouteConfig(
-          CustomersRoute.name,
-          path: '/Customers',
-        ),
-        _i4.RouteConfig(
-          NoNetRoute.name,
-          path: '/no-net',
-        ),
-        _i4.RouteConfig(
-          PinLoginRoute.name,
-          path: '/pin-login',
-        ),
-        _i4.RouteConfig(
-          DevicesRoute.name,
-          path: '/Devices',
-        ),
-        _i4.RouteConfig(
-          TaxConfigurationRoute.name,
-          path: '/tax-configuration',
-        ),
-        _i4.RouteConfig(
-          PrintingRoute.name,
-          path: '/Printing',
-        ),
-        _i4.RouteConfig(
-          BackUpRoute.name,
-          path: '/back-up',
-        ),
-        _i4.RouteConfig(
-          LoginChoicesRoute.name,
-          path: '/login-choices',
-        ),
-        _i4.RouteConfig(
-          TenantManagementRoute.name,
-          path: '/tenant-management',
-        ),
-        _i4.RouteConfig(
-          AgentCommissionRoute.name,
-          path: '/agent-commission',
-        ),
-        _i4.RouteConfig(
-          SocialHomeViewRoute.name,
-          path: '/social-home-view',
-        ),
-        _i4.RouteConfig(
-          DrawerScreenRoute.name,
-          path: '/drawer-screen',
-        ),
-        _i4.RouteConfig(
-          ChatListViewRoute.name,
-          path: '/chat-list-view',
-        ),
-        _i4.RouteConfig(
-          ConversationHistoryRoute.name,
-          path: '/conversation-history',
-        ),
-        _i4.RouteConfig(
-          TicketsListRoute.name,
-          path: '/tickets-list',
-        ),
-        _i4.RouteConfig(
-          NewTicketRoute.name,
-          path: '/new-ticket',
-        ),
-        _i4.RouteConfig(
-          AppsRoute.name,
-          path: '/Apps',
-        ),
-        _i4.RouteConfig(
-          CheckOutRoute.name,
-          path: '/check-out',
-        ),
-        _i4.RouteConfig(
-          BarModeRoute.name,
-          path: '/bar-mode',
-        ),
-        _i4.RouteConfig(
-          HotelModeRoute.name,
-          path: '/hotel-mode',
-        ),
-        _i4.RouteConfig(
-          CashbookRoute.name,
-          path: '/Cashbook',
-        ),
-        _i4.RouteConfig(
-          SettingPageRoute.name,
-          path: '/setting-page',
-        ),
-        _i4.RouteConfig(
-          TransactionsRoute.name,
-          path: '/Transactions',
-        ),
-        _i4.RouteConfig(
-          SecurityRoute.name,
-          path: '/Security',
-        ),
-        _i4.RouteConfig(
-          ComfirmRoute.name,
-          path: '/Comfirm',
-        ),
-        _i4.RouteConfig(
-          ReportsDashboardRoute.name,
-          path: '/reports-dashboard',
-        ),
-        _i4.RouteConfig(
-          AdminControlRoute.name,
-          path: '/admin-control',
-        ),
-        _i4.RouteConfig(
-          AddBranchRoute.name,
-          path: '/add-branch',
-        ),
-        _i4.RouteConfig(
-          QuickSellingViewRoute.name,
-          path: '/quick-selling-view',
-        ),
-        _i4.RouteConfig(
-          PaymentPlanUIRoute.name,
-          path: '/payment-plan-uI',
-        ),
-        _i4.RouteConfig(
-          PaymentFinalizeRoute.name,
-          path: '/payment-finalize',
-        ),
-        _i4.RouteConfig(
-          WaitingOrdersPlacedRoute.name,
-          path: '/waiting-orders-placed',
-        ),
-        _i4.RouteConfig(
-          ShiftHistoryViewRoute.name,
-          path: '/shift-history-view',
-        ),
-      ];
+    _i4.RouteConfig(StartUpViewRoute.name, path: '/'),
+    _i4.RouteConfig(SignUpViewRoute.name, path: '/sign-up-view'),
+    _i4.RouteConfig(FlipperAppRoute.name, path: '/flipper-app'),
+    _i4.RouteConfig(FailedPaymentRoute.name, path: '/failed-payment'),
+    _i4.RouteConfig(LoginRoute.name, path: '/Login'),
+    _i4.RouteConfig(LandingRoute.name, path: '/Landing'),
+    _i4.RouteConfig(AuthRoute.name, path: '/Auth'),
+    _i4.RouteConfig(CountryPickerRoute.name, path: '/country-picker'),
+    _i4.RouteConfig(AiScreenRoute.name, path: '/ai-screen'),
+    _i4.RouteConfig(PhoneInputScreenRoute.name, path: '/phone-input-screen'),
+    _i4.RouteConfig(
+      InventoryRequestMobileViewRoute.name,
+      path: '/inventory-request-mobile-view',
+    ),
+    _i4.RouteConfig(AddProductViewRoute.name, path: '/add-product-view'),
+    _i4.RouteConfig(AddToFavoritesRoute.name, path: '/add-to-favorites'),
+    _i4.RouteConfig(AddDiscountRoute.name, path: '/add-discount'),
+    _i4.RouteConfig(ListCategoriesRoute.name, path: '/list-categories'),
+    _i4.RouteConfig(ColorTileRoute.name, path: '/color-tile'),
+    _i4.RouteConfig(ReceiveStockRoute.name, path: '/receive-stock'),
+    _i4.RouteConfig(AddVariationRoute.name, path: '/add-variation'),
+    _i4.RouteConfig(AddCategoryRoute.name, path: '/add-category'),
+    _i4.RouteConfig(ListUnitsRoute.name, path: '/list-units'),
+    _i4.RouteConfig(SellRoute.name, path: '/Sell'),
+    _i4.RouteConfig(PaymentsRoute.name, path: '/Payments'),
+    _i4.RouteConfig(
+      PaymentConfirmationRoute.name,
+      path: '/payment-confirmation',
+    ),
+    _i4.RouteConfig(TransactionDetailRoute.name, path: '/transaction-detail'),
+    _i4.RouteConfig(SettingsScreenRoute.name, path: '/settings-screen'),
+    _i4.RouteConfig(SwitchBranchViewRoute.name, path: '/switch-branch-view'),
+    _i4.RouteConfig(OrderViewRoute.name, path: '/order-view'),
+    _i4.RouteConfig(OrdersRoute.name, path: '/Orders'),
+    _i4.RouteConfig(CustomersRoute.name, path: '/Customers'),
+    _i4.RouteConfig(NoNetRoute.name, path: '/no-net'),
+    _i4.RouteConfig(PinLoginRoute.name, path: '/pin-login'),
+    _i4.RouteConfig(DevicesRoute.name, path: '/Devices'),
+    _i4.RouteConfig(SystemConfigRoute.name, path: '/system-config'),
+    _i4.RouteConfig(PrintingRoute.name, path: '/Printing'),
+    _i4.RouteConfig(BackUpRoute.name, path: '/back-up'),
+    _i4.RouteConfig(LoginChoicesRoute.name, path: '/login-choices'),
+    _i4.RouteConfig(TenantManagementRoute.name, path: '/tenant-management'),
+    _i4.RouteConfig(
+      AgentCommissionScreenRoute.name,
+      path: '/agent-commission-screen',
+    ),
+    _i4.RouteConfig(DrawerScreenRoute.name, path: '/drawer-screen'),
+    _i4.RouteConfig(TicketsListRoute.name, path: '/tickets-list'),
+    _i4.RouteConfig(NewTicketRoute.name, path: '/new-ticket'),
+    _i4.RouteConfig(MobileViewRoute.name, path: '/mobile-view'),
+    _i4.RouteConfig(CheckOutRoute.name, path: '/check-out'),
+    _i4.RouteConfig(BarModeHostRoute.name, path: '/bar-mode-host'),
+    _i4.RouteConfig(HotelModeHostRoute.name, path: '/hotel-mode-host'),
+    _i4.RouteConfig(CashbookRoute.name, path: '/Cashbook'),
+    _i4.RouteConfig(SettingPageRoute.name, path: '/setting-page'),
+    _i4.RouteConfig(TransactionsRoute.name, path: '/Transactions'),
+    _i4.RouteConfig(SecurityRoute.name, path: '/Security'),
+    _i4.RouteConfig(ReportsDashboardRoute.name, path: '/reports-dashboard'),
+    _i4.RouteConfig(AdminControlRoute.name, path: '/admin-control'),
+    _i4.RouteConfig(AddBranchRoute.name, path: '/add-branch'),
+    _i4.RouteConfig(QuickSellingViewRoute.name, path: '/quick-selling-view'),
+    _i4.RouteConfig(PaymentPlanUIRoute.name, path: '/payment-plan-uI'),
+    _i4.RouteConfig(PaymentFinalizeRoute.name, path: '/payment-finalize'),
+    _i4.RouteConfig(
+      WaitingOrdersPlacedRoute.name,
+      path: '/waiting-orders-placed',
+    ),
+    _i4.RouteConfig(CreditAppRoute.name, path: '/credit-app'),
+    _i4.RouteConfig(ShiftHistoryViewRoute.name, path: '/shift-history-view'),
+    _i4.RouteConfig(
+      PersonalHomeScreenRoute.name,
+      path: '/personal-home-screen',
+    ),
+  ];
 }
 
 /// generated route for
 /// [_i1.StartUpView]
 class StartUpViewRoute extends _i4.PageRouteInfo<StartUpViewArgs> {
-  StartUpViewRoute({
-    _i5.Key? key,
-    bool? invokeLogin,
-  }) : super(
-          StartUpViewRoute.name,
-          path: '/',
-          args: StartUpViewArgs(
-            key: key,
-            invokeLogin: invokeLogin,
-          ),
-        );
+  StartUpViewRoute({_i6.Key? key, bool? invokeLogin})
+    : super(
+        StartUpViewRoute.name,
+        path: '/',
+        args: StartUpViewArgs(key: key, invokeLogin: invokeLogin),
+      );
 
   static const String name = 'StartUpView';
 }
 
 class StartUpViewArgs {
-  const StartUpViewArgs({
-    this.key,
-    this.invokeLogin,
-  });
+  const StartUpViewArgs({this.key, this.invokeLogin});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final bool? invokeLogin;
 
@@ -927,28 +791,20 @@ class StartUpViewArgs {
 /// generated route for
 /// [_i1.SignUpView]
 class SignUpViewRoute extends _i4.PageRouteInfo<SignUpViewArgs> {
-  SignUpViewRoute({
-    _i5.Key? key,
-    String? countryNm = "Rwanda",
-  }) : super(
-          SignUpViewRoute.name,
-          path: '/sign-up-view',
-          args: SignUpViewArgs(
-            key: key,
-            countryNm: countryNm,
-          ),
-        );
+  SignUpViewRoute({_i6.Key? key, String? countryNm = "Rwanda"})
+    : super(
+        SignUpViewRoute.name,
+        path: '/sign-up-view',
+        args: SignUpViewArgs(key: key, countryNm: countryNm),
+      );
 
   static const String name = 'SignUpView';
 }
 
 class SignUpViewArgs {
-  const SignUpViewArgs({
-    this.key,
-    this.countryNm = "Rwanda",
-  });
+  const SignUpViewArgs({this.key, this.countryNm = "Rwanda"});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String? countryNm;
 
@@ -960,118 +816,176 @@ class SignUpViewArgs {
 
 /// generated route for
 /// [_i1.FlipperApp]
-class FlipperAppRoute extends _i4.PageRouteInfo<void> {
-  const FlipperAppRoute()
-      : super(
-          FlipperAppRoute.name,
-          path: '/flipper-app',
-        );
+class FlipperAppRoute extends _i4.PageRouteInfo<FlipperAppArgs> {
+  FlipperAppRoute({_i6.Key? key})
+    : super(
+        FlipperAppRoute.name,
+        path: '/flipper-app',
+        args: FlipperAppArgs(key: key),
+      );
 
   static const String name = 'FlipperApp';
 }
 
-/// generated route for
-/// [_i10.PersonalHomeScreen]
-class PersonalHomeRoute extends _i4.PageRouteInfo<void> {
-  const PersonalHomeRoute()
-      : super(
-          PersonalHomeRoute.name,
-          path: '/personal-home',
-        );
+class FlipperAppArgs {
+  const FlipperAppArgs({this.key});
 
-  static const String name = 'PersonalHome';
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'FlipperAppArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.FailedPayment]
-class FailedPaymentRoute extends _i4.PageRouteInfo<void> {
-  const FailedPaymentRoute()
-      : super(
-          FailedPaymentRoute.name,
-          path: '/failed-payment',
-        );
+class FailedPaymentRoute extends _i4.PageRouteInfo<FailedPaymentArgs> {
+  FailedPaymentRoute({_i6.Key? key})
+    : super(
+        FailedPaymentRoute.name,
+        path: '/failed-payment',
+        args: FailedPaymentArgs(key: key),
+      );
 
   static const String name = 'FailedPayment';
 }
 
+class FailedPaymentArgs {
+  const FailedPaymentArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'FailedPaymentArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.Login]
-class LoginRoute extends _i4.PageRouteInfo<void> {
-  const LoginRoute()
-      : super(
-          LoginRoute.name,
-          path: '/Login',
-        );
+class LoginRoute extends _i4.PageRouteInfo<LoginArgs> {
+  LoginRoute({_i6.Key? key})
+    : super(
+        LoginRoute.name,
+        path: '/Login',
+        args: LoginArgs(key: key),
+      );
 
   static const String name = 'Login';
 }
 
+class LoginArgs {
+  const LoginArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'LoginArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.Landing]
-class LandingRoute extends _i4.PageRouteInfo<void> {
-  const LandingRoute()
-      : super(
-          LandingRoute.name,
-          path: '/Landing',
-        );
+class LandingRoute extends _i4.PageRouteInfo<LandingArgs> {
+  LandingRoute({_i6.Key? key})
+    : super(
+        LandingRoute.name,
+        path: '/Landing',
+        args: LandingArgs(key: key),
+      );
 
   static const String name = 'Landing';
+}
+
+class LandingArgs {
+  const LandingArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'LandingArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.Auth]
 class AuthRoute extends _i4.PageRouteInfo<void> {
-  const AuthRoute()
-      : super(
-          AuthRoute.name,
-          path: '/Auth',
-        );
+  const AuthRoute() : super(AuthRoute.name, path: '/Auth');
 
   static const String name = 'Auth';
 }
 
 /// generated route for
 /// [_i1.CountryPicker]
-class CountryPickerRoute extends _i4.PageRouteInfo<void> {
-  const CountryPickerRoute()
-      : super(
-          CountryPickerRoute.name,
-          path: '/country-picker',
-        );
+class CountryPickerRoute extends _i4.PageRouteInfo<CountryPickerArgs> {
+  CountryPickerRoute({_i6.Key? key})
+    : super(
+        CountryPickerRoute.name,
+        path: '/country-picker',
+        args: CountryPickerArgs(key: key),
+      );
 
   static const String name = 'CountryPicker';
 }
 
-/// generated route for
-/// [_i1.CreditApp  ]
-class CreditAppRoute extends _i4.PageRouteInfo<void> {
-  const CreditAppRoute()
-      : super(
-          CreditAppRoute.name,
-          path: '/credit-app',
-        );
+class CountryPickerArgs {
+  const CountryPickerArgs({this.key});
 
-  static const String name = 'CreditApp';
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'CountryPickerArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i1.AiScreen]
+class AiScreenRoute extends _i4.PageRouteInfo<AiScreenArgs> {
+  AiScreenRoute({_i6.Key? key, void Function()? onPurchaseCredits})
+    : super(
+        AiScreenRoute.name,
+        path: '/ai-screen',
+        args: AiScreenArgs(key: key, onPurchaseCredits: onPurchaseCredits),
+      );
+
+  static const String name = 'AiScreen';
+}
+
+class AiScreenArgs {
+  const AiScreenArgs({this.key, this.onPurchaseCredits});
+
+  final _i6.Key? key;
+
+  final void Function()? onPurchaseCredits;
+
+  @override
+  String toString() {
+    return 'AiScreenArgs{key: $key, onPurchaseCredits: $onPurchaseCredits}';
+  }
 }
 
 /// generated route for
 /// [_i1.PhoneInputScreen]
 class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
   PhoneInputScreenRoute({
-    _i5.Key? key,
+    _i6.Key? key,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
   }) : super(
-          PhoneInputScreenRoute.name,
-          path: '/phone-input-screen',
-          args: PhoneInputScreenArgs(
-            key: key,
-            countryCode: countryCode,
-            subtitleBuilder: subtitleBuilder,
-            footerBuilder: footerBuilder,
-          ),
-        );
+         PhoneInputScreenRoute.name,
+         path: '/phone-input-screen',
+         args: PhoneInputScreenArgs(
+           key: key,
+           countryCode: countryCode,
+           subtitleBuilder: subtitleBuilder,
+           footerBuilder: footerBuilder,
+         ),
+       );
 
   static const String name = 'PhoneInputScreen';
 }
@@ -1084,7 +998,7 @@ class PhoneInputScreenArgs {
     this.footerBuilder,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String countryCode;
 
@@ -1093,61 +1007,53 @@ class PhoneInputScreenArgs {
   final _i5.Widget Function(_i5.BuildContext)? footerBuilder;
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is PhoneInputScreenArgs &&
-        other.key == key &&
-        other.countryCode == countryCode &&
-        other.subtitleBuilder == subtitleBuilder &&
-        other.footerBuilder == footerBuilder;
-  }
-
-  @override
-  int get hashCode {
-    return key.hashCode ^
-        countryCode.hashCode ^
-        subtitleBuilder.hashCode ^
-        footerBuilder.hashCode;
+  String toString() {
+    return 'PhoneInputScreenArgs{key: $key, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder}';
   }
 }
 
 /// generated route for
 /// [_i1.InventoryRequestMobileView]
-class InventoryRequestMobileViewRoute extends _i4.PageRouteInfo<void> {
-  const InventoryRequestMobileViewRoute()
-      : super(
-          InventoryRequestMobileViewRoute.name,
-          path: '/inventory-request-mobile-view',
-        );
+class InventoryRequestMobileViewRoute
+    extends _i4.PageRouteInfo<InventoryRequestMobileViewArgs> {
+  InventoryRequestMobileViewRoute({_i6.Key? key})
+    : super(
+        InventoryRequestMobileViewRoute.name,
+        path: '/inventory-request-mobile-view',
+        args: InventoryRequestMobileViewArgs(key: key),
+      );
 
   static const String name = 'InventoryRequestMobileView';
+}
+
+class InventoryRequestMobileViewArgs {
+  const InventoryRequestMobileViewArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'InventoryRequestMobileViewArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.AddProductView]
 class AddProductViewRoute extends _i4.PageRouteInfo<AddProductViewArgs> {
-  AddProductViewRoute({
-    _i5.Key? key,
-    String? productId,
-  }) : super(
-          AddProductViewRoute.name,
-          path: '/add-product-view',
-          args: AddProductViewArgs(
-            key: key,
-            productId: productId,
-          ),
-        );
+  AddProductViewRoute({_i6.Key? key, String? productId})
+    : super(
+        AddProductViewRoute.name,
+        path: '/add-product-view',
+        args: AddProductViewArgs(key: key, productId: productId),
+      );
 
   static const String name = 'AddProductView';
 }
 
 class AddProductViewArgs {
-  const AddProductViewArgs({
-    this.key,
-    this.productId,
-  });
+  const AddProductViewArgs({this.key, this.productId});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String? productId;
 
@@ -1161,18 +1067,18 @@ class AddProductViewArgs {
 /// [_i1.AddToFavorites]
 class AddToFavoritesRoute extends _i4.PageRouteInfo<AddToFavoritesArgs> {
   AddToFavoritesRoute({
-    _i5.Key? key,
+    _i6.Key? key,
     required String favoriteIndex,
     required List<String> existingFavs,
   }) : super(
-          AddToFavoritesRoute.name,
-          path: '/add-to-favorites',
-          args: AddToFavoritesArgs(
-            key: key,
-            favoriteIndex: favoriteIndex,
-            existingFavs: existingFavs,
-          ),
-        );
+         AddToFavoritesRoute.name,
+         path: '/add-to-favorites',
+         args: AddToFavoritesArgs(
+           key: key,
+           favoriteIndex: favoriteIndex,
+           existingFavs: existingFavs,
+         ),
+       );
 
   static const String name = 'AddToFavorites';
 }
@@ -1184,7 +1090,7 @@ class AddToFavoritesArgs {
     required this.existingFavs,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String favoriteIndex;
 
@@ -1199,30 +1105,22 @@ class AddToFavoritesArgs {
 /// generated route for
 /// [_i1.AddDiscount]
 class AddDiscountRoute extends _i4.PageRouteInfo<AddDiscountArgs> {
-  AddDiscountRoute({
-    _i5.Key? key,
-    _i9.Discount? discount,
-  }) : super(
-          AddDiscountRoute.name,
-          path: '/add-discount',
-          args: AddDiscountArgs(
-            key: key,
-            discount: discount,
-          ),
-        );
+  AddDiscountRoute({_i6.Key? key, _i7.Discount? discount})
+    : super(
+        AddDiscountRoute.name,
+        path: '/add-discount',
+        args: AddDiscountArgs(key: key, discount: discount),
+      );
 
   static const String name = 'AddDiscount';
 }
 
 class AddDiscountArgs {
-  const AddDiscountArgs({
-    this.key,
-    this.discount,
-  });
+  const AddDiscountArgs({this.key, this.discount});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.Discount? discount;
+  final _i7.Discount? discount;
 
   @override
   String toString() {
@@ -1233,28 +1131,20 @@ class AddDiscountArgs {
 /// generated route for
 /// [_i1.ListCategories]
 class ListCategoriesRoute extends _i4.PageRouteInfo<ListCategoriesArgs> {
-  ListCategoriesRoute({
-    _i5.Key? key,
-    required String? modeOfOperation,
-  }) : super(
-          ListCategoriesRoute.name,
-          path: '/list-categories',
-          args: ListCategoriesArgs(
-            key: key,
-            modeOfOperation: modeOfOperation,
-          ),
-        );
+  ListCategoriesRoute({_i6.Key? key, required String? modeOfOperation})
+    : super(
+        ListCategoriesRoute.name,
+        path: '/list-categories',
+        args: ListCategoriesArgs(key: key, modeOfOperation: modeOfOperation),
+      );
 
   static const String name = 'ListCategories';
 }
 
 class ListCategoriesArgs {
-  const ListCategoriesArgs({
-    this.key,
-    required this.modeOfOperation,
-  });
+  const ListCategoriesArgs({this.key, required this.modeOfOperation});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String? modeOfOperation;
 
@@ -1267,12 +1157,12 @@ class ListCategoriesArgs {
 /// generated route for
 /// [_i1.ColorTile]
 class ColorTileRoute extends _i4.PageRouteInfo<ColorTileArgs> {
-  ColorTileRoute({_i5.Key? key})
-      : super(
-          ColorTileRoute.name,
-          path: '/color-tile',
-          args: ColorTileArgs(key: key),
-        );
+  ColorTileRoute({_i6.Key? key})
+    : super(
+        ColorTileRoute.name,
+        path: '/color-tile',
+        args: ColorTileArgs(key: key),
+      );
 
   static const String name = 'ColorTile';
 }
@@ -1280,7 +1170,7 @@ class ColorTileRoute extends _i4.PageRouteInfo<ColorTileArgs> {
 class ColorTileArgs {
   const ColorTileArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -1292,18 +1182,18 @@ class ColorTileArgs {
 /// [_i1.ReceiveStock]
 class ReceiveStockRoute extends _i4.PageRouteInfo<ReceiveStockArgs> {
   ReceiveStockRoute({
-    _i5.Key? key,
+    _i6.Key? key,
     required String variantId,
     String? existingStock,
   }) : super(
-          ReceiveStockRoute.name,
-          path: '/receive-stock',
-          args: ReceiveStockArgs(
-            key: key,
-            variantId: variantId,
-            existingStock: existingStock,
-          ),
-        );
+         ReceiveStockRoute.name,
+         path: '/receive-stock',
+         args: ReceiveStockArgs(
+           key: key,
+           variantId: variantId,
+           existingStock: existingStock,
+         ),
+       );
 
   static const String name = 'ReceiveStock';
 }
@@ -1315,7 +1205,7 @@ class ReceiveStockArgs {
     this.existingStock,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String variantId;
 
@@ -1330,28 +1220,20 @@ class ReceiveStockArgs {
 /// generated route for
 /// [_i1.AddVariation]
 class AddVariationRoute extends _i4.PageRouteInfo<AddVariationArgs> {
-  AddVariationRoute({
-    _i5.Key? key,
-    required String productId,
-  }) : super(
-          AddVariationRoute.name,
-          path: '/add-variation',
-          args: AddVariationArgs(
-            key: key,
-            productId: productId,
-          ),
-        );
+  AddVariationRoute({_i6.Key? key, required String productId})
+    : super(
+        AddVariationRoute.name,
+        path: '/add-variation',
+        args: AddVariationArgs(key: key, productId: productId),
+      );
 
   static const String name = 'AddVariation';
 }
 
 class AddVariationArgs {
-  const AddVariationArgs({
-    this.key,
-    required this.productId,
-  });
+  const AddVariationArgs({this.key, required this.productId});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String productId;
 
@@ -1364,12 +1246,12 @@ class AddVariationArgs {
 /// generated route for
 /// [_i1.AddCategory]
 class AddCategoryRoute extends _i4.PageRouteInfo<AddCategoryArgs> {
-  AddCategoryRoute({_i5.Key? key})
-      : super(
-          AddCategoryRoute.name,
-          path: '/add-category',
-          args: AddCategoryArgs(key: key),
-        );
+  AddCategoryRoute({_i6.Key? key})
+    : super(
+        AddCategoryRoute.name,
+        path: '/add-category',
+        args: AddCategoryArgs(key: key),
+      );
 
   static const String name = 'AddCategory';
 }
@@ -1377,7 +1259,7 @@ class AddCategoryRoute extends _i4.PageRouteInfo<AddCategoryArgs> {
 class AddCategoryArgs {
   const AddCategoryArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -1388,28 +1270,20 @@ class AddCategoryArgs {
 /// generated route for
 /// [_i1.ListUnits]
 class ListUnitsRoute extends _i4.PageRouteInfo<ListUnitsArgs> {
-  ListUnitsRoute({
-    _i5.Key? key,
-    required String type,
-  }) : super(
-          ListUnitsRoute.name,
-          path: '/list-units',
-          args: ListUnitsArgs(
-            key: key,
-            type: type,
-          ),
-        );
+  ListUnitsRoute({_i6.Key? key, required String type})
+    : super(
+        ListUnitsRoute.name,
+        path: '/list-units',
+        args: ListUnitsArgs(key: key, type: type),
+      );
 
   static const String name = 'ListUnits';
 }
 
 class ListUnitsArgs {
-  const ListUnitsArgs({
-    this.key,
-    required this.type,
-  });
+  const ListUnitsArgs({this.key, required this.type});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String type;
 
@@ -1422,30 +1296,22 @@ class ListUnitsArgs {
 /// generated route for
 /// [_i1.Sell]
 class SellRoute extends _i4.PageRouteInfo<SellArgs> {
-  SellRoute({
-    _i5.Key? key,
-    required _i9.Product product,
-  }) : super(
-          SellRoute.name,
-          path: '/Sell',
-          args: SellArgs(
-            key: key,
-            product: product,
-          ),
-        );
+  SellRoute({_i6.Key? key, required _i7.Product product})
+    : super(
+        SellRoute.name,
+        path: '/Sell',
+        args: SellArgs(key: key, product: product),
+      );
 
   static const String name = 'Sell';
 }
 
 class SellArgs {
-  const SellArgs({
-    this.key,
-    required this.product,
-  });
+  const SellArgs({this.key, required this.product});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.Product product;
+  final _i7.Product product;
 
   @override
   String toString() {
@@ -1457,22 +1323,22 @@ class SellArgs {
 /// [_i1.Payments]
 class PaymentsRoute extends _i4.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     required bool isIncome,
     required String categoryId,
     required String transactionType,
   }) : super(
-          PaymentsRoute.name,
-          path: '/Payments',
-          args: PaymentsArgs(
-            key: key,
-            transaction: transaction,
-            isIncome: isIncome,
-            categoryId: categoryId,
-            transactionType: transactionType,
-          ),
-        );
+         PaymentsRoute.name,
+         path: '/Payments',
+         args: PaymentsArgs(
+           key: key,
+           transaction: transaction,
+           isIncome: isIncome,
+           categoryId: categoryId,
+           transactionType: transactionType,
+         ),
+       );
 
   static const String name = 'Payments';
 }
@@ -1486,9 +1352,9 @@ class PaymentsArgs {
     required this.transactionType,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.ITransaction transaction;
+  final _i7.ITransaction transaction;
 
   final bool isIncome;
 
@@ -1507,29 +1373,23 @@ class PaymentsArgs {
 class PaymentConfirmationRoute
     extends _i4.PageRouteInfo<PaymentConfirmationArgs> {
   PaymentConfirmationRoute({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
   }) : super(
-          PaymentConfirmationRoute.name,
-          path: '/payment-confirmation',
-          args: PaymentConfirmationArgs(
-            key: key,
-            transaction: transaction,
-          ),
-        );
+         PaymentConfirmationRoute.name,
+         path: '/payment-confirmation',
+         args: PaymentConfirmationArgs(key: key, transaction: transaction),
+       );
 
   static const String name = 'PaymentConfirmation';
 }
 
 class PaymentConfirmationArgs {
-  const PaymentConfirmationArgs({
-    this.key,
-    required this.transaction,
-  });
+  const PaymentConfirmationArgs({this.key, required this.transaction});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.ITransaction transaction;
+  final _i7.ITransaction transaction;
 
   @override
   String toString() {
@@ -1540,30 +1400,22 @@ class PaymentConfirmationArgs {
 /// generated route for
 /// [_i1.TransactionDetail]
 class TransactionDetailRoute extends _i4.PageRouteInfo<TransactionDetailArgs> {
-  TransactionDetailRoute({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
-  }) : super(
-          TransactionDetailRoute.name,
-          path: '/transaction-detail',
-          args: TransactionDetailArgs(
-            key: key,
-            transaction: transaction,
-          ),
-        );
+  TransactionDetailRoute({_i6.Key? key, required _i7.ITransaction transaction})
+    : super(
+        TransactionDetailRoute.name,
+        path: '/transaction-detail',
+        args: TransactionDetailArgs(key: key, transaction: transaction),
+      );
 
   static const String name = 'TransactionDetail';
 }
 
 class TransactionDetailArgs {
-  const TransactionDetailArgs({
-    this.key,
-    required this.transaction,
-  });
+  const TransactionDetailArgs({this.key, required this.transaction});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.ITransaction transaction;
+  final _i7.ITransaction transaction;
 
   @override
   String toString() {
@@ -1575,10 +1427,7 @@ class TransactionDetailArgs {
 /// [_i1.SettingsScreen]
 class SettingsScreenRoute extends _i4.PageRouteInfo<void> {
   const SettingsScreenRoute()
-      : super(
-          SettingsScreenRoute.name,
-          path: '/settings-screen',
-        );
+    : super(SettingsScreenRoute.name, path: '/settings-screen');
 
   static const String name = 'SettingsScreen';
 }
@@ -1586,12 +1435,12 @@ class SettingsScreenRoute extends _i4.PageRouteInfo<void> {
 /// generated route for
 /// [_i1.SwitchBranchView]
 class SwitchBranchViewRoute extends _i4.PageRouteInfo<SwitchBranchViewArgs> {
-  SwitchBranchViewRoute({_i5.Key? key})
-      : super(
-          SwitchBranchViewRoute.name,
-          path: '/switch-branch-view',
-          args: SwitchBranchViewArgs(key: key),
-        );
+  SwitchBranchViewRoute({_i6.Key? key})
+    : super(
+        SwitchBranchViewRoute.name,
+        path: '/switch-branch-view',
+        args: SwitchBranchViewArgs(key: key),
+      );
 
   static const String name = 'SwitchBranchView';
 }
@@ -1599,7 +1448,7 @@ class SwitchBranchViewRoute extends _i4.PageRouteInfo<SwitchBranchViewArgs> {
 class SwitchBranchViewArgs {
   const SwitchBranchViewArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -1608,53 +1457,14 @@ class SwitchBranchViewArgs {
 }
 
 /// generated route for
-/// [_i1.ScannView]
-class ScannViewRoute extends _i4.PageRouteInfo<ScannViewArgs> {
-  ScannViewRoute({
-    _i5.Key? key,
-    String intent = 'selling',
-    bool useLatestImplementation = false,
-  }) : super(
-          ScannViewRoute.name,
-          path: '/scann-view',
-          args: ScannViewArgs(
-            key: key,
-            intent: intent,
-            useLatestImplementation: useLatestImplementation,
-          ),
-        );
-
-  static const String name = 'ScannView';
-}
-
-class ScannViewArgs {
-  const ScannViewArgs({
-    this.key,
-    this.intent = 'selling',
-    this.useLatestImplementation = false,
-  });
-
-  final _i5.Key? key;
-
-  final String intent;
-
-  final bool useLatestImplementation;
-
-  @override
-  String toString() {
-    return 'ScannViewArgs{key: $key, intent: $intent, useLatestImplementation: $useLatestImplementation}';
-  }
-}
-
-/// generated route for
 /// [_i1.OrderView]
 class OrderViewRoute extends _i4.PageRouteInfo<OrderViewArgs> {
-  OrderViewRoute({_i5.Key? key})
-      : super(
-          OrderViewRoute.name,
-          path: '/order-view',
-          args: OrderViewArgs(key: key),
-        );
+  OrderViewRoute({_i6.Key? key})
+    : super(
+        OrderViewRoute.name,
+        path: '/order-view',
+        args: OrderViewArgs(key: key),
+      );
 
   static const String name = 'OrderView';
 }
@@ -1662,7 +1472,7 @@ class OrderViewRoute extends _i4.PageRouteInfo<OrderViewArgs> {
 class OrderViewArgs {
   const OrderViewArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -1672,37 +1482,61 @@ class OrderViewArgs {
 
 /// generated route for
 /// [_i1.Orders]
-class OrdersRoute extends _i4.PageRouteInfo<void> {
-  const OrdersRoute()
-      : super(
-          OrdersRoute.name,
-          path: '/Orders',
-        );
+class OrdersRoute extends _i4.PageRouteInfo<OrdersArgs> {
+  OrdersRoute({_i6.Key? key})
+    : super(
+        OrdersRoute.name,
+        path: '/Orders',
+        args: OrdersArgs(key: key),
+      );
 
   static const String name = 'Orders';
 }
 
+class OrdersArgs {
+  const OrdersArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'OrdersArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.Customers]
-class CustomersRoute extends _i4.PageRouteInfo<void> {
-  const CustomersRoute()
-      : super(
-          CustomersRoute.name,
-          path: '/Customers',
-        );
+class CustomersRoute extends _i4.PageRouteInfo<CustomersArgs> {
+  CustomersRoute({_i6.Key? key})
+    : super(
+        CustomersRoute.name,
+        path: '/Customers',
+        args: CustomersArgs(key: key),
+      );
 
   static const String name = 'Customers';
+}
+
+class CustomersArgs {
+  const CustomersArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'CustomersArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.NoNet]
 class NoNetRoute extends _i4.PageRouteInfo<NoNetArgs> {
-  NoNetRoute({_i5.Key? key})
-      : super(
-          NoNetRoute.name,
-          path: '/no-net',
-          args: NoNetArgs(key: key),
-        );
+  NoNetRoute({_i6.Key? key})
+    : super(
+        NoNetRoute.name,
+        path: '/no-net',
+        args: NoNetArgs(key: key),
+      );
 
   static const String name = 'NoNet';
 }
@@ -1710,7 +1544,7 @@ class NoNetRoute extends _i4.PageRouteInfo<NoNetArgs> {
 class NoNetArgs {
   const NoNetArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -1721,12 +1555,12 @@ class NoNetArgs {
 /// generated route for
 /// [_i1.PinLogin]
 class PinLoginRoute extends _i4.PageRouteInfo<PinLoginArgs> {
-  PinLoginRoute({_i5.Key? key})
-      : super(
-          PinLoginRoute.name,
-          path: '/pin-login',
-          args: PinLoginArgs(key: key),
-        );
+  PinLoginRoute({_i6.Key? key})
+    : super(
+        PinLoginRoute.name,
+        path: '/pin-login',
+        args: PinLoginArgs(key: key),
+      );
 
   static const String name = 'PinLogin';
 }
@@ -1734,7 +1568,7 @@ class PinLoginRoute extends _i4.PageRouteInfo<PinLoginArgs> {
 class PinLoginArgs {
   const PinLoginArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -1745,28 +1579,20 @@ class PinLoginArgs {
 /// generated route for
 /// [_i1.Devices]
 class DevicesRoute extends _i4.PageRouteInfo<DevicesArgs> {
-  DevicesRoute({
-    _i5.Key? key,
-    int? pin,
-  }) : super(
-          DevicesRoute.name,
-          path: '/Devices',
-          args: DevicesArgs(
-            key: key,
-            pin: pin,
-          ),
-        );
+  DevicesRoute({_i6.Key? key, int? pin})
+    : super(
+        DevicesRoute.name,
+        path: '/Devices',
+        args: DevicesArgs(key: key, pin: pin),
+      );
 
   static const String name = 'Devices';
 }
 
 class DevicesArgs {
-  const DevicesArgs({
-    this.key,
-    this.pin,
-  });
+  const DevicesArgs({this.key, this.pin});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final int? pin;
 
@@ -1778,135 +1604,173 @@ class DevicesArgs {
 
 /// generated route for
 /// [_i1.SystemConfig]
-class TaxConfigurationRoute extends _i4.PageRouteInfo<TaxConfigurationArgs> {
-  TaxConfigurationRoute({
-    _i5.Key? key,
-    required bool showheader,
-  }) : super(
-          TaxConfigurationRoute.name,
-          path: '/tax-configuration',
-          args: TaxConfigurationArgs(
-            key: key,
-            showheader: showheader,
-          ),
-        );
+class SystemConfigRoute extends _i4.PageRouteInfo<SystemConfigArgs> {
+  SystemConfigRoute({_i6.Key? key, required bool showheader})
+    : super(
+        SystemConfigRoute.name,
+        path: '/system-config',
+        args: SystemConfigArgs(key: key, showheader: showheader),
+      );
 
-  static const String name = 'TaxConfiguration';
+  static const String name = 'SystemConfig';
 }
 
-class TaxConfigurationArgs {
-  const TaxConfigurationArgs({
-    this.key,
-    required this.showheader,
-  });
+class SystemConfigArgs {
+  const SystemConfigArgs({this.key, required this.showheader});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final bool showheader;
 
   @override
   String toString() {
-    return 'TaxConfigurationArgs{key: $key, showheader: $showheader}';
+    return 'SystemConfigArgs{key: $key, showheader: $showheader}';
   }
 }
 
 /// generated route for
 /// [_i1.Printing]
-class PrintingRoute extends _i4.PageRouteInfo<void> {
-  const PrintingRoute()
-      : super(
-          PrintingRoute.name,
-          path: '/Printing',
-        );
+class PrintingRoute extends _i4.PageRouteInfo<PrintingArgs> {
+  PrintingRoute({_i6.Key? key})
+    : super(
+        PrintingRoute.name,
+        path: '/Printing',
+        args: PrintingArgs(key: key),
+      );
 
   static const String name = 'Printing';
 }
 
+class PrintingArgs {
+  const PrintingArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'PrintingArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.BackUp]
-class BackUpRoute extends _i4.PageRouteInfo<void> {
-  const BackUpRoute()
-      : super(
-          BackUpRoute.name,
-          path: '/back-up',
-        );
+class BackUpRoute extends _i4.PageRouteInfo<BackUpArgs> {
+  BackUpRoute({_i6.Key? key})
+    : super(
+        BackUpRoute.name,
+        path: '/back-up',
+        args: BackUpArgs(key: key),
+      );
 
   static const String name = 'BackUp';
 }
 
+class BackUpArgs {
+  const BackUpArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'BackUpArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.LoginChoices]
-class LoginChoicesRoute extends _i4.PageRouteInfo<void> {
-  const LoginChoicesRoute()
-      : super(
-          LoginChoicesRoute.name,
-          path: '/login-choices',
-        );
+class LoginChoicesRoute extends _i4.PageRouteInfo<LoginChoicesArgs> {
+  LoginChoicesRoute({_i6.Key? key})
+    : super(
+        LoginChoicesRoute.name,
+        path: '/login-choices',
+        args: LoginChoicesArgs(key: key),
+      );
 
   static const String name = 'LoginChoices';
 }
 
+class LoginChoicesArgs {
+  const LoginChoicesArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'LoginChoicesArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.TenantManagement]
-class TenantManagementRoute extends _i4.PageRouteInfo<void> {
-  const TenantManagementRoute()
-      : super(
-          TenantManagementRoute.name,
-          path: '/tenant-management',
-        );
+class TenantManagementRoute extends _i4.PageRouteInfo<TenantManagementArgs> {
+  TenantManagementRoute({_i6.Key? key})
+    : super(
+        TenantManagementRoute.name,
+        path: '/tenant-management',
+        args: TenantManagementArgs(key: key),
+      );
 
   static const String name = 'TenantManagement';
 }
 
+class TenantManagementArgs {
+  const TenantManagementArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'TenantManagementArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.AgentCommissionScreen]
-class AgentCommissionRoute extends _i4.PageRouteInfo<void> {
-  const AgentCommissionRoute()
-      : super(
-          AgentCommissionRoute.name,
-          path: '/agent-commission',
-        );
+class AgentCommissionScreenRoute
+    extends _i4.PageRouteInfo<AgentCommissionScreenArgs> {
+  AgentCommissionScreenRoute({_i6.Key? key, bool embeddedInDashboard = false})
+    : super(
+        AgentCommissionScreenRoute.name,
+        path: '/agent-commission-screen',
+        args: AgentCommissionScreenArgs(
+          key: key,
+          embeddedInDashboard: embeddedInDashboard,
+        ),
+      );
 
   static const String name = 'AgentCommissionScreen';
 }
 
-/// generated route for
-/// [_i1.SocialHomeView]
-class SocialHomeViewRoute extends _i4.PageRouteInfo<void> {
-  const SocialHomeViewRoute()
-      : super(
-          SocialHomeViewRoute.name,
-          path: '/social-home-view',
-        );
+class AgentCommissionScreenArgs {
+  const AgentCommissionScreenArgs({this.key, this.embeddedInDashboard = false});
 
-  static const String name = 'SocialHomeView';
+  final _i6.Key? key;
+
+  final bool embeddedInDashboard;
+
+  @override
+  String toString() {
+    return 'AgentCommissionScreenArgs{key: $key, embeddedInDashboard: $embeddedInDashboard}';
+  }
 }
 
 /// generated route for
 /// [_i1.DrawerScreen]
 class DrawerScreenRoute extends _i4.PageRouteInfo<DrawerScreenArgs> {
-  DrawerScreenRoute({
-    _i5.Key? key,
-    required String open,
-  }) : super(
-          DrawerScreenRoute.name,
-          path: '/drawer-screen',
-          args: DrawerScreenArgs(
-            key: key,
-            open: open,
-          ),
-        );
+  DrawerScreenRoute({_i6.Key? key, required String open})
+    : super(
+        DrawerScreenRoute.name,
+        path: '/drawer-screen',
+        args: DrawerScreenArgs(key: key, open: open),
+      );
 
   static const String name = 'DrawerScreen';
 }
 
 class DrawerScreenArgs {
-  const DrawerScreenArgs({
-    this.key,
-    required this.open,
-  });
+  const DrawerScreenArgs({this.key, required this.open});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final String open;
 
@@ -1917,68 +1781,21 @@ class DrawerScreenArgs {
 }
 
 /// generated route for
-/// [_i1.ChatListView]
-class ChatListViewRoute extends _i4.PageRouteInfo<void> {
-  const ChatListViewRoute()
-      : super(
-          ChatListViewRoute.name,
-          path: '/chat-list-view',
-        );
-
-  static const String name = 'ChatListView';
-}
-
-/// generated route for
-/// [_i1.ConversationHistory]
-class ConversationHistoryRoute
-    extends _i4.PageRouteInfo<ConversationHistoryArgs> {
-  ConversationHistoryRoute({
-    _i5.Key? key,
-    required String conversationId,
-  }) : super(
-          ConversationHistoryRoute.name,
-          path: '/conversation-history',
-          args: ConversationHistoryArgs(
-            key: key,
-            conversationId: conversationId,
-          ),
-        );
-
-  static const String name = 'ConversationHistory';
-}
-
-class ConversationHistoryArgs {
-  const ConversationHistoryArgs({
-    this.key,
-    required this.conversationId,
-  });
-
-  final _i5.Key? key;
-
-  final String conversationId;
-
-  @override
-  String toString() {
-    return 'ConversationHistoryArgs{key: $key, conversationId: $conversationId}';
-  }
-}
-
-/// generated route for
 /// [_i1.TicketsList]
 class TicketsListRoute extends _i4.PageRouteInfo<TicketsListArgs> {
   TicketsListRoute({
-    _i5.Key? key,
-    required _i9.ITransaction? transaction,
+    _i6.Key? key,
+    required _i7.ITransaction? transaction,
     bool showAppBar = true,
   }) : super(
-          TicketsListRoute.name,
-          path: '/tickets-list',
-          args: TicketsListArgs(
-            key: key,
-            transaction: transaction,
-            showAppBar: showAppBar,
-          ),
-        );
+         TicketsListRoute.name,
+         path: '/tickets-list',
+         args: TicketsListArgs(
+           key: key,
+           transaction: transaction,
+           showAppBar: showAppBar,
+         ),
+       );
 
   static const String name = 'TicketsList';
 }
@@ -1990,9 +1807,9 @@ class TicketsListArgs {
     this.showAppBar = true,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.ITransaction? transaction;
+  final _i7.ITransaction? transaction;
 
   final bool showAppBar;
 
@@ -2006,18 +1823,18 @@ class TicketsListArgs {
 /// [_i1.NewTicket]
 class NewTicketRoute extends _i4.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     required void Function() onClose,
   }) : super(
-          NewTicketRoute.name,
-          path: '/new-ticket',
-          args: NewTicketArgs(
-            key: key,
-            transaction: transaction,
-            onClose: onClose,
-          ),
-        );
+         NewTicketRoute.name,
+         path: '/new-ticket',
+         args: NewTicketArgs(
+           key: key,
+           transaction: transaction,
+           onClose: onClose,
+         ),
+       );
 
   static const String name = 'NewTicket';
 }
@@ -2029,9 +1846,9 @@ class NewTicketArgs {
     required this.onClose,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
-  final _i9.ITransaction transaction;
+  final _i7.ITransaction transaction;
 
   final void Function() onClose;
 
@@ -2042,74 +1859,66 @@ class NewTicketArgs {
 }
 
 /// generated route for
-/// [_i1.Apps]
-class AppsRoute extends _i4.PageRouteInfo<AppsArgs> {
-  AppsRoute({
-    _i5.Key? key,
+/// [_i1.MobileView]
+class MobileViewRoute extends _i4.PageRouteInfo<MobileViewArgs> {
+  MobileViewRoute({
+    _i6.Key? key,
     required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i9.CoreViewModel model,
+    required _i7.CoreViewModel model,
   }) : super(
-          AppsRoute.name,
-          path: '/Apps',
-          args: AppsArgs(
-            key: key,
-            controller: controller,
-            isBigScreen: isBigScreen,
-            model: model,
-          ),
-        );
+         MobileViewRoute.name,
+         path: '/mobile-view',
+         args: MobileViewArgs(
+           key: key,
+           controller: controller,
+           isBigScreen: isBigScreen,
+           model: model,
+         ),
+       );
 
-  static const String name = 'Apps';
+  static const String name = 'MobileView';
 }
 
-class AppsArgs {
-  const AppsArgs({
+class MobileViewArgs {
+  const MobileViewArgs({
     this.key,
     required this.controller,
     required this.isBigScreen,
     required this.model,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final _i5.TextEditingController controller;
 
   final bool isBigScreen;
 
-  final _i9.CoreViewModel model;
+  final _i7.CoreViewModel model;
 
   @override
   String toString() {
-    return 'AppsArgs{key: $key, controller: $controller, isBigScreen: $isBigScreen, model: $model}';
+    return 'MobileViewArgs{key: $key, controller: $controller, isBigScreen: $isBigScreen, model: $model}';
   }
 }
 
 /// generated route for
 /// [_i1.CheckOut]
 class CheckOutRoute extends _i4.PageRouteInfo<CheckOutArgs> {
-  CheckOutRoute({
-    _i5.Key? key,
-    bool isBigScreen = false,
-  }) : super(
-          CheckOutRoute.name,
-          path: '/check-out',
-          args: CheckOutArgs(
-            key: key,
-            isBigScreen: isBigScreen,
-          ),
-        );
+  CheckOutRoute({_i6.Key? key, bool isBigScreen = false})
+    : super(
+        CheckOutRoute.name,
+        path: '/check-out',
+        args: CheckOutArgs(key: key, isBigScreen: isBigScreen),
+      );
 
   static const String name = 'CheckOut';
 }
 
 class CheckOutArgs {
-  const CheckOutArgs({
-    this.key,
-    this.isBigScreen = false,
-  });
+  const CheckOutArgs({this.key, this.isBigScreen = false});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final bool isBigScreen;
 
@@ -2121,53 +1930,69 @@ class CheckOutArgs {
 
 /// generated route for
 /// [_i1.BarModeHost]
-class BarModeRoute extends _i4.PageRouteInfo<void> {
-  BarModeRoute()
-      : super(
-          BarModeRoute.name,
-          path: '/bar-mode',
-        );
+class BarModeHostRoute extends _i4.PageRouteInfo<BarModeHostArgs> {
+  BarModeHostRoute({_i6.Key? key})
+    : super(
+        BarModeHostRoute.name,
+        path: '/bar-mode-host',
+        args: BarModeHostArgs(key: key),
+      );
 
   static const String name = 'BarModeHost';
 }
 
+class BarModeHostArgs {
+  const BarModeHostArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'BarModeHostArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i1.HotelModeHost]
-class HotelModeRoute extends _i4.PageRouteInfo<void> {
-  HotelModeRoute()
-      : super(
-          HotelModeRoute.name,
-          path: '/hotel-mode',
-        );
+class HotelModeHostRoute extends _i4.PageRouteInfo<HotelModeHostArgs> {
+  HotelModeHostRoute({_i6.Key? key})
+    : super(
+        HotelModeHostRoute.name,
+        path: '/hotel-mode-host',
+        args: HotelModeHostArgs(key: key),
+      );
 
   static const String name = 'HotelModeHost';
+}
+
+class HotelModeHostArgs {
+  const HotelModeHostArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'HotelModeHostArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.Cashbook]
 class CashbookRoute extends _i4.PageRouteInfo<CashbookArgs> {
-  CashbookRoute({
-    _i5.Key? key,
-    required bool isBigScreen,
-  }) : super(
-          CashbookRoute.name,
-          path: '/Cashbook',
-          args: CashbookArgs(
-            key: key,
-            isBigScreen: isBigScreen,
-          ),
-        );
+  CashbookRoute({_i6.Key? key, required bool isBigScreen})
+    : super(
+        CashbookRoute.name,
+        path: '/Cashbook',
+        args: CashbookArgs(key: key, isBigScreen: isBigScreen),
+      );
 
   static const String name = 'Cashbook';
 }
 
 class CashbookArgs {
-  const CashbookArgs({
-    this.key,
-    required this.isBigScreen,
-  });
+  const CashbookArgs({this.key, required this.isBigScreen});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final bool isBigScreen;
 
@@ -2180,12 +2005,12 @@ class CashbookArgs {
 /// generated route for
 /// [_i1.SettingPage]
 class SettingPageRoute extends _i4.PageRouteInfo<SettingPageArgs> {
-  SettingPageRoute({_i5.Key? key})
-      : super(
-          SettingPageRoute.name,
-          path: '/setting-page',
-          args: SettingPageArgs(key: key),
-        );
+  SettingPageRoute({_i6.Key? key})
+    : super(
+        SettingPageRoute.name,
+        path: '/setting-page',
+        args: SettingPageArgs(key: key),
+      );
 
   static const String name = 'SettingPage';
 }
@@ -2193,7 +2018,7 @@ class SettingPageRoute extends _i4.PageRouteInfo<SettingPageArgs> {
 class SettingPageArgs {
   const SettingPageArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -2203,25 +2028,37 @@ class SettingPageArgs {
 
 /// generated route for
 /// [_i1.Transactions]
-class TransactionsRoute extends _i4.PageRouteInfo<void> {
-  const TransactionsRoute()
-      : super(
-          TransactionsRoute.name,
-          path: '/Transactions',
-        );
+class TransactionsRoute extends _i4.PageRouteInfo<TransactionsArgs> {
+  TransactionsRoute({_i6.Key? key})
+    : super(
+        TransactionsRoute.name,
+        path: '/Transactions',
+        args: TransactionsArgs(key: key),
+      );
 
   static const String name = 'Transactions';
+}
+
+class TransactionsArgs {
+  const TransactionsArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'TransactionsArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.Security]
 class SecurityRoute extends _i4.PageRouteInfo<SecurityArgs> {
-  SecurityRoute({_i5.Key? key})
-      : super(
-          SecurityRoute.name,
-          path: '/Security',
-          args: SecurityArgs(key: key),
-        );
+  SecurityRoute({_i6.Key? key})
+    : super(
+        SecurityRoute.name,
+        path: '/Security',
+        args: SecurityArgs(key: key),
+      );
 
   static const String name = 'Security';
 }
@@ -2229,7 +2066,7 @@ class SecurityRoute extends _i4.PageRouteInfo<SecurityArgs> {
 class SecurityArgs {
   const SecurityArgs({this.key});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -2238,49 +2075,59 @@ class SecurityArgs {
 }
 
 /// generated route for
-/// [_i1.Comfirm]
-class ComfirmRoute extends _i4.PageRouteInfo<void> {
-  const ComfirmRoute()
-      : super(
-          ComfirmRoute.name,
-          path: '/Comfirm',
-        );
-
-  static const String name = 'Comfirm';
-}
-
-/// generated route for
 /// [_i1.ReportsDashboard]
-class ReportsDashboardRoute extends _i4.PageRouteInfo<void> {
-  const ReportsDashboardRoute()
-      : super(
-          ReportsDashboardRoute.name,
-          path: '/reports-dashboard',
-        );
+class ReportsDashboardRoute extends _i4.PageRouteInfo<ReportsDashboardArgs> {
+  ReportsDashboardRoute({_i6.Key? key, bool isInDialog = false})
+    : super(
+        ReportsDashboardRoute.name,
+        path: '/reports-dashboard',
+        args: ReportsDashboardArgs(key: key, isInDialog: isInDialog),
+      );
 
   static const String name = 'ReportsDashboard';
 }
 
+class ReportsDashboardArgs {
+  const ReportsDashboardArgs({this.key, this.isInDialog = false});
+
+  final _i6.Key? key;
+
+  final bool isInDialog;
+
+  @override
+  String toString() {
+    return 'ReportsDashboardArgs{key: $key, isInDialog: $isInDialog}';
+  }
+}
+
 /// generated route for
 /// [_i1.AdminControl]
-class AdminControlRoute extends _i4.PageRouteInfo<void> {
-  const AdminControlRoute()
-      : super(
-          AdminControlRoute.name,
-          path: '/admin-control',
-        );
+class AdminControlRoute extends _i4.PageRouteInfo<AdminControlArgs> {
+  AdminControlRoute({_i6.Key? key})
+    : super(
+        AdminControlRoute.name,
+        path: '/admin-control',
+        args: AdminControlArgs(key: key),
+      );
 
   static const String name = 'AdminControl';
+}
+
+class AdminControlArgs {
+  const AdminControlArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'AdminControlArgs{key: $key}';
+  }
 }
 
 /// generated route for
 /// [_i1.AddBranch]
 class AddBranchRoute extends _i4.PageRouteInfo<void> {
-  const AddBranchRoute()
-      : super(
-          AddBranchRoute.name,
-          path: '/add-branch',
-        );
+  const AddBranchRoute() : super(AddBranchRoute.name, path: '/add-branch');
 
   static const String name = 'AddBranch';
 }
@@ -2289,30 +2136,28 @@ class AddBranchRoute extends _i4.PageRouteInfo<void> {
 /// [_i2.QuickSellingView]
 class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
   QuickSellingViewRoute({
-    _i5.Key? key,
+    _i6.Key? key,
     required _i5.GlobalKey<_i5.FormState> formKey,
     required _i5.TextEditingController discountController,
     required _i5.TextEditingController receivedAmountController,
     required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
-    required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
     required _i5.TextEditingController countryCodeController,
   }) : super(
-          QuickSellingViewRoute.name,
-          path: '/quick-selling-view',
-          args: QuickSellingViewArgs(
-            key: key,
-            formKey: formKey,
-            discountController: discountController,
-            receivedAmountController: receivedAmountController,
-            deliveryNoteCotroller: deliveryNoteCotroller,
-            customerPhoneNumberController: customerPhoneNumberController,
-            customerNameController: customerNameController,
-            paymentTypeController: paymentTypeController,
-            countryCodeController: countryCodeController,
-          ),
-        );
+         QuickSellingViewRoute.name,
+         path: '/quick-selling-view',
+         args: QuickSellingViewArgs(
+           key: key,
+           formKey: formKey,
+           discountController: discountController,
+           receivedAmountController: receivedAmountController,
+           deliveryNoteCotroller: deliveryNoteCotroller,
+           customerPhoneNumberController: customerPhoneNumberController,
+           paymentTypeController: paymentTypeController,
+           countryCodeController: countryCodeController,
+         ),
+       );
 
   static const String name = 'QuickSellingView';
 }
@@ -2325,17 +2170,15 @@ class QuickSellingViewArgs {
     required this.receivedAmountController,
     required this.deliveryNoteCotroller,
     required this.customerPhoneNumberController,
-    required this.customerNameController,
     required this.paymentTypeController,
     required this.countryCodeController,
   });
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final _i5.GlobalKey<_i5.FormState> formKey;
 
   final _i5.TextEditingController discountController;
-  final _i5.TextEditingController countryCodeController;
 
   final _i5.TextEditingController receivedAmountController;
 
@@ -2343,41 +2186,36 @@ class QuickSellingViewArgs {
 
   final _i5.TextEditingController customerPhoneNumberController;
 
-  final _i5.TextEditingController customerNameController;
-
   final _i5.TextEditingController paymentTypeController;
+
+  final _i5.TextEditingController countryCodeController;
 
   @override
   String toString() {
-    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, deliveryNoteCotroller: $deliveryNoteCotroller, customerPhoneNumberController: $customerPhoneNumberController, customerNameController: $customerNameController, paymentTypeController: $paymentTypeController}';
+    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, deliveryNoteCotroller: $deliveryNoteCotroller, customerPhoneNumberController: $customerPhoneNumberController, paymentTypeController: $paymentTypeController, countryCodeController: $countryCodeController}';
   }
 }
 
 /// generated route for
 /// [_i1.PaymentPlanUI]
 class PaymentPlanUIRoute extends _i4.PageRouteInfo<PaymentPlanUIArgs> {
-  PaymentPlanUIRoute({
-    _i5.Key? key,
-    bool skipPaymentStatusCheck = false,
-  }) : super(
-          PaymentPlanUIRoute.name,
-          path: '/payment-plan-uI',
-          args: PaymentPlanUIArgs(
-            key: key,
-            skipPaymentStatusCheck: skipPaymentStatusCheck,
-          ),
-        );
+  PaymentPlanUIRoute({_i6.Key? key, bool skipPaymentStatusCheck = false})
+    : super(
+        PaymentPlanUIRoute.name,
+        path: '/payment-plan-uI',
+        args: PaymentPlanUIArgs(
+          key: key,
+          skipPaymentStatusCheck: skipPaymentStatusCheck,
+        ),
+      );
 
   static const String name = 'PaymentPlanUI';
 }
 
 class PaymentPlanUIArgs {
-  const PaymentPlanUIArgs({
-    this.key,
-    this.skipPaymentStatusCheck = false,
-  });
+  const PaymentPlanUIArgs({this.key, this.skipPaymentStatusCheck = false});
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   final bool skipPaymentStatusCheck;
 
@@ -2391,10 +2229,7 @@ class PaymentPlanUIArgs {
 /// [_i1.PaymentFinalize]
 class PaymentFinalizeRoute extends _i4.PageRouteInfo<void> {
   const PaymentFinalizeRoute()
-      : super(
-          PaymentFinalizeRoute.name,
-          path: '/payment-finalize',
-        );
+    : super(PaymentFinalizeRoute.name, path: '/payment-finalize');
 
   static const String name = 'PaymentFinalize';
 }
@@ -2403,30 +2238,22 @@ class PaymentFinalizeRoute extends _i4.PageRouteInfo<void> {
 /// [_i1.WaitingOrdersPlaced]
 class WaitingOrdersPlacedRoute
     extends _i4.PageRouteInfo<WaitingOrdersPlacedArgs> {
-  WaitingOrdersPlacedRoute(
-    String orderId, {
-    _i5.Key? key,
-  }) : super(
-          WaitingOrdersPlacedRoute.name,
-          path: '/waiting-orders-placed',
-          args: WaitingOrdersPlacedArgs(
-            orderId,
-            key: key,
-          ),
-        );
+  WaitingOrdersPlacedRoute({required String orderId, _i6.Key? key})
+    : super(
+        WaitingOrdersPlacedRoute.name,
+        path: '/waiting-orders-placed',
+        args: WaitingOrdersPlacedArgs(orderId: orderId, key: key),
+      );
 
-  static const String name = 'WaitingOrdersPlacedRoute';
+  static const String name = 'WaitingOrdersPlaced';
 }
 
 class WaitingOrdersPlacedArgs {
-  const WaitingOrdersPlacedArgs(
-    this.orderId, {
-    this.key,
-  });
+  const WaitingOrdersPlacedArgs({required this.orderId, this.key});
 
   final String orderId;
 
-  final _i5.Key? key;
+  final _i6.Key? key;
 
   @override
   String toString() {
@@ -2435,96 +2262,157 @@ class WaitingOrdersPlacedArgs {
 }
 
 /// generated route for
-/// [_i1.ShiftHistoryView]
-class ShiftHistoryViewRoute extends _i4.PageRouteInfo<void> {
-  const ShiftHistoryViewRoute()
-      : super(
-          ShiftHistoryViewRoute.name,
-          path: '/shift-history-view',
-        );
+/// [_i1.CreditApp]
+class CreditAppRoute extends _i4.PageRouteInfo<CreditAppArgs> {
+  CreditAppRoute({_i6.Key? key})
+    : super(
+        CreditAppRoute.name,
+        path: '/credit-app',
+        args: CreditAppArgs(key: key),
+      );
 
-  static const String name = 'ShiftHistoryViewRoute';
+  static const String name = 'CreditApp';
+}
+
+class CreditAppArgs {
+  const CreditAppArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'CreditAppArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i1.ShiftHistoryView]
+class ShiftHistoryViewRoute extends _i4.PageRouteInfo<ShiftHistoryViewArgs> {
+  ShiftHistoryViewRoute({_i6.Key? key, void Function()? onBack})
+    : super(
+        ShiftHistoryViewRoute.name,
+        path: '/shift-history-view',
+        args: ShiftHistoryViewArgs(key: key, onBack: onBack),
+      );
+
+  static const String name = 'ShiftHistoryView';
+}
+
+class ShiftHistoryViewArgs {
+  const ShiftHistoryViewArgs({this.key, this.onBack});
+
+  final _i6.Key? key;
+
+  final void Function()? onBack;
+
+  @override
+  String toString() {
+    return 'ShiftHistoryViewArgs{key: $key, onBack: $onBack}';
+  }
+}
+
+/// generated route for
+/// [_i1.PersonalHomeScreen]
+class PersonalHomeScreenRoute
+    extends _i4.PageRouteInfo<PersonalHomeScreenArgs> {
+  PersonalHomeScreenRoute({_i6.Key? key})
+    : super(
+        PersonalHomeScreenRoute.name,
+        path: '/personal-home-screen',
+        args: PersonalHomeScreenArgs(key: key),
+      );
+
+  static const String name = 'PersonalHomeScreen';
+}
+
+class PersonalHomeScreenArgs {
+  const PersonalHomeScreenArgs({this.key});
+
+  final _i6.Key? key;
+
+  @override
+  String toString() {
+    return 'PersonalHomeScreenArgs{key: $key}';
+  }
 }
 
 extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToStartUpView({
-    _i5.Key? key,
+    _i6.Key? key,
     bool? invokeLogin,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      StartUpViewRoute(
-        key: key,
-        invokeLogin: invokeLogin,
-      ),
+      StartUpViewRoute(key: key, invokeLogin: invokeLogin),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToSignUpView({
-    _i5.Key? key,
+    _i6.Key? key,
     String? countryNm = "Rwanda",
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      SignUpViewRoute(
-        key: key,
-        countryNm: countryNm,
-      ),
+      SignUpViewRoute(key: key, countryNm: countryNm),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> navigateToFlipperApp(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const FlipperAppRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToFlipperApp({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(FlipperAppRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToFailedPayment(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const FailedPaymentRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToFailedPayment({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(FailedPaymentRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToLogin(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const LoginRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToLogin({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(LoginRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToLanding(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const LandingRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToLanding({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(LandingRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToAuth(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const AuthRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToAuth({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(const AuthRoute(), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToCountryPicker(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
+  Future<dynamic> navigateToCountryPicker({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(CountryPickerRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToAiScreen({
+    _i6.Key? key,
+    void Function()? onPurchaseCredits,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
     return navigateTo(
-      const CountryPickerRoute(),
+      AiScreenRoute(key: key, onPurchaseCredits: onPurchaseCredits),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToPhoneInputScreen({
-    _i5.Key? key,
+    _i6.Key? key,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
@@ -2541,30 +2429,29 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToInventoryRequestMobileView(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
+  Future<dynamic> navigateToInventoryRequestMobileView({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
     return navigateTo(
-      const InventoryRequestMobileViewRoute(),
+      InventoryRequestMobileViewRoute(key: key),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToAddProductView({
-    _i5.Key? key,
+    _i6.Key? key,
     String? productId,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      AddProductViewRoute(
-        key: key,
-        productId: productId,
-      ),
+      AddProductViewRoute(key: key, productId: productId),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToAddToFavorites({
-    _i5.Key? key,
+    _i6.Key? key,
     required String favoriteIndex,
     required List<String> existingFavs,
     void Function(_i4.NavigationFailure)? onFailure,
@@ -2580,47 +2467,36 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToAddDiscount({
-    _i5.Key? key,
-    _i9.Discount? discount,
+    _i6.Key? key,
+    _i7.Discount? discount,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      AddDiscountRoute(
-        key: key,
-        discount: discount,
-      ),
+      AddDiscountRoute(key: key, discount: discount),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToListCategories({
-    _i5.Key? key,
+    _i6.Key? key,
     required String? modeOfOperation,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      ListCategoriesRoute(
-        key: key,
-        modeOfOperation: modeOfOperation,
-      ),
+      ListCategoriesRoute(key: key, modeOfOperation: modeOfOperation),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToColorTile({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      ColorTileRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(ColorTileRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToReceiveStock({
-    _i5.Key? key,
+    _i6.Key? key,
     required String variantId,
     String? existingStock,
     void Function(_i4.NavigationFailure)? onFailure,
@@ -2636,62 +2512,48 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToAddVariation({
-    _i5.Key? key,
+    _i6.Key? key,
     required String productId,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      AddVariationRoute(
-        key: key,
-        productId: productId,
-      ),
+      AddVariationRoute(key: key, productId: productId),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToAddCategory({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      AddCategoryRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(AddCategoryRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToListUnits({
-    _i5.Key? key,
+    _i6.Key? key,
     required String type,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      ListUnitsRoute(
-        key: key,
-        type: type,
-      ),
+      ListUnitsRoute(key: key, type: type),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToSell({
-    _i5.Key? key,
-    required _i9.Product product,
+    _i6.Key? key,
+    required _i7.Product product,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      SellRoute(
-        key: key,
-        product: product,
-      ),
+      SellRoute(key: key, product: product),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToPayments({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     required bool isIncome,
     required String categoryId,
     required String transactionType,
@@ -2710,236 +2572,153 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToPaymentConfirmation({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      PaymentConfirmationRoute(
-        key: key,
-        transaction: transaction,
-      ),
+      PaymentConfirmationRoute(key: key, transaction: transaction),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToTransactionDetail({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      TransactionDetailRoute(
-        key: key,
-        transaction: transaction,
-      ),
+      TransactionDetailRoute(key: key, transaction: transaction),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> navigateToSettingsScreen(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const SettingsScreenRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToSettingsScreen({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(const SettingsScreenRoute(), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToSwitchBranchView({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      SwitchBranchViewRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToScannView({
-    _i5.Key? key,
-    String intent = 'selling',
-    bool useLatestImplementation = false,
-    void Function(_i4.NavigationFailure)? onFailure,
-  }) async {
-    return navigateTo(
-      ScannViewRoute(
-        key: key,
-        intent: intent,
-        useLatestImplementation: useLatestImplementation,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(SwitchBranchViewRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToOrderView({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      OrderViewRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(OrderViewRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToOrders(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const OrdersRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToOrders({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(OrdersRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToCustomers(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const CustomersRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToCustomers({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(CustomersRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToNoNet({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      NoNetRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(NoNetRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToPinLogin({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      PinLoginRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(PinLoginRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToDevices({
-    _i5.Key? key,
+    _i6.Key? key,
     int? pin,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      DevicesRoute(
-        key: key,
-        pin: pin,
-      ),
+      DevicesRoute(key: key, pin: pin),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> navigateToTaxConfiguration({
-    _i5.Key? key,
+  Future<dynamic> navigateToSystemConfig({
+    _i6.Key? key,
     required bool showheader,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      TaxConfigurationRoute(
+      SystemConfigRoute(key: key, showheader: showheader),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPrinting({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(PrintingRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToBackUp({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(BackUpRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToLoginChoices({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(LoginChoicesRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToTenantManagement({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(TenantManagementRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToAgentCommissionScreen({
+    _i6.Key? key,
+    bool embeddedInDashboard = false,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AgentCommissionScreenRoute(
         key: key,
-        showheader: showheader,
+        embeddedInDashboard: embeddedInDashboard,
       ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToPrinting(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const PrintingRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToBackUp(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const BackUpRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToLoginChoices(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const LoginChoicesRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToTenantManagement(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const TenantManagementRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToAgentCommission(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const AgentCommissionRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToSocialHomeView(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const SocialHomeViewRoute(),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToDrawerScreen({
-    _i5.Key? key,
+    _i6.Key? key,
     required String open,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      DrawerScreenRoute(
-        key: key,
-        open: open,
-      ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToChatListView(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const ChatListViewRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToConversationHistory({
-    _i5.Key? key,
-    required String conversationId,
-    void Function(_i4.NavigationFailure)? onFailure,
-  }) async {
-    return navigateTo(
-      ConversationHistoryRoute(
-        key: key,
-        conversationId: conversationId,
-      ),
+      DrawerScreenRoute(key: key, open: open),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToTicketsList({
-    _i5.Key? key,
-    required _i9.ITransaction? transaction,
+    _i6.Key? key,
+    required _i7.ITransaction? transaction,
     bool showAppBar = true,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
@@ -2954,30 +2733,26 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToNewTicket({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     required void Function() onClose,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      NewTicketRoute(
-        key: key,
-        transaction: transaction,
-        onClose: onClose,
-      ),
+      NewTicketRoute(key: key, transaction: transaction, onClose: onClose),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> navigateToApps({
-    _i5.Key? key,
+  Future<dynamic> navigateToMobileView({
+    _i6.Key? key,
     required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i9.CoreViewModel model,
+    required _i7.CoreViewModel model,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      AppsRoute(
+      MobileViewRoute(
         key: key,
         controller: controller,
         isBigScreen: isBigScreen,
@@ -2988,108 +2763,96 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToCheckOut({
-    _i5.Key? key,
-    required bool isBigScreen,
+    _i6.Key? key,
+    bool isBigScreen = false,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      CheckOutRoute(
-        key: key,
-        isBigScreen: isBigScreen,
-      ),
+      CheckOutRoute(key: key, isBigScreen: isBigScreen),
       onFailure: onFailure,
     );
   }
 
+  Future<dynamic> navigateToBarModeHost({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(BarModeHostRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToHotelModeHost({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(HotelModeHostRoute(key: key), onFailure: onFailure);
+  }
+
   Future<dynamic> navigateToCashbook({
-    _i5.Key? key,
+    _i6.Key? key,
     required bool isBigScreen,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      CashbookRoute(
-        key: key,
-        isBigScreen: isBigScreen,
-      ),
+      CashbookRoute(key: key, isBigScreen: isBigScreen),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> navigateToSettingPage({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return navigateTo(
-      SettingPageRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return navigateTo(SettingPageRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToTransactions(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const TransactionsRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToTransactions({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(TransactionsRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToSecurity({
-    _i5.Key? key,
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(SecurityRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToReportsDashboard({
+    _i6.Key? key,
+    bool isInDialog = false,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      SecurityRoute(
-        key: key,
-      ),
+      ReportsDashboardRoute(key: key, isInDialog: isInDialog),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> navigateToComfirm(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const ComfirmRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToAdminControl({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(AdminControlRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> navigateToReportsDashboard(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const ReportsDashboardRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToAdminControl(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const AdminControlRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToAddBranch(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const AddBranchRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToAddBranch({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(const AddBranchRoute(), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToQuickSellingView({
-    _i5.Key? key,
+    _i6.Key? key,
     required _i5.GlobalKey<_i5.FormState> formKey,
     required _i5.TextEditingController discountController,
     required _i5.TextEditingController receivedAmountController,
     required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
-    required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
-    void Function(_i4.NavigationFailure)? onFailure,
     required _i5.TextEditingController countryCodeController,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       QuickSellingViewRoute(
@@ -3099,7 +2862,6 @@ extension RouterStateExtension on _i3.RouterService {
         receivedAmountController: receivedAmountController,
         deliveryNoteCotroller: deliveryNoteCotroller,
         customerPhoneNumberController: customerPhoneNumberController,
-        customerNameController: customerNameController,
         paymentTypeController: paymentTypeController,
         countryCodeController: countryCodeController,
       ),
@@ -3108,7 +2870,7 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToPaymentPlanUI({
-    _i5.Key? key,
+    _i6.Key? key,
     bool skipPaymentStatusCheck = false,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
@@ -3121,106 +2883,124 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToPaymentFinalize(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const PaymentFinalizeRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> navigateToPaymentFinalize({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(const PaymentFinalizeRoute(), onFailure: onFailure);
   }
 
   Future<dynamic> navigateToWaitingOrdersPlaced({
     required String orderId,
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      WaitingOrdersPlacedRoute(
-        orderId,
-        key: key,
-      ),
+      WaitingOrdersPlacedRoute(orderId: orderId, key: key),
       onFailure: onFailure,
     );
   }
 
+  Future<dynamic> navigateToCreditApp({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(CreditAppRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> navigateToShiftHistoryView({
+    _i6.Key? key,
+    void Function()? onBack,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ShiftHistoryViewRoute(key: key, onBack: onBack),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPersonalHomeScreen({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(PersonalHomeScreenRoute(key: key), onFailure: onFailure);
+  }
+
   Future<dynamic> replaceWithStartUpView({
-    _i5.Key? key,
+    _i6.Key? key,
     bool? invokeLogin,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      StartUpViewRoute(
-        key: key,
-        invokeLogin: invokeLogin,
-      ),
+      StartUpViewRoute(key: key, invokeLogin: invokeLogin),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithSignUpView({
-    _i5.Key? key,
+    _i6.Key? key,
     String? countryNm = "Rwanda",
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      SignUpViewRoute(
-        key: key,
-        countryNm: countryNm,
-      ),
+      SignUpViewRoute(key: key, countryNm: countryNm),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> replaceWithFlipperApp(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const FlipperAppRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithFlipperApp({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(FlipperAppRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithFailedPayment(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const FailedPaymentRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithFailedPayment({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(FailedPaymentRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithLogin(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const LoginRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithLogin({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(LoginRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithLanding(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const LandingRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithLanding({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(LandingRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithAuth(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const AuthRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithAuth({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(const AuthRoute(), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithCountryPicker(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
+  Future<dynamic> replaceWithCountryPicker({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(CountryPickerRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithAiScreen({
+    _i6.Key? key,
+    void Function()? onPurchaseCredits,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
     return replaceWith(
-      const CountryPickerRoute(),
+      AiScreenRoute(key: key, onPurchaseCredits: onPurchaseCredits),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithPhoneInputScreen({
-    _i5.Key? key,
+    _i6.Key? key,
     required String countryCode,
     _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
     _i5.Widget Function(_i5.BuildContext)? footerBuilder,
@@ -3237,30 +3017,29 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithInventoryRequestMobileView(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
+  Future<dynamic> replaceWithInventoryRequestMobileView({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
     return replaceWith(
-      const InventoryRequestMobileViewRoute(),
+      InventoryRequestMobileViewRoute(key: key),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithAddProductView({
-    _i5.Key? key,
+    _i6.Key? key,
     String? productId,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      AddProductViewRoute(
-        key: key,
-        productId: productId,
-      ),
+      AddProductViewRoute(key: key, productId: productId),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithAddToFavorites({
-    _i5.Key? key,
+    _i6.Key? key,
     required String favoriteIndex,
     required List<String> existingFavs,
     void Function(_i4.NavigationFailure)? onFailure,
@@ -3276,47 +3055,36 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithAddDiscount({
-    _i5.Key? key,
-    _i9.Discount? discount,
+    _i6.Key? key,
+    _i7.Discount? discount,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      AddDiscountRoute(
-        key: key,
-        discount: discount,
-      ),
+      AddDiscountRoute(key: key, discount: discount),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithListCategories({
-    _i5.Key? key,
+    _i6.Key? key,
     required String? modeOfOperation,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      ListCategoriesRoute(
-        key: key,
-        modeOfOperation: modeOfOperation,
-      ),
+      ListCategoriesRoute(key: key, modeOfOperation: modeOfOperation),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithColorTile({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      ColorTileRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(ColorTileRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithReceiveStock({
-    _i5.Key? key,
+    _i6.Key? key,
     required String variantId,
     String? existingStock,
     void Function(_i4.NavigationFailure)? onFailure,
@@ -3332,62 +3100,48 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithAddVariation({
-    _i5.Key? key,
+    _i6.Key? key,
     required String productId,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      AddVariationRoute(
-        key: key,
-        productId: productId,
-      ),
+      AddVariationRoute(key: key, productId: productId),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithAddCategory({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      AddCategoryRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(AddCategoryRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithListUnits({
-    _i5.Key? key,
+    _i6.Key? key,
     required String type,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      ListUnitsRoute(
-        key: key,
-        type: type,
-      ),
+      ListUnitsRoute(key: key, type: type),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithSell({
-    _i5.Key? key,
-    required _i9.Product product,
+    _i6.Key? key,
+    required _i7.Product product,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      SellRoute(
-        key: key,
-        product: product,
-      ),
+      SellRoute(key: key, product: product),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithPayments({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     required bool isIncome,
     required String categoryId,
     required String transactionType,
@@ -3406,236 +3160,153 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithPaymentConfirmation({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      PaymentConfirmationRoute(
-        key: key,
-        transaction: transaction,
-      ),
+      PaymentConfirmationRoute(key: key, transaction: transaction),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithTransactionDetail({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      TransactionDetailRoute(
-        key: key,
-        transaction: transaction,
-      ),
+      TransactionDetailRoute(key: key, transaction: transaction),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> replaceWithSettingsScreen(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const SettingsScreenRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithSettingsScreen({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(const SettingsScreenRoute(), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithSwitchBranchView({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      SwitchBranchViewRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithScannView({
-    _i5.Key? key,
-    String intent = 'selling',
-    bool useLatestImplementation = false,
-    void Function(_i4.NavigationFailure)? onFailure,
-  }) async {
-    return replaceWith(
-      ScannViewRoute(
-        key: key,
-        intent: intent,
-        useLatestImplementation: useLatestImplementation,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(SwitchBranchViewRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithOrderView({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      OrderViewRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(OrderViewRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithOrders(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const OrdersRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithOrders({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(OrdersRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithCustomers(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const CustomersRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithCustomers({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(CustomersRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithNoNet({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      NoNetRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(NoNetRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithPinLogin({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      PinLoginRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(PinLoginRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithDevices({
-    _i5.Key? key,
+    _i6.Key? key,
     int? pin,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      DevicesRoute(
-        key: key,
-        pin: pin,
-      ),
+      DevicesRoute(key: key, pin: pin),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> replaceWithTaxConfiguration({
-    _i5.Key? key,
+  Future<dynamic> replaceWithSystemConfig({
+    _i6.Key? key,
     required bool showheader,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      TaxConfigurationRoute(
+      SystemConfigRoute(key: key, showheader: showheader),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPrinting({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(PrintingRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithBackUp({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(BackUpRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithLoginChoices({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(LoginChoicesRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithTenantManagement({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(TenantManagementRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithAgentCommissionScreen({
+    _i6.Key? key,
+    bool embeddedInDashboard = false,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AgentCommissionScreenRoute(
         key: key,
-        showheader: showheader,
+        embeddedInDashboard: embeddedInDashboard,
       ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithPrinting(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const PrintingRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithBackUp(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const BackUpRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithLoginChoices(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const LoginChoicesRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithTenantManagement(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const TenantManagementRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithAgentCommission(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const AgentCommissionRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithSocialHomeView(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const SocialHomeViewRoute(),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithDrawerScreen({
-    _i5.Key? key,
+    _i6.Key? key,
     required String open,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      DrawerScreenRoute(
-        key: key,
-        open: open,
-      ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithChatListView(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const ChatListViewRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithConversationHistory({
-    _i5.Key? key,
-    required String conversationId,
-    void Function(_i4.NavigationFailure)? onFailure,
-  }) async {
-    return replaceWith(
-      ConversationHistoryRoute(
-        key: key,
-        conversationId: conversationId,
-      ),
+      DrawerScreenRoute(key: key, open: open),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithTicketsList({
-    _i5.Key? key,
-    required _i9.ITransaction? transaction,
+    _i6.Key? key,
+    required _i7.ITransaction? transaction,
     bool showAppBar = true,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
@@ -3650,30 +3321,26 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithNewTicket({
-    _i5.Key? key,
-    required _i9.ITransaction transaction,
+    _i6.Key? key,
+    required _i7.ITransaction transaction,
     required void Function() onClose,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      NewTicketRoute(
-        key: key,
-        transaction: transaction,
-        onClose: onClose,
-      ),
+      NewTicketRoute(key: key, transaction: transaction, onClose: onClose),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> replaceWithApps({
-    _i5.Key? key,
+  Future<dynamic> replaceWithMobileView({
+    _i6.Key? key,
     required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i9.CoreViewModel model,
+    required _i7.CoreViewModel model,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      AppsRoute(
+      MobileViewRoute(
         key: key,
         controller: controller,
         isBigScreen: isBigScreen,
@@ -3684,108 +3351,96 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithCheckOut({
-    _i5.Key? key,
-    required bool isBigScreen,
+    _i6.Key? key,
+    bool isBigScreen = false,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      CheckOutRoute(
-        key: key,
-        isBigScreen: isBigScreen,
-      ),
+      CheckOutRoute(key: key, isBigScreen: isBigScreen),
       onFailure: onFailure,
     );
   }
 
+  Future<dynamic> replaceWithBarModeHost({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(BarModeHostRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithHotelModeHost({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(HotelModeHostRoute(key: key), onFailure: onFailure);
+  }
+
   Future<dynamic> replaceWithCashbook({
-    _i5.Key? key,
+    _i6.Key? key,
     required bool isBigScreen,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      CashbookRoute(
-        key: key,
-        isBigScreen: isBigScreen,
-      ),
+      CashbookRoute(key: key, isBigScreen: isBigScreen),
       onFailure: onFailure,
     );
   }
 
   Future<dynamic> replaceWithSettingPage({
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
-    return replaceWith(
-      SettingPageRoute(
-        key: key,
-      ),
-      onFailure: onFailure,
-    );
+    return replaceWith(SettingPageRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithTransactions(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const TransactionsRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithTransactions({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(TransactionsRoute(key: key), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithSecurity({
-    _i5.Key? key,
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(SecurityRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithReportsDashboard({
+    _i6.Key? key,
+    bool isInDialog = false,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      SecurityRoute(
-        key: key,
-      ),
+      ReportsDashboardRoute(key: key, isInDialog: isInDialog),
       onFailure: onFailure,
     );
   }
 
-  Future<dynamic> replaceWithComfirm(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const ComfirmRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithAdminControl({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(AdminControlRoute(key: key), onFailure: onFailure);
   }
 
-  Future<dynamic> replaceWithReportsDashboard(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const ReportsDashboardRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithAdminControl(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const AdminControlRoute(),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithAddBranch(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const AddBranchRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithAddBranch({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(const AddBranchRoute(), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithQuickSellingView({
-    _i5.Key? key,
+    _i6.Key? key,
     required _i5.GlobalKey<_i5.FormState> formKey,
     required _i5.TextEditingController discountController,
     required _i5.TextEditingController receivedAmountController,
     required _i5.TextEditingController deliveryNoteCotroller,
     required _i5.TextEditingController customerPhoneNumberController,
-    required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
-    void Function(_i4.NavigationFailure)? onFailure,
     required _i5.TextEditingController countryCodeController,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       QuickSellingViewRoute(
@@ -3795,7 +3450,6 @@ extension RouterStateExtension on _i3.RouterService {
         receivedAmountController: receivedAmountController,
         deliveryNoteCotroller: deliveryNoteCotroller,
         customerPhoneNumberController: customerPhoneNumberController,
-        customerNameController: customerNameController,
         paymentTypeController: paymentTypeController,
         countryCodeController: countryCodeController,
       ),
@@ -3804,7 +3458,7 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithPaymentPlanUI({
-    _i5.Key? key,
+    _i6.Key? key,
     bool skipPaymentStatusCheck = false,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
@@ -3817,25 +3471,45 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithPaymentFinalize(
-      {void Function(_i4.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const PaymentFinalizeRoute(),
-      onFailure: onFailure,
-    );
+  Future<dynamic> replaceWithPaymentFinalize({
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(const PaymentFinalizeRoute(), onFailure: onFailure);
   }
 
   Future<dynamic> replaceWithWaitingOrdersPlaced({
     required String orderId,
-    _i5.Key? key,
+    _i6.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      WaitingOrdersPlacedRoute(
-        orderId,
-        key: key,
-      ),
+      WaitingOrdersPlacedRoute(orderId: orderId, key: key),
       onFailure: onFailure,
     );
+  }
+
+  Future<dynamic> replaceWithCreditApp({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(CreditAppRoute(key: key), onFailure: onFailure);
+  }
+
+  Future<dynamic> replaceWithShiftHistoryView({
+    _i6.Key? key,
+    void Function()? onBack,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ShiftHistoryViewRoute(key: key, onBack: onBack),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPersonalHomeScreen({
+    _i6.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(PersonalHomeScreenRoute(key: key), onFailure: onFailure);
   }
 }

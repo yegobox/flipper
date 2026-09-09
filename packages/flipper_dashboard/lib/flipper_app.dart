@@ -67,12 +67,12 @@ class FlipperApp extends HookConsumerWidget {
   /// Hotel Mode is checked first and wins: the two service modes are mutually
   /// exclusive, but a branch that switched from bar to hotel can still have a
   /// stale `enabled: true` on its `bar_branch_settings` document, and pushing
-  /// [BarModeRoute] then drops the front desk onto the bar's table floor.
+  /// [BarModeHostRoute] then drops the front desk onto the bar's table floor.
   Future<void> _redirectToServiceModeWhenBranchEnabled() async {
     final router = locator<RouterService>();
     final routeAtStart = router.router.current.name;
-    if (routeAtStart == BarModeRoute.name ||
-        routeAtStart == HotelModeRoute.name) {
+    if (routeAtStart == BarModeHostRoute.name ||
+        routeAtStart == HotelModeHostRoute.name) {
       return;
     }
 
@@ -107,11 +107,11 @@ class FlipperApp extends HookConsumerWidget {
     if (router.router.current.name != routeAtStart) return false;
 
     if (HotelModeSettings.enabled) {
-      router.navigateTo(HotelModeRoute());
+      router.navigateTo(HotelModeHostRoute());
       return true;
     }
     if (BarModeSettings.enabled) {
-      router.navigateTo(BarModeRoute());
+      router.navigateTo(BarModeHostRoute());
       return true;
     }
     return false;

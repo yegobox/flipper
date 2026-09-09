@@ -144,7 +144,7 @@ class _DesktopHeader extends ConsumerWidget {
                   icon: Icons.settings_outlined,
                   label: 'Settings',
                   onTap: () => locator<RouterService>().navigateTo(
-                    const AdminControlRoute(),
+                    AdminControlRoute(),
                   ),
                 ),
               ],
