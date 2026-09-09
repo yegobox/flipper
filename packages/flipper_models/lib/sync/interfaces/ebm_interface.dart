@@ -8,6 +8,7 @@ abstract class EbmInterface {
     required String severUrl,
     required String bhFId,
     bool vatEnabled = false,
+    bool tourismTaxEnabled = false,
     required String mrc,
     String? dataConnectorUrl,
   });

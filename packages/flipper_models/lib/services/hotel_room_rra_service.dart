@@ -69,6 +69,9 @@ abstract final class HotelRoomRraService {
       return room;
     }
     final ebm = branchEbm!;
+    // RRA rejects saveItems with 603 <ttCatCd> unless it registered this
+    // taxpayer for tourism tax; the room registers as a plain service then.
+    final tourismTax = hotelBranchSupportsTourismTax(branchEbm);
 
     final business = await _sync.getBusiness(businessId: businessId)
        ;
@@ -85,7 +88,11 @@ abstract final class HotelRoomRraService {
     Variant variant;
 
     if (pending != null) {
-      variant = applyHotelRoomRraFields(variant: pending, room: room);
+      variant = applyHotelRoomRraFields(
+        variant: pending,
+        room: room,
+        tourismTaxEnabled: tourismTax,
+      );
       await repository.upsert<Variant>(variant);
     } else {
       final product = await _sync.createProduct(
@@ -123,6 +130,7 @@ abstract final class HotelRoomRraService {
         taxTyCd: taxTyCd,
         sku: DateTime.now().millisecondsSinceEpoch % 100000,
         business: business,
+        tourismTaxEnabled: tourismTax,
       );
       await repository.upsert<Variant>(variant);
     }
@@ -223,10 +231,14 @@ abstract final class HotelRoomRraService {
     final variant = await _sync.getVariant(id: room.variantId!);
     if (variant == null) return;
 
-    applyHotelRoomRraFields(variant: variant, room: room);
+    final ebm = await _sync.ebm(branchId: room.branchId);
+    applyHotelRoomRraFields(
+      variant: variant,
+      room: room,
+      tourismTaxEnabled: hotelBranchSupportsTourismTax(ebm),
+    );
     await Repository().upsert<Variant>(variant);
 
-    final ebm = await _sync.ebm(branchId: room.branchId);
     if (!hotelBranchSupportsRra(ebm)) return;
 
     final serverUrl = await ProxyService.box.getServerUrl() ?? '';

@@ -6,9 +6,10 @@ import 'package:flipper_models/sync/utils/bulk_desktop_variant_prep.dart';
 ///
 /// A room is not a good: RRA takes it as a **service** (`itemTyCd` `3`) in the
 /// tourism-tax category (`ttCatCd` `TT`, 3%), with a property type and a room
-/// type code. `rw_tax.dart` strips `ttCatCd`/`propertyTyCd`/`roomTypeCd` from
-/// anything that is not `itemTyCd` `3`, because RRA answers 603 otherwise — so
-/// these fields only ever travel together.
+/// type code. These fields only ever travel together, and only for a branch RRA
+/// has registered for tourism tax — see [hotelBranchSupportsTourismTax].
+/// `rw_tax.dart` strips all three from `items/saveItems` otherwise, because RRA
+/// answers 603 `<ttCatCd>`.
 ///
 /// This mirrors what `AddRoomDialog` does, kept as logic the hotel module can
 /// call without a dialog.
@@ -71,6 +72,7 @@ Future<Variant> buildHotelRoomVariant({
   required String taxTyCd,
   required int sku,
   Business? business,
+  bool tourismTaxEnabled = true,
 }) async {
   final variant = await prepareBulkVariantLikeDesktopAdd(
     product: product,
@@ -87,16 +89,26 @@ Future<Variant> buildHotelRoomVariant({
     business: business,
   );
 
-  return applyHotelRoomRraFields(variant: variant, room: room);
+  return applyHotelRoomRraFields(
+    variant: variant,
+    room: room,
+    tourismTaxEnabled: tourismTaxEnabled,
+  );
 }
 
 /// Stamps the tourism-tax fields onto [variant].
 ///
 /// Separate from [buildHotelRoomVariant] so an existing room variant can be
 /// brought up to date — a rename or a rate change — without being rebuilt.
+///
+/// [tourismTaxEnabled] is the branch's RRA tourism-tax registration. When it is
+/// false the room is still a service, but carries no TT coding at all: RRA
+/// rejects `ttCatCd` on `items/saveItems` for a branch it has not registered
+/// for tourism tax, and the three fields are meaningless apart.
 Variant applyHotelRoomRraFields({
   required Variant variant,
   required HotelRoom room,
+  bool tourismTaxEnabled = true,
 }) {
   variant
     ..name = room.name
@@ -109,13 +121,22 @@ Variant applyHotelRoomRraFields({
     ..dftPrc = room.nightlyRate
     ..splyAmt = room.nightlyRate
     ..itemTyCd = '3'
-    ..ttCatCd = 'TT'
-    ..taxName = 'TT'
-    ..taxPercentage = hotelRraTourismTaxPercentage
-    ..propertyTyCd = hotelRraPropertyTyCd
-    ..roomTypeCd = hotelRraRoomTypeCd(room.roomType)
     ..pkgUnitCd = hotelRraPackagingUnit
     ..qtyUnitCd = 'U';
+
+  if (tourismTaxEnabled) {
+    variant
+      ..ttCatCd = 'TT'
+      ..taxName = 'TT'
+      ..taxPercentage = hotelRraTourismTaxPercentage
+      ..propertyTyCd = hotelRraPropertyTyCd
+      ..roomTypeCd = hotelRraRoomTypeCd(room.roomType);
+  } else {
+    variant
+      ..ttCatCd = null
+      ..propertyTyCd = null
+      ..roomTypeCd = null;
+  }
   return variant;
 }
 
@@ -138,6 +159,22 @@ bool isHotelRoomVariantRegistered(Variant? variant) {
 bool hotelBranchSupportsRra(Ebm? ebm) {
   if (ebm == null) return false;
   return ebm.tinNumber != 0 && ebm.bhfId.trim().isNotEmpty;
+}
+
+/// Whether this branch may send tourism-tax coding on item registration.
+///
+/// RRA answers `603 Request parameter error : <ttCatCd>` on `items/saveItems`
+/// for a taxpayer it has not registered for tourism tax — even though `TT` is
+/// the only (and an active) code in code class `03`, and even for a service.
+/// A bad value answers `913` instead, so the code itself is accepted and the
+/// rejection is the taxpayer's registration, not the payload.
+///
+/// A property that is not TT-registered still sells rooms: they register as
+/// plain services, and tourism tax rides on the sale line in
+/// `trnsSales/saveSales`, which RRA does accept.
+bool hotelBranchSupportsTourismTax(Ebm? ebm) {
+  if (!hotelBranchSupportsRra(ebm)) return false;
+  return ebm!.tourismTaxEnabled == true;
 }
 
 /// Whether RRA explicitly rejected the registration.

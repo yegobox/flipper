@@ -16,6 +16,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_bcd.dart';
 import 'package:flipper_models/sync/utils/rra_stock_reporting.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -159,6 +160,26 @@ Future<bool> _hydrateVariantEbmFields(Variant variant) async {
   if (needsTin) variant.tin = ebm.tinNumber;
   if (needsBhf) variant.bhfId = ebm.bhfId;
   return !_variantTinMissing(variant);
+}
+
+/// Whether `items/saveItems` may carry `ttCatCd`/`propertyTyCd`/`roomTypeCd`
+/// for [variant].
+///
+/// Both conditions must hold: the item is a service (`itemTyCd` `3`), and the
+/// branch's EBM row is flagged tourism-tax registered. RRA rejects the payload
+/// with `603 <ttCatCd>` otherwise — see [hotelBranchSupportsTourismTax].
+///
+/// Fails closed: an unreadable EBM row drops the fields rather than losing the
+/// whole registration to a 603.
+Future<bool> _branchMaySendTourismTaxFields(Variant variant) async {
+  if (variant.itemTyCd != '3') return false;
+  try {
+    final branchId = variant.branchId;
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    return hotelBranchSupportsTourismTax(ebm);
+  } catch (_) {
+    return false;
+  }
 }
 
 /// Wall-clock budget for a single interactive `trnsSales/saveSales` attempt.
@@ -633,11 +654,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             value == "",
       );
 
-      // RRA answers 603 <ttCatCd> when tourism tax rides on anything but a
-      // service. AddRoomDialog is the only path that legitimately sets TT and
-      // it registers rooms as itemTyCd '3'; a TT that reaches a good came from
-      // seeded/imported data, so drop it rather than fail the registration.
-      if (variation.itemTyCd != '3') {
+      // RRA answers 603 <ttCatCd> unless the branch is registered for tourism
+      // tax AND the item is a service. Being a service is not sufficient on its
+      // own: a bad ttCatCd answers 913 (code value error), so RRA accepts the
+      // code and it is the taxpayer's TT registration it is rejecting. The
+      // three fields are meaningless apart, so they travel together or not at
+      // all. Rooms on a branch without TT registration still register as plain
+      // services, and tourism tax is declared per sale line in saveSales.
+      if (!await _branchMaySendTourismTaxFields(variation)) {
         itemJson.remove('ttCatCd');
         itemJson.remove('propertyTyCd');
         itemJson.remove('roomTypeCd');

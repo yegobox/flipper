@@ -63,6 +63,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
   Timer? _savedTimer;
 
   bool _vatEnabled = false;
+  bool _tourismTaxEnabled = false;
   TaxConfigSnapshot? _initialSnapshot;
 
   final _formKey = GlobalKey<FormState>();
@@ -131,6 +132,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
       bhfId: _branchController.text,
       mrc: _mrcController.text,
       vatEnabled: _vatEnabled,
+      tourismTaxEnabled: _tourismTaxEnabled,
     );
   }
 
@@ -157,6 +159,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
     setState(() {
       if (ebm != null) {
         _vatEnabled = ebm.vatEnabled ?? false;
+        _tourismTaxEnabled = ebm.tourismTaxEnabled ?? false;
       }
       _initialSnapshot = _snapshotFromControllers();
       _taxDataLoaded = true;
@@ -172,6 +175,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
       bhfId: base.bhfId,
       mrc: base.mrc,
       vatEnabled: vatEnabled,
+      tourismTaxEnabled: base.tourismTaxEnabled,
     );
   }
 
@@ -273,6 +277,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
         severUrl: trimmedServer,
         bhFId: bhf,
         vatEnabled: _vatEnabled,
+        tourismTaxEnabled: _tourismTaxEnabled,
         mrc: mrc,
         dataConnectorUrl: dataConnectorForSave,
       );
@@ -413,6 +418,14 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
           ),
           const SizedBox(height: 14),
           _VatLockedRow(vatEnabled: _vatEnabled),
+          const SizedBox(height: 12),
+          _TourismTaxRow(
+            enabled: _tourismTaxEnabled,
+            onChanged: (value) {
+              _resetSavedState();
+              setState(() => _tourismTaxEnabled = value);
+            },
+          ),
           const SizedBox(height: 16),
           _ScTextField(
             fieldKey: _serverFieldKey,
@@ -867,6 +880,66 @@ class _VatLockedRow extends StatelessWidget {
               onChanged: null,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Editable tourism-tax registration toggle.
+///
+/// Unlike VAT — which RRA hands down through the EBM configuration — this one
+/// records what RRA registered the taxpayer for, which no endpoint reports
+/// back. It gates the `ttCatCd` / `propertyTyCd` / `roomTypeCd` coding that
+/// rooms carry on `items/saveItems`: RRA answers `603 <ttCatCd>` for a branch
+/// it has not registered for tourism tax, which fails the whole registration.
+class _TourismTaxRow extends StatelessWidget {
+  const _TourismTaxRow({required this.enabled, required this.onChanged});
+
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: SystemConfigTokens.vatSurface,
+        borderRadius: BorderRadius.circular(SystemConfigTokens.vatRadius),
+        border: Border.all(color: SystemConfigTokens.border),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tourism tax registered',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: SystemConfigTokens.secondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Enable only if RRA registered this branch for tourism tax. '
+                  'Rooms register as plain services otherwise.',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: SystemConfigTokens.muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Switch(
+            value: enabled,
+            onChanged: onChanged,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ],
       ),

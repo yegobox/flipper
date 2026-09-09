@@ -60,12 +60,53 @@ void main() {
         room: room(),
       );
 
-      // rw_tax.dart drops ttCatCd/propertyTyCd/roomTypeCd from anything that
-      // is not itemTyCd '3', so these four travel together or not at all.
+      // rw_tax.dart drops ttCatCd/propertyTyCd/roomTypeCd together, so these
+      // four travel together or not at all.
       expect(variant.itemTyCd, '3');
       expect(variant.ttCatCd, 'TT');
       expect(variant.propertyTyCd, '01');
       expect(variant.roomTypeCd, '04');
+    });
+
+    test('a branch without TT registration gets a plain service', () {
+      // RRA answers 603 <ttCatCd> for a taxpayer it has not registered for
+      // tourism tax, which fails the whole saveItems call. The room still
+      // registers — just with no TT coding at all.
+      final variant = applyHotelRoomRraFields(
+        variant: Variant(branchId: 'b1', name: 'x'),
+        room: room(),
+        tourismTaxEnabled: false,
+      );
+
+      expect(variant.itemTyCd, '3', reason: 'still a service');
+      expect(variant.pkgUnitCd, 'NT', reason: 'still sold by the night');
+      expect(variant.ttCatCd, isNull);
+      expect(variant.propertyTyCd, isNull);
+      expect(variant.roomTypeCd, isNull);
+    });
+
+    test('turning TT off clears coding a previous registration left behind',
+        () {
+      final variant = Variant(
+        branchId: 'b1',
+        name: '204',
+        itemTyCd: '3',
+        ttCatCd: 'TT',
+        propertyTyCd: '01',
+        roomTypeCd: '02',
+      );
+
+      applyHotelRoomRraFields(
+        variant: variant,
+        room: room(),
+        tourismTaxEnabled: false,
+      );
+
+      // Leaving a stale ttCatCd on the row would send it on the next
+      // saveItems and reproduce the 603.
+      expect(variant.ttCatCd, isNull);
+      expect(variant.propertyTyCd, isNull);
+      expect(variant.roomTypeCd, isNull);
     });
 
     test('bills tourism tax at 3%, not VAT', () {
@@ -211,6 +252,57 @@ void main() {
         hotelBranchSupportsRra(configured),
         isTrue,
         reason: 'tourism tax rides on ttCatCd, not on VAT registration',
+      );
+    });
+  });
+
+  group('hotelBranchSupportsTourismTax', () {
+    Ebm ebm({
+      int tinNumber = 999909695,
+      String bhfId = '00',
+      bool? tourismTaxEnabled,
+    }) =>
+        Ebm(
+          bhfId: bhfId,
+          tinNumber: tinNumber,
+          dvcSrlNo: 'dvc',
+          businessId: 'biz1',
+          branchId: 'b1',
+          mrc: 'mrc',
+          tourismTaxEnabled: tourismTaxEnabled,
+        );
+
+    test('a branch RRA registered for tourism tax may send ttCatCd', () {
+      expect(
+        hotelBranchSupportsTourismTax(ebm(tourismTaxEnabled: true)),
+        isTrue,
+      );
+    });
+
+    test('defaults to off, because RRA rejects TT it did not register', () {
+      // An unset flag is the common case: no RRA endpoint reports the
+      // registration back, so the branch has to be told. Sending TT on a
+      // guess costs the whole registration with 603.
+      expect(hotelBranchSupportsTourismTax(ebm()), isFalse);
+      expect(
+        hotelBranchSupportsTourismTax(ebm(tourismTaxEnabled: false)),
+        isFalse,
+      );
+    });
+
+    test('a branch that does not file with RRA at all never sends TT', () {
+      expect(hotelBranchSupportsTourismTax(null), isFalse);
+      expect(
+        hotelBranchSupportsTourismTax(
+          ebm(tinNumber: 0, tourismTaxEnabled: true),
+        ),
+        isFalse,
+      );
+      expect(
+        hotelBranchSupportsTourismTax(
+          ebm(bhfId: '   ', tourismTaxEnabled: true),
+        ),
+        isFalse,
       );
     });
   });

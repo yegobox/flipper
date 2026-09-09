@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
+import 'package:flipper_dashboard/AddRoomDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/SyncFuelDialog.dart';
 import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
@@ -14,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 
-/// Opens add-product flow (single / bulk). Shown beside catalog search on POS.
+/// Opens add-product flow (single / bulk / rooms / fuel). Shown beside catalog search on POS.
 class PosAddProductButton extends ConsumerWidget {
   const PosAddProductButton({super.key});
 
@@ -45,6 +46,16 @@ class PosAddProductButton extends ConsumerWidget {
           } else if (choice == 'single') {
             Navigator.of(dialogContext).maybePop();
             openProductEntryScreen(rootContext);
+          } else if (choice == 'rooms') {
+            showDialog<void>(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => AddRoomDialog(
+                onRoomAdded: (roomData) {
+                  // Room flow; keep parity with SearchField.
+                },
+              ),
+            );
           } else if (choice == 'fuel') {
             showDialog<void>(
               barrierDismissible: true,

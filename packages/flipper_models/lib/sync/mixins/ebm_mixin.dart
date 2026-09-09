@@ -29,6 +29,7 @@ mixin EbmMixin implements EbmInterface {
     required String mrc,
     required String bhFId,
     bool vatEnabled = false,
+    bool tourismTaxEnabled = false,
     String? dataConnectorUrl,
   }) async {
     try {
@@ -71,12 +72,14 @@ mixin EbmMixin implements EbmInterface {
             businessId: business.id,
             branchId: branchId,
             vatEnabled: vatEnabled,
+            tourismTaxEnabled: tourismTaxEnabled,
             dataConnectorUrl: dataConnectorUrl,
           );
 
       if (existingEbm != null) {
         updatedEbm.taxServerUrl = severUrl;
         updatedEbm.vatEnabled = vatEnabled;
+        updatedEbm.tourismTaxEnabled = tourismTaxEnabled;
         updatedEbm.mrc = mrc;
         updatedEbm.dataConnectorUrl = dataConnectorUrl;
       } else if (dataConnectorUrl != null) {
@@ -96,6 +99,7 @@ mixin EbmMixin implements EbmInterface {
         'business_id': updatedEbm.businessId,
         'branch_id': updatedEbm.branchId,
         'vat_enabled': updatedEbm.vatEnabled,
+        'tourism_tax_enabled': updatedEbm.tourismTaxEnabled,
         'mrc': updatedEbm.mrc,
         'data_connector_url': updatedEbm.dataConnectorUrl,
       });

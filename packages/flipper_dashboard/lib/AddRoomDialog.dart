@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 
 class _RoomModalPalette {
   static const Color teal = Color(0xFF10B981);
@@ -485,6 +486,13 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             );
         final taxCode = _effectiveTaxCode(vatEnabled);
 
+        // RRA rejects saveItems with 603 <ttCatCd> unless the branch is
+        // registered for tourism tax. Without it the room is still registered,
+        // as a plain service; the 3% is declared on the sale line instead.
+        final branchId = ProxyService.box.getBranchId()!;
+        final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+        final tourismTax = hotelBranchSupportsTourismTax(ebm);
+
         final model = ScannViewModel();
         Product? product = await model.createProduct(
           name: TEMP_PRODUCT,
@@ -507,17 +515,18 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
           );
 
           Variant roomVariant = Variant(
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: branchId,
             name: _roomNumberController.text,
             retailPrice: double.tryParse(_priceController.text) ?? 0.0,
             supplyPrice: double.tryParse(_priceController.text) ?? 0.0,
-            propertyTyCd: "01",
-            roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
-            ttCatCd: "TT",
+            propertyTyCd: tourismTax ? "01" : null,
+            roomTypeCd:
+                tourismTax ? (_roomTypes[_selectedRoomType] ?? "03") : null,
+            ttCatCd: tourismTax ? "TT" : null,
             itemTyCd: "3",
             taxTyCd: taxCode,
-            taxName: "TT",
-            taxPercentage: 3.0,
+            taxName: tourismTax ? "TT" : null,
+            taxPercentage: tourismTax ? 3.0 : null,
             qty: 0.0,
             stock: roomStock,
             stockId: stockId,
@@ -527,7 +536,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             model: model,
             productName: _roomNumberController.text,
             countryofOrigin: "RW",
-            rates: {"TT": "3.0"},
+            rates: tourismTax ? {"TT": "3.0"} : {},
             color: "#FF0000",
             dates: {},
             retailPrice: double.tryParse(_priceController.text) ?? 0.0,
@@ -537,9 +546,10 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             selectedProductType: "3",
             packagingUnit: "NT",
             categoryId: null,
-            roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
-            propertyTyCd: "01",
-            ttCatCd: "TT",
+            roomTypeCd:
+                tourismTax ? (_roomTypes[_selectedRoomType] ?? "03") : null,
+            propertyTyCd: tourismTax ? "01" : null,
+            ttCatCd: tourismTax ? "TT" : null,
             onCompleteCallback: (List<Variant> variants) async {},
           );
 
