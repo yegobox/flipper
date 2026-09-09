@@ -1170,23 +1170,30 @@ mixin CapellaHotelMixin implements HotelInterface {
     }
 
     if (variantId == null) {
+      // The branch-level product is a fallback for rooms that predate
+      // per-room registration. Read it directly rather than through
+      // canAutoPostRoomCharge: that flag says whether to post *automatically*,
+      // and it must not stop the desk posting the charge by hand.
       final settings = await hotelBranchSettings(branchId: stay.branchId);
-      if (settings == null || !settings.canAutoPostRoomCharge) {
-        talker.warning(
-          'hotel: no room charge posted for stay ${stay.id} — room '
-          '${stay.roomName} is not registered with RRA and branch '
-          '${stay.branchId} has no fallback product.',
-        );
-        return;
-      }
-      variantId = settings.roomChargeVariantId;
+      variantId = settings?.roomChargeVariantId;
+    }
+
+    if (variantId == null || variantId.isEmpty) {
+      // Loudly, not silently. This used to log a warning and return, which
+      // left the desk looking at a folio of RWF 0 for a guest who is in the
+      // room, with nothing on screen explaining why.
+      throw StateError(
+        'Room ${stay.roomName} has no RRA item to bill its nights against. '
+        'Register the room under Settings → Hotel Mode → Rooms & floors, or '
+        'set a room-charge product for the branch.',
+      );
     }
 
     final nights = stay.nights;
     await addChargeToFolio(
       transactionId: stay.transactionId,
       branchId: stay.branchId,
-      variantId: variantId!,
+      variantId: variantId,
       productName: hotelRoomChargeName(
         roomName: stay.roomName,
         nights: nights,

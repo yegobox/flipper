@@ -265,8 +265,10 @@ class HotelFolioTotals extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = hotelFolioTotal(lines);
-    final breakdown = hotelVatBreakdown(total);
+    // Taken from the lines: a folio mixes 3% tourism tax on room nights with
+    // 18% VAT on whatever the bar charged to the room, so one inclusive rate
+    // would be wrong for both.
+    final breakdown = hotelFolioTaxBreakdown(lines);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -279,7 +281,7 @@ class HotelFolioTotals extends StatelessWidget {
         children: [
           _row('Subtotal', breakdown.subtotal),
           const SizedBox(height: 6),
-          _row('VAT (18%, incl.)', breakdown.vat),
+          _row('Tax (incl.)', breakdown.tax),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(height: 1, color: HotelTokens.line),

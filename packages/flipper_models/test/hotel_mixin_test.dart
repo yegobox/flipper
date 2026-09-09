@@ -387,6 +387,108 @@ void main() {
       );
     });
 
+    test('an unregistered room says so instead of billing nothing', () async {
+      // The reported bug: a seeded room has no RRA item and the branch has no
+      // fallback product, so the charge could not post. It used to log a
+      // warning and return, leaving the desk on a folio of RWF 0 for a guest
+      // who is standing in the room.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(
+        () => sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains(room.name), contains('Rooms & floors')),
+          ),
+        ),
+      );
+    });
+
+    test('a registered room bills its nights against its own RRA item',
+        () async {
+      final room = (await savedRoom()).copyWith(variantId: 'v-room');
+      await sync.saveHotelRoom(room);
+
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 2, reason: 'two nights');
+      expect(lines.single.itemCd, 'RW1NTXU0000001');
+
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.subTotal, 110000);
+    });
+
+    test('the branch fallback product is used even with auto-post off',
+        () async {
+      // autoPostRoomCharge governs whether it happens automatically; it must
+      // not stop the desk posting the charge by hand.
+      await sync.saveHotelBranchSettings(
+        const HotelBranchSettings(
+          branchId: _branch,
+          enabled: true,
+          autoPostRoomCharge: false,
+          roomChargeVariantId: 'v-room',
+        ),
+      );
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(
+        await sync.hotelFolioLines(transactionId: stay.transactionId),
+        hasLength(1),
+      );
+    });
+
     test('checking out settles the folio and releases the room', () async {
       final room = await savedRoom();
       final stay = await sync.checkInGuest(

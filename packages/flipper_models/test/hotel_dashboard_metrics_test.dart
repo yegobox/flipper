@@ -2,8 +2,11 @@ import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_dashboard_metrics.dart';
+import 'package:flipper_models/sync/utils/ditto_transaction_line.dart';
+import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
 final _now = DateTime(2026, 1, 10, 9);
 
@@ -60,7 +63,67 @@ ITransaction _folio(double subTotal) => ITransaction(
   agentId: 'c1',
 );
 
+/// Built the way production reads them — straight off a Ditto document — so
+/// the helper cannot drift from the model's constructor.
+TransactionItem _line({
+  required num qty,
+  required num price,
+  num? taxAmt,
+}) => transactionLineFromDitto({
+  '_id': 'l${qty}_$price',
+  'name': 'line',
+  'qty': '$qty',
+  'price': '$price',
+  if (taxAmt != null) 'taxAmt': '$taxAmt',
+})!;
+
 void main() {
+  group('folio tax', () {
+    test('sums the tax each line actually carries', () {
+      // A room night at 3% tourism tax plus a bar round at 18% VAT: one
+      // inclusive rate would be wrong for both.
+      final lines = [
+        _line(qty: 2, price: 55000, taxAmt: 3203.88),
+        _line(qty: 1, price: 3000, taxAmt: 457.63),
+      ];
+
+      final b = hotelFolioTaxBreakdown(lines);
+      expect(b.total, 113000);
+      expect(b.tax, closeTo(3661.51, 0.01));
+      expect(b.subtotal, closeTo(109338.49, 0.01));
+    });
+
+    test('does not assume 18% on a folio of room nights', () {
+      final lines = [_line(qty: 1, price: 55000, taxAmt: 1601.94)];
+      final b = hotelFolioTaxBreakdown(lines);
+
+      expect(b.tax, closeTo(1601.94, 0.01));
+      // The old inclusive-18% estimate would have claimed ~8390.
+      expect(b.tax, lessThan(2000));
+    });
+
+    test('falls back to inclusive VAT only when no line carries tax', () {
+      final lines = [_line(qty: 1, price: 1180)];
+      final b = hotelFolioTaxBreakdown(lines);
+      expect(b.tax, closeTo(180, 0.01));
+    });
+
+    test('an empty folio is zero, not a division', () {
+      final b = hotelFolioTaxBreakdown(const []);
+      expect(b.total, 0);
+      expect(b.tax, 0);
+      expect(b.subtotal, 0);
+    });
+
+    test('tax can never exceed the folio', () {
+      final lines = [_line(qty: 1, price: 100, taxAmt: 9999)];
+      final b = hotelFolioTaxBreakdown(lines);
+      expect(b.tax, 100);
+      expect(b.subtotal, 0);
+    });
+  });
+
+
   group('room counts and occupancy', () {
     test('occupancy is measured against sellable rooms, not all rooms', () {
       // 4 rooms, one blocked. One guest in house => 1 of 3 sellable.

@@ -84,6 +84,40 @@ int hotelFolioItemCount(Iterable<TransactionItem> lines) =>
 ({double subtotal, double vat, double total}) hotelVatBreakdown(double total) =>
     inclusiveVatBreakdown(total);
 
+/// Tax on a folio, taken from the lines rather than assumed.
+///
+/// A folio mixes tourism tax on room nights (3%) with VAT on anything the bar
+/// or the shop charged to the room (18%), so a single inclusive rate is wrong
+/// for both. Each line already carries the `taxAmt` its own registration
+/// produced, so the folio sums those.
+///
+/// Falls back to the inclusive-18% estimate only when no line carries a
+/// computed tax amount at all — an old folio, or lines written before pricing
+/// was recomputed on edit.
+({double subtotal, double tax, double total}) hotelFolioTaxBreakdown(
+  Iterable<TransactionItem> lines,
+) {
+  final total = ticketLineTotal(lines);
+  if (total <= 0) return (subtotal: 0, tax: 0, total: 0);
+
+  var tax = 0.0;
+  var sawTaxAmount = false;
+  for (final line in lines) {
+    final amount = line.taxAmt;
+    if (amount == null) continue;
+    sawTaxAmount = true;
+    tax += amount.toDouble();
+  }
+
+  if (!sawTaxAmount) {
+    final fallback = inclusiveVatBreakdown(total);
+    return (subtotal: fallback.subtotal, tax: fallback.vat, total: total);
+  }
+
+  if (tax > total) tax = total;
+  return (subtotal: total - tax, tax: tax, total: total);
+}
+
 /// Parses a Ditto `transaction_items` row for folios.
 TransactionItem? hotelFolioLineFromDitto(Map<String, dynamic> data) =>
     transactionLineFromDitto(data);
