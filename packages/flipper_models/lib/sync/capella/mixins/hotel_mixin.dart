@@ -26,10 +26,22 @@ TransactionItem? _hotelFindLine(List<TransactionItem> lines, String lineId) {
   return null;
 }
 
-/// Keys of Ditto sync subscriptions already registered for hotel collections.
+/// Keys of Ditto sync subscriptions already registered for hotel collections,
+/// **per Ditto instance**.
+///
 /// Store queries/observers only read locally; without these subscriptions a
-/// fresh device never replicates hotel documents from the mesh/cloud.
-final Set<String> _hotelSyncSubscriptionKeys = <String>{};
+/// fresh device never replicates hotel documents from the mesh/cloud. A single
+/// process-wide set looked safe but was not: subscriptions live on the Ditto
+/// instance, so when [DittoService] rebuilds one — a re-login, say — the keys
+/// survived, every registration was skipped as already-done, and replication
+/// silently stopped. An [Expando] ties the bookkeeping to the instance it
+/// actually describes, so a new instance subscribes again.
+final Expando<Set<String>> _hotelSyncSubscriptionKeys = Expando(
+  'hotelSyncSubscriptionKeys',
+);
+
+Set<String> _subscriptionKeysFor(Object ditto) =>
+    _hotelSyncSubscriptionKeys[ditto] ??= <String>{};
 
 mixin CapellaHotelMixin implements HotelInterface {
   DittoService get dittoService;
@@ -62,14 +74,18 @@ mixin CapellaHotelMixin implements HotelInterface {
     String sql,
     Map<String, dynamic>? args,
   ) {
-    if (_hotelSyncSubscriptionKeys.contains(key)) return;
+    // Bound separately: casting `ditto` in place would narrow it to Object
+    // for the rest of this method, where it is used dynamically.
+    final Object handle = ditto;
+    final registered = _subscriptionKeysFor(handle);
+    if (registered.contains(key)) return;
     try {
       final prepared = prepareDqlSyncSubscription(sql, args);
       ditto.sync.registerSubscription(
         prepared.dql,
         arguments: prepared.arguments,
       );
-      _hotelSyncSubscriptionKeys.add(key);
+      registered.add(key);
       talker.debug('hotel: registered sync subscription $key');
     } catch (e, s) {
       talker.warning('hotel: sync subscription failed ($key): $e\n$s');

@@ -5,7 +5,14 @@ import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/capella/mixins/hotel_mixin.dart';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:mockito/mockito.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talker/talker.dart';
 
@@ -49,6 +56,46 @@ class _RealHandleHotelSync with CapellaHotelMixin {
 
   @override
   final Talker talker = Talker();
+}
+
+/// Minimal box: the mixin only asks it for the branch and the default payment
+/// type when it mints a folio.
+class _FakeBox extends Mock implements LocalStorage {
+  @override
+  String? getBranchId() => _branch;
+  @override
+  String? getBusinessId() => 'biz1';
+  @override
+  String? paymentType() => 'Cash';
+}
+
+/// Strategy stub for the one call the mixin makes outward: looking up the
+/// variant behind a charge.
+class _FakeStrategy extends Mock implements DatabaseSyncInterface {
+  _FakeStrategy(this._byId);
+
+  final Map<String, Variant> _byId;
+
+  @override
+  Future<Variant?> getVariant({
+    String? id,
+    String? modrId,
+    String? name,
+    String? bcd,
+    String? stockId,
+    String? taskCd,
+    String? itemClsCd,
+    String? itemNm,
+    String? itemCd,
+    String? productId,
+    String? branchId,
+    String? sku,
+    String? variantId,
+    String? imptItemSttsCd,
+    String? pchsSttsCd,
+    String? purchaseId,
+    bool fetchRemote = false,
+  }) async => id == null ? null : _byId[id];
 }
 
 const _branch = 'b1';
@@ -128,6 +175,280 @@ void main() {
   setUp(() {
     ditto = FakeDitto();
     sync = _HotelSync(ditto);
+  });
+
+  /// The half of the mixin that reaches outside Ditto: minting a folio needs
+  /// the box for the branch and default payment type, and posting a charge
+  /// needs the variant behind it. Both are get_it lookups, so registering
+  /// fakes is all the harness this needs.
+  group('folio lifecycle', () {
+    late Variant roomNight;
+
+    setUp(() async {
+      await getIt.reset();
+      roomNight = Variant(
+        id: 'v-room',
+        branchId: _branch,
+        name: 'Room night',
+        itemCd: 'RW1NTXU0000001',
+        itemTyCd: '3',
+        ttCatCd: 'TT',
+        taxTyCd: 'B',
+        taxPercentage: 3,
+        retailPrice: 50000,
+      );
+      getIt.registerSingleton<LocalStorage>(_FakeBox());
+      final strategy = _FakeStrategy({'v-room': roomNight});
+      // ProxyService looks the strategy up by name, not by type alone.
+      getIt.registerSingleton<SyncStrategy>(
+        SyncStrategy(capella: strategy, cloudSync: strategy),
+        instanceName: 'strategy',
+      );
+      ITransactionDittoAdapter.instance.overrideBranchIdProvider(() => _branch);
+      ITransactionDittoAdapter.instance.overrideBusinessIdProvider(
+        () => 'biz1',
+      );
+    });
+
+    tearDown(() async {
+      ITransactionDittoAdapter.instance.resetOverrides();
+      await getIt.reset();
+    });
+
+    Future<HotelRoom> savedRoom() async {
+      final r = _room();
+      await sync.saveHotelRoom(r);
+      return r;
+    }
+
+    test('checking a walk-in in opens exactly one folio', () async {
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(stay.status, HotelStayStatus.inHouse);
+      expect(stay.hasFolio, isTrue);
+      expect(ditto.store.docs('transactions'), hasLength(1));
+
+      final folio = ditto.store.docs('transactions').single;
+      expect(folio['status'], PARKED);
+      expect(folio['customerName'], 'Aline Uwase');
+    });
+
+    test('a second check-in on an occupied room resumes, never duplicates',
+        () async {
+      final room = await savedRoom();
+      final first = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      final second = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Someone Else',
+        checkInAt: DateTime.utc(2026, 1, 10, 15),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 13, 11),
+        nightlyRate: 90000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(second.id, first.id);
+      expect(second.guestName, 'Aline Uwase');
+      expect(ditto.store.docs('transactions'), hasLength(1));
+    });
+
+    test('arriving a reservation mints its folio and flips it in house',
+        () async {
+      final room = await savedRoom();
+      final booked = await sync.reserveRoom(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 2, 1, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 2, 3, 11),
+        nightlyRate: 60000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      expect(booked.hasFolio, isFalse);
+      expect(ditto.store.docs('transactions'), isEmpty);
+
+      final arrived = await sync.checkInReservation(
+        stay: booked,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(arrived.status, HotelStayStatus.inHouse);
+      expect(arrived.hasFolio, isTrue);
+      expect(ditto.store.docs('transactions'), hasLength(1));
+    });
+
+    test('arriving an already in-house stay changes nothing', () async {
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final again = await sync.checkInReservation(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      expect(again.transactionId, stay.transactionId);
+      expect(ditto.store.docs('transactions'), hasLength(1));
+    });
+
+    test('posting a charge writes an RRA-complete line', () async {
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.addChargeToFolio(
+        transactionId: stay.transactionId,
+        branchId: _branch,
+        variantId: 'v-room',
+        productName: 'Room 101 · 2 nights',
+        defaultPrice: 50000,
+        stock: 2,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        qty: 2,
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 2);
+      expect(lines.single.itemCd, 'RW1NTXU0000001');
+      expect(lines.single.taxPercentage, 3);
+
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      expect(folio?.subTotal, 100000);
+    });
+
+    test('a charge with no registered itemCd is refused, not silently sold',
+        () async {
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(
+        () => sync.addChargeToFolio(
+          transactionId: stay.transactionId,
+          branchId: _branch,
+          variantId: 'unknown-variant',
+          productName: 'Mystery item',
+          defaultPrice: 1000,
+          stock: 5,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('checking out settles the folio and releases the room', () async {
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      final folio = await sync.hotelFolio(
+        transactionId: stay.transactionId,
+      );
+
+      final settled = await sync.checkOutGuest(
+        stay: stay,
+        transaction: folio!,
+        paymentType: 'Cash',
+        cashReceived: 120000,
+        customerChangeDue: 20000,
+      );
+
+      expect(settled.status, COMPLETE);
+      expect(settled.cashReceived, 120000);
+      expect(settled.customerChangeDue, 20000);
+
+      // The stay closes and the room goes to housekeeping, not straight back
+      // to sellable.
+      expect(await sync.hotelStays(branchId: _branch), isEmpty);
+      final after = (await sync.hotelRooms(branchId: _branch)).single;
+      expect(after.housekeeping, HotelHousekeeping.dirty);
+    });
+
+    test('open folios are listed for the dashboard, settled ones are not',
+        () async {
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(await sync.hotelOpenFolios(branchId: _branch), hasLength(1));
+
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+      await sync.checkOutGuest(
+        stay: stay,
+        transaction: folio!,
+        paymentType: 'Cash',
+        cashReceived: 0,
+        customerChangeDue: 0,
+      );
+
+      expect(await sync.hotelOpenFolios(branchId: _branch), isEmpty);
+    });
   });
 
   group('default ditto handle', () {
@@ -884,22 +1205,27 @@ void main() {
       expect(dql, contains('hotel_branch_settings'));
     });
 
-    test('a branch is only subscribed once, even on a new Ditto instance',
-        () async {
+    test('the same branch is not subscribed twice on one instance', () async {
       const fresh = 'branch-sub-2';
       await sync.hotelRooms(branchId: fresh);
       final first = ditto.sync.registered.length;
-      expect(first, greaterThan(0));
+      await sync.hotelRooms(branchId: fresh);
+      expect(ditto.sync.registered, hasLength(first));
+    });
 
-      // A second store — what a re-login produces — sees no new subscriptions,
-      // because the registry lives on the library, not the instance. Pinned
-      // here as documented behaviour, not endorsement: if DittoService ever
-      // rebuilds its instance mid-session, hotel data silently stops
-      // replicating. `bar_mixin.dart` shares the pattern.
+    test('a rebuilt Ditto instance subscribes again', () async {
+      // Subscriptions live on the instance. When DittoService rebuilds one —
+      // a re-login — a process-wide registry would skip every registration as
+      // already-done and replication would stop with no error anywhere.
+      const fresh = 'branch-sub-3';
+      await sync.hotelRooms(branchId: fresh);
+      expect(ditto.sync.registered, isNotEmpty);
+
       final second = FakeDitto();
       final resync = _HotelSync(second);
       await resync.hotelRooms(branchId: fresh);
-      expect(second.sync.registered, isEmpty);
+
+      expect(second.sync.registered, isNotEmpty);
     });
   });
 }
