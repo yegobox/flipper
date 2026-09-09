@@ -134,7 +134,7 @@ class BooksHomeHeader extends StatelessWidget {
                   onNavTap(link);
                 },
               ),
-            const BooksThemeToggleTile(),
+            BooksThemeToggleTile(onToggled: () => Navigator.pop(ctx)),
             const SizedBox(height: 12),
             GhostButton(
               label: 'Log in',

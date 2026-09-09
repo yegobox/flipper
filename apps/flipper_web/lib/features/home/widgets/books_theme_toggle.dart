@@ -46,7 +46,17 @@ class BooksThemeToggle extends ConsumerWidget {
 
 /// Row form of [BooksThemeToggle] for the compact nav sheet.
 class BooksThemeToggleTile extends ConsumerWidget {
-  const BooksThemeToggleTile({super.key});
+  const BooksThemeToggleTile({super.key, this.onToggled});
+
+  /// Run straight after the toggle. The nav sheet passes a dismiss here.
+  ///
+  /// A modal sheet does not repaint with the palette: its `backgroundColor`
+  /// is read once when it opens, and the rows around this one watch nothing,
+  /// so they keep the colours they were built with. Only this row rebuilds —
+  /// against the *new* palette — which on a light sheet leaves it near-white
+  /// on white. Closing the sheet is what the other rows already do before
+  /// they act.
+  final VoidCallback? onToggled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,7 +73,10 @@ class BooksThemeToggleTile extends ConsumerWidget {
         isDark ? 'Light mode' : 'Dark mode',
         style: AppText.body.copyWith(color: AppColors.ink1),
       ),
-      onTap: () => ref.read(themeProvider.notifier).toggle(),
+      onTap: () {
+        ref.read(themeProvider.notifier).toggle();
+        onToggled?.call();
+      },
     );
   }
 }

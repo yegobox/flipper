@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
+import 'package:flipper_web/features/home/sections/books_home_sections.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 
@@ -100,6 +101,55 @@ void main() {
         ),
       );
       expect(scaffold.backgroundColor, BooksPalette.dark.bg);
+    });
+
+    testWidgets('the nav sheet closes when the theme is switched from it', (
+      WidgetTester tester,
+    ) async {
+      // A modal sheet keeps the background colour it opened with, and its
+      // other rows watch nothing, so they keep the colours they were built
+      // with. Leaving it open would show this row alone in the new palette.
+      //
+      // The header is pumped on its own rather than the whole page: the
+      // pricing section puts Flexible children in a vertical Flex under
+      // unbounded height, so rendering the page below 860px throws before the
+      // menu can be opened. That is a separate, pre-existing bug.
+      tester.view.physicalSize = const Size(700, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: BooksHomeHeader(
+                scrolled: false,
+                onStartFree: () {},
+                onSignIn: () {},
+                onNavTap: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.menu_rounded));
+      await tester.pumpAndSettle();
+      expect(find.text('Dark mode'), findsOneWidget);
+
+      await tester.tap(find.text('Dark mode'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Dark mode'),
+        findsNothing,
+        reason: 'the sheet dismisses instead of half-repainting',
+      );
+
+      // Reopening proves the toggle took effect rather than being swallowed.
+      await tester.tap(find.byIcon(Icons.menu_rounded));
+      await tester.pumpAndSettle();
+      expect(find.text('Light mode'), findsOneWidget);
     });
   });
 }
