@@ -14,46 +14,38 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class HotelRoomsDesktopScreen extends ConsumerWidget {
+/// Desktop room board.
+///
+/// Header, floor bar and grid each watch only what they draw. Sharing one
+/// `Consumer` at the top meant a single stay changing rebuilt the occupancy
+/// counters, the floor tabs and every card together.
+class HotelRoomsDesktopScreen extends StatelessWidget {
   const HotelRoomsDesktopScreen({super.key});
 
-  /// Height the room card's content actually needs: number row, type line,
-  /// and a two-line footer, plus its own padding.
-  static const _roomCardHeight = 142.0;
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final roomsAsync = ref.watch(hotelRoomsProvider);
-    final staysAsync = ref.watch(hotelStaysProvider);
-    // See the mobile board: an empty fallback would show occupied rooms as
-    // vacant and offer check-in on them.
-    final stays = staysAsync.value ?? const <HotelStay>[];
-
+  Widget build(BuildContext context) {
     return Container(
       color: HotelTokens.posBg,
-      child: Column(
+      child: const Column(
         children: [
-          _header(context, ref, stays),
-          _floorBar(ref),
-          Expanded(
-            child: staysAsync.hasError
-                ? _loadFailure(staysAsync.error!)
-                : roomsAsync.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => _loadFailure(e),
-                    data: (_) => staysAsync.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _board(context, ref, stays),
-                  ),
-          ),
+          _DesktopHeader(),
+          _DesktopFloorBar(),
+          Expanded(child: _DesktopBoard()),
         ],
       ),
     );
   }
+}
 
-  Widget _header(BuildContext context, WidgetRef ref, List<HotelStay> stays) {
-    final clerk = ref.watch(hotelModeProvider).activeClerk;
+/// Brand, title, nav, counters, clerk and the two desk buttons.
+class _DesktopHeader extends ConsumerWidget {
+  const _DesktopHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clerk = ref.watch(
+      hotelModeProvider.select((state) => state.activeClerk),
+    );
     final counts = ref.watch(hotelOccupancyProvider);
 
     return Container(
@@ -171,24 +163,55 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
     );
   }
 
-  Widget _loadFailure(Object error) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Text(
-        'Could not load the board.\n$error',
-        textAlign: TextAlign.center,
-        style: GoogleFonts.outfit(
-          fontSize: 13.5,
-          color: HotelTokens.lossInk,
-          fontWeight: FontWeight.w600,
+  Widget _outlineButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color borderColor = HotelTokens.line,
+    Color foreground = HotelTokens.ink2,
+  }) {
+    return Material(
+      color: HotelTokens.surface,
+      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+        child: Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+            border: Border.all(color: borderColor, width: 1.5),
+            boxShadow: HotelTokens.shadow1,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: foreground),
+              const SizedBox(width: 9),
+              Text(
+                label,
+                style: GoogleFonts.outfit(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  color: foreground,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
+}
 
-  Widget _floorBar(WidgetRef ref) {
+/// Floor tabs with their vacant counts.
+class _DesktopFloorBar extends ConsumerWidget {
+  const _DesktopFloorBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final rooms = ref.watch(hotelRoomsProvider).value ?? const <HotelRoom>[];
-    final stays = ref.watch(hotelStaysProvider).value ?? const <HotelStay>[];
+    final stays = ref.watch(hotelStaysProvider).value;
     final selected = ref.watch(
       hotelModeProvider.select((state) => state.floorFilter),
     );
@@ -200,6 +223,7 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
       if (seen.add(room.floorId)) {
         floors.add((room.floorId, room.floorName));
       }
+      if (stays == null) continue;
       final state = hotelRoomState(
         room: room,
         stay: hotelStayForRoom(room, stays),
@@ -220,6 +244,49 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
       ),
     );
   }
+
+}
+
+/// The cards themselves, grouped by floor.
+class _DesktopBoard extends ConsumerWidget {
+  const _DesktopBoard();
+
+  /// Height the room card's content actually needs: number row, type line,
+  /// and a two-line footer, plus its own padding.
+  static const _roomCardHeight = 142.0;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomsAsync = ref.watch(hotelRoomsProvider);
+    final staysAsync = ref.watch(hotelStaysProvider);
+
+    // An empty fallback would show occupied rooms as vacant and offer
+    // check-in on them, so a stays failure is surfaced instead.
+    if (staysAsync.hasError) return _loadFailure(staysAsync.error!);
+
+    return roomsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => _loadFailure(e),
+      data: (_) => staysAsync.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _board(context, ref, staysAsync.value ?? const <HotelStay>[]),
+    );
+  }
+
+  Widget _loadFailure(Object error) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Text(
+        'Could not load the board.\n$error',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.outfit(
+          fontSize: 13.5,
+          color: HotelTokens.lossInk,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  );
 
   Widget _board(BuildContext context, WidgetRef ref, List<HotelStay> stays) {
     final grouped = ref.watch(hotelRoomsByFloorProvider);
@@ -341,44 +408,4 @@ class HotelRoomsDesktopScreen extends ConsumerWidget {
     stays: stays,
     mobile: false,
   );
-
-  Widget _outlineButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color borderColor = HotelTokens.line,
-    Color foreground = HotelTokens.ink2,
-  }) {
-    return Material(
-      color: HotelTokens.surface,
-      borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-        child: Container(
-          height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
-            border: Border.all(color: borderColor, width: 1.5),
-            boxShadow: HotelTokens.shadow1,
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: foreground),
-              const SizedBox(width: 9),
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  color: foreground,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

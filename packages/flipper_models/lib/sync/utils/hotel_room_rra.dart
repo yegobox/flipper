@@ -128,3 +128,24 @@ bool isHotelRoomVariantRegistered(Variant? variant) {
       variant.itemTyCd == '3' &&
       variant.ttCatCd == 'TT';
 }
+
+/// Whether this branch is on EBM at all.
+///
+/// A property that does not file with RRA has no EBM row, or one without the
+/// TIN and branch code every call carries. Registering its rooms is not a
+/// failure to report — there is nothing to report to, so the room is simply
+/// sold without a tourism-tax item.
+bool hotelBranchSupportsRra(Ebm? ebm) {
+  if (ebm == null) return false;
+  return ebm.tinNumber != 0 && ebm.bhfId.trim().isNotEmpty;
+}
+
+/// Whether a failed registration attempt can drop [variant] and its product.
+///
+/// Only while the item never reached RRA. Once `saveItems` has answered, the
+/// `itemCd` is an identity RRA now holds; deleting it locally would make the
+/// retry allocate a second code and register the same room twice.
+bool hotelRoomRegistrationCanRollBack(Variant variant) {
+  final itemCd = variant.itemCd?.trim();
+  return itemCd == null || itemCd.isEmpty;
+}

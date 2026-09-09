@@ -6,6 +6,7 @@ import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/sync/utils/hotel_dashboard_metrics.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
@@ -333,6 +334,18 @@ final hotelOverdueStaysProvider = Provider<List<HotelStay>>((ref) {
 
 final hotelStaffProvider = FutureProvider<List<Tenant>>((ref) async {
   return FlipperBaseModel.fetchBarStaffTenants();
+});
+
+/// Whether this branch files with RRA.
+///
+/// A property that is not on EBM has no tourism-tax items to register, so the
+/// desk neither offers room registration nor reports it missing. Kept alive
+/// because EBM configuration does not change while the desk is open.
+final hotelRraSupportedProvider = FutureProvider<bool>((ref) async {
+  ref.keepAlive();
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return false;
+  return HotelRoomRraService.branchSupportsRra(branchId);
 });
 
 /// Front-desk counters derived from the live room + stay streams.

@@ -144,6 +144,62 @@ void main() {
     });
   });
 
+  group('hotelBranchSupportsRra', () {
+    Ebm ebm({int tinNumber = 999909695, String bhfId = '00'}) => Ebm(
+      bhfId: bhfId,
+      tinNumber: tinNumber,
+      dvcSrlNo: 'dvc',
+      businessId: 'biz1',
+      branchId: 'b1',
+      mrc: 'mrc',
+    );
+
+    test('a branch with no EBM row does not file with RRA', () {
+      expect(hotelBranchSupportsRra(null), isFalse);
+    });
+
+    test('an EBM row without a TIN is not a filing branch', () {
+      expect(hotelBranchSupportsRra(ebm(tinNumber: 0)), isFalse);
+    });
+
+    test('an EBM row without a branch code is not a filing branch', () {
+      expect(hotelBranchSupportsRra(ebm(bhfId: '   ')), isFalse);
+    });
+
+    test('a configured branch files, VAT-registered or not', () {
+      final configured = ebm();
+      expect(hotelBranchSupportsRra(configured), isTrue);
+
+      // A TT-only property registers rooms without being on VAT.
+      configured.vatEnabled = false;
+      expect(
+        hotelBranchSupportsRra(configured),
+        isTrue,
+        reason: 'tourism tax rides on ttCatCd, not on VAT registration',
+      );
+    });
+  });
+
+  group('hotelRoomRegistrationCanRollBack', () {
+    Variant variant({String? itemCd}) =>
+        Variant(branchId: 'b1', name: '101', itemCd: itemCd);
+
+    test('an item RRA never answered for can be dropped', () {
+      expect(hotelRoomRegistrationCanRollBack(variant()), isTrue);
+      expect(hotelRoomRegistrationCanRollBack(variant(itemCd: '')), isTrue);
+      expect(hotelRoomRegistrationCanRollBack(variant(itemCd: '  ')), isTrue);
+    });
+
+    test('an item that already holds an itemCd must be kept', () {
+      // RRA holds this code. Deleting it locally would make the retry
+      // register the same room a second time under a new one.
+      expect(
+        hotelRoomRegistrationCanRollBack(variant(itemCd: 'RW1NTXU0000001')),
+        isFalse,
+      );
+    });
+  });
+
   group('HotelRoom', () {
     test('knows whether it is registered, and round-trips its variant', () {
       const unregistered = HotelRoom(

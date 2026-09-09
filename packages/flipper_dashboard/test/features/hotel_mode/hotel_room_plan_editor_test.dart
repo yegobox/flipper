@@ -40,12 +40,14 @@ Future<void> _pump(
   WidgetTester tester, {
   required List<HotelRoom> rooms,
   List<HotelStay> stays = const [],
+  bool rraSupported = true,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         hotelRoomsProvider.overrideWith((ref) => Stream.value(rooms)),
         hotelStaysProvider.overrideWith((ref) => Stream.value(stays)),
+        hotelRraSupportedProvider.overrideWith((ref) => rraSupported),
       ],
       child: const MaterialApp(
         home: Scaffold(
@@ -112,6 +114,24 @@ void main() {
 
       expect(find.byIcon(Icons.gpp_maybe_outlined), findsOneWidget);
       expect(find.byIcon(Icons.verified_outlined), findsOneWidget);
+    });
+
+    testWidgets('says nothing about RRA on a branch that is not on EBM', (
+      tester,
+    ) async {
+      // There is no tax authority to register with, so a "not registered"
+      // warning would nag about something the property cannot do.
+      await _pump(
+        tester,
+        rooms: [
+          _room(id: 'r1', name: '101'),
+          _room(id: 'r2', name: '102', variantId: 'v2'),
+        ],
+        rraSupported: false,
+      );
+
+      expect(find.byIcon(Icons.gpp_maybe_outlined), findsNothing);
+      expect(find.byIcon(Icons.verified_outlined), findsNothing);
     });
 
     testWidgets('a room with a guest is locked against deletion', (

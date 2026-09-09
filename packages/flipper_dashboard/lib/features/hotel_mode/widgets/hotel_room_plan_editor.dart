@@ -39,6 +39,21 @@ class HotelRoomPlanEditor extends ConsumerStatefulWidget {
 class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
   bool _busy = false;
 
+  /// Whether this branch files with RRA.
+  ///
+  /// A property that is not on EBM has no tourism-tax items to register, so
+  /// the row shows no registration state and nothing is ever sent. Unknown
+  /// reads as "no": better to omit the badge for a moment than to offer a
+  /// registration that cannot happen.
+  ///
+  /// Two accessors because `ref.watch` is only legal during `build`; the
+  /// action paths run from a callback and must read.
+  bool get _rraSupported =>
+      ref.watch(hotelRraSupportedProvider).value ?? false;
+
+  bool get _rraSupportedNow =>
+      ref.read(hotelRraSupportedProvider).value ?? false;
+
   DatabaseSyncInterface get _sync => ProxyService.getStrategy(Strategy.capella);
 
   List<_Floor> _floors(List<HotelRoom> rooms) {
@@ -83,21 +98,29 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     return next;
   }
 
-  Future<void> _save(HotelRoom room) => _run(() async {
+  Future<void> _save(HotelRoom room) => _run(() => _persist(room));
+
+  /// The body of [_save], callable from inside an action that is already
+  /// queued. Queueing it again from within [_run] would deadlock on [_queue].
+  Future<void> _persist(HotelRoom room) async {
     await _sync.saveHotelRoom(room);
     // RRA holds the room's name and price, so an edit that stops there would
     // keep invoicing the old ones.
     if (room.isRegisteredWithRra) {
       await HotelRoomRraService.syncRoomToRra(room);
     }
-  });
+  }
 
   /// Registers [room] with RRA as a tourism-tax service item.
   ///
   /// Best effort: the room is already saved, and a branch without EBM
   /// configured should still be able to lay out its floors. The row shows the
   /// unregistered state so nobody is surprised at checkout.
+  ///
+  /// A branch that is not on EBM never gets here — there is nothing to
+  /// register with, so the desk should not be told a registration failed.
   Future<void> _register(HotelRoom room) async {
+    if (!_rraSupportedNow) return;
     await _run(() async {
       try {
         await HotelRoomRraService.registerRoom(room);
@@ -138,69 +161,81 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
   }
 
   Future<void> _addRoom(_Floor floor) async {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return;
-    // Numbering has to be decided against the roster as it stands, or two
-    // quick taps both pick the same number.
-    final current = await _sync.hotelRooms(branchId: branchId);
-    final onFloor = current.where((r) => r.floorId == floor.id).toList();
+    // Reading the roster, picking the number and writing the room are one
+    // action: `_busy` only goes up once `_run` starts, so allocating outside
+    // it lets two quick taps read the same roster and mint the same number.
+    HotelRoom? created;
+    await _run(() async {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) return;
 
-    final template = onFloor.isEmpty ? null : onFloor.last;
-    var suggestion = hotelSuggestRoomNumber(onFloor);
-    // Never mint a duplicate: walk forward until the number is free.
-    var guard = 0;
-    while (hotelRoomNumberIsTaken(rooms: current, name: suggestion) &&
-        guard++ < 500) {
-      final asNumber = int.tryParse(suggestion);
-      suggestion = asNumber == null ? '$suggestion+' : '${asNumber + 1}';
-    }
+      final current = await _sync.hotelRooms(branchId: branchId);
+      final onFloor = current.where((r) => r.floorId == floor.id).toList();
 
-    final room = HotelRoom(
-      id: const Uuid().v4(),
-      branchId: branchId,
-      floorId: floor.id,
-      floorName: floor.name,
-      name: suggestion,
-      roomType: template?.roomType ?? 'Double',
-      capacity: template?.capacity ?? 2,
-      nightlyRate: template?.nightlyRate ?? 50000,
-      ordinal: current.length,
-    );
-    await _save(room);
-    await _register(room);
+      final template = onFloor.isEmpty ? null : onFloor.last;
+      var suggestion = hotelSuggestRoomNumber(onFloor);
+      // Never mint a duplicate: walk forward until the number is free.
+      var guard = 0;
+      while (hotelRoomNumberIsTaken(rooms: current, name: suggestion) &&
+          guard++ < 500) {
+        final asNumber = int.tryParse(suggestion);
+        suggestion = asNumber == null ? '$suggestion+' : '${asNumber + 1}';
+      }
+
+      final room = HotelRoom(
+        id: const Uuid().v4(),
+        branchId: branchId,
+        floorId: floor.id,
+        floorName: floor.name,
+        name: suggestion,
+        roomType: template?.roomType ?? 'Double',
+        capacity: template?.capacity ?? 2,
+        nightlyRate: template?.nightlyRate ?? 50000,
+        ordinal: current.length,
+      );
+      await _persist(room);
+      created = room;
+    });
+
+    if (created != null) await _register(created!);
   }
 
   Future<void> _addFloor() async {
     final name = await _promptName(context, title: 'New floor or wing');
     if (name == null || name.trim().isEmpty) return;
 
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return;
+    // Same reason as _addRoom: number against the roster inside the queue.
+    HotelRoom? created;
+    await _run(() async {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) return;
 
-    final floorId = const Uuid().v4();
-    // Same reason as _addRoom: number against the roster as it stands.
-    final current = await _sync.hotelRooms(branchId: branchId);
-    var suggestion = hotelSuggestRoomNumber(const []);
-    var guard = 0;
-    while (hotelRoomNumberIsTaken(rooms: current, name: suggestion) &&
-        guard++ < 500) {
-      suggestion = 'Room ${current.length + guard + 1}';
-    }
+      final floorId = const Uuid().v4();
+      final current = await _sync.hotelRooms(branchId: branchId);
+      var suggestion = hotelSuggestRoomNumber(const []);
+      var guard = 0;
+      while (hotelRoomNumberIsTaken(rooms: current, name: suggestion) &&
+          guard++ < 500) {
+        suggestion = 'Room ${current.length + guard + 1}';
+      }
 
-    // A floor exists only through its rooms, so it starts with one.
-    final room = HotelRoom(
-      id: const Uuid().v4(),
-      branchId: branchId,
-      floorId: floorId,
-      floorName: name.trim(),
-      name: suggestion,
-      roomType: 'Double',
-      capacity: 2,
-      nightlyRate: 50000,
-      ordinal: current.length,
-    );
-    await _save(room);
-    await _register(room);
+      // A floor exists only through its rooms, so it starts with one.
+      final room = HotelRoom(
+        id: const Uuid().v4(),
+        branchId: branchId,
+        floorId: floorId,
+        floorName: name.trim(),
+        name: suggestion,
+        roomType: 'Double',
+        capacity: 2,
+        nightlyRate: 50000,
+        ordinal: current.length,
+      );
+      await _persist(room);
+      created = room;
+    });
+
+    if (created != null) await _register(created!);
   }
 
   Future<void> _deleteRoom(HotelRoom room, List<HotelStay> stays) async {
@@ -414,6 +449,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
               allRooms: allRooms,
               locked: !hotelRoomCanBeDeleted(room: room, stays: stays),
               busy: _busy,
+              rraSupported: _rraSupported,
               onSave: _save,
               onRegister: () => _register(room),
               onDelete: () => _deleteRoom(room, stays),
@@ -543,6 +579,7 @@ class _RoomRow extends StatefulWidget {
     required this.allRooms,
     required this.locked,
     required this.busy,
+    required this.rraSupported,
     required this.onSave,
     required this.onRegister,
     required this.onDelete,
@@ -554,6 +591,10 @@ class _RoomRow extends StatefulWidget {
   /// A room with a guest or a booking can be re-priced but not removed.
   final bool locked;
   final bool busy;
+
+  /// False on a branch that is not on EBM, where the room has no RRA state to
+  /// show and no registration to offer.
+  final bool rraSupported;
   final Future<void> Function(HotelRoom) onSave;
   final VoidCallback onRegister;
   final VoidCallback onDelete;
@@ -701,8 +742,12 @@ class _RoomRowState extends State<_RoomRow> {
             onChanged: widget.busy ? null : _setCapacity,
           );
           // A room RRA does not know about cannot have its nights invoiced as
-          // accommodation, so the state is on the row rather than buried.
-          final rraBadge = widget.room.isRegisteredWithRra
+          // accommodation, so the state is on the row rather than buried. A
+          // branch that is not on EBM has no such state — showing "not
+          // registered" there would nag about something it cannot do.
+          final Widget rraBadge = !widget.rraSupported
+              ? const SizedBox.shrink()
+              : widget.room.isRegisteredWithRra
               ? const Tooltip(
                   message: 'Registered with RRA as a tourism-tax service',
                   child: Icon(
