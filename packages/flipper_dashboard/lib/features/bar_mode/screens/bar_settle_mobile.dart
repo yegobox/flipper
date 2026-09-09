@@ -6,15 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
-import 'package:flipper_dashboard/utils/sale_stock_deduction.dart';
+import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/setting_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -425,57 +421,12 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         customerPhone: receiptPhone,
       );
 
-      final businessId = ProxyService.box.getBusinessId();
-      final branchId = ProxyService.box.getBranchId();
-      bool fiscalReceiptHandled = false;
-      if (businessId != null && branchId != null) {
-        final taxEnabled = await sync.isTaxEnabled(
-          businessId: businessId,
-          branchId: branchId,
-        );
-        final stopTax = ProxyService.box.stopTaxService() ?? false;
-        final hasBhf = (await ProxyService.box.bhfId()) != null;
-
-        if (taxEnabled && !stopTax && hasBhf) {
-          final ebm = await sync.ebm(branchId: branchId);
-          if (ebm?.taxServerUrl != null) {
-            ProxyService.box.writeString(
-              key: 'getServerUrl',
-              value: ebm!.taxServerUrl!,
-            );
-            ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
-
-            final filterType = ProxyService.box.isProformaMode()
-                ? FilterType.PS
-                : FilterType.NS;
-            final receiptLines = await enrichBarTabLinesForRraReceipt(lines);
-            final result = await TaxController(
-              object: txn,
-            ).handleReceipt(
-              filterType: filterType,
-              transactionItems: receiptLines,
-            );
-            if (result.response.resultCd != '000') {
-              throw Exception(result.response.resultMsg);
-            }
-            fiscalReceiptHandled = true;
-          }
-        }
-      }
-
-      // Branch is not EBM-registered (or the tax checks above didn't apply):
-      // there's no RRA-signed receipt, but the tab is still a real completed
-      // sale, so print a plain, non-fiscal receipt instead.
-      if (!fiscalReceiptHandled && lines.isNotEmpty) {
-        try {
-          await TaxController(object: txn).buildNonFiscalReceiptPdfBytes(
-            transaction: txn,
-            transactionItems: lines,
-          );
-        } catch (e) {
-          debugPrint('Non-fiscal bar receipt print failed: $e');
-        }
-      }
+      await issueSaleReceipt(
+        sync: sync,
+        transaction: txn,
+        lines: lines,
+        receiptContext: 'receipt',
+      );
 
       txn = await sync.settleBarTab(
         transaction: txn,
@@ -484,30 +435,14 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
         customerChangeDue: change,
       );
 
-      await sync.savePaymentType(
-        singlePaymentOnly: true,
-        amount: total,
+      await recordSalePaymentAndScheduleStock(
+        sync: sync,
+        transaction: txn,
+        lines: lines,
         transactionId: tab.id,
-        paymentMethod: _method,
-        saleCompletionFastPath: true,
+        paymentType: _method,
+        amount: total,
       );
-
-      if (lines.isNotEmpty) {
-        final allowBelow = await getIt<SettingsService>()
-            .isAllowSellingBelowStock();
-        final isProformaOrTraining =
-            ProxyService.box.isProformaMode() ||
-            ProxyService.box.isTrainingMode();
-        final receiptType = ProxyService.box.isProformaMode() ? 'PS' : 'NS';
-        schedulePostSaleStockDeductionAndRraSync(
-          transactionItems: lines,
-          allowSellingBelowStock: allowBelow,
-          isProformaOrTraining: isProformaOrTraining,
-          transactionId: tab.id,
-          transaction: txn,
-          receiptType: receiptType,
-        );
-      }
 
       if (!mounted) return;
       final tableName = ref.read(barModeProvider).activeTable?.name ?? '';

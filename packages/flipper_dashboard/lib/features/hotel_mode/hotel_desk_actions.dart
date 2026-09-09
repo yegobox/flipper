@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
+import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
@@ -330,12 +331,48 @@ abstract final class HotelDeskActions {
     final fresh =
         await _sync.hotelFolio(transactionId: stay.transactionId) ?? folio;
 
-    await _sync.checkOutGuest(
-      stay: stay,
-      transaction: fresh,
+    final lines = await _sync.hotelFolioLines(
+      transactionId: stay.transactionId,
+    );
+
+    // What the receipt is filed against: the folio carries the room and its
+    // extras, but the tender only exists at the desk.
+    final invoiced = fresh.copyWith(
       paymentType: paymentType,
       cashReceived: cashReceived,
       customerChangeDue: customerChangeDue,
+    );
+
+    // Filed and printed before the stay is closed, exactly as bar mode settles
+    // a tab. A throw here leaves the guest checked in and the desk able to
+    // retry, rather than a released room with no receipt behind it.
+    await issueSaleReceipt(
+      sync: _sync,
+      transaction: invoiced,
+      lines: lines,
+      receiptContext: 'folio invoice',
+    );
+
+    await _sync.checkOutGuest(
+      stay: stay,
+      transaction: invoiced,
+      paymentType: paymentType,
+      cashReceived: cashReceived,
+      customerChangeDue: customerChangeDue,
+    );
+
+    await recordSalePaymentAndScheduleStock(
+      sync: _sync,
+      transaction: invoiced,
+      lines: lines,
+      transactionId: stay.transactionId,
+      paymentType: paymentType,
+      amount: (invoiced.subTotal ?? 0).toDouble(),
+    );
+
+    talker.info(
+      'hotel: folio ${stay.transactionId} invoiced and settled for '
+      '${stay.roomName} (${lines.length} lines, $paymentType)',
     );
 
     ref

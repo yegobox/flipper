@@ -5,6 +5,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
@@ -135,7 +136,18 @@ abstract final class HotelRoomRraService {
       await repository.upsert<Variant>(variant);
     }
 
-    final serverUrl = await ProxyService.box.getServerUrl() ?? '';
+    final serverUrl = await _rraServerUrl(ebm);
+    if (serverUrl.isEmpty) {
+      // Surfaced as a toast at the desk, so it says what to do rather than
+      // naming a branch id nobody there can act on.
+      talker.error(
+        'hotel: branch $branchId has no taxServerUrl on its EBM row and none '
+        'in the box, so room ${room.name} cannot be registered.',
+      );
+      throw StateError(
+        'No RRA tax server URL for this branch — set it in Tax configuration.',
+      );
+    }
 
     try {
       await registerVariantWithRraForAdd(
@@ -221,6 +233,33 @@ abstract final class HotelRoomRraService {
     }
   }
 
+  /// The branch's RRA endpoint, taken from its EBM row rather than the box.
+  ///
+  /// `ProxyService.box.getServerUrl()` is only populated once something has
+  /// visited tax configuration on this device, so the front desk could reach a
+  /// room registration with it still empty — `saveItem` then posted to the bare
+  /// path `items/saveItems` and Dio failed with "No host specified in URI",
+  /// three times over, with nothing naming the real cause.
+  ///
+  /// Seeds the box on the way through, the way bar mode's settle does, so the
+  /// rest of the tax stack sees the same endpoint.
+  ///
+  /// On a phone the VSDC is not on this device, so [Ebm.remoteServerUrl] wins
+  /// where it is set — matching what `addVariant` does for every other product.
+  static Future<String> _rraServerUrl(Ebm ebm) async {
+    var fromEbm = ebm.taxServerUrl?.trim() ?? '';
+    if (isAndroid || isIos) {
+      final remote = ebm.remoteServerUrl?.trim() ?? '';
+      if (remote.isNotEmpty) fromEbm = remote;
+    }
+    if (fromEbm.isNotEmpty) {
+      await ProxyService.box.writeString(key: 'getServerUrl', value: fromEbm);
+      await ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
+      return fromEbm;
+    }
+    return (await ProxyService.box.getServerUrl() ?? '').trim();
+  }
+
   /// Pushes a rename or a rate change onto the room's registered item.
   ///
   /// RRA holds the room's name and price, so leaving them stale would invoice
@@ -241,7 +280,14 @@ abstract final class HotelRoomRraService {
 
     if (!hotelBranchSupportsRra(ebm)) return;
 
-    final serverUrl = await ProxyService.box.getServerUrl() ?? '';
+    final serverUrl = await _rraServerUrl(ebm!);
+    if (serverUrl.isEmpty) {
+      talker.warning(
+        'hotel: no RRA tax server URL for branch ${room.branchId}; room '
+        '${room.name} keeps its old name/rate with RRA.',
+      );
+      return;
+    }
     await retryTransientRraCall(
       () => ProxyService.tax.saveItem(variation: variant, URI: serverUrl),
     );
