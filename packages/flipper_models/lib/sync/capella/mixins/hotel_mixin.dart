@@ -8,6 +8,7 @@ import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
+import 'package:flipper_models/sync/utils/ditto_transaction_line.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
@@ -34,6 +35,14 @@ final Set<String> _hotelSyncSubscriptionKeys = <String>{};
 mixin CapellaHotelMixin implements HotelInterface {
   DittoService get dittoService;
   Talker get talker;
+
+  /// The Ditto instance every query in this mixin runs against.
+  ///
+  /// A seam, not indirection for its own sake: [DittoService.dittoInstance] is
+  /// typed to the real `Ditto`, which cannot be constructed in a unit test, so
+  /// tests override this with an in-memory store. Production keeps the single
+  /// implementation below.
+  dynamic get dittoHandle => dittoHandle;
 
   static const _hotelBranchSettingsSql =
       'SELECT * FROM hotel_branch_settings WHERE branchId = :branchId LIMIT 1';
@@ -208,7 +217,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   }) {
     final controller = StreamController<T>();
     dynamic observer;
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(empty);
 
     unawaited(() async {
@@ -246,7 +255,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Future<HotelBranchSettings?> hotelBranchSettings({
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     _ensureHotelSettingsSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -260,7 +269,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Stream<HotelBranchSettings?> hotelBranchSettingsStream({
     required String branchId,
   }) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(null);
     _ensureHotelSettingsSync(ditto, branchId);
     return _observed<HotelBranchSettings?>(
@@ -274,7 +283,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<void> saveHotelBranchSettings(HotelBranchSettings settings) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     final doc = settings.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
     await ditto.store.execute(
@@ -287,7 +296,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<List<HotelRoom>> hotelRooms({required String branchId}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     _ensureHotelRoomsSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -299,7 +308,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Stream<List<HotelRoom>> hotelRoomsStream({required String branchId}) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(<HotelRoom>[]);
     _ensureHotelRoomsSync(ditto, branchId);
     return _observed<List<HotelRoom>>(
@@ -313,7 +322,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<void> saveHotelRoom(HotelRoom room) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     await ditto.store.execute(
       'INSERT INTO hotel_rooms DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
@@ -326,7 +335,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String id,
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     await ditto.store.execute(
       'DELETE FROM hotel_rooms WHERE (_id = :id OR id = :id) AND branchId = :branchId',
@@ -349,7 +358,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String branchId,
     required HotelHousekeeping housekeeping,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     await ditto.store.execute(
       'UPDATE hotel_rooms SET housekeeping = :housekeeping '
@@ -366,7 +375,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<List<HotelStay>> hotelStays({required String branchId}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     _ensureHotelStaysSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -378,7 +387,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Stream<List<HotelStay>> hotelStaysStream({required String branchId}) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(<HotelStay>[]);
     _ensureHotelStaysSync(ditto, branchId);
     return _observed<List<HotelStay>>(
@@ -395,7 +404,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String branchId,
     required String roomId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     final result = await ditto.store.execute(
       "SELECT * FROM hotel_stays WHERE branchId = :branchId AND roomId = :roomId "
@@ -408,7 +417,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<HotelStay?> hotelStayById({required String id}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     final result = await ditto.store.execute(
       'SELECT * FROM hotel_stays WHERE _id = :id OR id = :id LIMIT 1',
@@ -420,7 +429,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<void> saveHotelStay(HotelStay stay) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     final doc = stay.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
     await ditto.store.execute(
@@ -452,7 +461,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     );
     if (existing != null) return existing;
 
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
 
     final now = DateTime.now().toUtc();
@@ -521,7 +530,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Future<void> cancelHotelStay({required HotelStay stay}) async {
     await saveHotelStay(stay.copyWith(status: HotelStayStatus.cancelled));
 
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto != null) {
       // Drop the empty folio so cancelled bookings never surface as tickets.
       await ditto.store.execute(
@@ -618,7 +627,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   }) async {
     if (stay.status != HotelStayStatus.reserved) return stay;
 
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
 
     final now = DateTime.now().toUtc();
@@ -669,7 +678,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Future<List<HotelQuotation>> hotelQuotations({
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     _ensureHotelStaysSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -683,7 +692,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Stream<List<HotelQuotation>> hotelQuotationsStream({
     required String branchId,
   }) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(const <HotelQuotation>[]);
     _ensureHotelStaysSync(ditto, branchId);
     return _observed<List<HotelQuotation>>(
@@ -697,7 +706,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<void> saveHotelQuotation(HotelQuotation quotation) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     final doc = quotation.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
     await ditto.store.execute(
@@ -711,7 +720,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String id,
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     await ditto.store.execute(
       'DELETE FROM hotel_quotations WHERE (_id = :id OR id = :id) '
@@ -764,7 +773,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<ITransaction?> hotelFolio({required String transactionId}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return null;
     final result = await ditto.store.execute(
       'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
@@ -796,7 +805,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Future<List<ITransaction>> hotelOpenFolios({
     required String branchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     _ensureHotelStaysSync(ditto, branchId);
     final result = await ditto.store.execute(
@@ -810,7 +819,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Stream<List<ITransaction>> hotelOpenFoliosStream({
     required String branchId,
   }) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(const <ITransaction>[]);
     _ensureHotelStaysSync(ditto, branchId);
 
@@ -856,7 +865,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Future<List<TransactionItem>> hotelFolioLines({
     required String transactionId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return [];
     final result = await ditto.store.execute(
       _hotelFolioLinesSql,
@@ -869,7 +878,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Stream<List<TransactionItem>> hotelFolioLinesStream({
     required String transactionId,
   }) {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return Stream.value(<TransactionItem>[]);
     return _observed<List<TransactionItem>>(
       sql: _hotelFolioLinesSql,
@@ -880,18 +889,37 @@ mixin CapellaHotelMixin implements HotelInterface {
     );
   }
 
+  /// Current `subTotal` straight off the folio document.
+  ///
+  /// Deliberately not [hotelFolio]: hydrating a whole [ITransaction] — which
+  /// fetches its relationships — to read one number is wasted work on a path
+  /// that runs for every line the desk touches. Returns null when there is no
+  /// such document.
+  Future<double?> _folioSubTotalRaw(String transactionId) async {
+    final ditto = dittoHandle;
+    if (ditto == null) return null;
+    final result = await ditto.store.execute(
+      'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
+      arguments: {'id': transactionId},
+    );
+    final items = result.items as Iterable<dynamic>;
+    if (items.isEmpty) return null;
+    final raw = Map<String, dynamic>.from(items.first.value as Map);
+    return dittoOptNum(raw['subTotal'])?.toDouble() ?? 0;
+  }
+
   Future<void> _adjustSubtotal(String transactionId, double delta) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
-    final folio = await hotelFolio(transactionId: transactionId);
-    if (folio == null) return;
+    final current = await _folioSubTotalRaw(transactionId);
+    if (current == null) return;
     final nowIso = DateTime.now().toUtc().toIso8601String();
     await ditto.store.execute(
       'UPDATE transactions SET subTotal = :subTotal, updatedAt = :updatedAt, '
       'lastTouched = :lastTouched WHERE _id = :id OR id = :id',
       arguments: {
         'id': transactionId,
-        'subTotal': (folio.subTotal ?? 0) + delta,
+        'subTotal': current + delta,
         'updatedAt': nowIso,
         'lastTouched': nowIso,
       },
@@ -912,7 +940,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     String? color,
     String? sku,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
     if (qty <= 0) return;
 
@@ -1058,7 +1086,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required num qty,
     required num stockCap,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
 
     final lines = await hotelFolioLines(transactionId: transactionId);
@@ -1095,7 +1123,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String transactionId,
     required num price,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
 
     final lines = await hotelFolioLines(transactionId: transactionId);
@@ -1126,7 +1154,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String lineId,
     required String transactionId,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
 
     final lines = await hotelFolioLines(transactionId: transactionId);
@@ -1144,7 +1172,7 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<void> refreshFolioSubTotal({required String transactionId}) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) return;
     final lines = await hotelFolioLines(transactionId: transactionId);
     final total = hotelFolioTotal(lines);
@@ -1169,7 +1197,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required double cashReceived,
     required double customerChangeDue,
   }) async {
-    final ditto = dittoService.dittoInstance;
+    final ditto = dittoHandle;
     if (ditto == null) throw StateError('Ditto not initialized');
 
     final now = DateTime.now().toUtc();
