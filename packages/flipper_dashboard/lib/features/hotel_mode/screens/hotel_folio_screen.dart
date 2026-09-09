@@ -196,8 +196,7 @@ class _HotelFolioBody extends ConsumerWidget {
         border: Border.all(color: HotelTokens.line),
       ),
       child: Text(
-        'No charges yet. Post the room charge or ring items to this folio\n'
-        'from the bar or restaurant.',
+        'No charges yet. Post the room charge to start this folio.',
         textAlign: TextAlign.center,
         style: GoogleFonts.outfit(
           fontSize: 13,

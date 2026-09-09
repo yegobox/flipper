@@ -671,6 +671,91 @@ mixin CapellaHotelMixin implements HotelInterface {
     return arrived;
   }
 
+  // --- Charging other outlets to a room -------------------------------------
+
+  @override
+  Future<List<HotelStay>> chargeableStays({required String branchId}) async {
+    final stays = await hotelStays(branchId: branchId);
+    // A reservation has no folio until the guest arrives, so it cannot take a
+    // bar tab.
+    return stays
+        .where((stay) => stay.status == HotelStayStatus.inHouse && stay.hasFolio)
+        .toList();
+  }
+
+  @override
+  Future<int> transferCartToFolio({
+    required String cartTransactionId,
+    required HotelStay stay,
+    required String clerkTenantId,
+    required String clerkName,
+  }) async {
+    final ditto = dittoHandle;
+    if (ditto == null) throw StateError('Ditto not initialized');
+
+    if (!stay.hasFolio) {
+      throw StateError(
+        '${stay.guestName} has not checked into room ${stay.roomName} yet, '
+        'so there is no folio to charge.',
+      );
+    }
+    if (cartTransactionId == stay.transactionId) return 0;
+
+    // Refuse a settled sale outright. This deletes the source transaction, and
+    // doing that to something already invoiced would destroy a revenue row and
+    // its RRA receipt.
+    final cartResult = await ditto.store.execute(
+      'SELECT * FROM transactions WHERE _id = :id OR id = :id LIMIT 1',
+      arguments: {'id': cartTransactionId},
+    );
+    final cartItems = cartResult.items as Iterable<dynamic>;
+    if (cartItems.isNotEmpty) {
+      final cartDoc = Map<String, dynamic>.from(cartItems.first.value as Map);
+      if (cartDoc['status'] == COMPLETE) {
+        throw StateError(
+          'That sale is already settled and cannot be moved onto a folio.',
+        );
+      }
+    }
+
+    final lines = await hotelFolioLines(transactionId: cartTransactionId);
+    if (lines.isEmpty) return 0;
+
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+
+    // Re-point the lines rather than re-creating them: they already carry the
+    // itemCd and tax amounts the selling outlet computed, and recomputing here
+    // would risk a different answer for the same sale.
+    await ditto.store.execute(
+      'UPDATE transaction_items SET transactionId = :folioId, '
+      'updatedAt = :updatedAt, lastTouched = :lastTouched '
+      'WHERE transactionId = :cartId',
+      arguments: {
+        'folioId': stay.transactionId,
+        'cartId': cartTransactionId,
+        'updatedAt': nowIso,
+        'lastTouched': nowIso,
+      },
+    );
+    cartLineDocCache.forget(cartTransactionId);
+    cartLineDocCache.forget(stay.transactionId);
+
+    // The cart was never a sale — it becomes part of the stay's single
+    // invoice — so it must not survive as a ticket or a second revenue row.
+    await ditto.store.execute(
+      'DELETE FROM transactions WHERE _id = :id OR id = :id',
+      arguments: {'id': cartTransactionId},
+    );
+
+    await refreshFolioSubTotal(transactionId: stay.transactionId);
+
+    talker.info(
+      'hotel: moved ${lines.length} line(s) from cart $cartTransactionId to '
+      'room ${stay.roomName} folio ${stay.transactionId} by $clerkName',
+    );
+    return lines.length;
+  }
+
   // --- Quotations -----------------------------------------------------------
 
   @override

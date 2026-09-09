@@ -161,6 +161,23 @@ mixin CoreHotelStubMixin implements HotelInterface {
   }
 
   @override
+  Future<List<HotelStay>> chargeableStays({required String branchId}) async {
+    _warn('chargeableStays');
+    return [];
+  }
+
+  @override
+  Future<int> transferCartToFolio({
+    required String cartTransactionId,
+    required HotelStay stay,
+    required String clerkTenantId,
+    required String clerkName,
+  }) async {
+    _warn('transferCartToFolio');
+    throw UnsupportedError('Hotel Mode requires Capella strategy');
+  }
+
+  @override
   Stream<List<HotelQuotation>> hotelQuotationsStream({
     required String branchId,
   }) {

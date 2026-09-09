@@ -114,6 +114,29 @@ abstract class HotelInterface {
     required String clerkName,
   });
 
+  // --- Charging other outlets to a room ---
+
+  /// In-house stays whose folio can take a charge, for a "charge to room"
+  /// picker in the bar, restaurant or retail POS.
+  Future<List<HotelStay>> chargeableStays({required String branchId});
+
+  /// Moves every line of [cartTransactionId] onto [stay]'s folio and disposes
+  /// of the now-empty cart.
+  ///
+  /// The lines move rather than being re-created, so their RRA fields —
+  /// `itemCd`, tax amounts, the lot — survive exactly as the selling outlet
+  /// computed them. The guest then leaves with one invoice for the stay
+  /// instead of one per outlet.
+  ///
+  /// Returns the number of lines moved. Throws [StateError] if the stay has no
+  /// folio, which is the case for a reservation that has not arrived.
+  Future<int> transferCartToFolio({
+    required String cartTransactionId,
+    required HotelStay stay,
+    required String clerkTenantId,
+    required String clerkName,
+  });
+
   // --- Quotations ---
 
   Stream<List<HotelQuotation>> hotelQuotationsStream({

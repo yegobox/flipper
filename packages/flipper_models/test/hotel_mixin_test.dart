@@ -1,3 +1,4 @@
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -620,6 +621,195 @@ void main() {
     test('adjusting a folio that does not exist is a no-op', () async {
       await sync.deleteFolioLine(lineId: 'l1', transactionId: 'ghost');
       expect(subTotal(), 3000);
+    });
+  });
+
+  group('charging another outlet to a room', () {
+    setUp(() {
+      // A guest in house with an open folio, and a bar cart to move onto it.
+      ditto.store.seed('transactions', _folioDoc(id: 'folio', subTotal: 5000));
+      ditto.store.seed('transactions', _folioDoc(id: 'cart', subTotal: 3000));
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'room-night', transactionId: 'folio', qty: '1',
+            price: '5000'),
+      );
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'beer', transactionId: 'cart', qty: '2', price: '1500'),
+      );
+    });
+
+    HotelStay inHouse({String transactionId = 'folio'}) =>
+        _stay(id: 'guest', roomId: 'r1', transactionId: transactionId);
+
+    test('only in-house stays with a folio can take a charge', () async {
+      await sync.saveHotelStay(inHouse());
+      await sync.saveHotelStay(
+        _stay(
+          id: 'booked',
+          roomId: 'r2',
+          transactionId: '',
+          status: HotelStayStatus.reserved,
+        ),
+      );
+
+      final chargeable = await sync.chargeableStays(branchId: _branch);
+      expect(chargeable.map((s) => s.id), ['guest']);
+    });
+
+    test('moves the lines onto the folio and totals them together', () async {
+      final moved = await sync.transferCartToFolio(
+        cartTransactionId: 'cart',
+        stay: inHouse(),
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(moved, 1);
+
+      final folioLines = await sync.hotelFolioLines(transactionId: 'folio');
+      expect(folioLines.map((l) => l.id).toSet(), {'room-night', 'beer'});
+
+      // 5000 room night + 2 x 1500 beer, on one bill.
+      final folio = ditto.store
+          .docs('transactions')
+          .firstWhere((d) => d['_id'] == 'folio');
+      expect((folio['subTotal'] as num).toDouble(), 8000);
+    });
+
+    test('keeps the RRA fields the selling outlet computed', () async {
+      ditto.store.seed('transaction_items', {
+        ..._lineDoc(id: 'taxed', transactionId: 'cart'),
+        'itemCd': 'RW2NTXU0000042',
+        'taxAmt': '457.63',
+        'totAmt': '3000',
+        'taxTyCd': 'B',
+      });
+
+      await sync.transferCartToFolio(
+        cartTransactionId: 'cart',
+        stay: inHouse(),
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final moved = (await sync.hotelFolioLines(transactionId: 'folio'))
+          .firstWhere((l) => l.id == 'taxed');
+      expect(moved.itemCd, 'RW2NTXU0000042');
+      expect(moved.taxAmt, 457.63);
+      expect(moved.taxTyCd, 'B');
+    });
+
+    test('disposes of the cart so it is not invoiced twice', () async {
+      await sync.transferCartToFolio(
+        cartTransactionId: 'cart',
+        stay: inHouse(),
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      final ids = ditto.store.docs('transactions').map((d) => d['_id']);
+      expect(ids, ['folio']);
+      expect(await sync.hotelFolioLines(transactionId: 'cart'), isEmpty);
+    });
+
+    test('a reservation cannot be charged, it has no folio', () async {
+      expect(
+        () => sync.transferCartToFolio(
+          cartTransactionId: 'cart',
+          stay: _stay(
+            id: 'booked',
+            roomId: 'r2',
+            transactionId: '',
+            status: HotelStayStatus.reserved,
+          ),
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('a settled sale is refused, not moved', () async {
+      // Moving one would delete a revenue row that already has an RRA receipt.
+      // The status string is the COMPLETE constant, not a lookalike.
+      expect(COMPLETE, 'completed');
+      ditto.store.seed(
+        'transactions',
+        _folioDoc(id: 'settled', status: 'completed'),
+      );
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'sold', transactionId: 'settled'),
+      );
+
+      expect(
+        () => sync.transferCartToFolio(
+          cartTransactionId: 'settled',
+          stay: inHouse(),
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('an empty cart moves nothing and leaves the folio alone', () async {
+      final moved = await sync.transferCartToFolio(
+        cartTransactionId: 'empty',
+        stay: inHouse(),
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(moved, 0);
+      final folio = ditto.store
+          .docs('transactions')
+          .firstWhere((d) => d['_id'] == 'folio');
+      expect((folio['subTotal'] as num).toDouble(), 5000);
+    });
+
+    test('charging a folio to itself is a no-op, not a wipe', () async {
+      final moved = await sync.transferCartToFolio(
+        cartTransactionId: 'folio',
+        stay: inHouse(),
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(moved, 0);
+      expect(
+        (await sync.hotelFolioLines(transactionId: 'folio')).map((l) => l.id),
+        ['room-night'],
+      );
+    });
+
+    test('two outlets charging the same room both land', () async {
+      ditto.store.seed('transactions', _folioDoc(id: 'cart2'));
+      ditto.store.seed(
+        'transaction_items',
+        _lineDoc(id: 'dinner', transactionId: 'cart2', qty: '1', price: '9000'),
+      );
+
+      await sync.transferCartToFolio(
+        cartTransactionId: 'cart',
+        stay: inHouse(),
+        clerkTenantId: 'c1',
+        clerkName: 'Bar',
+      );
+      await sync.transferCartToFolio(
+        cartTransactionId: 'cart2',
+        stay: inHouse(),
+        clerkTenantId: 'c2',
+        clerkName: 'Restaurant',
+      );
+
+      final folio = ditto.store
+          .docs('transactions')
+          .firstWhere((d) => d['_id'] == 'folio');
+      // 5000 + 3000 + 9000, one consolidated bill.
+      expect((folio['subTotal'] as num).toDouble(), 17000);
     });
   });
 
