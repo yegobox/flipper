@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -37,7 +38,7 @@ class HotelRoomPlanEditor extends ConsumerStatefulWidget {
 class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
   bool _busy = false;
 
-  dynamic get _sync => ProxyService.getStrategy(Strategy.capella);
+  DatabaseSyncInterface get _sync => ProxyService.getStrategy(Strategy.capella);
 
   List<_Floor> _floors(List<HotelRoom> rooms) {
     final order = <String>[];
@@ -83,29 +84,47 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
 
   Future<void> _save(HotelRoom room) => _run(() => _sync.saveHotelRoom(room));
 
+  /// Rooms on [floorId] as the store has them right now.
+  ///
+  /// The `_Floor` handed to a callback is a snapshot from build time, and
+  /// [saveHotelRoom] upserts the whole document. Writing from that snapshot
+  /// inside a queued action would put back a rate, type or capacity that
+  /// someone edited in the meantime — including on another device.
+  Future<List<HotelRoom>> _currentRoomsOnFloor(String floorId) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return const [];
+    final rooms = await _sync.hotelRooms(branchId: branchId);
+    return rooms.where((room) => room.floorId == floorId).toList();
+  }
+
   Future<void> _renameFloor(_Floor floor, String name) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty || trimmed == floor.name) return;
     await _run(() async {
-      for (final room in floor.rooms) {
+      for (final room in await _currentRoomsOnFloor(floor.id)) {
+        if (room.floorName == trimmed) continue;
         await _sync.saveHotelRoom(room.copyWith(floorName: trimmed));
       }
     });
   }
 
-  Future<void> _addRoom(_Floor floor, List<HotelRoom> allRooms) async {
-    final template = floor.rooms.isEmpty ? null : floor.rooms.last;
-    var suggestion = hotelSuggestRoomNumber(floor.rooms);
+  Future<void> _addRoom(_Floor floor) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
+    // Numbering has to be decided against the roster as it stands, or two
+    // quick taps both pick the same number.
+    final current = await _sync.hotelRooms(branchId: branchId);
+    final onFloor = current.where((r) => r.floorId == floor.id).toList();
+
+    final template = onFloor.isEmpty ? null : onFloor.last;
+    var suggestion = hotelSuggestRoomNumber(onFloor);
     // Never mint a duplicate: walk forward until the number is free.
     var guard = 0;
-    while (hotelRoomNumberIsTaken(rooms: allRooms, name: suggestion) &&
+    while (hotelRoomNumberIsTaken(rooms: current, name: suggestion) &&
         guard++ < 500) {
       final asNumber = int.tryParse(suggestion);
       suggestion = asNumber == null ? '$suggestion+' : '${asNumber + 1}';
     }
-
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return;
 
     await _save(
       HotelRoom(
@@ -117,12 +136,12 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
         roomType: template?.roomType ?? 'Double',
         capacity: template?.capacity ?? 2,
         nightlyRate: template?.nightlyRate ?? 50000,
-        ordinal: allRooms.length,
+        ordinal: current.length,
       ),
     );
   }
 
-  Future<void> _addFloor(List<HotelRoom> allRooms) async {
+  Future<void> _addFloor() async {
     final name = await _promptName(context, title: 'New floor or wing');
     if (name == null || name.trim().isEmpty) return;
 
@@ -130,11 +149,13 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     if (branchId == null) return;
 
     final floorId = const Uuid().v4();
+    // Same reason as _addRoom: number against the roster as it stands.
+    final current = await _sync.hotelRooms(branchId: branchId);
     var suggestion = hotelSuggestRoomNumber(const []);
     var guard = 0;
-    while (hotelRoomNumberIsTaken(rooms: allRooms, name: suggestion) &&
+    while (hotelRoomNumberIsTaken(rooms: current, name: suggestion) &&
         guard++ < 500) {
-      suggestion = 'Room ${allRooms.length + guard + 1}';
+      suggestion = 'Room ${current.length + guard + 1}';
     }
 
     // A floor exists only through its rooms, so it starts with one.
@@ -148,7 +169,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
         roomType: 'Double',
         capacity: 2,
         nightlyRate: 50000,
-        ordinal: allRooms.length,
+        ordinal: current.length,
       ),
     );
   }
@@ -236,7 +257,9 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     if (confirmed != true) return;
 
     await _run(() async {
-      for (final room in floor.rooms) {
+      // Re-read membership too: a room may have been added to this floor since
+      // the card was built.
+      for (final room in await _currentRoomsOnFloor(floor.id)) {
         await _sync.deleteHotelRoom(id: room.id, branchId: room.branchId);
       }
     });
@@ -369,7 +392,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              onPressed: _busy ? null : () => _addRoom(floor, allRooms),
+              onPressed: _busy ? null : () => _addRoom(floor),
               icon: const Icon(Icons.add, size: 17),
               label: Text(
                 'Add room',
@@ -389,7 +412,7 @@ class _HotelRoomPlanEditorState extends ConsumerState<HotelRoomPlanEditor> {
     return Align(
       alignment: Alignment.centerLeft,
       child: TextButton.icon(
-        onPressed: _busy ? null : () => _addFloor(rooms),
+        onPressed: _busy ? null : () => _addFloor(),
         icon: const Icon(Icons.add_circle_outline, size: 18),
         label: Text(
           'Add a floor or wing',

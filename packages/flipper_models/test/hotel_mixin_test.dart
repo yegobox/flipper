@@ -3,6 +3,7 @@ import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/capella/mixins/hotel_mixin.dart';
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:talker/talker.dart';
@@ -22,6 +23,28 @@ class _HotelSync with CapellaHotelMixin {
   @override
   DittoService get dittoService =>
       throw UnimplementedError('tests go through dittoHandle');
+
+  @override
+  final Talker talker = Talker();
+}
+
+/// A [DittoService] that has no instance yet — what the app looks like before
+/// Ditto finishes starting up.
+class _OfflineDittoService implements DittoService {
+  @override
+  Ditto? get dittoInstance => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      super.noSuchMethod(invocation);
+}
+
+/// Uses the mixin's *own* [CapellaHotelMixin.dittoHandle], unlike [_HotelSync]
+/// which overrides it. Every other test would pass with a handle that never
+/// reaches `dittoService`, so this is the one that pins production wiring.
+class _RealHandleHotelSync with CapellaHotelMixin {
+  @override
+  final DittoService dittoService = _OfflineDittoService();
 
   @override
   final Talker talker = Talker();
@@ -104,6 +127,37 @@ void main() {
   setUp(() {
     ditto = FakeDitto();
     sync = _HotelSync(ditto);
+  });
+
+  group('default ditto handle', () {
+    // Regression: the getter was once written as `dittoHandle => dittoHandle`,
+    // which recursed until StackOverflowError on every hotel query. Nothing
+    // caught it because the other tests override the getter.
+    test('resolves through dittoService instead of recursing', () async {
+      final real = _RealHandleHotelSync();
+
+      expect(await real.hotelRooms(branchId: _branch), isEmpty);
+      expect(await real.hotelStays(branchId: _branch), isEmpty);
+      expect(await real.hotelQuotations(branchId: _branch), isEmpty);
+      expect(await real.hotelBranchSettings(branchId: _branch), isNull);
+      expect(await real.hotelFolioLines(transactionId: 't1'), isEmpty);
+    });
+
+    test('degrades to empty streams while Ditto is still starting', () async {
+      final real = _RealHandleHotelSync();
+
+      expect(await real.hotelRoomsStream(branchId: _branch).first, isEmpty);
+      expect(await real.hotelStaysStream(branchId: _branch).first, isEmpty);
+    });
+
+    test('writes throw a clear error rather than overflowing the stack',
+        () async {
+      final real = _RealHandleHotelSync();
+      expect(
+        () => real.saveHotelRoom(_room()),
+        throwsA(isA<StateError>()),
+      );
+    });
   });
 
   group('rooms', () {

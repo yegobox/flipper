@@ -41,7 +41,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   /// typed to the real `Ditto`, which cannot be constructed in a unit test, so
   /// tests override this with an in-memory store. Production keeps the single
   /// implementation below.
-  dynamic get dittoHandle => dittoHandle;
+  dynamic get dittoHandle => dittoService.dittoInstance;
 
   static const _hotelBranchSettingsSql =
       'SELECT * FROM hotel_branch_settings WHERE branchId = :branchId LIMIT 1';
