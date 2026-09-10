@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20260909182413.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
 part '20260603185233.migration.dart';
@@ -17,6 +18,7 @@ part '20260807090000.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20260909182413(),
   const Migration20260522081221(),
   const Migration20260527030019(),
   const Migration20260603185233(),
@@ -675,6 +677,7 @@ final schema = Schema(
         SchemaColumn('business_id', Column.varchar),
         SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('vat_enabled', Column.boolean),
+        SchemaColumn('tourism_tax_enabled', Column.boolean),
         SchemaColumn('mrc', Column.varchar),
         SchemaColumn('remote_server_url', Column.varchar),
         SchemaColumn('data_connector_url', Column.varchar),

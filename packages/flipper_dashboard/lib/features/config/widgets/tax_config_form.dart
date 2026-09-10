@@ -30,6 +30,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   final _mrcController = TextEditingController();
 
   bool _vatEnabled = false;
+  // Not editable on this form (the system config modal owns the toggle), but
+  // carried through save so it is not silently cleared back to false.
+  bool _tourismTaxEnabled = false;
   bool _isSaving = false;
   bool _dataLoaded = false;
   TaxConfigSnapshot? _initialSnapshot;
@@ -47,6 +50,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       bhfId: _branchController.text,
       mrc: _mrcController.text,
       vatEnabled: _vatEnabled,
+      tourismTaxEnabled: _tourismTaxEnabled,
     );
   }
 
@@ -73,6 +77,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     setState(() {
       if (ebm != null) {
         _vatEnabled = ebm.vatEnabled ?? false;
+        _tourismTaxEnabled = ebm.tourismTaxEnabled ?? false;
       }
       _initialSnapshot = _snapshotFromControllers();
       _dataLoaded = true;
@@ -88,6 +93,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       bhfId: base.bhfId,
       mrc: base.mrc,
       vatEnabled: vatEnabled,
+      tourismTaxEnabled: base.tourismTaxEnabled,
     );
   }
 
@@ -435,6 +441,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
         severUrl: trimmedServer,
         bhFId: bhf,
         vatEnabled: _vatEnabled,
+        tourismTaxEnabled: _tourismTaxEnabled,
         mrc: mrc,
         dataConnectorUrl: dataConnectorForSave,
       );

@@ -7,6 +7,8 @@ import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_floor_plan_editor.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -36,9 +38,21 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
   @override
   void initState() {
     super.initState();
+    serviceModeRevision.addListener(_onServiceModeChanged);
     _syncFromLocalCache();
     _loadSettings();
     _loadStaff();
+  }
+
+  @override
+  void dispose() {
+    serviceModeRevision.removeListener(_onServiceModeChanged);
+    super.dispose();
+  }
+
+  /// The sibling Hotel section may have just turned Bar Mode off.
+  void _onServiceModeChanged() {
+    if (mounted) setState(_syncFromLocalCache);
   }
 
   void _syncFromLocalCache() {
@@ -124,7 +138,18 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
   Future<void> _onMasterToggle(bool value) async {
     setState(() => _enabled = value);
     BarModeSettings.setEnabled(value);
+    notifyServiceModeChanged();
     if (value) {
+      // Both modes replace the same POS sales pane, so they cannot both own it.
+      if (HotelModeSettings.enabled) {
+        HotelModeSettings.setEnabled(false);
+        if (mounted) {
+          showCustomSnackBarUtil(
+            context,
+            'Hotel Mode turned off — a branch runs one service mode at a time.',
+          );
+        }
+      }
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
         await ProxyService.getStrategy(

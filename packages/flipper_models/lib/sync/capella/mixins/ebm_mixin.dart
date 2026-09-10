@@ -35,6 +35,7 @@ mixin CapellaEbmMixin implements EbmInterface {
         'businessId': ebm.businessId,
         'branchId': ebm.branchId,
         'vatEnabled': ebm.vatEnabled,
+        'tourismTaxEnabled': ebm.tourismTaxEnabled,
         'remoteServerUrl': ebm.remoteServerUrl,
         'dataConnectorUrl': ebm.dataConnectorUrl,
       };
@@ -63,6 +64,8 @@ mixin CapellaEbmMixin implements EbmInterface {
       branchId:
           (data['branchId'] ?? data['branch_id'])?.toString() ?? branchId,
       vatEnabled: (data['vatEnabled'] ?? data['vat_enabled']) as bool?,
+      tourismTaxEnabled:
+          (data['tourismTaxEnabled'] ?? data['tourism_tax_enabled']) as bool?,
       remoteServerUrl:
           (data['remoteServerUrl'] ?? data['remote_server_url'])?.toString(),
       dataConnectorUrl:
@@ -173,6 +176,7 @@ mixin CapellaEbmMixin implements EbmInterface {
     required String severUrl,
     required String bhFId,
     bool vatEnabled = false,
+    bool tourismTaxEnabled = false,
     String? dataConnectorUrl,
   }) async {
     try {
@@ -215,12 +219,14 @@ mixin CapellaEbmMixin implements EbmInterface {
             businessId: business.id,
             branchId: branchId,
             vatEnabled: vatEnabled,
+            tourismTaxEnabled: tourismTaxEnabled,
             dataConnectorUrl: dataConnectorUrl,
           );
 
       if (existingEbm != null) {
         updatedEbm.taxServerUrl = severUrl;
         updatedEbm.vatEnabled = vatEnabled;
+        updatedEbm.tourismTaxEnabled = tourismTaxEnabled;
         updatedEbm.mrc = mrc;
         updatedEbm.dataConnectorUrl = dataConnectorUrl;
       } else if (dataConnectorUrl != null) {
@@ -238,6 +244,7 @@ mixin CapellaEbmMixin implements EbmInterface {
         'business_id': updatedEbm.businessId,
         'branch_id': updatedEbm.branchId,
         'vat_enabled': updatedEbm.vatEnabled,
+        'tourism_tax_enabled': updatedEbm.tourismTaxEnabled,
         'mrc': updatedEbm.mrc,
         'data_connector_url': updatedEbm.dataConnectorUrl,
       });

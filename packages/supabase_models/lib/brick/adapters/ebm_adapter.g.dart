@@ -20,6 +20,9 @@ Future<Ebm> _$EbmFromSupabase(
     vatEnabled: data['vat_enabled'] == null
         ? null
         : data['vat_enabled'] as bool?,
+    tourismTaxEnabled: data['tourism_tax_enabled'] == null
+        ? null
+        : data['tourism_tax_enabled'] as bool?,
     mrc: data['mrc'] as String,
     remoteServerUrl: data['remote_server_url'] == null
         ? null
@@ -45,6 +48,7 @@ Future<Map<String, dynamic>> _$EbmToSupabase(
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
     'vat_enabled': instance.vatEnabled,
+    'tourism_tax_enabled': instance.tourismTaxEnabled,
     'mrc': instance.mrc,
     'remote_server_url': instance.remoteServerUrl,
     'data_connector_url': instance.dataConnectorUrl,
@@ -68,6 +72,9 @@ Future<Ebm> _$EbmFromSqlite(
     businessId: data['business_id'] as String,
     branchId: data['branch_id'] as String,
     vatEnabled: data['vat_enabled'] == null ? null : data['vat_enabled'] == 1,
+    tourismTaxEnabled: data['tourism_tax_enabled'] == null
+        ? null
+        : data['tourism_tax_enabled'] == 1,
     mrc: data['mrc'] as String,
     remoteServerUrl: data['remote_server_url'] == null
         ? null
@@ -95,6 +102,9 @@ Future<Map<String, dynamic>> _$EbmToSqlite(
     'vat_enabled': instance.vatEnabled == null
         ? null
         : (instance.vatEnabled! ? 1 : 0),
+    'tourism_tax_enabled': instance.tourismTaxEnabled == null
+        ? null
+        : (instance.tourismTaxEnabled! ? 1 : 0),
     'mrc': instance.mrc,
     'remote_server_url': instance.remoteServerUrl,
     'data_connector_url': instance.dataConnectorUrl,
@@ -146,6 +156,10 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'vatEnabled': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'vat_enabled',
+    ),
+    'tourismTaxEnabled': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tourism_tax_enabled',
     ),
     'mrc': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -223,6 +237,12 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'vatEnabled': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'vat_enabled',
+      iterable: false,
+      type: bool,
+    ),
+    'tourismTaxEnabled': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tourism_tax_enabled',
       iterable: false,
       type: bool,
     ),

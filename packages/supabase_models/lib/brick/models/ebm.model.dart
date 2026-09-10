@@ -39,6 +39,15 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   final String branchId;
   @Supabase(name: "vat_enabled")
   bool? vatEnabled;
+
+  /// Whether this branch is registered with RRA for tourism tax.
+  ///
+  /// RRA rejects `ttCatCd` on `items/saveItems` with 603 for taxpayers that are
+  /// not TT-registered, even though `TT` is a valid code and the item is a
+  /// service. Rooms on such a branch register as plain services; tourism tax is
+  /// still declared per sale line in `trnsSales/saveSales`.
+  @Supabase(name: "tourism_tax_enabled")
+  bool? tourismTaxEnabled;
   @Supabase(name: "mrc")
   String mrc;
   @Supabase(name: "remote_server_url")
@@ -56,6 +65,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.businessId,
     required this.branchId,
     this.vatEnabled = false,
+    this.tourismTaxEnabled = false,
     required this.mrc,
     this.remoteServerUrl,
     this.dataConnectorUrl,

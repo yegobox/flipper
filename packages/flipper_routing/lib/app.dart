@@ -55,6 +55,7 @@ import 'all_routes.dart';
     CustomRoute(page: MobileView),
     CustomRoute(page: CheckOut),
     CustomRoute(page: BarModeHost),
+    CustomRoute(page: HotelModeHost),
     CustomRoute(page: Cashbook),
 
     CustomRoute(page: SettingPage),

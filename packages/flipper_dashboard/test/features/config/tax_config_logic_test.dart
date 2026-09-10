@@ -8,6 +8,7 @@ void main() {
     bhfId: '00',
     mrc: 'YEGO2015122',
     vatEnabled: false,
+    tourismTaxEnabled: false,
   );
 
   group('trimTaxConfigUrl', () {
@@ -44,6 +45,7 @@ void main() {
         bhfId: '00',
         mrc: 'YEGO2015122',
         vatEnabled: false,
+        tourismTaxEnabled: false,
       );
       expect(s.serverUrl, 'http://a/');
       expect(s.dataConnectorUrlOrNull, isNull);
@@ -85,8 +87,21 @@ void main() {
         bhfId: '00',
         mrc: 'YEGO2015122',
         vatEnabled: false,
+        tourismTaxEnabled: false,
       );
       expect(taxConfigHasChanges(baseline, fromForm), false);
+    });
+
+    test('true when the tourism-tax registration is toggled', () {
+      // Gates the ttCatCd coding rooms send on saveItems, so a change to it
+      // has to be savable on its own.
+      expect(
+        taxConfigHasChanges(
+          baseline,
+          baseline.copyWith(tourismTaxEnabled: true),
+        ),
+        true,
+      );
     });
 
     test('false when empty vs null data connector — equivalent', () {
@@ -96,6 +111,7 @@ void main() {
         bhfId: '00',
         mrc: 'YEGO2015122',
         vatEnabled: false,
+        tourismTaxEnabled: false,
       );
       final b = TaxConfigSnapshot.fromInputs(
         serverUrl: 'http://localhost:8080/rra1/',
@@ -103,6 +119,7 @@ void main() {
         bhfId: '00',
         mrc: 'YEGO2015122',
         vatEnabled: false,
+        tourismTaxEnabled: false,
       );
       expect(taxConfigHasChanges(a, b), false);
     });
@@ -116,6 +133,7 @@ extension on TaxConfigSnapshot {
     String? bhfId,
     String? mrc,
     bool? vatEnabled,
+    bool? tourismTaxEnabled,
   }) {
     return TaxConfigSnapshot(
       serverUrl: serverUrl ?? this.serverUrl,
@@ -124,6 +142,7 @@ extension on TaxConfigSnapshot {
       bhfId: bhfId ?? this.bhfId,
       mrc: mrc ?? this.mrc,
       vatEnabled: vatEnabled ?? this.vatEnabled,
+      tourismTaxEnabled: tourismTaxEnabled ?? this.tourismTaxEnabled,
     );
   }
 }

@@ -37,6 +37,7 @@ import 'package:flipper_services/ai_strategy.dart';
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/interfaces/personal_goals_interface.dart';
 import 'package:flipper_models/sync/interfaces/bar_interface.dart';
+import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -88,6 +89,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         ProductionOutputInterface,
         PersonalGoalsInterface,
         BarInterface,
+        HotelInterface,
         LogInterface,
         GetterOperationsInterface {
   // Repository get repository;

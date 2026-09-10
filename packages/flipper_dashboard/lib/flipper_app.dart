@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
+import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -51,7 +52,7 @@ class FlipperApp extends HookConsumerWidget {
     _requestPermissions();
     ProxyService.status.updateStatusColor();
     unawaited(getIt<SettingsService>().hydrateToggleStatesFromSettings());
-    unawaited(_redirectToBarModeWhenBranchEnabled());
+    unawaited(_redirectToServiceModeWhenBranchEnabled());
     // ProxyService.dynamicLink.handleDynamicLink(context);
     if (isAndroid || isIos) {
       _startNFCForModel(model);
@@ -60,18 +61,60 @@ class FlipperApp extends HookConsumerWidget {
 
   void _handleResumedState() => ProxyService.status.updateStatusColor();
 
-  /// Safety net when a login path lands on [FlipperApp] before branch settings hydrate.
-  Future<void> _redirectToBarModeWhenBranchEnabled() async {
+  /// Safety net when a login path lands on [FlipperApp] before branch settings
+  /// hydrate.
+  ///
+  /// Hotel Mode is checked first and wins: the two service modes are mutually
+  /// exclusive, but a branch that switched from bar to hotel can still have a
+  /// stale `enabled: true` on its `bar_branch_settings` document, and pushing
+  /// [BarModeRoute] then drops the front desk onto the bar's table floor.
+  Future<void> _redirectToServiceModeWhenBranchEnabled() async {
     final router = locator<RouterService>();
     final routeAtStart = router.router.current.name;
-    if (routeAtStart == BarModeRoute.name) return;
+    if (routeAtStart == BarModeRoute.name ||
+        routeAtStart == HotelModeRoute.name) {
+      return;
+    }
 
-    await BarModeSettings.hydrateForActiveBranch();
+    // Act on what the local cache already knows before waiting on the network.
+    // `hydrateForActiveBranch` blocks for up to 12 seconds when a branch has no
+    // remote document, and doing that for hotel first left a bar-only branch
+    // sitting on POS for the whole timeout.
+    if (_navigateToCachedServiceMode(router, routeAtStart)) {
+      HotelModeSettings.startWatchingActiveBranch();
+      BarModeSettings.startWatchingActiveBranch();
+      return;
+    }
+
+    // Nothing cached: hydrate both together rather than end to end, so the
+    // cold path costs one timeout instead of two.
+    await Future.wait([
+      HotelModeSettings.hydrateForActiveBranch(),
+      BarModeSettings.hydrateForActiveBranch(),
+    ]);
+    HotelModeSettings.startWatchingActiveBranch();
     BarModeSettings.startWatchingActiveBranch();
-    if (!BarModeSettings.enabled) return;
-    if (router.router.current.name != routeAtStart) return;
 
-    router.navigateTo(BarModeRoute());
+    _navigateToCachedServiceMode(router, routeAtStart);
+  }
+
+  /// Navigates to whichever service mode the local cache reports, hotel first.
+  /// Returns whether it navigated.
+  bool _navigateToCachedServiceMode(
+    RouterService router,
+    String? routeAtStart,
+  ) {
+    if (router.router.current.name != routeAtStart) return false;
+
+    if (HotelModeSettings.enabled) {
+      router.navigateTo(HotelModeRoute());
+      return true;
+    }
+    if (BarModeSettings.enabled) {
+      router.navigateTo(BarModeRoute());
+      return true;
+    }
+    return false;
   }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {
@@ -212,16 +255,14 @@ class _DashboardShortcutLaunchHostState
     final boxed = ProxyService.box.readString(
       key: kPendingLauncherShortcutPageKey,
     );
-    final target =
-        (cold != null && cold.isNotEmpty) ? cold : boxed;
+    final target = (cold != null && cold.isNotEmpty) ? cold : boxed;
     if (!mounted || target == null || target.isEmpty) return;
 
     final ctx = context;
     if (!ctx.mounted) return;
 
     final width = MediaQuery.sizeOf(ctx).width;
-    final isBigScreen =
-        width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    final isBigScreen = width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
     try {
       await navigateToDashboardAppPage(
         context: ctx,
