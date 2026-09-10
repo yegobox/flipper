@@ -75,10 +75,15 @@ class _BooksHomePageState extends ConsumerState<BooksHomePage> {
   Widget build(BuildContext context) {
     final l10n = booksHomeL10n(context);
 
+    final theme = BooksHomeTheme.of(Theme.of(context).brightness);
+    final overlay = theme.brightness == Brightness.dark
+        ? SystemUiOverlayStyle.light
+        : SystemUiOverlayStyle.dark;
+
     return Theme(
-      data: BooksHomeTheme.data,
+      data: theme,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light.copyWith(
+        value: overlay.copyWith(
           statusBarColor: Colors.transparent,
           systemNavigationBarColor: AppColors.bg,
         ),

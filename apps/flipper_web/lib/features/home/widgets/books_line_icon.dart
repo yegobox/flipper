@@ -40,12 +40,15 @@ class BooksLineIcon extends StatelessWidget {
     this.icon, {
     super.key,
     this.size = 16,
-    this.color = AppColors.ink2,
+    this.color,
   });
 
   final BooksIcon icon;
   final double size;
-  final Color color;
+
+  /// Defaults to the palette's `ink2` — resolved at build time, because the
+  /// palette changes with the theme.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +56,7 @@ class BooksLineIcon extends StatelessWidget {
       icon.assetPath,
       width: size,
       height: size,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      colorFilter: ColorFilter.mode(color ?? AppColors.ink2, BlendMode.srcIn),
       excludeFromSemantics: true,
     );
   }

@@ -4,6 +4,7 @@ import 'package:flipper_web/features/home/sections/books_home_hero_mock.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
+import 'package:flipper_web/features/home/widgets/books_theme_toggle.dart';
 import 'package:flipper_web/l10n/app_localizations.dart';
 import 'package:flipper_web/l10n/app_localizations_en.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,8 @@ class BooksHomeHeader extends StatelessWidget {
                     children: [
                       const BooksWordmark(logoSize: 30),
                       const Spacer(),
+                      const BooksThemeToggle(size: 34),
+                      const SizedBox(width: 4),
                       IconButton(
                         onPressed: () => _showMobileMenu(
                           context,
@@ -47,7 +50,7 @@ class BooksHomeHeader extends StatelessWidget {
                           onSignIn,
                           onStartFree,
                         ),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.menu_rounded,
                           color: AppColors.ink1,
                         ),
@@ -80,6 +83,8 @@ class BooksHomeHeader extends StatelessWidget {
                                 ),
                               ],
                               const SizedBox(width: 18),
+                              const BooksThemeToggle(),
+                              const SizedBox(width: 14),
                               NavTextLink(label: 'Log in', onTap: onSignIn),
                               const SizedBox(width: 12),
                               PrimaryButton(
@@ -129,6 +134,7 @@ class BooksHomeHeader extends StatelessWidget {
                   onNavTap(link);
                 },
               ),
+            BooksThemeToggleTile(onToggled: () => Navigator.pop(ctx)),
             const SizedBox(height: 12),
             GhostButton(
               label: 'Log in',
@@ -162,7 +168,7 @@ class _SuiteSwitcher extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.025),
+        color: AppColors.wash(0.025),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: AppColors.line),
       ),
@@ -487,7 +493,7 @@ class BooksHomeSuiteSection extends StatelessWidget {
                     vertical: 16,
                   ),
                   child: ColoredBox(
-                    color: Colors.white.withValues(alpha: 0.015),
+                    color: AppColors.wash(0.015),
                     child: Row(
                       children: [
                         Expanded(
@@ -508,8 +514,8 @@ class BooksHomeSuiteSection extends StatelessWidget {
                                     fontSize: 14,
                                     color: AppColors.ink2,
                                   ),
-                                  children: const [
-                                    TextSpan(text: 'Sell on POS → '),
+                                  children: [
+                                    const TextSpan(text: 'Sell on POS → '),
                                     TextSpan(
                                       text: 'posts to Books',
                                       style: TextStyle(
@@ -517,7 +523,7 @@ class BooksHomeSuiteSection extends StatelessWidget {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    TextSpan(text: ' → '),
+                                    const TextSpan(text: ' → '),
                                     TextSpan(
                                       text: 'Flow reconciles',
                                       style: TextStyle(
@@ -525,7 +531,7 @@ class BooksHomeSuiteSection extends StatelessWidget {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    TextSpan(
+                                    const TextSpan(
                                       text:
                                           ' → you see profit in real time. One loop, fully automatic.',
                                     ),
@@ -604,7 +610,7 @@ class _SuiteCard extends StatelessWidget {
     this.highlighted = false,
   });
 
-  factory _SuiteCard.pos() => const _SuiteCard(
+  factory _SuiteCard.pos() => _SuiteCard(
     productLabel: 'FLIPPER POS',
     role: 'Sell',
     tagline: 'The front counter',
@@ -617,7 +623,7 @@ class _SuiteCard extends StatelessWidget {
     glowColor: AppColors.blue,
   );
 
-  factory _SuiteCard.books() => const _SuiteCard(
+  factory _SuiteCard.books() => _SuiteCard(
     productLabel: 'FLIPPER BOOKS',
     role: 'Account',
     tagline: 'The source of truth',
@@ -631,7 +637,7 @@ class _SuiteCard extends StatelessWidget {
     highlighted: true,
   );
 
-  factory _SuiteCard.flow() => const _SuiteCard(
+  factory _SuiteCard.flow() => _SuiteCard(
     productLabel: 'FLIPPER FLOW',
     role: 'Automate',
     tagline: 'The AI bookkeeper',
@@ -760,7 +766,7 @@ class BooksHomeFlowSection extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             Colors.transparent,
-            AppColors.blue.withValues(alpha: 0.04),
+            AppColors.glow(AppColors.blue, 0.04),
             Colors.transparent,
           ],
         ),
@@ -856,7 +862,7 @@ class BooksHomeFlowSection extends StatelessWidget {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
+                    color: AppColors.wash(0.03),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.line2),
                   ),
@@ -1026,7 +1032,7 @@ class _FlowChatPanel extends StatelessWidget {
         decoration: BoxDecoration(
           color: mine
               ? AppColors.blue.withValues(alpha: 0.16)
-              : Colors.white.withValues(alpha: 0.04),
+              : AppColors.wash(0.04),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(14),
             topRight: const Radius.circular(14),
@@ -1067,7 +1073,7 @@ class _FlowChatPanel extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            color: Colors.white.withValues(alpha: 0.03),
+            color: AppColors.wash(0.03),
             child: Row(
               children: [
                 Expanded(
@@ -1082,7 +1088,7 @@ class _FlowChatPanel extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const BooksLineIcon(
+                BooksLineIcon(
                   BooksIcon.check,
                   size: 13,
                   color: AppColors.green,
@@ -1388,7 +1394,7 @@ class _PricingCard extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   AppColors.green.withValues(alpha: 0.07),
-                  Colors.white.withValues(alpha: 0.012),
+                  AppColors.wash(0.012),
                 ],
               )
             : AppGrad.pricingCardFill,
@@ -1557,7 +1563,7 @@ class BooksHomeBrandBand extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: h2Size * 7),
           child: Text(
             'Your shop, your books, all in one place.',
-            style: AppText.h2(h2Size).copyWith(color: AppColors.ink0),
+            style: AppText.h2(h2Size).copyWith(color: AppColors.onBrand),
           ),
         ),
         const SizedBox(height: 16),
@@ -1616,7 +1622,7 @@ class _BandStat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppText.mono(size: 26, w: FontWeight.w700, c: AppColors.ink0),
+          style: AppText.mono(size: 26, w: FontWeight.w700, c: AppColors.onBrand),
         ),
         Text(
           label,
@@ -1714,7 +1720,7 @@ class _BandWhiteCard extends StatelessWidget {
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 15),
       decoration: BoxDecoration(
-        color: AppColors.ink0,
+        color: AppColors.cardOnBrand,
         borderRadius: BorderRadius.circular(18),
         boxShadow: AppShadow.whiteCard,
       ),
@@ -1740,7 +1746,10 @@ class _BandChartCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Revenue · this week',
-                  style: AppText.small.copyWith(fontWeight: FontWeight.w600),
+                  style: AppText.small.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.whiteCardMuted,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1750,7 +1759,7 @@ class _BandChartCard extends StatelessWidget {
                 style: AppText.mono(
                   size: 11,
                   w: FontWeight.w700,
-                  c: AppColors.greenInk,
+                  c: AppColors.whiteCardGain,
                 ),
               ),
             ],
@@ -1761,7 +1770,7 @@ class _BandChartCard extends StatelessWidget {
             style: AppText.mono(
               size: 19,
               w: FontWeight.w800,
-              c: AppColors.ink1,
+              c: AppColors.whiteCardInk,
             ),
           ),
           const SizedBox(height: 9),
@@ -1784,7 +1793,7 @@ class _BandChartCard extends StatelessWidget {
                               : null,
                           color: i == _bars.length - 1
                               ? null
-                              : AppColors.blue.withValues(alpha: 0.15),
+                              : AppColors.whiteCardBar,
                         ),
                         child: SizedBox(height: 48 * _bars[i]),
                       ),
@@ -1812,14 +1821,14 @@ class _BandSaleCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.green.withValues(alpha: 0.15),
+              color: AppColors.saleCheckBg,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Center(
               child: BooksLineIcon(
                 BooksIcon.check,
                 size: 16,
-                color: AppColors.greenInk,
+                color: AppColors.whiteCardGain,
               ),
             ),
           ),
@@ -1832,12 +1841,14 @@ class _BandSaleCard extends StatelessWidget {
                   'New sale',
                   style: AppText.h4.copyWith(
                     fontSize: 12.5,
-                    color: AppColors.ink1,
+                    color: AppColors.whiteCardInk,
                   ),
                 ),
                 Text(
                   'Solar Kit · MoMo',
-                  style: AppText.small.copyWith(color: AppColors.ink3),
+                  style: AppText.small.copyWith(
+                    color: AppColors.whiteCardMuted,
+                  ),
                 ),
               ],
             ),
@@ -1847,7 +1858,7 @@ class _BandSaleCard extends StatelessWidget {
             style: AppText.mono(
               size: 14,
               w: FontWeight.w800,
-              c: AppColors.greenInk,
+              c: AppColors.whiteCardGain,
             ),
           ),
         ],
@@ -1876,7 +1887,7 @@ class _BandStreakCard extends StatelessWidget {
               child: BooksLineIcon(
                 BooksIcon.flame,
                 size: 16,
-                color: AppColors.ink0,
+                color: AppColors.onBrand,
               ),
             ),
           ),
@@ -1889,12 +1900,14 @@ class _BandStreakCard extends StatelessWidget {
                 style: AppText.mono(
                   size: 16,
                   w: FontWeight.w800,
-                  c: AppColors.ink1,
+                  c: AppColors.whiteCardInk,
                 ),
               ),
               Text(
                 'Sales streak',
-                style: AppText.small.copyWith(color: AppColors.ink3),
+                style: AppText.small.copyWith(
+                  color: AppColors.whiteCardMuted,
+                ),
               ),
             ],
           ),
