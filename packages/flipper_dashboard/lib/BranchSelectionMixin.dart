@@ -232,7 +232,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         rootNav.pop();
       }
     }
-    routerService.clearStackAndShow(const LoginRoute());
+    routerService.clearStackAndShow(LoginRoute());
   }
 
   Future<bool> showLogoutConfirmationDialog(BuildContext context) async {

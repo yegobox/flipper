@@ -136,7 +136,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
               );
             }
             if (value == 'personal') {
-              routeService.clearStackAndShow(PersonalHomeRoute());
+              routeService.clearStackAndShow(PersonalHomeScreenRoute());
             }
           },
           itemBuilder: (BuildContext context) => [
@@ -218,7 +218,7 @@ class PMobile extends HookConsumerWidget {
           );
         }
         if (value == 'personal') {
-          routeService.clearStackAndShow(PersonalHomeRoute());
+          routeService.clearStackAndShow(PersonalHomeScreenRoute());
         }
       },
       itemBuilder: (BuildContext context) => [

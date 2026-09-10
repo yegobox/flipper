@@ -70,8 +70,11 @@ Future<void> navigateToDashboardAppPage({
       }
       break;
     case 'Connecta':
+      // The social home screen this opened no longer exists — the route it
+      // used was a stale generated class with no page behind it, so this
+      // navigation has been failing at runtime. The preference is still
+      // written; restore the navigation when there is a screen to land on.
       ProxyService.box.writeString(key: 'defaultApp', value: '2');
-      await routerService.navigateTo(SocialHomeViewRoute());
       break;
     case 'Transactions':
       await routerService.navigateTo(TransactionsRoute());
@@ -124,7 +127,7 @@ Future<void> navigateToDashboardAppPage({
       );
       break;
     case 'AgentCommission':
-      await routerService.navigateTo(const AgentCommissionRoute());
+      await routerService.navigateTo(AgentCommissionScreenRoute());
       break;
     case 'DailyReports':
       await Navigator.of(context).push(

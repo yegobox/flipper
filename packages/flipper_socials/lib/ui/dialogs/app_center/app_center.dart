@@ -58,7 +58,7 @@ class AppCenter extends StackedView<AppCenterModel> {
                             ProxyService.box
                                 .writeString(key: 'defaultApp', value: "1");
                             // navigate
-                            _routerService.navigateTo(const FlipperAppRoute());
+                            _routerService.navigateTo(FlipperAppRoute());
                           },
                         ),
                       ],

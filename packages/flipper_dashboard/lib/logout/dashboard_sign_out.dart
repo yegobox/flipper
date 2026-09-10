@@ -72,6 +72,6 @@ Future<bool> completeDashboardSignOut({
     }
   }
 
-  routerService.clearStackAndShow(const LoginRoute());
+  routerService.clearStackAndShow(LoginRoute());
   return true;
 }

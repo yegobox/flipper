@@ -282,7 +282,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
               onPressed: _enabled
                   ? () {
                       HotelModeSettings.setLaunchOnStart(true);
-                      locator<RouterService>().navigateTo(HotelModeRoute());
+                      locator<RouterService>().navigateTo(HotelModeHostRoute());
                     }
                   : null,
             ),

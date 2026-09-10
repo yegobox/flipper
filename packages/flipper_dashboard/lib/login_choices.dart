@@ -957,7 +957,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     if (commissionOnly) {
-      await _routerService.clearStackAndShow(const AgentCommissionRoute());
+      await _routerService.clearStackAndShow(AgentCommissionScreenRoute());
     } else {
       await locator<AppService>().completeDittoAfterLoginChoices();
       locator<AppService>().ensureBranchDittoSubscriptionsForCurrentBranch();

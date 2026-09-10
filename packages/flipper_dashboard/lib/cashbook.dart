@@ -915,7 +915,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               alignment: Alignment.topRight,
             ),
             onPressed: () =>
-                locator<RouterService>().navigateTo(const TransactionsRoute()),
+                locator<RouterService>().navigateTo(TransactionsRoute()),
             child: const Text(
               'View all',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),

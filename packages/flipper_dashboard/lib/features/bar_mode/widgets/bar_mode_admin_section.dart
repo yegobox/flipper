@@ -296,7 +296,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                 onPressed: _enabled
                     ? () {
                         BarModeSettings.setLaunchOnStart(true);
-                        locator<RouterService>().navigateTo(BarModeRoute());
+                        locator<RouterService>().navigateTo(BarModeHostRoute());
                       }
                     : null,
               ),

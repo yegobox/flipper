@@ -154,7 +154,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
       borderRadius: BorderRadius.circular(BarTokens.radiusMd),
       child: InkWell(
         onTap: () =>
-            locator<RouterService>().navigateTo(const AdminControlRoute()),
+            locator<RouterService>().navigateTo(AdminControlRoute()),
         borderRadius: BorderRadius.circular(BarTokens.radiusMd),
         child: Container(
           height: 46,

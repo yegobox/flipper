@@ -1104,7 +1104,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
           closingBalance: closingBalance,
           note: notes,
         );
-        locator<RouterService>().replaceWith(const LoginRoute());
+        locator<RouterService>().replaceWith(LoginRoute());
       }
     } else {
       final userId = ProxyService.box.getUserId();
