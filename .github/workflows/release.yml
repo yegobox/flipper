@@ -444,10 +444,6 @@ jobs:
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
-    env:
-      # Pin PUB_CACHE so it can be cached across runs and so the
-      # "Add pub cache to PATH" step below resolves to a real directory.
-      PUB_CACHE: ${{ runner.temp }}/pub-cache
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     # 
     steps:
@@ -466,6 +462,13 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+
+      - name: Pin PUB_CACHE
+        # Set here rather than in job-level `env:`, where the `runner`
+        # context is not available. Also makes "Add pub cache to PATH"
+        # below resolve to a real directory.
+        run: echo "PUB_CACHE=${RUNNER_TEMP}/pub-cache" >> "$GITHUB_ENV"
+        shell: bash
 
       - name: Cache pub packages
         uses: actions/cache@v4
@@ -579,10 +582,6 @@ jobs:
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
-    env:
-      # Pin PUB_CACHE so it can be cached across runs and so the
-      # "Add pub cache to PATH" step below resolves to a real directory.
-      PUB_CACHE: ${{ runner.temp }}/pub-cache
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
     # needs: [unit-testing] # Requires Supabase to be initialized
@@ -605,6 +604,13 @@ jobs:
 
       - name: Initialize submodules
         run: git submodule update --init
+
+      - name: Pin PUB_CACHE
+        # Set here rather than in job-level `env:`, where the `runner`
+        # context is not available. Also makes "Add pub cache to PATH"
+        # below resolve to a real directory.
+        run: echo "PUB_CACHE=${RUNNER_TEMP}/pub-cache" >> "$GITHUB_ENV"
+        shell: bash
 
       - name: Cache pub packages
         uses: actions/cache@v4
@@ -723,10 +729,6 @@ jobs:
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
-    env:
-      # Pin PUB_CACHE so it can be cached across runs and so the
-      # "Add pub cache to PATH" step below resolves to a real directory.
-      PUB_CACHE: ${{ runner.temp }}/pub-cache
     steps:
       - uses: actions/checkout@v4
         with:
@@ -746,6 +748,13 @@ jobs:
 
       - name: Initialize submodules
         run: git submodule update --init
+
+      - name: Pin PUB_CACHE
+        # Set here rather than in job-level `env:`, where the `runner`
+        # context is not available. Also makes "Add pub cache to PATH"
+        # below resolve to a real directory.
+        run: echo "PUB_CACHE=${RUNNER_TEMP}/pub-cache" >> "$GITHUB_ENV"
+        shell: bash
 
       - name: Cache pub packages
         uses: actions/cache@v4
