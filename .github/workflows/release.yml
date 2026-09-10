@@ -380,7 +380,7 @@ jobs:
 
       - name: Add pub cache to PATH (Windows)
         if: runner.os == 'Windows'
-        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        run: Add-Content -Path $env:GITHUB_PATH -Value "$env:PUB_CACHE/bin"
         shell: pwsh
 
       - name: Add pub cache to PATH (Unix)
@@ -442,6 +442,12 @@ jobs:
     name: "Build windows app-debug"
     if: github.ref != 'refs/heads/main' # Skip on merge to main; prod build runs instead
     runs-on: windows-latest
+    # Fail fast instead of burning the 6h default on a hung pub fetch.
+    timeout-minutes: 60
+    env:
+      # Pin PUB_CACHE so it can be cached across runs and so the
+      # "Add pub cache to PATH" step below resolves to a real directory.
+      PUB_CACHE: ${{ runner.temp }}/pub-cache
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     # 
     steps:
@@ -461,12 +467,20 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pub-cache
+          key: pub-cache-windows-${{ hashFiles('**/pubspec.yaml', 'apps/flipper/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-windows-
+
       - name: Setup melos
         run: dart pub global activate melos 7.3.0
 
       - name: Add pub cache to PATH (Windows)
         if: runner.os == 'Windows'
-        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        run: Add-Content -Path $env:GITHUB_PATH -Value "$env:PUB_CACHE/bin"
         shell: pwsh
 
       - name: Add pub cache to PATH (Unix)
@@ -475,8 +489,18 @@ jobs:
         shell: bash
 
       - name: Get Dependencies
+        # Baseline for this step is under 2 minutes; 25 caps a hung pub fetch.
+        timeout-minutes: 25
         run: |
-          dart run melos bootstrap
+          for attempt in 1 2 3; do
+            if dart run melos bootstrap; then
+              exit 0
+            fi
+            echo "::warning::melos bootstrap failed (attempt $attempt/3), retrying in $((attempt * 30))s"
+            sleep $((attempt * 30))
+          done
+          echo "::error::melos bootstrap failed after 3 attempts"
+          exit 1
         shell: bash
 
       - name: Configure Missing files
@@ -553,6 +577,12 @@ jobs:
     name: "Build windows app-store"
     if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
+    # Fail fast instead of burning the 6h default on a hung pub fetch.
+    timeout-minutes: 60
+    env:
+      # Pin PUB_CACHE so it can be cached across runs and so the
+      # "Add pub cache to PATH" step below resolves to a real directory.
+      PUB_CACHE: ${{ runner.temp }}/pub-cache
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
     # needs: [unit-testing] # Requires Supabase to be initialized
@@ -576,12 +606,20 @@ jobs:
       - name: Initialize submodules
         run: git submodule update --init
 
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pub-cache
+          key: pub-cache-windows-${{ hashFiles('**/pubspec.yaml', 'apps/flipper/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-windows-
+
       - name: Setup melos
         run: dart pub global activate melos 7.3.0
 
       - name: Add pub cache to PATH (Windows)
         if: runner.os == 'Windows'
-        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        run: Add-Content -Path $env:GITHUB_PATH -Value "$env:PUB_CACHE/bin"
         shell: pwsh
 
       - name: Add pub cache to PATH (Unix)
@@ -590,9 +628,19 @@ jobs:
         shell: bash
 
       - name: Initialize submodules and bootstrap melos
+        # Baseline for this step is under 2 minutes; 25 caps a hung pub fetch.
+        timeout-minutes: 25
         run: |
           git submodule update --init
-          dart run melos bootstrap
+          for attempt in 1 2 3; do
+            if dart run melos bootstrap; then
+              exit 0
+            fi
+            echo "::warning::melos bootstrap failed (attempt $attempt/3), retrying in $((attempt * 30))s"
+            sleep $((attempt * 30))
+          done
+          echo "::error::melos bootstrap failed after 3 attempts"
+          exit 1
         shell: bash
 
       - name: Configure Missing files
@@ -673,6 +721,12 @@ jobs:
     name: "Build windows app-store (prerelease)"
     if: github.ref == 'refs/heads/ditto-only-migration'
     runs-on: windows-latest
+    # Fail fast instead of burning the 6h default on a hung pub fetch.
+    timeout-minutes: 60
+    env:
+      # Pin PUB_CACHE so it can be cached across runs and so the
+      # "Add pub cache to PATH" step below resolves to a real directory.
+      PUB_CACHE: ${{ runner.temp }}/pub-cache
     steps:
       - uses: actions/checkout@v4
         with:
@@ -693,12 +747,20 @@ jobs:
       - name: Initialize submodules
         run: git submodule update --init
 
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pub-cache
+          key: pub-cache-windows-${{ hashFiles('**/pubspec.yaml', 'apps/flipper/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-windows-
+
       - name: Setup melos
         run: dart pub global activate melos 7.3.0
 
       - name: Add pub cache to PATH (Windows)
         if: runner.os == 'Windows'
-        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        run: Add-Content -Path $env:GITHUB_PATH -Value "$env:PUB_CACHE/bin"
         shell: pwsh
 
       - name: Add pub cache to PATH (Unix)
@@ -707,9 +769,19 @@ jobs:
         shell: bash
 
       - name: Initialize submodules and bootstrap melos
+        # Baseline for this step is under 2 minutes; 25 caps a hung pub fetch.
+        timeout-minutes: 25
         run: |
           git submodule update --init
-          dart run melos bootstrap
+          for attempt in 1 2 3; do
+            if dart run melos bootstrap; then
+              exit 0
+            fi
+            echo "::warning::melos bootstrap failed (attempt $attempt/3), retrying in $((attempt * 30))s"
+            sleep $((attempt * 30))
+          done
+          echo "::error::melos bootstrap failed after 3 attempts"
+          exit 1
         shell: bash
 
       - name: Configure Missing files
