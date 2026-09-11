@@ -1,0 +1,191 @@
+name: README screenshots
+
+# Keeps the README hero image in sync with the shipped app.
+#
+# Runs the desktop app on a Windows runner, signs in to the demo business,
+# shoots the main screens (apps/flipper/integration_test/readme_screenshots_test.dart),
+# composes them into .github/assets/screenshots/hero.png and opens a PR with
+# the result — only when the pixels actually changed. Nothing is ever pushed
+# to main directly.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      base:
+        description: "Branch the screenshots PR should target"
+        required: false
+        default: "main"
+
+env:
+  FLUTTER_VERSION: "3.44.6"
+  SCREENSHOT_DIR: ${{ github.workspace }}/build/readme_screenshots
+  ASSET_DIR: .github/assets/screenshots
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: readme-screenshots
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Capture on Windows
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+          # Tag pushes check out the tag; the PR must branch off the base branch.
+          ref: ${{ github.event.inputs.base || 'main' }}
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Pin PUB_CACHE
+        run: echo "PUB_CACHE=${RUNNER_TEMP}/pub-cache" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pub-cache
+          key: pub-cache-windows-${{ hashFiles('**/pubspec.yaml', 'apps/flipper/pubspec.lock') }}
+          restore-keys: |
+            pub-cache-windows-
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+      - name: Add pub cache to PATH
+        run: Add-Content -Path $env:GITHUB_PATH -Value "$env:PUB_CACHE/bin"
+        shell: pwsh
+
+      - name: Get dependencies
+        timeout-minutes: 25
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if dart run melos bootstrap; then exit 0; fi
+            echo "::warning::melos bootstrap failed (attempt $attempt/3), retrying in $((attempt * 30))s"
+            sleep $((attempt * 30))
+          done
+          exit 1
+
+      - name: Configure missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Cache pdfium archive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pdfium
+          key: pdfium-chromium-5200-win-x64-${{ hashFiles('apps/flipper/pubspec.lock', 'pubspec.lock') }}
+          restore-keys: |
+            pdfium-chromium-5200-win-x64-
+
+      - name: Prefetch pdfium and patch Windows plugins
+        shell: pwsh
+        run: |
+          Set-Location apps/flipper
+          flutter pub get
+          Set-Location ../..
+          ./scripts/ci/prefetch-pdfium.ps1
+          ./scripts/ci/patch-windows-plugins.ps1
+
+      - name: Capture screenshots
+        shell: pwsh
+        # The test needs a desktop session to render; GitHub's Windows runners
+        # run with an interactive desktop, so `flutter test -d windows` works.
+        run: |
+          Set-Location apps/flipper
+          flutter test -d windows integration_test/readme_screenshots_test.dart `
+            --dart-define=FLUTTER_TEST_ENV=true `
+            --dart-define=SCREENSHOT_DIR=$env:SCREENSHOT_DIR `
+            --dart-define=DEMO_PIN=$env:DEMO_PIN `
+            --dart-define=DEMO_OTP=$env:DEMO_OTP
+        env:
+          DEMO_PIN: ${{ secrets.README_DEMO_PIN || '157307' }}
+          DEMO_OTP: ${{ secrets.README_DEMO_OTP || '725155' }}
+
+      - name: Compose hero image
+        shell: pwsh
+        run: |
+          python -m pip install --quiet pillow
+          python scripts/screenshots/compose_readme_hero.py `
+            --src "$env:SCREENSHOT_DIR" --out "$env:ASSET_DIR"
+
+      - name: Point README at the generated hero
+        # First run only: the README still embeds the hand-made GitHub
+        # user-attachments mockup. Swap it for the tracked asset so the PR is
+        # self-contained; on later runs this is a no-op.
+        shell: pwsh
+        run: |
+          $readme = Get-Content README.md -Raw
+          $pattern = '!\[[^\]]*\]\(https://github\.com/user-attachments/assets/[^)]+\)'
+          $updated = [regex]::Replace($readme, $pattern, "![Flipper desktop]($env:ASSET_DIR/hero.png)")
+          if ($updated -ne $readme) { Set-Content README.md $updated -NoNewline }
+
+      # Always keep the raw output for debugging, even if the PR is a no-op.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: readme-screenshots
+          path: |
+            ${{ env.SCREENSHOT_DIR }}
+            ${{ env.ASSET_DIR }}
+          if-no-files-found: warn
+
+      - name: Open PR if screenshots changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          base: ${{ github.event.inputs.base || 'main' }}
+          branch: chore/readme-screenshots
+          add-paths: |
+            ${{ env.ASSET_DIR }}
+            README.md
+          commit-message: |
+            docs: refresh README screenshots
+
+            Captured from ${{ github.ref_name }} by the README screenshots workflow.
+          title: "docs: refresh README screenshots (${{ github.ref_name }})"
+          body: |
+            Automated screenshot refresh from `${{ github.ref_name }}`.
+
+            The hero image and per-screen PNGs under `${{ env.ASSET_DIR }}`
+            were captured from the desktop app signed in to the demo business.
+            Review the images in the *Files changed* tab and merge if they look right.
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          labels: documentation
+          delete-branch: true

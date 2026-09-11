@@ -1,0 +1,199 @@
+// Captures the screenshots that feed the README hero image.
+//
+// Runs the real desktop app, signs in to the demo business, walks the main
+// screens and writes one PNG per screen. Plain `integration_test` only — no
+// Patrol, no driver — so it runs with the same command CI already uses for
+// the Windows smoke test:
+//
+//   cd apps/flipper
+//   flutter test -d windows integration_test/readme_screenshots_test.dart \
+//       --dart-define=FLUTTER_TEST_ENV=true \
+//       --dart-define=SCREENSHOT_DIR=/abs/path/to/out \
+//       --dart-define=DEMO_PIN=157307 \
+//       --dart-define=DEMO_OTP=725155
+//
+// (`-d macos` works the same way for a local run.)
+//
+// Why not `binding.takeScreenshot`? The integration_test plugin only
+// implements `captureScreenshot` for Android, iOS and web; on desktop it
+// throws MissingPluginException. Rasterising the root RenderView's layer is
+// the path `matchesGoldenFile` already relies on and works everywhere the app
+// renders, so that is what `_shoot` does.
+//
+// Compose the PNGs into the hero with scripts/screenshots/compose_readme_hero.py.
+
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flipper_login/login_semantics.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_rw/main.dart' as app_main;
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:stacked/stacked.dart' show PageRouteInfo;
+import 'package:stacked_services/stacked_services.dart';
+
+const _outDir = String.fromEnvironment(
+  'SCREENSHOT_DIR',
+  defaultValue: 'readme_screenshots',
+);
+const _demoPin = String.fromEnvironment('DEMO_PIN', defaultValue: '157307');
+const _demoOtp = String.fromEnvironment('DEMO_OTP', defaultValue: '725155');
+
+/// Screens shot after sign-in, in README order. Navigation goes through the
+/// same [RouterService] the dashboard's app grid uses
+/// (see dashboard_quick_apps_navigation.dart), which is far more stable than
+/// tapping tiles whose layout changes with every redesign.
+final _screens = <String, PageRouteInfo?>{
+  '02_dashboard': null, // wherever sign-in lands
+  '03_pos': CheckOutRoute(isBigScreen: true),
+  '04_transactions': TransactionsRoute(),
+  '05_cashbook': CashbookRoute(isBigScreen: true),
+  '06_customers': CustomersRoute(),
+};
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('capture README screenshots', (tester) async {
+    final out = Directory(_outDir)..createSync(recursive: true);
+    debugPrint('[readme-screenshots] writing to ${out.absolute.path}');
+
+    await app_main.main();
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    // ── Sign in ─────────────────────────────────────────────────────────
+    // A fresh install lands on the landing page; a device that has seen a
+    // login before goes straight to the PIN screen. Handle both.
+    await _waitForAny(tester, [
+      find.byKey(const Key(LoginMaestroIds.pinScreen)),
+      find.byKey(const Key(LoginMaestroIds.landingSignIn)),
+    ]);
+    if (find.byKey(const Key(LoginMaestroIds.pinScreen)).evaluate().isEmpty) {
+      await tester.tap(find.byKey(const Key(LoginMaestroIds.landingSignIn)));
+      await _waitFor(tester, find.byKey(const Key(LoginMaestroIds.pinScreen)));
+    }
+    await _settle(tester);
+    await _shoot(tester, out, '01_sign_in');
+
+    // Six digits auto-submit the PIN (see _onPinTextChanged in pin_login.dart)
+    // and reveal the OTP step, which defaults to Authenticator.
+    await tester.enterText(
+      find.byKey(const Key(LoginMaestroIds.pinField)),
+      _demoPin,
+    );
+    await _waitFor(
+      tester,
+      find.byKey(const Key(LoginMaestroIds.otpField)),
+      timeout: const Duration(seconds: 60),
+    );
+
+    // The demo account is verified with a fixed SMS code, so switch to SMS —
+    // this also triggers the OTP request — then submit the code.
+    await tester.tap(find.byKey(const Key(LoginMaestroIds.authSms)));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.enterText(
+      find.byKey(const Key(LoginMaestroIds.otpField)),
+      _demoOtp,
+    );
+    await tester.tap(find.byKey(const Key(LoginMaestroIds.pinSubmit)));
+
+    // ── Business / branch choice, if the demo account has more than one ──
+    final mainApp = find.byKey(const Key('mainApp'));
+    await _waitForAny(
+      tester,
+      [mainApp, find.text('Choose a business'), find.text('Choose a branch')],
+      timeout: const Duration(seconds: 90),
+    );
+    if (find.text('Choose a business').evaluate().isNotEmpty) {
+      await tester.tap(_byTypeName('_BusinessChoiceTile').first);
+      await _waitForAny(
+        tester,
+        [mainApp, find.text('Choose a branch')],
+        timeout: const Duration(seconds: 60),
+      );
+    }
+    if (find.text('Choose a branch').evaluate().isNotEmpty) {
+      // First branch is preselected; the gradient button continues.
+      await tester.tap(_byTypeName('FlipperGradientButton').first);
+    }
+    await _waitFor(tester, mainApp, timeout: const Duration(seconds: 90));
+
+    // ── Screens ─────────────────────────────────────────────────────────
+    final router = locator<RouterService>();
+    for (final entry in _screens.entries) {
+      if (entry.value != null) {
+        unawaited(router.navigateTo(entry.value!));
+      }
+      // Give Ditto observers a moment to fill lists before the shot.
+      await tester.pump(const Duration(seconds: 3));
+      await _settle(tester);
+      await _shoot(tester, out, entry.key);
+    }
+  }, timeout: const Timeout(Duration(minutes: 10)));
+}
+
+/// Rasterises the whole window at physical resolution and writes a PNG.
+Future<void> _shoot(WidgetTester tester, Directory out, String name) async {
+  final view = tester.binding.renderViews.first;
+  // debugLayer is populated in debug builds, which is what `flutter test -d`
+  // produces.
+  final layer = view.debugLayer! as OffsetLayer;
+  // The RenderView's TransformLayer bakes the device pixel ratio into the
+  // scene, so ask for bounds in physical pixels at ratio 1 to get an exact
+  // full-window image on both 100% and HiDPI displays.
+  final dpr = view.flutterView.devicePixelRatio;
+  final bounds = Offset.zero & (view.size * dpr);
+  final image = await layer.toImage(bounds);
+  final size = '${image.width}x${image.height}';
+  final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+  image.dispose();
+  final file = File('${out.path}${Platform.pathSeparator}$name.png');
+  file.writeAsBytesSync(bytes!.buffer.asUint8List());
+  debugPrint('[readme-screenshots] ${file.path} ($size)');
+}
+
+/// pumpAndSettle that gives up quietly — live streams (Ditto observers,
+/// spinners) can keep the tree "unsettled" forever.
+Future<void> _settle(WidgetTester tester) async {
+  try {
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 5),
+    );
+  } on FlutterError {
+    // still animating — fine for a screenshot
+  }
+}
+
+Future<void> _waitFor(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 30),
+}) =>
+    _waitForAny(tester, [finder], timeout: timeout);
+
+Future<void> _waitForAny(
+  WidgetTester tester,
+  List<Finder> finders, {
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(const Duration(milliseconds: 250));
+    if (finders.any((f) => f.evaluate().isNotEmpty)) return;
+  }
+  throw TestFailure(
+    'Timed out after $timeout waiting for any of: '
+    '${finders.map((f) => f.describeMatch(Plurality.one)).join(', ')}',
+  );
+}
+
+/// Finds widgets by runtime type name — lets the test reach private
+/// widgets (`_BusinessChoiceTile`) without exporting them.
+Finder _byTypeName(String name) =>
+    find.byWidgetPredicate((w) => w.runtimeType.toString() == name);
