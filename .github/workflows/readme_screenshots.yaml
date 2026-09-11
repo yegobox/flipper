@@ -129,14 +129,29 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
 
+      - name: Build debug runner and bundle native assets
+        # `flutter test -d windows` launches build/windows/x64/runner/Debug/
+        # flipper.exe, but the Dart native-asset DLLs (turso_dart_native.dll,
+        # ...) are not copied next to it — the same gap the Store build works
+        # around. Build the debug runner once, copy the DLLs in, then let
+        # `flutter test` rebuild incrementally; the DLLs survive that.
+        shell: pwsh
+        run: |
+          Set-Location apps/flipper
+          flutter build windows --debug
+          Set-Location ../..
+          ./scripts/ci/bundle-native-assets.ps1 -Config Debug
+
       - name: Capture screenshots
         shell: pwsh
         # The test needs a desktop session to render; GitHub's Windows runners
         # run with an interactive desktop, so `flutter test -d windows` works.
+        # FLUTTER_TEST_ENV stays false: true swaps in a mocked Supabase client
+        # and a seeded test identity, which skips the real sign-in we shoot.
         run: |
           Set-Location apps/flipper
           flutter test -d windows integration_test/readme_screenshots_test.dart `
-            --dart-define=FLUTTER_TEST_ENV=true `
+            --dart-define=FLUTTER_TEST_ENV=false `
             --dart-define=SCREENSHOT_DIR=$env:SCREENSHOT_DIR `
             --dart-define=DEMO_PIN=$env:DEMO_PIN `
             --dart-define=DEMO_OTP=$env:DEMO_OTP

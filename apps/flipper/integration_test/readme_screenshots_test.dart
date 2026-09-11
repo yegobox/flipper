@@ -7,7 +7,7 @@
 //
 //   cd apps/flipper
 //   flutter test -d windows integration_test/readme_screenshots_test.dart \
-//       --dart-define=FLUTTER_TEST_ENV=true \
+//       --dart-define=FLUTTER_TEST_ENV=false \
 //       --dart-define=SCREENSHOT_DIR=/abs/path/to/out \
 //       --dart-define=DEMO_PIN=157307 \
 //       --dart-define=DEMO_OTP=725155
