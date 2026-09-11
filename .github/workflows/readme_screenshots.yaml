@@ -12,6 +12,10 @@ on:
   push:
     tags:
       - "v*"
+    # TEMPORARY: end-to-end validation before this lands on main
+    # (workflow_dispatch only registers for workflows on the default branch).
+    branches:
+      - chore/readme-screenshots-automation
   workflow_dispatch:
     inputs:
       base:
@@ -21,6 +25,9 @@ on:
 
 env:
   FLUTTER_VERSION: "3.44.6"
+  # Branch the screenshots PR targets: the dispatch input, else the pushed
+  # branch, else main (tag pushes have no branch).
+  BASE_BRANCH: ${{ github.event.inputs.base || (github.ref_type == 'branch' && github.ref_name) || 'main' }}
   SCREENSHOT_DIR: ${{ github.workspace }}/build/readme_screenshots
   ASSET_DIR: .github/assets/screenshots
 
@@ -45,7 +52,7 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
           # Tag pushes check out the tag; the PR must branch off the base branch.
-          ref: ${{ github.event.inputs.base || 'main' }}
+          ref: ${{ env.BASE_BRANCH }}
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -169,7 +176,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
-          base: ${{ github.event.inputs.base || 'main' }}
+          base: ${{ env.BASE_BRANCH }}
           branch: chore/readme-screenshots
           add-paths: |
             ${{ env.ASSET_DIR }}
