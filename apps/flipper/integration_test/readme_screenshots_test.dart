@@ -63,7 +63,9 @@ void main() {
     debugPrint('[readme-screenshots] writing to ${out.absolute.path}');
 
     await app_main.main();
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    // Not pumpAndSettle: the sign-in screen animates continuously, so it
+    // would never settle and would burn its 10-minute default timeout.
+    await tester.pump(const Duration(seconds: 5));
 
     // ── Sign in ─────────────────────────────────────────────────────────
     // A fresh install lands on the landing page; a device that has seen a
@@ -133,7 +135,7 @@ void main() {
       await _settle(tester);
       await _shoot(tester, out, entry.key);
     }
-  }, timeout: const Timeout(Duration(minutes: 10)));
+  }, timeout: const Timeout(Duration(minutes: 15)));
 }
 
 /// Rasterises the whole window at physical resolution and writes a PNG.
