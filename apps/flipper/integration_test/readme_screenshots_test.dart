@@ -69,15 +69,21 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
 
     // ── Sign in ─────────────────────────────────────────────────────────
-    // A fresh install lands on the landing page; a device that has seen a
-    // login before goes straight to the PIN screen. Handle both.
-    await _waitForAny(tester, [
-      find.byKey(const Key(LoginMaestroIds.pinScreen)),
-      find.byKey(const Key(LoginMaestroIds.landingSignIn)),
-    ]);
-    if (find.byKey(const Key(LoginMaestroIds.pinScreen)).evaluate().isEmpty) {
-      await _tap(tester, find.byKey(const Key(LoginMaestroIds.landingSignIn)));
-      await _waitFor(tester, find.byKey(const Key(LoginMaestroIds.pinScreen)));
+    // Three possible first screens, all leading to the PIN screen:
+    //  * desktop-width window → QR login (DesktopLoginView) with a
+    //    "Switch to PIN login" button;
+    //  * compact window, fresh install → landing page with "Sign in";
+    //  * compact window, seen a login before → PIN screen directly.
+    final pinScreen = find.byKey(const Key(LoginMaestroIds.pinScreen));
+    final desktopPinSwitch = find.byKey(const Key('pinLogin_desktop'));
+    final landingSignIn = find.byKey(const Key(LoginMaestroIds.landingSignIn));
+    await _waitForAny(tester, [pinScreen, desktopPinSwitch, landingSignIn]);
+    if (pinScreen.evaluate().isEmpty) {
+      await _tap(
+        tester,
+        desktopPinSwitch.evaluate().isNotEmpty ? desktopPinSwitch : landingSignIn,
+      );
+      await _waitFor(tester, pinScreen);
     }
     await _settle(tester);
     await _shoot(tester, out, '01_sign_in');
