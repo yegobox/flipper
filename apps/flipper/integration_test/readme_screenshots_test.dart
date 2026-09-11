@@ -75,7 +75,7 @@ void main() {
       find.byKey(const Key(LoginMaestroIds.landingSignIn)),
     ]);
     if (find.byKey(const Key(LoginMaestroIds.pinScreen)).evaluate().isEmpty) {
-      await tester.tap(find.byKey(const Key(LoginMaestroIds.landingSignIn)));
+      await _tap(tester, find.byKey(const Key(LoginMaestroIds.landingSignIn)));
       await _waitFor(tester, find.byKey(const Key(LoginMaestroIds.pinScreen)));
     }
     await _settle(tester);
@@ -95,13 +95,13 @@ void main() {
 
     // The demo account is verified with a fixed SMS code, so switch to SMS —
     // this also triggers the OTP request — then submit the code.
-    await tester.tap(find.byKey(const Key(LoginMaestroIds.authSms)));
+    await _tap(tester, find.byKey(const Key(LoginMaestroIds.authSms)));
     await tester.pump(const Duration(seconds: 2));
     await tester.enterText(
       find.byKey(const Key(LoginMaestroIds.otpField)),
       _demoOtp,
     );
-    await tester.tap(find.byKey(const Key(LoginMaestroIds.pinSubmit)));
+    await _tap(tester, find.byKey(const Key(LoginMaestroIds.pinSubmit)));
 
     // ── Business / branch choice, if the demo account has more than one ──
     final mainApp = find.byKey(const Key('mainApp'));
@@ -111,7 +111,7 @@ void main() {
       timeout: const Duration(seconds: 90),
     );
     if (find.text('Choose a business').evaluate().isNotEmpty) {
-      await tester.tap(_byTypeName('_BusinessChoiceTile').first);
+      await _tap(tester, _byTypeName('_BusinessChoiceTile').first);
       await _waitForAny(
         tester,
         [mainApp, find.text('Choose a branch')],
@@ -120,7 +120,7 @@ void main() {
     }
     if (find.text('Choose a branch').evaluate().isNotEmpty) {
       // First branch is preselected; the gradient button continues.
-      await tester.tap(_byTypeName('FlipperGradientButton').first);
+      await _tap(tester, _byTypeName('FlipperGradientButton').first);
     }
     await _waitFor(tester, mainApp, timeout: const Duration(seconds: 90));
 
@@ -156,6 +156,37 @@ Future<void> _shoot(WidgetTester tester, Directory out, String name) async {
   final file = File('${out.path}${Platform.pathSeparator}$name.png');
   file.writeAsBytesSync(bytes!.buffer.asUint8List());
   debugPrint('[readme-screenshots] ${file.path} ($size)');
+}
+
+/// Scrolls the target into view, then taps it — and fails loudly if the tap
+/// would not land (off-screen, obscured). On the runner's small display the
+/// sign-in form's submit button sits below the fold once the OTP field opens,
+/// and a silently missed tap costs a full timeout to diagnose.
+Future<void> _tap(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pump(const Duration(milliseconds: 300));
+  final center = tester.getCenter(finder);
+  final hit = tester.hitTestOnBinding(center);
+  final target = tester.renderObject(finder);
+  final landed = hit.path.any((e) => e.target == target ||
+      (e.target is RenderObject &&
+          _isDescendant(e.target as RenderObject, target)));
+  if (!landed) {
+    throw TestFailure(
+      'Tap on ${finder.describeMatch(Plurality.one)} at $center would not '
+      'reach the widget (window ${tester.binding.renderViews.first.size}).',
+    );
+  }
+  await tester.tap(finder);
+}
+
+bool _isDescendant(RenderObject node, RenderObject ancestor) {
+  RenderObject? cur = node;
+  while (cur != null) {
+    if (identical(cur, ancestor)) return true;
+    cur = cur.parent;
+  }
+  return false;
 }
 
 /// pumpAndSettle that gives up quietly — live streams (Ditto observers,

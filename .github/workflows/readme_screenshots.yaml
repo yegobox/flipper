@@ -129,6 +129,12 @@ jobs:
           ./scripts/ci/prefetch-pdfium.ps1
           ./scripts/ci/patch-windows-plugins.ps1
 
+      - name: Enlarge the runner display
+        # Runners boot at 1024x768, which clamps the 1280x720 app window and
+        # pushes the bottom of the sign-in form off-screen. Best-effort.
+        shell: pwsh
+        run: ./scripts/ci/set-display-resolution.ps1 -Width 1920 -Height 1080
+
       - name: Build debug runner and bundle native assets
         # `flutter test -d windows` launches build/windows/x64/runner/Debug/
         # flipper.exe, but the Dart native-asset DLLs (turso_dart_native.dll,
