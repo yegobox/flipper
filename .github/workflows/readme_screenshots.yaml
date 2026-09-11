@@ -158,6 +158,7 @@ jobs:
           Set-Location apps/flipper
           flutter test -d windows integration_test/readme_screenshots_test.dart `
             --dart-define=FLUTTER_TEST_ENV=false `
+            --dart-define=FLIPPER_DEVICE_PREVIEW=false `
             --dart-define=SCREENSHOT_DIR=$env:SCREENSHOT_DIR `
             --dart-define=DEMO_PIN=$env:DEMO_PIN `
             --dart-define=DEMO_OTP=$env:DEMO_OTP

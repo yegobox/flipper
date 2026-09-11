@@ -645,7 +645,13 @@ class _StartupFailure extends StatelessWidget {
 ///
 /// [_DevicePreviewOverlaySafeHost] is still worth keeping: it defers the first
 /// [MaterialApp] mount out of DevicePreview's own first layout pass.
-bool get kFlipperDevicePreviewEnabled => kDebugMode;
+///
+/// Debug builds only, and even then opt-out-able with
+/// `--dart-define=FLIPPER_DEVICE_PREVIEW=false` — the README screenshot job
+/// runs a debug build and must capture the bare app, not the preview frame.
+bool get kFlipperDevicePreviewEnabled =>
+    kDebugMode &&
+    const bool.fromEnvironment('FLIPPER_DEVICE_PREVIEW', defaultValue: true);
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
