@@ -34,7 +34,7 @@
 
 &ensp;
 
-![Flipper desktop](.github/assets/screenshots/hero.png)
+![Flipper on desktop and mobile](.github/assets/screenshots/hero.png)
 
 </div>
 

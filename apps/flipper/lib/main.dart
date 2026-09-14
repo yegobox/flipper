@@ -646,12 +646,41 @@ class _StartupFailure extends StatelessWidget {
 /// [_DevicePreviewOverlaySafeHost] is still worth keeping: it defers the first
 /// [MaterialApp] mount out of DevicePreview's own first layout pass.
 ///
-/// Debug builds only, and even then opt-out-able with
-/// `--dart-define=FLIPPER_DEVICE_PREVIEW=false` — the README screenshot job
-/// runs a debug build and must capture the bare app, not the preview frame.
+/// Debug builds only, and controlled by `--dart-define=FLIPPER_DEVICE_PREVIEW`:
+///
+///  * `true` (default) — the normal developer preview with its toolbar;
+///  * `false` — the bare app, which is how the README screenshot job captures
+///    the desktop layout;
+///  * `phone` — capture mode for the same job's mobile pass: pinned to one
+///    phone, toolbar and device frame hidden, on a flat magenta background the
+///    compositor keys out. See [_PhoneCapturePreviewStorage].
+const String _devicePreviewMode = String.fromEnvironment(
+  'FLIPPER_DEVICE_PREVIEW',
+  defaultValue: 'true',
+);
+
 bool get kFlipperDevicePreviewEnabled =>
-    kDebugMode &&
-    const bool.fromEnvironment('FLIPPER_DEVICE_PREVIEW', defaultValue: true);
+    kDebugMode && _devicePreviewMode != 'false';
+
+bool get kFlipperDevicePreviewPhoneCapture =>
+    kDebugMode && _devicePreviewMode == 'phone';
+
+/// Initial preview state for `FLIPPER_DEVICE_PREVIEW=phone`. DevicePreview only
+/// reads its starting state from storage (the `data` constructor parameter is
+/// unused upstream), so a storage that "loads" the wanted state and never
+/// saves is the supported way to pin it.
+class _PhoneCapturePreviewStorage extends DevicePreviewStorage {
+  const _PhoneCapturePreviewStorage();
+
+  @override
+  Future<DevicePreviewData?> load() async => const DevicePreviewData(
+        isToolbarVisible: false,
+        isFrameVisible: false,
+      );
+
+  @override
+  Future<void> save(DevicePreviewData data) async {}
+}
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
@@ -752,6 +781,16 @@ class _FlipperAppState extends State<FlipperApp> {
             child: LauncherShortcutRouterHost(
               child: DevicePreview(
                 enabled: kFlipperDevicePreviewEnabled,
+                isToolbarVisible: !kFlipperDevicePreviewPhoneCapture,
+                storage: kFlipperDevicePreviewPhoneCapture
+                    ? const _PhoneCapturePreviewStorage()
+                    : null,
+                defaultDevice: kFlipperDevicePreviewPhoneCapture
+                    ? Devices.ios.iPhone13
+                    : null,
+                backgroundColor: kFlipperDevicePreviewPhoneCapture
+                    ? const Color(0xFFFF00FF)
+                    : null,
                 tools: const [
                   ...DevicePreview.defaultTools,
                 ],
