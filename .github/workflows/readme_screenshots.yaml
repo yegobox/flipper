@@ -12,10 +12,6 @@ on:
   push:
     tags:
       - "v*"
-    # TEMPORARY: end-to-end validation before this lands on main
-    # (workflow_dispatch only registers for workflows on the default branch).
-    branches:
-      - chore/readme-screenshots-automation
   workflow_dispatch:
     inputs:
       base:
