@@ -8,7 +8,7 @@
 //   cd apps/flipper
 //   flutter test -d windows integration_test/readme_screenshots_test.dart \
 //       --dart-define=FLUTTER_TEST_ENV=false \
-//       --dart-define=FLIPPER_DEVICE_PREVIEW=false \
+//       --dart-define=FLIPPER_DEVICE_PREVIEW=false \   # or `phone` for the mobile pass
 //       --dart-define=SCREENSHOT_DIR=/abs/path/to/out \
 //       --dart-define=DEMO_PIN=157307 \
 //       --dart-define=DEMO_OTP=725155
@@ -45,15 +45,26 @@ const _outDir = String.fromEnvironment(
 const _demoPin = String.fromEnvironment('DEMO_PIN', defaultValue: '157307');
 const _demoOtp = String.fromEnvironment('DEMO_OTP', defaultValue: '725155');
 
+/// `FLIPPER_DEVICE_PREVIEW=phone` runs the app inside DevicePreview pinned to a
+/// phone (see main.dart), so this pass shoots the mobile layout. Files get a
+/// `phone_` prefix and are rasterised at 3x: the preview scales the phone down
+/// to fit the window, and `toImage` re-renders the layer tree rather than
+/// upscaling pixels, so the higher ratio buys real detail for the hero.
+const _phone =
+    String.fromEnvironment('FLIPPER_DEVICE_PREVIEW', defaultValue: 'true') ==
+        'phone';
+const _prefix = _phone ? 'phone_' : '';
+const _pixelRatio = _phone ? 3.0 : 1.0;
+
 /// Screens shot after sign-in, in README order. Navigation goes through the
 /// same [RouterService] the dashboard's app grid uses
 /// (see dashboard_quick_apps_navigation.dart), which is far more stable than
 /// tapping tiles whose layout changes with every redesign.
 final _screens = <String, PageRouteInfo?>{
   '02_dashboard': null, // wherever sign-in lands
-  '03_pos': CheckOutRoute(isBigScreen: true),
+  '03_pos': CheckOutRoute(isBigScreen: !_phone),
   '04_transactions': TransactionsRoute(),
-  '05_cashbook': CashbookRoute(isBigScreen: true),
+  '05_cashbook': CashbookRoute(isBigScreen: !_phone),
   '06_customers': CustomersRoute(),
 };
 
@@ -78,44 +89,60 @@ void main() {
     //    "Switch to PIN login" button;
     //  * compact window, fresh install → landing page with "Sign in";
     //  * compact window, seen a login before → PIN screen directly.
+    final mainApp = find.byKey(const Key('mainApp'));
+    final appChoice = find.text('Choose your app');
     final pinScreen = find.byKey(const Key(LoginMaestroIds.pinScreen));
     final desktopPinSwitch = find.byKey(const Key('pinLogin_desktop'));
     final landingSignIn = find.byKey(const Key(LoginMaestroIds.landingSignIn));
-    await _waitForAny(tester, [pinScreen, desktopPinSwitch, landingSignIn]);
-    if (pinScreen.evaluate().isEmpty) {
-      await _tap(
-        tester,
-        desktopPinSwitch.evaluate().isNotEmpty ? desktopPinSwitch : landingSignIn,
+    // The phone pass runs on the same runner right after the desktop pass, so
+    // the device may already be signed in and open straight on the dashboard.
+    await _waitForAny(tester, [
+      pinScreen,
+      desktopPinSwitch,
+      landingSignIn,
+      mainApp,
+      appChoice,
+    ]);
+    final signedIn =
+        mainApp.evaluate().isNotEmpty || appChoice.evaluate().isNotEmpty;
+    if (!signedIn) {
+      if (pinScreen.evaluate().isEmpty) {
+        await _tap(
+          tester,
+          desktopPinSwitch.evaluate().isNotEmpty
+              ? desktopPinSwitch
+              : landingSignIn,
+        );
+        await _waitFor(tester, pinScreen);
+      }
+      await _settle(tester);
+      await _shoot(tester, out, '01_sign_in');
+
+      // Six digits auto-submit the PIN (see _onPinTextChanged in
+      // pin_login.dart) and reveal the OTP step, which defaults to
+      // Authenticator.
+      await tester.enterText(
+        find.byKey(const Key(LoginMaestroIds.pinField)),
+        _demoPin,
       );
-      await _waitFor(tester, pinScreen);
+      await _waitFor(
+        tester,
+        find.byKey(const Key(LoginMaestroIds.otpField)),
+        timeout: const Duration(seconds: 60),
+      );
+
+      // The demo account is verified with a fixed SMS code, so switch to SMS
+      // — this also triggers the OTP request — then submit the code.
+      await _tap(tester, find.byKey(const Key(LoginMaestroIds.authSms)));
+      await tester.pump(const Duration(seconds: 2));
+      await tester.enterText(
+        find.byKey(const Key(LoginMaestroIds.otpField)),
+        _demoOtp,
+      );
+      await _tap(tester, find.byKey(const Key(LoginMaestroIds.pinSubmit)));
     }
-    await _settle(tester);
-    await _shoot(tester, out, '01_sign_in');
-
-    // Six digits auto-submit the PIN (see _onPinTextChanged in pin_login.dart)
-    // and reveal the OTP step, which defaults to Authenticator.
-    await tester.enterText(
-      find.byKey(const Key(LoginMaestroIds.pinField)),
-      _demoPin,
-    );
-    await _waitFor(
-      tester,
-      find.byKey(const Key(LoginMaestroIds.otpField)),
-      timeout: const Duration(seconds: 60),
-    );
-
-    // The demo account is verified with a fixed SMS code, so switch to SMS —
-    // this also triggers the OTP request — then submit the code.
-    await _tap(tester, find.byKey(const Key(LoginMaestroIds.authSms)));
-    await tester.pump(const Duration(seconds: 2));
-    await tester.enterText(
-      find.byKey(const Key(LoginMaestroIds.otpField)),
-      _demoOtp,
-    );
-    await _tap(tester, find.byKey(const Key(LoginMaestroIds.pinSubmit)));
 
     // ── Business / branch choice, if the demo account has more than one ──
-    final mainApp = find.byKey(const Key('mainApp'));
     await _waitForAny(
       tester,
       [mainApp, find.text('Choose a business'), find.text('Choose a branch')],
@@ -136,7 +163,6 @@ void main() {
 
     // First sign-in on a device asks which app to start in (AppChoiceDialog,
     // shown when no defaultApp is stored). The first tile is POS.
-    final appChoice = find.text('Choose your app');
     await _waitForAny(
       tester,
       [mainApp, appChoice],
@@ -175,11 +201,11 @@ Future<void> _shoot(WidgetTester tester, Directory out, String name) async {
   // full-window image on both 100% and HiDPI displays.
   final dpr = view.flutterView.devicePixelRatio;
   final bounds = Offset.zero & (view.size * dpr);
-  final image = await layer.toImage(bounds);
+  final image = await layer.toImage(bounds, pixelRatio: _pixelRatio);
   final size = '${image.width}x${image.height}';
   final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
   image.dispose();
-  final file = File('${out.path}${Platform.pathSeparator}$name.png');
+  final file = File('${out.path}${Platform.pathSeparator}$_prefix$name.png');
   file.writeAsBytesSync(bytes!.buffer.asUint8List());
   debugPrint('[readme-screenshots] ${file.path} ($size)');
 }

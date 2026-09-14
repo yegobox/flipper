@@ -39,7 +39,7 @@ jobs:
   capture:
     name: Capture on Windows
     runs-on: windows-2022
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
@@ -144,7 +144,7 @@ jobs:
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1 -Config Debug
 
-      - name: Capture screenshots
+      - name: Capture desktop screenshots
         shell: pwsh
         # The test needs a desktop session to render; GitHub's Windows runners
         # run with an interactive desktop, so `flutter test -d windows` works.
@@ -155,6 +155,25 @@ jobs:
           flutter test -d windows integration_test/readme_screenshots_test.dart `
             --dart-define=FLUTTER_TEST_ENV=false `
             --dart-define=FLIPPER_DEVICE_PREVIEW=false `
+            --dart-define=SCREENSHOT_DIR=$env:SCREENSHOT_DIR `
+            --dart-define=DEMO_PIN=$env:DEMO_PIN `
+            --dart-define=DEMO_OTP=$env:DEMO_OTP
+        env:
+          DEMO_PIN: ${{ secrets.README_DEMO_PIN || '157307' }}
+          DEMO_OTP: ${{ secrets.README_DEMO_OTP || '725155' }}
+
+      - name: Capture phone screenshots
+        # Same app, same signed-in device, now hosted in DevicePreview pinned
+        # to a phone (FLIPPER_DEVICE_PREVIEW=phone in main.dart) so the mobile
+        # layout renders on the Windows runner — no emulator. The define
+        # changes, so `flutter test` rebuilds; the Debug runner and its DLLs
+        # from the step above are reused.
+        shell: pwsh
+        run: |
+          Set-Location apps/flipper
+          flutter test -d windows integration_test/readme_screenshots_test.dart `
+            --dart-define=FLUTTER_TEST_ENV=false `
+            --dart-define=FLIPPER_DEVICE_PREVIEW=phone `
             --dart-define=SCREENSHOT_DIR=$env:SCREENSHOT_DIR `
             --dart-define=DEMO_PIN=$env:DEMO_PIN `
             --dart-define=DEMO_OTP=$env:DEMO_OTP
