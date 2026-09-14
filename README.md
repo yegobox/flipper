@@ -32,7 +32,7 @@
 
 &ensp;
 
-![Github Mockup Flipper2](https://github.com/user-attachments/assets/548911d7-96d9-43e1-9b2c-830865e78eb5)
+![Flipper desktop](.github/assets/screenshots/hero.png)
 
 </div>
 
