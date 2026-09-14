@@ -32,6 +32,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/main.dart' as app_main;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:stacked/stacked.dart' show PageRouteInfo;
@@ -56,11 +57,14 @@ final _screens = <String, PageRouteInfo?>{
   '06_customers': CustomersRoute(),
 };
 
+late final Directory _out;
+int _timeouts = 0;
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('capture README screenshots', (tester) async {
-    final out = Directory(_outDir)..createSync(recursive: true);
+    final out = _out = Directory(_outDir)..createSync(recursive: true);
     debugPrint('[readme-screenshots] writing to ${out.absolute.path}');
 
     await app_main.main();
@@ -115,7 +119,7 @@ void main() {
     await _waitForAny(
       tester,
       [mainApp, find.text('Choose a business'), find.text('Choose a branch')],
-      timeout: const Duration(seconds: 90),
+      timeout: const Duration(seconds: 180),
     );
     if (find.text('Choose a business').evaluate().isNotEmpty) {
       await _tap(tester, _byTypeName('_BusinessChoiceTile').first);
@@ -226,6 +230,25 @@ Future<void> _waitForAny(
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 250));
     if (finders.any((f) => f.evaluate().isNotEmpty)) return;
+  }
+  // Leave evidence: what was on screen, and a picture of it. The PNG lands in
+  // the same directory as the real shots, so the workflow's artifact upload
+  // picks it up.
+  final visible = find
+      .byType(Text)
+      .evaluate()
+      .map((e) => (e.widget as Text).data)
+      .whereType<String>()
+      .map((t) => t.trim())
+      .where((t) => t.isNotEmpty)
+      .toSet()
+      .take(40)
+      .join(' | ');
+  debugPrint('[readme-screenshots] visible text at timeout: $visible');
+  try {
+    await _shoot(tester, _out, 'zz_timeout_${++_timeouts}');
+  } catch (e) {
+    debugPrint('[readme-screenshots] could not shoot timeout state: $e');
   }
   throw TestFailure(
     'Timed out after $timeout waiting for any of: '
