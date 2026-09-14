@@ -24,7 +24,6 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/locator.dart';
@@ -157,11 +156,6 @@ Future<void> _configurePlatformServices() async {
 
 Future<void> initializeDependencies() async {
   try {
-    // Before anything can take a payment: hands flipper_payments this app's
-    // HTTP client, the per-branch connector URL and talker. Cheap and
-    // synchronous — no network, no branch required yet.
-    registerFlipperPaymentsHost();
-
     await _initializeCriticalDependencies();
 
     if (!foundation.kIsWeb) {
@@ -187,8 +181,10 @@ Future<void> initializeDependencies() async {
       type: 'dependency_init_error',
     );
     try {
+      // Awaited so a Crashlytics failure (no desktop plugin, for one) lands
+      // in this catch instead of escaping as an unhandled async error.
       if (Firebase.apps.isNotEmpty) {
-        FirebaseCrashlytics.instance.recordError(e, stackTrace);
+        await FirebaseCrashlytics.instance.recordError(e, stackTrace);
       }
     } catch (_) {
       // Ignore errors when logging errors

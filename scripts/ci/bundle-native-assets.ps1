@@ -16,7 +16,10 @@
 #   `flutter build windows` and before `dart run msix:create --build-windows false`.
 
 param(
-  [string]$AppDir = ""
+  [string]$AppDir = "",
+  # Runner configuration to bundle into: Release (the Store build) or Debug
+  # (what `flutter test -d windows` launches).
+  [string]$Config = "Release"
 )
 
 $ErrorActionPreference = "Stop"
@@ -31,12 +34,12 @@ if (-not $AppDir) {
 }
 $AppDir = (Resolve-Path $AppDir).Path
 
-$releaseDir     = Join-Path $AppDir "build/windows/x64/runner/Release"
+$releaseDir     = Join-Path $AppDir "build/windows/x64/runner/$Config"
 $nativeAssetsDir = Join-Path $AppDir "build/native_assets/windows"
 $manifestPath   = Join-Path $releaseDir "data/flutter_assets/NativeAssetsManifest.json"
 
 if (-not (Test-Path $releaseDir)) {
-  throw "Release dir not found at $releaseDir. Run 'flutter build windows' first."
+  throw "$Config dir not found at $releaseDir. Run 'flutter build windows' first."
 }
 
 if (-not (Test-Path $manifestPath)) {
