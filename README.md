@@ -4,17 +4,24 @@
 
 # Flipper
 
-### Enterprise-Grade Business Software with Military-Level Encryption
+### Offline-first point of sale, inventory, accounting and HR for small businesses
+
+**Flipper POS** (point of sale & inventory), **Flipper Books** (accounting) and **Flipper HR** share one account on iOS, Android, Windows, macOS, Linux and the web. Sales post to the books automatically, receipts are tax-compliant (including Rwanda Revenue Authority EBM/VSDC receipts), and it keeps selling when the internet drops. Built by [Yegobox](https://yegobox.com) in Kigali, used in Rwanda, Zambia and Mozambique, sold worldwide.
 
 </div>
 
 <div align="center">
-  <a href="https://apps.apple.com/app/id1542026904"><img height="42" src=".github/assets/app-store-badge.svg" alt="App Store"></a>
-  <a href="https://play.google.com/store/apps/details?id=io.Flipper.photos"><img height="42" src=".github/assets/play-store-badge.png" alt="Google Play"></a>
-  <a href="https://f-droid.org/packages/io.Flipper.photos.fdroid/"><img height="42" src=".github/assets/f-droid-badge.png" alt="F-Droid"></a>
-  <a href="https://yegobox.com"><img height="42" src=".github/assets/desktop-badge.png" alt="Desktop"></a>
-  <a href="https://web.yegobox.com"><img height="42" src=".github/assets/web-badge.svg" alt="Web"></a>
+  <a href="https://apps.apple.com/rw/app/flipperrw/id6711352372"><img height="42" src=".github/assets/app-store-badge.svg" alt="App Store"></a>
+  <a href="https://play.google.com/store/apps/details?id=rw.flipper"><img height="42" src=".github/assets/play-store-badge.png" alt="Google Play"></a>
+  <a href="https://www.microsoft.com/store/productId/9PG12JB1WRGZ"><img height="42" src=".github/assets/desktop-badge.png" alt="Microsoft Store"></a>
+  <a href="https://useflipper.com"><img height="42" src=".github/assets/web-badge.svg" alt="Web"></a>
   <br/>
+</div>
+
+<div align="center">
+
+[Website](https://yegobox.com) · [Flipper POS](https://yegobox.com/flipper) · [Pricing](https://yegobox.com/pricing) · [FAQ](https://yegobox.com/faq) · [Sign up](https://useflipper.com/signup) · [Support on WhatsApp](https://wa.me/250788360058)
+
 </div>
 
 <div align="center">
@@ -24,36 +31,36 @@
 </div>
 
 <div align="center">
-  [WhatsApp]()
-</div>
-
--
-<div align="center">
 
 &ensp;
 
-![Github Mockup Flipper2](https://github.com/user-attachments/assets/548911d7-96d9-43e1-9b2c-830865e78eb5)
+![Flipper desktop](.github/assets/screenshots/hero.png)
 
 </div>
 
-## 🚀 Our Mission
+## What is Flipper?
 
-Flipper delivers a comprehensive business software suite with integrated data encryption for both enterprise and personal use. Our all-in-one platform streamlines operations while safeguarding your data with military-grade security protocols.
+Flipper is a suite of business apps for shops, pharmacies, restaurants, hotels and wholesalers:
 
-This monorepo contains our complete ecosystem, including:
--   Client applications for all major platforms (iOS, Android, Web, Linux, macOS, Windows)
--   Backend infrastructure powering our enterprise suite
--   Core encryption technology to ensure data protection
+| App | What it does | Where |
+|---|---|---|
+| **Flipper POS** | Offline-first point of sale and inventory: barcode checkout, multi-branch stock, purchases, transfers, recounts, cash / MTN Mobile Money / card payments, tax-compliant receipts (RRA EBM in Rwanda) | iOS, Android, Windows, macOS, Linux, web |
+| **Flipper Books** | Accounting that fills itself in — every POS sale posts a journal entry at sale time; expenses, recurring entries, P&L and balance sheet | Web ([useflipper.com](https://useflipper.com)), desktop |
+| **Flipper HR** | Staff records, invitations, roles and leave, on the same account | Web |
+| **Rows** | Live dashboards and daily reports from POS data | Web |
 
-**Experience the revolution at [flipper.rw](https://flipper.rw) or [yegobox.com](https://yegobox.com)**
+Plans start at **RWF 5,000 / month** for POS on one phone; see [pricing](https://yegobox.com/pricing). Card payments are accepted from any country.
 
-## ✨ Key Features
+This monorepo contains the client applications (source-available). Backend services and keys are private.
 
--   **Unified Enterprise Platform**: Seamlessly integrates comprehensive business tools with advanced encryption technology.
--   **True Cross-Platform Compatibility**: A consistent and reliable experience across all major operating systems and devices.
--   **Source-Available Foundation**: Builds trust through transparency while maintaining proprietary competitive advantages.
--   **Global Infrastructure**: Architecture designed for worldwide scalability with robust localization capabilities.
--   **Sustainable Revenue Model**: Subscription-based services delivering predictable, growing revenue streams.
+## Key features
+
+-   **Works offline** — every sale is saved on the device first and synced when a connection is available.
+-   **One account, every app** — a cashier in POS is the same identity in Books and HR.
+-   **POS-first accounting** — no month-end import; the ledger is written as you sell.
+-   **Tax compliance built in** — RRA EBM/VSDC receipts, refunds, proformas and stock reports in Rwanda.
+-   **Payments customers use** — cash, MTN MoMo, card; split payments and till settlement.
+-   **Cross-platform** — one Flutter codebase for six platforms.
 
 ## 🛠️ Getting Started: Repository Setup
 

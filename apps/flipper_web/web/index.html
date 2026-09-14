@@ -18,18 +18,52 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Accounting software.">
+
+  <!--
+    useflipper.com is the shared onboarding for every Flipper app (POS, Books,
+    HR). It is a Flutter SPA, so this <head> and the <noscript> body below are
+    the only things search engines and AI crawlers can read. Keep them in sync
+    with the marketing copy on yegobox.com (yegobox.company/src/lib/site.ts).
+  -->
+  <title>Flipper — sign up for Flipper POS, Books and HR | Yegobox</title>
+  <meta name="description" content="Create your Flipper account: offline-first point of sale with inventory, accounting (Flipper Books) and HR, sharing one login on iOS, Android, Windows, macOS, Linux and the web. Tax-compliant receipts, mobile money and card payments. From RWF 5,000 a month.">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <link rel="canonical" href="https://useflipper.com/">
+  <meta name="application-name" content="Flipper">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Flipper by Yegobox">
+  <meta property="og:url" content="https://useflipper.com/">
+  <meta property="og:title" content="Flipper — sign up for Flipper POS, Books and HR">
+  <meta property="og:description" content="Offline-first point of sale, inventory, accounting and HR in one account, on every device.">
+  <meta property="og:image" content="https://yegobox.com/opengraph-image">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Flipper — sign up for Flipper POS, Books and HR">
+  <meta name="twitter:description" content="Offline-first point of sale, inventory, accounting and HR in one account, on every device.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Flipper",
+    "url": "https://useflipper.com/",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "iOS, Android, Windows, macOS, Linux, Web",
+    "description": "Offline-first point of sale with inventory, accounting (Flipper Books) and HR for small businesses, sharing one account on every device.",
+    "offers": { "@type": "Offer", "price": "5000", "priceCurrency": "RWF", "url": "https://yegobox.com/pricing" },
+    "publisher": { "@type": "Organization", "name": "Yegobox", "url": "https://yegobox.com" }
+  }
+  </script>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="flipper_web">
+  <meta name="apple-mobile-web-app-title" content="Flipper">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png">
 
-  <title>Flipper Books</title>
   <link rel="manifest" href="manifest.json">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -159,6 +193,21 @@
       <img class="contain" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
   
+  <!-- Readable fallback for crawlers and browsers without JavaScript. -->
+  <noscript>
+    <main style="max-width:720px;margin:48px auto;padding:0 24px;font-family:system-ui,sans-serif;color:#e6e8ee;line-height:1.6">
+      <h1>Flipper — point of sale, accounting and HR for small businesses</h1>
+      <p>Flipper is an offline-first point of sale with inventory, accounting (Flipper Books) and HR that share one account on iOS, Android, Windows, macOS, Linux and the web. Every sale posts to the books automatically, receipts are tax-compliant (including Rwanda Revenue Authority EBM receipts), and it accepts cash, mobile money and card.</p>
+      <p>This page is the sign-up and sign-in for every Flipper app. It needs JavaScript to run.</p>
+      <ul>
+        <li><a href="https://useflipper.com/signup">Create an account</a></li>
+        <li><a href="https://useflipper.com/login">Sign in</a></li>
+        <li><a href="https://yegobox.com/flipper">About Flipper POS</a></li>
+        <li><a href="https://yegobox.com/pricing">Pricing — from RWF 5,000 a month</a></li>
+        <li><a href="https://apps.apple.com/rw/app/flipperrw/id6711352372">iOS app</a>, <a href="https://play.google.com/store/apps/details?id=rw.flipper">Android app</a>, <a href="https://www.microsoft.com/store/productId/9PG12JB1WRGZ">Windows app</a></li>
+      </ul>
+    </main>
+  </noscript>
   <script src="flutter_bootstrap.js" async=""></script>
 
 
