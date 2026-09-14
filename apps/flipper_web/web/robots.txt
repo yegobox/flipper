@@ -1,0 +1,10 @@
+# useflipper.com — Flipper web app and shared onboarding (flipper_web).
+# The product/marketing pages live on https://yegobox.com; this host only has
+# the app shell, so everything is crawlable and the sitemap lists the two
+# routes worth indexing.
+User-agent: *
+Allow: /
+Disallow: /canvaskit/
+Disallow: /assets/
+
+Sitemap: https://useflipper.com/sitemap.xml
