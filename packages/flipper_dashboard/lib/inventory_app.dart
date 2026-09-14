@@ -20,6 +20,38 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+/// Which surface the Sales menu item renders.
+///
+/// A service mode is full-screen: it brings its own catalog and owns the whole
+/// sales pane, so it must not be dropped into the cart half of the POS
+/// catalog+cart split. Both the "which widget" and the "how much room" choices
+/// read this one value — deciding them separately is how Bar Mode ended up
+/// rendered beside a product grid it had nothing to do with.
+enum SalesSurface {
+  hotel,
+  bar,
+  pos;
+
+  /// True when this surface takes the entire sales pane to itself.
+  bool get ownsWholePane => this != SalesSurface.pos;
+
+  static SalesSurface resolve({
+    required bool hotelEnabled,
+    required bool barEnabled,
+  }) {
+    // Hotel wins: the modes are mutually exclusive, but a branch that switched
+    // from bar to hotel can still hold a stale `enabled: true` bar setting.
+    if (hotelEnabled) return SalesSurface.hotel;
+    if (barEnabled) return SalesSurface.bar;
+    return SalesSurface.pos;
+  }
+
+  static SalesSurface get current => resolve(
+    hotelEnabled: HotelModeSettings.enabled,
+    barEnabled: BarModeSettings.enabled,
+  );
+}
+
 class InventoryApp extends HookConsumerWidget {
   final TextEditingController searchController;
 
@@ -35,15 +67,17 @@ class InventoryApp extends HookConsumerWidget {
   }
 
   Widget _salesContent(bool isScanningMode, WidgetRef ref) {
-    if (HotelModeSettings.enabled) {
-      return const HotelModeHost()
-          .shouldViewTheApp(ref, featureName: AppFeature.Sales)
-          .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
-    }
-    if (BarModeSettings.enabled) {
-      return const BarModeHost()
-          .shouldViewTheApp(ref, featureName: AppFeature.Sales)
-          .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+    switch (SalesSurface.current) {
+      case SalesSurface.hotel:
+        return const HotelModeHost()
+            .shouldViewTheApp(ref, featureName: AppFeature.Sales)
+            .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+      case SalesSurface.bar:
+        return const BarModeHost()
+            .shouldViewTheApp(ref, featureName: AppFeature.Sales)
+            .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
+      case SalesSurface.pos:
+        break;
     }
     return isScanningMode
         ? buildReceiptUI().shouldViewTheApp(
@@ -102,11 +136,7 @@ class InventoryApp extends HookConsumerWidget {
 
     // Sales (0 / default): require open shift before any POS interaction.
     final salesBody = () {
-      // Hotel Mode owns the whole sales pane. The front desk is a full-screen
-      // surface with its own room board and folio — dropping it into the cart
-      // half of the catalog+cart split would leave the product grid rendered
-      // beside it with nothing to add to.
-      if (HotelModeSettings.enabled) {
+      if (SalesSurface.current.ownsWholePane) {
         return buildMainContent(isScanningMode, ref);
       }
 

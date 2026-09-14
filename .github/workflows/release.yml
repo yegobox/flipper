@@ -440,7 +440,13 @@ jobs:
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
-    if: github.ref != 'refs/heads/main' # Skip on merge to main; prod build runs instead
+    # Skip on main (prod build runs instead) and on hotfix-* branches, which
+    # produce a Store-format msix via build-and-release-windows-prerelease —
+    # a hotfix is validated by shipping it, so QA must test the same package
+    # format the Store will serve, not a sideload-signed debug msix.
+    if: >-
+      github.ref != 'refs/heads/main' &&
+      !startsWith(github.ref, 'refs/heads/hotfix-')
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
@@ -719,13 +725,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
 
-  # Store-format (--store) msix build off the migration branch, so it can still
-  # be sideloaded for testing or hand-submitted to Partner Center as a flight —
-  # without going through `build-and-release-windows-prod`, whose tag/name/lack
-  # of `prerelease` imply a vetted, main-branch Store submission.
+  # Store-format (--store) msix build off branches that ship without waiting for
+  # main: the long-running migration branch and every hotfix-*. The artifact can
+  # be hand-submitted to Partner Center as a flight without going through
+  # `build-and-release-windows-prod`, whose tag/name/lack of `prerelease` imply a
+  # vetted, main-branch Store submission.
   build-and-release-windows-prerelease:
     name: "Build windows app-store (prerelease)"
-    if: github.ref == 'refs/heads/ditto-only-migration'
+    if: >-
+      github.ref == 'refs/heads/ditto-only-migration' ||
+      startsWith(github.ref, 'refs/heads/hotfix-')
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
@@ -847,18 +856,33 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "version=$MSIX_VERSION" >> $env:GITHUB_OUTPUT
 
+      - name: Slugify branch for the release tag
+        id: branch_slug
+        shell: bash
+        run: |
+          # This job no longer belongs to one branch, so a bare
+          # `v<version>_windows_prerelease` tag would be claimed by whichever
+          # of ditto-only-migration / hotfix-* built last and would silently
+          # replace the other's msix on the same GitHub release.
+          # msix_version only changes when pubspec.yaml does, so two branches
+          # sharing one is the normal case, not the edge case.
+          slug=$(printf '%s' "${GITHUB_REF_NAME}" \
+            | sed -e 's#[^A-Za-z0-9._-]#-#g' -e 's/--*/-/g' -e 's/^-//' -e 's/-$//')
+          echo "slug=${slug:-build}" >> "$GITHUB_OUTPUT"
+          echo "Release tag suffix: ${slug:-build}"
+
       - name: Create Prerelease
         uses: softprops/action-gh-release@v2
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: v${{ steps.get_version.outputs.version }}_windows_prerelease
-          name: Windows Prerelease ${{ steps.get_version.outputs.version }} (ditto-only-migration)
+          tag_name: v${{ steps.get_version.outputs.version }}_windows_prerelease_${{ steps.branch_slug.outputs.slug }}
+          name: Windows Prerelease ${{ steps.get_version.outputs.version }} (${{ github.ref_name }})
           draft: false
           prerelease: true
           body: |
-            Nightly Store-format (--store) build from ditto-only-migration for
-            testing / manual Partner Center flight submission. Not a vetted
-            production release — see build-and-release-windows-prod for that.
+            Store-format (--store) build from `${{ github.ref_name }}` for testing
+            / manual Partner Center flight submission. Not a vetted production
+            release — see build-and-release-windows-prod for that.
         env:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
 
@@ -1282,12 +1306,20 @@ jobs:
 
   slackNotification:
     name: Slack Notification
-    needs: [build-and-release-windows-debug, build-and-release-windows-prod, build_web_deploy_firebase]
+    needs:
+      - build-and-release-windows-debug
+      - build-and-release-windows-prod
+      - build-and-release-windows-prerelease
+      - build_web_deploy_firebase
+    # Exactly one of the three Windows jobs runs per branch; the other two report
+    # 'skipped'. Without the prerelease arm, hotfix-* and ditto-only-migration
+    # builds succeeded and notified nobody.
     if: >-
       always() &&
       needs.build_web_deploy_firebase.result == 'success' &&
       (needs.build-and-release-windows-prod.result == 'success' ||
-       needs.build-and-release-windows-debug.result == 'success')
+       needs.build-and-release-windows-debug.result == 'success' ||
+       needs.build-and-release-windows-prerelease.result == 'success')
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3

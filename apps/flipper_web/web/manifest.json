@@ -1,11 +1,11 @@
 {
-    "name": "flipper_web",
-    "short_name": "flipper_web",
+    "name": "Flipper — POS, Books and HR",
+    "short_name": "Flipper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#06080D",
     "theme_color": "#2563EB",
-    "description": "A new Flutter project.",
+    "description": "Offline-first point of sale, inventory, accounting and HR for small businesses. One account, every device.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
