@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flipper_web/core/routing/app_entry_route.dart';
 import 'package:flipper_web/features/login/auth_providers.dart' as login_auth;
 import 'package:flipper_web/features/login/auth_wrapper.dart';
+import 'package:flipper_web/features/billing/presentation/books_billing_gate.dart';
+import 'package:flipper_web/features/billing/presentation/books_subscribe_page.dart';
 import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flipper_web/features/login/pin_screen.dart';
 import 'package:flipper_web/features/login/signup_view.dart';
@@ -41,10 +43,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: 'businessSelection',
         builder: (context, state) => const BusinessSelectionWrapper(),
       ),
+      // Books sits behind the subscription: the gate reads the business's
+      // shared `plans` row and shows the paywall until it is paid.
       GoRoute(
         path: '/accounting',
         name: 'accounting',
-        builder: (context, state) => const AccountingModuleScreen(),
+        builder: (context, state) =>
+            const BooksBillingGate(child: AccountingModuleScreen()),
+      ),
+      // The paywall itself — auth-protected, never billing-gated. `planId` is
+      // set when Dodo redirects back after a card checkout.
+      GoRoute(
+        path: '/subscribe',
+        name: 'subscribe',
+        builder: (context, state) => BooksSubscribePage(
+          resumePlanId: state.uri.queryParameters['planId'],
+        ),
       ),
       GoRoute(
         path: '/dashboard',
@@ -64,6 +78,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final goingToDashboard = state.uri.path == '/dashboard';
       final goingToAccounting = state.uri.path == '/accounting';
       final goingToBusinessSelection = state.uri.path == '/business-selection';
+      final goingToSubscribe = state.uri.path == '/subscribe';
       final goingToRoot = state.uri.path == '/';
 
       // If authenticated, handle routing based on business/branch selection
@@ -86,7 +101,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         }
 
         // If not authenticated and trying to access protected routes
-        if (goingToBusinessSelection || goingToDashboard || goingToAccounting) {
+        if (goingToBusinessSelection ||
+            goingToDashboard ||
+            goingToAccounting ||
+            goingToSubscribe) {
           return '/login';
         }
       }

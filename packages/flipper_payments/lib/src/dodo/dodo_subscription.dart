@@ -130,6 +130,10 @@ class DodoCardCheckout {
     String? phoneNumber,
     String? country,
     int? additionalDevices,
+    /// Where Dodo sends the customer after the hosted checkout. A web host
+    /// points this back at its own paywall so the returning tab can resume
+    /// polling; native apps leave it unset.
+    String? returnUrl,
     Map<String, String>? metadata,
     bool openCheckout = true,
   }) async {
@@ -146,6 +150,7 @@ class DodoCardCheckout {
       phoneNumber: phoneNumber,
       country: country,
       additionalDevices: additionalDevices,
+      returnUrl: returnUrl,
       metadata: metadata,
     );
 
