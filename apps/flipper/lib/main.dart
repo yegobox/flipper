@@ -26,6 +26,7 @@ import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
@@ -343,12 +344,20 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
         run: _initializeSupabase,
       ),
       // ProxyService.box and every sync strategy come from here.
-      const _InitStep(
+      _InitStep(
         id: 'dependencies',
         label: 'Loading services',
         isCritical: true,
-        budget: Duration(seconds: 30),
-        run: initDependencies,
+        budget: const Duration(seconds: 30),
+        run: () async {
+          await initDependencies();
+          // Hands flipper_payments this app's HTTP client, connector URL
+          // resolver and talker. Needs ProxyService.http, so it must run
+          // after the locator above is populated — calling it earlier (from
+          // the 'platform' step) threw and silently skipped the rest of that
+          // step on every platform.
+          registerFlipperPaymentsHost();
+        },
       ),
       const _InitStep(
         id: 'analytics',
@@ -636,7 +645,13 @@ class _StartupFailure extends StatelessWidget {
 ///
 /// [_DevicePreviewOverlaySafeHost] is still worth keeping: it defers the first
 /// [MaterialApp] mount out of DevicePreview's own first layout pass.
-bool get kFlipperDevicePreviewEnabled => kDebugMode;
+///
+/// Debug builds only, and even then opt-out-able with
+/// `--dart-define=FLIPPER_DEVICE_PREVIEW=false` — the README screenshot job
+/// runs a debug build and must capture the bare app, not the preview frame.
+bool get kFlipperDevicePreviewEnabled =>
+    kDebugMode &&
+    const bool.fromEnvironment('FLIPPER_DEVICE_PREVIEW', defaultValue: true);
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
