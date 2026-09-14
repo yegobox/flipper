@@ -133,7 +133,19 @@ void main() {
       // First branch is preselected; the gradient button continues.
       await _tap(tester, _byTypeName('FlipperGradientButton').first);
     }
-    await _waitFor(tester, mainApp, timeout: const Duration(seconds: 90));
+
+    // First sign-in on a device asks which app to start in (AppChoiceDialog,
+    // shown when no defaultApp is stored). The first tile is POS.
+    final appChoice = find.text('Choose your app');
+    await _waitForAny(
+      tester,
+      [mainApp, appChoice],
+      timeout: const Duration(seconds: 90),
+    );
+    if (appChoice.evaluate().isNotEmpty) {
+      await _tap(tester, _byTypeName('_AppChoiceTile').first);
+    }
+    await _waitFor(tester, mainApp, timeout: const Duration(seconds: 120));
 
     // ── Screens ─────────────────────────────────────────────────────────
     final router = locator<RouterService>();
