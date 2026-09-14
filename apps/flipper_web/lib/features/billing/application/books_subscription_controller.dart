@@ -1,5 +1,6 @@
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/billing/application/books_billing_providers.dart';
+import 'package:flipper_web/features/billing/data/books_payment_rails.dart';
 import 'package:flipper_web/features/billing/data/books_plan_repository.dart';
 import 'package:flipper_web/features/billing/data/books_return_url.dart';
 import 'package:flipper_web/models/user_profile.dart';
@@ -196,11 +197,16 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       ),
     );
 
+    // Read every provider before the first await: `ref` is unusable once the
+    // paywall is disposed mid-payment, and the charge must still finish.
+    final repo = ref.read(booksPlanRepositoryProvider);
+    final rails = ref.read(booksPaymentRailsProvider);
+
     // Row before request, as on mobile: the backend prices the pre-approval
     // from the plan it finds, so the row has to say the right amount first.
     final Plan plan;
     try {
-      plan = await ref.read(booksPlanRepositoryProvider).savePlan(
+      plan = await repo.savePlan(
             selection.toDraft(
               businessId: business.id,
               branchId: branchId,
@@ -239,7 +245,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
 
     final MomoSubscriptionResult result;
     try {
-      result = await ref.read(booksPaymentRailsProvider).chargeMomo(
+      result = await rails.chargeMomo(
             phoneNumber: phoneNumber,
             amount: amount,
             planId: planId,
@@ -315,7 +321,10 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       ),
     );
 
+    if (_disposed) return;
     await _pollMomo(
+      repo: repo,
+      rails: rails,
       businessId: business.id,
       branchId: branchId,
       planId: planId,
@@ -324,12 +333,13 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
   }
 
   Future<void> _pollMomo({
+    required BooksPlanRepository repo,
+    required BooksPaymentRails rails,
     required String businessId,
     String? branchId,
     required String planId,
     required String reference,
   }) async {
-    final rails = ref.read(booksPaymentRailsProvider);
     final interval = ref.read(booksMomoPollIntervalProvider);
     final deadline = DateTime.now().add(ref.read(booksMomoPollTimeoutProvider));
 
@@ -345,6 +355,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         // have blinked. Keep polling until the deadline.
         continue;
       }
+      if (_disposed) return;
 
       // A pending status can still carry an explanation, and when it does it
       // is usually the reason no prompt will ever arrive. Keep polling, but
@@ -357,9 +368,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       if (settlement.isSuccessful) {
         // Nudge the backend to settle the plan row now rather than on its
         // next sweep, then re-read entitlement so Books opens on this device.
-        await ref
-            .read(booksPlanRepositoryProvider)
-            .finalizeOnSuccess(planId: planId, reference: reference);
+        await repo.finalizeOnSuccess(planId: planId, reference: reference);
         await _refreshAccess(businessId);
         _set(
           state.copyWith(
@@ -429,11 +438,14 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       ),
     );
 
+    final repo = ref.read(booksPlanRepositoryProvider);
+    final rails = ref.read(booksPaymentRailsProvider);
+
     // Row before request, as on the MoMo rail: if the start call or the tab
     // hand-off dies, the plan already records which rail was chosen.
     final Plan plan;
     try {
-      plan = await ref.read(booksPlanRepositoryProvider).savePlan(
+      plan = await repo.savePlan(
             selection.toDraft(
               businessId: business.id,
               branchId: branchId,
@@ -467,7 +479,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
 
     final DodoCheckoutResult result;
     try {
-      result = await ref.read(booksPaymentRailsProvider).startCard(
+      result = await rails.startCard(
             businessId: business.id,
             planId: planId,
             branchId: branchId,
@@ -492,6 +504,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       return;
     }
 
+    if (_disposed) return;
     final link = result.checkout?.paymentLink;
     switch (result.outcome) {
       case DodoCheckoutOutcome.entitled:
@@ -559,11 +572,13 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     required String businessId,
     required String planId,
   }) async {
+    final rails = ref.read(booksPaymentRailsProvider);
+    final timeout = ref.read(booksCardPollTimeoutProvider);
     final DodoSubscriptionStatus? status;
     try {
-      status = await ref.read(booksPaymentRailsProvider).awaitCardEntitlement(
+      status = await rails.awaitCardEntitlement(
             planId,
-            timeout: ref.read(booksCardPollTimeoutProvider),
+            timeout: timeout,
             isCancelled: () => _disposed,
           );
     } catch (e) {
@@ -625,6 +640,9 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
   /// screen that follows a payment is never rendered against the pre-payment
   /// answer.
   Future<void> _refreshAccess(String businessId) async {
+    // A disposed notifier has no ref to invalidate through; the gate re-reads
+    // entitlement itself when it next builds.
+    if (_disposed) return;
     ref.invalidate(booksAccessStateProvider(businessId));
     try {
       await ref.read(booksAccessStateProvider(businessId).future);

@@ -67,7 +67,11 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
 
   @override
   Future<Plan> savePlan(BooksPlanDraft draft) async {
-    final existing = draft.existing;
+    // A business keeps one row. The upsert conflicts on `id`, so minting a
+    // fresh id while a row already exists would leave two — and mobile's
+    // `.maybeSingle()` read would then fail for that business. When the
+    // caller did not hand us the current row, look for it first.
+    final existing = draft.existing ?? await _currentRow(draft.businessId);
     final planId = existing?.id ?? const Uuid().v4();
     final now = DateTime.now().toUtc();
     final nextBillingDate = now.add(
@@ -124,6 +128,18 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
       paymentCompletedByUser: false,
       updatedAt: now,
     );
+  }
+
+  /// The row Supabase holds for [businessId] right now — never Ditto's copy,
+  /// which is what the write is about to overtake.
+  Future<Plan?> _currentRow(String businessId) async {
+    final row = await _supabase
+        .from('plans')
+        .select()
+        .eq('business_id', businessId)
+        .maybeSingle();
+    if (row == null) return null;
+    return Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
   }
 
   /// Inserts add-ons the business does not already have.

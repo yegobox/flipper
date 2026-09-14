@@ -106,16 +106,18 @@ final booksPlanRealtimeProvider =
   final repo = ref.watch(booksPlanRepositoryProvider);
   // Only a *change* in the row re-reads entitlement. The stream's first
   // emission is the row as it already stands, which the access read has seen.
-  String? lastSignature;
+  var seenFirst = false;
+  var lastSignature = '';
   return repo.watchPlan(businessId).map((plan) {
     final signature = plan == null
-        ? null
+        ? ''
         : '${plan.paymentCompletedByUser}|${plan.paymentStatus}|'
             '${plan.nextBillingDate?.toIso8601String()}';
-    if (lastSignature != null && signature != lastSignature) {
+    if (seenFirst && signature != lastSignature) {
       ref.invalidate(booksAccessStateProvider(businessId));
     }
-    lastSignature = signature ?? '';
+    seenFirst = true;
+    lastSignature = signature;
     return plan;
   });
 }, retry: (retryCount, error) => null);

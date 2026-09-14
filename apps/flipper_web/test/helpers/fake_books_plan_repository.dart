@@ -59,8 +59,10 @@ class FakeBooksPlanRepository implements BooksPlanRepository {
     }
     savedDrafts.add(draft);
     final now = DateTime.now().toUtc();
+    // Same rule as the Supabase repository: a business keeps one row.
+    final existing = draft.existing ?? plans[draft.businessId];
     final plan = Plan(
-      id: draft.existing?.id ?? 'plan-${savedDrafts.length}',
+      id: existing?.id ?? 'plan-${savedDrafts.length}',
       businessId: draft.businessId,
       branchId: draft.branchId,
       selectedPlan: draft.selectedPlan,
@@ -77,7 +79,7 @@ class FakeBooksPlanRepository implements BooksPlanRepository {
         Duration(days: draft.cadence.periodDays * draft.numberOfPayments),
       ),
       phoneNumber: draft.phoneNumber,
-      createdAt: draft.existing?.createdAt ?? now,
+      createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     );
     plans[draft.businessId] = plan;

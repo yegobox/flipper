@@ -134,6 +134,23 @@ void main() {
       expect(rails.lastPlanId, 'plan-old');
     });
 
+    test('a business that already has a row keeps its id even when the '
+        'caller did not pass it', () async {
+      final repo = FakeBooksPlanRepository(plans: {'biz-1': unpaidPlan(id: 'plan-old')});
+      final rails =
+          FakeBooksPaymentRails(momoStatuses: [MomoPaymentStatus.successful]);
+      final container = _container(repo: repo, rails: rails);
+
+      await container.read(booksSubscriptionControllerProvider.notifier).payWithMomo(
+            business: testBusiness(),
+            selection: monthlyMobile(),
+            phoneNumber: '0788123456',
+          );
+
+      expect(repo.plans['biz-1']!.id, 'plan-old');
+      expect(rails.lastPlanId, 'plan-old');
+    });
+
     test('a refused mandate fails without polling — nothing was charged',
         () async {
       final repo = FakeBooksPlanRepository();
@@ -460,6 +477,21 @@ void main() {
         BooksAccessStatus.entitled,
       );
       expect(repo.fetchCount, greaterThan(before));
+    });
+
+    test('a repeated empty emission does not re-read entitlement', () async {
+      final repo = FakeBooksPlanRepository();
+      final container = _container(repo: repo, rails: FakeBooksPaymentRails());
+      container.listen(booksPlanRealtimeProvider('biz-1'), (_, __) {});
+      await container.read(booksAccessStateProvider('biz-1').future);
+      await Future<void>.delayed(Duration.zero);
+      final before = repo.fetchCount;
+
+      repo.emit('biz-1', null);
+      repo.emit('biz-1', null);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.fetchCount, before);
     });
 
     test('the Individual-business waiver reads the selected business',
