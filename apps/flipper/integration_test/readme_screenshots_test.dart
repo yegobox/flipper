@@ -146,6 +146,9 @@ void main() {
       await _tap(tester, _byTypeName('_AppChoiceTile').first);
     }
     await _waitFor(tester, mainApp, timeout: const Duration(seconds: 120));
+    // Let the post-login toasts ("Products refreshed for new branch", ...)
+    // time out before the first shot.
+    await tester.pump(const Duration(seconds: 8));
 
     // ── Screens ─────────────────────────────────────────────────────────
     final router = locator<RouterService>();
