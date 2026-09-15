@@ -11,7 +11,7 @@ import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    show connectivityStreamProvider;
+    show buttonIndexProvider, connectivityStreamProvider;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
@@ -134,6 +134,58 @@ void main() {
         'Choose default app',
       ]),
     );
+  });
+
+  testWidgets('Overview resets the legacy ribbon index the Home tab owned', (
+    tester,
+  ) async {
+    // Home was the only writer of index 0. Transactions still sets 1, and
+    // SearchFieldWidget shows a date picker while it reads 1, so without this
+    // the picker would stay open for the rest of the session.
+    final container = ProviderContainer(
+      overrides: [
+        sideMenuVisibilityProvider.overrideWithValue(_allVisible),
+        activeBranchProvider.overrideWith(
+          (ref) => Stream.value(
+            Branch(id: 'branch-1', name: 'Demo Shop', businessId: 'b'),
+          ),
+        ),
+        connectivityStreamProvider.overrideWith((ref) => Stream.value(true)),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.read(buttonIndexProvider.notifier).setIndex(1);
+    expect(container.read(buttonIndexProvider), 1);
+
+    await tester.binding.setSurfaceSize(const Size(1440, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
+          home: const Scaffold(
+            body: Row(
+              children: [
+                SizedBox(width: 56, child: EnhancedSideMenu()),
+                Expanded(child: SizedBox()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    await tester.tap(find.byTooltip('Overview'));
+    await tester.pump();
+
+    expect(container.read(buttonIndexProvider), 0);
   });
 
   testWidgets('report entries stay when every gated item is hidden', (
