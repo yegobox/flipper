@@ -135,6 +135,10 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         isSelected: selectedItem == 0,
         onTap: () {
           ref.read(selectedMenuItemProvider.notifier).state = 0;
+          // Overview inherits the retired Home tab's other job: resetting the
+          // legacy ribbon index. Nothing else sets it back to 0, and
+          // [SearchFieldWidget] keeps its date picker open while it reads 1.
+          ref.read(buttonIndexProvider.notifier).setIndex(0);
           ref.read(selectedPageProvider.notifier).state =
               DashboardPage.inventory;
         },
