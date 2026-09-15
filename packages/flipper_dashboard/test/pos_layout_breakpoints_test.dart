@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -7,24 +8,53 @@ void main() {
       expect(PosLayoutBreakpoints.cartDrawerWidth(2000), 460);
     });
 
-    test('wide pane uses 4 columns max', () {
+    test('cart column is a clamped share of the sales pane', () {
+      // 1280 window → 1216 pane → 36% = 438.
+      expect(PosLayoutBreakpoints.cartColumnWidth(1216), closeTo(437.8, 0.1));
+      // Narrow split floors at 400 …
+      expect(PosLayoutBreakpoints.cartColumnWidth(1100), 400);
+      // … and wide windows cap at the handoff 460.
+      expect(PosLayoutBreakpoints.cartColumnWidth(1856), 460);
+    });
+
+    test('grid packs 168px tiles: 4 @1280, 5 @1440, 7 @1920', () {
+      // Catalog pane = window − rail − cart column − 32px grid inset.
+      const rail = PosTokens.sideMenuWidth;
+      double pane(double window) =>
+          window -
+          rail -
+          PosLayoutBreakpoints.cartColumnWidth(window - rail) -
+          32;
       expect(
-        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(1200),
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(pane(1280)),
         4,
+      );
+      expect(
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(pane(1440)),
+        5,
+      );
+      expect(
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(pane(1920)),
+        7,
+      );
+    });
+
+    test('grid never drops below 2 or above 8 columns', () {
+      expect(
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(200),
+        2,
+      );
+      expect(
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(4000),
+        8,
       );
     });
   });
 
   group('PosLayoutBreakpoints checkout layout', () {
     test('useSingleScrollCheckoutPane below threshold', () {
-      expect(
-        PosLayoutBreakpoints.useSingleScrollCheckoutPane(559),
-        isTrue,
-      );
-      expect(
-        PosLayoutBreakpoints.useSingleScrollCheckoutPane(560),
-        isFalse,
-      );
+      expect(PosLayoutBreakpoints.useSingleScrollCheckoutPane(559), isTrue);
+      expect(PosLayoutBreakpoints.useSingleScrollCheckoutPane(560), isFalse);
     });
 
     test('checkoutFlexForPaneHeight favors cart on short desktop', () {

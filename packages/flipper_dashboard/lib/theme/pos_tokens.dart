@@ -2,7 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-/// Design tokens from [flipper/design_handoff_pos] (desktop register).
+/// Design tokens for the desktop register.
+///
+/// Colours come from [flipper/design_handoff_pos]; the size, radius and type
+/// scales were tightened for a desktop-first, information-dense layout: calm
+/// neutral surfaces, 6–10px radii, 40px controls and colour reserved for
+/// semantic states (selected, low/out of stock, success, warning, error).
 abstract final class PosTokens {
   // Surfaces
   static const Color posBg = Color(0xFFF4F6FB);
@@ -41,28 +46,45 @@ abstract final class PosTokens {
   static const Color warnAmber = Color(0xFFE08600);
   static const Color warnTint = Color(0xFFFFF4E2);
 
-  // Layout (handoff canvas)
-  static const double topBarHeight = 64;
-  static const double sideMenuWidth = 64;
-  static const double cartPanelWidth = 460;
-  static const double productThumbHeight = 104;
-  static const double gridGap = 14;
-  static const double radiusLg = 10;
-  static const double radiusMd = 14;
-  static const double radiusSm = 10;
+  /// Neutral product thumb (no per-product colour; image wins when present).
+  static const Color neutralThumb = surface2;
+  static const Color neutralThumbInk = ink2;
 
-  /// Catalog card shape: softer, rounder top so the colored thumb corners
-  /// don't read as sharp, with the standard radius on the bottom.
-  static const BorderRadius cardRadius = BorderRadius.only(
-    topLeft: Radius.circular(radiusLg),
-    topRight: Radius.circular(radiusLg),
-    bottomLeft: Radius.circular(radiusMd),
-    bottomRight: Radius.circular(radiusMd),
+  // Layout (desktop shell)
+  static const double topBarHeight = 56;
+  static const double sideMenuWidth = 56;
+
+  /// Fixed cart column on a wide split; see
+  /// [PosLayoutBreakpoints.cartColumnWidth].
+  static const double cartPanelWidth = 460;
+  static const double cartPanelMinWidth = 400;
+  static const double cartPanelFraction = 0.36;
+
+  static const double productThumbHeight = 56;
+  static const double gridGap = 12;
+
+  /// Minimum product tile width the catalog grid packs against.
+  static const double productTileMinWidth = 168;
+
+  // Radii: small controls / cards & fields / dialogs & panels.
+  static const double radiusSm = 6;
+  static const double radiusMd = 8;
+  static const double radiusLg = 10;
+
+  /// Catalog card shape.
+  static const BorderRadius cardRadius = BorderRadius.all(
+    Radius.circular(radiusMd),
   );
-  static const double searchFieldHeight = 50;
-  static const double scanButtonSize = 50;
-  static const double payButtonHeight = 58;
-  static const double chipHeight = 36;
+
+  // Control sizes
+  static const double controlHeight = 40;
+  static const double controlHeightSm = 32;
+  static const double iconSm = 16;
+  static const double iconMd = 20;
+  static const double searchFieldHeight = controlHeight;
+  static const double scanButtonSize = controlHeight;
+  static const double payButtonHeight = 52;
+  static const double chipHeight = controlHeightSm;
 
   // Motion (ANIMATIONS.md)
   static const Duration hoverTransition = Duration(milliseconds: 120);
@@ -73,16 +95,8 @@ abstract final class PosTokens {
   static const double buttonPressScale = 0.98;
 
   static const List<BoxShadow> shadow1 = [
-    BoxShadow(
-      color: Color(0x0D102040),
-      offset: Offset(0, 1),
-      blurRadius: 2,
-    ),
-    BoxShadow(
-      color: Color(0x0A102040),
-      offset: Offset(0, 1),
-      blurRadius: 1,
-    ),
+    BoxShadow(color: Color(0x0D102040), offset: Offset(0, 1), blurRadius: 2),
+    BoxShadow(color: Color(0x0A102040), offset: Offset(0, 1), blurRadius: 1),
   ];
 
   static const List<BoxShadow> shadow2 = [
@@ -92,12 +106,51 @@ abstract final class PosTokens {
       blurRadius: 18,
       spreadRadius: -6,
     ),
-    BoxShadow(
-      color: Color(0x0F103240),
-      offset: Offset(0, 2),
-      blurRadius: 6,
-    ),
+    BoxShadow(color: Color(0x0F103240), offset: Offset(0, 2), blurRadius: 6),
   ];
+
+  // Type scale (desktop hierarchy)
+  //   page title 20 · section 14/600 · body 13 · meta 11.5–12 · totals 24.
+  static const TextStyle pageTitle = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: ink1,
+    letterSpacing: -0.2,
+    height: 1.2,
+  );
+  static const TextStyle sectionTitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: ink1,
+    height: 1.2,
+  );
+  static const TextStyle body = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    color: ink1,
+    height: 1.3,
+  );
+  static const TextStyle bodyStrong = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: ink1,
+    height: 1.3,
+  );
+  static const TextStyle meta = TextStyle(
+    fontSize: 11.5,
+    fontWeight: FontWeight.w500,
+    color: ink3,
+    height: 1.3,
+  );
+
+  /// Uppercase section eyebrow ("PAYMENT", "INVOICE").
+  static const TextStyle eyebrow = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: ink3,
+    letterSpacing: 0.4,
+    height: 1.2,
+  );
 
   static TextStyle posMonoStyle(
     TextTheme textTheme, {
@@ -126,6 +179,10 @@ abstract final class PosTokens {
       color: color ?? ink1,
     );
   }
+
+  /// Dominant amount (grand total).
+  static TextStyle totalStyle(TextTheme textTheme, {Color? color}) =>
+      posPriceStyle(textTheme, fontSize: 24, color: color);
 
   static bool prefersReducedMotion(BuildContext context) {
     return MediaQuery.disableAnimationsOf(context) ||

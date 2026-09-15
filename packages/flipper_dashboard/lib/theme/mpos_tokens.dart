@@ -17,7 +17,10 @@ abstract final class MposTokens {
   static const Color pendTint = Color(0xFFFCEFD6);
 
   static const double radiusLg = 20;
-  static const double radiusMd = PosTokens.radiusMd;
+
+  /// Mobile keeps the softer handoff radius; the desktop [PosTokens] scale is
+  /// tighter (8px) and must not leak into the phone POS.
+  static const double radiusMd = 14;
   static const double checkoutPrimaryHeight = 56;
   static const double cartBarHeight = 60;
   static const double sheetRadius = 26;
@@ -41,11 +44,7 @@ abstract final class MposTokens {
       blurRadius: 28,
       spreadRadius: -8,
     ),
-    BoxShadow(
-      color: Color(0x402563EB),
-      offset: Offset(0, 3),
-      blurRadius: 8,
-    ),
+    BoxShadow(color: Color(0x402563EB), offset: Offset(0, 3), blurRadius: 8),
   ];
 
   static const List<BoxShadow> shadowPayReady = [

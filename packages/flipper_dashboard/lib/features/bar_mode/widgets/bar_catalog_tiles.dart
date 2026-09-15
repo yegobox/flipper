@@ -29,7 +29,8 @@ class BarPosVariantTile extends StatelessWidget {
       lowStockThreshold: threshold,
     );
     final isOut = visual == PosStockVisual.out;
-    final productName = (variant.productName?.trim().isNotEmpty == true
+    final productName =
+        (variant.productName?.trim().isNotEmpty == true
             ? variant.productName
             : variant.name) ??
         'Unnamed Product';
@@ -51,6 +52,7 @@ class BarPosVariantTile extends StatelessWidget {
         hasImage: false,
         image: null,
         isOutOfStock: isOut,
+        userColor: posParseTileColor(variant.color),
       ),
       onTap: isOut ? null : onTap,
       onLongPress: () {},
@@ -63,8 +65,9 @@ SliverGridDelegate barPosCatalogGridDelegate(double paneWidth) {
   final crossAxisCount =
       PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
   final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
-  final aspectRatio =
-      PosLayoutBreakpoints.desktopGridChildAspectRatioForPane(paneWidth);
+  final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatioForPane(
+    paneWidth,
+  );
 
   return SliverGridDelegateWithFixedCrossAxisCount(
     crossAxisCount: crossAxisCount,

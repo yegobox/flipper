@@ -163,10 +163,8 @@ class SearchInputWithDropdown extends ConsumerStatefulWidget {
   /// controls horizontal alignment; matches desktop POS mock.
   final bool embeddedInCheckoutPane;
 
-  const SearchInputWithDropdown({
-    Key? key,
-    this.embeddedInCheckoutPane = false,
-  }) : super(key: key);
+  const SearchInputWithDropdown({Key? key, this.embeddedInCheckoutPane = false})
+    : super(key: key);
 
   @override
   ConsumerState<SearchInputWithDropdown> createState() =>
@@ -301,9 +299,7 @@ class _SearchInputWithDropdownState
       if (oldCustomerId != null) {
         ref.invalidate(attachedCustomerProvider(oldCustomerId));
       }
-      ref.invalidate(
-        transactionByIdProvider(transaction.value!.id),
-      );
+      ref.invalidate(transactionByIdProvider(transaction.value!.id));
       // Same reasoning as the attach path: don't re-subscribe the live pending
       // observer (it can spawn a new empty pending cart). The by-id invalidate
       // above plus the live observer already reflect the removed customer.
@@ -424,9 +420,9 @@ class _SearchInputWithDropdownState
   @override
   Widget build(BuildContext context) {
     final customerId = ref.watch(
-      pendingTransactionStreamProvider(isExpense: false).select(
-        (a) => a.asData?.value.customerId,
-      ),
+      pendingTransactionStreamProvider(
+        isExpense: false,
+      ).select((a) => a.asData?.value.customerId),
     );
     final attachedCustomerAsync = ref.watch(
       attachedCustomerProvider(customerId),
@@ -453,23 +449,34 @@ class _SearchInputWithDropdownState
       child: TextFormField(
         readOnly: attachedCustomer != null,
         controller: _searchController,
+        style: widget.embeddedInCheckoutPane ? PosTokens.body : null,
         onChanged: _performSearch,
         onTap: () {
           if (_searchResults.isNotEmpty) {
             final pending = ref.read(
               pendingTransactionStreamProvider(isExpense: false),
             );
-            final transaction =
-                pending.hasValue ? pending.requireValue : null;
+            final transaction = pending.hasValue ? pending.requireValue : null;
             _showOverlay(transaction);
           }
         },
         decoration: InputDecoration(
           hintText: context.flipperL10n.searchCustomer,
+          hintStyle: widget.embeddedInCheckoutPane
+              ? const TextStyle(fontSize: 13, color: PosTokens.ink4)
+              : null,
           prefixIcon: Icon(
-            Icons.search,
-            color: PosLayoutBreakpoints.posAccentBlue,
+            widget.embeddedInCheckoutPane
+                ? FluentIcons.search_20_regular
+                : Icons.search,
+            size: widget.embeddedInCheckoutPane ? 18 : null,
+            color: widget.embeddedInCheckoutPane
+                ? PosTokens.ink3
+                : PosLayoutBreakpoints.posAccentBlue,
           ),
+          prefixIconConstraints: widget.embeddedInCheckoutPane
+              ? const BoxConstraints(minWidth: 38, minHeight: 38)
+              : null,
           suffixIcon: Padding(
             padding: const EdgeInsetsDirectional.only(end: 4.0),
             child: Row(
@@ -533,35 +540,33 @@ class _SearchInputWithDropdownState
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
-              widget.embeddedInCheckoutPane
-                  ? PosTokens.radiusMd
-                  : 12.0,
+              widget.embeddedInCheckoutPane ? PosTokens.radiusMd : 12.0,
             ),
-            borderSide: const BorderSide(color: PosTokens.line, width: 1.5),
+            borderSide: BorderSide(
+              color: PosTokens.line,
+              width: widget.embeddedInCheckoutPane ? 1 : 1.5,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
-              widget.embeddedInCheckoutPane
-                  ? PosTokens.radiusMd
-                  : 12.0,
+              widget.embeddedInCheckoutPane ? PosTokens.radiusMd : 12.0,
             ),
-            borderSide: const BorderSide(
-              color: PosTokens.blue,
-              width: 1.5,
-            ),
+            borderSide: const BorderSide(color: PosTokens.blue, width: 1.5),
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(
-              widget.embeddedInCheckoutPane
-                  ? PosTokens.radiusMd
-                  : 12.0,
+              widget.embeddedInCheckoutPane ? PosTokens.radiusMd : 12.0,
             ),
-            borderSide: const BorderSide(color: PosTokens.line, width: 1.5),
+            borderSide: BorderSide(
+              color: PosTokens.line,
+              width: widget.embeddedInCheckoutPane ? 1 : 1.5,
+            ),
           ),
           filled: true,
           fillColor: PosTokens.surface,
+          isDense: widget.embeddedInCheckoutPane ? true : null,
           contentPadding: widget.embeddedInCheckoutPane
-              ? const EdgeInsets.symmetric(vertical: 14)
+              ? const EdgeInsets.symmetric(vertical: 10)
               : null,
         ),
       ),

@@ -32,6 +32,25 @@ Color posTileColorForName(String name) {
   return posTileColors[posHashIdx(name, posTileColors.length)];
 }
 
+/// The colour a customer picked for a product, or null when they picked none.
+///
+/// Stored as a hex string on `Variant.color` / `Product.color` (the product
+/// editor's colour picker writes it). Returns null for empty, whitespace and
+/// malformed values — [HexColor] itself throws on those — so callers can fall
+/// back to the neutral tile instead of crashing the catalog on bad data.
+Color? posParseTileColor(String? hex) {
+  final raw = hex?.trim().replaceAll('#', '');
+  if (raw == null || raw.isEmpty) return null;
+  if (raw.length != 6 && raw.length != 8) return null;
+  final value = int.tryParse(raw, radix: 16);
+  if (value == null) return null;
+  return Color(raw.length == 6 ? 0xFF000000 | value : value);
+}
+
+/// Readable ink for text drawn on [background].
+Color posInkOn(Color background) =>
+    background.computeLuminance() > 0.55 ? PosTokens.ink1 : Colors.white;
+
 /// First ~3 letters (letters/spaces only), matching handoff [abbr].
 String posTileAbbr(String name) {
   final cleaned = name.replaceAll(RegExp(r'[^A-Za-z ]'), '');
@@ -76,9 +95,7 @@ String posStockLabel(PosStockVisual visual, num currentStock) {
       return 'Out of stock';
     case PosStockVisual.low:
     case PosStockVisual.ok:
-      final n = currentStock is int
-          ? currentStock
-          : currentStock.floor();
+      final n = currentStock is int ? currentStock : currentStock.floor();
       return '$n in stock';
   }
 }

@@ -80,8 +80,10 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool isOrdering;
   final bool forceRemoteUrl;
   final bool forceListView;
+
   /// Desktop POS catalog grid — uses [PosCatalogGridCard] (handoff layout).
   final bool usePosCatalogTile;
+
   /// Pre-loaded from [stocksForVisibleVariantsProvider]; skips per-row Ditto watch.
   final Stock? liveStock;
 
@@ -126,20 +128,20 @@ class _RowItemState extends ConsumerState<RowItem>
   /// gates entering multi-select so view-only/non-admin staff can't reach the
   /// bulk-delete bar.
   bool _canManageProducts() => ref.read(
-        featureAccessLevelProvider(
-          accessLevel: UserType.ADMIN,
-          userId: ProxyService.box.getUserId() ?? '',
-        ),
-      );
+    featureAccessLevelProvider(
+      accessLevel: UserType.ADMIN,
+      userId: ProxyService.box.getUserId() ?? '',
+    ),
+  );
 
   /// True when stock quantities should be hidden from this user — an opt-in
   /// privacy grant (grant-to-hide). Absence of the grant shows quantities.
   bool _hideStockQuantity(WidgetRef ref) => ref.watch(
-        featureViewAccessProvider(
-          userId: ProxyService.box.getUserId() ?? '',
-          featureName: AppFeature.HideStockQuantity,
-        ),
-      );
+    featureViewAccessProvider(
+      userId: ProxyService.box.getUserId() ?? '',
+      featureName: AppFeature.HideStockQuantity,
+    ),
+  );
 
   String _truncateString(String text, int maxLength) {
     if (text.length <= maxLength) {
@@ -183,8 +185,7 @@ class _RowItemState extends ConsumerState<RowItem>
   static const double imageBorderRadius = PosTokens.radiusMd;
   static const double contentPadding = 12.0;
 
-  double get _lowStockThreshold =>
-      widget.variant?.stock?.lowStock ?? 10.0;
+  double get _lowStockThreshold => widget.variant?.stock?.lowStock ?? 10.0;
 
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
@@ -243,8 +244,9 @@ class _RowItemState extends ConsumerState<RowItem>
       }
       return;
     }
-    final flipperWatch? w =
-        kDebugMode ? flipperWatch('onAddingItemToQuickSell') : null;
+    final flipperWatch? w = kDebugMode
+        ? flipperWatch('onAddingItemToQuickSell')
+        : null;
     w?.start();
     _onAddToCartWithOptimistic();
     w?.log('Item Added to Quick Sell');
@@ -276,8 +278,7 @@ class _RowItemState extends ConsumerState<RowItem>
     final currency = ProxyService.box.defaultCurrency();
 
     final bcd = widget.variant?.bcd;
-    final bcdLabel =
-        bcd != null && bcd.isNotEmpty ? 'BCD: $bcd' : null;
+    final bcdLabel = bcd != null && bcd.isNotEmpty ? 'BCD: $bcd' : null;
 
     final hasImage = widget.imageUrl?.isNotEmpty == true;
 
@@ -304,11 +305,13 @@ class _RowItemState extends ConsumerState<RowItem>
           name: widget.productName,
           hasImage: hasImage,
           image: hasImage
-              ? ClipRRect(
-                  child: SizedBox.expand(child: _buildImage()),
-                )
+              ? ClipRRect(child: SizedBox.expand(child: _buildImage()))
               : null,
           isOutOfStock: isOut,
+          // Read the variant directly: [widget.color] is defaulted to a purple
+          // by [Datamixer.buildRowItem], which would make every product look
+          // like the customer had chosen a colour.
+          userColor: posParseTileColor(widget.variant?.color),
         ),
         onTap: isOut
             ? null
@@ -337,19 +340,19 @@ class _RowItemState extends ConsumerState<RowItem>
         child,
         if (isSelected)
           Positioned(
-            top: 8,
-            right: 8,
+            top: 6,
+            right: 6,
             child: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: colorScheme.primary,
+                // Selection is a semantic state: use the POS accent, not the
+                // app ColorScheme teal, so it matches the card border.
+                color: widget.usePosCatalogTile
+                    ? PosTokens.blue
+                    : colorScheme.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 14,
-              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 12),
             ),
           ),
         if (isSelected && selectedCount == 1 && !widget.isOrdering)
@@ -444,7 +447,9 @@ class _RowItemState extends ConsumerState<RowItem>
                 itemId: itemId,
               ),
               onLongPress: () {
-                if (itemId != null && !widget.isOrdering && _canManageProducts()) {
+                if (itemId != null &&
+                    !widget.isOrdering &&
+                    _canManageProducts()) {
                   ref
                       .read(selectedItemIdsProvider.notifier)
                       .toggleSelection(itemId);
@@ -733,7 +738,9 @@ class _RowItemState extends ConsumerState<RowItem>
                           final stockValue = _resolveStockValue(ref);
 
                           return Text(
-                            context.flipperL10n.inStockCount(stockValue.toString()),
+                            context.flipperL10n.inStockCount(
+                              stockValue.toString(),
+                            ),
                             style: textTheme.bodySmall?.copyWith(
                               color: stockValue > 0
                                   ? Colors.green[700]
@@ -798,9 +805,9 @@ class _RowItemState extends ConsumerState<RowItem>
       onTap: isMultiSelectActive
           ? () {
               if (itemId != null) {
-                ref.read(selectedItemIdsProvider.notifier).toggleSelection(
-                      itemId,
-                    );
+                ref
+                    .read(selectedItemIdsProvider.notifier)
+                    .toggleSelection(itemId);
               }
             }
           : null,
@@ -1026,7 +1033,7 @@ class _RowItemState extends ConsumerState<RowItem>
 
         final txnId =
             ref.watch(posCartPendingTransactionIdProvider(widget.isOrdering)) ??
-                '';
+            '';
 
         return _buildStepper(
           textTheme: textTheme,
@@ -1034,10 +1041,7 @@ class _RowItemState extends ConsumerState<RowItem>
           qty: displayQty,
           decrementEnabled: displayQty > 0,
           onDecrement: () async {
-            _decrementVariantFromCart(
-              transactionId: txnId,
-              variantId: v.id,
-            );
+            _decrementVariantFromCart(transactionId: txnId, variantId: v.id);
           },
           onIncrement: _onAddToCartWithOptimistic,
         );
@@ -1217,10 +1221,9 @@ class _RowItemState extends ConsumerState<RowItem>
         : (ref.read(posCartMergeTxnIdProvider(widget.isOrdering)));
     if (txnForOpt.isEmpty) return;
 
-    ref.read(optimisticCartProvider.notifier).rollbackPending(
-          transactionId: txnForOpt,
-          variantId: variantId,
-        );
+    ref
+        .read(optimisticCartProvider.notifier)
+        .rollbackPending(transactionId: txnForOpt, variantId: variantId);
     // [optimisticOrderCountProvider] counts in-flight persists, not cart size —
     // PosCartAddService._runPersist already decrements it in its `finally`, so
     // decrementing here too drove the counter negative.
@@ -1472,13 +1475,15 @@ class _RowItemState extends ConsumerState<RowItem>
   void _onAddToCartWithOptimistic() {
     final v = widget.variant;
     if (v == null) return;
-    ref.read(posCartAddServiceProvider).tapAdd(
-      context: context,
-      variant: v,
-      isOrdering: widget.isOrdering,
-      product: widget.product,
-      isComposite: widget.isComposite,
-    );
+    ref
+        .read(posCartAddServiceProvider)
+        .tapAdd(
+          context: context,
+          variant: v,
+          isOrdering: widget.isOrdering,
+          product: widget.product,
+          isComposite: widget.isComposite,
+        );
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {

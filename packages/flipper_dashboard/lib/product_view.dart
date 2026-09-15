@@ -373,13 +373,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             if (isSelectionMode)
               _buildBulkSelectionBar(context, model, selectedIds),
             if (showLinkedSearch) ...[
-              SizedBox(height: isMobileLayout ? 8 : 20),
+              SizedBox(height: isMobileLayout ? 8 : 12),
               Padding(
                 padding: EdgeInsets.fromLTRB(
-                  isMobileLayout ? 16 : 22,
+                  16,
                   0,
-                  isMobileLayout ? 16 : 22,
-                  10,
+                  16,
+                  isMobileLayout ? 10 : 4,
                 ),
                 child: isMobileLayout
                     ? SearchFieldWidget(
@@ -467,7 +467,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           dialogService.showCustomDialog(
             variant: DialogType.info,
             title: context.flipperL10n.error,
-            description: context.flipperL10n.cannotDeleteVariantWithStockRemaining,
+            description:
+                context.flipperL10n.cannotDeleteVariantWithStockRemaining,
             data: {'status': InfoDialogStatus.error},
           );
           return;
@@ -491,7 +492,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final response = await dialogService.showCustomDialog(
       variant: DialogType.info,
       title: context.flipperL10n.deleteMultipleItems,
-      description: context.flipperL10n.deleteItemsConfirmation(selectedIds.length),
+      description: context.flipperL10n.deleteItemsConfirmation(
+        selectedIds.length,
+      ),
       data: {
         'status': InfoDialogStatus.warning,
         'mainButtonText': context.flipperL10n.delete,
@@ -611,9 +614,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                               icon: const Icon(
                                 FluentIcons.arrow_sync_20_filled,
                               ),
-                              label: Text(
-                                context.flipperL10n.refreshProducts,
-                              ),
+                              label: Text(context.flipperL10n.refreshProducts),
                             ),
                           ],
                         ],
@@ -674,7 +675,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               ),
               loading: () {
                 final hasBranch = branchId.isNotEmpty;
-                final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+                final notifier = ref.read(
+                  outerVariantsProvider(branchId).notifier,
+                );
                 final knownTotal = notifier.totalCount;
 
                 // If there's no branch selected, show the empty/placeholder UI
@@ -751,15 +754,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           ),
                           const SizedBox(height: 20),
                           FilledButton.icon(
-                            onPressed: () => ref.invalidate(
-                              outerVariantsProvider(branchId),
-                            ),
-                            icon: const Icon(
-                              FluentIcons.arrow_sync_20_filled,
-                            ),
-                            label: Text(
-                              context.flipperL10n.refreshProducts,
-                            ),
+                            onPressed: () =>
+                                ref.invalidate(outerVariantsProvider(branchId)),
+                            icon: const Icon(FluentIcons.arrow_sync_20_filled),
+                            label: Text(context.flipperL10n.refreshProducts),
                           ),
                         ],
                       ),
@@ -816,10 +814,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       children: [
         Padding(
           padding: EdgeInsets.fromLTRB(
-            isMobileLayout ? 16 : 22,
-            isMobileLayout ? 12 : 16,
-            isMobileLayout ? 16 : 22,
-            isMobileLayout ? 10 : 14,
+            16,
+            isMobileLayout ? 12 : 8,
+            16,
+            isMobileLayout ? 10 : 8,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -855,7 +853,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                         end.toString(),
                         totalText,
                       ),
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: PosTokens.meta.copyWith(fontSize: 12.5),
                       overflow: TextOverflow.ellipsis,
                     );
                   },
@@ -865,7 +863,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: isMobileLayout ? 14 : 4),
         Expanded(
           child: Stack(
             children: [
@@ -922,9 +920,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         if (estimatedTotalPages > 0 &&
             !(isMobileLayout && widget.suppressMobilePagination))
           Padding(
-            padding: const EdgeInsets.symmetric(
+            padding: EdgeInsets.symmetric(
               horizontal: 16.0,
-              vertical: 12.0,
+              vertical: isMobileLayout ? 12.0 : 8.0,
             ),
             child: Row(
               children: [
@@ -973,20 +971,28 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                                     ? PosTokens.blue
                                                     : PosTokens.surface),
                                           borderRadius: BorderRadius.circular(
-                                            10,
+                                            isMobileLayout
+                                                ? 10
+                                                : PosTokens.radiusSm,
                                           ),
                                           child: InkWell(
                                             borderRadius: BorderRadius.circular(
-                                              10,
+                                              isMobileLayout
+                                                  ? 10
+                                                  : PosTokens.radiusSm,
                                             ),
                                             onTap: () => _goToPage(page),
                                             child: Container(
-                                              width: 40,
-                                              height: 40,
+                                              width: isMobileLayout ? 40 : 32,
+                                              height: isMobileLayout ? 40 : 32,
                                               alignment: Alignment.center,
                                               decoration: BoxDecoration(
                                                 borderRadius:
-                                                    BorderRadius.circular(10),
+                                                    BorderRadius.circular(
+                                                      isMobileLayout
+                                                          ? 10
+                                                          : PosTokens.radiusSm,
+                                                    ),
                                                 border: Border.all(
                                                   color: isMobileLayout
                                                       ? const Color(0xFFD1D1D6)
@@ -998,8 +1004,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                               child: Text(
                                                 '${page + 1}',
                                                 style: TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 14,
+                                                  fontWeight: isMobileLayout
+                                                      ? FontWeight.w700
+                                                      : FontWeight.w600,
+                                                  fontSize: isMobileLayout
+                                                      ? 14
+                                                      : 12.5,
                                                   color: isMobileLayout
                                                       ? (isCurrent
                                                             ? Colors.black87
@@ -1038,10 +1048,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       (_currentPage + 1).toString(),
                       estimatedTotalPages.toString(),
                     ),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF64748B),
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: PosTokens.meta.copyWith(fontSize: 12.5),
                   ),
               ],
             ),
@@ -1072,19 +1079,24 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     required double paneWidth,
   }) {
     final branchId = ProxyService.box.getBranchId() ?? '';
-    final stocksById = ref
-            .watch(stocksForVisibleVariantsProvider(branchId))
-            .asData
-            ?.value ??
+    final stocksById =
+        ref.watch(stocksForVisibleVariantsProvider(branchId)).asData?.value ??
         const <String, Stock?>{};
 
     final bool isMobileLayout =
         paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
+    // Desktop grid keeps a 16px inset on both sides; every tile-size
+    // computation (and the eviction scroll math) uses the inner width.
+    const gridInset = EdgeInsets.fromLTRB(16, 4, 16, 16);
+    final gridWidth = isMobileLayout
+        ? paneWidth
+        : paneWidth - gridInset.horizontal;
+
     // Capture layout metrics used for scroll compensation when pages are evicted
     // from the front of the in-memory page cache.
     _lastIsMobileLayout = isMobileLayout;
-    _lastPaneWidth = paneWidth;
+    _lastPaneWidth = gridWidth;
 
     if (isMobileLayout) {
       _lastGridCrossAxisCount = null;
@@ -1115,10 +1127,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     }
 
     final crossAxisCount =
-        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
-    final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(gridWidth);
+    final spacing = PosLayoutBreakpoints.desktopGridSpacing(gridWidth);
     final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatioForPane(
-      paneWidth,
+      gridWidth,
     );
 
     _lastGridCrossAxisCount = crossAxisCount;
@@ -1127,6 +1139,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
     return GridView.builder(
       controller: _scrollController,
+      padding: gridInset,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         mainAxisSpacing: spacing,
@@ -1175,7 +1188,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           );
   }
 
-
   Widget _paginationSideButton({
     required BuildContext context,
     required IconData icon,
@@ -1183,7 +1195,21 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     required bool usePosStyle,
   }) {
     if (!usePosStyle) {
-      return IconButton(icon: Icon(icon), onPressed: onPressed);
+      // Desktop: 32px square to match the page pills.
+      return IconButton(
+        icon: Icon(icon, size: 16),
+        onPressed: onPressed,
+        color: PosTokens.ink2,
+        disabledColor: PosTokens.ink4,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+        style: IconButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          ),
+          hoverColor: PosTokens.surface2,
+        ),
+      );
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -1229,13 +1255,17 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               vertical: compact ? 6 : 8,
             ),
             decoration: BoxDecoration(
-              color: compact ? Colors.white : null,
+              color: compact ? Colors.white : PosTokens.surface,
               border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.15),
+                color: compact
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.15)
+                    : PosTokens.line,
               ),
-              borderRadius: BorderRadius.circular(compact ? 10 : 4),
+              borderRadius: BorderRadius.circular(
+                compact ? 10 : PosTokens.radiusSm,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -1243,15 +1273,18 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 Text(
                   label,
                   style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: compact ? 13 : 14,
+                    fontWeight: compact ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: compact ? 13 : 12.5,
+                    color: compact ? null : PosTokens.ink2,
                   ),
                 ),
-                SizedBox(width: compact ? 4 : 8),
+                SizedBox(width: compact ? 4 : 6),
                 Icon(
                   FluentIcons.chevron_down_20_regular,
-                  size: compact ? 14 : 16,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  size: compact ? 14 : 14,
+                  color: compact
+                      ? Theme.of(context).colorScheme.onSurface
+                      : PosTokens.ink3,
                 ),
               ],
             ),

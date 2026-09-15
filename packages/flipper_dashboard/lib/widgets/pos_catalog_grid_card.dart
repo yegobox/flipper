@@ -5,7 +5,11 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Desktop POS product tile (handoff grid card).
+/// Desktop POS product tile.
+///
+/// Neutral surface, hairline border, no shadow; colour is reserved for
+/// semantic state — selected (blue), low stock (amber), out of stock (red),
+/// already-in-cart (blue pill). Hierarchy: name → price · stock → code.
 class PosCatalogGridCard extends StatefulWidget {
   const PosCatalogGridCard({
     super.key,
@@ -51,10 +55,19 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
   @override
   Widget build(BuildContext context) {
     final reducedMotion = PosTokens.prefersReducedMotion(context);
-    final lift = !reducedMotion && _hovered && !widget.isOutOfStock;
-    final scale = !reducedMotion && _pressed && !widget.isOutOfStock
+    final interactive = !widget.isOutOfStock;
+    final hover = _hovered && interactive;
+    final scale = !reducedMotion && _pressed && interactive
         ? PosTokens.cardPressScale
         : 1.0;
+    final selected = widget.showSelectionBorder;
+
+    final borderColor = selected
+        ? PosTokens.blue
+        : (hover ? PosTokens.lineStrong : PosTokens.line);
+    final background = selected
+        ? PosTokens.blueTint
+        : (hover ? PosTokens.surface2 : PosTokens.surface);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
@@ -77,122 +90,132 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
           child: AnimatedContainer(
             duration: PosTokens.hoverTransition,
             curve: Curves.ease,
-            transform: Matrix4.translationValues(
-              0,
-              lift ? -PosTokens.cardHoverLift : 0,
-              0,
-            ),
             decoration: BoxDecoration(
-              color: PosTokens.surface,
+              color: background,
               borderRadius: PosTokens.cardRadius,
-              border: Border.all(
-                color: widget.showSelectionBorder
-                    ? PosTokens.blue
-                    : (lift ? PosTokens.lineStrong : PosTokens.line),
-                width: widget.showSelectionBorder ? 2 : 1.5,
-              ),
-              boxShadow: lift ? PosTokens.shadow2 : PosTokens.shadow1,
+              border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
             ),
             clipBehavior: Clip.antiAlias,
-            // Thumb flexes so the text body keeps its intrinsic height.
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      widget.thumb,
-                      if (widget.inCartQty > 0)
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: _InCartPill(qty: widget.inCartQty),
-                        ),
-                      if (widget.stockVisual == PosStockVisual.low)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: _StockBadge(
-                            label: context.flipperL10n.stockLow,
-                            isLow: true,
+            child: Opacity(
+              opacity: widget.isOutOfStock ? 0.62 : 1,
+              // Thumb flexes so the text body keeps its intrinsic height.
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        widget.thumb,
+                        if (widget.inCartQty > 0)
+                          Positioned(
+                            top: 6,
+                            left: 6,
+                            child: _InCartPill(qty: widget.inCartQty),
                           ),
-                        ),
-                      if (widget.stockVisual == PosStockVisual.out)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: _StockBadge(
-                            label: context.flipperL10n.stockOutBadge,
-                            isLow: false,
+                        if (widget.stockVisual == PosStockVisual.low)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: _StockTag(
+                              label: context.flipperL10n.stockLow,
+                              isLow: true,
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(13, 11, 13, 13),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.productName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: PosTokens.ink1,
-                          letterSpacing: -0.01,
-                        ),
-                      ),
-                      if (widget.bcdLabel != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.bcdLabel!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: PosTokens.posMonoStyle(
-                            Theme.of(context).textTheme,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            color: PosTokens.ink4,
+                        if (widget.stockVisual == PosStockVisual.out)
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: _StockTag(
+                              label: context.flipperL10n.stockOutBadge,
+                              isLow: false,
+                            ),
                           ),
-                        ),
                       ],
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          if (widget.showPrice)
-                            Flexible(
-                              child: _PosCardPrice(
-                                currencySymbol: widget.currencySymbol,
-                                amount: widget.priceAmount,
-                              ),
-                            ),
-                          if (widget.showPrice) const SizedBox(width: 8),
-                          // Empty label hides the stock quantity (e.g. a user
-                          // with the Hide Stock Quantity grant).
-                          if (widget.stockLabel.isNotEmpty)
-                            Text(
-                              widget.stockLabel,
-                              style: PosTokens.posMonoStyle(
-                                Theme.of(context).textTheme,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                color: widget.stockLabelColor ??
-                                    posStockTextColor(widget.stockVisual),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Fixed two-line slot so price rows align across the grid.
+                        SizedBox(
+                          height: 34,
+                          child: Text(
+                            widget.productName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: PosTokens.ink1,
+                              height: 1.3,
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Price leads; the stock label yields first when the
+                        // cell is narrow (both ellipsise rather than overflow).
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            if (widget.showPrice)
+                              Flexible(
+                                flex: 3,
+                                child: _PosCardPrice(
+                                  currencySymbol: widget.currencySymbol,
+                                  amount: widget.priceAmount,
+                                ),
+                              ),
+                            if (widget.showPrice &&
+                                widget.stockLabel.isNotEmpty)
+                              const SizedBox(width: 6),
+                            if (!widget.showPrice) const Spacer(),
+                            // Empty label hides the stock quantity (e.g. a user
+                            // with the Hide Stock Quantity grant).
+                            if (widget.stockLabel.isNotEmpty)
+                              Flexible(
+                                flex: 2,
+                                child: Text(
+                                  widget.stockLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.end,
+                                  style: PosTokens.posMonoStyle(
+                                    Theme.of(context).textTheme,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        widget.stockLabelColor ??
+                                        posStockTextColor(widget.stockVisual),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        if (widget.bcdLabel != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            widget.bcdLabel!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: PosTokens.posMonoStyle(
+                              Theme.of(context).textTheme,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: PosTokens.ink4,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -201,12 +224,9 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
   }
 }
 
-/// Handoff price row: gray `RWF` + bold amount (no decimals).
+/// Price row: quiet currency + tabular amount (no decimals).
 class _PosCardPrice extends StatelessWidget {
-  const _PosCardPrice({
-    required this.currencySymbol,
-    required this.amount,
-  });
+  const _PosCardPrice({required this.currencySymbol, required this.amount});
 
   final String currencySymbol;
   final num amount;
@@ -223,7 +243,7 @@ class _PosCardPrice extends StatelessWidget {
             text: '$currencySymbol ',
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
               color: PosTokens.ink3,
             ),
           ),
@@ -231,7 +251,7 @@ class _PosCardPrice extends StatelessWidget {
             text: formatted,
             style: PosTokens.posPriceStyle(
               Theme.of(context).textTheme,
-              fontSize: 15,
+              fontSize: 14,
             ),
           ),
         ],
@@ -250,34 +270,27 @@ class _InCartPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 7),
+      height: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
-        color: const Color(0xEBFFFFFF),
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x2E000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: PosTokens.blue,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
             FluentIcons.checkmark_12_regular,
-            size: 12,
-            color: PosTokens.blue,
+            size: 11,
+            color: Colors.white,
           ),
           const SizedBox(width: 3),
           Text(
             '$qty',
             style: PosTokens.posMonoStyle(
               Theme.of(context).textTheme,
-              fontSize: 13,
-              color: PosTokens.blue,
+              fontSize: 11.5,
+              color: Colors.white,
             ),
           ),
         ],
@@ -286,8 +299,9 @@ class _InCartPill extends StatelessWidget {
   }
 }
 
-class _StockBadge extends StatelessWidget {
-  const _StockBadge({required this.label, required this.isLow});
+/// Low / Out tag — a small square-cornered label, not a pill.
+class _StockTag extends StatelessWidget {
+  const _StockTag({required this.label, required this.isLow});
 
   final String label;
   final bool isLow;
@@ -295,78 +309,95 @@ class _StockBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 22,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      height: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: isLow ? PosTokens.warnTint : PosTokens.lossTint,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isLow)
-            const Icon(
-              FluentIcons.warning_16_regular,
-              size: 11,
-              color: PosTokens.warnAmber,
-            ),
-          if (isLow) const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: isLow ? PosTokens.warnAmber : PosTokens.lossInk,
-            ),
-          ),
-        ],
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w600,
+          height: 1,
+          color: isLow ? PosTokens.warnAmber : PosTokens.lossInk,
+        ),
       ),
     );
   }
 }
 
-/// Colored initials thumb or desaturated when out of stock.
+/// Product thumb, in priority order:
+///   1. the product image when there is one (desaturated when out of stock),
+///   2. the colour the customer picked for this product ([userColor]),
+///   3. a neutral band with the product initials.
+///
+/// Customer-chosen colour counts as semantic, not decoration — it is how the
+/// operator finds the product — so it is kept even though the redesign
+/// dropped the old hash-assigned tile colours.
 Widget posCatalogThumb({
   required String name,
   required bool hasImage,
   required Widget? image,
   required bool isOutOfStock,
+  Color? userColor,
 }) {
   if (hasImage && image != null) {
     return ColorFiltered(
       colorFilter: isOutOfStock
           ? const ColorFilter.matrix(<double>[
-              0.2126, 0.7152, 0.0722, 0, 0,
-              0.2126, 0.7152, 0.0722, 0, 0,
-              0.2126, 0.7152, 0.0722, 0, 0,
-              0, 0, 0, 0.6, 0,
+              0.2126,
+              0.7152,
+              0.0722,
+              0,
+              0,
+              0.2126,
+              0.7152,
+              0.0722,
+              0,
+              0,
+              0.2126,
+              0.7152,
+              0.0722,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0.6,
+              0,
             ])
           : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
       child: image,
     );
   }
 
-  final bg = isOutOfStock
-      ? const Color(0xFF9AA3B2)
-      : posTileColorForName(name);
+  final hasColor = userColor != null;
+  // Out of stock always desaturates, so a bright tile never reads as sellable.
+  final background = isOutOfStock
+      ? (hasColor ? const Color(0xFF9AA3B2) : PosTokens.neutralThumb)
+      : (userColor ?? PosTokens.neutralThumb);
+  final ink = hasColor && !isOutOfStock
+      ? posInkOn(background)
+      : (isOutOfStock && hasColor ? Colors.white : PosTokens.neutralThumbInk);
 
-  return ColoredBox(
-    color: bg,
+  return DecoratedBox(
+    decoration: BoxDecoration(
+      color: background,
+      border: hasColor
+          ? null
+          : const Border(bottom: BorderSide(color: PosTokens.line)),
+    ),
     child: Center(
       child: Text(
-        posTileAbbr(name),
+        posTileAbbr(name).toUpperCase(),
         style: TextStyle(
-          color: Colors.white.withValues(alpha: isOutOfStock ? 0.85 : 1),
-          fontSize: 30,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.01,
-          shadows: const [
-            Shadow(
-              color: Color(0x24000000),
-              offset: Offset(0, 1),
-              blurRadius: 2,
-            ),
-          ],
+          color: ink,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.6,
         ),
       ),
     ),

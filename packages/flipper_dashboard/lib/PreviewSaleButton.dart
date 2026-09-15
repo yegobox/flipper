@@ -3,6 +3,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
@@ -22,6 +23,7 @@ class PreviewSaleButton extends ConsumerWidget {
 
   final CompleteTransaction? completeTransaction;
   final PreviewCart? previewCart;
+
   /// Null resolves to the localized "Pay" label at build time.
   final String? wording;
   final SellingMode mode;
@@ -52,20 +54,18 @@ class PreviewSaleButton extends ConsumerWidget {
         // nothing to call: no error, and a Pay button that spun forever with
         // `onPressed: null` — the till could not even retry.
         final stillWaitingForPayment =
-            await completeTransaction?.call(
-              immediateCompletion,
-              null,
-              (String error) {
-                if (!ref.context.mounted) return;
-                loadingNotifier.stopLoading(buttonType);
-                showCustomSnackBarUtil(
-                  ref.context,
-                  error,
-                  backgroundColor: Colors.red,
-                  showCloseButton: true,
-                );
-              },
-            ) ??
+            await completeTransaction?.call(immediateCompletion, null, (
+              String error,
+            ) {
+              if (!ref.context.mounted) return;
+              loadingNotifier.stopLoading(buttonType);
+              showCustomSnackBarUtil(
+                ref.context,
+                error,
+                backgroundColor: Colors.red,
+                showCloseButton: true,
+              );
+            }) ??
             false;
 
         // Release the spinner here rather than trusting the flow to do it.
@@ -99,11 +99,21 @@ class PreviewSaleButton extends ConsumerWidget {
         // Handle error (e.g., show a snackbar or log error)
       } finally {
         if (ref.context.mounted) {
-          loadingNotifier.stopLoading(buttonType); // Stop loading in finally to ensure it always stops
+          loadingNotifier.stopLoading(
+            buttonType,
+          ); // Stop loading in finally to ensure it always stops
         }
       }
     }
   }
+
+  /// Primary action label: the one place weight 700 is used on a button.
+  static const TextStyle _payLabelStyle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    color: Colors.white,
+    letterSpacing: 0.1,
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -112,7 +122,7 @@ class PreviewSaleButton extends ConsumerWidget {
         mode == SellingMode.forSelling && digitalPaymentEnabled;
 
     return SizedBox(
-      height: 64,
+      height: PosTokens.payButtonHeight,
       width: double.infinity,
       child: Row(
         children: [
@@ -121,11 +131,15 @@ class PreviewSaleButton extends ConsumerWidget {
             child: icon == null
                 ? FlipperButton(
                     width: double.infinity,
-                    height: 64,
+                    height: PosTokens.payButtonHeight,
                     key: const Key("PaymentButton"),
-                    color: const Color(0xFF2563EB),
+                    color: PosTokens.blue,
+                    disabledColor: PosTokens.ink4,
+                    radius: PosTokens.radiusMd,
+                    textStyle: _payLabelStyle,
                     text: wording ?? context.flipperL10n.pay,
-                    onPressed: (!enabled ||
+                    onPressed:
+                        (!enabled ||
                             (payButtonLoading[ButtonType.pay] ?? false))
                         ? null
                         : () => _handleButtonPress(
@@ -136,11 +150,13 @@ class PreviewSaleButton extends ConsumerWidget {
                   )
                 : FlipperIconButton(
                     width: double.infinity,
-                    height: 64,
-                    color: const Color(0xFF2563EB),
+                    height: PosTokens.payButtonHeight,
+                    color: PosTokens.blue,
+                    radius: PosTokens.radiusMd,
                     key: const Key("PaymentButton"),
                     icon: icon!,
-                    onPressed: (!enabled ||
+                    onPressed:
+                        (!enabled ||
                             (payButtonLoading[ButtonType.pay] ?? false))
                         ? null
                         : () => _handleButtonPress(
@@ -152,40 +168,44 @@ class PreviewSaleButton extends ConsumerWidget {
           ),
           // Only show divider and Complete Now button when in selling mode
           if (showCompleteNow) ...[
-            Container(width: 1, color: Colors.grey.shade300),
+            const SizedBox(width: 8),
             Expanded(
               child: icon == null
                   ? FlipperButton(
                       width: double.infinity,
                       isLoading:
                           payButtonLoading[ButtonType.completeNow] ?? false,
-                      height: 64,
+                      height: PosTokens.payButtonHeight,
                       key: const Key("ImmediateCompletionButton"),
-                      color: Colors.green,
+                      color: PosTokens.gain,
+                      disabledColor: PosTokens.ink4,
+                      radius: PosTokens.radiusMd,
+                      textStyle: _payLabelStyle,
                       text: 'Complete Now',
                       onPressed: !enabled
                           ? null
                           : () => _handleButtonPress(
-                                ref,
-                                immediateCompletion: true,
-                                buttonType: ButtonType.completeNow,
-                              ),
+                              ref,
+                              immediateCompletion: true,
+                              buttonType: ButtonType.completeNow,
+                            ),
                     )
                   : FlipperIconButton(
                       width: double.infinity,
-                      color: const Color(0xFF2563EB),
+                      color: PosTokens.blue,
+                      radius: PosTokens.radiusMd,
                       isLoading:
                           payButtonLoading[ButtonType.completeNow] ?? false,
-                      height: 64,
+                      height: PosTokens.payButtonHeight,
                       key: const Key("ImmediateCompletionButton"),
                       text: 'Complete Now',
                       onPressed: !enabled
                           ? null
                           : () => _handleButtonPress(
-                                ref,
-                                immediateCompletion: true,
-                                buttonType: ButtonType.completeNow,
-                              ),
+                              ref,
+                              immediateCompletion: true,
+                              buttonType: ButtonType.completeNow,
+                            ),
                       icon: icon!,
                     ),
             ),

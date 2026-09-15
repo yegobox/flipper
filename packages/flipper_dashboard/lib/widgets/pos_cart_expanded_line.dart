@@ -1,10 +1,13 @@
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
-import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// POS cart line with optional expanded qty/price editor (handoff).
+/// POS cart line with optional expanded qty/price editor.
+///
+/// Collapsed: name + unit price · qty stepper · line total · remove. No
+/// colour swatch — the line is scanned by its text, and colour is kept for
+/// state (errors, hover on remove).
 class PosCartExpandedLine extends StatelessWidget {
   const PosCartExpandedLine({
     super.key,
@@ -57,46 +60,49 @@ class PosCartExpandedLine extends StatelessWidget {
 
     if (!isExpanded) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _CollapsedHeader(
-            name: name,
-            unitPriceText: unitPriceText,
-            lineTotalText: lineTotalText,
-            qtyText: qtyText,
-            isSaving: isSaving,
-            decrementEnabled: decrementEnabled,
-            incrementEnabled: incrementEnabled,
-            onDecrement: onDecrement,
-            onIncrement: onIncrement,
-            onDelete: onDelete,
-            onEdit: isSaving ? null : onToggleExpand,
-          ),
-          if (hasError && errorText != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: Text(
-                errorText!,
-                style: const TextStyle(fontSize: 12, color: PosTokens.loss),
-              ),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _CollapsedHeader(
+              name: name,
+              unitPriceText: unitPriceText,
+              lineTotalText: lineTotalText,
+              qtyText: qtyText,
+              isSaving: isSaving,
+              decrementEnabled: decrementEnabled,
+              incrementEnabled: incrementEnabled,
+              onDecrement: onDecrement,
+              onIncrement: onIncrement,
+              onDelete: onDelete,
+              onEdit: isSaving ? null : onToggleExpand,
             ),
-        ],
+            if (hasError && errorText != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 2, 0, 4),
+                child: Text(
+                  errorText!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: PosTokens.lossInk,
+                  ),
+                ),
+              ),
+          ],
         ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: PosTokens.surface,
           borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-          border: Border.all(color: PosTokens.blue, width: 2),
+          border: Border.all(color: PosTokens.blue, width: 1.5),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -118,7 +124,10 @@ class PosCartExpandedLine extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   errorText!,
-                  style: const TextStyle(fontSize: 12, color: PosTokens.loss),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: PosTokens.lossInk,
+                  ),
                 ),
               ],
               if (expandedQuantityStepper != null ||
@@ -187,11 +196,7 @@ class PosCartExpandedLine extends StatelessWidget {
                       children: [
                         const Text(
                           'Line subtotal',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: PosTokens.ink1,
-                          ),
+                          style: PosTokens.bodyStrong,
                         ),
                         if (subtotalDetailText != null) ...[
                           const SizedBox(height: 2),
@@ -210,11 +215,7 @@ class PosCartExpandedLine extends StatelessWidget {
                   ),
                   Text(
                     '$currency $lineTotalText',
-                    style: PosTokens.posPriceStyle(
-                      textTheme,
-                      fontSize: 18,
-                      color: PosTokens.blue,
-                    ),
+                    style: PosTokens.posPriceStyle(textTheme, fontSize: 16),
                   ),
                 ],
               ),
@@ -261,22 +262,22 @@ class _CollapsedHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _Swatch(name: name),
-            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
                       color: PosTokens.ink1,
+                      height: 1.25,
                     ),
                   ),
                   if (!showHideDetails) ...[
@@ -307,7 +308,7 @@ class _CollapsedHeader extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             SizedBox(
-              width: 72,
+              width: 76,
               child: Text(
                 lineTotalText,
                 textAlign: TextAlign.end,
@@ -315,7 +316,7 @@ class _CollapsedHeader extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: PosTokens.posMonoStyle(
                   Theme.of(context).textTheme,
-                  fontSize: 14.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: PosTokens.ink1,
                 ),
@@ -338,7 +339,7 @@ class _CollapsedHeader extends StatelessWidget {
               ),
               child: const Text(
                 'Edit qty/price',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -365,7 +366,7 @@ class _HideDetailsButton extends StatelessWidget {
             const Text(
               'Hide details',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: PosTokens.blue,
               ),
@@ -376,33 +377,6 @@ class _HideDetailsButton extends StatelessWidget {
               color: PosTokens.blue,
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Swatch extends StatelessWidget {
-  const _Swatch({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: posTileColorForName(name),
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: Text(
-        posTileAbbr(name),
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
         ),
       ),
     );
@@ -427,9 +401,9 @@ class _CompactQtyStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 34,
+      height: PosTokens.controlHeightSm,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(color: PosTokens.line),
         color: PosTokens.surface,
       ),
@@ -439,23 +413,29 @@ class _CompactQtyStepper extends StatelessWidget {
           _StepperSide(
             icon: FluentIcons.subtract_24_regular,
             onPressed: decrementEnabled ? onDecrement : null,
-            width: 34,
+            width: 30,
+            height: PosTokens.controlHeightSm - 2,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              qtyText,
-              style: PosTokens.posMonoStyle(
-                Theme.of(context).textTheme,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 28),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                qtyText,
+                textAlign: TextAlign.center,
+                style: PosTokens.posMonoStyle(
+                  Theme.of(context).textTheme,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
           _StepperSide(
             icon: FluentIcons.add_24_regular,
             onPressed: incrementEnabled ? onIncrement : null,
-            width: 34,
+            width: 30,
+            height: PosTokens.controlHeightSm - 2,
           ),
         ],
       ),
@@ -524,17 +504,17 @@ class _PosCartExpandedQtyStepperState extends State<PosCartExpandedQtyStepper> {
     final focused = widget.focusNode?.hasFocus ?? false;
     final qtyStyle = PosTokens.posMonoStyle(
       Theme.of(context).textTheme,
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: FontWeight.w700,
     );
 
     return Container(
-      height: 48,
+      height: PosTokens.controlHeight,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(
           color: focused ? PosTokens.blue : PosTokens.line,
-          width: focused ? 2 : 1,
+          width: focused ? 1.5 : 1,
         ),
         color: PosTokens.surface,
       ),
@@ -544,8 +524,8 @@ class _PosCartExpandedQtyStepperState extends State<PosCartExpandedQtyStepper> {
             child: _StepperSide(
               icon: FluentIcons.subtract_24_regular,
               onPressed: widget.decrementEnabled ? widget.onDecrement : null,
-              width: 48,
-              height: 48,
+              width: 40,
+              height: PosTokens.controlHeight - 2,
             ),
           ),
           Expanded(
@@ -555,8 +535,9 @@ class _PosCartExpandedQtyStepperState extends State<PosCartExpandedQtyStepper> {
                     controller: widget.controller,
                     focusNode: widget.focusNode,
                     enabled: widget.enabled,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                     ],
@@ -576,8 +557,8 @@ class _PosCartExpandedQtyStepperState extends State<PosCartExpandedQtyStepper> {
             child: _StepperSide(
               icon: FluentIcons.add_24_regular,
               onPressed: widget.incrementEnabled ? widget.onIncrement : null,
-              width: 48,
-              height: 48,
+              width: 40,
+              height: PosTokens.controlHeight - 2,
             ),
           ),
         ],
@@ -614,16 +595,16 @@ class _StepperSideState extends State<_StepperSide> {
       onExit: (_) => setState(() => _hovered = false),
       child: Material(
         color: _hovered && enabled ? PosTokens.surface2 : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm - 1),
         child: InkWell(
           onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm - 1),
           child: SizedBox(
             width: widget.width,
             height: widget.height,
             child: Icon(
               widget.icon,
-              size: 18,
+              size: 16,
               color: enabled
                   ? (_hovered ? PosTokens.blue : PosTokens.ink2)
                   : PosTokens.ink4,
@@ -687,17 +668,17 @@ class _PosCartExpandedPriceFieldState extends State<PosCartExpandedPriceField> {
   Widget build(BuildContext context) {
     final focused = widget.focusNode.hasFocus;
     return Container(
-      height: 48,
+      height: PosTokens.controlHeight,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(
           color: focused ? PosTokens.blue : PosTokens.line,
-          width: focused ? 2 : 1,
+          width: focused ? 1.5 : 1,
         ),
         color: PosTokens.surface,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
           Text(
@@ -715,13 +696,15 @@ class _PosCartExpandedPriceFieldState extends State<PosCartExpandedPriceField> {
               controller: widget.controller,
               focusNode: widget.focusNode,
               enabled: widget.enabled,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
               ],
               style: PosTokens.posMonoStyle(
                 Theme.of(context).textTheme,
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
               decoration: const InputDecoration(
@@ -740,11 +723,7 @@ class _PosCartExpandedPriceFieldState extends State<PosCartExpandedPriceField> {
 }
 
 class _FieldBlock extends StatelessWidget {
-  const _FieldBlock({
-    required this.label,
-    required this.child,
-    this.hint,
-  });
+  const _FieldBlock({required this.label, required this.child, this.hint});
 
   final String label;
   final Widget child;
@@ -758,12 +737,12 @@ class _FieldBlock extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 12.5,
             fontWeight: FontWeight.w600,
             color: PosTokens.ink2,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         child,
         if (hint != null) ...[
           const SizedBox(height: 6),
@@ -793,14 +772,18 @@ class _TrashButton extends StatelessWidget {
       tooltip: 'Remove line',
       onPressed: onPressed,
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       icon: Icon(
-        FluentIcons.delete_24_regular,
-        size: 20,
+        FluentIcons.delete_20_regular,
+        size: 18,
         color: onPressed == null ? PosTokens.ink4 : PosTokens.ink3,
       ),
       style: IconButton.styleFrom(
         foregroundColor: PosTokens.loss,
+        hoverColor: PosTokens.lossTint,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+        ),
       ),
     );
   }
@@ -813,8 +796,8 @@ class _DottedDivider extends StatelessWidget {
       builder: (context, constraints) {
         const dashWidth = 4.0;
         const dashSpace = 4.0;
-        final dashCount =
-            (constraints.maxWidth / (dashWidth + dashSpace)).floor();
+        final dashCount = (constraints.maxWidth / (dashWidth + dashSpace))
+            .floor();
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(dashCount, (_) {

@@ -10,13 +10,11 @@ import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
-import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/features/config/widgets/system_config_modal.dart';
-import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show buttonIndexProvider, selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
@@ -40,22 +38,12 @@ class IconRow extends StatefulHookConsumerWidget {
   ConsumerState<IconRow> createState() => IconRowState();
 }
 
+/// Contextual tool cluster of the desktop top bar: Umusada sales, Import &
+/// Purchase and the "More" menu. Report navigation (Transactions, Analytics)
+/// lives in the left rail's Reports group ([EnhancedSideMenu]).
 class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
-  /// Selection for main ribbon tabs: Home, Transactions, Analytics.
-  final List<bool> _selectedMain = [true, false, false];
-
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
-  }
-
-  int _legacyButtonIndexForUi(int uiIndex) {
-    if (uiIndex < 0 || uiIndex > 2) return 0;
-    // Analytics was legacy index 3 before EOD was removed from the ribbon.
-    return uiIndex == 2 ? 3 : uiIndex;
-  }
-
-  void _onMainTabPressed(int uiIndex) {
-    unawaited(_handleMainTabPressed(uiIndex));
   }
 
   Future<bool> _verifyAdminPinIfRequired(BuildContext context) async {
@@ -68,22 +56,6 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       expectedPin: setting?.adminPin,
     );
     return confirmed == true;
-  }
-
-  Future<void> _handleMainTabPressed(int uiIndex) async {
-    if (uiIndex != 0) {
-      final ok = await _verifyAdminPinIfRequired(context);
-      if (!ok || !mounted) return;
-    }
-    ref
-        .read(buttonIndexProvider.notifier)
-        .setIndex(_legacyButtonIndexForUi(uiIndex));
-    setState(() {
-      for (var i = 0; i < 3; i++) {
-        _selectedMain[i] = i == uiIndex;
-      }
-    });
-    _runNavigationForUi(uiIndex);
   }
 
   void _openSalesUmusada() {
@@ -132,45 +104,6 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     );
   }
 
-  void _runNavigationForUi(int uiIndex) {
-    switch (uiIndex) {
-      case 0:
-        break;
-      case 1:
-        _showReport(context);
-        break;
-      case 2:
-        ref.invalidate(stockValueReportProvider);
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => const StockValueReportDesktopScreen(),
-            fullscreenDialog: true,
-          ),
-        );
-        break;
-    }
-  }
-
-  Widget _buildMainTab(
-    BuildContext context, {
-    required String iconName,
-    required String label,
-    required int uiIndex,
-    required Key key,
-    VoidCallback? onDoubleTap,
-  }) {
-    return KeyedSubtree(
-      key: key,
-      child: PosTopNavItem(
-        iconName: iconName,
-        label: label,
-        isSelected: _selectedMain[uiIndex],
-        onTap: () => _onMainTabPressed(uiIndex),
-        onDoubleTap: onDoubleTap,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final deviceType = _getDeviceType(context);
@@ -183,56 +116,31 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 2,
       children: [
-        _buildMainTab(
-          context,
-          iconName: 'home',
-          label: 'Home',
-          uiIndex: 0,
-          key: const Key('home_desktop'),
-          onDoubleTap: () => _showTaxDialog(context),
-        ),
-        _buildMainTab(
-          context,
-          iconName: 'refresh',
-          label: 'Transactions',
-          uiIndex: 1,
-          key: const Key('transactions_desktop'),
-        ),
-        _buildMainTab(
-          context,
-          iconName: 'chart',
-          label: 'Analytics',
-          uiIndex: 2,
-          key: const Key('analytics_desktop'),
-        ),
         _buildSalesUmusadaButton(),
         if (showImportPurchase)
-          Tooltip(
-            message: 'Import & Purchase',
-            child: PosTopToolButton(
-              key: const Key('import_purchase_ribbon'),
-              iconName: 'arrow-up-right',
-              iconSize: 18,
-              tooltip: 'Import & Purchase',
-              onPressed: () => unawaited(_handleImportPurchaseTap(context)),
-            ),
+          PosTopToolButton(
+            key: const Key('import_purchase_ribbon'),
+            iconName: 'arrow-up-right',
+            iconSize: 18,
+            tooltip: 'Import & Purchase',
+            onPressed: () => unawaited(_handleImportPurchaseTap(context)),
           ),
         PopupMenuButton<String>(
           tooltip: 'More',
-          offset: const Offset(0, 44),
-          elevation: 10,
-          shadowColor: const Color(0x33103240),
+          offset: const Offset(0, 40),
+          elevation: 6,
+          shadowColor: const Color(0x26103240),
           color: PosTokens.surface,
           surfaceTintColor: Colors.transparent,
           padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(PosTokens.radiusMd),
             side: const BorderSide(color: PosTokens.line),
           ),
           constraints: const BoxConstraints(minWidth: 220, maxWidth: 280),
           child: SizedBox(
-            width: 38,
-            height: 38,
+            width: PosTopToolButton.size,
+            height: PosTopToolButton.size,
             child: Center(
               child: PosHandoffIcons.svg(
                 'more',
@@ -247,8 +155,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
           itemBuilder: (context) => [
             PopupMenuItem(
               value: 'locations',
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               child: _MoreMenuRow(
                 icon: Icons.storefront_outlined,
                 label: 'Locations',
@@ -257,12 +165,24 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
             ),
             PopupMenuItem(
               value: 'items',
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               child: _MoreMenuRow(
                 icon: Icons.inventory_2_outlined,
                 label: 'Items',
                 caption: 'Browse and manage catalog',
+              ),
+            ),
+            const PopupMenuDivider(height: 8),
+            PopupMenuItem(
+              value: 'taxSettings',
+              key: const Key('more_tax_settings'),
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              child: _MoreMenuRow(
+                icon: Icons.receipt_long_outlined,
+                label: context.flipperL10n.taxSettings,
+                caption: 'EBM / RRA server and VAT',
               ),
             ),
           ],
@@ -281,6 +201,12 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     BuildContext context,
     String value,
   ) async {
+    // Tax settings used to be the hidden Home double-tap, which never asked
+    // for the admin PIN — keep that behaviour.
+    if (value == 'taxSettings') {
+      _showTaxDialog(context);
+      return;
+    }
     final ok = await _verifyAdminPinIfRequired(context);
     if (!ok || !mounted) return;
     if (value == 'locations') {
@@ -334,15 +260,6 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     );
   }
 
-  void _showReport(BuildContext context) {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => const TransactionReportsDesktopScreen(),
-        fullscreenDialog: true,
-      ),
-    );
-  }
-
   void _showBranchPerformance(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final width = math.min(1180.0, size.width - 64);
@@ -391,14 +308,14 @@ class _MoreMenuRow extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 34,
-          height: 34,
+          width: 30,
+          height: 30,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: PosTokens.blueTint,
-            borderRadius: BorderRadius.circular(9),
+            color: PosTokens.surface2,
+            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
           ),
-          child: Icon(icon, size: 18, color: PosTokens.blue),
+          child: Icon(icon, size: 16, color: PosTokens.ink2),
         ),
         const SizedBox(width: 12),
         Expanded(

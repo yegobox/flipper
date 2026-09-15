@@ -16,6 +16,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -64,8 +65,9 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
 
     final hasCustomerId = (transaction.customerId ?? '').trim().isNotEmpty;
     final hasCustomerName = (transaction.customerName ?? '').trim().isNotEmpty;
-    final hasCustomerPhone =
-        (transaction.customerPhone ?? '').trim().isNotEmpty;
+    final hasCustomerPhone = (transaction.customerPhone ?? '')
+        .trim()
+        .isNotEmpty;
     if (!hasCustomerId && !hasCustomerName && !hasCustomerPhone) {
       showErrorNotification(
         context,
@@ -86,7 +88,9 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
       if (liveTotal > 0) {
         transaction.subTotal = liveTotal;
       }
-      await ref.read(parkTransactionProvider.notifier).park(
+      await ref
+          .read(parkTransactionProvider.notifier)
+          .park(
             ticketName: 'Till · $displayRef',
             ticketNote: 'Sent to till for payment',
             transaction: transaction,
@@ -98,10 +102,7 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
       ref
           .read(optimisticCartProvider.notifier)
           .clearForTransaction(transaction.id);
-      clearCachedPendingCartTransactionWidget(
-        ref,
-        isExpense: false,
-      );
+      clearCachedPendingCartTransactionWidget(ref, isExpense: false);
       ref.invalidate(
         transactionItemsStreamProvider(
           transactionId: transaction.id,
@@ -111,18 +112,12 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
       ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
 
       if (mounted) {
-        showSuccessNotification(
-          context,
-          'Sent to till — Ticket #$displayRef',
-        );
+        showSuccessNotification(context, 'Sent to till — Ticket #$displayRef');
       }
     } catch (e, st) {
       tv_talk.talker.error('Desktop send to till failed: $e', st);
       if (mounted) {
-        showErrorNotification(
-          context,
-          'Failed to send to till: $e',
-        );
+        showErrorNotification(context, 'Failed to send to till: $e');
       }
     } finally {
       if (mounted) setState(() => _sendToTillBusy = false);
@@ -143,9 +138,11 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
     return branchAsync.when(
       data: (branch) {
         return FutureBuilder<bool>(
-          future: ProxyService.strategy.isBranchEnableForPayment(
-            currentBranchId: branch.id,
-          ) as Future<bool>,
+          future:
+              ProxyService.strategy.isBranchEnableForPayment(
+                    currentBranchId: branch.id,
+                  )
+                  as Future<bool>,
           builder: (context, snapshot) {
             final digitalPaymentEnabled = snapshot.data ?? false;
 
@@ -161,21 +158,26 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
                     Expanded(
                       child: ClipRect(
                         child: Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 8.0),
+                          padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
                           child: widget.quickSellingView,
                         ),
                       ),
                     ),
                     if (showPayBar)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      DecoratedBox(
+                        decoration: const BoxDecoration(
+                          color: PosTokens.surface,
+                          border: Border(
+                            top: BorderSide(color: PosTokens.line),
+                          ),
+                        ),
                         child: txn == null
                             ? _transactionFooterLoadingPlaceholder(context)
                             : PayableView(
                                 transactionId: txn.id,
                                 mode: oldImplementationOfRiverpod
-                                    .SellingMode.forSelling,
+                                    .SellingMode
+                                    .forSelling,
                                 completeTransaction:
                                     widget.onCompleteTransaction,
                                 model: model,
@@ -201,13 +203,13 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
     );
   }
 
-  /// Matches [PayableView] outer padding and approximate footer height so the
-  /// layout does not jump when the pending transaction becomes available.
+  /// Matches [PayableView] outer padding and footer height so the layout does
+  /// not jump when the pending transaction becomes available.
   static Widget _transactionFooterLoadingPlaceholder(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
+      padding: PayableView.outerPadding,
       child: SizedBox(
-        height: 138,
+        height: PosTokens.payButtonHeight,
         child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -223,9 +225,7 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
               const SizedBox(width: 12),
               Text(
                 'Preparing checkout...',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                style: PosTokens.body.copyWith(color: PosTokens.ink3),
               ),
             ],
           ),

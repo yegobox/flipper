@@ -1564,4 +1564,27 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String confirmRemoveAllItemsCount(int count) {
     return 'Una hakika unataka kuondoa bidhaa zote $count kutoka muamala huu?';
   }
+
+  @override
+  String get taxServerUnreachableStatus =>
+      'RRA tax server unreachable — receipts can\'t be signed until it is back. Rechecking automatically.';
+
+  @override
+  String get internetUnavailableStatus =>
+      'No internet connection — sales keep working offline and sync when you\'re back online.';
+
+  @override
+  String get includesVat => 'Includes VAT';
+
+  @override
+  String get chooseDefaultApp => 'Choose default app';
+
+  @override
+  String get payShortcutHint => 'Ctrl / ⌘ + Enter to pay';
+
+  @override
+  String get receivedEyebrow => 'Received';
+
+  @override
+  String get cartEmptyHint => 'Tap a product or scan a barcode to start a sale';
 }

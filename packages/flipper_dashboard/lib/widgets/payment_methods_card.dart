@@ -236,10 +236,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
   void _onAddPaymentPressed({required String transactionId}) {
     if (!_hasUnusedPaymentType()) {
-      showErrorNotification(
-        context,
-        context.flipperL10n.allPaymentTypesAdded,
-      );
+      showErrorNotification(context, context.flipperL10n.allPaymentTypesAdded);
       return;
     }
     _addPaymentMethod(transactionId: transactionId);
@@ -264,38 +261,45 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           ? context.flipperL10n.splitAcrossAnotherMethod
           : context.flipperL10n.allPaymentTypesInUse,
       child: Material(
-        color: canAdd ? PosTokens.blueTint : PosTokens.surface2,
-        borderRadius: BorderRadius.circular(999),
+        color: PosTokens.surface,
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          hoverColor: PosTokens.blueTint,
           onTap: canAdd
               ? () => _handleAddPaymentTap(
                   transactionId: widget.transactionId,
                   isMobile: isMobile,
                 )
               : null,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(9, 5, 11, 5),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_rounded,
-                  size: 17,
-                  color: canAdd ? accent : PosTokens.ink4,
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  context.flipperL10n.split,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.1,
+          child: Ink(
+            height: 28,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+              border: Border.all(color: PosTokens.line),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(6, 0, 10, 0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_rounded,
+                    size: 16,
                     color: canAdd ? accent : PosTokens.ink4,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 3),
+                  Text(
+                    context.flipperL10n.split,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: canAdd ? PosTokens.ink1 : PosTokens.ink4,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -510,8 +514,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     final visual = _methodVisual(payment.method);
     return Container(
       decoration: BoxDecoration(
-        color: PosTokens.surface2,
-        borderRadius: BorderRadius.circular(9),
+        color: PosTokens.surface,
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(color: PosTokens.line),
       ),
       padding: EdgeInsets.only(left: compact ? 10 : 9),
@@ -577,33 +581,32 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     required bool compact,
   }) {
     final method = ref.watch(paymentMethodsProvider)[index].method;
-    final visual = _methodVisual(method);
     final options = _getAvailablePaymentMethods(index);
 
     return Tooltip(
       message: method,
       waitDuration: const Duration(milliseconds: 600),
       child: Container(
-        height: compact ? 44 : 40,
+        height: compact ? 44 : PosTokens.controlHeight,
         padding: const EdgeInsets.symmetric(horizontal: 9),
         decoration: BoxDecoration(
-          color: visual.color.withValues(alpha: 0.09),
-          borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: visual.color.withValues(alpha: 0.24)),
+          color: PosTokens.surface2,
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          border: Border.all(color: PosTokens.line),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             isExpanded: true,
             isDense: true,
             value: method,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(PosTokens.radiusMd),
             focusColor: Colors.transparent,
-            icon: Icon(
+            icon: const Icon(
               Icons.expand_more_rounded,
               size: 18,
-              color: visual.color.withValues(alpha: 0.8),
+              color: PosTokens.ink3,
             ),
-            style: TextStyle(fontSize: 13, color: visual.color),
+            style: const TextStyle(fontSize: 13, color: PosTokens.ink1),
             // Collapsed state: coloured icon + method, tinted to match.
             selectedItemBuilder: (context) => options.map((value) {
               final selectedVisual = _methodVisual(value);
@@ -620,11 +623,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                       paymentMethodDisplayName(context.flipperL10n, value),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: TextStyle(
-                        fontSize: compact ? 12.5 : 12.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.1,
-                        color: selectedVisual.color,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: PosTokens.ink1,
                       ),
                     ),
                   ),
@@ -667,8 +669,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     final payment = ref.watch(paymentMethodsProvider)[index];
     return Container(
       decoration: BoxDecoration(
-        color: PosTokens.surface2,
-        borderRadius: BorderRadius.circular(9),
+        color: PosTokens.surface,
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         border: Border.all(color: PosTokens.line),
       ),
       padding: EdgeInsets.only(left: compact ? 10 : 9),
@@ -697,11 +699,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
-                style: TextStyle(
-                  fontSize: compact ? 17 : 16,
+                style: PosTokens.posMonoStyle(
+                  Theme.of(context).textTheme,
+                  fontSize: compact ? 17 : 15,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                  color: PosLayoutBreakpoints.posAccentBlue,
+                  color: PosTokens.ink1,
                 ),
                 decoration: InputDecoration(
                   hintText: '0',
@@ -735,10 +737,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
       message: context.flipperL10n.removeThisPayment,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
           hoverColor: PosTokens.lossTint,
           onTap: () =>
               _removePaymentMethod(index, transactionId: transactionId),
@@ -761,7 +763,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   }) {
     final payments = ref.watch(paymentMethodsProvider);
     final showRemove = payments.length > 1;
-    final showPayerName = paymentMethodSupportsPayerName(payments[index].method);
+    final showPayerName = paymentMethodSupportsPayerName(
+      payments[index].method,
+    );
     final row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -859,24 +863,21 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         if (isMobile) const SizedBox(width: 4),
         Text(
           context.flipperL10n.payments,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.2,
-          ),
+          style: PosTokens.sectionTitle.copyWith(fontSize: 13),
         ),
-        if (count > 0) ...[
-          const SizedBox(width: 7),
+        if (count > 1) ...[
+          const SizedBox(width: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: BoxDecoration(
               color: PosTokens.blueTint,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               '$count',
               style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
                 color: PosTokens.blue,
               ),
             ),
@@ -929,10 +930,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     return Container(
       decoration: BoxDecoration(
         color: PosTokens.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(PosTokens.radiusMd),
         border: Border.all(color: PosTokens.line),
       ),
-      padding: const EdgeInsets.fromLTRB(10, 6, 8, 10),
+      padding: const EdgeInsets.fromLTRB(12, 8, 10, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,

@@ -5,11 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Segmented Sale | Transfer control for the checkout cart panel.
+///
+/// [inline] renders only the segmented control (no "MODE" strip) so the
+/// desktop checkout header can host it next to the invoice / txn meta.
 class CheckoutModeBar extends ConsumerWidget {
-  const CheckoutModeBar({super.key, this.enabled = true});
+  const CheckoutModeBar({super.key, this.enabled = true, this.inline = false});
 
   /// When false (e.g. warehouse ordering), hide transfer switching.
   final bool enabled;
+
+  /// Bare segmented control, for embedding in a header row.
+  final bool inline;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,54 +23,52 @@ class CheckoutModeBar extends ConsumerWidget {
 
     final mode = ref.watch(checkoutCartModeProvider);
 
+    final segmented = Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: PosTokens.surface2,
+        border: Border.all(color: PosTokens.line),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm + 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModePill(
+            label: context.flipperL10n.sale,
+            selected: mode == CheckoutCartMode.sale,
+            onTap: () {
+              ref.read(checkoutCartModeProvider.notifier).state =
+                  CheckoutCartMode.sale;
+            },
+          ),
+          _ModePill(
+            label: context.flipperL10n.transfer,
+            selected: mode == CheckoutCartMode.transfer,
+            onTap: () {
+              ref.read(checkoutCartModeProvider.notifier).state =
+                  CheckoutCartMode.transfer;
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (inline) return segmented;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: const BoxDecoration(
         color: PosTokens.surface2,
-        border: Border(
-          bottom: BorderSide(color: PosTokens.line),
-        ),
+        border: Border(bottom: BorderSide(color: PosTokens.line)),
       ),
       child: Row(
         children: [
           Text(
-            context.flipperL10n.mode,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: PosTokens.ink3,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
+            context.flipperL10n.mode.toUpperCase(),
+            style: PosTokens.eyebrow,
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: PosTokens.surface2,
-              border: Border.all(color: PosTokens.line),
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _ModePill(
-                  label: context.flipperL10n.sale,
-                  selected: mode == CheckoutCartMode.sale,
-                  onTap: () {
-                    ref.read(checkoutCartModeProvider.notifier).state =
-                        CheckoutCartMode.sale;
-                  },
-                ),
-                _ModePill(
-                  label: context.flipperL10n.transfer,
-                  selected: mode == CheckoutCartMode.transfer,
-                  onTap: () {
-                    ref.read(checkoutCartModeProvider.notifier).state =
-                        CheckoutCartMode.transfer;
-                  },
-                ),
-              ],
-            ),
-          ),
+          segmented,
         ],
       ),
     );
@@ -86,10 +90,11 @@ class _ModePill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: selected ? PosTokens.blue : Colors.transparent,
-      borderRadius: BorderRadius.circular(7),
+      borderRadius: BorderRadius.circular(PosTokens.radiusSm - 1),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(PosTokens.radiusSm - 1),
+        hoverColor: selected ? null : PosTokens.blueTint,
         child: SizedBox(
           height: 26,
           child: Padding(
@@ -98,9 +103,9 @@ class _ModePill extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : PosTokens.ink3,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : PosTokens.ink2,
                 ),
               ),
             ),

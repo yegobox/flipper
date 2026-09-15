@@ -30,12 +30,12 @@ class PosCatalogSearchRow extends ConsumerWidget {
         Expanded(
           child: _PosSearchField(controller: controller, hintText: hintText),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         _PosScanButton(
           isActive: ref.watch(autoAddSearchProvider),
           onPressed: () => ref.read(autoAddSearchProvider.notifier).toggle(),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         const PosAddProductButton(),
       ],
     );
@@ -122,19 +122,19 @@ class _PosSearchFieldState extends ConsumerState<_PosSearchField>
       duration: PosTokens.focusTransition,
       curve: Curves.ease,
       height: PosTokens.searchFieldHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),
         border: Border.all(
           color: _focused ? PosTokens.blue : PosTokens.line,
-          width: 1.5,
+          width: _focused ? 1.5 : 1,
         ),
         boxShadow: _focused
             ? [
                 BoxShadow(
                   color: PosTokens.blueTint.withValues(alpha: 0.9),
-                  spreadRadius: 4,
+                  spreadRadius: 3,
                   blurRadius: 0,
                 ),
               ]
@@ -143,22 +143,23 @@ class _PosSearchFieldState extends ConsumerState<_PosSearchField>
       child: Row(
         children: [
           const Icon(
-            FluentIcons.search_24_regular,
-            size: 20,
+            FluentIcons.search_20_regular,
+            size: 18,
             color: PosTokens.ink3,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: widget.controller,
               focusNode: focusNode,
               style: const TextStyle(
-                fontSize: 15.5,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w500,
                 color: PosTokens.ink1,
               ),
               decoration: InputDecoration(
                 isDense: true,
+                isCollapsed: true,
                 border: InputBorder.none,
                 hintText: widget.hintText,
                 hintStyle: const TextStyle(
@@ -183,29 +184,31 @@ class _PosScanButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: isActive ? PosTokens.blueTint : PosTokens.surface,
-      borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-      child: InkWell(
-        onTap: onPressed,
+    return Tooltip(
+      message: 'Scan mode',
+      child: Material(
+        color: isActive ? PosTokens.blueTint : PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-        hoverColor: PosTokens.blueTint,
-        child: Ink(
-          width: PosTokens.scanButtonSize,
-          height: PosTokens.scanButtonSize,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-            border: Border.all(
-              color: isActive ? PosTokens.blue : PosTokens.line,
-              width: 1.5,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+          hoverColor: PosTokens.surface2,
+          child: Ink(
+            width: PosTokens.scanButtonSize,
+            height: PosTokens.scanButtonSize,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+              border: Border.all(
+                color: isActive ? PosTokens.blue : PosTokens.line,
+              ),
             ),
-          ),
-          child: Icon(
-            isActive
-                ? FluentIcons.barcode_scanner_24_filled
-                : FluentIcons.barcode_scanner_24_regular,
-            size: 22,
-            color: isActive ? PosTokens.blue : PosTokens.ink2,
+            child: Icon(
+              isActive
+                  ? FluentIcons.barcode_scanner_24_filled
+                  : FluentIcons.barcode_scanner_24_regular,
+              size: PosTokens.iconMd,
+              color: isActive ? PosTokens.blue : PosTokens.ink2,
+            ),
           ),
         ),
       ),

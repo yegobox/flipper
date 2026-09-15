@@ -14,9 +14,10 @@ import 'package:flutter/material.dart';
 
 class PayableView extends HookConsumerWidget {
   static const double _kBarButtonHeight = PosTokens.payButtonHeight;
-  static const double _kVerticalGap = 10;
-  static const Color _kBadgeRed = Color(0xFFDC2626);
-  static const Color _kPrimaryBlue = Color(0xFF2F6FED);
+
+  /// Inset around the Tickets / Pay bar inside the checkout column.
+  static const EdgeInsets outerPadding = EdgeInsets.fromLTRB(12, 10, 12, 12);
+  static const double _kVerticalGap = 8;
 
   const PayableView({
     Key? key,
@@ -84,7 +85,8 @@ class PayableView extends HookConsumerWidget {
     final height = constraints != null && constraints.maxHeight.isFinite
         ? constraints.maxHeight
         : MediaQuery.sizeOf(context).height;
-    final landscape = constraints != null &&
+    final landscape =
+        constraints != null &&
             constraints.maxWidth.isFinite &&
             constraints.maxHeight.isFinite
         ? constraints.maxWidth > constraints.maxHeight
@@ -115,10 +117,8 @@ class PayableView extends HookConsumerWidget {
         return ListenableBuilder(
           listenable: ProxyService.settings,
           builder: (context, _) {
-            final body = _useVerticalCheckoutBar(
-              context,
-              constraints: constraints,
-            )
+            final body =
+                _useVerticalCheckoutBar(context, constraints: constraints)
                 ? _buildVerticalLayout(
                     context,
                     ref,
@@ -132,10 +132,7 @@ class PayableView extends HookConsumerWidget {
                     pendingCount,
                   );
 
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
-              child: body,
-            );
+            return Padding(padding: outerPadding, child: body);
           },
         );
       },
@@ -237,7 +234,7 @@ class PayableView extends HookConsumerWidget {
               isCompact: false,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           primaryExpanded(flex: 3),
         ],
       ),
@@ -252,10 +249,10 @@ class PayableView extends HookConsumerWidget {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         backgroundColor: PosTokens.surface,
-        foregroundColor: PosTokens.ink2,
-        side: const BorderSide(color: PosTokens.line),
+        foregroundColor: PosTokens.ink1,
+        side: const BorderSide(color: PosTokens.lineStrong),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          borderRadius: BorderRadius.circular(PosTokens.radiusMd),
         ),
       ),
       onPressed: () => ticketHandler(),
@@ -269,8 +266,9 @@ class PayableView extends HookConsumerWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: primaryTextStyle.copyWith(
-              fontWeight: FontWeight.w400,
-              fontSize: isCompact ? 16 : 17,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: PosTokens.ink1,
             ),
           ),
           if (pendingCount > 0)
@@ -281,7 +279,7 @@ class PayableView extends HookConsumerWidget {
                 constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: const BoxDecoration(
-                  color: _kBadgeRed,
+                  color: PosTokens.loss,
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
@@ -309,12 +307,12 @@ class PayableView extends HookConsumerWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: enabled ? _kPrimaryBlue : const Color(0xFF9CA3AF),
+          backgroundColor: enabled ? PosTokens.blue : PosTokens.ink4,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: const Color(0xFF9CA3AF),
+          disabledBackgroundColor: PosTokens.ink4,
           disabledForegroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+            borderRadius: BorderRadius.circular(PosTokens.radiusMd),
           ),
         ),
         onPressed: enabled ? sendToTill : null,
@@ -331,7 +329,7 @@ class PayableView extends HookConsumerWidget {
                 'Send to Till →',
                 style: primaryTextStyle.copyWith(
                   fontWeight: FontWeight.w700,
-                  fontSize: 16,
+                  fontSize: 15,
                   color: Colors.white,
                 ),
               ),

@@ -80,10 +80,7 @@ class InventoryApp extends HookConsumerWidget {
         break;
     }
     return isScanningMode
-        ? buildReceiptUI().shouldViewTheApp(
-            ref,
-            featureName: AppFeature.Sales,
-          )
+        ? buildReceiptUI().shouldViewTheApp(ref, featureName: AppFeature.Sales)
         : CheckOut(isBigScreen: true)
               .shouldViewTheApp(ref, featureName: AppFeature.Sales)
               .shouldViewTheApp(ref, featureName: AppFeature.Inventory);
@@ -124,9 +121,7 @@ class InventoryApp extends HookConsumerWidget {
       return Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: buildMainContent(isScanningMode, ref)),
-        ],
+        children: [Expanded(child: buildMainContent(isScanningMode, ref))],
       );
     }
 
@@ -153,41 +148,50 @@ class InventoryApp extends HookConsumerWidget {
 
       return LayoutBuilder(
         builder: (context, constraints) {
-          final useCartDrawer = constraints.maxWidth <
-              PosLayoutBreakpoints.desktopSplitMinWidth;
+          final useCartDrawer =
+              constraints.maxWidth < PosLayoutBreakpoints.desktopSplitMinWidth;
 
           if (!useCartDrawer) {
+            // Catalog is fluid; the cart is a fixed-width column (400–460px)
+            // so a wide window grows the product grid, not the checkout.
+            final cartWidth = PosLayoutBreakpoints.cartColumnWidth(
+              constraints.maxWidth,
+            );
             return ColoredBox(
               color: PosTokens.posBg,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   buildProductSection(ref),
-                  Expanded(child: buildMainContent(isScanningMode, ref)),
+                  Container(
+                    width: cartWidth,
+                    decoration: const BoxDecoration(
+                      color: PosTokens.surface,
+                      border: Border(left: BorderSide(color: PosTokens.line)),
+                    ),
+                    child: buildMainContent(isScanningMode, ref),
+                  ),
                 ],
               ),
             );
           }
 
-          final drawerWidth =
-              PosLayoutBreakpoints.cartDrawerWidth(constraints.maxWidth);
+          final drawerWidth = PosLayoutBreakpoints.cartDrawerWidth(
+            constraints.maxWidth,
+          );
 
           return Scaffold(
             key: scaffoldKey,
             backgroundColor: PosTokens.posBg,
             body: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                buildProductSection(ref),
-              ],
+              children: [buildProductSection(ref)],
             ),
             endDrawer: Drawer(
               width: drawerWidth,
               child: Material(
                 color: Colors.white,
-                child: SafeArea(
-                  child: buildMainContent(isScanningMode, ref),
-                ),
+                child: SafeArea(child: buildMainContent(isScanningMode, ref)),
               ),
             ),
             floatingActionButton: _CartFab(
@@ -215,14 +219,18 @@ class _CartFab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final count =
-        ref.watch(posCartSummaryProvider.select((s) => s.unitQtyTotal));
+    final count = ref.watch(
+      posCartSummaryProvider.select((s) => s.unitQtyTotal),
+    );
 
     final icon = Badge(
       isLabelVisible: count > 0,
       label: Text('$count'),
-      child: const Icon(Icons.shopping_cart_outlined,
-          color: Colors.white, size: 22),
+      child: const Icon(
+        Icons.shopping_cart_outlined,
+        color: Colors.white,
+        size: 22,
+      ),
     );
 
     if (isNarrow) {
