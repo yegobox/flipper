@@ -1564,4 +1564,28 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String confirmRemoveAllItemsCount(int count) {
     return 'Una hakika unataka kuondoa bidhaa zote $count kutoka muamala huu?';
   }
+
+  @override
+  String get taxServerUnreachableStatus =>
+      'Seva ya kodi ya RRA haipatikani — risiti haziwezi kutiwa saini hadi irejee. Tunaangalia upya kiotomatiki.';
+
+  @override
+  String get internetUnavailableStatus =>
+      'Hakuna muunganisho wa intaneti — mauzo yanaendelea nje ya mtandao na yatasawazishwa utakaporejea mtandaoni.';
+
+  @override
+  String get includesVat => 'Imejumuisha VAT';
+
+  @override
+  String get chooseDefaultApp => 'Chagua programu chaguo-msingi';
+
+  @override
+  String get payShortcutHint => 'Ctrl / ⌘ + Enter kulipa';
+
+  @override
+  String get receivedEyebrow => 'Imepokelewa';
+
+  @override
+  String get cartEmptyHint =>
+      'Gusa bidhaa au changanua msimbopau ili kuanza mauzo';
 }

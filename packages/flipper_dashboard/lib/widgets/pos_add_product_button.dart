@@ -70,24 +70,27 @@ class PosAddProductButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Material(
-      color: PosTokens.surface,
-      borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-      child: InkWell(
-        onTap: () => unawaited(open(context, ref)),
+    return Tooltip(
+      message: 'Add product',
+      child: Material(
+        color: PosTokens.surface,
         borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-        hoverColor: PosTokens.surface2,
-        child: Ink(
-          width: PosTokens.scanButtonSize,
-          height: PosTokens.scanButtonSize,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(PosTokens.radiusMd),
-            border: Border.all(color: PosTokens.line, width: 1.5),
-          ),
-          child: const Icon(
-            FluentIcons.add_24_regular,
-            size: 22,
-            color: PosTokens.ink2,
+        child: InkWell(
+          onTap: () => unawaited(open(context, ref)),
+          borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+          hoverColor: PosTokens.surface2,
+          child: Ink(
+            width: PosTokens.scanButtonSize,
+            height: PosTokens.scanButtonSize,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+              border: Border.all(color: PosTokens.line),
+            ),
+            child: const Icon(
+              FluentIcons.add_24_regular,
+              size: PosTokens.iconMd,
+              color: PosTokens.ink2,
+            ),
           ),
         ),
       ),

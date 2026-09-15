@@ -13,11 +13,22 @@ class UmusadaHelper {
   static const _kTextSecondary = Color(0xFF42474E);
   static const _kTextTertiary = Color(0xFF72787F);
 
+  /// Whether the ordering flow asks an unconnected business to join Umusada.
+  ///
+  /// Paused for now: opening Orders goes straight through. The join dialog and
+  /// [UmusadaService] wiring below are left intact — flip this back to `true`
+  /// to bring the prompt back, no other change needed.
+  static final bool requireJoin = false;
+
   /// Entry point for Ordering Flow
   static Future<void> handleOrderingFlow(
     BuildContext context,
     VoidCallback onContinue,
   ) async {
+    if (!requireJoin) {
+      onContinue();
+      return;
+    }
     await _ensureUmusadaConnection(
       context,
       onConnected: onContinue,

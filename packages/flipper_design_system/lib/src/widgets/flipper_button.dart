@@ -14,6 +14,12 @@ class FlipperButton extends StatelessWidget {
   final bool busy;
   final bool isLoading;
 
+  /// Label style. [textColor] still applies when this has no colour.
+  final TextStyle? textStyle;
+
+  /// Background while disabled (defaults to grey).
+  final Color? disabledColor;
+
   const FlipperButton({
     super.key,
     required this.text,
@@ -23,6 +29,8 @@ class FlipperButton extends StatelessWidget {
     this.radius = 10,
     this.borderRadius,
     this.textColor,
+    this.textStyle,
+    this.disabledColor,
     this.onPressed,
     this.busy = false,
     this.isLoading = false,
@@ -43,26 +51,22 @@ class FlipperButton extends StatelessWidget {
           shape: WidgetStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: effectiveBorderRadius),
           ),
-          backgroundColor: WidgetStateProperty.resolveWith<Color>(
-            (states) {
-              if (states.contains(WidgetState.disabled)) {
-                return Colors.grey;
-              }
-              return color ?? FlipperColors.primary;
-            },
-          ),
-          overlayColor: WidgetStateProperty.resolveWith<Color?>(
-            (states) {
-              if (states.contains(WidgetState.hovered)) {
-                return FlipperColors.primary.withValues(alpha: 0.04);
-              }
-              if (states.contains(WidgetState.focused) ||
-                  states.contains(WidgetState.pressed)) {
-                return FlipperColors.primary.withValues(alpha: 0.12);
-              }
-              return null;
-            },
-          ),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return disabledColor ?? Colors.grey;
+            }
+            return color ?? FlipperColors.primary;
+          }),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.hovered)) {
+              return FlipperColors.primary.withValues(alpha: 0.04);
+            }
+            if (states.contains(WidgetState.focused) ||
+                states.contains(WidgetState.pressed)) {
+              return FlipperColors.primary.withValues(alpha: 0.12);
+            }
+            return null;
+          }),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -83,7 +87,10 @@ class FlipperButton extends StatelessWidget {
               opacity: isDisabled ? 0.0 : 1.0,
               child: Text(
                 text,
-                style: TextStyle(color: textColor ?? FlipperColors.onPrimary),
+                style: (textStyle ?? const TextStyle()).copyWith(
+                  color:
+                      textStyle?.color ?? textColor ?? FlipperColors.onPrimary,
+                ),
               ),
             ),
           ],
@@ -116,18 +123,15 @@ class FlipperButtonFlat extends StatelessWidget {
     return TextButton(
       style: ButtonStyle(
         shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-          (states) => RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
+          (states) =>
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
         ),
-        overlayColor: WidgetStateProperty.resolveWith<Color?>(
-          (states) {
-            if (states.contains(WidgetState.hovered)) {
-              return FlipperColors.primary.withValues(alpha: 0.04);
-            }
-            return null;
-          },
-        ),
+        overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.hovered)) {
+            return FlipperColors.primary.withValues(alpha: 0.04);
+          }
+          return null;
+        }),
       ),
       onPressed: isDisabled ? null : onPressed,
       child: isDisabled
@@ -141,10 +145,7 @@ class FlipperButtonFlat extends StatelessWidget {
                 ),
               ),
             )
-          : Flippertext(
-              text,
-              color: textColor,
-            ),
+          : Flippertext(text, color: textColor),
     );
   }
 }
@@ -161,18 +162,22 @@ class FlipperIconButton extends StatelessWidget {
   final Color? color;
   final bool busy;
   final bool isLoading;
+  final TextStyle? textStyle;
+  final double radius;
 
   const FlipperIconButton({
     super.key,
     required this.icon,
     this.iconColor,
     this.textColor,
+    this.textStyle,
     this.text,
     this.width = 200,
     this.height = 50,
     this.color,
     this.onPressed,
     this.iconSize = 24.0,
+    this.radius = 10,
     this.busy = false,
     this.isLoading = false,
   });
@@ -191,17 +196,15 @@ class FlipperIconButton extends StatelessWidget {
           ),
           shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
+              borderRadius: BorderRadius.circular(radius),
             ),
           ),
-          overlayColor: WidgetStateProperty.resolveWith<Color?>(
-            (states) {
-              if (states.contains(WidgetState.hovered)) {
-                return FlipperColors.primary.withValues(alpha: 0.04);
-              }
-              return null;
-            },
-          ),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.hovered)) {
+              return FlipperColors.primary.withValues(alpha: 0.04);
+            }
+            return null;
+          }),
         ),
         onPressed: isDisabled ? null : onPressed,
         child: isDisabled
@@ -218,17 +221,18 @@ class FlipperIconButton extends StatelessWidget {
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    icon,
-                    color: iconColor ?? Colors.black,
-                    size: iconSize,
-                  ),
+                  Icon(icon, color: iconColor ?? Colors.black, size: iconSize),
                   if (text != null) ...[
                     const SizedBox(width: 8),
-                    Flippertext(
-                      text!,
-                      color: textColor,
-                    ),
+                    if (textStyle != null)
+                      Text(
+                        text!,
+                        style: textStyle!.copyWith(
+                          color: textStyle!.color ?? textColor,
+                        ),
+                      )
+                    else
+                      Flippertext(text!, color: textColor),
                   ],
                 ],
               ),

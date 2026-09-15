@@ -32,6 +32,48 @@ Color posTileColorForName(String name) {
   return posTileColors[posHashIdx(name, posTileColors.length)];
 }
 
+/// The colour a customer picked for a product, or null when they picked none.
+///
+/// Stored as a hex string on `Variant.color` / `Product.color` (the product
+/// editor's colour picker writes it). Accepts `RRGGBB` or `AARRGGBB` with an
+/// optional single leading `#`, and nothing else: [HexColor] strips every `#`
+/// and defers to `int.parse`, which happily accepts `-12345` and `+abcde` and
+/// then throws on the rest — either a garbage colour or a crashed catalog.
+Color? posParseTileColor(String? hex) {
+  final raw = hex?.trim();
+  if (raw == null || raw.isEmpty) return null;
+  final match = _hexColorPattern.firstMatch(raw);
+  if (match == null) return null;
+  final digits = match.group(1)!;
+  final value = int.parse(digits, radix: 16);
+  return Color(digits.length == 6 ? 0xFF000000 | value : value);
+}
+
+final RegExp _hexColorPattern = RegExp(r'^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$');
+
+/// Readable ink for text drawn on [background].
+///
+/// Picks whichever of [PosTokens.ink1] / white has the better WCAG contrast
+/// once [background] is composited over the card surface — a customer may
+/// pick a pale colour, and an `AARRGGBB` value may be translucent or fully
+/// transparent, where the tile really shows the surface underneath.
+Color posInkOn(Color background, {Color surface = PosTokens.surface}) {
+  final composited = Color.alphaBlend(background, surface);
+  return _contrast(PosTokens.ink1, composited) >=
+          _contrast(Colors.white, composited)
+      ? PosTokens.ink1
+      : Colors.white;
+}
+
+/// WCAG relative-contrast ratio between two opaque colours.
+double _contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  final lighter = la > lb ? la : lb;
+  final darker = la > lb ? lb : la;
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 /// First ~3 letters (letters/spaces only), matching handoff [abbr].
 String posTileAbbr(String name) {
   final cleaned = name.replaceAll(RegExp(r'[^A-Za-z ]'), '');
@@ -76,9 +118,7 @@ String posStockLabel(PosStockVisual visual, num currentStock) {
       return 'Out of stock';
     case PosStockVisual.low:
     case PosStockVisual.ok:
-      final n = currentStock is int
-          ? currentStock
-          : currentStock.floor();
+      final n = currentStock is int ? currentStock : currentStock.floor();
       return '$n in stock';
   }
 }

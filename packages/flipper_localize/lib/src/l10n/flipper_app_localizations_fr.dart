@@ -1582,4 +1582,28 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String confirmRemoveAllItemsCount(int count) {
     return 'Voulez-vous vraiment retirer les $count articles de cette transaction ?';
   }
+
+  @override
+  String get taxServerUnreachableStatus =>
+      'Serveur fiscal RRA injoignable — les reçus ne peuvent pas être signés tant qu\'il ne revient pas. Nouvelle tentative automatique.';
+
+  @override
+  String get internetUnavailableStatus =>
+      'Pas de connexion Internet — les ventes continuent hors ligne et se synchroniseront au retour du réseau.';
+
+  @override
+  String get includesVat => 'TVA comprise';
+
+  @override
+  String get chooseDefaultApp => 'Choisir l\'application par défaut';
+
+  @override
+  String get payShortcutHint => 'Ctrl / ⌘ + Entrée pour payer';
+
+  @override
+  String get receivedEyebrow => 'Reçu';
+
+  @override
+  String get cartEmptyHint =>
+      'Appuyez sur un produit ou scannez un code-barres pour démarrer une vente';
 }

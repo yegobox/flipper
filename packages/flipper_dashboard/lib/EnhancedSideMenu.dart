@@ -3,10 +3,7 @@ import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    show
-        branchSelectionProvider,
-        businessesProvider,
-        buttonIndexProvider;
+    show branchSelectionProvider, businessesProvider, buttonIndexProvider;
 import 'package:flipper_dashboard/logout/dashboard_sign_out.dart';
 import 'package:flipper_dashboard/logout/end_of_shift_dialog.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -28,6 +25,10 @@ import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
+import 'package:flipper_dashboard/features/transaction_reports/transaction_reports_desktop_screen.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/providers/stock_value_report_provider.dart';
 
 class EnhancedSideMenu extends ConsumerStatefulWidget {
   const EnhancedSideMenu({super.key});
@@ -66,14 +67,10 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     final ok = await _verifyAdminPinIfRequired(context);
     if (!ok || !mounted) return;
 
-    final branchName = ref.read(activeBranchProvider).maybeWhen(
-          data: (b) => b.name,
-          orElse: () => null,
-        );
-    final action = await EndOfShiftDialog.show(
-      context,
-      branchName: branchName,
-    );
+    final branchName = ref
+        .read(activeBranchProvider)
+        .maybeWhen(data: (b) => b.name, orElse: () => null);
+    final action = await EndOfShiftDialog.show(context, branchName: branchName);
     if (!mounted || action == null) return;
 
     switch (action) {
@@ -130,7 +127,9 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
     final showLeads = menu.leads;
     final showAgentCommission = menu.agentCommission;
 
-    final menuItems = [
+    // Groups render with a hairline divider between non-empty groups:
+    //   sell · operations · reports · (bottom) end shift.
+    final sellGroup = <Widget>[
       _SideMenuItem(
         iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.appGrid, c),
         isSelected: selectedItem == 0,
@@ -150,12 +149,15 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         },
         tooltip: 'Chat',
       ),
+    ];
+
+    final operationsGroup = <Widget>[
       if (showLeads)
         _SideMenuItem(
           iconBuilder: (c) => SvgPicture.string(
             AdminDashboardSvgs.leadsUsersMultiple,
-            width: 24,
-            height: 24,
+            width: PosTokens.iconMd,
+            height: PosTokens.iconMd,
             colorFilter: ColorFilter.mode(c, BlendMode.srcIn),
           ),
           isSelected: selectedItem == 10,
@@ -212,24 +214,9 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           },
           tooltip: 'Items',
         ),
-      if (showDailyReportFiles)
-        _SideMenuItem(
-          iconBuilder: (c) => DashboardQuickAccessSvgs.assetIcon(
-            DashboardQuickAccessSvgs.chart,
-            size: 24,
-            color: c,
-          ),
-          isSelected: selectedItem == 11,
-          onTap: () {
-            ref.read(selectedMenuItemProvider.notifier).state = 11;
-            ref.read(selectedPageProvider.notifier).state =
-                DashboardPage.dailyReportFiles;
-          },
-          tooltip: 'Daily Reports',
-        ),
       if (showKds)
         _SideMenuItem(
-          iconBuilder: (c) => Icon(Icons.restaurant_menu, color: c, size: 24),
+          iconBuilder: (c) => Icon(Icons.restaurant_menu, color: c),
           isSelected: selectedItem == 3,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 3;
@@ -252,7 +239,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         ),
       if (showDelegations)
         _SideMenuItem(
-          iconBuilder: (c) => Icon(Icons.print_outlined, color: c, size: 24),
+          iconBuilder: (c) => Icon(Icons.print_outlined, color: c),
           isSelected: selectedItem == 7,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 7;
@@ -263,8 +250,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         ),
       if (showIncomingOrders)
         _SideMenuItem(
-          iconBuilder: (c) =>
-              _coloredSideMenuSvg(_SideMenuSvgs.inboxImport, c),
+          iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.inboxImport, c),
           isSelected: selectedItem == 8,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 8;
@@ -275,7 +261,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         ),
       if (showIncomingOrders)
         _SideMenuItem(
-          iconBuilder: (c) => Icon(Icons.swap_horiz, color: c, size: 24),
+          iconBuilder: (c) => Icon(Icons.swap_horiz, color: c),
           isSelected: selectedItem == 14,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 14;
@@ -295,6 +281,38 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           },
           tooltip: 'Production Output',
         ),
+    ];
+
+    final reportsGroup = <Widget>[
+      if (showDailyReportFiles)
+        _SideMenuItem(
+          iconBuilder: (c) => DashboardQuickAccessSvgs.assetIcon(
+            DashboardQuickAccessSvgs.chart,
+            size: PosTokens.iconMd,
+            color: c,
+          ),
+          isSelected: selectedItem == 11,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 11;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.dailyReportFiles;
+          },
+          tooltip: 'Daily Reports',
+        ),
+      _SideMenuItem(
+        key: const Key('transactions_desktop'),
+        iconBuilder: (c) => Icon(Icons.receipt_long_outlined, color: c),
+        isSelected: false,
+        onTap: () => _openTransactionsReport(),
+        tooltip: 'Transactions',
+      ),
+      _SideMenuItem(
+        key: const Key('analytics_desktop'),
+        iconBuilder: (c) => Icon(Icons.insights_outlined, color: c),
+        isSelected: false,
+        onTap: () => _openAnalyticsReport(),
+        tooltip: 'Analytics',
+      ),
       if (showShiftHistory)
         _SideMenuItem(
           iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.history, c),
@@ -308,7 +326,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
         ),
       if (showAgentCommission)
         _SideMenuItem(
-          iconBuilder: (c) => Icon(Icons.support_agent, color: c, size: 24),
+          iconBuilder: (c) => Icon(Icons.support_agent, color: c),
           isSelected: selectedItem == 12,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 12;
@@ -317,14 +335,27 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           },
           tooltip: 'Agent commission',
         ),
-      _SideMenuItem(
-        key: const Key('eod_desktop'),
-        iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.logout, c),
-        isSelected: selectedItem == 4,
-        onTap: () => _openEndOfShiftMenu(),
-        tooltip: 'End shift',
-        isLogout: true,
-      ),
+    ];
+
+    final endShiftItem = _SideMenuItem(
+      key: const Key('eod_desktop'),
+      iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.logout, c),
+      isSelected: selectedItem == 4,
+      onTap: () => _openEndOfShiftMenu(),
+      tooltip: 'End shift',
+      isLogout: true,
+    );
+
+    final groups = [
+      sellGroup,
+      operationsGroup,
+      reportsGroup,
+    ].where((g) => g.isNotEmpty).toList();
+    final menuItems = <Widget>[
+      for (var i = 0; i < groups.length; i++) ...[
+        if (i > 0) const _SideMenuDivider(),
+        ...groups[i],
+      ],
     ];
 
     // Width, border, and header logo live in [DashboardLayout] so the logo shares
@@ -333,35 +364,83 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
       children: [
         Expanded(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 6),
             child: Column(
-              children: menuItems
-                  .map((item) => SizedBox(height: 56, child: item))
-                  .toList(),
+              children: [
+                for (final item in menuItems)
+                  item is _SideMenuDivider
+                      ? item
+                      : SizedBox(height: _SideMenuItem.slotHeight, child: item),
+              ],
             ),
           ),
         ),
-        Column(
-          children: [
-            IconButton(
-              icon: _coloredSideMenuSvg(
-                _SideMenuSvgs.appGrid,
-                PosTokens.ink3,
-              ),
-              onPressed: () {
-                showAppChoiceDialog(
-                  dialogService: _dialogService,
-                  variant: DialogType.appChoice,
-                  title: 'Choose Your Default App',
-                );
-              },
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: const ActiveBranch(),
-            ),
-          ],
+        const _SideMenuDivider(),
+        SizedBox(height: _SideMenuItem.slotHeight, child: endShiftItem),
+        SizedBox(
+          height: _SideMenuItem.slotHeight,
+          child: _SideMenuItem(
+            iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.appGrid, c),
+            isSelected: false,
+            onTap: () {
+              showAppChoiceDialog(
+                dialogService: _dialogService,
+                variant: DialogType.appChoice,
+                title: 'Choose Your Default App',
+              );
+            },
+            tooltip: context.flipperL10n.chooseDefaultApp,
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(0, 6, 0, 12),
+          child: ActiveBranch(),
         ),
       ],
+    );
+  }
+
+  /// Transactions report — moved here from the top-bar ribbon; same admin PIN
+  /// gate, same legacy ribbon index (1) and the same full-screen route.
+  Future<void> _openTransactionsReport() async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+    ref.read(buttonIndexProvider.notifier).setIndex(1);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const TransactionReportsDesktopScreen(),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  /// Stock-value analytics — moved here from the top-bar ribbon; legacy
+  /// ribbon index 3.
+  Future<void> _openAnalyticsReport() async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+    ref.read(buttonIndexProvider.notifier).setIndex(3);
+    ref.invalidate(stockValueReportProvider);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const StockValueReportDesktopScreen(),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+}
+
+/// Hairline between rail groups.
+class _SideMenuDivider extends StatelessWidget {
+  const _SideMenuDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Center(
+        child: Container(width: 24, height: 1, color: PosTokens.line),
+      ),
     );
   }
 }
@@ -441,8 +520,8 @@ class _SideMenuSvgs {
 Widget _coloredSideMenuSvg(String svg, Color color) {
   return SvgPicture.string(
     svg,
-    width: 24,
-    height: 24,
+    width: PosTokens.iconMd,
+    height: PosTokens.iconMd,
     colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
   );
 }
@@ -453,6 +532,10 @@ class _SideMenuItem extends StatelessWidget {
   final VoidCallback onTap;
   final String tooltip;
   final bool isLogout;
+
+  /// Row height per rail entry (40px hit target + breathing room).
+  static const double slotHeight = 44;
+  static const double hitSize = PosTokens.controlHeight;
 
   const _SideMenuItem({
     super.key,
@@ -474,44 +557,57 @@ class _SideMenuItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: PosTokens.hoverTransition,
         curve: Curves.ease,
-        width: 44,
-        height: 44,
+        width: hitSize,
+        height: hitSize,
         decoration: BoxDecoration(
           color: isSelected
               ? (isLogout ? PosTokens.lossTint : PosTokens.blueTint)
               : null,
           borderRadius: BorderRadius.circular(PosTokens.radiusSm),
         ),
-        child: Center(child: iconBuilder(color)),
+        child: Center(
+          child: IconTheme.merge(
+            data: IconThemeData(size: PosTokens.iconMd, color: color),
+            child: iconBuilder(color),
+          ),
+        ),
       ),
     );
 
     return Tooltip(
       message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(PosTokens.radiusSm),
-        hoverColor: isLogout
-            ? PosTokens.lossTint
-            : PosTokens.surface2,
-        child: isSelected
-            ? Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 32,
+      waitDuration: const Duration(milliseconds: 400),
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: tooltip,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(PosTokens.radiusSm),
+          hoverColor: isLogout ? PosTokens.lossTint : PosTokens.surface2,
+          focusColor: isLogout ? PosTokens.lossTint : PosTokens.blueTint,
+          child: Stack(
+            children: [
+              Positioned.fill(child: content),
+              if (isSelected)
+                Positioned(
+                  left: 0,
+                  top: (slotHeight - 20) / 2,
+                  child: Container(
+                    width: 3,
+                    height: 20,
                     decoration: BoxDecoration(
-                      color: isLogout ? Colors.red : accent,
+                      color: isLogout ? PosTokens.loss : accent,
                       borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(4),
-                        bottomRight: Radius.circular(4),
+                        topRight: Radius.circular(3),
+                        bottomRight: Radius.circular(3),
                       ),
                     ),
                   ),
-                  Expanded(child: content),
-                ],
-              )
-            : content,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

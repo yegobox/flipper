@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/providers/pos_cart_add_service.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_dashboard/utils/pos_cart_totals.dart';
 import 'package:flipper_dashboard/widgets/destructive_confirm_dialog.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_expanded_line.dart';
@@ -173,11 +174,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     }
     if (realLineByVariant.isEmpty) return;
 
-    final staleGhostIds = <String>{
-      ..._quantityControllers.keys,
-      if (_expandedItemId != null) _expandedItemId!,
-    }.where((id) =>
-        OptimisticCartIds.isOptimistic(id) && !liveIds.contains(id)).toList();
+    final staleGhostIds =
+        <String>{
+              ..._quantityControllers.keys,
+              if (_expandedItemId != null) _expandedItemId!,
+            }
+            .where(
+              (id) =>
+                  OptimisticCartIds.isOptimistic(id) && !liveIds.contains(id),
+            )
+            .toList();
 
     for (final ghostId in staleGhostIds) {
       final vid = OptimisticCartIds.variantIdOf(ghostId);
@@ -188,11 +194,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     }
   }
 
-  void _moveLineUiState(
-    String from,
-    TransactionItem to,
-    bool isOrdering,
-  ) {
+  void _moveLineUiState(String from, TransactionItem to, bool isOrdering) {
     final toId = to.id;
     final wasTyping = _quantityFocusNodes[from]?.hasFocus == true;
     final pendingText = _quantityControllers[from]?.text;
@@ -201,15 +203,20 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     void move<V>(Map<String, V> m, {void Function(V)? disposeExisting}) {
       if (!m.containsKey(from)) return;
       final existing = m[toId];
-      if (existing != null && disposeExisting != null) disposeExisting(existing);
+      if (existing != null && disposeExisting != null)
+        disposeExisting(existing);
       m[toId] = m.remove(from) as V;
     }
 
-    move<TextEditingController>(_quantityControllers,
-        disposeExisting: (c) => c.dispose());
+    move<TextEditingController>(
+      _quantityControllers,
+      disposeExisting: (c) => c.dispose(),
+    );
     move<FocusNode>(_quantityFocusNodes, disposeExisting: (f) => f.dispose());
-    move<TextEditingController>(_priceControllers,
-        disposeExisting: (c) => c.dispose());
+    move<TextEditingController>(
+      _priceControllers,
+      disposeExisting: (c) => c.dispose(),
+    );
     move<FocusNode>(_priceFocusNodes, disposeExisting: (f) => f.dispose());
     move<bool>(_hasItemChanged);
     move<bool>(_isItemSaving);
@@ -382,6 +389,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool pinGrandTotal = false,
     List<TransactionItem>? cartLines,
     bool readOnly = false,
+
     /// Prior non-credit payments on a resumed / partially paid ticket.
     /// When > 0 and less than [grandTotal], a subtraction line is shown under
     /// Grand Total so the remaining tender amount is explainable.
@@ -394,16 +402,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: PosTokens.surface,
+        borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+        border: Border.all(color: PosTokens.line),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -411,7 +412,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         children: [
           if (_visibleTransactionItems.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.fromLTRB(16, 6, 6, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -419,31 +420,30 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                     context.flipperL10n.cartItemCount(
                       _visibleTransactionItems.length,
                     ),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: PosTokens.meta.copyWith(fontSize: 12.5),
                   ),
                   if (!readOnly)
                     TextButton.icon(
                       onPressed: () => _showDeleteAllConfirmation(isOrdering),
-                      icon: Icon(
-                        Icons.delete_outline,
-                        size: 18,
-                        color: Colors.red.shade600,
-                      ),
-                    label: Text(
-                      context.flipperL10n.deleteAll,
-                      style: TextStyle(
-                        color: Colors.red.shade600,
-                        fontWeight: FontWeight.w600,
+                      icon: const Icon(Icons.delete_outline, size: 16),
+                      label: Text(context.flipperL10n.deleteAll),
+                      style: TextButton.styleFrom(
+                        foregroundColor: PosTokens.lossInk,
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 28),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        textStyle: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            PosTokens.radiusSm,
+                          ),
+                        ),
                       ),
                     ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red.shade600,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -460,11 +460,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               ),
             )
           else
-            _buildItemsList(
-              isOrdering,
-              scrollable: false,
-              readOnly: readOnly,
-            ),
+            _buildItemsList(isOrdering, scrollable: false, readOnly: readOnly),
           ValueListenableBuilder<int>(
             valueListenable: _cartTotalsTick,
             builder: (_, __, ___) =>
@@ -491,47 +487,51 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
+  /// Quiet empty state: small neutral glyph, one line of instruction. Kept
+  /// deliberately compact so an empty cart never reads as a blank wall.
   Widget _buildEmptyState({bool compact = false}) {
-    final outerPad = compact ? 16.0 : 60.0;
-    final iconInnerPad = compact ? 12.0 : 20.0;
-    final iconSize = compact ? 36.0 : 48.0;
-    final titleSize = compact ? 16.0 : 18.0;
-    final gapAfterIcon = compact ? 12.0 : 20.0;
-    final gapBeforeSubtitle = compact ? 6.0 : 8.0;
+    final iconBox = compact ? 40.0 : 48.0;
 
     return Container(
-      padding: EdgeInsets.all(outerPad),
+      padding: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: compact ? 16 : 32,
+      ),
+      constraints: const BoxConstraints(maxWidth: 280),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(iconInnerPad),
+            width: iconBox,
+            height: iconBox,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
-              shape: BoxShape.circle,
+              color: PosTokens.surface2,
+              borderRadius: BorderRadius.circular(PosTokens.radiusMd),
+              border: Border.all(color: PosTokens.line),
             ),
             child: Icon(
               Icons.shopping_cart_outlined,
-              size: iconSize,
-              color: Colors.grey[400],
+              size: compact ? 20 : 24,
+              color: PosTokens.ink3,
             ),
           ),
-          SizedBox(height: gapAfterIcon),
+          const SizedBox(height: 10),
           Text(
             context.flipperL10n.noItemsYet,
-            style: TextStyle(
-              fontSize: titleSize,
+            style: const TextStyle(
+              fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: PosTokens.ink2,
             ),
           ),
-          SizedBox(height: gapBeforeSubtitle),
+          const SizedBox(height: 4),
           Text(
-            context.flipperL10n.tapProductToStartSale,
+            context.flipperL10n.cartEmptyHint,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: compact ? 13 : 14,
+            style: const TextStyle(
+              fontSize: 12.5,
               color: PosTokens.ink3,
+              height: 1.35,
             ),
           ),
         ],
@@ -557,7 +557,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             !isOrdering &&
             MediaQuery.sizeOf(context).width >=
                 PosLayoutBreakpoints.mobileLayoutMaxWidth;
-        if (usePosSeparator) return const SizedBox(height: 4);
+        if (usePosSeparator) {
+          return const Divider(
+            height: 1,
+            thickness: 1,
+            color: PosTokens.line,
+            indent: 16,
+            endIndent: 16,
+          );
+        }
         return Container(
           height: 1,
           color: Colors.grey[100],
@@ -701,7 +709,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     // aborted; once it is past the point of no return Ditto would just restore
     // the qty, so the button goes back to waiting for the real row.
     final isGhost = OptimisticCartIds.isOptimistic(item.id);
-    final ghostDecrementable = isGhost &&
+    final ghostDecrementable =
+        isGhost &&
         lineRef
             .watch(optimisticCartProvider)
             .hasCancellableAdd(item.variantId ?? '');
@@ -726,7 +735,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         return PosCartExpandedLine(
           name: _getItemName(item),
           currency: currency,
-          unitPriceText: context.flipperL10n.pricePerUnitEach(currency, unitFormatted),
+          unitPriceText: context.flipperL10n.pricePerUnitEach(
+            currency,
+            unitFormatted,
+          ),
           lineTotalText: _lineTotalText(item, displayQty),
           qtyText: qtyFormatted,
           subtotalDetailText: '$qtyFormatted × $currency $unitFormatted',
@@ -914,7 +926,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   // === -INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
     final isGhost = OptimisticCartIds.isOptimistic(item.id);
-    final qtyLocked = isGhost &&
+    final qtyLocked =
+        isGhost &&
         !ref
             .watch(optimisticCartProvider)
             .hasCancellableAdd(item.variantId ?? '');
@@ -1137,9 +1150,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         _updateQuantityFromTextField(item, value, isOrdering);
       },
       validator: (value) {
-        if (value == null || value.isEmpty) return context.flipperL10n.enterQuantity;
+        if (value == null || value.isEmpty)
+          return context.flipperL10n.enterQuantity;
         final parsed = double.tryParse(value);
-        if (parsed == null || parsed < 0) return context.flipperL10n.invalidQuantity;
+        if (parsed == null || parsed < 0)
+          return context.flipperL10n.invalidQuantity;
         return null;
       },
     );
@@ -1221,27 +1236,74 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         _updatePriceFromTextField(item, value, isOrdering);
       },
       validator: (value) {
-        if (value == null || value.isEmpty) return context.flipperL10n.enterPrice;
+        if (value == null || value.isEmpty)
+          return context.flipperL10n.enterPrice;
         final parsed = double.tryParse(value);
-        if (parsed == null || parsed < 0) return context.flipperL10n.invalidPrice;
+        if (parsed == null || parsed < 0)
+          return context.flipperL10n.invalidPrice;
         return null;
       },
     );
   }
 
+  /// Subtotal · Discount · Includes VAT · **Grand Total** (· Amount paid).
+  /// The breakdown is display-only ([PosCartTotals]); the grand total is the
+  /// same figure as [grandTotal].
   Widget _buildModernSummary({double alreadyPaid = 0.0}) {
     final count = _visibleTransactionItems.length;
     final itemLabel = context.flipperL10n.cartItemCount(count);
     final currency = ProxyService.box.defaultCurrency();
-    final total = grandTotal.toDouble();
+    final textTheme = Theme.of(context).textTheme;
+    final summary = PosCartTotals.compute(
+      _visibleTransactionItems,
+      displayQty: _displayQtyFor,
+      currencyDecimal: _settingsService.isCurrencyDecimal,
+      vatEnabled: ProxyService.box.vatEnabled(),
+    );
+    final total = summary.grandTotal;
     // Only for real partials (prior paid on a resumed ticket). Hide for fresh
     // unpaid sales and for fully-covered totals so the line never appears as
     // noise or as a false "already paid" during tender entry.
-    final showAlreadyPaid =
-        alreadyPaid > 0.01 && alreadyPaid < total - 0.01;
+    final showAlreadyPaid = alreadyPaid > 0.01 && alreadyPaid < total - 0.01;
+    final showBreakdown = count > 0;
+
+    Widget line(
+      String label,
+      String value, {
+      Color labelColor = PosTokens.ink2,
+      Color valueColor = PosTokens.ink1,
+      double valueSize = 13,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: labelColor,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: PosTokens.posMonoStyle(
+                textTheme,
+                fontSize: valueSize,
+                fontWeight: FontWeight.w600,
+                color: valueColor,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
       decoration: const BoxDecoration(
         color: PosTokens.surface,
         border: Border(top: BorderSide(color: PosTokens.line, width: 1)),
@@ -1249,53 +1311,57 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (showBreakdown) ...[
+            line(
+              context.flipperL10n.subtotal,
+              summary.subtotalGross.toCurrencyFormatted(symbol: currency),
+            ),
+            if (summary.hasDiscount)
+              line(
+                context.flipperL10n.discount,
+                '− ${summary.discount.toCurrencyFormatted(symbol: currency)}',
+                valueColor: PosTokens.lossInk,
+              ),
+            if (summary.vatIncluded > 0.009)
+              line(
+                context.flipperL10n.includesVat,
+                summary.vatIncluded.toCurrencyFormatted(symbol: currency),
+                labelColor: PosTokens.ink3,
+                valueColor: PosTokens.ink3,
+                valueSize: 12,
+              ),
+            const Padding(
+              padding: EdgeInsets.only(top: 2, bottom: 8),
+              child: Divider(height: 1, thickness: 1, color: PosTokens.line),
+            ),
+          ],
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
-                context.flipperL10n.grandTotalWithItems(itemLabel),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: PosTokens.ink2,
+              Expanded(
+                child: Text(
+                  context.flipperL10n.grandTotalWithItems(itemLabel),
+                  style: PosTokens.sectionTitle,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 12),
               Text(
                 total.toCurrencyFormatted(symbol: currency),
-                style: PosTokens.posPriceStyle(
-                  Theme.of(context).textTheme,
-                  fontSize: 26,
-                  color: PosTokens.blue,
-                ),
+                style: PosTokens.totalStyle(textTheme),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
           if (showAlreadyPaid) ...[
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  context.flipperL10n.amountPaid,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: PosTokens.ink3,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '− ${alreadyPaid.toCurrencyFormatted(symbol: currency)}',
-                  style: PosTokens.posPriceStyle(
-                    Theme.of(context).textTheme,
-                    fontSize: 16,
-                    color: PosTokens.ink2,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            const SizedBox(height: 6),
+            line(
+              context.flipperL10n.amountPaid,
+              '− ${alreadyPaid.toCurrencyFormatted(symbol: currency)}',
+              labelColor: PosTokens.ink3,
+              valueColor: PosTokens.ink2,
+              valueSize: 14,
             ),
           ],
         ],
@@ -1328,7 +1394,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   /// The cart line as the confirmation preview shows it: same name, same
   /// `qty × unit` detail and same line total the user was just looking at.
-  DestructiveConfirmLine _confirmLineFor(TransactionItem item, String currency) {
+  DestructiveConfirmLine _confirmLineFor(
+    TransactionItem item,
+    String currency,
+  ) {
     final qty = _formatQty(_displayQtyFor(item));
     final unit = _formatCartMoney(item.price.toDouble());
     return DestructiveConfirmLine(
@@ -1502,8 +1571,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   bool hasOptimisticLineQtyDrift() {
     for (final item in internalTransactionItems) {
       final local = _optimisticQtyByItemId[item.id];
-      if (local != null &&
-          (item.qty.toDouble() - local).abs() > 0.0001) {
+      if (local != null && (item.qty.toDouble() - local).abs() > 0.0001) {
         return true;
       }
     }
@@ -1733,14 +1801,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _incrementGhostLine(TransactionItem item, bool isOrdering) {
     final vid = item.variantId ?? '';
     if (vid.isEmpty) return;
-    final variant =
-        ref.read(optimisticCartProvider).variantSnapshotByVariantId[vid];
+    final variant = ref
+        .read(optimisticCartProvider)
+        .variantSnapshotByVariantId[vid];
     if (variant == null) return;
-    ref.read(posCartAddServiceProvider).tapAdd(
-          context: context,
-          variant: variant,
-          isOrdering: isOrdering,
-        );
+    ref
+        .read(posCartAddServiceProvider)
+        .tapAdd(context: context, variant: variant, isOrdering: isOrdering);
   }
 
   void _incrementQuantity(TransactionItem item, bool isOrdering) {
@@ -1980,13 +2047,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
 
         if (variant != null) {
-          final composites = await ProxyService.getStrategy(Strategy.capella).composites(
-            productId: variant.productId!,
-          );
+          final composites = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).composites(productId: variant.productId!);
 
           for (final composite in composites) {
-            final deletableItem = await ProxyService.getStrategy(Strategy.capella)
-                .getTransactionItem(variantId: composite.variantId!);
+            final deletableItem = await ProxyService.getStrategy(
+              Strategy.capella,
+            ).getTransactionItem(variantId: composite.variantId!);
             if (deletableItem != null) {
               await ProxyService.getStrategy(Strategy.capella).flipperDelete(
                 id: deletableItem.id,

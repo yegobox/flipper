@@ -13,6 +13,7 @@ import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +21,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 /// Opens the redesigned system configuration modal.
-Future<void> showSystemConfigModal(BuildContext context) {
+///
+/// Gated on the admin PIN: this modal edits the EBM / tax server settings and
+/// can reach [saveEbm], and it is now reachable from the top bar's More menu
+/// and the system-status strip rather than only a hidden double-tap. The gate
+/// lives here so every entry point is covered; it is a no-op for businesses
+/// that have not enabled an admin PIN.
+Future<void> showSystemConfigModal(BuildContext context) async {
+  final settingsService = ProxyService.settings;
+  if (settingsService.isAdminPinEnabled) {
+    final setting = await settingsService.settings();
+    final confirmed = await showAdminPinDialog(
+      context: context,
+      mode: AdminPinMode.verify,
+      expectedPin: setting?.adminPin,
+    );
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+  }
+
+  if (!context.mounted) return;
   return showDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -37,9 +57,7 @@ class _SystemConfigDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
-      child: SystemConfigModalCard(
-        onClose: () => Navigator.of(context).pop(),
-      ),
+      child: SystemConfigModalCard(onClose: () => Navigator.of(context).pop()),
     );
   }
 }
@@ -137,8 +155,9 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
   }
 
   Future<void> _loadTaxData() async {
-    final ebm = await ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!);
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
     final serverUrl =
         ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
 
@@ -151,8 +170,10 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
     _mrcController.text = (mrc == null || mrc.isEmpty) ? '' : mrc;
 
     if (ebm != null) {
-      await ProxyService.box
-          .writeBool(key: 'vatEnabled', value: ebm.vatEnabled ?? false);
+      await ProxyService.box.writeBool(
+        key: 'vatEnabled',
+        value: ebm.vatEnabled ?? false,
+      );
     }
 
     if (!mounted) return;
@@ -265,8 +286,9 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
     }
 
     final trimmedServer = trimTaxConfigUrl(_serverUrlController.text);
-    final dataConnectorForSave =
-        normalizeOptionalConnectorUrl(_dataConnectorUrlController.text);
+    final dataConnectorForSave = normalizeOptionalConnectorUrl(
+      _dataConnectorUrlController.text,
+    );
     final bhf = trimTaxConfigUrl(_branchController.text);
     final mrc = trimTaxConfigUrl(_mrcController.text);
 
@@ -316,8 +338,9 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
       _showSavedConfirmation();
     } catch (e) {
       if (!mounted) return;
-      final text =
-          e.toString().length > 200 ? '${e.toString().substring(0, 200)}…' : e.toString();
+      final text = e.toString().length > 200
+          ? '${e.toString().substring(0, 200)}…'
+          : e.toString();
       showErrorNotification(context, text);
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -342,8 +365,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
           ),
           child: Material(
             color: SystemConfigTokens.surface,
-            borderRadius:
-                BorderRadius.circular(SystemConfigTokens.cardRadius),
+            borderRadius: BorderRadius.circular(SystemConfigTokens.cardRadius),
             clipBehavior: Clip.antiAlias,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -498,7 +520,9 @@ class _Header extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               color: SystemConfigTokens.accentTint,
-              borderRadius: BorderRadius.circular(SystemConfigTokens.iconRadius),
+              borderRadius: BorderRadius.circular(
+                SystemConfigTokens.iconRadius,
+              ),
             ),
             child: const Icon(
               Icons.settings_outlined,
@@ -532,8 +556,7 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          if (onClose != null)
-            _CloseButton(onTap: onClose!),
+          if (onClose != null) _CloseButton(onTap: onClose!),
         ],
       ),
     );
@@ -564,7 +587,9 @@ class _CloseButtonState extends State<_CloseButton> {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: _hovered ? SystemConfigTokens.inputFill : SystemConfigTokens.surface,
+            color: _hovered
+                ? SystemConfigTokens.inputFill
+                : SystemConfigTokens.surface,
             borderRadius: BorderRadius.circular(SystemConfigTokens.closeRadius),
             border: Border.all(color: SystemConfigTokens.border),
           ),
@@ -599,7 +624,11 @@ class _SectionLabel extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         const Expanded(
-          child: Divider(height: 1, thickness: 1, color: SystemConfigTokens.border),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: SystemConfigTokens.border,
+          ),
         ),
       ],
     );
@@ -607,10 +636,7 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _GeneralSection extends StatelessWidget {
-  const _GeneralSection({
-    required this.model,
-    required this.onChanged,
-  });
+  const _GeneralSection({required this.model, required this.onChanged});
 
   final SettingViewModel model;
   final VoidCallback onChanged;
@@ -710,10 +736,7 @@ class _ToggleRow extends StatelessWidget {
 }
 
 class _CurrencyRow extends StatelessWidget {
-  const _CurrencyRow({
-    required this.value,
-    required this.onChanged,
-  });
+  const _CurrencyRow({required this.value, required this.onChanged});
 
   final String value;
   final ValueChanged<String> onChanged;
@@ -748,10 +771,7 @@ class _CurrencyRow extends StatelessWidget {
 }
 
 class _CurrencyDropdown extends StatelessWidget {
-  const _CurrencyDropdown({
-    required this.value,
-    required this.onChanged,
-  });
+  const _CurrencyDropdown({required this.value, required this.onChanged});
 
   final String value;
   final ValueChanged<String> onChanged;
@@ -790,10 +810,7 @@ class _CurrencyDropdown extends StatelessWidget {
 }
 
 class _ScSwitch extends StatelessWidget {
-  const _ScSwitch({
-    required this.value,
-    required this.onChanged,
-  });
+  const _ScSwitch({required this.value, required this.onChanged});
 
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -871,9 +888,13 @@ class _VatLockedRow extends StatelessWidget {
           ),
           SwitchTheme(
             data: SwitchThemeData(
-              trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+              trackOutlineColor: const WidgetStatePropertyAll(
+                Colors.transparent,
+              ),
               thumbColor: const WidgetStatePropertyAll(Colors.white),
-              trackColor: const WidgetStatePropertyAll(SystemConfigTokens.vatTrack),
+              trackColor: const WidgetStatePropertyAll(
+                SystemConfigTokens.vatTrack,
+              ),
             ),
             child: Switch(
               value: vatEnabled,
@@ -1025,26 +1046,36 @@ class _ScTextFieldState extends State<_ScTextField> {
               fillColor: _focused
                   ? SystemConfigTokens.surface
                   : SystemConfigTokens.inputFill,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
               border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(SystemConfigTokens.fieldRadius),
-                borderSide: const BorderSide(color: SystemConfigTokens.inputBorder),
+                borderRadius: BorderRadius.circular(
+                  SystemConfigTokens.fieldRadius,
+                ),
+                borderSide: const BorderSide(
+                  color: SystemConfigTokens.inputBorder,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(SystemConfigTokens.fieldRadius),
-                borderSide: const BorderSide(color: SystemConfigTokens.inputBorder),
+                borderRadius: BorderRadius.circular(
+                  SystemConfigTokens.fieldRadius,
+                ),
+                borderSide: const BorderSide(
+                  color: SystemConfigTokens.inputBorder,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(SystemConfigTokens.fieldRadius),
+                borderRadius: BorderRadius.circular(
+                  SystemConfigTokens.fieldRadius,
+                ),
                 borderSide: const BorderSide(color: SystemConfigTokens.accent),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(SystemConfigTokens.fieldRadius),
+                borderRadius: BorderRadius.circular(
+                  SystemConfigTokens.fieldRadius,
+                ),
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
             ),
@@ -1100,8 +1131,8 @@ class _Footer extends StatelessWidget {
               final version = snapshot.hasData
                   ? snapshot.data!
                   : snapshot.connectionState == ConnectionState.waiting
-                      ? '…'
-                      : 'Version not available';
+                  ? '…'
+                  : 'Version not available';
               return Text(
                 'Version $version',
                 style: GoogleFonts.outfit(
@@ -1146,7 +1177,9 @@ class _SaveButtonState extends State<_SaveButton> {
     return GestureDetector(
       onTapDown: widget.enabled ? (_) => setState(() => _pressed = true) : null,
       onTapUp: widget.enabled ? (_) => setState(() => _pressed = false) : null,
-      onTapCancel: widget.enabled ? () => setState(() => _pressed = false) : null,
+      onTapCancel: widget.enabled
+          ? () => setState(() => _pressed = false)
+          : null,
       onTap: widget.enabled ? widget.onSave : null,
       child: AnimatedScale(
         scale: _pressed ? 0.992 : 1,
@@ -1157,7 +1190,9 @@ class _SaveButtonState extends State<_SaveButton> {
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
             color: widget.enabled ? bg : bg.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(SystemConfigTokens.buttonRadius),
+            borderRadius: BorderRadius.circular(
+              SystemConfigTokens.buttonRadius,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1178,8 +1213,8 @@ class _SaveButtonState extends State<_SaveButton> {
                 widget.isSaving
                     ? 'Saving…'
                     : widget.saved
-                        ? 'Saved'
-                        : 'Save configuration',
+                    ? 'Saved'
+                    : 'Save configuration',
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

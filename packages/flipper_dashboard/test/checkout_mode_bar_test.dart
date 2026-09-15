@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_dashboard/widgets/checkout_mode_bar.dart';
 import 'package:flipper_dashboard/widgets/checkout_transfer_footer.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +11,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
           home: Scaffold(
             body: Consumer(
               builder: (context, ref, _) {
@@ -36,12 +41,66 @@ void main() {
     expect(find.text('mode:sale'), findsOneWidget);
   });
 
+  testWidgets('CheckoutModeBar.inline drops the strip but keeps the toggle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Consumer(
+              builder: (context, ref, _) {
+                final mode = ref.watch(checkoutCartModeProvider);
+                return Row(
+                  children: [
+                    Text('mode:${mode.name}'),
+                    const CheckoutModeBar(inline: true),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // No "MODE" eyebrow in the inline variant.
+    expect(find.text('MODE'), findsNothing);
+    await tester.tap(find.text('Transfer'));
+    await tester.pump();
+    expect(find.text('mode:transfer'), findsOneWidget);
+  });
+
+  testWidgets('CheckoutModeBar renders nothing when disabled', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
+          home: Scaffold(body: CheckoutModeBar(inline: true, enabled: false)),
+        ),
+      ),
+    );
+    expect(find.text('Transfer'), findsNothing);
+    expect(find.text('Sale'), findsNothing);
+  });
+
   testWidgets('CheckoutTransferFooter disables Transfer with empty cart', (
     tester,
   ) async {
     await tester.pumpWidget(
-      const ProviderScope(
+      ProviderScope(
         child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates:
+              FlipperAppLocalizations.localizationsDelegates,
+          supportedLocales: FlipperAppLocalizations.supportedLocales,
           home: Scaffold(
             body: CheckoutTransferFooter(
               itemCount: 0,

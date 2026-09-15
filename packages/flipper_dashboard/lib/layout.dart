@@ -23,6 +23,7 @@ import 'package:flipper_dashboard/logout/pos_user_switch_lock_screen.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
+import 'package:flipper_dashboard/widgets/pos_system_status_strip.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -93,7 +94,8 @@ class DashboardLayout extends HookConsumerWidget {
                     );
                   }
                   // Desktop: header row spans logo column + top bar so the logo aligns
-                  // with FLIPPER; body row is sidebar + content.
+                  // with FLIPPER; a compact system-status strip sits under it;
+                  // body row is sidebar + content.
                   return Column(
                     children: [
                       DecoratedBox(
@@ -113,7 +115,7 @@ class DashboardLayout extends HookConsumerWidget {
                                 child: Center(
                                   child: PosHandoffIcons.svg(
                                     'flipper-logo',
-                                    size: 30,
+                                    size: 26,
                                   ),
                                 ),
                               ),
@@ -122,6 +124,7 @@ class DashboardLayout extends HookConsumerWidget {
                           ),
                         ),
                       ),
+                      const PosSystemStatusStrip(),
                       Expanded(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -130,10 +133,10 @@ class DashboardLayout extends HookConsumerWidget {
                               width: PosLayoutBreakpoints.sideMenuWidth,
                               child: Container(
                                 decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                  color: PosTokens.posRail,
                                   border: Border(
                                     right: BorderSide(
-                                      color: Color(0xFFE5E7EB),
+                                      color: PosTokens.line,
                                       width: 1,
                                     ),
                                   ),

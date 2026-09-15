@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -79,6 +80,10 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates:
+                FlipperAppLocalizations.localizationsDelegates,
+            supportedLocales: FlipperAppLocalizations.supportedLocales,
             home: Scaffold(
               body: PaymentMethodsCard(
                 transactionId: 'test-id',
@@ -130,6 +135,10 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             child: MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates:
+                  FlipperAppLocalizations.localizationsDelegates,
+              supportedLocales: FlipperAppLocalizations.supportedLocales,
               home: Scaffold(
                 body: PaymentMethodsCard(
                   transactionId: 'test-id',
@@ -183,6 +192,10 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates:
+                FlipperAppLocalizations.localizationsDelegates,
+            supportedLocales: FlipperAppLocalizations.supportedLocales,
             home: Scaffold(
               body: Center(
                 child: SizedBox(

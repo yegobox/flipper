@@ -2884,6 +2884,48 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to remove all {count} items from this transaction?'**
   String confirmRemoveAllItemsCount(int count);
+
+  /// Desktop system-status strip when the EBM/RRA tax server does not answer
+  ///
+  /// In en, this message translates to:
+  /// **'RRA tax server unreachable — receipts can\'t be signed until it is back. Rechecking automatically.'**
+  String get taxServerUnreachableStatus;
+
+  /// Desktop system-status strip when the device has no connectivity
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection — sales keep working offline and sync when you\'re back online.'**
+  String get internetUnavailableStatus;
+
+  /// Cart summary line for tax already included in the prices
+  ///
+  /// In en, this message translates to:
+  /// **'Includes VAT'**
+  String get includesVat;
+
+  /// Tooltip on the sidebar button that picks which app opens at launch
+  ///
+  /// In en, this message translates to:
+  /// **'Choose default app'**
+  String get chooseDefaultApp;
+
+  /// Keyboard hint shown next to the payment section header
+  ///
+  /// In en, this message translates to:
+  /// **'Ctrl / ⌘ + Enter to pay'**
+  String get payShortcutHint;
+
+  /// Small label above the amount-received field
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get receivedEyebrow;
+
+  /// Desktop empty-cart hint
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a product or scan a barcode to start a sale'**
+  String get cartEmptyHint;
 }
 
 class _FlipperAppLocalizationsDelegate

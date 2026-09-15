@@ -1572,4 +1572,28 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String confirmRemoveAllItemsCount(int count) {
     return 'Uremeza ko ushaka gukura ibicuruzwa $count byose muri iri gurisha?';
   }
+
+  @override
+  String get taxServerUnreachableStatus =>
+      'Seriveri y\'imisoro ya RRA ntiboneka — inyemezabwishyu ntizishobora gushyirwaho umukono kugeza igarutse. Turi kongera kugenzura.';
+
+  @override
+  String get internetUnavailableStatus =>
+      'Nta murandasi uhari — kugurisha birakomeza nta murandasi, bizahuzwa nimugaruka kuri interineti.';
+
+  @override
+  String get includesVat => 'Harimo TVA';
+
+  @override
+  String get chooseDefaultApp => 'Hitamo porogaramu y\'ibanze';
+
+  @override
+  String get payShortcutHint => 'Ctrl / ⌘ + Enter kwishyura';
+
+  @override
+  String get receivedEyebrow => 'Yakiriwe';
+
+  @override
+  String get cartEmptyHint =>
+      'Kanda igicuruzwa cyangwa usome barcode utangire kugurisha';
 }

@@ -461,5 +461,33 @@
     "previewCart": "Reba agatebo",
     "previewCartWithCount": "Reba agatebo ({count})",
     "placeOrder": "Tanga itumizwa",
-    "confirmRemoveAllItemsCount": "Uremeza ko ushaka gukura ibicuruzwa {count} byose muri iri gurisha?"
+    "confirmRemoveAllItemsCount": "Uremeza ko ushaka gukura ibicuruzwa {count} byose muri iri gurisha?",
+    "taxServerUnreachableStatus": "Seriveri y'imisoro ya RRA ntiboneka — inyemezabwishyu ntizishobora gushyirwaho umukono kugeza igarutse. Turi kongera kugenzura.",
+    "@taxServerUnreachableStatus": {
+        "description": "Desktop system-status strip when the EBM/RRA tax server does not answer"
+    },
+    "internetUnavailableStatus": "Nta murandasi uhari — kugurisha birakomeza nta murandasi, bizahuzwa nimugaruka kuri interineti.",
+    "@internetUnavailableStatus": {
+        "description": "Desktop system-status strip when the device has no connectivity"
+    },
+    "includesVat": "Harimo TVA",
+    "@includesVat": {
+        "description": "Cart summary line for tax already included in the prices"
+    },
+    "chooseDefaultApp": "Hitamo porogaramu y'ibanze",
+    "@chooseDefaultApp": {
+        "description": "Tooltip on the sidebar button that picks which app opens at launch"
+    },
+    "payShortcutHint": "Ctrl / ⌘ + Enter kwishyura",
+    "@payShortcutHint": {
+        "description": "Keyboard hint shown next to the payment section header"
+    },
+    "receivedEyebrow": "Yakiriwe",
+    "@receivedEyebrow": {
+        "description": "Small label above the amount-received field"
+    },
+    "cartEmptyHint": "Kanda igicuruzwa cyangwa usome barcode utangire kugurisha",
+    "@cartEmptyHint": {
+        "description": "Desktop empty-cart hint"
+    }
 }

@@ -29,18 +29,22 @@ abstract final class PosLayoutBreakpoints {
   static const Color posAccentBlue = PosTokens.blue;
 
   /// Product grid column count from **pane** width (not full window).
-  /// Wide panes cap at 4 columns per handoff.
+  ///
+  /// Packs as many [PosTokens.productTileMinWidth] tiles as fit (2–8), so a
+  /// 1280px window shows 4 columns, 1440px shows 5 and 1920px shows 7 instead
+  /// of stretching four cards across the whole pane.
   static int productGridCrossAxisCountForPaneWidth(double paneWidth) {
-    if (paneWidth < 520) return 2;
-    if (paneWidth < 720) return 3;
-    return 4;
+    final gap = desktopGridSpacing(paneWidth);
+    final fit = ((paneWidth + gap) / (PosTokens.productTileMinWidth + gap))
+        .floor();
+    return fit.clamp(2, 8);
   }
 
-  static double desktopGridSpacing(double paneWidth) =>
-      paneWidth < 720 ? 12.0 : PosTokens.gridGap;
+  static double desktopGridSpacing(double paneWidth) => PosTokens.gridGap;
 
-  /// Body below the 104px thumb (padding + name + bcd + price row).
-  static const double productCardBodyHeight = 88;
+  /// Body below the thumb: 8 pad + 34 name (2 lines) + 4 + ~20 price row +
+  /// 3 + ~16 code + 9 pad, with a little slack for the M3 line heights.
+  static const double productCardBodyHeight = 96;
 
   static double productCardTotalHeight() =>
       PosTokens.productThumbHeight + productCardBodyHeight;
@@ -60,8 +64,18 @@ abstract final class PosLayoutBreakpoints {
     return desktopGridChildAspectRatioForPane(refWidth);
   }
 
-  static double cartDrawerWidth(double maxWidth) =>
-      math.min(cartPanelWidth, maxWidth * 0.48).clamp(320.0, cartPanelWidth).toDouble();
+  static double cartDrawerWidth(double maxWidth) => math
+      .min(cartPanelWidth, maxWidth * 0.48)
+      .clamp(320.0, cartPanelWidth)
+      .toDouble();
+
+  /// Fixed cart column on the wide split (≥ [desktopSplitMinWidth]): a share
+  /// of the sales pane clamped to 400–460px so the catalog gets the rest
+  /// instead of a 50/50 split that leaves a 900px cart on a 1920px window.
+  static double cartColumnWidth(double maxWidth) =>
+      (maxWidth * PosTokens.cartPanelFraction)
+          .clamp(PosTokens.cartPanelMinWidth, cartPanelWidth)
+          .toDouble();
 
   /// Below this checkout-pane height, cart + form use one vertical scroll
   /// ([QuickSellingView._buildSharedView]).
@@ -86,10 +100,13 @@ abstract final class PosLayoutBreakpoints {
   static const double expandedCartRowCompactWidth = 360;
 
   /// Approximate [PayableView] footer + padding in checkout column (layout math).
-  static const double payableFooterReservedHeight = 138;
+  static const double payableFooterReservedHeight =
+      PosTokens.payButtonHeight + 24;
 
-  /// Checkout bar uses stacked Tickets/Pay below this **pane** width.
-  static const double payableVerticalBarMaxWidth = 560;
+  /// Checkout bar uses stacked Tickets/Pay below this **pane** width. The
+  /// fixed desktop cart column is 400–460px (≈376px inside the bar's inset),
+  /// which keeps the single-row bar; the end drawer and phones stack.
+  static const double payableVerticalBarMaxWidth = 360;
 
   /// Stacked bar when landscape and pane height is below this.
   static const double payableVerticalBarMaxLandscapeHeight = 600;

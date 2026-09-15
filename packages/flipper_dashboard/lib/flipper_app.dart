@@ -148,6 +148,12 @@ class FlipperScaffold extends HookConsumerWidget {
     final keys = useState<List<LogicalKeyboardKey>>([]);
     final focusNode = useFocusNode();
     final statusText = ref.watch(statusTextProvider).value ?? "";
+    // Desktop widths render the status inside the shell as a compact strip
+    // ([PosSystemStatusStrip] in [DashboardLayout]); the full-width bar stays
+    // for the mobile layout only.
+    final useDesktopShell =
+        MediaQuery.sizeOf(context).width >=
+        PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
     return KeyboardListener(
       focusNode: focusNode,
@@ -155,7 +161,9 @@ class FlipperScaffold extends HookConsumerWidget {
       onKeyEvent: (event) => _handleKeyEvent(event, keys, model),
       child: Scaffold(
         extendBody: true,
-        appBar: statusText.isNotEmpty ? const StatusAppBar() : null,
+        appBar: statusText.isNotEmpty && !useDesktopShell
+            ? const StatusAppBar()
+            : null,
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
