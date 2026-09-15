@@ -28,7 +28,7 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 # Which screens go where. Names match the test's `_screens` keys.
-LAPTOP_SCREEN = "03_pos"
+LAPTOP_SCREEN = "02_dashboard"  # the product grid; 03_pos is the checkout pane
 PHONE_LEFT = "phone_02_dashboard"
 PHONE_RIGHT = "phone_05_cashbook"
 
@@ -38,10 +38,10 @@ LAPTOP_SCREEN_W = 1640  # visible screen width
 LAPTOP_BEZEL = 26
 LAPTOP_RADIUS = 34
 LAPTOP_BASE_H = 46  # the "keyboard deck" strip under the screen
-PHONE_SCREEN_W = 400
+PHONE_SCREEN_W = 340
 PHONE_BEZEL = 16
 PHONE_RADIUS = 72
-PHONE_OVERLAP = 0.28  # fraction of a phone's width sitting over the laptop
+PHONE_OVERLAP = 0.2  # fraction of a phone's width sitting over the laptop
 MARGIN = 60
 
 BEZEL = (24, 26, 31, 255)
@@ -74,7 +74,14 @@ def key_out_chroma(img: Image.Image) -> Image.Image:
     box = mask.getbbox()
     if box is None:
         raise SystemExit("phone screenshot is entirely chroma; nothing to crop")
-    return rgb.crop(box)
+    shot = rgb.crop(box)
+    # DevicePreview clips the screen to the device's shape, so the notch is
+    # left as chroma inside the crop. Paint it bezel-dark and it reads as the
+    # phone's actual notch once framed.
+    notch = ImageChops.difference(shot, Image.new("RGB", shot.size, CHROMA))
+    notch = notch.convert("L").point(lambda v: 0 if v > 12 else 255)
+    shot.paste(Image.new("RGB", shot.size, BEZEL[:3]), mask=notch)
+    return shot
 
 
 def shadow(canvas: Image.Image, box: tuple[int, int, int, int], radius: int,
@@ -148,12 +155,12 @@ def compose(shots: dict[str, Image.Image]) -> Image.Image:
 
     if left is not None:
         x = lap_x - left.width + round(left.width * PHONE_OVERLAP)
-        y = lap_y + lap.height - left.height + 40
+        y = lap_y + lap.height - left.height + 70
         placements.append((left, max(x, MARGIN // 2), y, PHONE_RADIUS))
         bottom = max(bottom, y + left.height)
     if right is not None:
         x = lap_x + lap.width - round(right.width * PHONE_OVERLAP)
-        y = lap_y + lap.height - right.height + 80
+        y = lap_y + lap.height - right.height + 110
         placements.append((right, min(x, CANVAS_W - right.width - MARGIN // 2), y, PHONE_RADIUS))
         bottom = max(bottom, y + right.height)
 
