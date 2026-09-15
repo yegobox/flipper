@@ -38,7 +38,7 @@ class IconRow extends StatefulHookConsumerWidget {
   ConsumerState<IconRow> createState() => IconRowState();
 }
 
-/// Contextual tool cluster of the desktop top bar: Umusada sales, Import &
+/// Contextual tool cluster of the desktop top bar: ordering, Import &
 /// Purchase and the "More" menu. Report navigation (Transactions, Analytics)
 /// lives in the left rail's Reports group ([EnhancedSideMenu]).
 class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
@@ -58,7 +58,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     return confirmed == true;
   }
 
-  void _openSalesUmusada() {
+  void _openOrdering() {
     UmusadaHelper.handleOrderingFlow(context, () {
       try {
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
@@ -69,7 +69,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     });
   }
 
-  Widget _buildSalesUmusadaButton() {
+  Widget _buildOrderingButton() {
     final stringValue = ref.watch(searchStringProvider);
     final orders = ref.watch(
       stockRequestsProvider(
@@ -82,8 +82,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       final button = PosTopToolButton(
         key: const Key('ribbon_umusada_sales'),
         iconName: 'cart',
-        tooltip: 'Sales — Join Umusada',
-        onPressed: _openSalesUmusada,
+        tooltip: 'Ordering',
+        onPressed: _openOrdering,
       );
       if (count <= 0) return button;
       return badges.Badge(
@@ -116,7 +116,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       crossAxisAlignment: CrossAxisAlignment.center,
       spacing: 2,
       children: [
-        _buildSalesUmusadaButton(),
+        _buildOrderingButton(),
         if (showImportPurchase)
           PosTopToolButton(
             key: const Key('import_purchase_ribbon'),
