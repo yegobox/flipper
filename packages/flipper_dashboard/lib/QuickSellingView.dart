@@ -587,7 +587,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final branchId = ProxyService.box.getBranchId();
     final transaction = transactionAsyncValue.asData?.value;
     final isOrdering = ProxyService.box.isOrdering() ?? false;
-    final isSettling = ref.watch(effectiveSettlingTillTicketProvider) != null;
+    // select: the header only cares whether a ticket is being settled, so it
+    // must not rebuild every time that ticket's contents change.
+    final isSettling = ref.watch(
+      effectiveSettlingTillTicketProvider.select((ticket) => ticket != null),
+    );
 
     final showSaveTicket =
         transaction != null &&

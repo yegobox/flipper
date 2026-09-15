@@ -308,10 +308,14 @@ class _RowItemState extends ConsumerState<RowItem>
               ? ClipRRect(child: SizedBox.expand(child: _buildImage()))
               : null,
           isOutOfStock: isOut,
-          // Read the variant directly: [widget.color] is defaulted to a purple
+          // Read the model directly: [widget.color] is defaulted to a purple
           // by [Datamixer.buildRowItem], which would make every product look
-          // like the customer had chosen a colour.
-          userColor: posParseTileColor(widget.variant?.color),
+          // like the customer had chosen a colour. Variant wins over product —
+          // [CoreSync] seeds a variant's colour from its product, so the parent
+          // is only the fallback for variants created without one.
+          userColor:
+              posParseTileColor(widget.variant?.color) ??
+              posParseTileColor(widget.product?.color),
         ),
         onTap: isOut
             ? null

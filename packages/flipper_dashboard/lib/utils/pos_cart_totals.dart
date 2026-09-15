@@ -79,10 +79,20 @@ class PosCartTotals {
       }
 
       if (vatEnabled) {
+        // [SaleLinePricing.compute] only knows percentage discounts, but
+        // [subtotalNetForItem] prefers a persisted fixed [dcAmt]. Feeding the
+        // raw dcRt would tax the undiscounted gross while the grand total
+        // charges the discounted net. Derive the rate that reproduces the same
+        // net so VAT and the total always agree; lines with only a percentage
+        // keep their exact previous behaviour.
+        final hasFixedDiscount = item.dcAmt != null;
+        final effectiveDcRt = hasFixedDiscount && lineGross > 0
+            ? ((lineGross - lineNet) / lineGross) * 100
+            : item.dcRt?.toDouble();
         final pricing = SaleLinePricing.compute(
           unitPrice: price,
           qty: qty,
-          dcRt: item.dcRt?.toDouble(),
+          dcRt: effectiveDcRt,
           taxTyCd: item.taxTyCd,
           taxPercentage: item.taxPercentage?.toDouble() ?? 18.0,
         );

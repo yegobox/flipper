@@ -1567,24 +1567,25 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get taxServerUnreachableStatus =>
-      'RRA tax server unreachable — receipts can\'t be signed until it is back. Rechecking automatically.';
+      'Seva ya kodi ya RRA haipatikani — risiti haziwezi kutiwa saini hadi irejee. Tunaangalia upya kiotomatiki.';
 
   @override
   String get internetUnavailableStatus =>
-      'No internet connection — sales keep working offline and sync when you\'re back online.';
+      'Hakuna muunganisho wa intaneti — mauzo yanaendelea nje ya mtandao na yatasawazishwa utakaporejea mtandaoni.';
 
   @override
-  String get includesVat => 'Includes VAT';
+  String get includesVat => 'Imejumuisha VAT';
 
   @override
-  String get chooseDefaultApp => 'Choose default app';
+  String get chooseDefaultApp => 'Chagua programu chaguo-msingi';
 
   @override
-  String get payShortcutHint => 'Ctrl / ⌘ + Enter to pay';
+  String get payShortcutHint => 'Ctrl / ⌘ + Enter kulipa';
 
   @override
-  String get receivedEyebrow => 'Received';
+  String get receivedEyebrow => 'Imepokelewa';
 
   @override
-  String get cartEmptyHint => 'Tap a product or scan a barcode to start a sale';
+  String get cartEmptyHint =>
+      'Gusa bidhaa au changanua msimbopau ili kuanza mauzo';
 }

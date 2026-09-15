@@ -461,5 +461,33 @@
     "previewCart": "Aperçu du panier",
     "previewCartWithCount": "Aperçu du panier ({count})",
     "placeOrder": "Passer la commande",
-    "confirmRemoveAllItemsCount": "Voulez-vous vraiment retirer les {count} articles de cette transaction ?"
+    "confirmRemoveAllItemsCount": "Voulez-vous vraiment retirer les {count} articles de cette transaction ?",
+    "taxServerUnreachableStatus": "Serveur fiscal RRA injoignable — les reçus ne peuvent pas être signés tant qu'il ne revient pas. Nouvelle tentative automatique.",
+    "@taxServerUnreachableStatus": {
+        "description": "Desktop system-status strip when the EBM/RRA tax server does not answer"
+    },
+    "internetUnavailableStatus": "Pas de connexion Internet — les ventes continuent hors ligne et se synchroniseront au retour du réseau.",
+    "@internetUnavailableStatus": {
+        "description": "Desktop system-status strip when the device has no connectivity"
+    },
+    "includesVat": "TVA comprise",
+    "@includesVat": {
+        "description": "Cart summary line for tax already included in the prices"
+    },
+    "chooseDefaultApp": "Choisir l'application par défaut",
+    "@chooseDefaultApp": {
+        "description": "Tooltip on the sidebar button that picks which app opens at launch"
+    },
+    "payShortcutHint": "Ctrl / ⌘ + Entrée pour payer",
+    "@payShortcutHint": {
+        "description": "Keyboard hint shown next to the payment section header"
+    },
+    "receivedEyebrow": "Reçu",
+    "@receivedEyebrow": {
+        "description": "Small label above the amount-received field"
+    },
+    "cartEmptyHint": "Appuyez sur un produit ou scannez un code-barres pour démarrer une vente",
+    "@cartEmptyHint": {
+        "description": "Desktop empty-cart hint"
+    }
 }

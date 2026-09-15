@@ -1585,24 +1585,25 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get taxServerUnreachableStatus =>
-      'RRA tax server unreachable — receipts can\'t be signed until it is back. Rechecking automatically.';
+      'Serveur fiscal RRA injoignable — les reçus ne peuvent pas être signés tant qu\'il ne revient pas. Nouvelle tentative automatique.';
 
   @override
   String get internetUnavailableStatus =>
-      'No internet connection — sales keep working offline and sync when you\'re back online.';
+      'Pas de connexion Internet — les ventes continuent hors ligne et se synchroniseront au retour du réseau.';
 
   @override
-  String get includesVat => 'Includes VAT';
+  String get includesVat => 'TVA comprise';
 
   @override
-  String get chooseDefaultApp => 'Choose default app';
+  String get chooseDefaultApp => 'Choisir l\'application par défaut';
 
   @override
-  String get payShortcutHint => 'Ctrl / ⌘ + Enter to pay';
+  String get payShortcutHint => 'Ctrl / ⌘ + Entrée pour payer';
 
   @override
-  String get receivedEyebrow => 'Received';
+  String get receivedEyebrow => 'Reçu';
 
   @override
-  String get cartEmptyHint => 'Tap a product or scan a barcode to start a sale';
+  String get cartEmptyHint =>
+      'Appuyez sur un produit ou scannez un code-barres pour démarrer une vente';
 }

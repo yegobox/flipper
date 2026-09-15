@@ -65,6 +65,16 @@ void main() {
       expect(posParseTileColor('#GGGGGG'), isNull);
       expect(posParseTileColor('red'), isNull);
     });
+
+    test('rejects signs and embedded hashes rather than coercing them', () {
+      // int.parse accepts these, which produced a negative value (and so a
+      // garbage colour) once OR-ed with the opaque alpha.
+      expect(posParseTileColor('-12345'), isNull);
+      expect(posParseTileColor('+abcde'), isNull);
+      expect(posParseTileColor('1#2#3#4#5#6'), isNull);
+      expect(posParseTileColor('##FF0000'), isNull);
+      expect(posParseTileColor('0x123456'), isNull);
+    });
   });
 
   group('posInkOn', () {
@@ -73,6 +83,16 @@ void main() {
       expect(posInkOn(const Color(0xFF673AB7)), Colors.white);
       expect(posInkOn(const Color(0xFFFFF176)), PosTokens.ink1);
       expect(posInkOn(const Color(0xFFFFFFFF)), PosTokens.ink1);
+    });
+
+    test('composites translucent colours over the surface it sits on', () {
+      // Fully transparent: the tile really shows the white card, so white ink
+      // would be invisible.
+      expect(posInkOn(const Color(0x00000000)), PosTokens.ink1);
+      // A wash of black over white is still light enough for dark ink.
+      expect(posInkOn(const Color(0x11000000)), PosTokens.ink1);
+      // Opaque black stays white-on-black.
+      expect(posInkOn(const Color(0xFF000000)), Colors.white);
     });
   });
 }

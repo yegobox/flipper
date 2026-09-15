@@ -461,5 +461,33 @@
     "previewCart": "Kagua kikapu",
     "previewCartWithCount": "Kagua kikapu ({count})",
     "placeOrder": "Weka oda",
-    "confirmRemoveAllItemsCount": "Una hakika unataka kuondoa bidhaa zote {count} kutoka muamala huu?"
+    "confirmRemoveAllItemsCount": "Una hakika unataka kuondoa bidhaa zote {count} kutoka muamala huu?",
+    "taxServerUnreachableStatus": "Seva ya kodi ya RRA haipatikani — risiti haziwezi kutiwa saini hadi irejee. Tunaangalia upya kiotomatiki.",
+    "@taxServerUnreachableStatus": {
+        "description": "Desktop system-status strip when the EBM/RRA tax server does not answer"
+    },
+    "internetUnavailableStatus": "Hakuna muunganisho wa intaneti — mauzo yanaendelea nje ya mtandao na yatasawazishwa utakaporejea mtandaoni.",
+    "@internetUnavailableStatus": {
+        "description": "Desktop system-status strip when the device has no connectivity"
+    },
+    "includesVat": "Imejumuisha VAT",
+    "@includesVat": {
+        "description": "Cart summary line for tax already included in the prices"
+    },
+    "chooseDefaultApp": "Chagua programu chaguo-msingi",
+    "@chooseDefaultApp": {
+        "description": "Tooltip on the sidebar button that picks which app opens at launch"
+    },
+    "payShortcutHint": "Ctrl / ⌘ + Enter kulipa",
+    "@payShortcutHint": {
+        "description": "Keyboard hint shown next to the payment section header"
+    },
+    "receivedEyebrow": "Imepokelewa",
+    "@receivedEyebrow": {
+        "description": "Small label above the amount-received field"
+    },
+    "cartEmptyHint": "Gusa bidhaa au changanua msimbopau ili kuanza mauzo",
+    "@cartEmptyHint": {
+        "description": "Desktop empty-cart hint"
+    }
 }

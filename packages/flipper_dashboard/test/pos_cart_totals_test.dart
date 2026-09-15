@@ -143,6 +143,59 @@ void main() {
       expect(t.grandTotal, _legacyGrandTotal(lines, currencyDecimal: false));
     });
 
+    test('VAT follows a fixed dcAmt discount, not just a percentage', () {
+      // dcAmt is what subtotalNetForItem (and so the grand total) charges, but
+      // SaleLinePricing.compute only speaks dcRt — feeding it the raw dcRt of
+      // null taxed the undiscounted gross, so the VAT line disagreed with the
+      // total the customer pays.
+      final lines = [
+        _line(
+          'fixed',
+          price: 1180,
+          qty: 1,
+          dcAmt: 180,
+          taxTyCd: 'B',
+          taxPercentage: 18,
+        ),
+      ];
+      final t = PosCartTotals.compute(
+        lines,
+        displayQty: qtyOf,
+        currencyDecimal: false,
+        vatEnabled: true,
+      );
+
+      // Net actually charged: 1180 - 180 = 1000.
+      expect(t.grandTotal, _legacyGrandTotal(lines, currencyDecimal: false));
+      expect(t.grandTotal, 1000);
+      expect(t.discount, closeTo(180, 0.001));
+      // VAT inside 1000 at 18% inclusive = 1000 * 18/118 = 152.54 — derived
+      // from the discounted net, not from the 1180 gross (which would be 180).
+      expect(t.vatIncluded, closeTo(152.54, 0.02));
+    });
+
+    test('a percentage-only discount keeps its previous VAT behaviour', () {
+      final lines = [
+        _line(
+          'pct',
+          price: 1180,
+          qty: 1,
+          dcRt: 10,
+          taxTyCd: 'B',
+          taxPercentage: 18,
+        ),
+      ];
+      final t = PosCartTotals.compute(
+        lines,
+        displayQty: qtyOf,
+        currencyDecimal: false,
+        vatEnabled: true,
+      );
+      // 1180 - 118 = 1062 net; VAT inside = 1062 * 18/118 = 162.0.
+      expect(t.grandTotal, _legacyGrandTotal(lines, currencyDecimal: false));
+      expect(t.vatIncluded, closeTo(162.0, 0.02));
+    });
+
     test('VAT line stays zero when the branch is not VAT-enabled', () {
       final lines = [
         _line('b', price: 1180, qty: 1, taxTyCd: 'B', taxPercentage: 18),
