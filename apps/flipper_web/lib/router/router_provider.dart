@@ -11,6 +11,7 @@ import 'package:flipper_web/modules/accounting/accounting_module.dart';
 import 'package:flipper_web/features/login/pin_screen.dart';
 import 'package:flipper_web/features/login/signup_view.dart';
 import 'package:flipper_web/features/business_selection/business_selection_wrapper.dart';
+import 'package:flipper_web/features/custom_payment/presentation/custom_payment_page.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authRefresh = ValueNotifier<int>(0);
@@ -60,6 +61,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           resumePlanId: state.uri.queryParameters['planId'],
         ),
       ),
+      // Staff-only: negotiated-price subscription payments. Auth is checked
+      // here; the staff allowlist is checked by the page (it is async) and,
+      // independently, by the connector.
+      GoRoute(
+        path: '/custom-payment',
+        name: 'customPayment',
+        builder: (context, state) => const CustomPaymentPage(),
+      ),
       GoRoute(
         path: '/dashboard',
         name: 'dashboard',
@@ -79,6 +88,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final goingToAccounting = state.uri.path == '/accounting';
       final goingToBusinessSelection = state.uri.path == '/business-selection';
       final goingToSubscribe = state.uri.path == '/subscribe';
+      final goingToCustomPayment = state.uri.path == '/custom-payment';
       final goingToRoot = state.uri.path == '/';
 
       // If authenticated, handle routing based on business/branch selection
@@ -104,7 +114,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (goingToBusinessSelection ||
             goingToDashboard ||
             goingToAccounting ||
-            goingToSubscribe) {
+            goingToSubscribe ||
+            goingToCustomPayment) {
           return '/login';
         }
       }

@@ -29,11 +29,7 @@ String get dodoBuildMode => kDebugMode ? 'test' : 'live';
 
 /// The gateway refused something, and it said why.
 class DodoException implements Exception {
-  const DodoException(
-    this.message, {
-    this.statusCode,
-    this.gatewayMessage,
-  });
+  const DodoException(this.message, {this.statusCode, this.gatewayMessage});
 
   final String message;
   final int? statusCode;
@@ -318,14 +314,14 @@ class DodoPayment {
   bool get isSucceeded => status.trim().toLowerCase() == 'succeeded';
 
   factory DodoPayment.fromJson(Map<String, dynamic> json) => DodoPayment(
-        dodoPaymentId: _string(json['dodo_payment_id']) ?? '',
-        status: _string(json['status']) ?? 'unknown',
-        kind: _string(json['kind']),
-        amount: _int(json['amount']),
-        currency: _string(json['currency']),
-        settledAt: _string(json['settled_at']),
-        failureReason: _string(json['failure_reason']),
-      );
+    dodoPaymentId: _string(json['dodo_payment_id']) ?? '',
+    status: _string(json['status']) ?? 'unknown',
+    kind: _string(json['kind']),
+    amount: _int(json['amount']),
+    currency: _string(json['currency']),
+    settledAt: _string(json['settled_at']),
+    failureReason: _string(json['failure_reason']),
+  );
 
   @override
   String toString() => 'DodoPayment($dodoPaymentId, $status, $kind)';
@@ -349,6 +345,8 @@ class DodoHealth {
     this.webhookSecretConfigured = false,
     this.returnUrlConfigured = false,
     this.modesAvailable = const [],
+    this.onDemandEnabled = false,
+    this.onDemandReadyModes = const [],
   });
 
   final bool enabled;
@@ -376,8 +374,26 @@ class DodoHealth {
   final bool webhookSecretConfigured;
   final bool returnUrlConfigured;
 
+  /// Negotiated-price (on-demand) card subscriptions are switched on
+  /// (`DODO_ON_DEMAND_ENABLED`). Needed by the staff custom-payment page, which
+  /// must not offer Card when the connector would answer 400.
+  final bool onDemandEnabled;
+
+  /// Modes with an on-demand product configured, e.g. `['live']`.
+  final List<String> onDemandReadyModes;
+
+  /// Whether the mode *this build* transacts in can create a negotiated-price
+  /// card subscription.
+  bool get onDemandReadyForThisBuild =>
+      readyForThisBuild &&
+      onDemandEnabled &&
+      onDemandReadyModes.contains(dodoBuildMode);
+
   /// Nothing configured, or the connector could not be reached.
-  static const DodoHealth unavailable = DodoHealth(enabled: false, ready: false);
+  static const DodoHealth unavailable = DodoHealth(
+    enabled: false,
+    ready: false,
+  );
 
   /// True when the mode *this build* asks for is configured on the connector.
   ///
@@ -399,21 +415,33 @@ class DodoHealth {
   bool get isTestMode => dodoBuildMode == 'test';
 
   factory DodoHealth.fromJson(Map<String, dynamic> json) => DodoHealth(
-        enabled: json['enabled'] == true,
-        ready: json['ready'] == true,
-        status: _string(json['status']),
-        mode: _string(json['mode']),
-        modesAvailable: (json['modes_available'] as List<dynamic>?)
-                ?.map((m) => '$m'.trim().toLowerCase())
-                .where((m) => m.isNotEmpty)
-                .toList() ??
-            const [],
-        dryRun: json['dry_run'] == true,
-        currency: _string(json['currency']),
-        authRequired: json['auth_required'] == true,
-        webhookSecretConfigured: json['webhook_secret_configured'] == true,
-        returnUrlConfigured: json['return_url_configured'] == true,
-      );
+    enabled: json['enabled'] == true,
+    ready: json['ready'] == true,
+    status: _string(json['status']),
+    mode: _string(json['mode']),
+    modesAvailable:
+        (json['modes_available'] as List<dynamic>?)
+            ?.map((m) => '$m'.trim().toLowerCase())
+            .where((m) => m.isNotEmpty)
+            .toList() ??
+        const [],
+    dryRun: json['dry_run'] == true,
+    currency: _string(json['currency']),
+    authRequired: json['auth_required'] == true,
+    webhookSecretConfigured: json['webhook_secret_configured'] == true,
+    returnUrlConfigured: json['return_url_configured'] == true,
+    onDemandEnabled: json['on_demand_enabled'] == true,
+    onDemandReadyModes: _readyModes(json['on_demand_ready']),
+  );
+
+  /// `{"live": true, "test": false}` → `['live']`.
+  static List<String> _readyModes(dynamic value) {
+    if (value is! Map) return const [];
+    return value.entries
+        .where((e) => e.value == true)
+        .map((e) => '${e.key}'.trim().toLowerCase())
+        .toList();
+  }
 
   @override
   String toString() =>
@@ -458,5 +486,7 @@ String? _string(dynamic value) {
 int? _int(dynamic value) {
   if (value is num) return value.round();
   final text = _string(value);
-  return text == null ? null : int.tryParse(text) ?? double.tryParse(text)?.round();
+  return text == null
+      ? null
+      : int.tryParse(text) ?? double.tryParse(text)?.round();
 }
