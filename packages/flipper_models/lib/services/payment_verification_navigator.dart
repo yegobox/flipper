@@ -2,6 +2,7 @@ import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
+import 'package:flipper_models/services/hotel_mode_branch_settings_service.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -24,6 +25,7 @@ class PaymentVerificationNavigator {
     'CheckOut',
     'NewTicket',
     'BarModeHost',
+    'HotelModeHost',
   };
 
   /// Routes that exist before the user has authenticated. Background/periodic
@@ -44,6 +46,11 @@ class PaymentVerificationNavigator {
   };
 
   static const _barModeEnabledKey = BarModeBranchSettingsService.enabledKey;
+  static const _hotelModeEnabledKey = HotelModeBranchSettingsService.enabledKey;
+
+  /// Which surface *this device* was set to run. Mirrors `deviceServiceMode`
+  /// in flipper_dashboard, read by key because this package sits below it.
+  static const _deviceServiceModeKey = 'deviceServiceMode';
 
   /// Refuses an authenticated route when no signed-in user remains, and says so.
   ///
@@ -134,8 +141,9 @@ class PaymentVerificationNavigator {
     }
 
     final currentRoute = _routerService.router.current.name;
-    if (currentRoute == BarModeHostRoute.name) {
-      talker.info('Already in bar mode — skipping home navigation');
+    if (currentRoute == BarModeHostRoute.name ||
+        currentRoute == HotelModeHostRoute.name) {
+      talker.info('Already in a service mode — skipping home navigation');
       return;
     }
 
@@ -251,7 +259,13 @@ class PaymentVerificationNavigator {
       return;
     }
 
-    await BarModeBranchSettingsService.hydrateForActiveBranch();
+    // Both, in parallel: the bar decision now also asks whether this branch
+    // runs a front desk, and hydrating them end to end would cost two timeouts
+    // on a cold device.
+    await Future.wait([
+      BarModeBranchSettingsService.hydrateForActiveBranch(),
+      HotelModeBranchSettingsService.hydrateForActiveBranch(),
+    ]);
 
     if (_shouldOpenBarMode()) {
       if (_refuseWhenSignedOut('BarMode')) return;
@@ -273,8 +287,23 @@ class PaymentVerificationNavigator {
     }
   }
 
+  /// Whether this terminal's own service mode is the bar floor.
+  ///
+  /// Mirrors `resolveServiceMode` in flipper_dashboard (which this package
+  /// cannot import) — keep the two in step. Everything else falls through to
+  /// [FlipperAppRoute], whose startup redirect resolves the mode properly, so
+  /// only the bar needs answering here.
   static bool _shouldOpenBarMode() {
-    return ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
+    final barEnabled = ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
+    if (!barEnabled) return false;
+
+    final device = ProxyService.box.readString(key: _deviceServiceModeKey);
+    if (device == 'bar') return true;
+    if (device == 'hotel' || device == 'pos') return false;
+
+    // No device pick: hotel wins, so a front desk is never dropped onto the
+    // bar's table floor by a payment check.
+    return !(ProxyService.box.readBool(key: _hotelModeEnabledKey) ?? false);
   }
 
   static Future<bool> _shouldNavigateToPersonalApp() async {

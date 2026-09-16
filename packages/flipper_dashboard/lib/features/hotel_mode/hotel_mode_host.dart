@@ -11,6 +11,8 @@ import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpo
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,8 +44,11 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
           Strategy.capella,
         ).seedDefaultRooms(branchId: branchId);
       }
+      // Opening the desk on this terminal is what makes it the desk terminal:
+      // the startup redirect and the sales pane both read the device pick, so
+      // the screen it was left on is the screen it comes back to.
       if (HotelModeSettings.enabled) {
-        HotelModeSettings.setLaunchOnStart(true);
+        setDeviceServiceMode(ServiceMode.hotel);
       }
       if (!mounted) return;
       await _resolveEntry();
@@ -114,7 +119,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       HotelScreen.folio => const HotelFolioScreen(),
     };
 
-    return Scaffold(
+    final desk = Scaffold(
       backgroundColor: HotelTokens.stageBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -163,5 +168,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
         },
       ),
     );
+
+    return ServiceModeHotkeyScope(child: desk);
   }
 }

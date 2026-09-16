@@ -438,3 +438,43 @@ const hotelRoomTypePresets = <String>[
   'Executive Suite',
   'Presidential',
 ];
+
+// --- Charging another outlet to a room --------------------------------------
+
+/// Stays a bar / restaurant / shop tab can be posted to.
+///
+/// Only an in-house guest with an open folio can take a charge: a reservation
+/// has no folio until it arrives, and a checked-out stay has already been
+/// invoiced. Sorted the way the desk reads room numbers, so "9" comes before
+/// "10" instead of after it.
+List<HotelStay> hotelChargeableStays(Iterable<HotelStay> stays) {
+  final chargeable = stays
+      .where((stay) => stay.status == HotelStayStatus.inHouse && stay.hasFolio)
+      .toList();
+  chargeable.sort((a, b) => hotelCompareRoomNames(a.roomName, b.roomName));
+  return chargeable;
+}
+
+/// Room-number ordering: numeric when both sides are numbers, else textual.
+int hotelCompareRoomNames(String a, String b) {
+  final left = int.tryParse(a.trim());
+  final right = int.tryParse(b.trim());
+  if (left != null && right != null) return left.compareTo(right);
+  return a.toLowerCase().compareTo(b.toLowerCase());
+}
+
+/// Whether [stay] matches what was typed into a "charge to room" search box —
+/// room number, guest name or guest phone, so the desk can find a guest by
+/// whichever of the three the waiter was told.
+bool hotelStayMatchesSearch(HotelStay stay, String term) {
+  final needle = term.trim().toLowerCase();
+  if (needle.isEmpty) return true;
+  if (stay.roomName.toLowerCase().contains(needle)) return true;
+  if (stay.guestName.toLowerCase().contains(needle)) return true;
+  final phone = stay.guestPhone?.toLowerCase();
+  return phone != null && phone.contains(needle);
+}
+
+/// "Room 204 · Jane Doe" — one label for buttons, toasts and folio notes.
+String hotelRoomChargeTarget(HotelStay stay) =>
+    'Room ${stay.roomName} · ${stay.guestName}';

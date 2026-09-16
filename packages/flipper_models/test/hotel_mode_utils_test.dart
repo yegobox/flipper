@@ -231,4 +231,96 @@ void main() {
     expect(a.map((r) => r.id), b.map((r) => r.id));
     expect(a.map((r) => r.id).toSet().length, a.length);
   });
+
+  group('hotelChargeableStays', () {
+    test('only in-house guests with a folio can take a bar tab', () {
+      final stays = [
+        _chargeable(id: 's1', roomName: '101'),
+        // Reserved: no folio exists until the guest turns up.
+        _chargeable(
+          id: 's2',
+          roomName: '102',
+          status: HotelStayStatus.reserved,
+          transactionId: '',
+        ),
+        // In-house but folio-less (a reservation mid-arrival) — not billable.
+        _chargeable(id: 's3', roomName: '103', transactionId: ''),
+        _chargeable(
+          id: 's4',
+          roomName: '104',
+          status: HotelStayStatus.checkedOut,
+        ),
+      ];
+
+      expect(
+        hotelChargeableStays(stays).map((s) => s.id),
+        ['s1'],
+      );
+    });
+
+    test('rooms are ordered the way the desk reads them', () {
+      final stays = [
+        _chargeable(id: 'a', roomName: '10'),
+        _chargeable(id: 'b', roomName: '9'),
+        _chargeable(id: 'c', roomName: '104'),
+      ];
+
+      expect(
+        hotelChargeableStays(stays).map((s) => s.roomName),
+        ['9', '10', '104'],
+      );
+    });
+  });
+
+  group('hotelStayMatchesSearch', () {
+    final stay = _chargeable(
+      id: 's1',
+      roomName: '204',
+      guestName: 'Aline Uwase',
+      guestPhone: '788123456',
+    );
+
+    test('empty term matches everything', () {
+      expect(hotelStayMatchesSearch(stay, '   '), isTrue);
+    });
+
+    test('matches room, name or phone, case-insensitively', () {
+      expect(hotelStayMatchesSearch(stay, '204'), isTrue);
+      expect(hotelStayMatchesSearch(stay, 'aline'), isTrue);
+      expect(hotelStayMatchesSearch(stay, '78812'), isTrue);
+      expect(hotelStayMatchesSearch(stay, '301'), isFalse);
+    });
+  });
+
+  test('charge target names the room and the guest', () {
+    expect(
+      hotelRoomChargeTarget(
+        _chargeable(id: 's1', roomName: '204', guestName: 'Aline Uwase'),
+      ),
+      'Room 204 · Aline Uwase',
+    );
+  });
+}
+
+HotelStay _chargeable({
+  required String id,
+  required String roomName,
+  String guestName = 'Aline Uwase',
+  String? guestPhone,
+  String transactionId = 'folio-1',
+  HotelStayStatus status = HotelStayStatus.inHouse,
+}) {
+  return HotelStay(
+    id: id,
+    branchId: 'b1',
+    roomId: 'room-$id',
+    roomName: roomName,
+    transactionId: transactionId,
+    guestName: guestName,
+    guestPhone: guestPhone,
+    checkInAt: DateTime.utc(2026, 1, 10, 14),
+    expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+    nightlyRate: 50000,
+    status: status,
+  );
 }
