@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flutter/material.dart';
@@ -24,18 +25,12 @@ import 'package:flutter/services.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 
 class SignUpView extends StatefulHookConsumerWidget {
-  const SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
+  const SignUpView({Key? key, this.countryNm = kDefaultSignupCountry})
+      : super(key: key);
   final String? countryNm;
 
   @override
   _SignUpViewState createState() => _SignUpViewState();
-}
-
-class PhoneValidationRule {
-  final String dialCode;
-  final List<int> localLengths;
-
-  PhoneValidationRule({required this.dialCode, required this.localLengths});
 }
 
 class _SignUpViewState extends ConsumerState<SignUpView> {
@@ -46,12 +41,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   String? _lastSubmittedOtp;
   final _formKey = GlobalKey<FormState>();
   StreamSubscription? _otpVerificationSubscription; // State-level field
-
-  static final Map<String, PhoneValidationRule> _phoneValidationRules = {
-    'Rwanda': PhoneValidationRule(dialCode: '+250', localLengths: [9]),
-    'Zambia': PhoneValidationRule(dialCode: '+260', localLengths: [9]),
-    'Mozambique': PhoneValidationRule(dialCode: '+258', localLengths: [9]),
-  };
 
   @override
   void initState() {
@@ -64,33 +53,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
     return emailRegex.hasMatch(value);
   }
 
-  static bool _isValidPhoneNumber(String value, String country) {
-    if (value.isEmpty) {
-      return false;
-    }
-    final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-
-    // Check against all known rules if number starts with '+'
-    if (value.startsWith('+')) {
-      for (final rule in _phoneValidationRules.values) {
-        if (value.startsWith(rule.dialCode)) {
-          // Dynamically compute valid total lengths
-          final dialCodeDigits =
-              rule.dialCode.replaceAll(RegExp(r'\D'), '').length;
-          final validTotalLengths =
-              rule.localLengths.map((len) => dialCodeDigits + len);
-          return validTotalLengths.contains(digitsOnly.length);
-        }
-      }
-      return false; // Starts with '+' but not a known dial code
-    }
-
-    // If no '+', assume it's a local number for the currently selected country
-    final currentRule = _phoneValidationRules[country];
-    if (currentRule == null) return false; // Should not happen
-
-    return currentRule.localLengths.contains(digitsOnly.length);
-  }
+  /// Signup covers every country now, so there is no per-country length table
+  /// to check against — [isPlausiblePhoneNumber] applies the E.164 bounds that
+  /// hold everywhere instead.
+  static bool _isValidPhoneNumber(String value, String country) =>
+      isPlausiblePhoneNumber(value, country: country);
 
   @override
   void dispose() {
@@ -111,7 +78,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
             signupViewModel: model,
-            country: widget.countryNm ?? "Rwanda",
+            country: widget.countryNm ?? kDefaultSignupCountry,
           ),
           child: Builder(
             builder: (context) {
@@ -204,10 +171,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                             SelectFieldBlocState<String, String>>(
                           bloc: formBloc.countryName,
                           builder: (context, countryState) {
-                            final country = countryState.value ?? 'Rwanda';
-                            final dialCode =
-                                _phoneValidationRules[country]?.dialCode ??
-                                    '+250';
+                            final country =
+                                countryState.value ?? kDefaultSignupCountry;
+                            final dialCode = signupDialCodeFor(country);
                             return BlocBuilder<TextFieldBloc,
                                 TextFieldBlocState>(
                               bloc: formBloc.phoneNumber,
@@ -265,7 +231,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                     _isValidPhoneNumber(
                                             phoneValue,
                                             formBloc.countryName.value ??
-                                                'Rwanda') ||
+                                                kDefaultSignupCountry) ||
                                         _isValidEmail(phoneValue);
 
                                 final bool canSend = !isVerified &&
@@ -527,15 +493,12 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                             },
                           ),
                         ),
-                      components.SignupComponents.buildDropdownField<String>(
+                      components.SignupComponents.buildSearchableSelectField(
                         fieldBloc: formBloc.countryName,
                         label: 'Country',
                         icon: Icons.public_outlined,
-                        itemBuilder: (context, value) => FieldItem(
-                          child: Text(
-                            value,
-                          ),
-                        ),
+                        searchHint: 'Search your country',
+                        trailingLabel: signupDialCodeFor,
                       ),
                       BlocBuilder<AsyncFieldValidationFormBloc, FormBlocState>(
                         builder: (context, state) {

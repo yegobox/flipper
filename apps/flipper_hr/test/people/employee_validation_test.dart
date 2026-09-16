@@ -38,16 +38,30 @@ void main() {
       );
     });
 
-    test('needs at least nine digits', () {
+    test('rejects a number too short to dial', () {
       expect(
         validate(employee(phone: '0788'))[EmployeeField.phone],
-        contains('at least 9 digits'),
+        'Enter a valid phone number',
       );
     });
 
     test('accepts formatting and country codes', () {
       expect(validate(employee(phone: '+250 788 123 456')), isEmpty);
       expect(validate(employee(phone: '078-812-3456')), isEmpty);
+    });
+
+    test('accepts numbers from outside Rwanda', () {
+      // The old nine-digit floor rejected all of these.
+      expect(validate(employee(phone: '+44 7911 123456')), isEmpty);
+      expect(validate(employee(phone: '+354 611 2345')), isEmpty);
+      expect(validate(employee(phone: '+1 212 555 0100')), isEmpty);
+    });
+
+    test('rejects a dial code that is not a country', () {
+      expect(
+        validate(employee(phone: '+999 123 456 789'))[EmployeeField.phone],
+        'Enter a valid phone number',
+      );
     });
   });
 
@@ -71,13 +85,22 @@ void main() {
       expect(validate(employee(nationalId: '')), isEmpty);
     });
 
-    test('must be 16 digits when given', () {
+    test('is checked for length, not a single country\'s format', () {
       expect(
         validate(employee(nationalId: '123'))[EmployeeField.nationalId],
-        'A national ID has 16 digits',
+        'A national ID is 5 to 20 characters',
       );
+      expect(
+        validate(
+          employee(nationalId: '123456789012345678901'),
+        )[EmployeeField.nationalId],
+        'A national ID is 5 to 20 characters',
+      );
+      // Rwanda's 16 digits, Kenya's 8, a Ugandan NIN with letters in it.
       expect(validate(employee(nationalId: '1199080012345678')), isEmpty);
-      // Spaces are tolerated; the digit count is what matters.
+      expect(validate(employee(nationalId: '12345678')), isEmpty);
+      expect(validate(employee(nationalId: 'CM90012345PE1J')), isEmpty);
+      // Spaces are tolerated; they do not count toward the length.
       expect(validate(employee(nationalId: '1199 0800 1234 5678')), isEmpty);
     });
   });
@@ -166,7 +189,7 @@ void main() {
       );
     });
 
-    test('a mobile money number that is given must be long enough', () {
+    test('a mobile money number that is given must be dialable', () {
       expect(
         validate(
           employee(
@@ -174,7 +197,7 @@ void main() {
             momoPhone: '0788',
           ),
         )[EmployeeField.momoPhone],
-        contains('at least 9 digits'),
+        'Enter a valid mobile money number',
       );
     });
 

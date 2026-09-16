@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -64,9 +65,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       StreamController<Map<String, dynamic>>.broadcast();
 
   final SignupViewModel signupViewModel;
+  // Signup takes businesses from every country now, not the three this list
+  // was hardcoded to.
   final countryName = SelectFieldBloc<String, String>(
-    items: ['Zambia', 'Mozambique', 'Rwanda'],
-    initialValue: 'Rwanda',
+    items: kSignupCountryNames,
+    initialValue: kDefaultSignupCountry,
   );
 
   final businessTypes =
@@ -276,15 +279,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 
   // Phone normalization logic
-  final Map<String, String> _countryDialCodes = {
-    'Rwanda': '+250',
-    'Zambia': '+260',
-    'Mozambique': '+258',
-  };
-
-  String _dialCodeForCountry(String country) {
-    return _countryDialCodes[country] ?? '+250';
-  }
+  String _dialCodeForCountry(String country) => signupDialCodeFor(country);
 
   String _ensurePhoneHasDialCode(String phone, String country) {
     final code = _dialCodeForCountry(country);
@@ -292,12 +287,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     if (cleaned.isEmpty) return code;
     // If phone already starts with the correct dial code for this country, return as-is
     if (cleaned.startsWith(code)) return cleaned;
-    // If phone starts with any known dial code, replace it with the correct one
-    for (final c in _countryDialCodes.values) {
-      if (cleaned.startsWith(c)) {
-        return code + cleaned.substring(c.length);
-      }
-    }
+    // If phone starts with any known dial code, replace it with the correct
+    // one. Longest match first: `+1` and `+1268` are both dial codes, so a
+    // shortest-match scan would leave `268…` sitting in the local part.
+    final existing = matchLeadingDialCode(cleaned);
+    if (existing != null) return code + cleaned.substring(existing.length);
     // Remove leading zero if present (local formats) and prepend dial code
     var local = cleaned;
     if (local.startsWith('0')) local = local.substring(1);

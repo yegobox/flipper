@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -67,7 +68,9 @@ class SignupViewModel extends BaseViewModel {
         'tinNumber': tin ?? '',
         'type': BusinessTypeEnum.fromId(businessType?.id ?? '1').name,
         'phoneNumber': phoneNumber ?? '',
-        'currency': 'RWF',
+        // The business keeps its books in its own country's currency; RWF is
+        // only the fallback for a country the table does not know.
+        'currency': signupCurrencyFor(country),
         'longitude': 1,
         'latitude': 1,
         'bhfid': '00',
