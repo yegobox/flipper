@@ -11,7 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-/// Cycles Bar Mode → Hotel Mode → POS without a trip through the admin screen.
+/// Cycles this device Bar Mode → Hotel Mode → POS without a trip through the
+/// admin screen.
 ///
 /// `Ctrl/Cmd + Shift + M`. Shift is part of the combination so it cannot be
 /// hit while typing, and `M` is free on every surface the modes run on.
@@ -74,11 +75,12 @@ class _ServiceModeHotkeyScopeState extends State<ServiceModeHotkeyScope> {
   }
 }
 
-/// Moves the branch to [nextServiceMode] and lands on that mode's surface.
+/// Moves this device to [nextServiceMode] and lands on that mode's surface.
 ///
-/// Admin-gated on [AppFeature.Settings], the same right the admin screen's
-/// master toggles need: this writes the *branch* service mode, so a cashier on
-/// a shared terminal must not be able to move the whole branch with a keypress.
+/// The pick itself is local to the terminal, but cycling onto a service the
+/// branch does not offer yet turns it on for the whole branch — so this stays
+/// admin-gated on [AppFeature.Settings], the same right the admin screen's
+/// master toggles need.
 Future<void> cycleServiceMode() async {
   if (_ServiceModeHotkeyScopeState._switching) return;
   _ServiceModeHotkeyScopeState._switching = true;
@@ -92,16 +94,28 @@ Future<void> cycleServiceMode() async {
     );
     if (!allowed) {
       _toast(
-        'Only an admin can switch service mode.',
+        'Only an admin can switch this device\'s service mode.',
         type: NotificationType.error,
       );
       return;
     }
 
     final target = nextServiceMode(activeServiceMode);
-    await applyServiceMode(target);
+    if (!await applyServiceMode(target)) {
+      // The switch rolled itself back, so the device is still on the old
+      // surface — navigating there would strand it on a mode it is not in.
+      _toast(
+        'Could not switch to ${target.label}: the branch settings did not '
+        'save. Check your connection and try again.',
+        type: NotificationType.error,
+      );
+      return;
+    }
     _navigateTo(target);
-    _toast('Switched to ${target.label} · $serviceModeHotkeyLabel to cycle');
+    _toast(
+      'This device switched to ${target.label} · '
+      '$serviceModeHotkeyLabel to cycle',
+    );
   } catch (e, s) {
     talker.error('Service mode hotkey switch failed', e, s);
     _toast('Could not switch service mode.', type: NotificationType.error);

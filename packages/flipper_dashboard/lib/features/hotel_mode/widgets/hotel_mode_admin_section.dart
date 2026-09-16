@@ -106,15 +106,13 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
 
     if (!value) return;
 
-    // Both modes replace the same POS sales pane, so they cannot both own it.
-    if (BarModeSettings.enabled) {
-      BarModeSettings.setEnabled(false);
-      if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          'Bar Mode turned off — a branch runs one service mode at a time.',
-        );
-      }
+    // A property can offer both. Which surface a given terminal shows is a
+    // device choice, so turning the desk on no longer shuts the bar down.
+    if (BarModeSettings.enabled && mounted) {
+      showCustomSnackBarUtil(
+        context,
+        'Hotel Mode on alongside Bar Mode — pick what this device runs below.',
+      );
     }
 
     final branchId = ProxyService.box.getBranchId();

@@ -36,17 +36,19 @@ enum SalesSurface {
   /// True when this surface takes the entire sales pane to itself.
   bool get ownsWholePane => this != SalesSurface.pos;
 
-  /// Which surface the branch's service mode asks for.
+  /// Which surface this device's service mode asks for.
   ///
-  /// Delegates to [resolveServiceMode] so the "hotel wins over a stale bar
-  /// setting" rule lives in exactly one place — the hotkey cycle and this pane
-  /// must never disagree about which mode is active.
+  /// Delegates to [resolveServiceMode] so the device-pick and fallback rules
+  /// live in exactly one place — the hotkey cycle, the startup redirect and
+  /// this pane must never disagree about which mode a terminal is running.
   static SalesSurface resolve({
     required bool hotelEnabled,
     required bool barEnabled,
+    ServiceMode? deviceMode,
   }) => switch (resolveServiceMode(
     hotelEnabled: hotelEnabled,
     barEnabled: barEnabled,
+    deviceMode: deviceMode,
   )) {
     ServiceMode.hotel => SalesSurface.hotel,
     ServiceMode.bar => SalesSurface.bar,
@@ -56,6 +58,7 @@ enum SalesSurface {
   static SalesSurface get current => resolve(
     hotelEnabled: HotelModeSettings.enabled,
     barEnabled: BarModeSettings.enabled,
+    deviceMode: deviceServiceMode,
   );
 }
 
