@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,10 @@ final Map<ShortcutActivator, Intent> globalDashboardShortcutShortcuts = {
 };
 
 /// Wraps the dashboard shell with app-wide [Shortcuts] / [Actions].
+///
+/// The service-mode hotkey ([ServiceModeHotkeyScope]) is folded in here rather
+/// than added to [shortcuts]: it has to fire on the mode hosts' PIN locks,
+/// where nothing is focused and a [Shortcuts] map is never consulted.
 class GlobalDashboardKeyboardScope extends StatelessWidget {
   GlobalDashboardKeyboardScope({
     super.key,
@@ -53,11 +58,13 @@ class GlobalDashboardKeyboardScope extends StatelessWidget {
                 },
               ),
         };
-        return Shortcuts(
-          shortcuts: shortcuts,
-          child: Actions(
-            actions: {...defaultActions, ...extraActions},
-            child: child,
+        return ServiceModeHotkeyScope(
+          child: Shortcuts(
+            shortcuts: shortcuts,
+            child: Actions(
+              actions: {...defaultActions, ...extraActions},
+              child: child,
+            ),
           ),
         );
       },

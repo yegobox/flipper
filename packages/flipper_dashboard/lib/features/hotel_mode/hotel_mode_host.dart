@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpo
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -114,7 +115,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       HotelScreen.folio => const HotelFolioScreen(),
     };
 
-    return Scaffold(
+    final desk = Scaffold(
       backgroundColor: HotelTokens.stageBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -163,5 +164,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
         },
       ),
     );
+
+    return ServiceModeHotkeyScope(child: desk);
   }
 }
