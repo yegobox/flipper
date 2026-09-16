@@ -4,8 +4,10 @@ import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_a
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_quotation_sheet.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -173,6 +175,12 @@ class HotelQuotationsScreen extends ConsumerWidget {
       'Accepted' => (HotelTokens.reservedInk, HotelTokens.reservedTint),
       _ => (HotelTokens.occupiedInk, HotelTokens.occupiedTint),
     };
+    final statusIcon = switch (label) {
+      'Booked' || 'Accepted' => AdminDashboardSvgs.quoteCheckCircle,
+      'Expired' => AdminDashboardSvgs.quoteClock,
+      'Declined' => AdminDashboardSvgs.quoteRemoveCircle,
+      _ => AdminDashboardSvgs.quoteDraft,
+    };
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -187,88 +195,66 @@ class HotelQuotationsScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            quote.guestName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: HotelTokens.ink1,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          quote.reference,
-                          style: GoogleFonts.jetBrainsMono(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: HotelTokens.ink4,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Room ${quote.roomName} · ${quote.roomType} · '
-                      '${DateFormat('d MMM').format(quote.checkInAt.toLocal())} → '
-                      '${DateFormat('d MMM').format(quote.checkOutAt.toLocal())} · '
-                      '${quote.nights} night${quote.nights == 1 ? '' : 's'}',
-                      maxLines: 2,
-                      style: GoogleFonts.outfit(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        color: HotelTokens.ink3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4.5,
-                ),
-                decoration: BoxDecoration(
-                  color: tint,
-                  borderRadius: BorderRadius.circular(999),
-                ),
+              Flexible(
                 child: Text(
-                  label,
+                  quote.guestName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: ink,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: HotelTokens.ink1,
                   ),
                 ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                quote.reference,
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: HotelTokens.ink4,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Wrap, not Row: on a narrow desk terminal these three facts should
+          // stack rather than ellipsize away the night count.
+          Wrap(
+            spacing: 16,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _metaChip(
+                AdminDashboardSvgs.quoteBed,
+                'Room ${quote.roomName} · ${quote.roomType}',
+              ),
+              _metaChip(
+                AdminDashboardSvgs.quoteCalendar,
+                '${DateFormat('d MMM').format(quote.checkInAt.toLocal())} → '
+                '${DateFormat('d MMM').format(quote.checkOutAt.toLocal())}',
+              ),
+              _metaChip(
+                AdminDashboardSvgs.quoteMoon,
+                '${quote.nights} night${quote.nights == 1 ? '' : 's'}',
               ),
             ],
           ),
           if (quote.sentAt != null) ...[
             const SizedBox(height: 6),
-            Text(
+            _metaChip(
+              AdminDashboardSvgs.quoteSend,
               'Emailed ${DateFormat('d MMM, HH:mm').format(quote.sentAt!.toLocal())}'
               '${quote.guestEmail == null ? '' : ' · ${quote.guestEmail}'}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.outfit(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: HotelTokens.vacantInk,
-              ),
+              color: HotelTokens.vacantInk,
             ),
           ],
-          const SizedBox(height: 12),
-          Row(
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 'RWF ${NumberFormat('#,###').format(quote.total)}',
@@ -278,53 +264,148 @@ class HotelQuotationsScreen extends ConsumerWidget {
                   color: HotelTokens.ink1,
                 ),
               ),
-              if (quote.validUntil != null && canConvert) ...[
-                const SizedBox(width: 10),
-                Text(
-                  'valid to ${DateFormat('d MMM').format(quote.validUntil!.toLocal())}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                    color: HotelTokens.ink3,
-                  ),
+              if (quote.validUntil != null && canConvert)
+                _metaChip(
+                  AdminDashboardSvgs.quoteClock,
+                  'valid to '
+                  '${DateFormat('d MMM').format(quote.validUntil!.toLocal())}',
                 ),
-              ],
-              const Spacer(),
-              _documentButton(context, ref, quote),
-              const SizedBox(width: 4),
-              if (canConvert) ...[
-                TextButton(
-                  onPressed: () =>
-                      _editQuote(context, ref, quote, rooms, stays, compact),
-                  child: Text(
-                    'Edit',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: HotelTokens.ink2,
-                    ),
-                  ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _statusPill(icon: statusIcon, label: label, ink: ink, tint: tint),
+              const SizedBox(width: 8),
+              // Actions stay right-aligned; the Wrap inside the Expanded lets a
+              // narrow terminal drop them onto a second line rather than
+              // overflowing, without giving up the alignment.
+              Expanded(
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: 4,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    _documentButton(context, ref, quote),
+                    if (canConvert) ...[
+                      _iconTextButton(
+                        icon: AdminDashboardSvgs.quoteEdit,
+                        label: 'Edit',
+                        color: HotelTokens.ink2,
+                        onPressed: () => _editQuote(
+                          context,
+                          ref,
+                          quote,
+                          rooms,
+                          stays,
+                          compact,
+                        ),
+                      ),
+                      _acceptButton(context, ref, quote, rooms),
+                    ] else
+                      _iconTextButton(
+                        icon: AdminDashboardSvgs.quoteTrash,
+                        label: 'Remove',
+                        color: HotelTokens.lossInk,
+                        onPressed: () => _confirmDelete(context, ref, quote),
+                      ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                _acceptButton(context, ref, quote, rooms),
-              ] else
-                TextButton(
-                  onPressed: () => _confirmDelete(context, ref, quote),
-                  child: Text(
-                    'Remove',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: HotelTokens.lossInk,
-                    ),
-                  ),
-                ),
+              ),
             ],
           ),
         ],
       ),
     );
   }
+
+  /// One icon + label fact from the quotation, e.g. the room or the dates.
+  Widget _metaChip(String icon, String text, {Color? color}) {
+    final tone = color ?? HotelTokens.ink3;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AdminDashboardSvgs.tinted(icon, color: tone, size: 15),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: GoogleFonts.outfit(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w500,
+            color: tone,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _statusPill({
+    required String icon,
+    required String label,
+    required Color ink,
+    required Color tint,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      decoration: BoxDecoration(
+        color: tint,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AdminDashboardSvgs.tinted(icon, color: ink, size: 15),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: ink,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _iconTextButton({
+    required String icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+    String? trailingIcon,
+  }) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AdminDashboardSvgs.tinted(icon, color: color, size: 17),
+          const SizedBox(width: 7),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          if (trailingIcon != null) ...[
+            const SizedBox(width: 5),
+            AdminDashboardSvgs.tinted(trailingIcon, color: color, size: 15),
+          ],
+        ],
+      ),
+    );
+  }
+
 
   /// Send / Download / Print.
   ///
@@ -341,16 +422,12 @@ class HotelQuotationsScreen extends ConsumerWidget {
     // — not a RenderBox — so anchoring the menu to it fails. The Builder sits
     // inside the button, so its context resolves to the button's own box.
     return Builder(
-      builder: (buttonContext) => TextButton(
+      builder: (buttonContext) => _iconTextButton(
+        icon: AdminDashboardSvgs.quoteDocument,
+        label: 'Document',
+        color: HotelTokens.ink2,
+        trailingIcon: AdminDashboardSvgs.quoteChevronDown,
         onPressed: () => _showDocumentMenu(buttonContext, ref, quote),
-        child: Text(
-          'Document',
-          style: GoogleFonts.outfit(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w700,
-            color: HotelTokens.ink2,
-          ),
-        ),
       ),
     );
   }
@@ -384,32 +461,22 @@ class HotelQuotationsScreen extends ConsumerWidget {
       context: context,
       position: _menuPosition(context) ?? const RelativeRect.fromLTRB(0, 0, 0, 0),
       items: [
-        PopupMenuItem(
+        _menuItem(
           value: 'send',
-          child: Text(
-            quote.guestEmail == null
-                ? 'Send to guest…'
-                : 'Send to ${quote.guestEmail}',
-            style: GoogleFonts.outfit(fontSize: 13.5),
-          ),
+          icon: AdminDashboardSvgs.quoteSend,
+          label: quote.guestEmail == null
+              ? 'Send to guest…'
+              : 'Send to ${quote.guestEmail}',
         ),
-        PopupMenuItem(
-          value: 'print',
-          child: Text(
-            'Print or save as PDF…',
-            style: GoogleFonts.outfit(fontSize: 13.5),
-          ),
-        ),
-        PopupMenuItem(
+        _menuItem(
           value: 'download',
-          child: Text(
-            'Save to this device',
-            style: GoogleFonts.outfit(fontSize: 13.5),
-          ),
+          icon: AdminDashboardSvgs.quoteDownload,
+          label: 'Download PDF',
         ),
-        PopupMenuItem(
-          value: 'share',
-          child: Text('Share…', style: GoogleFonts.outfit(fontSize: 13.5)),
+        _menuItem(
+          value: 'print',
+          icon: AdminDashboardSvgs.quotePrint,
+          label: 'Print',
         ),
       ],
     );
@@ -425,9 +492,35 @@ class HotelQuotationsScreen extends ConsumerWidget {
         await HotelQuotationActions.download(context, quote);
       case 'print':
         await HotelQuotationActions.print(context, quote);
-      case 'share':
-        await HotelQuotationActions.share(context, quote);
     }
+  }
+
+  PopupMenuItem<String> _menuItem({
+    required String value,
+    required String icon,
+    required String label,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AdminDashboardSvgs.tinted(icon, color: HotelTokens.ink2, size: 18),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: HotelTokens.ink1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _sendQuote(
@@ -453,6 +546,11 @@ class HotelQuotationsScreen extends ConsumerWidget {
     await HotelDeskActions.sendQuotation(ref: ref, quotation: target);
   }
 
+  /// Collects the guest's email when a quotation has none.
+  ///
+  /// Shows what is about to be sent — reference, room, total — because this is
+  /// the last stop before a document leaves the property, and a clerk typing
+  /// an address should be able to see they picked the right quotation.
   Future<String?> _askForEmail(
     BuildContext context,
     HotelQuotation quote,
@@ -461,6 +559,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
     try {
       return await showDialog<String>(
         context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.42),
         builder: (dialogContext) {
           String? error;
           return StatefulBuilder(
@@ -476,29 +575,241 @@ class HotelQuotationsScreen extends ConsumerWidget {
                 Navigator.of(dialogContext).pop(value);
               }
 
-              return AlertDialog(
-                title: Text(
-                  'Email ${quote.reference}',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+              return Dialog(
+                backgroundColor: HotelTokens.surface,
+                elevation: 0,
+                insetPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 24,
                 ),
-                content: TextField(
-                  controller: controller,
-                  autofocus: true,
-                  keyboardType: TextInputType.emailAddress,
-                  onSubmitted: (_) => submit(),
-                  decoration: InputDecoration(
-                    labelText: 'Guest email',
-                    hintText: 'name@example.com',
-                    errorText: error,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(HotelTokens.radiusXl),
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: HotelTokens.blueTint,
+                                borderRadius: BorderRadius.circular(
+                                  HotelTokens.radiusMd,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: AdminDashboardSvgs.tinted(
+                                AdminDashboardSvgs.quoteSend,
+                                color: HotelTokens.blue,
+                                size: 21,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Email this quotation',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.2,
+                                      color: HotelTokens.ink1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'The PDF goes out as an attachment.',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: HotelTokens.ink3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      // A summary of what is about to be sent, so the clerk can
+                      // confirm they are on the right card before typing.
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: HotelTokens.posBg,
+                          borderRadius: BorderRadius.circular(
+                            HotelTokens.radiusMd,
+                          ),
+                          border: Border.all(color: HotelTokens.line),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    quote.guestName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: HotelTokens.ink1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Room ${quote.roomName} · '
+                                    '${quote.nights} night'
+                                    '${quote.nights == 1 ? '' : 's'}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: HotelTokens.ink3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  quote.reference,
+                                  style: GoogleFonts.jetBrainsMono(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: HotelTokens.ink4,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'RWF '
+                                  '${NumberFormat('#,###').format(quote.total)}',
+                                  style: GoogleFonts.jetBrainsMono(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: HotelTokens.ink1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: HotelSheetField(
+                          label: 'Guest email',
+                          controller: controller,
+                          hint: 'name@example.com',
+                          errorText: error,
+                          keyboardType: TextInputType.emailAddress,
+                          onChanged: (_) {
+                            if (error != null) {
+                              setLocalState(() => error = null);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          'Saved to the quotation, so the next send needs no '
+                          'retyping.',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: HotelTokens.ink4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 22),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: HotelTokens.ink3,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: HotelTokens.gradBtn,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: TextButton(
+                                onPressed: submit,
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AdminDashboardSvgs.tinted(
+                                      AdminDashboardSvgs.quoteSend,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Send quotation',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(onPressed: submit, child: const Text('Send')),
-                ],
               );
             },
           );
@@ -522,13 +833,29 @@ class HotelQuotationsScreen extends ConsumerWidget {
       ),
       child: TextButton(
         onPressed: () => _accept(context, ref, quote, rooms),
-        child: Text(
-          'Accept & hold',
-          style: GoogleFonts.outfit(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AdminDashboardSvgs.tinted(
+              AdminDashboardSvgs.quoteCheck,
+              color: Colors.white,
+              size: 17,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              'Accept & hold',
+              style: GoogleFonts.outfit(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );

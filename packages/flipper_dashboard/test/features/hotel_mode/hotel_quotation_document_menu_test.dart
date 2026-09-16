@@ -99,11 +99,10 @@ void main() {
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
 
-      // The same three routes the sale receipt offers, via the shared
-      // PdfPresentationService — desktop save dialog, print dialog, share.
-      expect(find.text('Print or save as PDF…'), findsOneWidget);
-      expect(find.text('Save to this device'), findsOneWidget);
-      expect(find.text('Share…'), findsOneWidget);
+      // Both go through the shared PdfPresentationService, so Download PDF
+      // is the desktop save dialog and Print is the system print dialog.
+      expect(find.text('Download PDF'), findsOneWidget);
+      expect(find.text('Print'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -159,6 +158,59 @@ void main() {
 
       expect(find.text('Send to b@example.com'), findsOneWidget);
       expect(find.text('Send to a@example.com'), findsNothing);
+    });
+  });
+
+  group('send dialog', () {
+    testWidgets('shows what is about to be sent before asking for an address', (
+      tester,
+    ) async {
+      await _pump(tester, quotes: [_quote(reference: 'Q-AAD63C')]);
+
+      await tester.tap(find.text('Document'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Send to guest…'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Email this quotation'), findsOneWidget);
+      // The clerk can confirm they are on the right card without cancelling.
+      expect(find.text('Q-AAD63C'), findsWidgets);
+      expect(find.text('Aline Uwase'), findsWidgets);
+      expect(find.text('Guest email'), findsOneWidget);
+      expect(find.text('Send quotation'), findsOneWidget);
+      expect(find.text('Cancel'), findsOneWidget);
+    });
+
+    testWidgets('refuses an address that cannot receive mail', (tester) async {
+      await _pump(tester, quotes: [_quote()]);
+
+      await tester.tap(find.text('Document'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Send to guest…'));
+      await tester.pumpAndSettle();
+
+      // A phone number typed into the email box is the mistake to catch.
+      await tester.enterText(find.byType(TextField).last, '0788360058');
+      await tester.tap(find.text('Send quotation'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('That email does not look right'), findsOneWidget);
+      // Still open — the clerk gets to correct it.
+      expect(find.text('Email this quotation'), findsOneWidget);
+    });
+
+    testWidgets('closes on cancel without sending', (tester) async {
+      await _pump(tester, quotes: [_quote()]);
+
+      await tester.tap(find.text('Document'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Send to guest…'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Email this quotation'), findsNothing);
+      expect(tester.takeException(), isNull);
     });
   });
 }
