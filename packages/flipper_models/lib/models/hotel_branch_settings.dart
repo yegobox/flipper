@@ -9,6 +9,10 @@ class HotelBranchSettings {
     this.autoLogout = false,
     this.launchOnStart = false,
     this.checkOutHour = 11,
+    this.notifyGuestSms = false,
+    this.notifyGuestEmail = true,
+    this.notifyOnReserve = true,
+    this.notifyOnCheckIn = true,
     this.roomChargeVariantId,
     this.updatedAt,
   });
@@ -41,6 +45,22 @@ class HotelBranchSettings {
   /// House checkout time (0–23), used to default the departure date/time.
   final int checkOutHour;
 
+  /// Text the guest a confirmation. Off by default — SMS spends the branch's
+  /// credits, and that is not a cost to opt a property into silently.
+  final bool notifyGuestSms;
+
+  /// Email the guest a confirmation. On by default: it is free.
+  final bool notifyGuestEmail;
+
+  /// Confirm when a room is held for a future arrival.
+  final bool notifyOnReserve;
+
+  /// Confirm (welcome) when the guest actually arrives.
+  final bool notifyOnCheckIn;
+
+  /// Whether this branch sends a guest confirmation at all.
+  bool get notifiesGuests => notifyGuestSms || notifyGuestEmail;
+
   /// Variant used for the nightly room charge line.
   final String? roomChargeVariantId;
 
@@ -61,6 +81,10 @@ class HotelBranchSettings {
     bool? autoLogout,
     bool? launchOnStart,
     int? checkOutHour,
+    bool? notifyGuestSms,
+    bool? notifyGuestEmail,
+    bool? notifyOnReserve,
+    bool? notifyOnCheckIn,
     String? roomChargeVariantId,
     /// `copyWith` cannot pass null to mean "clear", so clearing the branch's
     /// room-charge product needs its own flag.
@@ -76,6 +100,10 @@ class HotelBranchSettings {
       autoLogout: autoLogout ?? this.autoLogout,
       launchOnStart: launchOnStart ?? this.launchOnStart,
       checkOutHour: checkOutHour ?? this.checkOutHour,
+      notifyGuestSms: notifyGuestSms ?? this.notifyGuestSms,
+      notifyGuestEmail: notifyGuestEmail ?? this.notifyGuestEmail,
+      notifyOnReserve: notifyOnReserve ?? this.notifyOnReserve,
+      notifyOnCheckIn: notifyOnCheckIn ?? this.notifyOnCheckIn,
       roomChargeVariantId: clearRoomChargeVariantId
           ? null
           : (roomChargeVariantId ?? this.roomChargeVariantId),
@@ -95,6 +123,10 @@ class HotelBranchSettings {
       'autoLogout': autoLogout,
       'launchOnStart': launchOnStart,
       'checkOutHour': checkOutHour,
+      'notifyGuestSms': notifyGuestSms,
+      'notifyGuestEmail': notifyGuestEmail,
+      'notifyOnReserve': notifyOnReserve,
+      'notifyOnCheckIn': notifyOnCheckIn,
       // Written even when null: Ditto's ON ID CONFLICT DO UPDATE leaves
       // omitted fields untouched, so omitting it would keep a cleared product
       // alive on every other device.
@@ -135,6 +167,13 @@ class HotelBranchSettings {
       requirePin: toBool(raw['requirePin'], fallback: true),
       autoLogout: toBool(raw['autoLogout'], fallback: false),
       checkOutHour: toInt(raw['checkOutHour'], fallback: 11),
+      // Documents written before guest notifications existed default to the
+      // free channel only, so enabling the feature never starts spending a
+      // branch's credits without someone choosing that.
+      notifyGuestSms: toBool(raw['notifyGuestSms'], fallback: false),
+      notifyGuestEmail: toBool(raw['notifyGuestEmail'], fallback: true),
+      notifyOnReserve: toBool(raw['notifyOnReserve'], fallback: true),
+      notifyOnCheckIn: toBool(raw['notifyOnCheckIn'], fallback: true),
       roomChargeVariantId: (variantId == null || variantId.isEmpty)
           ? null
           : variantId,

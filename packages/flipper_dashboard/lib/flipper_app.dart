@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -54,6 +55,7 @@ class FlipperApp extends HookConsumerWidget {
     ProxyService.status.updateStatusColor();
     unawaited(getIt<SettingsService>().hydrateToggleStatesFromSettings());
     unawaited(_redirectToServiceModeWhenBranchEnabled());
+    unawaited(_hydrateBranchDocumentSettings());
     // ProxyService.dynamicLink.handleDynamicLink(context);
     if (isAndroid || isIos) {
       _startNFCForModel(model);
@@ -68,6 +70,22 @@ class FlipperApp extends HookConsumerWidget {
   /// Which surface this terminal opens is [activeServiceMode]: the device's own
   /// pick when it has one, else the branch default. A property running both a
   /// front desk and a bar counter is exactly why the pick is per device.
+  /// Pull the branch's document branding (the company stamp) into the local
+  /// cache and keep watching it.
+  ///
+  /// Deliberately independent of the service-mode redirect above: the stamp is
+  /// only read when someone generates a PDF, so it must never sit in front of
+  /// the decision about which screen to open. Not hotel-specific either — the
+  /// leads proforma stamps itself on branches that never enable Hotel Mode.
+  Future<void> _hydrateBranchDocumentSettings() async {
+    try {
+      await BranchDocumentSettingsService.hydrateForActiveBranch();
+      BranchDocumentSettingsService.startWatchingActiveBranch();
+    } catch (_) {
+      // A branch with no branding document is the normal case.
+    }
+  }
+
   Future<void> _redirectToServiceModeWhenBranchEnabled() async {
     final router = locator<RouterService>();
     final routeAtStart = router.router.current.name;

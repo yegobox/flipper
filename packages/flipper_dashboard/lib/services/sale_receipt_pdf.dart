@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/services/pdf_assets.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -29,30 +30,6 @@ class SaleReceiptIssuer {
 /// before receipt upload, or an upload that never completed) so Share, Download
 /// and Print always produce a document instead of an error.
 class SaleReceiptPdf {
-  static const _flipperLogoSvgAsset =
-      'packages/flipper_dashboard/assets/pos_handoff/icons/flipper-logo.svg';
-
-  static pw.Font? _fallbackFont;
-  static String? _flipperLogoSvg;
-
-  static Future<pw.Font?> _unicodeFallback() async {
-    if (_fallbackFont != null) return _fallbackFont;
-    try {
-      final data = await rootBundle.load(
-        'packages/receipt/assets/fonts/NotoSans-Regular.ttf',
-      );
-      _fallbackFont = pw.Font.ttf(data);
-    } catch (_) {}
-    return _fallbackFont;
-  }
-
-  static Future<String?> _logoMarkup() async {
-    if (_flipperLogoSvg != null) return _flipperLogoSvg;
-    try {
-      _flipperLogoSvg = await rootBundle.loadString(_flipperLogoSvgAsset);
-    } catch (_) {}
-    return _flipperLogoSvg;
-  }
 
   static Future<Uint8List> build({
     required ITransaction transaction,
@@ -62,8 +39,8 @@ class SaleReceiptPdf {
     Receipt? fiscalReceipt,
     DateTime? generatedAt,
   }) async {
-    final logoSvg = await _logoMarkup();
-    final fallback = await _unicodeFallback();
+    final logoSvg = await PdfAssets.flipperLogoMarkup();
+    final fallback = await PdfAssets.unicodeFallback();
     final money = NumberFormat('#,##0.##');
     final stamp = transaction.createdAt ??
         transaction.lastTouched ??

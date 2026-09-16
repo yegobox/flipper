@@ -300,6 +300,41 @@ void main() {
       'Room 204 · Aline Uwase',
     );
   });
+
+  group('guest email helpers', () {
+    test('accepts ordinary addresses', () {
+      for (final good in [
+        'aline@example.com',
+        'a.b+tag@sub.example.co.rw',
+        'ALINE@EXAMPLE.COM',
+        '  spaced@example.com  ',
+      ]) {
+        expect(hotelIsPlausibleEmail(good), isTrue, reason: good);
+      }
+    });
+
+    test('rejects what a clerk actually mistypes', () {
+      for (final bad in [
+        null,
+        '',
+        '   ',
+        '0788360058',
+        'aline@example',
+        'aline@@example.com',
+        '@example.com',
+        'aline example@com',
+        'aline@.com',
+      ]) {
+        expect(hotelIsPlausibleEmail(bad), isFalse, reason: '$bad');
+      }
+    });
+
+    test('normalising turns blank into null and trims the rest', () {
+      expect(hotelNormalizeEmail(null), isNull);
+      expect(hotelNormalizeEmail('   '), isNull);
+      expect(hotelNormalizeEmail('  a@b.com '), 'a@b.com');
+    });
+  });
 }
 
 HotelStay _chargeable({

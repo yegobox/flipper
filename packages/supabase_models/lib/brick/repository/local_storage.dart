@@ -176,6 +176,16 @@ class SharedPreferenceStorage implements LocalStorage {
     'hotelAutoLogout',
     'hotelCheckOutHour',
     'hotelRoomChargeVariantId',
+    'hotelNotifyGuestSms',
+    'hotelNotifyGuestEmail',
+    'hotelNotifyOnReserve',
+    'hotelNotifyOnCheckIn',
+    // Branch document branding (stamp on quotations and proformas)
+    'docStampEnabled',
+    'docStampImageBase64',
+    'docStampPlacement',
+    'docStampWidthMm',
+    'docStampAspectRatio',
     // Which service surface THIS device runs. Deliberately never synced: a
     // property runs the front desk on one terminal and the bar on another.
     'deviceServiceMode',

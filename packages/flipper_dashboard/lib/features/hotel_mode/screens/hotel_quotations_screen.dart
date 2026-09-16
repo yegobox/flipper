@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
+import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
@@ -252,6 +253,20 @@ class HotelQuotationsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          if (quote.sentAt != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Emailed ${DateFormat('d MMM, HH:mm').format(quote.sentAt!.toLocal())}'
+              '${quote.guestEmail == null ? '' : ' · ${quote.guestEmail}'}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.outfit(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: HotelTokens.vacantInk,
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -275,6 +290,8 @@ class HotelQuotationsScreen extends ConsumerWidget {
                 ),
               ],
               const Spacer(),
+              _documentButton(context, ref, quote),
+              const SizedBox(width: 4),
               if (canConvert) ...[
                 TextButton(
                   onPressed: () =>
@@ -307,6 +324,164 @@ class HotelQuotationsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Send / Download / Print.
+  ///
+  /// Deliberately `showMenu` rather than [PopupMenuButton]: that widget always
+  /// wraps its child in a [Tooltip], and a Tooltip under DevicePreview's
+  /// LayoutBuilder trips `!_skipMarkNeedsLayout` in this app.
+  Widget _documentButton(
+    BuildContext context,
+    WidgetRef ref,
+    HotelQuotation quote,
+  ) {
+    return TextButton(
+      onPressed: () => _showDocumentMenu(context, ref, quote),
+      child: Text(
+        'Document',
+        style: GoogleFonts.outfit(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
+          color: HotelTokens.ink2,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDocumentMenu(
+    BuildContext context,
+    WidgetRef ref,
+    HotelQuotation quote,
+  ) async {
+    final box = context.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+
+    final origin = box.localToGlobal(Offset.zero, ancestor: overlay);
+    final choice = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        origin.dx,
+        origin.dy + box.size.height,
+        overlay.size.width - origin.dx - box.size.width,
+        0,
+      ),
+      items: [
+        PopupMenuItem(
+          value: 'send',
+          child: Text(
+            quote.guestEmail == null
+                ? 'Send to guest…'
+                : 'Send to ${quote.guestEmail}',
+            style: GoogleFonts.outfit(fontSize: 13.5),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'download',
+          child: Text('Download PDF', style: GoogleFonts.outfit(fontSize: 13.5)),
+        ),
+        PopupMenuItem(
+          value: 'print',
+          child: Text('Print', style: GoogleFonts.outfit(fontSize: 13.5)),
+        ),
+      ],
+    );
+    if (choice == null || !context.mounted) return;
+
+    final notifier = ref.read(hotelModeProvider.notifier);
+    try {
+      switch (choice) {
+        case 'send':
+          await _sendQuote(context, ref, quote);
+        case 'download':
+          await HotelQuotationActions.download(quote);
+        case 'print':
+          await HotelQuotationActions.print(quote);
+      }
+    } catch (e) {
+      notifier.showToast('Could not produce ${quote.reference}: $e');
+    }
+  }
+
+  Future<void> _sendQuote(
+    BuildContext context,
+    WidgetRef ref,
+    HotelQuotation quote,
+  ) async {
+    var target = quote;
+
+    if (target.guestEmail == null) {
+      final entered = await _askForEmail(context, target);
+      if (entered == null || !context.mounted) return;
+      // Persist the address first, so a failed send does not lose what the
+      // clerk just typed and a retry has something to send to.
+      target = target.copyWith(
+        guestEmail: entered,
+        updatedAt: DateTime.now().toUtc(),
+      );
+      await HotelDeskActions.saveQuotation(target);
+    }
+
+    if (!context.mounted) return;
+    await HotelDeskActions.sendQuotation(ref: ref, quotation: target);
+  }
+
+  Future<String?> _askForEmail(
+    BuildContext context,
+    HotelQuotation quote,
+  ) async {
+    final controller = TextEditingController();
+    try {
+      return await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          String? error;
+          return StatefulBuilder(
+            builder: (builderContext, setLocalState) {
+              void submit() {
+                final value = hotelNormalizeEmail(controller.text);
+                if (value == null || !hotelIsPlausibleEmail(value)) {
+                  setLocalState(
+                    () => error = 'That email does not look right',
+                  );
+                  return;
+                }
+                Navigator.of(dialogContext).pop(value);
+              }
+
+              return AlertDialog(
+                title: Text(
+                  'Email ${quote.reference}',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+                ),
+                content: TextField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType: TextInputType.emailAddress,
+                  onSubmitted: (_) => submit(),
+                  decoration: InputDecoration(
+                    labelText: 'Guest email',
+                    hintText: 'name@example.com',
+                    errorText: error,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(onPressed: submit, child: const Text('Send')),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   Widget _acceptButton(

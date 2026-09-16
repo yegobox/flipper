@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flipper_dashboard/features/admin/widgets/language_settings_card.dart';
 import 'package:flipper_dashboard/providers/digital_receipt_provider.dart';
@@ -19,7 +18,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:flipper_dashboard/utils/pick_image_base64.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/user_profile_name_service.dart';
@@ -976,71 +975,29 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         isUpdatingReceiptLogo = true;
       });
 
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['png', 'jpg', 'jpeg'],
-        withData: false,
+      final picked = await pickImageAsBase64(
+        maxSizeBytes: 295 * 1024, // plenty for a thermal receipt logo
       );
 
       if (!mounted) return;
 
-      if (result == null) {
+      if (picked.image == null) {
         setState(() {
           isUpdatingReceiptLogo = false;
         });
-        return;
-      }
-
-      final platformFile = result.files.single;
-      Uint8List? bytes = platformFile.bytes;
-
-      // If bytes is null (e.g., on desktop), read from file path
-      if (bytes == null && platformFile.path != null) {
-        try {
-          final file = File(platformFile.path!);
-          bytes = await file.readAsBytes();
-        } catch (e) {
-          setState(() {
-            isUpdatingReceiptLogo = false;
-          });
-          showErrorNotification(
-            context,
-            'Failed to read selected file. Please try again.',
-          );
-          return;
+        // Dismissing the picker is not a failure worth a red banner.
+        if (!picked.cancelled) {
+          showErrorNotification(context, picked.message!);
         }
-      }
-
-      if (bytes == null || bytes.isEmpty) {
-        setState(() {
-          isUpdatingReceiptLogo = false;
-        });
-        showErrorNotification(
-          context,
-          'Selected file has no data. Please pick another.',
-        );
         return;
       }
 
-      const maxSizeBytes = 295 * 1024; // 295KB, plenty for a logo
-      if (bytes.length > maxSizeBytes) {
-        setState(() {
-          isUpdatingReceiptLogo = false;
-        });
-        showErrorNotification(
-          context,
-          'Please choose an image under 200KB for best print quality.',
-        );
-        return;
-      }
-
-      final encoded = base64Encode(bytes);
-      await ProxyService.box.setReceiptLogoBase64(encoded);
+      await ProxyService.box.setReceiptLogoBase64(picked.image!.base64);
 
       if (!mounted) return;
 
       setState(() {
-        receiptLogoBytes = bytes;
+        receiptLogoBytes = picked.image!.bytes;
         isUpdatingReceiptLogo = false;
       });
 

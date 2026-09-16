@@ -478,3 +478,20 @@ bool hotelStayMatchesSearch(HotelStay stay, String term) {
 /// "Room 204 · Jane Doe" — one label for buttons, toasts and folio notes.
 String hotelRoomChargeTarget(HotelStay stay) =>
     'Room ${stay.roomName} · ${stay.guestName}';
+
+/// Deliberately permissive: catches a phone number typed into the email box
+/// without rejecting valid but unusual addresses. The server validates again
+/// before it hands anything to the mail provider, so being strict here would
+/// only stop a guest from receiving mail they could have received.
+bool hotelIsPlausibleEmail(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return false;
+  return RegExp(r'^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$').hasMatch(trimmed);
+}
+
+/// Normalises what the desk typed into what a model should store: `null` for
+/// blank, the trimmed address otherwise.
+String? hotelNormalizeEmail(String? value) {
+  final trimmed = value?.trim();
+  return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+}

@@ -49,6 +49,7 @@ class HotelQuotation {
     this.createdByTenantId,
     this.createdByName,
     this.convertedStayId,
+    this.sentAt,
     this.createdAt,
     this.updatedAt,
   });
@@ -89,6 +90,9 @@ class HotelQuotation {
 
   /// Set once the quotation has been turned into a reservation.
   final String? convertedStayId;
+
+  /// When the quotation PDF was last emailed to the guest.
+  final DateTime? sentAt;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -132,6 +136,11 @@ class HotelQuotation {
     HotelQuotationStatus? status,
     DateTime? validUntil,
     String? note,
+    DateTime? sentAt,
+
+    /// `copyWith` cannot pass null to mean "never sent", so clearing needs a
+    /// flag of its own.
+    bool clearGuestEmail = false,
     String? createdByTenantId,
     String? createdByName,
     String? convertedStayId,
@@ -144,7 +153,7 @@ class HotelQuotation {
       reference: reference ?? this.reference,
       guestName: guestName ?? this.guestName,
       guestPhone: guestPhone ?? this.guestPhone,
-      guestEmail: guestEmail ?? this.guestEmail,
+      guestEmail: clearGuestEmail ? null : (guestEmail ?? this.guestEmail),
       roomId: roomId ?? this.roomId,
       roomName: roomName ?? this.roomName,
       roomType: roomType ?? this.roomType,
@@ -161,6 +170,7 @@ class HotelQuotation {
       createdByTenantId: createdByTenantId ?? this.createdByTenantId,
       createdByName: createdByName ?? this.createdByName,
       convertedStayId: convertedStayId ?? this.convertedStayId,
+      sentAt: sentAt ?? this.sentAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -174,7 +184,11 @@ class HotelQuotation {
       'reference': reference,
       'guestName': guestName,
       if (guestPhone != null) 'guestPhone': guestPhone,
-      if (guestEmail != null) 'guestEmail': guestEmail,
+      // Written even when null. Ditto's ON ID CONFLICT DO UPDATE leaves
+      // omitted fields untouched, so omitting a cleared address would
+      // resurrect it on every other device — and re-mail the wrong guest.
+      'guestEmail': guestEmail,
+      'sentAt': sentAt?.toUtc().toIso8601String(),
       'roomId': roomId,
       'roomName': roomName,
       'roomType': roomType,
@@ -242,6 +256,7 @@ class HotelQuotation {
       createdByTenantId: raw['createdByTenantId']?.toString(),
       createdByName: raw['createdByName']?.toString(),
       convertedStayId: raw['convertedStayId']?.toString(),
+      sentAt: toDate(raw['sentAt']),
       createdAt: toDate(raw['createdAt']),
       updatedAt: toDate(raw['updatedAt']),
     );
