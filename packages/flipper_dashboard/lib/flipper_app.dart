@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -64,10 +65,9 @@ class FlipperApp extends HookConsumerWidget {
   /// Safety net when a login path lands on [FlipperApp] before branch settings
   /// hydrate.
   ///
-  /// Hotel Mode is checked first and wins: the two service modes are mutually
-  /// exclusive, but a branch that switched from bar to hotel can still have a
-  /// stale `enabled: true` on its `bar_branch_settings` document, and pushing
-  /// [BarModeHostRoute] then drops the front desk onto the bar's table floor.
+  /// Which surface this terminal opens is [activeServiceMode]: the device's own
+  /// pick when it has one, else the branch default. A property running both a
+  /// front desk and a bar counter is exactly why the pick is per device.
   Future<void> _redirectToServiceModeWhenBranchEnabled() async {
     final router = locator<RouterService>();
     final routeAtStart = router.router.current.name;
@@ -98,23 +98,24 @@ class FlipperApp extends HookConsumerWidget {
     _navigateToCachedServiceMode(router, routeAtStart);
   }
 
-  /// Navigates to whichever service mode the local cache reports, hotel first.
-  /// Returns whether it navigated.
+  /// Navigates to whichever service mode the local cache reports for this
+  /// device. Returns whether it navigated.
   bool _navigateToCachedServiceMode(
     RouterService router,
     String? routeAtStart,
   ) {
     if (router.router.current.name != routeAtStart) return false;
 
-    if (HotelModeSettings.enabled) {
-      router.navigateTo(HotelModeHostRoute());
-      return true;
+    switch (activeServiceMode) {
+      case ServiceMode.hotel:
+        router.navigateTo(HotelModeHostRoute());
+        return true;
+      case ServiceMode.bar:
+        router.navigateTo(BarModeHostRoute());
+        return true;
+      case ServiceMode.pos:
+        return false;
     }
-    if (BarModeSettings.enabled) {
-      router.navigateTo(BarModeHostRoute());
-      return true;
-    }
-    return false;
   }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {

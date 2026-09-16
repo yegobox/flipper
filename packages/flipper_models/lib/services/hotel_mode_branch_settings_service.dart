@@ -81,11 +81,18 @@ abstract final class HotelModeBranchSettingsService {
   /// Snapshots the values immediately, then waits for Ditto and retries:
   /// callers fire-and-forget from settings toggles, and a save that throws
   /// while Ditto is still initializing would silently lose the change.
-  static Future<void> persistCurrentBranch({
+  ///
+  /// Returns whether the branch document is now written. Failure is reported
+  /// rather than thrown, so the fire-and-forget callers stay unchanged while a
+  /// caller that awaits — a service-mode switch, which must not claim the
+  /// branch moved if the document never landed — can act on it. `true` with no
+  /// active branch means there is no document to write, and so none to go
+  /// stale.
+  static Future<bool> persistCurrentBranch({
     Duration timeout = const Duration(seconds: 20),
   }) async {
     final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return;
+    if (branchId == null) return true;
 
     final variantId = ProxyService.box.readString(key: roomChargeVariantKey);
     final settings = HotelBranchSettings(
@@ -110,13 +117,19 @@ abstract final class HotelModeBranchSettingsService {
 
     Object? lastError;
     while (true) {
+      final remaining = deadline.difference(DateTime.now());
+      if (remaining <= Duration.zero) break;
       try {
-        await _sync.saveHotelBranchSettings(settings);
+        // Bounded by what is left of the deadline: a Ditto write that never
+        // settles would otherwise hold an awaiting caller well past [timeout].
+        await (_sync.saveHotelBranchSettings(settings) as Future).timeout(
+          remaining,
+        );
         talker.info(
           'Hotel branch settings persisted for $branchId '
           '(enabled=${settings.enabled})',
         );
-        return;
+        return true;
       } catch (e, s) {
         lastError = e;
         talker.warning('Hotel branch settings persist attempt failed: $e\n$s');
@@ -129,6 +142,7 @@ abstract final class HotelModeBranchSettingsService {
       'Hotel branch settings persist gave up for $branchId '
       '(enabled=${settings.enabled}): $lastError',
     );
+    return false;
   }
 
   /// Live-sync remote changes into the local cache while the app runs.
