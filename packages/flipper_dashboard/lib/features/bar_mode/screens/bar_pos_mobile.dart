@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
@@ -35,6 +36,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
     final lines = linesAsync.value ?? [];
     final total = barTabTotal(lines);
     final isManager = barTenantIsManager(cashier);
+    final canChargeRoom = BarRoomCharge.isAvailable(ref);
     final myLines =
         lines.where((l) => l.loggedByTenantId == cashier.id).length;
     final lineCount = barTabItemCount(lines);
@@ -121,6 +123,19 @@ class BarPosMobileScreen extends HookConsumerWidget {
                 ref.read(barModeProvider.notifier).showManagerPin();
               }
             },
+            onChargeToRoom: !canChargeRoom
+                ? null
+                : () {
+                    showSheet.value = false;
+                    BarRoomCharge.promptAndChargeTab(
+                      context: context,
+                      ref: ref,
+                      tab: tab,
+                      table: table,
+                      cashier: cashier,
+                      mobile: true,
+                    );
+                  },
           ),
       ],
     );
