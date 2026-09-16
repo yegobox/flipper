@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_models/services/hotel_mode_branch_settings_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -65,35 +66,75 @@ ServiceMode nextServiceMode(ServiceMode current) => switch (current) {
 
 /// Writes [mode] as the branch's service mode and seeds whatever it needs.
 ///
-/// The branch document is persisted before this returns — the mode hosts
-/// hydrate from Ditto in `initState`, so navigating there while the write was
-/// still in flight let a stale remote document flip the mode straight back.
-/// The wait is capped so a hotkey never hangs on an unreachable Ditto; the
-/// fire-and-forget persist started by `setEnabled` still retries for longer.
-Future<void> applyServiceMode(
+/// Returns whether the branch actually moved, so a caller does not announce a
+/// switch that did not happen.
+///
+/// Ordered so a failure leaves the branch where it was:
+///
+///  1. Seed the target surface's rooms / tables. Both seeds are idempotent and
+///     read no toggle, so doing this first is safe — and a seed that throws
+///     here has changed nothing yet, rather than leaving the branch on a
+///     surface with nothing to serve on.
+///  2. Flip the master toggles in the local cache.
+///  3. Persist the branch documents, awaited. The mode hosts hydrate from Ditto
+///     in `initState`, so navigating while that write was still in flight let a
+///     stale remote document flip the mode straight back. The wait is capped so
+///     a hotkey never hangs on an unreachable Ditto.
+///
+/// If step 3 fails, step 2 is put back: a local cache claiming hotel mode while
+/// the branch document still says bar is undone by the next hydrate anyway, so
+/// claiming the switch worked is worse than refusing it.
+Future<bool> applyServiceMode(
   ServiceMode mode, {
   Duration persistTimeout = const Duration(seconds: 3),
 }) async {
-  HotelModeSettings.setEnabled(mode == ServiceMode.hotel);
-  BarModeSettings.setEnabled(mode == ServiceMode.bar);
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId != null) {
+    final sync = ProxyService.getStrategy(Strategy.capella);
+    switch (mode) {
+      case ServiceMode.bar:
+        await sync.seedDefaultFloorPlan(branchId: branchId);
+      case ServiceMode.hotel:
+        await sync.seedDefaultRooms(branchId: branchId);
+      case ServiceMode.pos:
+        break;
+    }
+  }
+
+  final previousHotel = HotelModeSettings.enabled;
+  final previousBar = BarModeSettings.enabled;
+  final hotel = mode == ServiceMode.hotel;
+  final bar = mode == ServiceMode.bar;
+  // Already there — nothing to write, and so nothing that can fail.
+  if (previousHotel == hotel && previousBar == bar) return true;
+
+  // `persist: false`: the awaited saves below are the only branch writes, so
+  // each document is written once per switch rather than twice.
+  HotelModeSettings.setEnabled(hotel, persist: false);
+  BarModeSettings.setEnabled(bar, persist: false);
   notifyServiceModeChanged();
 
-  await Future.wait([
-    HotelModeBranchSettingsService.persistCurrentBranch(
-      timeout: persistTimeout,
-    ),
-    BarModeBranchSettingsService.persistCurrentBranch(timeout: persistTimeout),
+  final saved = await Future.wait([
+    if (previousHotel != hotel)
+      HotelModeBranchSettingsService.persistCurrentBranch(
+        timeout: persistTimeout,
+      ),
+    if (previousBar != bar)
+      BarModeBranchSettingsService.persistCurrentBranch(
+        timeout: persistTimeout,
+      ),
   ]);
+  if (saved.every((ok) => ok)) return true;
 
-  final branchId = ProxyService.box.getBranchId();
-  if (branchId == null) return;
-  final sync = ProxyService.getStrategy(Strategy.capella);
-  switch (mode) {
-    case ServiceMode.bar:
-      await sync.seedDefaultFloorPlan(branchId: branchId);
-    case ServiceMode.hotel:
-      await sync.seedDefaultRooms(branchId: branchId);
-    case ServiceMode.pos:
-      break;
-  }
+  // Put the cache back, and push the restored values at the branch on the
+  // fire-and-forget deadline — one of the two documents may well have landed
+  // before the other gave up, and that one now disagrees with the cache.
+  HotelModeSettings.setEnabled(previousHotel, persist: previousHotel != hotel);
+  BarModeSettings.setEnabled(previousBar, persist: previousBar != bar);
+  notifyServiceModeChanged();
+  talker.warning(
+    'Service mode switch to ${mode.label} rolled back: the branch settings did '
+    'not persist within ${persistTimeout.inSeconds}s',
+  );
+  return false;
 }

@@ -36,10 +36,19 @@ abstract final class BarModeSettings {
   static void startWatchingActiveBranch() =>
       BarModeBranchSettingsService.startWatchingActiveBranch();
 
-  static void setEnabled(bool value) {
+  /// Flips the master toggle.
+  ///
+  /// Pass `persist: false` when the caller awaits its own
+  /// [BarModeBranchSettingsService.persistCurrentBranch] — a service-mode
+  /// switch does, and the fire-and-forget save here would write the same
+  /// snapshot a second time, then keep retrying it against its own, much
+  /// longer, deadline.
+  static void setEnabled(bool value, {bool persist = true}) {
     ProxyService.box.writeBool(key: enabledKey, value: value);
     ProxyService.box.writeBool(key: launchOnStartKey, value: value);
-    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+    if (persist) {
+      unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+    }
   }
 
   static void setLaunchOnStart(bool value) {

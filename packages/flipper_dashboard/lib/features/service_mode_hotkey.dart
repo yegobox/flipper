@@ -99,7 +99,17 @@ Future<void> cycleServiceMode() async {
     }
 
     final target = nextServiceMode(activeServiceMode);
-    await applyServiceMode(target);
+    // A refused switch has already put the branch back where it was, so stay
+    // on the current surface rather than landing on a mode the branch document
+    // never accepted.
+    if (!await applyServiceMode(target)) {
+      _toast(
+        'Could not switch to ${target.label} — the branch settings did not '
+        'save.',
+        type: NotificationType.error,
+      );
+      return;
+    }
     _navigateTo(target);
     _toast('Switched to ${target.label} · $serviceModeHotkeyLabel to cycle');
   } catch (e, s) {
