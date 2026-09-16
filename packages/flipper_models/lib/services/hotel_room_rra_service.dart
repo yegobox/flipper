@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_room.dart';
+import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_services/constants.dart';
@@ -26,14 +29,157 @@ abstract final class HotelRoomRraService {
   ///
   /// A property that is not on EBM has no room items to register, so the desk
   /// should not offer it and nothing should warn about it.
-  static Future<bool> branchSupportsRra(String branchId) async {
+  static Future<bool> branchSupportsRra(String branchId) =>
+      HotelRraCapability.supports(branchId);
+
+  /// Branches whose sweep is already running, so the four places that seed
+  /// rooms cannot start four overlapping sweeps against the same branch.
+  static final Set<String> _sweepsInFlight = <String>{};
+
+  /// Consecutive non-configuration failures before giving up. RRA being down
+  /// fails every room the same way; fifteen doomed round trips help nobody.
+  static const int _maxConsecutiveFailures = 3;
+
+  /// Registers every room on [branchId] that has no RRA item yet.
+  ///
+  /// Exists because `seedDefaultRooms` writes fifteen rooms straight to Ditto
+  /// with no registration, so the first guest in a seeded room used to pay for
+  /// it at the counter — a multi-step RRA round trip while a clerk waited.
+  /// Rooms created through Rooms & floors are registered on creation and are
+  /// skipped here.
+  ///
+  /// Call it unawaited on entry to Hotel Mode. Idempotent and self-disabling:
+  /// once every room carries a `variantId` this costs one cached EBM read and
+  /// one Ditto query, and returns.
+  ///
+  /// Returns how many rooms it registered.
+  static Future<int> registerUnregisteredRooms(String branchId) async {
+    if (branchId.isEmpty) return 0;
+    if (!_sweepsInFlight.add(branchId)) return 0;
+
     try {
-      final ebm = await _sync.ebm(branchId: branchId);
-      return hotelBranchSupportsRra(ebm);
-    } catch (e) {
-      talker.warning('hotel: could not read EBM for branch $branchId: $e');
-      return false;
+      // A branch that does not file with RRA has nothing to register, and
+      // this is the cheap cached read.
+      if (!await branchSupportsRra(branchId)) return 0;
+
+      final rooms = await _sync.hotelRooms(branchId: branchId);
+      final pending = roomsNeedingRegistration(
+        rooms,
+        await _resolveRoomVariants(rooms),
+      );
+      if (pending.isEmpty) return 0;
+
+      talker.info(
+        'hotel: registering ${pending.length} unregistered room(s) on branch '
+        '$branchId in the background',
+      );
+
+      var registered = 0;
+      var consecutiveFailures = 0;
+
+      // Sequential on purpose: each registration mints a product and an RRA
+      // item, and firing fifteen at once at the tax server is a good way to be
+      // rate-limited into a half-registered floor plan.
+      for (final room in pending) {
+        try {
+          await registerRoom(room);
+          registered++;
+          consecutiveFailures = 0;
+        } on StateError catch (e) {
+          // Branch-wide configuration — no business, or no tax server URL.
+          // Every remaining room fails identically, so stop.
+          talker.warning(
+            'hotel: stopping room registration sweep on branch $branchId — '
+            '${e.message}',
+          );
+          break;
+        } catch (e, st) {
+          consecutiveFailures++;
+          talker.warning(
+            'hotel: could not register room ${room.name} on branch $branchId '
+            '($consecutiveFailures in a row): $e\n$st',
+          );
+          if (consecutiveFailures >= _maxConsecutiveFailures) {
+            talker.warning(
+              'hotel: giving up the registration sweep on branch $branchId '
+              'after $consecutiveFailures consecutive failures',
+            );
+            break;
+          }
+        }
+      }
+
+      if (registered > 0) {
+        talker.info(
+          'hotel: registered $registered room(s) with RRA on branch $branchId',
+        );
+      }
+      return registered;
+    } catch (e, st) {
+      // Never surfaced: this is background work, and a property must be able
+      // to open its front desk whether or not RRA is reachable.
+      talker.warning('hotel: room registration sweep failed on $branchId: $e\n$st');
+      return 0;
+    } finally {
+      _sweepsInFlight.remove(branchId);
     }
+  }
+
+  /// The rooms a sweep would touch.
+  ///
+  /// A `variantId` alone does not mean registered. When `saveItems` reaches
+  /// RRA but the attempt fails afterwards, [_recoverFailedRegistration]
+  /// deliberately points the room at that variant so the next run can resume
+  /// it — and filtering on `variantId` alone skipped exactly those rooms
+  /// forever, leaving them to bill against a variant with no `itemCd`.
+  ///
+  /// [variantsById] holds the resolved variant for every room that names one;
+  /// a missing entry reads as unfinished, which is the safe direction —
+  /// [registerRoom] is idempotent and returns a genuinely registered room
+  /// untouched.
+  ///
+  /// Pure, so the rule is testable without a tax server.
+  @visibleForTesting
+  static List<HotelRoom> roomsNeedingRegistration(
+    List<HotelRoom> rooms,
+    Map<String, Variant?> variantsById,
+  ) {
+    return rooms.where((room) {
+      // No variant named at all: never started.
+      if (!room.isRegisteredWithRra) return true;
+      return !isHotelRoomVariantRegistered(variantsById[room.variantId]);
+    }).toList(growable: false);
+  }
+
+  /// Loads the variants named by [rooms], so the filter above can judge them.
+  ///
+  /// Only rooms that name one are looked up, and a lookup that fails maps to
+  /// null rather than aborting the sweep.
+  static Future<Map<String, Variant?>> _resolveRoomVariants(
+    List<HotelRoom> rooms,
+  ) async {
+    final ids = rooms
+        .where((room) => room.isRegisteredWithRra)
+        .map((room) => room.variantId!)
+        .toSet();
+
+    final resolved = <String, Variant?>{};
+    for (final id in ids) {
+      try {
+        resolved[id] = await _sync.getVariant(id: id);
+      } catch (e) {
+        talker.warning('hotel: could not read variant $id: $e');
+        resolved[id] = null;
+      }
+    }
+    return resolved;
+  }
+
+  /// Visible for tests.
+  @visibleForTesting
+  static void resetSweepState() {
+    _sweepsInFlight.clear();
+    _registrationsInFlight.clear();
   }
 
   /// Registers [room] and returns it carrying its new `variantId`.
@@ -44,7 +190,27 @@ abstract final class HotelRoomRraService {
   /// A branch that is not on EBM is returned unchanged too. That is not a
   /// failure — there is no tax authority to register with — so it neither
   /// throws nor leaves a half-built product behind.
-  static Future<HotelRoom> registerRoom(HotelRoom room) async {
+  /// In-flight registrations, keyed by room id.
+  ///
+  /// The background sweep and the folio's own charge can both reach the same
+  /// room — the sweep's branch guard only stops sweep-versus-sweep. Two
+  /// concurrent runs would each mint a product, a variant and an RRA item for
+  /// one room, and RRA would hold two live items for the same bed.
+  static final Map<String, Future<HotelRoom>> _registrationsInFlight =
+      <String, Future<HotelRoom>>{};
+
+  static Future<HotelRoom> registerRoom(HotelRoom room) {
+    final existing = _registrationsInFlight[room.id];
+    if (existing != null) return existing;
+
+    final run = _registerRoom(room).whenComplete(() {
+      _registrationsInFlight.remove(room.id);
+    });
+    _registrationsInFlight[room.id] = run;
+    return run;
+  }
+
+  static Future<HotelRoom> _registerRoom(HotelRoom room) async {
     // A half-finished attempt to resume, if there is one. Registration is
     // several persisted steps, and a room whose variant exists but never
     // reached RRA must finish that variant rather than mint a second one.
@@ -61,11 +227,25 @@ abstract final class HotelRoomRraService {
       throw StateError('No active business; cannot register room ${room.name}');
     }
 
-    final branchEbm = await _sync.ebm(branchId: branchId);
-    if (!hotelBranchSupportsRra(branchEbm)) {
+    // Two reads on purpose. The cached one answers "does this branch file with
+    // RRA at all", which is the common case for a non-EBM property and must
+    // not cost a network round trip on every room charge. Only once we know we
+    // are actually registering do we pay for the authoritative copy — the
+    // tinNumber and bhfId below go onto a fiscal item, so those may not be
+    // stale.
+    if (!await HotelRraCapability.supports(branchId)) {
       talker.info(
         'hotel: branch $branchId is not on EBM, so room ${room.name} is kept '
         'as an unregistered room rather than sent to RRA.',
+      );
+      return room;
+    }
+
+    final branchEbm = await _sync.ebm(branchId: branchId);
+    if (!hotelBranchSupportsRra(branchEbm)) {
+      talker.info(
+        'hotel: branch $branchId dropped off EBM between the cached and live '
+        'reads; keeping room ${room.name} unregistered.',
       );
       return room;
     }

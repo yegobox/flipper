@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
+import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -58,6 +60,8 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   static const _hotelBranchSettingsSql =
       'SELECT * FROM hotel_branch_settings WHERE branchId = :branchId LIMIT 1';
+  static const _branchDocumentSettingsSql =
+      'SELECT * FROM branch_document_settings WHERE branchId = :branchId LIMIT 1';
   static const _hotelRoomsSql =
       'SELECT * FROM hotel_rooms WHERE branchId = :branchId ORDER BY ordinal ASC';
   static const _hotelOpenStaysSql =
@@ -107,6 +111,24 @@ mixin CapellaHotelMixin implements HotelInterface {
       ditto,
       'hotel_branch_settings|$branchId',
       _hotelBranchSettingsSql,
+      {'branchId': branchId},
+    );
+  }
+
+  void _ensureBranchDocumentSettingsSync(dynamic ditto, String branchId) {
+    // Collection-wide first, for the same reason as hotel_branch_settings:
+    // fresh devices can fail to pull with a filtered subscription, and the
+    // collection is one small document per branch.
+    _ensureHotelSyncSubscription(
+      ditto,
+      'branch_document_settings|all',
+      'SELECT * FROM branch_document_settings',
+      null,
+    );
+    _ensureHotelSyncSubscription(
+      ditto,
+      'branch_document_settings|$branchId',
+      _branchDocumentSettingsSql,
       {'branchId': branchId},
     );
   }
@@ -208,6 +230,18 @@ mixin CapellaHotelMixin implements HotelInterface {
     }
   }
 
+  BranchDocumentSettings? _documentSettingsFromResult(dynamic queryResult) {
+    try {
+      final items = queryResult.items as Iterable<dynamic>;
+      if (items.isEmpty) return null;
+      final raw = Map<String, dynamic>.from(items.first.value as Map);
+      return BranchDocumentSettings.fromJson(raw);
+    } catch (e) {
+      talker.error('branch_document_settings map error: $e');
+      return null;
+    }
+  }
+
   List<TransactionItem> _linesFromResult(dynamic queryResult) {
     final lines = <TransactionItem>[];
     for (final item in queryResult.items as Iterable<dynamic>) {
@@ -304,6 +338,53 @@ mixin CapellaHotelMixin implements HotelInterface {
     final doc = settings.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
     await ditto.store.execute(
       'INSERT INTO hotel_branch_settings DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
+      arguments: {'doc': doc},
+    );
+  }
+
+  // --- Document branding ----------------------------------------------------
+
+  @override
+  Future<BranchDocumentSettings?> branchDocumentSettings({
+    required String branchId,
+  }) async {
+    final ditto = dittoHandle;
+    if (ditto == null) return null;
+    _ensureBranchDocumentSettingsSync(ditto, branchId);
+    final result = await ditto.store.execute(
+      _branchDocumentSettingsSql,
+      arguments: {'branchId': branchId},
+    );
+    return _documentSettingsFromResult(result);
+  }
+
+  @override
+  Stream<BranchDocumentSettings?> branchDocumentSettingsStream({
+    required String branchId,
+  }) {
+    final ditto = dittoHandle;
+    if (ditto == null) return Stream.value(null);
+    _ensureBranchDocumentSettingsSync(ditto, branchId);
+    return _observed<BranchDocumentSettings?>(
+      sql: _branchDocumentSettingsSql,
+      args: {'branchId': branchId},
+      map: _documentSettingsFromResult,
+      empty: null,
+      label: 'branchDocumentSettingsStream',
+    );
+  }
+
+  @override
+  Future<void> saveBranchDocumentSettings(
+    BranchDocumentSettings settings,
+  ) async {
+    final ditto = dittoHandle;
+    if (ditto == null) throw StateError('Ditto not initialized');
+    _ensureBranchDocumentSettingsSync(ditto, settings.branchId);
+    final doc = settings.copyWith(updatedAt: DateTime.now().toUtc()).toJson();
+    await ditto.store.execute(
+      'INSERT INTO branch_document_settings DOCUMENTS (:doc) '
+      'ON ID CONFLICT DO UPDATE',
       arguments: {'doc': doc},
     );
   }
@@ -465,6 +546,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String clerkTenantId,
     required String clerkName,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,
@@ -522,6 +604,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       transactionId: folio.id,
       guestName: guestName,
       guestPhone: guestPhone,
+      guestEmail: guestEmail,
       adults: adults,
       children: children,
       checkInAt: checkInAt.toUtc(),
@@ -589,6 +672,7 @@ mixin CapellaHotelMixin implements HotelInterface {
     required String clerkTenantId,
     required String clerkName,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,
@@ -619,6 +703,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       transactionId: '',
       guestName: guestName,
       guestPhone: guestPhone,
+      guestEmail: guestEmail,
       adults: adults,
       children: children,
       checkInAt: checkInAt.toUtc(),
@@ -855,6 +940,7 @@ mixin CapellaHotelMixin implements HotelInterface {
       clerkTenantId: clerkTenantId,
       clerkName: clerkName,
       guestPhone: quotation.guestPhone,
+      guestEmail: quotation.guestEmail,
       adults: quotation.adults,
       children: quotation.children,
       note: quotation.note ?? 'From quotation ${quotation.reference}',
@@ -1185,11 +1271,10 @@ mixin CapellaHotelMixin implements HotelInterface {
       // still bills guests, so record the nights as a plain line rather than
       // refusing: a folio that can never total anything is worse than one that
       // is simply not fiscalised.
-      final ebm = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).ebm(branchId: stay.branchId);
-
-      if (!hotelBranchSupportsRra(ebm)) {
+      // Memoised: a branch with no EBM row has nothing cached in Ditto, so
+      // even `fetchRemote: false` falls through to Supabase. Asking per charge
+      // made the properties that never fiscalise pay the most.
+      if (!await HotelRraCapability.supports(stay.branchId)) {
         await _postUnfiscalisedRoomCharge(
           stay: stay,
           clerkTenantId: clerkTenantId,

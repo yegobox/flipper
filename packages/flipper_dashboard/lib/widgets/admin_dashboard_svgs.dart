@@ -179,8 +179,78 @@ abstract final class AdminDashboardSvgs {
   static const String uploadIconWhite =
       '''<svg viewBox="0 0 16 16" fill="none" $_xmlns><path d="M8 2v9M5 5l3-3 3 3M2 12v2h12v-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/></svg>''';
 
+
+  // ---- Hotel quotation card icon set ----
+  // 24x24, stroke 1.85, round caps, `currentColor` so [tinted] can colour them
+  // per use. Render these with [tinted], not [picture] — [picture] applies no
+  // colour filter and a currentColor icon comes out black.
+  static const String quoteDocument =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 3H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6.5z"/><path d="M14.5 3v3.5H18"/><path d="M9.5 12.5h5"/><path d="M9.5 16h3"/></svg>''';
+
+  static const String quoteEdit =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16z"/><path d="M14 6l4 4"/></svg>''';
+
+  static const String quoteCheck =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></svg>''';
+
+  static const String quoteCheckCircle =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0 -17 0"/><path d="M8.2 12.2l2.8 2.8 4.8-5.4"/></svg>''';
+
+  static const String quoteTrash =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10.5 11v5.5"/><path d="M13.5 11v5.5"/></svg>''';
+
+  static const String quoteSend =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10.5 13.5"/><path d="M21 3l-6.5 18-4-8.5L2 8.5z"/></svg>''';
+
+  static const String quoteDownload =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 10.5 12 15l4.5-4.5"/><path d="M4 20h16"/></svg>''';
+
+  static const String quotePrint =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V4h10v5"/><path d="M7 17H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v6H7z"/><path d="M16.5 12.5h.01"/></svg>''';
+
+  static const String quoteDraft =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 18.5h13"/><path d="M8 15h1.8L18 6.8a1.7 1.7 0 0 0-2.4-2.4L7.4 12.6z"/></svg>''';
+
+  static const String quoteCalendar =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"/><path d="M8 4v4"/><path d="M16 4v4"/><path d="M4 11h16"/></svg>''';
+
+  static const String quoteMoon =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.5 6.5 0 0 0 11 11z"/></svg>''';
+
+  static const String quoteBed =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19V7"/><path d="M3 12h13a4 4 0 0 1 4 4v3"/><path d="M3 19h18"/><path d="M6.8 9.6h.01"/></svg>''';
+
+  static const String quoteClock =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0 -17 0"/><path d="M12 7.5V12l3.4 2"/></svg>''';
+
+  static const String quoteChevronDown =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>''';
+
+  static const String quoteAlert =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 21 19.5H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/></svg>''';
+
+  static const String quoteRemoveCircle =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0 -17 0"/><path d="M9 9l6 6"/><path d="M15 9l-6 6"/></svg>''';
+
   /// Renders an inline SVG at [size]×[size] logical pixels.
   static Widget picture(String svgString, {double size = 24}) {
     return SvgPicture.string(svgString, width: size, height: size);
+  }
+
+  /// Renders a `currentColor` SVG tinted to [color].
+  ///
+  /// Separate from [picture] because the older icons here bake their own
+  /// colours in, and applying a filter to those would flatten them.
+  static Widget tinted(
+    String svgString, {
+    required Color color,
+    double size = 18,
+  }) {
+    return SvgPicture.string(
+      svgString,
+      width: size,
+      height: size,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+    );
   }
 }

@@ -33,6 +33,7 @@ class HotelModeState {
     this.toastMessage,
     this.showManagerModal = false,
     this.checkOutInFlight = false,
+    this.roomChargeInFlight = false,
     this.floorFilter,
   });
 
@@ -51,6 +52,11 @@ class HotelModeState {
   /// payment type, tender and checkout timestamps of the first.
   final bool checkOutInFlight;
 
+  /// A room charge is being posted. Registering a room with RRA on first use
+  /// is a multi-step network round trip, so without this the button sits there
+  /// looking dead and the clerk taps it again — which posts a second night.
+  final bool roomChargeInFlight;
+
   /// `null` = all floors.
   final String? floorFilter;
 
@@ -68,6 +74,7 @@ class HotelModeState {
     bool clearToast = false,
     bool? showManagerModal,
     bool? checkOutInFlight,
+    bool? roomChargeInFlight,
     String? floorFilter,
     bool clearFloorFilter = false,
   }) {
@@ -80,6 +87,7 @@ class HotelModeState {
       toastMessage: clearToast ? null : (toastMessage ?? this.toastMessage),
       showManagerModal: showManagerModal ?? this.showManagerModal,
       checkOutInFlight: checkOutInFlight ?? this.checkOutInFlight,
+      roomChargeInFlight: roomChargeInFlight ?? this.roomChargeInFlight,
       floorFilter: clearFloorFilter ? null : (floorFilter ?? this.floorFilter),
     );
   }
@@ -116,6 +124,7 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
       screen: HotelScreen.lock,
       showManagerModal: false,
       checkOutInFlight: false,
+      roomChargeInFlight: false,
     );
   }
 
@@ -146,6 +155,14 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
 
   void endCheckOut() {
     state = state.copyWith(checkOutInFlight: false);
+  }
+
+  void beginRoomCharge() {
+    state = state.copyWith(roomChargeInFlight: true);
+  }
+
+  void endRoomCharge() {
+    state = state.copyWith(roomChargeInFlight: false);
   }
 
   void showManagerPin() {

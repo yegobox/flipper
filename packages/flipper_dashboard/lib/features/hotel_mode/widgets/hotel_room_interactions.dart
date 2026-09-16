@@ -62,6 +62,7 @@ Future<void> hotelHandleRoomTap({
     clerk: clerk,
     guestName: draft.guestName,
     guestPhone: draft.guestPhone,
+    guestEmail: draft.guestEmail,
     checkInAt: draft.checkInAt,
     expectedCheckOutAt: draft.expectedCheckOutAt,
     nightlyRate: draft.nightlyRate,

@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -2242,7 +2246,54 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       fill: ink2,
     );
 
+    _drawCompanyStamp(page, size);
+
     return document;
+  }
+
+  /// Draws the branch's company stamp, matching the quotation PDF.
+  ///
+  /// This screen is 2000+ lines of bespoke Syncfusion layout, so the stamp is
+  /// drawn with Syncfusion's own API rather than porting the document to the
+  /// `pdf` package — same source of truth
+  /// ([BranchDocumentSettingsService]), same size and position, no rewrite.
+  void _drawCompanyStamp(PdfPage page, Size size) {
+    final settings = BranchDocumentSettingsService.current();
+    if (!settings.hasStamp) return;
+
+    final PdfBitmap bitmap;
+    try {
+      bitmap = PdfBitmap(base64Decode(settings.stampImageBase64!));
+    } catch (_) {
+      // A corrupt stamp costs the document its stamp, not its existence.
+      return;
+    }
+
+    // Syncfusion works in points and takes an explicit rect, so the aspect
+    // ratio captured at upload is what stops the stamp being stretched.
+    const mmToPoints = 72 / 25.4;
+    final width = settings.stampWidthMm * mmToPoints;
+    final height = width * settings.stampAspectRatio;
+    const inset = 36.0;
+
+    final double left;
+    switch (settings.stampPlacement) {
+      case DocumentStampPlacement.bottomLeft:
+        left = inset;
+      case DocumentStampPlacement.bottomCentre:
+        left = (size.width - width) / 2;
+      case DocumentStampPlacement.bottomRight:
+      // The proforma has no totals row to sit beside, so it falls to the
+      // same corner as the default.
+      case DocumentStampPlacement.besideTotals:
+        left = size.width - width - inset;
+    }
+    final top = size.height - height - inset;
+
+    page.graphics.save();
+    page.graphics.setTransparency(0.9);
+    page.graphics.drawImage(bitmap, Rect.fromLTWH(left, top, width, height));
+    page.graphics.restore();
   }
 
   Future<void> _downloadPdf(BuildContext context) async {

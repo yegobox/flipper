@@ -2,15 +2,19 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/notifications_client.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
+import 'package:flipper_services/data_connector_url.dart';
+import 'package:flipper_services/notifications/booking_notification_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
@@ -36,6 +40,7 @@ abstract final class HotelDeskActions {
     required DateTime expectedCheckOutAt,
     required double nightlyRate,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,
@@ -53,10 +58,13 @@ abstract final class HotelDeskActions {
       clerkTenantId: clerk.id,
       clerkName: clerk.name ?? 'Front desk',
       guestPhone: guestPhone,
+      guestEmail: guestEmail,
       adults: adults,
       children: children,
       note: note,
     );
+
+    _notifyBooking(stay, HotelBookingEvent.checkedIn, ref);
 
     // Open the folio first. Registering a room with RRA is a network round
     // trip, and the desk should not watch a spinner with a guest in front of
@@ -86,9 +94,12 @@ abstract final class HotelDeskActions {
 
   /// Bills [stay]'s nights, registering the room with RRA first if nobody has.
   ///
-  /// Rooms from the default plan carry no RRA item, so the first guest in one
-  /// used to open a folio of zero with no way to bill it short of an admin
-  /// visiting Rooms & floors. Registering on first use makes that invisible.
+  /// That registration is a safety net, not the normal path. Rooms created in
+  /// Rooms & floors register on creation, and seeded rooms are swept in the
+  /// background by [HotelRoomRraService.registerUnregisteredRooms] when Hotel
+  /// Mode opens. It only fires when a guest reaches a room before the sweep
+  /// did — a branch that was offline at open, or a sweep that gave up — and
+  /// registering here is still better than a folio nobody can bill.
   ///
   /// Best effort by design: a branch with no EBM configuration still gets its
   /// guest a key, and the desk gets told why the charge is missing.
@@ -149,10 +160,13 @@ abstract final class HotelDeskActions {
         clerkTenantId: clerk.id,
         clerkName: clerk.name ?? 'Front desk',
         guestPhone: draft.guestPhone,
+        guestEmail: draft.guestEmail,
         adults: draft.adults,
         children: draft.children,
         note: draft.note,
       );
+
+      _notifyBooking(stay, HotelBookingEvent.reserved, ref);
 
       ref
           .read(hotelModeProvider.notifier)
@@ -177,6 +191,8 @@ abstract final class HotelDeskActions {
       clerkName: clerk.name ?? 'Front desk',
     );
 
+    _notifyBooking(arrived, HotelBookingEvent.checkedIn, ref);
+
     if (HotelModeSettings.autoPostRoomCharge) {
       unawaited(
         chargeRoomToFolio(ref: ref, room: room, stay: arrived, clerk: clerk),
@@ -189,6 +205,55 @@ abstract final class HotelDeskActions {
         .openFolio(room: room, stay: arrived, folio: folio);
   }
 
+  /// Confirm a booking to the guest, if the branch asked for it.
+  ///
+  /// Fire-and-forget on purpose: a clerk with a guest at the counter must never
+  /// wait on a mail provider, and a failed confirmation must never fail the
+  /// check-in that already happened. Duplicate suppression lives in
+  /// [BookingNotificationService] and, beyond it, on the server — `checkInGuest`
+  /// is idempotent per room and hands back the *existing* stay on a double tap,
+  /// so this would otherwise send twice.
+  static void _notifyBooking(
+    HotelStay stay,
+    HotelBookingEvent event,
+    WidgetRef ref,
+  ) {
+    final wanted = event == HotelBookingEvent.reserved
+        ? HotelModeSettings.notifyOnReserve
+        : HotelModeSettings.notifyOnCheckIn;
+    if (!wanted) return;
+
+    final sendSms = HotelModeSettings.notifyGuestSms;
+    final sendEmail = HotelModeSettings.notifyGuestEmail;
+    if (!sendSms && !sendEmail) return;
+
+    // Read the notifier now, not in the callback: the desk may have navigated
+    // away by the time the send returns, and `ref.read` on a disposed ref
+    // throws — inside an unawaited future that is an unhandled async error,
+    // from the one path that must never disturb the desk.
+    final notifier = ref.read(hotelModeProvider.notifier);
+
+    unawaited(
+      BookingNotificationService.sendBookingConfirmation(
+        stay: stay,
+        event: event,
+        sendSms: sendSms,
+        sendEmail: sendEmail,
+        checkOutHour: HotelModeSettings.checkOutHour,
+      ).then((outcome) {
+        // Only one outcome is worth a toast: a clerk can top up credits, but
+        // cannot do anything about a mail provider being slow, and a toast per
+        // failed confirmation would train them to ignore toasts.
+        if (outcome != BookingNotificationOutcome.outOfCredits) return;
+        try {
+          notifier.showToast('SMS not sent — branch is out of credits');
+        } catch (e) {
+          talker.info('hotel: credits toast dropped, desk closed: $e');
+        }
+      }),
+    );
+  }
+
   // --- Quotations ---
 
   static Future<void> saveQuotation(HotelQuotation quotation) =>
@@ -198,6 +263,71 @@ abstract final class HotelDeskActions {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
     await _sync.deleteHotelQuotation(id: id, branchId: branchId);
+  }
+
+  /// Email [quotation] to the guest as a PDF.
+  ///
+  /// Returns [QuotationSendResult.noEmail] when there is nobody to send to, so
+  /// the caller can prompt for an address and try again rather than showing a
+  /// failure for something the clerk can fix in one field.
+  static Future<QuotationSendResult> sendQuotation({
+    required WidgetRef ref,
+    required HotelQuotation quotation,
+  }) async {
+    final notifier = ref.read(hotelModeProvider.notifier);
+    final email = quotation.guestEmail?.trim();
+    if (email == null || email.isEmpty) return QuotationSendResult.noEmail;
+
+    try {
+      final businessName = await HotelQuotationActions.resolveBusinessName();
+      final bytes = await HotelQuotationActions.buildPdf(quotation);
+
+      final url = await resolveEbmDataConnectorUrl();
+      final client = await createNotificationsClient(
+        dataConnectorUrl: url ?? '',
+      );
+
+      final result = await client.sendEmail(
+        to: [email],
+        subject: HotelQuotationActions.emailSubject(quotation, businessName),
+        htmlBody: HotelQuotationActions.emailHtml(quotation, businessName),
+        plainText: HotelQuotationActions.emailPlain(quotation, businessName),
+        attachments: [
+          NotifyAttachment(
+            name: HotelQuotationActions.fileName(quotation),
+            bytes: bytes,
+          ),
+        ],
+        branchId: quotation.branchId,
+        idempotencyKey: HotelQuotationActions.idempotencyKey(quotation),
+      );
+
+      if (!result.ok) {
+        // The route answered, but not with a send. Leaving the status alone
+        // keeps the card honest and lets the desk try again.
+        talker.warning(
+          'hotel: quotation ${quotation.reference} was not accepted for '
+          'delivery to $email',
+        );
+        notifier.showToast('${quotation.reference} was not sent — try again');
+        return QuotationSendResult.failed;
+      }
+
+      // Only now is it "sent" — flipping the status before the send would
+      // leave a quotation claiming to have reached a guest it never did.
+      await saveQuotation(
+        quotation.copyWith(
+          status: HotelQuotationStatus.sent,
+          sentAt: DateTime.now().toUtc(),
+        ),
+      );
+      notifier.showToast('${quotation.reference} emailed to $email');
+      return QuotationSendResult.sent;
+    } catch (e, st) {
+      talker.error('hotel: quotation ${quotation.reference} email failed', e, st);
+      notifier.showToast('Could not email ${quotation.reference}: $e');
+      return QuotationSendResult.failed;
+    }
   }
 
   /// Accept a quotation and hold the room it priced.
@@ -293,21 +423,29 @@ abstract final class HotelDeskActions {
     required HotelStay stay,
     required Tenant clerk,
   }) async {
-    final rooms = await _sync.hotelRooms(branchId: stay.branchId);
-    HotelRoom? room;
-    for (final candidate in rooms) {
-      if (candidate.id == stay.roomId) {
-        room = candidate;
-        break;
+    final notifier = ref.read(hotelModeProvider.notifier);
+    // A room's first charge registers it with RRA, which is a network round
+    // trip — long enough that a clerk taps again and bills a second night.
+    if (ref.read(hotelModeProvider).roomChargeInFlight) return;
+    notifier.beginRoomCharge();
+
+    try {
+      final rooms = await _sync.hotelRooms(branchId: stay.branchId);
+      HotelRoom? room;
+      for (final candidate in rooms) {
+        if (candidate.id == stay.roomId) {
+          room = candidate;
+          break;
+        }
       }
+      if (room == null) {
+        notifier.showToast('Room ${stay.roomName} is no longer on this branch');
+        return;
+      }
+      await chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk);
+    } finally {
+      notifier.endRoomCharge();
     }
-    if (room == null) {
-      ref
-          .read(hotelModeProvider.notifier)
-          .showToast('Room ${stay.roomName} is no longer on this branch');
-      return;
-    }
-    await chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk);
   }
 
   static Future<void> cancelStay({
@@ -395,4 +533,13 @@ abstract final class HotelDeskActions {
       housekeeping: housekeeping,
     );
   }
+}
+
+/// Why a quotation send did or did not happen.
+enum QuotationSendResult {
+  sent,
+
+  /// No address on the quotation — prompt for one and retry.
+  noEmail,
+  failed,
 }

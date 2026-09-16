@@ -73,6 +73,8 @@ class HotelQuotationSheet extends StatefulWidget {
 class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
+  late final TextEditingController _emailController;
+  String? _emailError;
   late final TextEditingController _rateController;
   late final TextEditingController _extrasController;
   late final TextEditingController _discountController;
@@ -92,6 +94,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
 
     _nameController = TextEditingController(text: existing?.guestName ?? '');
     _phoneController = TextEditingController(text: existing?.guestPhone ?? '');
+    _emailController = TextEditingController(text: existing?.guestEmail ?? '');
     _rateController = TextEditingController(
       text: (existing?.nightlyRate ?? 0).round().toString(),
     );
@@ -123,6 +126,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _rateController.dispose();
     _extrasController.dispose();
     _discountController.dispose();
@@ -190,6 +194,12 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
       return;
     }
 
+    final email = hotelNormalizeEmail(_emailController.text);
+    if (email != null && !hotelIsPlausibleEmail(email)) {
+      setState(() => _emailError = 'That email does not look right');
+      return;
+    }
+
     final phone = _phoneController.text.trim();
     final existing = widget.existing;
     final now = DateTime.now().toUtc();
@@ -212,6 +222,10 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
           .copyWith(
             guestName: name,
             guestPhone: phone.isEmpty ? null : phone,
+            guestEmail: email,
+            // Clearing the field must actually clear the address, or the desk
+            // keeps mailing a guest who asked to be taken off.
+            clearGuestEmail: email == null,
             roomId: room.id,
             roomName: room.name,
             roomType: room.roomType,
@@ -277,6 +291,17 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
               controller: _phoneController,
               hint: '07…',
               keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 12),
+            HotelSheetField(
+              label: 'Email (optional)',
+              controller: _emailController,
+              hint: 'Where the quotation PDF is sent',
+              keyboardType: TextInputType.emailAddress,
+              errorText: _emailError,
+              onChanged: (_) {
+                if (_emailError != null) setState(() => _emailError = null);
+              },
             ),
             const SizedBox(height: 12),
             _arrivalRow(),

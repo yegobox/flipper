@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -33,6 +34,27 @@ mixin CoreHotelStubMixin implements HotelInterface {
   @override
   Future<void> saveHotelBranchSettings(HotelBranchSettings settings) async =>
       _warn('saveHotelBranchSettings');
+
+  @override
+  Future<BranchDocumentSettings?> branchDocumentSettings({
+    required String branchId,
+  }) async {
+    _warn('branchDocumentSettings');
+    return null;
+  }
+
+  @override
+  Stream<BranchDocumentSettings?> branchDocumentSettingsStream({
+    required String branchId,
+  }) {
+    _warn('branchDocumentSettingsStream');
+    return Stream.value(null);
+  }
+
+  @override
+  Future<void> saveBranchDocumentSettings(
+    BranchDocumentSettings settings,
+  ) async => _warn('saveBranchDocumentSettings');
 
   @override
   Stream<List<HotelRoom>> hotelRoomsStream({required String branchId}) {
@@ -109,6 +131,7 @@ mixin CoreHotelStubMixin implements HotelInterface {
     required String clerkTenantId,
     required String clerkName,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,
@@ -142,6 +165,7 @@ mixin CoreHotelStubMixin implements HotelInterface {
     required String clerkTenantId,
     required String clerkName,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,

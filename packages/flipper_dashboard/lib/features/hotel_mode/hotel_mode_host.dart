@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
@@ -14,6 +16,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widge
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
@@ -43,6 +46,13 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
         await ProxyService.getStrategy(
           Strategy.capella,
         ).seedDefaultRooms(branchId: branchId);
+
+        // Seeded rooms are written straight to Ditto with no RRA item, so
+        // without this the first guest in one pays for the registration at
+        // the counter. Unawaited: it is fifteen round trips on a fresh
+        // property and the desk must open now. Idempotent, and once every
+        // room is registered it costs a cached read and a Ditto query.
+        unawaited(HotelRoomRraService.registerUnregisteredRooms(branchId));
       }
       // Opening the desk on this terminal is what makes it the desk terminal:
       // the startup redirect and the sales pane both read the device pick, so

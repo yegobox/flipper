@@ -18,6 +18,14 @@ abstract final class HotelModeSettings {
   static const checkOutHourKey = HotelModeBranchSettingsService.checkOutHourKey;
   static const roomChargeVariantKey =
       HotelModeBranchSettingsService.roomChargeVariantKey;
+  static const notifyGuestSmsKey =
+      HotelModeBranchSettingsService.notifyGuestSmsKey;
+  static const notifyGuestEmailKey =
+      HotelModeBranchSettingsService.notifyGuestEmailKey;
+  static const notifyOnReserveKey =
+      HotelModeBranchSettingsService.notifyOnReserveKey;
+  static const notifyOnCheckInKey =
+      HotelModeBranchSettingsService.notifyOnCheckInKey;
 
   static bool get enabled =>
       ProxyService.box.readBool(key: enabledKey) ?? false;
@@ -42,6 +50,21 @@ abstract final class HotelModeSettings {
 
   static int get checkOutHour =>
       ProxyService.box.readInt(key: checkOutHourKey) ?? 11;
+
+  /// Off by default: an SMS spends the branch's credits, so a property opts
+  /// in rather than discovering the cost afterwards.
+  static bool get notifyGuestSms =>
+      ProxyService.box.readBool(key: notifyGuestSmsKey) ?? false;
+
+  /// On by default — email costs nothing.
+  static bool get notifyGuestEmail =>
+      ProxyService.box.readBool(key: notifyGuestEmailKey) ?? true;
+
+  static bool get notifyOnReserve =>
+      ProxyService.box.readBool(key: notifyOnReserveKey) ?? true;
+
+  static bool get notifyOnCheckIn =>
+      ProxyService.box.readBool(key: notifyOnCheckInKey) ?? true;
 
   static String? get roomChargeVariantId {
     final value = ProxyService.box.readString(key: roomChargeVariantKey);
@@ -94,6 +117,26 @@ abstract final class HotelModeSettings {
 
   static void setCheckOutHour(int value) {
     ProxyService.box.writeInt(key: checkOutHourKey, value: value.clamp(0, 23));
+    unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
+  }
+
+  static void setNotifyGuestSms(bool value) {
+    ProxyService.box.writeBool(key: notifyGuestSmsKey, value: value);
+    unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
+  }
+
+  static void setNotifyGuestEmail(bool value) {
+    ProxyService.box.writeBool(key: notifyGuestEmailKey, value: value);
+    unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
+  }
+
+  static void setNotifyOnReserve(bool value) {
+    ProxyService.box.writeBool(key: notifyOnReserveKey, value: value);
+    unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
+  }
+
+  static void setNotifyOnCheckIn(bool value) {
+    ProxyService.box.writeBool(key: notifyOnCheckInKey, value: value);
     unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
   }
 

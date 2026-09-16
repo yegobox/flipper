@@ -19,6 +19,10 @@ abstract final class HotelModeBranchSettingsService {
   static const autoLogoutKey = 'hotelAutoLogout';
   static const checkOutHourKey = 'hotelCheckOutHour';
   static const roomChargeVariantKey = 'hotelRoomChargeVariantId';
+  static const notifyGuestSmsKey = 'hotelNotifyGuestSms';
+  static const notifyGuestEmailKey = 'hotelNotifyGuestEmail';
+  static const notifyOnReserveKey = 'hotelNotifyOnReserve';
+  static const notifyOnCheckInKey = 'hotelNotifyOnCheckIn';
 
   static StreamSubscription<HotelBranchSettings?>? _watchSub;
 
@@ -107,6 +111,14 @@ abstract final class HotelModeBranchSettingsService {
       requirePin: ProxyService.box.readBool(key: requirePinKey) ?? true,
       autoLogout: ProxyService.box.readBool(key: autoLogoutKey) ?? false,
       checkOutHour: ProxyService.box.readInt(key: checkOutHourKey) ?? 11,
+      notifyGuestSms:
+          ProxyService.box.readBool(key: notifyGuestSmsKey) ?? false,
+      notifyGuestEmail:
+          ProxyService.box.readBool(key: notifyGuestEmailKey) ?? true,
+      notifyOnReserve:
+          ProxyService.box.readBool(key: notifyOnReserveKey) ?? true,
+      notifyOnCheckIn:
+          ProxyService.box.readBool(key: notifyOnCheckInKey) ?? true,
       roomChargeVariantId: (variantId == null || variantId.isEmpty)
           ? null
           : variantId,
@@ -192,6 +204,10 @@ abstract final class HotelModeBranchSettingsService {
     box.writeBool(key: requirePinKey, value: settings.requirePin);
     box.writeBool(key: autoLogoutKey, value: settings.autoLogout);
     box.writeInt(key: checkOutHourKey, value: settings.checkOutHour);
+    box.writeBool(key: notifyGuestSmsKey, value: settings.notifyGuestSms);
+    box.writeBool(key: notifyGuestEmailKey, value: settings.notifyGuestEmail);
+    box.writeBool(key: notifyOnReserveKey, value: settings.notifyOnReserve);
+    box.writeBool(key: notifyOnCheckInKey, value: settings.notifyOnCheckIn);
     box.writeString(
       key: roomChargeVariantKey,
       value: settings.roomChargeVariantId ?? '',

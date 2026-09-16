@@ -36,6 +36,7 @@ class HotelStay {
     required this.expectedCheckOutAt,
     required this.nightlyRate,
     this.guestPhone,
+    this.guestEmail,
     this.adults = 1,
     this.children = 0,
     this.status = HotelStayStatus.inHouse,
@@ -60,6 +61,11 @@ class HotelStay {
 
   final String guestName;
   final String? guestPhone;
+
+  /// Where a booking confirmation is emailed. Optional — plenty of guests give
+  /// only a phone number, and a stay is valid with neither.
+  final String? guestEmail;
+
   final int adults;
   final int children;
 
@@ -102,6 +108,8 @@ class HotelStay {
     String? transactionId,
     String? guestName,
     String? guestPhone,
+    String? guestEmail,
+    bool clearGuestEmail = false,
     int? adults,
     int? children,
     DateTime? checkInAt,
@@ -123,6 +131,7 @@ class HotelStay {
       transactionId: transactionId ?? this.transactionId,
       guestName: guestName ?? this.guestName,
       guestPhone: guestPhone ?? this.guestPhone,
+      guestEmail: clearGuestEmail ? null : (guestEmail ?? this.guestEmail),
       adults: adults ?? this.adults,
       children: children ?? this.children,
       checkInAt: checkInAt ?? this.checkInAt,
@@ -148,6 +157,11 @@ class HotelStay {
       'transactionId': transactionId,
       'guestName': guestName,
       if (guestPhone != null) 'guestPhone': guestPhone,
+      // Written even when null, unlike its neighbours above. `saveHotelStay`
+      // upserts with ON ID CONFLICT DO UPDATE, which leaves omitted fields
+      // untouched — so omitting a cleared email would resurrect the old one on
+      // every other device. Same trap as hotel_branch_settings.dart:95-97.
+      'guestEmail': guestEmail,
       'adults': adults,
       'children': children,
       'checkInAt': checkInAt.toUtc().toIso8601String(),
@@ -193,6 +207,7 @@ class HotelStay {
       transactionId: (raw['transactionId'] ?? '').toString(),
       guestName: (raw['guestName'] ?? '').toString(),
       guestPhone: raw['guestPhone']?.toString(),
+      guestEmail: raw['guestEmail']?.toString(),
       adults: toInt(raw['adults'], fallback: 1),
       children: toInt(raw['children']),
       checkInAt: checkIn,

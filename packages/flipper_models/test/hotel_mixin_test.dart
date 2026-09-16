@@ -3,6 +3,7 @@ import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/sync/capella/mixins/hotel_mixin.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -81,9 +82,17 @@ class _FakeStrategy extends Mock implements DatabaseSyncInterface {
   /// whether a room charge can carry RRA fields at all.
   final Ebm? branchEbm;
 
+  /// Every `ebm()` call, with the fetchRemote flag it was made with.
+  ///
+  /// `fetchRemote: true` skips Ditto and hits Supabase, so a `true` here on a
+  /// hot path is a network round trip in front of a clerk.
+  final List<bool> ebmFetchRemoteCalls = [];
+
   @override
-  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async =>
-      branchEbm;
+  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
+    ebmFetchRemoteCalls.add(fetchRemote);
+    return branchEbm;
+  }
 
   @override
   Future<Variant?> getVariant({
@@ -192,6 +201,7 @@ void main() {
   /// fakes is all the harness this needs.
   group('folio lifecycle', () {
     late Variant roomNight;
+    late _FakeStrategy strategy;
 
     setUp(() async {
       await getIt.reset();
@@ -207,7 +217,7 @@ void main() {
         retailPrice: 50000,
       );
       getIt.registerSingleton<LocalStorage>(_FakeBox());
-      final strategy = _FakeStrategy({'v-room': roomNight});
+      strategy = _FakeStrategy({'v-room': roomNight});
       // ProxyService looks the strategy up by name, not by type alone.
       getIt.registerSingleton<SyncStrategy>(
         SyncStrategy(capella: strategy, cloudSync: strategy),
@@ -221,14 +231,70 @@ void main() {
 
     tearDown(() async {
       ITransactionDittoAdapter.instance.resetOverrides();
+      HotelRraCapability.invalidate();
       await getIt.reset();
     });
+
+    setUp(HotelRraCapability.invalidate);
 
     Future<HotelRoom> savedRoom() async {
       final r = _room();
       await sync.saveHotelRoom(r);
       return r;
     }
+
+    test('survives checkInGuest, the Ditto write, and the read back', () async {
+      final room = await savedRoom();
+      await sync.saveHotelRoom(room);
+
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        guestPhone: '0788360058',
+        guestEmail: 'aline@example.com',
+      );
+
+      expect(stay.guestEmail, 'aline@example.com');
+      expect(
+        ditto.store.docs('hotel_stays').single['guestEmail'],
+        'aline@example.com',
+      );
+
+      final stays = await sync.hotelStays(branchId: _branch);
+      expect(stays.single.guestEmail, 'aline@example.com');
+    });
+
+    test('is carried forward when a reservation becomes a stay', () async {
+      final room = await savedRoom();
+      await sync.saveHotelRoom(room);
+
+      final reserved = await sync.reserveRoom(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime(2026, 2, 1, 14),
+        expectedCheckOutAt: DateTime(2026, 2, 3, 11),
+        nightlyRate: 60000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        guestEmail: 'aline@example.com',
+      );
+
+      final arrived = await sync.checkInReservation(
+        stay: reserved,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      // The welcome message has nowhere to go if this is lost at arrival.
+      expect(arrived.guestEmail, 'aline@example.com');
+    });
 
     test('checking a walk-in in opens exactly one folio', () async {
       final room = await savedRoom();
@@ -550,6 +616,79 @@ void main() {
       );
     });
 
+    test('a non-EBM branch looks its EBM up once, not once per charge', () async {
+      // A branch with no EBM row has nothing cached in Ditto, so every lookup
+      // falls through to Supabase. Asking per charge made the properties that
+      // never fiscalise pay the most.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      strategy.ebmFetchRemoteCalls.clear();
+
+      for (var i = 0; i < 3; i++) {
+        await sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+      }
+
+      expect(
+        strategy.ebmFetchRemoteCalls,
+        hasLength(1),
+        reason: 'three charges should share one memoised EBM lookup',
+      );
+    });
+
+    test('the memo expires rather than pinning a branch as non-EBM forever',
+        () async {
+      // A property that configures EBM mid-session must start registering
+      // without a restart.
+      expect(await HotelRraCapability.supports(_branch), isFalse);
+      expect(HotelRraCapability.isCached(_branch), isTrue);
+
+      HotelRraCapability.invalidate(_branch);
+      expect(HotelRraCapability.isCached(_branch), isFalse);
+    });
+
+    test('posting a room charge never makes a remote EBM call', () async {
+      // `ebm(fetchRemote: true)` — the default — skips Ditto and goes straight
+      // to Supabase. On this path that is a network round trip a clerk waits
+      // out with a guest at the counter, and it used to happen twice.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      strategy.ebmFetchRemoteCalls.clear();
+
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(
+        strategy.ebmFetchRemoteCalls,
+        everyElement(isFalse),
+        reason: 'a remote EBM read on the room-charge path is a network hop',
+      );
+    });
+
     test('checking out settles the folio and releases the room', () async {
       final room = await savedRoom();
       final stay = await sync.checkInGuest(
@@ -770,6 +909,35 @@ void main() {
         to: DateTime(2026, 1, 14),
       );
       expect(backToBack, isEmpty);
+    });
+  });
+
+  group('guest email', () {
+    test('survives reserveRoom', () async {
+      final stay = await sync.reserveRoom(
+        branchId: _branch,
+        room: _room(),
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime(2026, 2, 1, 14),
+        expectedCheckOutAt: DateTime(2026, 2, 3, 11),
+        nightlyRate: 60000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        guestEmail: 'aline@example.com',
+      );
+
+      expect(stay.guestEmail, 'aline@example.com');
+    });
+
+    test('is written even when absent, so clearing it replicates', () async {
+      // ON ID CONFLICT DO UPDATE leaves omitted fields untouched: an omitted
+      // key would leave the old address alive on every other device.
+      final stay = _stay(id: 's-no-email', roomId: 'r1');
+      await sync.saveHotelStay(stay);
+
+      final doc = ditto.store.docs('hotel_stays').single;
+      expect(doc.containsKey('guestEmail'), isTrue);
+      expect(doc['guestEmail'], isNull);
     });
   });
 

@@ -35,6 +35,13 @@ void main() {
       'hotelManagerCheckout',
       'hotelRequirePin',
       'hotelAutoLogout',
+      // Guest notifications
+      'hotelNotifyGuestSms',
+      'hotelNotifyGuestEmail',
+      'hotelNotifyOnReserve',
+      'hotelNotifyOnCheckIn',
+      // Branch document branding
+      'docStampEnabled',
     ];
 
     for (final key in boolKeys) {
@@ -71,6 +78,30 @@ void main() {
         reason:
             'hotelRoomChargeVariantId is missing from the LocalStorage allowlist',
       );
+    });
+
+    // The stamp's width and aspect ratio are stored as strings: LocalStorage
+    // has no double accessor, and rounding an aspect ratio to an int would
+    // visibly distort every stamped document.
+    const stringKeys = <String, String>{
+      'docStampImageBase64': 'iVBORw0KGgo=',
+      'docStampPlacement': 'bottomLeft',
+      'docStampWidthMm': '38.0',
+      'docStampAspectRatio': '0.42',
+      // Which branch the cached stamp belongs to; without it a branch switch
+      // stamps the next property's documents with the previous one's mark.
+      'docStampBranchId': 'branch-a',
+    };
+
+    stringKeys.forEach((key, value) {
+      test('$key is writable', () async {
+        await box.writeString(key: key, value: value);
+        expect(
+          box.readString(key: key),
+          value,
+          reason: '$key is missing from the LocalStorage allowlist',
+        );
+      });
     });
   });
 }

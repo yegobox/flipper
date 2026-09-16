@@ -12,6 +12,7 @@ class HotelReservationDraft {
   const HotelReservationDraft({
     required this.guestName,
     required this.guestPhone,
+    required this.guestEmail,
     required this.adults,
     required this.children,
     required this.checkInAt,
@@ -22,6 +23,9 @@ class HotelReservationDraft {
 
   final String guestName;
   final String? guestPhone;
+
+  /// Where the reservation confirmation is emailed. Optional.
+  final String? guestEmail;
   final int adults;
   final int children;
   final DateTime checkInAt;
@@ -98,6 +102,8 @@ class HotelReservationSheet extends StatefulWidget {
 class _HotelReservationSheetState extends State<HotelReservationSheet> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  String? _emailError;
   late final TextEditingController _rateController;
 
   late DateTime _checkIn;
@@ -119,6 +125,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _rateController.dispose();
     super.dispose();
   }
@@ -164,11 +171,18 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
       return;
     }
 
+    final email = hotelNormalizeEmail(_emailController.text);
+    if (email != null && !hotelIsPlausibleEmail(email)) {
+      setState(() => _emailError = 'That email does not look right');
+      return;
+    }
+
     final phone = _phoneController.text.trim();
     Navigator.of(context).pop(
       HotelReservationDraft(
         guestName: name,
         guestPhone: phone.isEmpty ? null : phone,
+        guestEmail: email,
         adults: _adults,
         children: _children,
         checkInAt: _checkIn.add(const Duration(hours: 14)),
@@ -228,6 +242,17 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
               controller: _phoneController,
               hint: '07…',
               keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 12),
+            HotelSheetField(
+              label: 'Email (optional)',
+              controller: _emailController,
+              hint: 'Sends the confirmation',
+              keyboardType: TextInputType.emailAddress,
+              errorText: _emailError,
+              onChanged: (_) {
+                if (_emailError != null) setState(() => _emailError = null);
+              },
             ),
             const SizedBox(height: 12),
             _arrivalRow(),
