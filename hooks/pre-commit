@@ -133,14 +133,19 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
     continue
   fi
 
-  cd "$APP_DIR" || continue
+  # Deliberately no `cd`: git runs hooks with GIT_DIR set and GIT_WORK_TREE
+  # unset, so from inside an app directory git treats *that* directory as the
+  # top of the work tree and `git add pubspec.yaml` records the app's file
+  # under the repo-root path. That is how the root workspace manifest was once
+  # overwritten with a copy of apps/flipper_web/pubspec.yaml. Absolute paths
+  # for the edits, `git -C "$REPO_ROOT"` for the staging.
+  PUBSPEC_ABS="$REPO_ROOT/$APP_REL/pubspec.yaml"
 
   echo "Processing $APP_DIR/pubspec.yaml"
 
-  version_line=$(grep "^version: " pubspec.yaml)
+  version_line=$(grep "^version: " "$PUBSPEC_ABS")
   if [[ -z "$version_line" ]]; then
     echo "No version field found in $APP_DIR/pubspec.yaml"
-    cd - > /dev/null
     continue
   fi
 
@@ -174,27 +179,38 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
     new_version="$base_version+$build_number"
   else
     echo "Invalid version format in $APP_DIR/pubspec.yaml: $version"
-    cd - > /dev/null
     continue
   fi
 
-  SED_INPLACE "s|$version_line|version: $new_version|" pubspec.yaml
+  SED_INPLACE "s|$version_line|version: $new_version|" "$PUBSPEC_ABS"
   echo "  version: $version → $new_version"
-  git add pubspec.yaml
+  git -C "$REPO_ROOT" add -- "$APP_REL/pubspec.yaml"
 
-  msix_version=$(read_msix_version pubspec.yaml)
+  msix_version=$(read_msix_version "$PUBSPEC_ABS")
   if [[ -n "$msix_version" ]]; then
     if new_msix_version=$(bump_msix_version "$msix_version"); then
       # Replace only the active (uncommented) msix_version line.
-      SED_INPLACE "s|^[[:space:]]*msix_version:[[:space:]]*$msix_version|  msix_version: $new_msix_version|" pubspec.yaml
+      SED_INPLACE "s|^[[:space:]]*msix_version:[[:space:]]*$msix_version|  msix_version: $new_msix_version|" "$PUBSPEC_ABS"
       echo "  msix_version: $msix_version → $new_msix_version"
-      git add pubspec.yaml
+      git -C "$REPO_ROOT" add -- "$APP_REL/pubspec.yaml"
     else
       echo "Invalid msix_version format in $APP_DIR/pubspec.yaml: $msix_version"
     fi
   fi
-
-  cd - > /dev/null
 done
+
+# The root pubspec.yaml is the pub/melos workspace manifest, not an app. If a
+# commit is about to change its `name:`, something wrote an app manifest over
+# it — `melos bootstrap` then resolves the app's `../../open-sources/*` path
+# dependencies from the repo root, where they do not exist, and every CI job
+# dies in its bootstrap step. Cheaper to stop here than to find out from a red
+# build on main.
+staged_root_name=$(git -C "$REPO_ROOT" show ":pubspec.yaml" 2>/dev/null | awk '/^name:/ {print $2; exit}')
+if [[ -n "$staged_root_name" && "$staged_root_name" != "flipper_workspace" ]]; then
+  echo "ERROR: the root pubspec.yaml is staged as '$staged_root_name', not the" >&2
+  echo "       'flipper_workspace' manifest. An app pubspec was copied over it." >&2
+  echo "       Restore it with: git checkout HEAD -- pubspec.yaml" >&2
+  exit 1
+fi
 
 exit 0
