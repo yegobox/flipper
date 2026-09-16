@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:convert';
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_web/core/analytics/analytics_provider.dart';
@@ -64,7 +65,9 @@ Map<String, dynamic> buildBusinessRegistrationPayload({
     'latitude': '1',
     'longitude': '1',
     'phoneNumber': phoneNumber,
-    'currency': 'RWF',
+    // The business keeps its books in its own country's currency; RWF is only
+    // the fallback for a country the table does not know.
+    'currency': signupCurrencyFor(country),
     'createdAt': (createdAt ?? DateTime.now()).toIso8601String(),
     // Ensure userId is sent as a string regardless of incoming type
     'userId': userId?.toString(),

@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
@@ -1494,24 +1495,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     return ref.read(attachedCustomerProvider(customerId).future);
   }
 
-  /// Get country calling code from country name
+  /// Get country calling code from country name.
+  ///
+  /// Reads the same worldwide table signup does, so a customer from outside the
+  /// dozen countries this used to list no longer gets dialled as Rwandan.
   String _getCountryCallingCode(String? countryName) {
-    final countryCodeMap = {
-      'Rwanda': '250',
-      'Kenya': '254',
-      'Uganda': '256',
-      'Tanzania': '255',
-      'Burundi': '257',
-      'South Africa': '27',
-      'Zambia': '260',
-      'Mozambique': '258',
-      'Zimbabwe': '263',
-      'Malawi': '265',
-      'DRC': '243',
-      'Congo': '243',
-    };
-    return countryCodeMap[countryName] ??
-        '250'; // Default to Rwanda if country not found
+    // The shared table stores E.164 codes with their `+`; this caller wants the
+    // bare digits.
+    return signupDialCodeFor(countryName).substring(1);
   }
 
   Future<void> _processDigitalPayment({

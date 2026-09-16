@@ -386,7 +386,7 @@ class BooksHomeTrustStrip extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              'Built for Rwandan businesses — and the way money actually moves.',
+              'Built for businesses everywhere — and the way money actually moves.',
               style: AppText.small.copyWith(
                 fontSize: 13,
                 letterSpacing: 0.52,
@@ -2003,7 +2003,7 @@ class BooksHomeFooter extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '© 2026 Flipper. Made for Rwandan business.',
+                        '© 2026 Flipper. Made for business everywhere.',
                         style: AppText.small.copyWith(color: AppColors.ink4),
                       ),
                       const Spacer(),

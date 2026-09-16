@@ -1,6 +1,7 @@
 library flipper_models;
 
 // import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart' hide BusinessType;
@@ -118,7 +119,9 @@ class SignupViewModel extends ReactiveViewModel {
         'latitude': latitude,
         'longitude': longitude,
         'phoneNumber': phoneNumber,
-        'currency': 'RWF',
+        // The business keeps its books in its own country's currency; RWF is
+        // only the fallback for a country the table does not know.
+        'currency': signupCurrencyFor(kCountry),
         'createdAt': DateTime.now().toIso8601String(),
         'userId': userId,
         "tinNumber": tin != null ? int.parse(tin!) : 1111,

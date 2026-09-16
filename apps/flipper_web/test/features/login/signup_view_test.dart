@@ -221,4 +221,63 @@ void main() {
       expect(find.byIcon(Icons.cancel), findsOneWidget);
     });
   });
+
+  group('Country field', () {
+    /// Same overrides as [TestWrapper], but through a container the test can
+    /// read the form state out of.
+    ProviderContainer containerWith(MockSignupRepository repository) {
+      return ProviderContainer(
+        overrides: [
+          signupRepositoryProvider.overrideWithValue(repository),
+          businessTypesProvider.overrideWithValue([
+            BusinessType(id: '1', typeName: 'Flipper Retailer'),
+            BusinessType(id: '2', typeName: 'Individual'),
+          ]),
+          countriesProvider.overrideWithValue(['Rwanda', 'Kenya', 'Uganda']),
+        ],
+      );
+    }
+
+    Future<ProviderContainer> pumpSignup(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(700, 1000));
+      final container = containerWith(mockRepository);
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(home: Scaffold(body: const SignupView())),
+        ),
+      );
+      return container;
+    }
+
+    Finder countryField() => find.descendant(
+      of: find.byType(Autocomplete<String>),
+      matching: find.byType(TextFormField),
+    );
+
+    testWidgets('a country typed in full is the country that gets submitted', (
+      tester,
+    ) async {
+      final container = await pumpSignup(tester);
+      expect(container.read(signupFormProvider).country, 'Rwanda');
+
+      // Typing the name without ever tapping the suggestion used to leave the
+      // notifier on Rwanda, and the form submits what the notifier holds — so
+      // signup went out with the wrong dial code and currency.
+      await tester.enterText(countryField(), 'Kenya');
+      await tester.pump();
+
+      expect(container.read(signupFormProvider).country, 'Kenya');
+    });
+
+    testWidgets('a half-typed country changes nothing', (tester) async {
+      final container = await pumpSignup(tester);
+
+      await tester.enterText(countryField(), 'Ken');
+      await tester.pump();
+
+      expect(container.read(signupFormProvider).country, 'Rwanda');
+    });
+  });
 }

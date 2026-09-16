@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -359,21 +360,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
                     // Country
                     _FieldLabel(label: 'Country'),
-                    _buildDropdown<String>(
-                      hintText: 'Select your country',
-                      prefixIcon: Icons.public_outlined,
-                      value: formState.country,
-                      items: countries,
-                      itemLabel: (c) => c,
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Please select a country' : null,
-                      onChanged: (v) {
-                        if (v != null) {
-                          // The field keeps the local part; the notifier
-                          // re-applies the new country's dial code.
-                          ref.read(signupFormProvider.notifier).updateCountry(v);
-                        }
-                      },
+                    _buildCountryField(
+                      countries: countries,
+                      selected: formState.country,
                     ),
                     const SizedBox(height: 26),
 
@@ -536,7 +525,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
               ? null
               : 'Please enter a valid email address';
         }
-        if (raw.replaceAll(RegExp(r'[^0-9+]'), '').length < 9) {
+        if (!isPlausiblePhoneNumber(raw, country: state.country)) {
           return 'Please enter a valid phone number';
         }
         return null;
@@ -557,7 +546,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
     final raw = (state.phoneNumber ?? '').trim();
     if (raw.isEmpty) return false;
     if (looksLikeEmailContact(raw)) return isEmailContact(raw);
-    return raw.replaceAll(RegExp(r'[^0-9]'), '').length >= 9;
+    return isPlausiblePhoneNumber(raw, country: state.country);
   }
 
   /// The send / resend / verified affordance inside the contact field — the
@@ -712,6 +701,110 @@ class _SignupViewState extends ConsumerState<SignupView> {
       },
       onChanged: (v) =>
           ref.read(signupFormProvider.notifier).updateTinNumber(v),
+    );
+  }
+
+  /// Country picker.
+  ///
+  /// Signup takes businesses from every country now, so this is a type-to-
+  /// filter field rather than the plain dropdown the other selects use — a
+  /// menu of 200-odd countries is not something anyone scrolls through.
+  Widget _buildCountryField({
+    required List<String> countries,
+    required String selected,
+  }) {
+    return Autocomplete<String>(
+      initialValue: TextEditingValue(text: selected),
+      // Prefix matches first, and an ISO code or a familiar alias ('USA', 'UK',
+      // 'DRC') finds its country too — see searchSignupCountries.
+      optionsBuilder: (value) =>
+          searchSignupCountries(value.text, within: countries),
+      onSelected: (value) {
+        // The field keeps the local part; the notifier re-applies the new
+        // country's dial code.
+        ref.read(signupFormProvider.notifier).updateCountry(value);
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        final items = options.toList();
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300, maxWidth: 420),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final option = items[index];
+                  return InkWell(
+                    onTap: () => onSelected(option),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              option,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          Text(
+                            signupDialCode(option),
+                            style: context.siText(
+                              fontSize: 13,
+                              color: SITokens.ink3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+        return TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          onFieldSubmitted: (_) => onFieldSubmitted(),
+          // Typing a country in full without ever tapping the suggestion left
+          // the notifier on the previous country, and the form submits what
+          // the notifier holds — so that signup went out with the old
+          // country's dial code and currency. Selecting from the list is not
+          // the only way to choose one.
+          onChanged: (value) {
+            final typed = value.trim();
+            if (typed != selected && countries.contains(typed)) {
+              ref.read(signupFormProvider.notifier).updateCountry(typed);
+            }
+          },
+          validator: (v) {
+            final typed = (v ?? '').trim();
+            if (typed.isEmpty) return 'Please select a country';
+            // A half-typed name is not a country, and neither is an alias the
+            // list does not show ('USA' offers United States to pick).
+            if (!countries.contains(typed)) {
+              return 'Please pick a country from the list';
+            }
+            return null;
+          },
+          decoration: siInputDecoration(
+            hintText: 'Search your country',
+            prefixIcon: Icons.public_outlined,
+          ),
+        );
+      },
     );
   }
 

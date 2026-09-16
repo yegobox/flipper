@@ -52,6 +52,34 @@ void main() {
     test('keeps empty input empty so the field does not count as filled', () {
       expect(normalizeSignupContact('  ', country: 'Rwanda'), '');
     });
+
+    test('works for countries outside East Africa', () {
+      expect(
+        normalizeSignupContact('07911123456', country: 'United Kingdom'),
+        '+447911123456',
+      );
+      expect(
+        normalizeSignupContact('9012345678', country: 'Japan'),
+        '+819012345678',
+      );
+    });
+
+    test('re-applies over a multi-digit +1 dial code', () {
+      // +1 and +1268 are both dial codes: matching the shorter one first would
+      // leave `268…` behind as the local part.
+      expect(
+        normalizeSignupContact('+12684641234', country: 'Rwanda'),
+        '+2504641234',
+      );
+    });
+
+    test('does not mistake a national number for a dial code', () {
+      // Bare digits carry no '+', so nothing is stripped off the front.
+      expect(
+        normalizeSignupContact('1268464123', country: 'Rwanda'),
+        '+2501268464123',
+      );
+    });
   });
 
   group('email detection', () {
@@ -70,6 +98,8 @@ void main() {
   group('localPhonePart', () {
     test('strips a known dial code for display', () {
       expect(localPhonePart('+250783054874'), '783054874');
+      expect(localPhonePart('+447911123456'), '7911123456');
+      expect(localPhonePart('+12684641234'), '4641234');
     });
 
     test('strips separators along with the dial code', () {
