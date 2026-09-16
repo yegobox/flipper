@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_charge_picker.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_plan_editor.dart';
@@ -451,7 +452,9 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   'Turns the register into a front desk: a board of rooms by floor, '
                   'check-in with guest and dates, a running folio per stay that the '
                   'bar and restaurant can charge to, and settlement at checkout. '
-                  'Replaces Bar Mode and standard retail checkout on this branch.',
+                  'Replaces Bar Mode and standard retail checkout on this branch. '
+                  'On a keyboard, $serviceModeHotkeyLabel cycles '
+                  'Bar → Hotel → POS without coming back here.',
                   style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     color: HotelTokens.ink2,

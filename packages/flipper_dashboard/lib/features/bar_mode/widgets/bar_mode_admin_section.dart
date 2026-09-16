@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_floor_plan_editor.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
@@ -389,7 +390,12 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Turns the register into a shared bar terminal: staff keep a running tab per table, log rounds under their own PIN, and hand off between cashiers without losing the bill. Leave off for standard retail checkout.',
+                  'Turns the register into a shared bar terminal: staff keep a '
+                  'running tab per table, log rounds under their own PIN, and '
+                  'hand off between cashiers without losing the bill. Leave off '
+                  'for standard retail checkout. On a keyboard, '
+                  '$serviceModeHotkeyLabel cycles Bar → Hotel → POS without '
+                  'coming back here.',
                   style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     color: BarTokens.ink2,

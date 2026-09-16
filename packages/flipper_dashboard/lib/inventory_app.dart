@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_host.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/TransactionWidget.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
@@ -35,16 +36,22 @@ enum SalesSurface {
   /// True when this surface takes the entire sales pane to itself.
   bool get ownsWholePane => this != SalesSurface.pos;
 
+  /// Which surface the branch's service mode asks for.
+  ///
+  /// Delegates to [resolveServiceMode] so the "hotel wins over a stale bar
+  /// setting" rule lives in exactly one place — the hotkey cycle and this pane
+  /// must never disagree about which mode is active.
   static SalesSurface resolve({
     required bool hotelEnabled,
     required bool barEnabled,
-  }) {
-    // Hotel wins: the modes are mutually exclusive, but a branch that switched
-    // from bar to hotel can still hold a stale `enabled: true` bar setting.
-    if (hotelEnabled) return SalesSurface.hotel;
-    if (barEnabled) return SalesSurface.bar;
-    return SalesSurface.pos;
-  }
+  }) => switch (resolveServiceMode(
+    hotelEnabled: hotelEnabled,
+    barEnabled: barEnabled,
+  )) {
+    ServiceMode.hotel => SalesSurface.hotel,
+    ServiceMode.bar => SalesSurface.bar,
+    ServiceMode.pos => SalesSurface.pos,
+  };
 
   static SalesSurface get current => resolve(
     hotelEnabled: HotelModeSettings.enabled,
@@ -116,6 +123,9 @@ class InventoryApp extends HookConsumerWidget {
     final isScanningMode = ref.watch(scanningModeProvider);
     final selectedMenuItem = ref.watch(selectedMenuItemProvider);
     final scaffoldKey = useMemoized(GlobalKey<ScaffoldState>.new);
+    // [SalesSurface.current] reads the settings cache synchronously, so the
+    // pane would keep the old surface after the service-mode hotkey flipped it.
+    useValueListenable(serviceModeRevision);
 
     if (selectedMenuItem == 1) {
       return Row(

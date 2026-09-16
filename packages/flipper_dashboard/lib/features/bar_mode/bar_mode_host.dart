@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_layout_breakpoints
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_manager_pin_modal.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_toast.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -56,7 +57,7 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
         screen = const BarSettleScreen();
     }
 
-    return Scaffold(
+    final stage = Scaffold(
       backgroundColor: BarTokens.stageBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -130,5 +131,7 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
         },
       ),
     );
+
+    return ServiceModeHotkeyScope(child: stage);
   }
 }
