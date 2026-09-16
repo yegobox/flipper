@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
@@ -7,7 +10,10 @@ import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_charge_picker.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_plan_editor.dart';
+import 'package:flipper_dashboard/utils/pick_image_base64.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/models/branch_document_settings.dart';
+import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -39,6 +45,12 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
   String? _roomChargeVariantId;
   Variant? _roomChargeVariant;
   bool _loadingVariant = false;
+  bool _notifyGuestSms = false;
+  bool _notifyGuestEmail = true;
+  bool _notifyOnReserve = true;
+  bool _notifyOnCheckIn = true;
+  BranchDocumentSettings _documents = const BranchDocumentSettings(branchId: '');
+  bool _updatingStamp = false;
 
   @override
   void initState() {
@@ -67,6 +79,11 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     _autoLogout = HotelModeSettings.autoLogout;
     _checkOutHour = HotelModeSettings.checkOutHour;
     _roomChargeVariantId = HotelModeSettings.roomChargeVariantId;
+    _notifyGuestSms = HotelModeSettings.notifyGuestSms;
+    _notifyGuestEmail = HotelModeSettings.notifyGuestEmail;
+    _notifyOnReserve = HotelModeSettings.notifyOnReserve;
+    _notifyOnCheckIn = HotelModeSettings.notifyOnCheckIn;
+    _documents = BranchDocumentSettingsService.current();
   }
 
   Future<void> _loadSettings() async {
@@ -271,6 +288,12 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
               ],
             ),
           ),
+          const SizedBox(height: 22),
+          const BarAdminEyebrow(label: 'Guest notifications'),
+          _guestNotificationsCard(),
+          const SizedBox(height: 22),
+          const BarAdminEyebrow(label: 'Company stamp'),
+          _stampCard(),
         ],
         const SizedBox(height: 16),
         Row(
@@ -302,6 +325,334 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     }
     return '${variant.name} · RWF '
         '${NumberFormat('#,###').format(variant.retailPrice ?? 0)}';
+  }
+
+  Widget _guestNotificationsCard() {
+    return BarCard(
+      child: Column(
+        children: [
+          BarSubRow(
+            showTopBorder: false,
+            icon: Icons.mail_outline,
+            title: 'Email the guest a confirmation',
+            subtitle: 'Free. Sent whenever the guest gave an email address.',
+            value: _notifyGuestEmail,
+            onChanged: (v) {
+              setState(() => _notifyGuestEmail = v);
+              HotelModeSettings.setNotifyGuestEmail(v);
+            },
+          ),
+          BarSubRow(
+            icon: Icons.sms_outlined,
+            title: 'Text the guest a confirmation',
+            subtitle:
+                'Costs 30 credits per message. Off until you turn it on.',
+            value: _notifyGuestSms,
+            onChanged: (v) {
+              setState(() => _notifyGuestSms = v);
+              HotelModeSettings.setNotifyGuestSms(v);
+            },
+          ),
+          BarSubRow(
+            icon: Icons.event_available_outlined,
+            title: 'Confirm when a room is held',
+            subtitle: 'Sent at the moment a future arrival is booked in.',
+            value: _notifyOnReserve,
+            onChanged: (v) {
+              setState(() => _notifyOnReserve = v);
+              HotelModeSettings.setNotifyOnReserve(v);
+            },
+          ),
+          BarSubRow(
+            icon: Icons.login,
+            title: 'Welcome the guest at check-in',
+            subtitle: 'Sent when the guest actually takes the key.',
+            value: _notifyOnCheckIn,
+            onChanged: (v) {
+              setState(() => _notifyOnCheckIn = v);
+              HotelModeSettings.setNotifyOnCheckIn(v);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stampCard() {
+    final stampBytes = _decodedStamp();
+
+    return BarCard(
+      child: Column(
+        children: [
+          BarSubRow(
+            showTopBorder: false,
+            icon: Icons.approval_outlined,
+            title: 'Stamp quotations and proformas',
+            subtitle: stampBytes == null
+                ? 'Upload a stamp below, then turn this on.'
+                : 'Drawn on the last page of every generated document.',
+            value: _documents.stampEnabled,
+            onChanged: (v) => _persistDocuments(
+              _documents.copyWith(stampEnabled: v),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 108,
+                      height: 84,
+                      decoration: BoxDecoration(
+                        color: HotelTokens.posBg,
+                        borderRadius: BorderRadius.circular(
+                          HotelTokens.radiusMd,
+                        ),
+                        border: Border.all(color: HotelTokens.line),
+                      ),
+                      alignment: Alignment.center,
+                      child: stampBytes == null
+                          ? Text(
+                              'No stamp',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: HotelTokens.ink4,
+                              ),
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Image.memory(
+                                stampBytes,
+                                fit: BoxFit.contain,
+                                // A stamp that will not decode must not take
+                                // the whole settings page down with it.
+                                errorBuilder: (_, __, ___) => Text(
+                                  'Unreadable',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    color: HotelTokens.lossInk,
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PNG or JPEG under '
+                            '${BranchDocumentSettings.maxStampBytes ~/ 1024}KB. '
+                            'A transparent PNG looks best.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                              color: HotelTokens.ink3,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              TextButton(
+                                onPressed: _updatingStamp ? null : _pickStamp,
+                                child: Text(
+                                  stampBytes == null ? 'Upload' : 'Replace',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              if (stampBytes != null)
+                                TextButton(
+                                  onPressed:
+                                      _updatingStamp ? null : _removeStamp,
+                                  child: Text(
+                                    'Remove',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: HotelTokens.lossInk,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (stampBytes != null) ...[
+                  const SizedBox(height: 12),
+                  _stampPlacementRow(),
+                  const SizedBox(height: 8),
+                  _stampWidthRow(),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stampPlacementRow() {
+    const labels = {
+      DocumentStampPlacement.bottomRight: 'Bottom right',
+      DocumentStampPlacement.bottomLeft: 'Bottom left',
+      DocumentStampPlacement.bottomCentre: 'Bottom centre',
+      DocumentStampPlacement.besideTotals: 'Beside the total',
+    };
+
+    return Row(
+      children: [
+        Text(
+          'Position',
+          style: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: HotelTokens.ink2,
+          ),
+        ),
+        const Spacer(),
+        DropdownButton<DocumentStampPlacement>(
+          value: _documents.stampPlacement,
+          underline: const SizedBox.shrink(),
+          style: GoogleFonts.outfit(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: HotelTokens.ink1,
+          ),
+          items: [
+            for (final entry in labels.entries)
+              DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+          ],
+          onChanged: (value) {
+            if (value == null) return;
+            _persistDocuments(_documents.copyWith(stampPlacement: value));
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _stampWidthRow() {
+    return Row(
+      children: [
+        Text(
+          'Width',
+          style: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: HotelTokens.ink2,
+          ),
+        ),
+        Expanded(
+          child: Slider(
+            value: _documents.stampWidthMm.clamp(
+              BranchDocumentSettings.minStampWidthMm,
+              BranchDocumentSettings.maxStampWidthMm,
+            ),
+            min: BranchDocumentSettings.minStampWidthMm,
+            max: BranchDocumentSettings.maxStampWidthMm,
+            divisions: 8,
+            label: '${_documents.stampWidthMm.round()} mm',
+            // Only persist on release: dragging fires this continuously, and
+            // every change is a Ditto write replicated to the whole branch.
+            onChanged: (value) => setState(
+              () => _documents = _documents.copyWith(stampWidthMm: value),
+            ),
+            onChangeEnd: (value) =>
+                _persistDocuments(_documents.copyWith(stampWidthMm: value)),
+          ),
+        ),
+        Text(
+          '${_documents.stampWidthMm.round()} mm',
+          style: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: HotelTokens.ink3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Uint8List? _decodedStamp() {
+    final encoded = _documents.stampImageBase64;
+    if (encoded == null || encoded.isEmpty) return null;
+    try {
+      return base64Decode(encoded);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _pickStamp() async {
+    setState(() => _updatingStamp = true);
+    try {
+      final picked = await pickImageAsBase64(
+        maxSizeBytes: BranchDocumentSettings.maxStampBytes,
+      );
+      if (!mounted) return;
+
+      if (picked.image == null) {
+        if (!picked.cancelled) showErrorNotification(context, picked.message!);
+        return;
+      }
+
+      // Turning the stamp on with the upload is what the clerk meant; making
+      // them find a second switch afterwards is the kind of step people miss
+      // and then report as "the stamp does not work".
+      await _persistDocuments(
+        _documents.copyWith(
+          stampImageBase64: picked.image!.base64,
+          stampAspectRatio: picked.image!.aspectRatio,
+          stampEnabled: true,
+        ),
+        notify: false,
+      );
+
+      if (mounted) showSuccessNotification(context, 'Company stamp updated.');
+    } catch (e) {
+      if (mounted) showErrorNotification(context, 'Failed to set stamp: $e');
+    } finally {
+      if (mounted) setState(() => _updatingStamp = false);
+    }
+  }
+
+  Future<void> _removeStamp() async {
+    setState(() => _updatingStamp = true);
+    try {
+      await _persistDocuments(
+        _documents.copyWith(clearStampImage: true, stampEnabled: false),
+        notify: false,
+      );
+      if (mounted) showSuccessNotification(context, 'Company stamp removed.');
+    } finally {
+      if (mounted) setState(() => _updatingStamp = false);
+    }
+  }
+
+  Future<void> _persistDocuments(
+    BranchDocumentSettings next, {
+    bool notify = true,
+  }) async {
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    final withBranch = next.copyWith(branchId: branchId);
+    // Optimistic: the cache write inside persist() is what every PDF builder
+    // reads, so the UI and the documents agree even if Ditto is slow.
+    setState(() => _documents = withBranch);
+    final ok = await BranchDocumentSettingsService.persist(withBranch);
+    if (!ok && mounted && notify) {
+      showErrorNotification(context, 'Stamp saved on this device only.');
+    }
   }
 
   Widget _actionRow({

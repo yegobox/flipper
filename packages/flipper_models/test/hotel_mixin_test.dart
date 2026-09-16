@@ -230,6 +230,59 @@ void main() {
       return r;
     }
 
+    test('survives checkInGuest, the Ditto write, and the read back', () async {
+      final room = await savedRoom();
+      await sync.saveHotelRoom(room);
+
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        guestPhone: '0788360058',
+        guestEmail: 'aline@example.com',
+      );
+
+      expect(stay.guestEmail, 'aline@example.com');
+      expect(
+        ditto.store.docs('hotel_stays').single['guestEmail'],
+        'aline@example.com',
+      );
+
+      final stays = await sync.hotelStays(branchId: _branch);
+      expect(stays.single.guestEmail, 'aline@example.com');
+    });
+
+    test('is carried forward when a reservation becomes a stay', () async {
+      final room = await savedRoom();
+      await sync.saveHotelRoom(room);
+
+      final reserved = await sync.reserveRoom(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime(2026, 2, 1, 14),
+        expectedCheckOutAt: DateTime(2026, 2, 3, 11),
+        nightlyRate: 60000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        guestEmail: 'aline@example.com',
+      );
+
+      final arrived = await sync.checkInReservation(
+        stay: reserved,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      // The welcome message has nowhere to go if this is lost at arrival.
+      expect(arrived.guestEmail, 'aline@example.com');
+    });
+
     test('checking a walk-in in opens exactly one folio', () async {
       final room = await savedRoom();
       final stay = await sync.checkInGuest(
@@ -770,6 +823,35 @@ void main() {
         to: DateTime(2026, 1, 14),
       );
       expect(backToBack, isEmpty);
+    });
+  });
+
+  group('guest email', () {
+    test('survives reserveRoom', () async {
+      final stay = await sync.reserveRoom(
+        branchId: _branch,
+        room: _room(),
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime(2026, 2, 1, 14),
+        expectedCheckOutAt: DateTime(2026, 2, 3, 11),
+        nightlyRate: 60000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        guestEmail: 'aline@example.com',
+      );
+
+      expect(stay.guestEmail, 'aline@example.com');
+    });
+
+    test('is written even when absent, so clearing it replicates', () async {
+      // ON ID CONFLICT DO UPDATE leaves omitted fields untouched: an omitted
+      // key would leave the old address alive on every other device.
+      final stay = _stay(id: 's-no-email', roomId: 'r1');
+      await sync.saveHotelStay(stay);
+
+      final doc = ditto.store.docs('hotel_stays').single;
+      expect(doc.containsKey('guestEmail'), isTrue);
+      expect(doc['guestEmail'], isNull);
     });
   });
 

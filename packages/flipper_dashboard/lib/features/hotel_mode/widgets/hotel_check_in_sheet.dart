@@ -12,6 +12,7 @@ class HotelCheckInDraft {
   const HotelCheckInDraft({
     required this.guestName,
     required this.guestPhone,
+    required this.guestEmail,
     required this.adults,
     required this.children,
     required this.nights,
@@ -22,6 +23,10 @@ class HotelCheckInDraft {
 
   final String guestName;
   final String? guestPhone;
+
+  /// Where the confirmation is emailed. Optional, like the phone number.
+  final String? guestEmail;
+
   final int adults;
   final int children;
   final int nights;
@@ -79,12 +84,14 @@ class HotelCheckInSheet extends StatefulWidget {
 class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   late final TextEditingController _rateController;
 
   int _nights = 1;
   int _adults = 1;
   int _children = 0;
   String? _nameError;
+  String? _emailError;
 
   @override
   void initState() {
@@ -98,6 +105,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _rateController.dispose();
     super.dispose();
   }
@@ -126,12 +134,19 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
       return;
     }
 
+    final email = hotelNormalizeEmail(_emailController.text);
+    if (email != null && !hotelIsPlausibleEmail(email)) {
+      setState(() => _emailError = 'That email does not look right');
+      return;
+    }
+
     final now = DateTime.now();
     final phone = _phoneController.text.trim();
     Navigator.of(context).pop(
       HotelCheckInDraft(
         guestName: name,
         guestPhone: phone.isEmpty ? null : phone,
+        guestEmail: email,
         adults: _adults,
         children: _children,
         nights: _nights,
@@ -190,6 +205,17 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
             controller: _phoneController,
             hint: '07…',
             keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 12),
+          _field(
+            label: 'Email (optional)',
+            controller: _emailController,
+            hint: 'Sends the confirmation',
+            keyboardType: TextInputType.emailAddress,
+            errorText: _emailError,
+            onChanged: (_) {
+              if (_emailError != null) setState(() => _emailError = null);
+            },
           ),
           const SizedBox(height: 12),
           Row(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
@@ -22,6 +23,21 @@ abstract class HotelInterface {
   });
 
   Future<void> saveHotelBranchSettings(HotelBranchSettings settings);
+
+  // --- Document branding (synced across devices) ---
+  //
+  // Its own collection, not part of hotel_branch_settings: the stamp also goes
+  // on the leads proforma, which runs on branches that never enable Hotel Mode.
+
+  Future<BranchDocumentSettings?> branchDocumentSettings({
+    required String branchId,
+  });
+
+  Stream<BranchDocumentSettings?> branchDocumentSettingsStream({
+    required String branchId,
+  });
+
+  Future<void> saveBranchDocumentSettings(BranchDocumentSettings settings);
 
   // --- Rooms ---
 
@@ -71,6 +87,7 @@ abstract class HotelInterface {
     required String clerkTenantId,
     required String clerkName,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,
@@ -101,6 +118,7 @@ abstract class HotelInterface {
     required String clerkTenantId,
     required String clerkName,
     String? guestPhone,
+    String? guestEmail,
     int adults = 1,
     int children = 0,
     String? note,
