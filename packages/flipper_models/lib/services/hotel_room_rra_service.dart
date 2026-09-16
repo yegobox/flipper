@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -37,6 +39,113 @@ abstract final class HotelRoomRraService {
       return false;
     }
   }
+
+  /// Branches whose sweep is already running, so the four places that seed
+  /// rooms cannot start four overlapping sweeps against the same branch.
+  static final Set<String> _sweepsInFlight = <String>{};
+
+  /// Consecutive non-configuration failures before giving up. RRA being down
+  /// fails every room the same way; fifteen doomed round trips help nobody.
+  static const int _maxConsecutiveFailures = 3;
+
+  /// Registers every room on [branchId] that has no RRA item yet.
+  ///
+  /// Exists because `seedDefaultRooms` writes fifteen rooms straight to Ditto
+  /// with no registration, so the first guest in a seeded room used to pay for
+  /// it at the counter — a multi-step RRA round trip while a clerk waited.
+  /// Rooms created through Rooms & floors are registered on creation and are
+  /// skipped here.
+  ///
+  /// Call it unawaited on entry to Hotel Mode. Idempotent and self-disabling:
+  /// once every room carries a `variantId` this costs one cached EBM read and
+  /// one Ditto query, and returns.
+  ///
+  /// Returns how many rooms it registered.
+  static Future<int> registerUnregisteredRooms(String branchId) async {
+    if (branchId.isEmpty) return 0;
+    if (!_sweepsInFlight.add(branchId)) return 0;
+
+    try {
+      // A branch that does not file with RRA has nothing to register, and
+      // this is the cheap cached read.
+      if (!await branchSupportsRra(branchId)) return 0;
+
+      final rooms = await _sync.hotelRooms(branchId: branchId);
+      final pending = roomsNeedingRegistration(rooms);
+      if (pending.isEmpty) return 0;
+
+      talker.info(
+        'hotel: registering ${pending.length} unregistered room(s) on branch '
+        '$branchId in the background',
+      );
+
+      var registered = 0;
+      var consecutiveFailures = 0;
+
+      // Sequential on purpose: each registration mints a product and an RRA
+      // item, and firing fifteen at once at the tax server is a good way to be
+      // rate-limited into a half-registered floor plan.
+      for (final room in pending) {
+        try {
+          await registerRoom(room);
+          registered++;
+          consecutiveFailures = 0;
+        } on StateError catch (e) {
+          // Branch-wide configuration — no business, or no tax server URL.
+          // Every remaining room fails identically, so stop.
+          talker.warning(
+            'hotel: stopping room registration sweep on branch $branchId — '
+            '${e.message}',
+          );
+          break;
+        } catch (e, st) {
+          consecutiveFailures++;
+          talker.warning(
+            'hotel: could not register room ${room.name} on branch $branchId '
+            '($consecutiveFailures in a row): $e\n$st',
+          );
+          if (consecutiveFailures >= _maxConsecutiveFailures) {
+            talker.warning(
+              'hotel: giving up the registration sweep on branch $branchId '
+              'after $consecutiveFailures consecutive failures',
+            );
+            break;
+          }
+        }
+      }
+
+      if (registered > 0) {
+        talker.info(
+          'hotel: registered $registered room(s) with RRA on branch $branchId',
+        );
+      }
+      return registered;
+    } catch (e, st) {
+      // Never surfaced: this is background work, and a property must be able
+      // to open its front desk whether or not RRA is reachable.
+      talker.warning('hotel: room registration sweep failed on $branchId: $e\n$st');
+      return 0;
+    } finally {
+      _sweepsInFlight.remove(branchId);
+    }
+  }
+
+  /// The rooms a sweep would touch: those with no RRA item yet.
+  ///
+  /// Pure, so the rule about what counts as unregistered is testable without
+  /// a tax server. A room carrying a blank `variantId` counts as unregistered
+  /// — `isRegisteredWithRra` treats empty as absent, and a room half-written
+  /// that way must be finished rather than skipped forever.
+  @visibleForTesting
+  static List<HotelRoom> roomsNeedingRegistration(List<HotelRoom> rooms) {
+    return rooms
+        .where((room) => !room.isRegisteredWithRra)
+        .toList(growable: false);
+  }
+
+  /// Visible for tests.
+  @visibleForTesting
+  static void resetSweepState() => _sweepsInFlight.clear();
 
   /// Registers [room] and returns it carrying its new `variantId`.
   ///

@@ -94,9 +94,12 @@ abstract final class HotelDeskActions {
 
   /// Bills [stay]'s nights, registering the room with RRA first if nobody has.
   ///
-  /// Rooms from the default plan carry no RRA item, so the first guest in one
-  /// used to open a folio of zero with no way to bill it short of an admin
-  /// visiting Rooms & floors. Registering on first use makes that invisible.
+  /// That registration is a safety net, not the normal path. Rooms created in
+  /// Rooms & floors register on creation, and seeded rooms are swept in the
+  /// background by [HotelRoomRraService.registerUnregisteredRooms] when Hotel
+  /// Mode opens. It only fires when a guest reaches a room before the sweep
+  /// did — a branch that was offline at open, or a sweep that gave up — and
+  /// registering here is still better than a folio nobody can bill.
   ///
   /// Best effort by design: a branch with no EBM configuration still gets its
   /// guest a key, and the desk gets told why the charge is missing.

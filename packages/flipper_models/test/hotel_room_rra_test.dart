@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/models/hotel_room.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -349,6 +350,76 @@ void main() {
         isNull,
         reason: 'an absent variant must not read back as an empty string',
       );
+    });
+  });
+
+  group('background registration sweep', () {
+    HotelRoom room(String name, {String? variantId}) => HotelRoom(
+      id: 'r-$name',
+      branchId: 'b1',
+      floorId: 'ground',
+      floorName: 'Ground Floor',
+      name: name,
+      roomType: 'Double',
+      capacity: 2,
+      nightlyRate: 55000,
+      variantId: variantId,
+    );
+
+    test('every seeded room starts with no RRA item', () {
+      // This is the gap the sweep exists to close: seedDefaultRooms writes
+      // these straight to Ditto, so without it the first guest in one pays
+      // for the registration at the counter.
+      final seeded = defaultHotelRoomPlan(branchId: 'b1');
+
+      expect(seeded, hasLength(15));
+      expect(
+        seeded.every((r) => !r.isRegisteredWithRra),
+        isTrue,
+        reason: 'seeding does not register, which is why the sweep runs',
+      );
+      expect(
+        HotelRoomRraService.roomsNeedingRegistration(seeded),
+        hasLength(15),
+      );
+    });
+
+    test('skips rooms that already carry an RRA item', () {
+      // Rooms created through Rooms & floors register on creation, so a sweep
+      // on an established property must be a no-op rather than re-minting.
+      final rooms = [
+        room('101', variantId: 'v-101'),
+        room('102', variantId: 'v-102'),
+      ];
+      expect(HotelRoomRraService.roomsNeedingRegistration(rooms), isEmpty);
+    });
+
+    test('picks out only the unregistered rooms from a mixed floor', () {
+      final rooms = [
+        room('101', variantId: 'v-101'),
+        room('102'),
+        room('103', variantId: 'v-103'),
+        room('104'),
+      ];
+
+      final pending = HotelRoomRraService.roomsNeedingRegistration(rooms);
+      expect(pending.map((r) => r.name), ['102', '104']);
+    });
+
+    test('a blank variantId counts as unregistered, not as done', () {
+      // A half-written room would otherwise be skipped forever and could
+      // never be billed fiscally.
+      expect(
+        HotelRoomRraService.roomsNeedingRegistration([
+          room('101', variantId: ''),
+          room('102', variantId: '   '),
+        ]),
+        hasLength(2),
+      );
+    });
+
+    test('an empty floor plan needs no work', () {
+      expect(HotelRoomRraService.roomsNeedingRegistration(const []), isEmpty);
     });
   });
 }
