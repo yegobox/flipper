@@ -336,16 +336,42 @@ class HotelQuotationsScreen extends ConsumerWidget {
     WidgetRef ref,
     HotelQuotation quote,
   ) {
-    return TextButton(
-      onPressed: () => _showDocumentMenu(context, ref, quote),
-      child: Text(
-        'Document',
-        style: GoogleFonts.outfit(
-          fontSize: 13.5,
-          fontWeight: FontWeight.w700,
-          color: HotelTokens.ink2,
+    // The Builder matters: without it the context here is the ListView's
+    // itemBuilder context, whose nearest render object is the RenderSliverList
+    // — not a RenderBox — so anchoring the menu to it fails. The Builder sits
+    // inside the button, so its context resolves to the button's own box.
+    return Builder(
+      builder: (buttonContext) => TextButton(
+        onPressed: () => _showDocumentMenu(buttonContext, ref, quote),
+        child: Text(
+          'Document',
+          style: GoogleFonts.outfit(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+            color: HotelTokens.ink2,
+          ),
         ),
       ),
+    );
+  }
+
+  /// Anchors the menu just below [context]'s widget.
+  ///
+  /// Returns null rather than throwing when the render tree is not what we
+  /// expect; the caller then falls back to a usable position, because a menu
+  /// in the wrong corner beats a button that does nothing.
+  static RelativeRect? _menuPosition(BuildContext context) {
+    final box = context.findRenderObject();
+    final overlay = Overlay.of(context).context.findRenderObject();
+    if (box is! RenderBox || overlay is! RenderBox) return null;
+    if (!box.hasSize || !overlay.hasSize) return null;
+
+    final origin = box.localToGlobal(Offset.zero, ancestor: overlay);
+    return RelativeRect.fromLTRB(
+      origin.dx,
+      origin.dy + box.size.height,
+      overlay.size.width - origin.dx - box.size.width,
+      0,
     );
   }
 
@@ -354,20 +380,9 @@ class HotelQuotationsScreen extends ConsumerWidget {
     WidgetRef ref,
     HotelQuotation quote,
   ) async {
-    final box = context.findRenderObject() as RenderBox?;
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (box == null || overlay == null) return;
-
-    final origin = box.localToGlobal(Offset.zero, ancestor: overlay);
     final choice = await showMenu<String>(
       context: context,
-      position: RelativeRect.fromLTRB(
-        origin.dx,
-        origin.dy + box.size.height,
-        overlay.size.width - origin.dx - box.size.width,
-        0,
-      ),
+      position: _menuPosition(context) ?? const RelativeRect.fromLTRB(0, 0, 0, 0),
       items: [
         PopupMenuItem(
           value: 'send',
