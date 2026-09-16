@@ -81,9 +81,17 @@ class _FakeStrategy extends Mock implements DatabaseSyncInterface {
   /// whether a room charge can carry RRA fields at all.
   final Ebm? branchEbm;
 
+  /// Every `ebm()` call, with the fetchRemote flag it was made with.
+  ///
+  /// `fetchRemote: true` skips Ditto and hits Supabase, so a `true` here on a
+  /// hot path is a network round trip in front of a clerk.
+  final List<bool> ebmFetchRemoteCalls = [];
+
   @override
-  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async =>
-      branchEbm;
+  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
+    ebmFetchRemoteCalls.add(fetchRemote);
+    return branchEbm;
+  }
 
   @override
   Future<Variant?> getVariant({
@@ -192,6 +200,7 @@ void main() {
   /// fakes is all the harness this needs.
   group('folio lifecycle', () {
     late Variant roomNight;
+    late _FakeStrategy strategy;
 
     setUp(() async {
       await getIt.reset();
@@ -207,7 +216,7 @@ void main() {
         retailPrice: 50000,
       );
       getIt.registerSingleton<LocalStorage>(_FakeBox());
-      final strategy = _FakeStrategy({'v-room': roomNight});
+      strategy = _FakeStrategy({'v-room': roomNight});
       // ProxyService looks the strategy up by name, not by type alone.
       getIt.registerSingleton<SyncStrategy>(
         SyncStrategy(capella: strategy, cloudSync: strategy),
@@ -600,6 +609,36 @@ void main() {
       expect(
         await sync.hotelFolioLines(transactionId: stay.transactionId),
         hasLength(1),
+      );
+    });
+
+    test('posting a room charge never makes a remote EBM call', () async {
+      // `ebm(fetchRemote: true)` — the default — skips Ditto and goes straight
+      // to Supabase. On this path that is a network round trip a clerk waits
+      // out with a guest at the counter, and it used to happen twice.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      strategy.ebmFetchRemoteCalls.clear();
+
+      await sync.postRoomCharge(
+        stay: stay,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      expect(
+        strategy.ebmFetchRemoteCalls,
+        everyElement(isFalse),
+        reason: 'a remote EBM read on the room-charge path is a network hop',
       );
     });
 

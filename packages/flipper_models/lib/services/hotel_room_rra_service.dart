@@ -28,7 +28,9 @@ abstract final class HotelRoomRraService {
   /// should not offer it and nothing should warn about it.
   static Future<bool> branchSupportsRra(String branchId) async {
     try {
-      final ebm = await _sync.ebm(branchId: branchId);
+      // Cached: this is a yes/no about the branch, not a read of the fiscal
+      // numbers, and it sits on the check-in path.
+      final ebm = await _sync.ebm(branchId: branchId, fetchRemote: false);
       return hotelBranchSupportsRra(ebm);
     } catch (e) {
       talker.warning('hotel: could not read EBM for branch $branchId: $e');
@@ -61,11 +63,26 @@ abstract final class HotelRoomRraService {
       throw StateError('No active business; cannot register room ${room.name}');
     }
 
-    final branchEbm = await _sync.ebm(branchId: branchId);
+    // Two reads on purpose. The cached one answers "does this branch file with
+    // RRA at all", which is the common case for a non-EBM property and must
+    // not cost a network round trip on every room charge. Only once we know we
+    // are actually registering do we pay for the authoritative copy — the
+    // tinNumber and bhfId below go onto a fiscal item, so those may not be
+    // stale.
+    var branchEbm = await _sync.ebm(branchId: branchId, fetchRemote: false);
     if (!hotelBranchSupportsRra(branchEbm)) {
       talker.info(
         'hotel: branch $branchId is not on EBM, so room ${room.name} is kept '
         'as an unregistered room rather than sent to RRA.',
+      );
+      return room;
+    }
+
+    branchEbm = await _sync.ebm(branchId: branchId);
+    if (!hotelBranchSupportsRra(branchEbm)) {
+      talker.info(
+        'hotel: branch $branchId dropped off EBM between the cached and live '
+        'reads; keeping room ${room.name} unregistered.',
       );
       return room;
     }

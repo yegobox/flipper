@@ -409,21 +409,29 @@ abstract final class HotelDeskActions {
     required HotelStay stay,
     required Tenant clerk,
   }) async {
-    final rooms = await _sync.hotelRooms(branchId: stay.branchId);
-    HotelRoom? room;
-    for (final candidate in rooms) {
-      if (candidate.id == stay.roomId) {
-        room = candidate;
-        break;
+    final notifier = ref.read(hotelModeProvider.notifier);
+    // A room's first charge registers it with RRA, which is a network round
+    // trip — long enough that a clerk taps again and bills a second night.
+    if (ref.read(hotelModeProvider).roomChargeInFlight) return;
+    notifier.beginRoomCharge();
+
+    try {
+      final rooms = await _sync.hotelRooms(branchId: stay.branchId);
+      HotelRoom? room;
+      for (final candidate in rooms) {
+        if (candidate.id == stay.roomId) {
+          room = candidate;
+          break;
+        }
       }
+      if (room == null) {
+        notifier.showToast('Room ${stay.roomName} is no longer on this branch');
+        return;
+      }
+      await chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk);
+    } finally {
+      notifier.endRoomCharge();
     }
-    if (room == null) {
-      ref
-          .read(hotelModeProvider.notifier)
-          .showToast('Room ${stay.roomName} is no longer on this branch');
-      return;
-    }
-    await chargeRoomToFolio(ref: ref, room: room, stay: stay, clerk: clerk);
   }
 
   static Future<void> cancelStay({

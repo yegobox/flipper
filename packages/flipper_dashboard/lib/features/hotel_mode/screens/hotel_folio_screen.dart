@@ -88,17 +88,7 @@ class _HotelFolioBody extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
-                      TextButton.icon(
-                        onPressed: () => _postRoomCharge(context, ref),
-                        icon: const Icon(Icons.add, size: 17),
-                        label: Text(
-                          'Room charge',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
+                      _roomChargeButton(context, ref),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -283,6 +273,35 @@ class _HotelFolioBody extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// "+ Room charge", with an honest in-flight state.
+  ///
+  /// The first charge against a room registers it with RRA — a network round
+  /// trip of several seconds. Without visible feedback the button reads as
+  /// broken, and the clerk taps it again, which bills a second night.
+  Widget _roomChargeButton(BuildContext context, WidgetRef ref) {
+    final inFlight = ref.watch(
+      hotelModeProvider.select((state) => state.roomChargeInFlight),
+    );
+
+    return TextButton.icon(
+      onPressed: inFlight ? null : () => _postRoomCharge(context, ref),
+      icon: inFlight
+          ? const SizedBox(
+              width: 15,
+              height: 15,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.add, size: 17),
+      label: Text(
+        inFlight ? 'Posting…' : 'Room charge',
+        style: GoogleFonts.outfit(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 

@@ -1270,9 +1270,14 @@ mixin CapellaHotelMixin implements HotelInterface {
       // still bills guests, so record the nights as a plain line rather than
       // refusing: a folio that can never total anything is worse than one that
       // is simply not fiscalised.
+      // Cached read: this only decides whether the branch fiscalises at all,
+      // and `fetchRemote: true` (the default) skips Ditto and goes straight to
+      // Supabase — a network round trip on every room charge, in front of a
+      // clerk. `fetchRemote: false` still falls back to Supabase when Ditto
+      // has nothing, so a cold branch is correct, just slower.
       final ebm = await ProxyService.getStrategy(
         Strategy.capella,
-      ).ebm(branchId: stay.branchId);
+      ).ebm(branchId: stay.branchId, fetchRemote: false);
 
       if (!hotelBranchSupportsRra(ebm)) {
         await _postUnfiscalisedRoomCharge(
