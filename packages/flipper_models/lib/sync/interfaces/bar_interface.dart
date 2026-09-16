@@ -82,9 +82,14 @@ abstract class BarInterface {
 
   Future<void> refreshBarTabSubTotal({required String transactionId});
 
-  /// Complete payment and free the table (delegates to transaction completion).
+  /// Complete payment and free the table.
+  ///
+  /// [lines] are the tab's own lines. They are required because the completed
+  /// transaction has to carry the tax the ledger splits revenue by — see
+  /// `applySaleAccountingFields`.
   Future<ITransaction> settleBarTab({
     required ITransaction transaction,
+    required List<TransactionItem> lines,
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,

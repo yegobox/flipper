@@ -708,6 +708,7 @@ void main() {
       final settled = await sync.checkOutGuest(
         stay: stay,
         transaction: folio!,
+        lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
         paymentType: 'Cash',
         cashReceived: 120000,
         customerChangeDue: 20000,
@@ -722,6 +723,66 @@ void main() {
       expect(await sync.hotelStays(branchId: _branch), isEmpty);
       final after = (await sync.hotelRooms(branchId: _branch)).single;
       expect(after.housekeeping, HotelHousekeeping.dirty);
+    });
+
+    test('a settled folio carries the tax the ledger splits revenue by',
+        () async {
+      // Regression: checkOutGuest used to write the completed transaction
+      // without taxAmount. The server-side poster books revenue as
+      // subTotal - taxAmount, so every folio landed 100% in revenue 4010 and
+      // nothing in VAT payable 2100 — losing both the 3% tourism tax on the
+      // nights and the 18% VAT on anything charged to the room.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+        nightlyRate: 50000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+
+      await sync.addChargeToFolio(
+        transactionId: stay.transactionId,
+        branchId: _branch,
+        variantId: 'v-room',
+        productName: 'Room 101 · 2 nights',
+        defaultPrice: 50000,
+        stock: 2,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+        qty: 2,
+      );
+
+      final lines = await sync.hotelFolioLines(
+        transactionId: stay.transactionId,
+      );
+      final folio = await sync.hotelFolio(transactionId: stay.transactionId);
+
+      final settled = await sync.checkOutGuest(
+        stay: stay,
+        transaction: folio!,
+        lines: lines,
+        paymentType: 'Cash',
+        cashReceived: 100000,
+        customerChangeDue: 0,
+      );
+
+      final expectedTax = lines.fold<double>(
+        0,
+        (sum, line) => sum + (line.taxAmt?.toDouble() ?? 0),
+      );
+      expect(expectedTax, greaterThan(0));
+      expect(settled.taxAmount, closeTo(expectedTax, 0.01));
+      expect(settled.numberOfItems, lines.length);
+
+      // And it survives the write, not just the in-memory copy.
+      final persisted = await sync.hotelFolio(
+        transactionId: stay.transactionId,
+      );
+      expect(persisted!.taxAmount, closeTo(expectedTax, 0.01));
     });
 
     test('open folios are listed for the dashboard, settled ones are not',
@@ -744,6 +805,7 @@ void main() {
       await sync.checkOutGuest(
         stay: stay,
         transaction: folio!,
+        lines: await sync.hotelFolioLines(transactionId: stay.transactionId),
         paymentType: 'Cash',
         cashReceived: 0,
         customerChangeDue: 0,

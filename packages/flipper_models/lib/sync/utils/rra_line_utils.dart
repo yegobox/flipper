@@ -78,6 +78,43 @@ int ticketItemCount(Iterable<TransactionItem> lines) {
   return (subtotal: subtotal, vat: vat, total: total);
 }
 
+/// Tax on a ticket, taken from the lines rather than assumed.
+///
+/// A ticket can mix rates: a hotel folio carries 3% tourism tax on room nights
+/// beside 18% VAT on anything the bar or the shop charged to the room, so a
+/// single inclusive rate is wrong for both. Each line already carries the
+/// `taxAmt` its own registration produced, so the ticket sums those.
+///
+/// Falls back to the inclusive-18% estimate only when no line carries a
+/// computed tax amount at all — an old ticket, or lines written before pricing
+/// was recomputed on edit.
+///
+/// The server-side accounting poster books revenue as `subTotal - taxAmount`,
+/// so this is what keeps a settled ticket off a 100%-to-revenue entry.
+({double subtotal, double tax, double total}) ticketTaxBreakdown(
+  Iterable<TransactionItem> lines,
+) {
+  final total = ticketLineTotal(lines);
+  if (total <= 0) return (subtotal: 0, tax: 0, total: 0);
+
+  var tax = 0.0;
+  var sawTaxAmount = false;
+  for (final line in lines) {
+    final amount = line.taxAmt;
+    if (amount == null) continue;
+    sawTaxAmount = true;
+    tax += amount.toDouble();
+  }
+
+  if (!sawTaxAmount) {
+    final fallback = inclusiveVatBreakdown(total);
+    return (subtotal: fallback.subtotal, tax: fallback.vat, total: total);
+  }
+
+  if (tax > total) tax = total;
+  return (subtotal: total - tax, tax: tax, total: total);
+}
+
 /// Merge key for "tap the same product twice": variant + logger + price.
 bool lineMatchesMerge({
   required TransactionItem line,

@@ -597,27 +597,21 @@ class _BarSettleDesktopScreenState extends ConsumerState<BarSettleDesktopScreen>
         customerPhone: receiptPhone,
       );
 
-      await issueSaleReceipt(
-        sync: sync,
-        transaction: txn,
-        lines: lines,
-        receiptContext: 'receipt',
-      );
-
-      txn = await sync.settleBarTab(
-        transaction: txn,
-        paymentType: _method,
-        cashReceived: cashReceived,
-        customerChangeDue: change,
-      );
-
-      await recordSalePaymentAndScheduleStock(
+      txn = await finalizeServiceModeSale(
         sync: sync,
         transaction: txn,
         lines: lines,
         transactionId: tab.id,
         paymentType: _method,
         amount: total,
+        receiptContext: 'receipt',
+        complete: (booked) => sync.settleBarTab(
+          transaction: booked,
+          lines: lines,
+          paymentType: _method,
+          cashReceived: cashReceived,
+          customerChangeDue: change,
+        ),
       );
 
       if (!mounted) return;

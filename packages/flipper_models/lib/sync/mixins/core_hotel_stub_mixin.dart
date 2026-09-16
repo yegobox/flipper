@@ -333,6 +333,7 @@ mixin CoreHotelStubMixin implements HotelInterface {
   Future<ITransaction> checkOutGuest({
     required HotelStay stay,
     required ITransaction transaction,
+    required List<TransactionItem> lines,
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,
