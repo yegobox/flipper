@@ -3,14 +3,13 @@
 /// `_ensurePhoneHasDialCode` in packages/flipper_login).
 library;
 
-/// Dial codes for the countries offered by `countriesProvider`.
-const Map<String, String> kSignupDialCodes = {
-  'Rwanda': '+250',
-  'Kenya': '+254',
-  'Uganda': '+256',
-  'Tanzania': '+255',
-  'Burundi': '+257',
-};
+import 'package:flipper_models/helperModels/signup_countries.dart';
+
+/// Dial codes for every country `countriesProvider` offers — the whole world,
+/// not the five East African countries this map used to be hardcoded to.
+final Map<String, String> kSignupDialCodes = Map.unmodifiable({
+  for (final country in kSignupCountries) country.name: country.dialCode,
+});
 
 /// Same pattern the mobile signup bloc validates emails with.
 final RegExp _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$');
@@ -23,7 +22,7 @@ bool isEmailContact(String raw) => _emailRegex.hasMatch(raw.trim());
 /// the mobile field keys its prefix chip off.
 bool looksLikeEmailContact(String raw) => raw.contains('@');
 
-String signupDialCode(String country) => kSignupDialCodes[country] ?? '+250';
+String signupDialCode(String country) => signupDialCodeFor(country);
 
 /// Separators people type into a phone field: spaces, dashes (including the
 /// unicode ones a phone keyboard offers), dots and brackets.
@@ -40,9 +39,8 @@ String localPhonePart(String raw) {
   final cleaned = raw.trim();
   if (looksLikeEmailContact(cleaned)) return cleaned;
   final digits = _canonicalPhone(cleaned);
-  for (final code in kSignupDialCodes.values) {
-    if (digits.startsWith(code)) return digits.substring(code.length);
-  }
+  final code = matchLeadingDialCode(digits);
+  if (code != null) return digits.substring(code.length);
   return digits;
 }
 
@@ -64,11 +62,11 @@ String normalizeSignupContact(String raw, {required String country}) {
 
   final code = signupDialCode(country);
   if (cleaned.startsWith(code)) return cleaned;
-  for (final other in kSignupDialCodes.values) {
-    if (cleaned.startsWith(other)) {
-      return code + cleaned.substring(other.length);
-    }
-  }
+
+  // Only a number the user typed with a `+` carries a dial code to replace; a
+  // bare national number that happens to open with `1` or `7` does not.
+  final existing = matchLeadingDialCode(cleaned);
+  if (existing != null) return code + cleaned.substring(existing.length);
 
   var local = cleaned;
   if (local.startsWith('0')) local = local.substring(1);

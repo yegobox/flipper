@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:developer';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -28,7 +29,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
   final SignupViewModel signupViewModel;
   final countryName = SelectFieldBloc<String, String>(
-    items: ['Zambia', 'Mozambique', 'Rwanda'],
+    items: kSignupCountryNames,
     initialValue: 'Rwanda',
   );
   //// {"id": "2", "typeName": "Flipper Connecta"},
@@ -118,7 +119,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 }
 
 class SignUpView extends StatefulHookConsumerWidget {
-  const SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
+  const SignUpView({Key? key, this.countryNm = kDefaultSignupCountry})
+      : super(key: key);
   final String? countryNm;
 
   @override
@@ -277,7 +279,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
             signupViewModel: model,
-            country: widget.countryNm ?? "Rwanda",
+            country: widget.countryNm ?? kDefaultSignupCountry,
           ),
           child: Builder(
             builder: (context) {

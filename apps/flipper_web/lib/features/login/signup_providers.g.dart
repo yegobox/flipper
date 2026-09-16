@@ -95,7 +95,7 @@ final class CountriesProvider
   }
 }
 
-String _$countriesHash() => r'bc1ce8d8ae6a895281f498fabac4d2c0367c040e';
+String _$countriesHash() => r'445e9a33585deb1523d0b8858c757d1af494a295';
 
 @ProviderFor(SignupForm)
 const signupFormProvider = SignupFormProvider._();
@@ -129,7 +129,7 @@ final class SignupFormProvider
   }
 }
 
-String _$signupFormHash() => r'18cb0fac5aaa2822d97e8a6719f4d86719f8c3b8';
+String _$signupFormHash() => r'f4f51dab1f9d00b70b731fb7dc3ad487ffd628d9';
 
 abstract class _$SignupForm extends $Notifier<SignupFormState> {
   SignupFormState build();

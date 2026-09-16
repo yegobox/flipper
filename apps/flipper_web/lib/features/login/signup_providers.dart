@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_models/ippis_service.dart';
 
 import '../../models/business_type.dart';
@@ -55,7 +56,7 @@ class SignupFormState {
     this.fullName = '',
     this.businessType,
     this.tinNumber = '',
-    this.country = 'Rwanda',
+    this.country = kDefaultSignupCountry,
     this.phoneNumber,
     this.isSubmitting = false,
     this.errorMessage,
@@ -176,10 +177,11 @@ List<BusinessType> businessTypes(Ref ref) {
   ];
 }
 
-// Available countries provider
+// Available countries provider — every country, not the East African handful
+// signup started out with.
 @riverpod
 List<String> countries(Ref ref) {
-  return ['Rwanda', 'Kenya', 'Uganda', 'Tanzania', 'Burundi'];
+  return kSignupCountryNames;
 }
 
 @riverpod
