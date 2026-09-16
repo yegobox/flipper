@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_charge_picker.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_plan_editor.dart';
@@ -105,15 +106,13 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
 
     if (!value) return;
 
-    // Both modes replace the same POS sales pane, so they cannot both own it.
-    if (BarModeSettings.enabled) {
-      BarModeSettings.setEnabled(false);
-      if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          'Bar Mode turned off — a branch runs one service mode at a time.',
-        );
-      }
+    // A property can offer both. Which surface a given terminal shows is a
+    // device choice, so turning the desk on no longer shuts the bar down.
+    if (BarModeSettings.enabled && mounted) {
+      showCustomSnackBarUtil(
+        context,
+        'Hotel Mode on alongside Bar Mode — pick what this device runs below.',
+      );
     }
 
     final branchId = ProxyService.box.getBranchId();
@@ -451,7 +450,9 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   'Turns the register into a front desk: a board of rooms by floor, '
                   'check-in with guest and dates, a running folio per stay that the '
                   'bar and restaurant can charge to, and settlement at checkout. '
-                  'Replaces Bar Mode and standard retail checkout on this branch.',
+                  'Replaces Bar Mode and standard retail checkout on this branch. '
+                  'On a keyboard, $serviceModeHotkeyLabel cycles '
+                  'Bar → Hotel → POS without coming back here.',
                   style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     color: HotelTokens.ink2,

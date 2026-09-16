@@ -19,7 +19,8 @@ abstract final class HotelModeSettings {
   static const roomChargeVariantKey =
       HotelModeBranchSettingsService.roomChargeVariantKey;
 
-  static bool get enabled => ProxyService.box.readBool(key: enabledKey) ?? false;
+  static bool get enabled =>
+      ProxyService.box.readBool(key: enabledKey) ?? false;
 
   /// When true, post-login opens the front desk instead of POS.
   static bool get launchOnStart =>
@@ -53,10 +54,17 @@ abstract final class HotelModeSettings {
   static void startWatchingActiveBranch() =>
       HotelModeBranchSettingsService.startWatchingActiveBranch();
 
-  static void setEnabled(bool value) {
+  /// Flips the master toggle.
+  ///
+  /// Pass `persist: false` when the caller awaits its own
+  /// [HotelModeBranchSettingsService.persistCurrentBranch] — a service-mode switch
+  /// does, and the fire-and-forget save here would write the same snapshot a
+  /// second time and keep retrying it for its own, much longer, deadline.
+  static void setEnabled(bool value, {bool persist = true}) {
     ProxyService.box.writeBool(key: enabledKey, value: value);
     ProxyService.box.writeBool(key: launchOnStartKey, value: value);
-    unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
+    if (persist)
+      unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
   }
 
   static void setLaunchOnStart(bool value) {
@@ -90,10 +98,7 @@ abstract final class HotelModeSettings {
   }
 
   static void setRoomChargeVariantId(String? value) {
-    ProxyService.box.writeString(
-      key: roomChargeVariantKey,
-      value: value ?? '',
-    );
+    ProxyService.box.writeString(key: roomChargeVariantKey, value: value ?? '');
     unawaited(HotelModeBranchSettingsService.persistCurrentBranch());
   }
 }
