@@ -2,7 +2,7 @@ name: flipper_hr
 description: "Flipper HR — web app served at hr.useflipper.com."
 publish_to: 'none'
 
-version: 1.0.15+16
+version: 1.0.16+17
 
 environment:
   sdk: ^3.9.2
@@ -17,6 +17,9 @@ dependencies:
   # business/branch selection so one account works in both apps.
   flipper_web: any
   flipper_analytics: any
+  # The worldwide country/dial-code table the people form validates phone
+  # numbers against (helperModels/signup_countries.dart).
+  flipper_models: any
   go_router: ^16.2.2
   # apihub is plain REST (the invite's account and PIN hops), so HR needs an
   # http client of its own rather than reaching through supabase_flutter's.

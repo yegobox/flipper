@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/people/data/employee.dart';
+import 'package:flipper_models/helperModels/signup_countries.dart';
 
 /// Fields the people form can complain about.
 enum EmployeeField {
@@ -18,13 +19,12 @@ enum EmployeeField {
   bankAccount,
 }
 
-/// Rwanda national IDs are 16 digits. Only checked when one is entered — the
-/// field is optional because casual staff are often hired before they produce it.
-const _nationalIdDigits = 16;
-
-/// Shortest phone number worth accepting (a local Rwandan number without the
-/// country code is 9 digits after the leading zero).
-const _minPhoneDigits = 9;
+/// National ID formats differ by country — 16 digits in Rwanda, 8 in Kenya, 14
+/// for a Ugandan NIN, letters and all in the UK — so the only rule that holds
+/// everywhere is a length range. Only checked when one is entered: the field is
+/// optional because casual staff are often hired before they produce it.
+const _minNationalIdChars = 5;
+const _maxNationalIdChars = 20;
 
 /// Working days in a year (52 weeks x 5, less a fortnight of public holidays).
 /// An annual leave entitlement past this is a units mistake, not generosity.
@@ -56,19 +56,22 @@ Map<EmployeeField, String> validateEmployee(
   final phoneDigits = _digits(e.phone);
   if (phoneDigits.isEmpty) {
     errors[EmployeeField.phone] = 'Phone number is required';
-  } else if (phoneDigits.length < _minPhoneDigits) {
-    errors[EmployeeField.phone] = 'Enter at least $_minPhoneDigits digits';
+  } else if (!isPlausiblePhoneNumber(e.phone)) {
+    errors[EmployeeField.phone] = 'Enter a valid phone number';
   }
 
   if (e.email.trim().isNotEmpty && !_looksLikeEmail(e.email.trim())) {
     errors[EmployeeField.email] = 'Enter a valid email address';
   }
 
-  final nationalId = _digits(e.nationalId);
-  if (e.nationalId.trim().isNotEmpty &&
-      nationalId.length != _nationalIdDigits) {
+  // Counted over the whole value, not just its digits: plenty of countries
+  // put letters in an ID number.
+  final nationalId = e.nationalId.replaceAll(RegExp(r'\s'), '');
+  if (nationalId.isNotEmpty &&
+      (nationalId.length < _minNationalIdChars ||
+          nationalId.length > _maxNationalIdChars)) {
     errors[EmployeeField.nationalId] =
-        'A national ID has $_nationalIdDigits digits';
+        'A national ID is $_minNationalIdChars to $_maxNationalIdChars characters';
   }
 
   final hire = _dateOnly(e.hireDate);
@@ -116,11 +119,10 @@ Map<EmployeeField, String> validateEmployee(
     case PaymentMethod.mobileMoney:
       final momo = _digits(e.momoPhone);
       // Falls back to the contact number, which is what payroll will charge.
-      if (momo.isEmpty && phoneDigits.length < _minPhoneDigits) {
+      if (momo.isEmpty && !isPlausiblePhoneNumber(e.phone)) {
         errors[EmployeeField.momoPhone] = 'Mobile money number is required';
-      } else if (momo.isNotEmpty && momo.length < _minPhoneDigits) {
-        errors[EmployeeField.momoPhone] =
-            'Enter at least $_minPhoneDigits digits';
+      } else if (momo.isNotEmpty && !isPlausiblePhoneNumber(e.momoPhone)) {
+        errors[EmployeeField.momoPhone] = 'Enter a valid mobile money number';
       }
     case PaymentMethod.bankTransfer:
       if (e.bankName.trim().isEmpty) {
