@@ -715,23 +715,10 @@ class _SignupViewState extends ConsumerState<SignupView> {
   }) {
     return Autocomplete<String>(
       initialValue: TextEditingValue(text: selected),
-      optionsBuilder: (value) {
-        final query = value.text.trim().toLowerCase();
-        if (query.isEmpty) return countries;
-        // Names that start with what was typed first: typing "ind" should
-        // offer India before British Indian Ocean Territory.
-        final starts = <String>[];
-        final contains = <String>[];
-        for (final country in countries) {
-          final name = country.toLowerCase();
-          if (name.startsWith(query)) {
-            starts.add(country);
-          } else if (name.contains(query)) {
-            contains.add(country);
-          }
-        }
-        return [...starts, ...contains];
-      },
+      // Prefix matches first, and an ISO code or a familiar alias ('USA', 'UK',
+      // 'DRC') finds its country too — see searchSignupCountries.
+      optionsBuilder: (value) =>
+          searchSignupCountries(value.text, within: countries),
       onSelected: (value) {
         // The field keeps the local part; the notifier re-applies the new
         // country's dial code.
@@ -791,11 +778,22 @@ class _SignupViewState extends ConsumerState<SignupView> {
           focusNode: focusNode,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           onFieldSubmitted: (_) => onFieldSubmitted(),
+          // Typing a country in full without ever tapping the suggestion left
+          // the notifier on the previous country, and the form submits what
+          // the notifier holds — so that signup went out with the old
+          // country's dial code and currency. Selecting from the list is not
+          // the only way to choose one.
+          onChanged: (value) {
+            final typed = value.trim();
+            if (typed != selected && countries.contains(typed)) {
+              ref.read(signupFormProvider.notifier).updateCountry(typed);
+            }
+          },
           validator: (v) {
             final typed = (v ?? '').trim();
             if (typed.isEmpty) return 'Please select a country';
-            // A half-typed name is not a country: the form only ever submits
-            // what the notifier holds, so make the mismatch visible.
+            // A half-typed name is not a country, and neither is an alias the
+            // list does not show ('USA' offers United States to pick).
             if (!countries.contains(typed)) {
               return 'Please pick a country from the list';
             }

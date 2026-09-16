@@ -499,6 +499,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                         icon: Icons.public_outlined,
                         searchHint: 'Search your country',
                         trailingLabel: signupDialCodeFor,
+                        // So 'USA', 'UK' and 'DRC' find their country too.
+                        search: (query, options) =>
+                            searchSignupCountries(query, within: options),
                       ),
                       BlocBuilder<AsyncFieldValidationFormBloc, FormBlocState>(
                         builder: (context, state) {

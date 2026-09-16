@@ -359,6 +359,42 @@ String signupDialCodeFor(String? country) =>
 String signupCurrencyFor(String? country) =>
     signupCountryByName(country)?.currency ?? kDefaultSignupCurrency;
 
+/// Country names matching [query], prefix matches first, in picker order.
+///
+/// Searches more than the display name: an ISO code ('JP', 'GB') and the
+/// legacy aliases ('USA', 'UK', 'DRC') resolve too, because those are what
+/// people type — the pickers offer display names only, so typing 'USA' found
+/// nothing at all. [within] narrows the result to a caller's own option list
+/// (a test overriding the country provider, say); it defaults to the whole
+/// table.
+List<String> searchSignupCountries(String query, {List<String>? within}) {
+  final options = within ?? kSignupCountryNames;
+  final trimmed = query.trim().toLowerCase();
+  if (trimmed.isEmpty) return options;
+
+  // An exact ISO code or alias names one country; offer it first, since
+  // nothing about 'USA' resembles 'United States' as a string.
+  final resolved = _byIso2[trimmed.toUpperCase()]?.name ??
+      (_nameAliases[trimmed] != null ? _nameAliases[trimmed] : null);
+
+  final starts = <String>[];
+  final contains = <String>[];
+  for (final option in options) {
+    if (option == resolved) continue;
+    final name = option.toLowerCase();
+    if (name.startsWith(trimmed)) {
+      starts.add(option);
+    } else if (name.contains(trimmed)) {
+      contains.add(option);
+    }
+  }
+  return [
+    if (resolved != null && options.contains(resolved)) resolved,
+    ...starts,
+    ...contains,
+  ];
+}
+
 /// Distinct dial codes, longest first.
 ///
 /// Order matters: `+1` and `+1268` are both in the table, so a shortest-match
@@ -392,7 +428,15 @@ const int kMaxE164Digits = 15;
 /// (`+250783054874`); separators are ignored either way. A number written with
 /// a `+` has to start with a dial code this table knows.
 bool isPlausiblePhoneNumber(String raw, {String? country}) {
-  final cleaned = raw.replaceAll(RegExp(r'[^0-9+]'), '');
+  final trimmed = raw.trim();
+  // Stripping non-digits before counting them let anything through:
+  // `abc0788123456` counted as nine digits and passed, and the normalizer
+  // keeps letters, so `+250abc0788123456` was what reached the OTP API. Only
+  // digits, a `+` and the separators people actually type are allowed.
+  if (!RegExp(r'^[0-9+\s().\u2010-\u2015-]+$').hasMatch(trimmed)) {
+    return false;
+  }
+  final cleaned = trimmed.replaceAll(RegExp(r'[^0-9+]'), '');
   if (cleaned.isEmpty) return false;
 
   final String dialCode;

@@ -216,6 +216,7 @@ class SignupComponents {
     required IconData icon,
     required String searchHint,
     String Function(String option)? trailingLabel,
+    List<String> Function(String query, List<String> options)? search,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -241,6 +242,7 @@ class SignupComponents {
                   options: state?.items ?? const <String>[],
                   selected: value,
                   trailingLabel: trailingLabel,
+                  search: search,
                 ),
               );
               if (picked != null) fieldBloc.updateValue(picked);
@@ -451,6 +453,7 @@ class _SearchableOptionsSheet extends StatefulWidget {
     required this.options,
     required this.selected,
     this.trailingLabel,
+    this.search,
   });
 
   final String title;
@@ -458,6 +461,10 @@ class _SearchableOptionsSheet extends StatefulWidget {
   final List<String> options;
   final String? selected;
   final String Function(String option)? trailingLabel;
+
+  /// Supplied when an option answers to more than its own label — a country
+  /// also answers to its ISO code and to aliases like 'USA' or 'DRC'.
+  final List<String> Function(String query, List<String> options)? search;
 
   @override
   State<_SearchableOptionsSheet> createState() =>
@@ -468,6 +475,8 @@ class _SearchableOptionsSheetState extends State<_SearchableOptionsSheet> {
   String _query = '';
 
   List<String> get _filtered {
+    final search = widget.search;
+    if (search != null) return search(_query, widget.options);
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return widget.options;
     // Prefix matches first: typing "ind" should offer India before any country

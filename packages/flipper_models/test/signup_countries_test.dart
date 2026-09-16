@@ -82,6 +82,47 @@ void main() {
     });
   });
 
+  group('searchSignupCountries', () {
+    test('an empty query offers everything, in picker order', () {
+      expect(searchSignupCountries('  '), kSignupCountryNames);
+    });
+
+    test('prefix matches come before contains matches', () {
+      final results = searchSignupCountries('ind');
+      expect(results.first, 'India');
+      expect(results, contains('Indonesia'));
+    });
+
+    test('an ISO code finds its country, first', () {
+      expect(searchSignupCountries('jp').first, 'Japan');
+      expect(searchSignupCountries('GB').first, 'United Kingdom');
+    });
+
+    test('an alias finds its country — nothing else would', () {
+      // 'USA' shares no prefix with 'United States', so the plain name search
+      // these pickers started with offered nothing at all.
+      expect(searchSignupCountries('USA').first, 'United States');
+      expect(searchSignupCountries('uk').first, 'United Kingdom');
+      expect(searchSignupCountries('DRC'), ['Congo - Kinshasa']);
+      expect(searchSignupCountries('ivory coast'), ["Côte d'Ivoire"]);
+    });
+
+    test('a resolved country is not offered twice', () {
+      final results = searchSignupCountries('rw');
+      expect(results.where((c) => c == 'Rwanda').length, 1);
+    });
+
+    test('never offers a country outside the caller\'s own list', () {
+      const offered = ['Rwanda', 'Kenya', 'Uganda'];
+      expect(searchSignupCountries('USA', within: offered), isEmpty);
+      expect(searchSignupCountries('ken', within: offered), ['Kenya']);
+    });
+
+    test('a query that matches nothing comes back empty', () {
+      expect(searchSignupCountries('zzzz'), isEmpty);
+    });
+  });
+
   group('isPlausiblePhoneNumber', () {
     test('accepts national numbers of the lengths countries actually use', () {
       expect(isPlausiblePhoneNumber('783054874', country: 'Rwanda'), isTrue);
@@ -103,6 +144,20 @@ void main() {
 
     test('rejects an unknown dial code', () {
       expect(isPlausiblePhoneNumber('+999123456789'), isFalse);
+    });
+
+    test('rejects letters instead of counting round them', () {
+      // Stripping non-digits first made this nine digits, so it passed — and
+      // the normalizer keeps letters, so `+250abc0788123456` went to the API.
+      expect(isPlausiblePhoneNumber('abc0788123456', country: 'Rwanda'),
+          isFalse);
+      expect(isPlausiblePhoneNumber('0788123456 (work)', country: 'Rwanda'),
+          isFalse);
+      expect(isPlausiblePhoneNumber('user@example.com', country: 'Rwanda'),
+          isFalse);
+      // The separators people do type stay welcome.
+      expect(isPlausiblePhoneNumber('(078) 812-3456', country: 'Rwanda'),
+          isTrue);
     });
 
     test('rejects too short and beyond E.164', () {
