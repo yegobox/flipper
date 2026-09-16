@@ -1,12 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
+import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:printing/printing.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
 
 /// Build / download / print / email a quotation PDF.
@@ -55,17 +56,40 @@ abstract final class HotelQuotationActions {
   static String fileName(HotelQuotation quotation) =>
       '${quotation.reference}.pdf';
 
-  /// Share sheet on mobile, save dialog on desktop.
-  static Future<void> download(HotelQuotation quotation) async {
-    final bytes = await buildPdf(quotation);
-    await Printing.sharePdf(bytes: bytes, filename: fileName(quotation));
-  }
+  /// Shared with the sale receipt, so a quotation reaches the same save
+  /// dialog on desktop and the same viewer on mobile. It also owns the
+  /// progress indicator and the double-tap guard, which building a PDF needs
+  /// — rendering takes long enough that a silent button reads as broken.
+  static final PdfPresentationService _presenter = PdfPresentationService();
 
-  static Future<void> print(HotelQuotation quotation) async {
-    final bytes = await buildPdf(quotation);
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name: fileName(quotation),
+  /// Desktop: a real save dialog. Mobile: writes to documents and opens it,
+  /// falling back to the share sheet when no viewer is installed.
+  static Future<void> download(
+    BuildContext context,
+    HotelQuotation quotation,
+  ) => _present(context, quotation, PdfPresentationMode.download);
+
+  /// The system print dialog — which on desktop also offers Save as PDF.
+  static Future<void> print(BuildContext context, HotelQuotation quotation) =>
+      _present(context, quotation, PdfPresentationMode.print);
+
+  /// The OS share sheet, for sending the PDF somewhere else entirely.
+  static Future<void> share(BuildContext context, HotelQuotation quotation) =>
+      _present(context, quotation, PdfPresentationMode.share);
+
+  static Future<void> _present(
+    BuildContext context,
+    HotelQuotation quotation,
+    PdfPresentationMode mode,
+  ) {
+    return _presenter.present(
+      context,
+      mode: mode,
+      progressMessage: 'Preparing quotation…',
+      build: () => buildPdf(quotation),
+      filename: () => fileName(quotation),
+      label: 'Quotation',
+      shareSubject: 'Quotation ${quotation.reference}',
     );
   }
 

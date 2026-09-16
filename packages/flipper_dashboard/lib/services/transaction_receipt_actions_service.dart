@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
+import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
 import 'package:flipper_dashboard/services/sale_receipt_pdf.dart';
 import 'package:flipper_dashboard/services/stored_receipt_loader.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -9,10 +7,6 @@ import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:printing/printing.dart';
-import 'package:universal_platform/universal_platform.dart';
 
 class TransactionReceiptException implements Exception {
   TransactionReceiptException(this.message);
@@ -43,8 +37,10 @@ class TransactionReceiptActionsService {
   final StoredReceiptLoader _loader;
   final SaleReceiptFallbackBuilder _fallbackBuilder;
 
-  /// Guards against a second tap while a PDF is still being resolved.
-  bool _busy = false;
+  /// Every platform-specific path — the desktop save dialog, the print
+  /// dialog, the share-sheet fallbacks — lives here, shared with the hotel
+  /// quotation so the two documents behave identically.
+  final PdfPresentationService _presenter = PdfPresentationService();
 
   Future<void> shareReceipt(
     BuildContext context,
@@ -104,48 +100,37 @@ class TransactionReceiptActionsService {
     required _ReceiptPresentationMode mode,
     List<TransactionItem>? items,
   }) async {
-    if (_busy) return;
-    _busy = true;
-    // Resolving can take seconds (S3 download, PDF build) — say so, otherwise
-    // the button reads as broken.
-    _showProgress(context, 'Preparing receipt…');
-    try {
-      validateCanPresent(transaction);
+    // Captured by `filename` and `existingPath` below, which the presenter
+    // calls only after `build` has run.
+    ResolvedReceipt? resolved;
 
-      final resolved = await resolveReceipt(transaction, items);
-      _hideProgress(context);
-      if (!context.mounted) return;
-
-      final filename = _pdfFilename(transaction, fiscal: resolved.fiscal);
-
-      switch (mode) {
-        case _ReceiptPresentationMode.share:
-          await Printing.sharePdf(
-            bytes: resolved.bytes,
-            filename: filename,
-            bounds: _shareBounds(context),
-            subject: 'Receipt · ${_referenceHint(transaction)}',
-            body: 'Thank you for your purchase.',
-          );
-        case _ReceiptPresentationMode.download:
-          await _download(context, resolved, filename);
-        case _ReceiptPresentationMode.print:
-          await _print(context, resolved, filename);
-        case _ReceiptPresentationMode.view:
-          await _view(context, resolved, filename);
-      }
-    } on TransactionReceiptException catch (e) {
-      _hideProgress(context);
-      if (context.mounted) _showSnack(context, e.message, isError: true);
-    } catch (e) {
-      _hideProgress(context);
-      if (context.mounted) {
-        _showSnack(context, _friendlyError(e), isError: true);
-      }
-    } finally {
-      _busy = false;
-    }
+    await _presenter.present(
+      context,
+      mode: switch (mode) {
+        _ReceiptPresentationMode.share => PdfPresentationMode.share,
+        _ReceiptPresentationMode.download => PdfPresentationMode.download,
+        _ReceiptPresentationMode.print => PdfPresentationMode.print,
+        _ReceiptPresentationMode.view => PdfPresentationMode.view,
+      },
+      progressMessage: 'Preparing receipt…',
+      build: () async {
+        validateCanPresent(transaction);
+        resolved = await resolveReceipt(transaction, items);
+        return resolved!.bytes;
+      },
+      // Whether the document is fiscal decides whether it may reuse the
+      // EBM-signed PDF's stored filename, so this can only be answered once
+      // `build` has resolved it.
+      filename: () => _pdfFilename(transaction, fiscal: resolved!.fiscal),
+      label: 'Receipt',
+      shareSubject: mode == _ReceiptPresentationMode.view
+          ? 'Invoice'
+          : 'Receipt · ${_referenceHint(transaction)}',
+      shareBody: 'Thank you for your purchase.',
+      existingPath: () => resolved?.localPath,
+    );
   }
+
 
   /// Stored EBM PDF when there is one, a locally built copy otherwise.
   @visibleForTesting
@@ -198,155 +183,6 @@ class TransactionReceiptActionsService {
     }
   }
 
-  Future<void> _download(
-    BuildContext context,
-    ResolvedReceipt resolved,
-    String filename,
-  ) async {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: resolved.bytes, filename: filename);
-      if (context.mounted) {
-        _showSnack(context, 'Receipt ready to save or share.');
-      }
-      return;
-    }
-
-    if (UniversalPlatform.isDesktop) {
-      final savedPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save receipt PDF',
-        fileName: filename,
-        type: FileType.custom,
-        allowedExtensions: const ['pdf'],
-        bytes: resolved.bytes,
-      );
-      if (savedPath == null || savedPath.isEmpty) return;
-      final file = File(savedPath);
-      await file.parent.create(recursive: true);
-      await file.writeAsBytes(resolved.bytes, flush: true);
-      await OpenFilex.open(savedPath);
-      if (context.mounted) {
-        _showSnack(context, 'Receipt saved to ${_baseName(savedPath)}.');
-      }
-      return;
-    }
-
-    final path = await _writeToDocuments(resolved, filename);
-    final result = await OpenFilex.open(path);
-    if (result.type == ResultType.done) {
-      if (context.mounted) {
-        _showSnack(
-          context,
-          resolved.fiscal
-              ? 'Receipt saved on this device.'
-              : 'Sale copy saved on this device.',
-        );
-      }
-      return;
-    }
-    // No PDF viewer installed (or the OS refused the file): hand the PDF to the
-    // share sheet so the customer can still save it to Files or Drive.
-    await Printing.sharePdf(
-      bytes: resolved.bytes,
-      filename: filename,
-      bounds: _shareBounds(context),
-      subject: 'Receipt',
-    );
-    if (context.mounted) {
-      _showSnack(context, 'Receipt ready — choose where to save it.');
-    }
-  }
-
-  Future<void> _print(
-    BuildContext context,
-    ResolvedReceipt resolved,
-    String filename,
-  ) async {
-    try {
-      await Printing.layoutPdf(
-        name: filename,
-        onLayout: (_) async => resolved.bytes,
-      );
-    } catch (_) {
-      if (!context.mounted) return;
-      await Printing.sharePdf(
-        bytes: resolved.bytes,
-        filename: filename,
-        bounds: _shareBounds(context),
-        subject: 'Receipt',
-      );
-    }
-  }
-
-  Future<void> _view(
-    BuildContext context,
-    ResolvedReceipt resolved,
-    String filename,
-  ) async {
-    if (kIsWeb || UniversalPlatform.isDesktop) {
-      await Printing.layoutPdf(
-        name: filename,
-        onLayout: (_) async => resolved.bytes,
-      );
-      return;
-    }
-
-    final path = await _writeToDocuments(resolved, filename);
-    final result = await OpenFilex.open(path);
-    if (result.type == ResultType.done) return;
-
-    if (!context.mounted) return;
-    try {
-      await Printing.layoutPdf(
-        name: filename,
-        onLayout: (_) async => resolved.bytes,
-      );
-    } catch (_) {
-      if (!context.mounted) return;
-      await Printing.sharePdf(
-        bytes: resolved.bytes,
-        filename: filename,
-        bounds: _shareBounds(context),
-        subject: 'Invoice',
-      );
-    }
-  }
-
-  Future<String> _writeToDocuments(
-    ResolvedReceipt resolved,
-    String filename,
-  ) async {
-    final existing = resolved.localPath;
-    if (existing != null &&
-        existing.isNotEmpty &&
-        await File(existing).exists()) {
-      return existing;
-    }
-    final dir = await getApplicationDocumentsDirectory();
-    final path = '${dir.path}/$filename';
-    await File(path).writeAsBytes(resolved.bytes, flush: true);
-    return path;
-  }
-
-  /// iPad shows the share sheet in a popover anchored to these bounds; without
-  /// them the sheet can fail to appear.
-  Rect? _shareBounds(BuildContext context) {
-    if (!context.mounted) return null;
-    final box = context.findRenderObject();
-    if (box is! RenderBox || !box.hasSize) return null;
-    final origin = box.localToGlobal(Offset.zero);
-    return Rect.fromLTWH(
-      origin.dx,
-      origin.dy,
-      box.size.width,
-      box.size.height,
-    );
-  }
-
-  String _baseName(String path) {
-    final parts = path.split(Platform.pathSeparator);
-    return parts.isEmpty ? path : parts.last;
-  }
-
   /// The stored name belongs to the EBM-signed PDF, so only a fiscal document
   /// may reuse it — a locally built copy under that name looks like the signed
   /// receipt on disk.
@@ -369,57 +205,6 @@ class TransactionReceiptActionsService {
     return transaction.id;
   }
 
-  String _friendlyError(Object error) {
-    final text = error.toString();
-    final idx = text.indexOf(': ');
-    if (idx != -1 && idx < text.length - 2) {
-      return text.substring(idx + 2).trim();
-    }
-    return 'Something went wrong. Please try again.';
-  }
-
-  void _showProgress(BuildContext context, String message) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        duration: const Duration(minutes: 1),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  void _hideProgress(BuildContext context) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
-  }
-
-  void _showSnack(
-    BuildContext context,
-    String message, {
-    bool isError = false,
-  }) {
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: isError ? 4 : 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? const Color(0xFFB42318) : null,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
 }
 
 /// Default fallback: build the receipt from what this device already knows
@@ -478,7 +263,6 @@ Future<Uint8List> buildLocalSaleReceiptPdf(
   );
 }
 
-/// The PDF bytes behind a share/download/print/view action.
 class ResolvedReceipt {
   const ResolvedReceipt({
     required this.bytes,

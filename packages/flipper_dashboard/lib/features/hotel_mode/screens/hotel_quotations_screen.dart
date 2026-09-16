@@ -394,29 +394,39 @@ class HotelQuotationsScreen extends ConsumerWidget {
           ),
         ),
         PopupMenuItem(
-          value: 'download',
-          child: Text('Download PDF', style: GoogleFonts.outfit(fontSize: 13.5)),
+          value: 'print',
+          child: Text(
+            'Print or save as PDF…',
+            style: GoogleFonts.outfit(fontSize: 13.5),
+          ),
         ),
         PopupMenuItem(
-          value: 'print',
-          child: Text('Print', style: GoogleFonts.outfit(fontSize: 13.5)),
+          value: 'download',
+          child: Text(
+            'Save to this device',
+            style: GoogleFonts.outfit(fontSize: 13.5),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'share',
+          child: Text('Share…', style: GoogleFonts.outfit(fontSize: 13.5)),
         ),
       ],
     );
     if (choice == null || !context.mounted) return;
 
-    final notifier = ref.read(hotelModeProvider.notifier);
-    try {
-      switch (choice) {
-        case 'send':
-          await _sendQuote(context, ref, quote);
-        case 'download':
-          await HotelQuotationActions.download(quote);
-        case 'print':
-          await HotelQuotationActions.print(quote);
-      }
-    } catch (e) {
-      notifier.showToast('Could not produce ${quote.reference}: $e');
+    // No try/catch around the document actions: the shared presenter already
+    // reports its own failures through the same progress/snackbar surface the
+    // sale receipt uses, and a toast on top would say it twice.
+    switch (choice) {
+      case 'send':
+        await _sendQuote(context, ref, quote);
+      case 'download':
+        await HotelQuotationActions.download(context, quote);
+      case 'print':
+        await HotelQuotationActions.print(context, quote);
+      case 'share':
+        await HotelQuotationActions.share(context, quote);
     }
   }
 

@@ -99,8 +99,11 @@ void main() {
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Download PDF'), findsOneWidget);
-      expect(find.text('Print'), findsOneWidget);
+      // The same three routes the sale receipt offers, via the shared
+      // PdfPresentationService — desktop save dialog, print dialog, share.
+      expect(find.text('Print or save as PDF…'), findsOneWidget);
+      expect(find.text('Save to this device'), findsOneWidget);
+      expect(find.text('Share…'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
