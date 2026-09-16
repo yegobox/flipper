@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_pos_catalog_pane.dart';
@@ -13,6 +14,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 
@@ -35,6 +37,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     final lines = linesAsync.value ?? [];
     final total = barTabTotal(lines);
     final isManager = barTenantIsManager(cashier);
+    final canChargeRoom = BarRoomCharge.isAvailable(ref);
     final myLines =
         lines.where((l) => l.loggedByTenantId == cashier.id).length;
 
@@ -83,6 +86,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                 ),
                 Expanded(child: _linesList(lines, cashier, isManager, ref, tab, table)),
                 _footer(
+                  context: context,
                   ref: ref,
                   total: total,
                   lineCount: barTabItemCount(lines),
@@ -90,6 +94,9 @@ class BarPosDesktopScreen extends HookConsumerWidget {
                   myLines: myLines,
                   isManager: isManager,
                   tab: tab,
+                  table: table,
+                  cashier: cashier,
+                  canChargeRoom: canChargeRoom,
                   empty: lines.isEmpty,
                 ),
               ],
@@ -276,6 +283,7 @@ class BarPosDesktopScreen extends HookConsumerWidget {
       BarPosActions.deleteLine(ref: ref, tab: tab, line: line);
 
   Widget _footer({
+    required BuildContext context,
     required WidgetRef ref,
     required double total,
     required int lineCount,
@@ -283,6 +291,9 @@ class BarPosDesktopScreen extends HookConsumerWidget {
     required int myLines,
     required bool isManager,
     required ITransaction tab,
+    required BarTable table,
+    required Tenant cashier,
+    required bool canChargeRoom,
     required bool empty,
   }) {
     final footNote = serverCount > 1
@@ -476,6 +487,59 @@ class BarPosDesktopScreen extends HookConsumerWidget {
               ),
             ),
           ),
+          // A resident guest's drinks belong on their folio, not on a second
+          // bill — so this closes the table without taking any money.
+          if (canChargeRoom) ...[
+            const SizedBox(height: 11),
+            Material(
+              color: BarTokens.surface,
+              borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+              child: InkWell(
+                onTap: empty
+                    ? null
+                    : () => BarRoomCharge.promptAndChargeTab(
+                        context: context,
+                        ref: ref,
+                        tab: tab,
+                        table: table,
+                        cashier: cashier,
+                        mobile: false,
+                      ),
+                borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+                child: Container(
+                  height: 46,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: empty ? null : BarTokens.violetTint,
+                    borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+                    border: Border.all(
+                      color: empty ? BarTokens.line : BarTokens.violet,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.hotel_outlined,
+                        size: 17,
+                        color: empty ? BarTokens.ink4 : BarTokens.violet,
+                      ),
+                      const SizedBox(width: 9),
+                      Text(
+                        'Charge to room',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: empty ? BarTokens.ink4 : BarTokens.violet,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

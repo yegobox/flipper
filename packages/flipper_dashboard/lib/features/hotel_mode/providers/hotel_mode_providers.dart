@@ -242,6 +242,35 @@ final hotelStaysProvider = StreamProvider<List<HotelStay>>((ref) {
   ).hotelStaysStream(branchId: branchId);
 });
 
+/// In-house guests another outlet — the bar, the restaurant, the shop — can
+/// post a tab to.
+///
+/// Deliberately independent of which service mode owns the POS pane: a branch
+/// running Bar Mode still needs to see who is asleep upstairs.
+final hotelChargeableStaysProvider = Provider<List<HotelStay>>((ref) {
+  final stays = ref.watch(hotelStaysProvider).value ?? const <HotelStay>[];
+  return hotelChargeableStays(stays);
+});
+
+/// Whether the stay list is still being read, so a picker can say "looking up
+/// guests" instead of "nobody is checked in". Separate from the list itself so
+/// a screen can be driven entirely by overriding these two.
+final hotelStaysLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(hotelStaysProvider).isLoading;
+});
+
+/// Whether another outlet should offer "charge to room" at all.
+///
+/// Rooms are consulted first and stays only when the branch has any: reading
+/// stays registers branch-wide `transactions` / `transaction_items` sync
+/// subscriptions, and a bar-only branch must not pay that cost just to render
+/// a button it would never show.
+final hotelRoomChargeAvailableProvider = Provider<bool>((ref) {
+  final rooms = ref.watch(hotelRoomsProvider).value ?? const <HotelRoom>[];
+  if (rooms.isEmpty) return false;
+  return ref.watch(hotelChargeableStaysProvider).isNotEmpty;
+});
+
 final hotelBranchSettingsProvider = StreamProvider<HotelBranchSettings?>((ref) {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return Stream.value(null);

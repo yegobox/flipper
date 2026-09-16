@@ -28,6 +28,7 @@ class BarTabBottomSheet extends StatelessWidget {
     required this.onSaveToTab,
     required this.onBackToTables,
     required this.onSettle,
+    this.onChargeToRoom,
   });
 
   final String tableBadge;
@@ -46,6 +47,9 @@ class BarTabBottomSheet extends StatelessWidget {
   final VoidCallback onSaveToTab;
   final VoidCallback onBackToTables;
   final VoidCallback onSettle;
+
+  /// Null when the branch has no hotel guest to charge — the bar-only case.
+  final VoidCallback? onChargeToRoom;
 
   @override
   Widget build(BuildContext context) {
@@ -242,6 +246,17 @@ class BarTabBottomSheet extends StatelessWidget {
                               ? Icons.verified_user_outlined
                               : Icons.account_balance_wallet_outlined,
                         ),
+                        // Moves the tab onto a resident guest's folio instead
+                        // of taking money for it now.
+                        if (onChargeToRoom != null) ...[
+                          const SizedBox(height: 10),
+                          _outlineBtn(
+                            'Charge to room',
+                            lineCount == 0 ? null : onChargeToRoom,
+                            icon: Icons.hotel_outlined,
+                            accent: lineCount == 0 ? null : BarTokens.violet,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -432,7 +447,12 @@ class BarTabBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _outlineBtn(String label, VoidCallback? onTap, {IconData? icon}) {
+  Widget _outlineBtn(
+    String label,
+    VoidCallback? onTap, {
+    IconData? icon,
+    Color? accent,
+  }) {
     return Material(
       color: BarTokens.surface,
       borderRadius: BorderRadius.circular(14),
@@ -444,13 +464,16 @@ class BarTabBottomSheet extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: BarTokens.lineStrong, width: 1.5),
+            border: Border.all(
+              color: accent ?? BarTokens.lineStrong,
+              width: 1.5,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 17, color: BarTokens.ink3),
+                Icon(icon, size: 17, color: accent ?? BarTokens.ink3),
                 const SizedBox(width: 8),
               ],
               Text(
@@ -458,6 +481,7 @@ class BarTabBottomSheet extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   fontSize: 14.5,
+                  color: accent ?? BarTokens.ink1,
                 ),
               ),
             ],

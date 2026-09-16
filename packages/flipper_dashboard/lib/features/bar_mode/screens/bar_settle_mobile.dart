@@ -3,13 +3,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flipper_dashboard/features/bar_mode/bar_room_charge.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
+import 'package:flipper_dashboard/features/bar_mode/widgets/bar_room_charge_tile.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
+import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -27,6 +31,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   String _method = 'Cash';
   double _tender = 0;
   bool _settling = false;
+  HotelStay? _roomStay;
   final _tenderFocus = FocusNode();
   final _tenderController = TextEditingController(text: '0');
   final _receiptPhoneFocus = FocusNode();
@@ -129,9 +134,13 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
       grouped.putIfAbsent(key, () => []).add(line);
     }
 
+    final isRoomCharge = _method == BarRoomCharge.method;
+    final canChargeRoom = BarRoomCharge.isAvailable(ref);
     final canConfirm = !_settling &&
-        _receiptPhoneIsValid() &&
-        (_method == 'Mobile Money' || _tender >= total - 0.01);
+        (isRoomCharge
+            ? _roomStay != null
+            : _receiptPhoneIsValid() &&
+                (_method == 'Mobile Money' || _tender >= total - 0.01));
     final buttonLooksEnabled = canConfirm || _settling;
     final openedAt = tab.createdAt ?? DateTime.now();
     final openedTime = MaterialLocalizations.of(context).formatTimeOfDay(
@@ -170,7 +179,9 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Choose method and take payment to close the table.',
+              isRoomCharge
+                  ? 'The tab moves onto the guest folio and is invoiced at check-out.'
+                  : 'Choose method and take payment to close the table.',
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 color: BarTokens.ink3,
@@ -194,14 +205,46 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _ReceiptPhoneField(
-              controller: _receiptPhoneController,
-              focusNode: _receiptPhoneFocus,
-              showError: _phoneShowError,
-              onChanged: (v) => _onReceiptPhoneChanged(v, tab),
-            ),
-            if (_method == 'Cash') ...[
+            if (canChargeRoom) ...[
+              const SizedBox(height: 10),
+              BarRoomChargeTile(
+                selected: isRoomCharge,
+                stay: _roomStay,
+                onTap: () => _pickRoom(mobile: true),
+              ),
+            ],
+            if (!isRoomCharge) ...[
+              const SizedBox(height: 16),
+              _ReceiptPhoneField(
+                controller: _receiptPhoneController,
+                focusNode: _receiptPhoneFocus,
+                showError: _phoneShowError,
+                onChanged: (v) => _onReceiptPhoneChanged(v, tab),
+              ),
+            ],
+            if (isRoomCharge) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: BarTokens.surface2,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: BarTokens.line),
+                ),
+                child: Text(
+                  _roomStay == null
+                      ? 'Pick the guest whose folio picks up this bill.'
+                      : 'No money changes hands now: these lines join '
+                            '${hotelRoomChargeTarget(_roomStay!)} and are '
+                            'receipted when the guest checks out.',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    color: BarTokens.ink2,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ] else if (_method == 'Cash') ...[
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -354,7 +397,9 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                           )
                         else
                           Icon(
-                            Icons.verified_user_outlined,
+                            isRoomCharge
+                                ? Icons.hotel_outlined
+                                : Icons.verified_user_outlined,
                             color: buttonLooksEnabled
                                 ? Colors.white
                                 : BarTokens.ink4,
@@ -362,7 +407,9 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                           ),
                         const SizedBox(width: 10),
                         Text(
-                          'Confirm · RWF ${NumberFormat('#,###').format(total)}',
+                          isRoomCharge
+                              ? 'Charge ${_roomStay == null ? 'to room' : 'Room ${_roomStay!.roomName}'} · RWF ${NumberFormat('#,###').format(total)}'
+                              : 'Confirm · RWF ${NumberFormat('#,###').format(total)}',
                           style: GoogleFonts.outfit(
                             color: buttonLooksEnabled
                                 ? Colors.white
@@ -383,6 +430,40 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     );
   }
 
+  /// Asks which guest picks up the bill, and selects the tender on a pick.
+  Future<void> _pickRoom({required bool mobile}) async {
+    final stay = await BarRoomCharge.pickStay(context, mobile: mobile);
+    if (!mounted || stay == null) return;
+    setState(() {
+      _roomStay = stay;
+      _method = BarRoomCharge.method;
+    });
+  }
+
+  /// Moves the tab onto the folio instead of settling it. No receipt and no
+  /// payment row: the guest is invoiced once, at check-out.
+  Future<void> _chargeRoom(WidgetRef ref, ITransaction tab) async {
+    final stay = _roomStay;
+    final bar = ref.read(barModeProvider);
+    final table = bar.activeTable;
+    final cashier = bar.activeCashier;
+    if (stay == null || table == null || cashier == null) return;
+
+    setState(() => _settling = true);
+    try {
+      await BarRoomCharge.chargeTab(
+        context: context,
+        ref: ref,
+        tab: tab,
+        table: table,
+        cashier: cashier,
+        stay: stay,
+      );
+    } finally {
+      if (mounted) setState(() => _settling = false);
+    }
+  }
+
   Future<void> _confirm(
     WidgetRef ref,
     ITransaction tab,
@@ -390,6 +471,10 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
     List<TransactionItem> lines,
   ) async {
     if (_settling) return;
+    if (_method == BarRoomCharge.method) {
+      await _chargeRoom(ref, tab);
+      return;
+    }
     if (!_receiptPhoneIsValid()) {
       setState(() => _phoneShowError = true);
       ScaffoldMessenger.of(context).showSnackBar(

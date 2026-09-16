@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_floor_plan_editor.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
@@ -140,15 +141,13 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
     BarModeSettings.setEnabled(value);
     notifyServiceModeChanged();
     if (value) {
-      // Both modes replace the same POS sales pane, so they cannot both own it.
-      if (HotelModeSettings.enabled) {
-        HotelModeSettings.setEnabled(false);
-        if (mounted) {
-          showCustomSnackBarUtil(
-            context,
-            'Hotel Mode turned off — a branch runs one service mode at a time.',
-          );
-        }
+      // A property can offer both. Which surface a given terminal shows is a
+      // device choice, so turning the bar on no longer shuts the desk down.
+      if (HotelModeSettings.enabled && mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Bar Mode on alongside Hotel Mode — pick what this device runs below.',
+        );
       }
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
@@ -389,7 +388,12 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Turns the register into a shared bar terminal: staff keep a running tab per table, log rounds under their own PIN, and hand off between cashiers without losing the bill. Leave off for standard retail checkout.',
+                  'Turns the register into a shared bar terminal: staff keep a '
+                  'running tab per table, log rounds under their own PIN, and '
+                  'hand off between cashiers without losing the bill. Leave off '
+                  'for standard retail checkout. On a keyboard, '
+                  '$serviceModeHotkeyLabel cycles Bar → Hotel → POS without '
+                  'coming back here.',
                   style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     color: BarTokens.ink2,

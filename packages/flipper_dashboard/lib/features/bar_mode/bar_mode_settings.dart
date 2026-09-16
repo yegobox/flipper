@@ -12,7 +12,8 @@ abstract final class BarModeSettings {
   static const managerSettleKey = BarModeBranchSettingsService.managerSettleKey;
   static const autoLogoutKey = BarModeBranchSettingsService.autoLogoutKey;
 
-  static bool get enabled => ProxyService.box.readBool(key: enabledKey) ?? false;
+  static bool get enabled =>
+      ProxyService.box.readBool(key: enabledKey) ?? false;
 
   /// When true, post-login opens [BarModeHost]. Kept in sync with [enabled] for the branch.
   static bool get launchOnStart =>
@@ -36,10 +37,16 @@ abstract final class BarModeSettings {
   static void startWatchingActiveBranch() =>
       BarModeBranchSettingsService.startWatchingActiveBranch();
 
-  static void setEnabled(bool value) {
+  /// Flips the master toggle.
+  ///
+  /// Pass `persist: false` when the caller awaits its own
+  /// [BarModeBranchSettingsService.persistCurrentBranch] — a service-mode switch
+  /// does, and the fire-and-forget save here would write the same snapshot a
+  /// second time and keep retrying it for its own, much longer, deadline.
+  static void setEnabled(bool value, {bool persist = true}) {
     ProxyService.box.writeBool(key: enabledKey, value: value);
     ProxyService.box.writeBool(key: launchOnStartKey, value: value);
-    unawaited(BarModeBranchSettingsService.persistCurrentBranch());
+    if (persist) unawaited(BarModeBranchSettingsService.persistCurrentBranch());
   }
 
   static void setLaunchOnStart(bool value) {
