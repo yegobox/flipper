@@ -138,6 +138,7 @@ mixin CoreBarStubMixin implements BarInterface {
   @override
   Future<ITransaction> settleBarTab({
     required ITransaction transaction,
+    required List<TransactionItem> lines,
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,

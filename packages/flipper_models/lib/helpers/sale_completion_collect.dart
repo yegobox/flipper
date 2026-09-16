@@ -4,7 +4,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/sale_completion_helpers.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
+import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -25,28 +25,18 @@ void applySalePaymentFieldsInMemory({
   bool mutateCashFields = true,
 }) {
   final items = preloadedLineItems ?? const <TransactionItem>[];
-  transaction.taxAmount = items.fold<double>(
-    0,
-    (sum, item) => sum + (item.taxAmt?.toDouble() ?? 0),
-  );
 
-  final computedSubTotal = items.isEmpty
-      ? tenderAmount
-      : SaleLinePricing.cartNetSubtotal([
-          for (final item in items)
-            (
-              unitPrice: item.price.toDouble(),
-              qty: item.qty.toDouble(),
-              dcAmt: item.dcAmt?.toDouble(),
-              dcRt: item.dcRt?.toDouble(),
-            ),
-        ]);
-  transaction.subTotal = computedSubTotal;
-  transaction.numberOfItems = items.length;
-  transaction.discountAmount = items.fold<double>(
-    0,
-    (sum, item) => sum + (item.dcAmt?.toDouble() ?? 0),
+  // Shared with the bar and hotel settle paths so the fields the ledger reads
+  // are derived in exactly one place — see [applySaleAccountingFields].
+  applySaleAccountingFields(
+    transaction: transaction,
+    lines: items,
+    updateSubTotal: items.isNotEmpty,
   );
+  if (items.isEmpty) {
+    transaction.subTotal = tenderAmount;
+  }
+  final computedSubTotal = (transaction.subTotal ?? 0).toDouble();
 
   if (mutateCashFields) {
     if (transaction.isLoan == true) {

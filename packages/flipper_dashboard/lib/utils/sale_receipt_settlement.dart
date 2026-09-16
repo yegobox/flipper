@@ -3,6 +3,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
+import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
@@ -54,16 +55,16 @@ Future<void> issueSaleReceipt({
         );
         ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
 
-        final filterType =
-            ProxyService.box.isProformaMode() ? FilterType.PS : FilterType.NS;
+        final filterType = ProxyService.box.isProformaMode()
+            ? FilterType.PS
+            : FilterType.NS;
         final receiptLines = await enrichLinesForRraReceipt(
           lines,
           context: receiptContext,
         );
-        final result = await TaxController(object: transaction).handleReceipt(
-          filterType: filterType,
-          transactionItems: receiptLines,
-        );
+        final result = await TaxController(
+          object: transaction,
+        ).handleReceipt(filterType: filterType, transactionItems: receiptLines);
         if (result.response.resultCd != '000') {
           throw Exception(result.response.resultMsg);
         }
@@ -118,4 +119,52 @@ Future<void> recordSalePaymentAndScheduleStock({
     transaction: transaction,
     receiptType: receiptType,
   );
+}
+
+/// Settles a parked ticket: books it, files it, completes it, records it.
+///
+/// The one seam every service mode goes through, so the order cannot drift
+/// between them:
+///
+///   1. derive the ledger fields from [lines] — the server-side poster splits
+///      revenue by `taxAmount`, so a ticket completed without it books its
+///      whole value to revenue and nothing to VAT payable;
+///   2. file the receipt with RRA, which throws on rejection so nothing is
+///      completed behind a refused invoice;
+///   3. [complete] — the mode's own write (`settleBarTab`, `checkOutGuest`),
+///      the only part that differs between surfaces;
+///   4. record the payment and hand stock/RRA follow-up to the background.
+///
+/// A new mode supplies step 3 and gets the rest right by construction.
+Future<ITransaction> finalizeServiceModeSale({
+  required DatabaseSyncInterface sync,
+  required ITransaction transaction,
+  required List<TransactionItem> lines,
+  required String transactionId,
+  required String paymentType,
+  required double amount,
+  required String receiptContext,
+  required Future<ITransaction> Function(ITransaction invoiced) complete,
+}) async {
+  applySaleAccountingFields(transaction: transaction, lines: lines);
+
+  await issueSaleReceipt(
+    sync: sync,
+    transaction: transaction,
+    lines: lines,
+    receiptContext: receiptContext,
+  );
+
+  final settled = await complete(transaction);
+
+  await recordSalePaymentAndScheduleStock(
+    sync: sync,
+    transaction: settled,
+    lines: lines,
+    transactionId: transactionId,
+    paymentType: paymentType,
+    amount: amount,
+  );
+
+  return settled;
 }

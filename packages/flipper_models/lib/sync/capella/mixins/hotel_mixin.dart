@@ -12,6 +12,7 @@ import 'package:flipper_models/sync/interfaces/hotel_interface.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
+import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_models/sync/utils/sale_line_pricing.dart';
 import 'package:flipper_services/constants.dart';
@@ -1444,6 +1445,7 @@ mixin CapellaHotelMixin implements HotelInterface {
   Future<ITransaction> checkOutGuest({
     required HotelStay stay,
     required ITransaction transaction,
+    required List<TransactionItem> lines,
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,
@@ -1460,6 +1462,12 @@ mixin CapellaHotelMixin implements HotelInterface {
       updatedAt: now,
       lastTouched: now,
     );
+
+    // Stamped here rather than in the folio screen so the fields land on the
+    // very document that gets written: the server-side poster splits revenue
+    // by taxAmount, and a folio completed without it books 100% to revenue —
+    // losing both the 3% tourism tax on nights and the 18% VAT on extras.
+    applySaleAccountingFields(transaction: settled, lines: lines);
 
     final doc = await ITransactionDittoAdapter.instance.toDittoDocument(settled);
     await ditto.store.execute(

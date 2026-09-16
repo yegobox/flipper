@@ -15,6 +15,7 @@ import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:talker/talker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_models/sync/utils/sale_accounting_fields.dart';
 
 TransactionItem? _barFindLine(List<TransactionItem> lines, String lineId) {
   for (final line in lines) {
@@ -691,6 +692,7 @@ mixin CapellaBarMixin implements BarInterface {
   @override
   Future<ITransaction> settleBarTab({
     required ITransaction transaction,
+    required List<TransactionItem> lines,
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,
@@ -708,6 +710,11 @@ mixin CapellaBarMixin implements BarInterface {
       updatedAt: DateTime.parse(nowIso),
       lastTouched: DateTime.parse(nowIso),
     );
+
+    // Stamped here rather than in the settle screen so the fields land on the
+    // very document that gets written: the server-side poster splits revenue
+    // by taxAmount, and a tab completed without it books 100% to revenue.
+    applySaleAccountingFields(transaction: updated, lines: lines);
 
     final doc = await ITransactionDittoAdapter.instance.toDittoDocument(
       updated,

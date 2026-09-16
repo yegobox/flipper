@@ -241,9 +241,15 @@ abstract class HotelInterface {
   Future<void> refreshFolioSubTotal({required String transactionId});
 
   /// Settle the folio, close the stay and drop the room to `dirty`.
+  ///
+  /// [lines] are the folio's own lines. They are required because the completed
+  /// transaction has to carry the tax the ledger splits revenue by — a folio
+  /// mixes 3% tourism tax with 18% VAT, so it cannot be inferred from the
+  /// total. See `applySaleAccountingFields`.
   Future<ITransaction> checkOutGuest({
     required HotelStay stay,
     required ITransaction transaction,
+    required List<TransactionItem> lines,
     required String paymentType,
     required double cashReceived,
     required double customerChangeDue,

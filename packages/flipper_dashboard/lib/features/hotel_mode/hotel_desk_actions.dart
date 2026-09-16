@@ -481,31 +481,25 @@ abstract final class HotelDeskActions {
       customerChangeDue: customerChangeDue,
     );
 
-    // Filed and printed before the stay is closed, exactly as bar mode settles
-    // a tab. A throw here leaves the guest checked in and the desk able to
-    // retry, rather than a released room with no receipt behind it.
-    await issueSaleReceipt(
-      sync: _sync,
-      transaction: invoiced,
-      lines: lines,
-      receiptContext: 'folio invoice',
-    );
-
-    await _sync.checkOutGuest(
-      stay: stay,
-      transaction: invoiced,
-      paymentType: paymentType,
-      cashReceived: cashReceived,
-      customerChangeDue: customerChangeDue,
-    );
-
-    await recordSalePaymentAndScheduleStock(
+    // Booked, filed and printed before the stay is closed, exactly as bar mode
+    // settles a tab. A throw here leaves the guest checked in and the desk able
+    // to retry, rather than a released room with no receipt behind it.
+    await finalizeServiceModeSale(
       sync: _sync,
       transaction: invoiced,
       lines: lines,
       transactionId: stay.transactionId,
       paymentType: paymentType,
       amount: (invoiced.subTotal ?? 0).toDouble(),
+      receiptContext: 'folio invoice',
+      complete: (booked) => _sync.checkOutGuest(
+        stay: stay,
+        transaction: booked,
+        lines: lines,
+        paymentType: paymentType,
+        cashReceived: cashReceived,
+        customerChangeDue: customerChangeDue,
+      ),
     );
 
     talker.info(
