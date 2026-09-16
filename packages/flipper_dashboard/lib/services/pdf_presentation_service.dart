@@ -59,6 +59,14 @@ class PdfPresentationService {
 
     /// An already-written copy on disk, reused instead of writing again.
     String? Function()? existingPath,
+
+    /// Turns a thrown object into what the user should read.
+    ///
+    /// The default strips a `Type: ` prefix, which loses the text of an
+    /// exception whose `toString` is already the message — and those are
+    /// exactly the ones written to be shown, like "Training receipts cannot be
+    /// shared or printed."
+    String Function(Object error)? errorMessage,
   }) async {
     if (_busy) return;
     _busy = true;
@@ -82,7 +90,13 @@ class PdfPresentationService {
       );
     } catch (e) {
       hideProgress(context);
-      if (context.mounted) showSnack(context, friendlyError(e), isError: true);
+      if (context.mounted) {
+        showSnack(
+          context,
+          (errorMessage ?? friendlyError)(e),
+          isError: true,
+        );
+      }
     } finally {
       _busy = false;
     }

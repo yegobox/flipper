@@ -88,6 +88,9 @@ void main() {
       'docStampPlacement': 'bottomLeft',
       'docStampWidthMm': '38.0',
       'docStampAspectRatio': '0.42',
+      // Which branch the cached stamp belongs to; without it a branch switch
+      // stamps the next property's documents with the previous one's mark.
+      'docStampBranchId': 'branch-a',
     };
 
     stringKeys.forEach((key, value) {

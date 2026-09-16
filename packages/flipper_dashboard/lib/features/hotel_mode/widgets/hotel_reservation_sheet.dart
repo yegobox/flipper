@@ -103,6 +103,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  String? _emailError;
   late final TextEditingController _rateController;
 
   late DateTime _checkIn;
@@ -172,7 +173,7 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
 
     final email = hotelNormalizeEmail(_emailController.text);
     if (email != null && !hotelIsPlausibleEmail(email)) {
-      setState(() => _error = 'That email does not look right');
+      setState(() => _emailError = 'That email does not look right');
       return;
     }
 
@@ -248,6 +249,10 @@ class _HotelReservationSheetState extends State<HotelReservationSheet> {
               controller: _emailController,
               hint: 'Sends the confirmation',
               keyboardType: TextInputType.emailAddress,
+              errorText: _emailError,
+              onChanged: (_) {
+                if (_emailError != null) setState(() => _emailError = null);
+              },
             ),
             const SizedBox(height: 12),
             _arrivalRow(),

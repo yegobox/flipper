@@ -74,6 +74,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
+  String? _emailError;
   late final TextEditingController _rateController;
   late final TextEditingController _extrasController;
   late final TextEditingController _discountController;
@@ -195,7 +196,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
 
     final email = hotelNormalizeEmail(_emailController.text);
     if (email != null && !hotelIsPlausibleEmail(email)) {
-      setState(() => _error = 'That email does not look right');
+      setState(() => _emailError = 'That email does not look right');
       return;
     }
 
@@ -297,6 +298,10 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
               controller: _emailController,
               hint: 'Where the quotation PDF is sent',
               keyboardType: TextInputType.emailAddress,
+              errorText: _emailError,
+              onChanged: (_) {
+                if (_emailError != null) setState(() => _emailError = null);
+              },
             ),
             const SizedBox(height: 12),
             _arrivalRow(),

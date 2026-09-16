@@ -610,7 +610,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
       // Turning the stamp on with the upload is what the clerk meant; making
       // them find a second switch afterwards is the kind of step people miss
       // and then report as "the stamp does not work".
-      await _persistDocuments(
+      final ok = await _persistDocuments(
         _documents.copyWith(
           stampImageBase64: picked.image!.base64,
           stampAspectRatio: picked.image!.aspectRatio,
@@ -619,7 +619,15 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
         notify: false,
       );
 
-      if (mounted) showSuccessNotification(context, 'Company stamp updated.');
+      if (!mounted) return;
+      if (ok) {
+        showSuccessNotification(context, 'Company stamp updated.');
+      } else {
+        showErrorNotification(
+          context,
+          'Stamp saved on this device only — other terminals will not use it.',
+        );
+      }
     } catch (e) {
       if (mounted) showErrorNotification(context, 'Failed to set stamp: $e');
     } finally {
@@ -630,17 +638,27 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
   Future<void> _removeStamp() async {
     setState(() => _updatingStamp = true);
     try {
-      await _persistDocuments(
+      final ok = await _persistDocuments(
         _documents.copyWith(clearStampImage: true, stampEnabled: false),
         notify: false,
       );
-      if (mounted) showSuccessNotification(context, 'Company stamp removed.');
+      if (!mounted) return;
+      if (ok) {
+        showSuccessNotification(context, 'Company stamp removed.');
+      } else {
+        showErrorNotification(
+          context,
+          'Stamp removed on this device only — other terminals still have it.',
+        );
+      }
     } finally {
       if (mounted) setState(() => _updatingStamp = false);
     }
   }
 
-  Future<void> _persistDocuments(
+  /// Returns whether the branch document actually persisted, so a caller does
+  /// not announce a stamp that only exists on this device.
+  Future<bool> _persistDocuments(
     BranchDocumentSettings next, {
     bool notify = true,
   }) async {
@@ -653,6 +671,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     if (!ok && mounted && notify) {
       showErrorNotification(context, 'Stamp saved on this device only.');
     }
+    return ok;
   }
 
   Widget _actionRow({

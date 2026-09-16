@@ -128,17 +128,25 @@ abstract final class BookingNotificationService {
         ),
       );
 
-      _sentKeys.add(key);
-
-      if (result.deduplicated) return BookingNotificationOutcome.duplicate;
+      // Remembered only for outcomes a retry cannot improve on. Recording a
+      // failure here would turn the next attempt into a "duplicate" and the
+      // guest would never hear from us.
+      if (result.deduplicated) {
+        _sentKeys.add(key);
+        return BookingNotificationOutcome.duplicate;
+      }
       if (result.outOfCredits) {
+        _sentKeys.add(key);
         talker.warning(
           'hotel: SMS confirmation for stay ${stay.id} skipped — '
           'branch ${stay.branchId} is out of credits',
         );
         return BookingNotificationOutcome.outOfCredits;
       }
-      if (result.anySent) return BookingNotificationOutcome.sent;
+      if (result.anySent) {
+        _sentKeys.add(key);
+        return BookingNotificationOutcome.sent;
+      }
 
       talker.warning(
         'hotel: ${event.wire} confirmation for stay ${stay.id} sent nothing '

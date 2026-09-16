@@ -21,6 +21,14 @@ abstract final class BranchDocumentSettingsService {
   static const stampWidthKey = 'docStampWidthMm';
   static const stampAspectRatioKey = 'docStampAspectRatio';
 
+  /// Which branch the cached stamp above belongs to.
+  ///
+  /// The cache is a flat set of preference keys, so without this a branch
+  /// switch leaves the previous property's stamp in place until hydrate
+  /// lands — and any document built in that window carries the wrong
+  /// company's mark. Read is cheap and synchronous; the check is not.
+  static const stampBranchKey = 'docStampBranchId';
+
   static StreamSubscription<BranchDocumentSettings?>? _watchSub;
 
   static dynamic get _sync => ProxyService.getStrategy(Strategy.capella);
@@ -29,9 +37,20 @@ abstract final class BranchDocumentSettingsService {
   /// design: called from inside PDF builders.
   static BranchDocumentSettings current() {
     final box = ProxyService.box;
+    final branchId = box.getBranchId() ?? '';
+
+    // Belongs to a different branch (or to none yet): answer with defaults
+    // rather than the last property's stamp. Hydrate will fill it in.
+    final cachedBranch = box.readString(key: stampBranchKey);
+    if (cachedBranch == null ||
+        cachedBranch.isEmpty ||
+        cachedBranch != branchId) {
+      return BranchDocumentSettings(branchId: branchId);
+    }
+
     final image = box.readString(key: stampImageKey);
     return BranchDocumentSettings(
-      branchId: box.getBranchId() ?? '',
+      branchId: branchId,
       stampEnabled: box.readBool(key: stampEnabledKey) ?? false,
       stampImageBase64: (image == null || image.isEmpty) ? null : image,
       stampPlacement: documentStampPlacementFromString(
@@ -88,7 +107,9 @@ abstract final class BranchDocumentSettingsService {
     }
 
     // No document yet is the normal case for a branch that has never uploaded
-    // a stamp — not worth an error.
+    // a stamp. Claim the cache for this branch anyway, so a switch away from a
+    // branded property does not leave its stamp behind.
+    applyToLocalCache(BranchDocumentSettings(branchId: branchId));
     talker.info('No branch_document_settings for branch $branchId');
   }
 
@@ -161,6 +182,8 @@ abstract final class BranchDocumentSettingsService {
   /// that did not remove it.
   static void applyToLocalCache(BranchDocumentSettings settings) {
     final box = ProxyService.box;
+    // Stamped first: a cache that cannot say whose it is must read as absent.
+    box.writeString(key: stampBranchKey, value: settings.branchId);
     box.writeBool(key: stampEnabledKey, value: settings.stampEnabled);
     box.writeString(
       key: stampImageKey,

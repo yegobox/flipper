@@ -192,6 +192,28 @@ void main() {
       expect(outcome, BookingNotificationOutcome.failed);
     });
 
+    test('a send where both legs failed is retried, not called a duplicate',
+        () async {
+      // The server answered, but nothing went out. Remembering the key here
+      // turned the next attempt into a "duplicate" and the guest never heard
+      // from us.
+      final failing = _FakeNotificationsClient(
+        response: const BookingConfirmationResult(
+          ok: true,
+          sms: NotifyLegResult(attempted: true, status: 'failed'),
+          email: NotifyLegResult(attempted: true, status: 'failed'),
+        ),
+      );
+      BookingNotificationService.clientOverride = () async => failing;
+
+      final stay = _stay(phone: '0788360058', email: 'a@example.com');
+      expect(await send(stay), BookingNotificationOutcome.failed);
+
+      BookingNotificationService.clientOverride = () async => client;
+      expect(await send(stay), BookingNotificationOutcome.sent);
+      expect(client.calls, hasLength(1), reason: 'the retry reached the server');
+    });
+
     test('a failed send is not remembered, so a later retry can work',
         () async {
       final failing = _FakeNotificationsClient(

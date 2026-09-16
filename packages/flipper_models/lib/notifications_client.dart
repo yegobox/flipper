@@ -132,7 +132,11 @@ class NotificationsClient {
         method: 'POST',
         uri: uri,
         statusCode: response.statusCode,
-        body: response.body,
+        // Not response.body: these routes echo the recipient back — a
+        // `results` array of phone numbers, or the address a confirmation
+        // went to — and the request log above goes to the trouble of
+        // redacting exactly those.
+        body: _redactedResponseBody(response.body),
         elapsed: started.elapsed,
         operation: operation,
       );
@@ -442,4 +446,32 @@ String _redactPhone(String number) {
   final digits = number.replaceAll(RegExp(r'\D'), '');
   if (digits.length < 4) return '…';
   return '…${digits.substring(digits.length - 3)}';
+}
+
+/// Keeps the parts of a notify response worth reading in a log — status,
+/// credits, ids — and drops the guest's contact details.
+String _redactedResponseBody(String body) {
+  if (body.isEmpty) return body;
+  try {
+    final decoded = jsonDecode(body);
+    if (decoded is! Map) return '{"…":"non-object response"}';
+    return jsonEncode(_redactValue(Map<String, dynamic>.from(decoded)));
+  } catch (_) {
+    // Not JSON — an upstream error page could hold anything.
+    return '{"…":"unparsed ${body.length} byte response"}';
+  }
+}
+
+/// Recursively blanks any `to` field, at whatever depth the route nests it.
+Object? _redactValue(Object? value) {
+  if (value is Map) {
+    return <String, Object?>{
+      for (final entry in value.entries)
+        entry.key.toString(): entry.key == 'to'
+            ? '…'
+            : _redactValue(entry.value),
+    };
+  }
+  if (value is List) return value.map(_redactValue).toList();
+  return value;
 }

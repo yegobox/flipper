@@ -128,6 +128,12 @@ class TransactionReceiptActionsService {
           : 'Receipt · ${_referenceHint(transaction)}',
       shareBody: 'Thank you for your purchase.',
       existingPath: () => resolved?.localPath,
+      // validateCanPresent throws messages written for the person holding the
+      // device; the generic formatter would replace them with "Something went
+      // wrong."
+      errorMessage: (error) => error is TransactionReceiptException
+          ? error.message
+          : _presenter.friendlyError(error),
     );
   }
 

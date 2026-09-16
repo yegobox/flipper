@@ -287,7 +287,7 @@ abstract final class HotelDeskActions {
         dataConnectorUrl: url ?? '',
       );
 
-      await client.sendEmail(
+      final result = await client.sendEmail(
         to: [email],
         subject: HotelQuotationActions.emailSubject(quotation, businessName),
         htmlBody: HotelQuotationActions.emailHtml(quotation, businessName),
@@ -301,6 +301,17 @@ abstract final class HotelDeskActions {
         branchId: quotation.branchId,
         idempotencyKey: HotelQuotationActions.idempotencyKey(quotation),
       );
+
+      if (!result.ok) {
+        // The route answered, but not with a send. Leaving the status alone
+        // keeps the card honest and lets the desk try again.
+        talker.warning(
+          'hotel: quotation ${quotation.reference} was not accepted for '
+          'delivery to $email',
+        );
+        notifier.showToast('${quotation.reference} was not sent — try again');
+        return QuotationSendResult.failed;
+      }
 
       // Only now is it "sent" — flipping the status before the send would
       // leave a quotation claiming to have reached a guest it never did.

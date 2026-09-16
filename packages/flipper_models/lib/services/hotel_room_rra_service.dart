@@ -63,7 +63,10 @@ abstract final class HotelRoomRraService {
       if (!await branchSupportsRra(branchId)) return 0;
 
       final rooms = await _sync.hotelRooms(branchId: branchId);
-      final pending = roomsNeedingRegistration(rooms);
+      final pending = roomsNeedingRegistration(
+        rooms,
+        await _resolveRoomVariants(rooms),
+      );
       if (pending.isEmpty) return 0;
 
       talker.info(
@@ -122,22 +125,62 @@ abstract final class HotelRoomRraService {
     }
   }
 
-  /// The rooms a sweep would touch: those with no RRA item yet.
+  /// The rooms a sweep would touch.
   ///
-  /// Pure, so the rule about what counts as unregistered is testable without
-  /// a tax server. A room carrying a blank `variantId` counts as unregistered
-  /// — `isRegisteredWithRra` treats empty as absent, and a room half-written
-  /// that way must be finished rather than skipped forever.
+  /// A `variantId` alone does not mean registered. When `saveItems` reaches
+  /// RRA but the attempt fails afterwards, [_recoverFailedRegistration]
+  /// deliberately points the room at that variant so the next run can resume
+  /// it — and filtering on `variantId` alone skipped exactly those rooms
+  /// forever, leaving them to bill against a variant with no `itemCd`.
+  ///
+  /// [variantsById] holds the resolved variant for every room that names one;
+  /// a missing entry reads as unfinished, which is the safe direction —
+  /// [registerRoom] is idempotent and returns a genuinely registered room
+  /// untouched.
+  ///
+  /// Pure, so the rule is testable without a tax server.
   @visibleForTesting
-  static List<HotelRoom> roomsNeedingRegistration(List<HotelRoom> rooms) {
-    return rooms
-        .where((room) => !room.isRegisteredWithRra)
-        .toList(growable: false);
+  static List<HotelRoom> roomsNeedingRegistration(
+    List<HotelRoom> rooms,
+    Map<String, Variant?> variantsById,
+  ) {
+    return rooms.where((room) {
+      // No variant named at all: never started.
+      if (!room.isRegisteredWithRra) return true;
+      return !isHotelRoomVariantRegistered(variantsById[room.variantId]);
+    }).toList(growable: false);
+  }
+
+  /// Loads the variants named by [rooms], so the filter above can judge them.
+  ///
+  /// Only rooms that name one are looked up, and a lookup that fails maps to
+  /// null rather than aborting the sweep.
+  static Future<Map<String, Variant?>> _resolveRoomVariants(
+    List<HotelRoom> rooms,
+  ) async {
+    final ids = rooms
+        .where((room) => room.isRegisteredWithRra)
+        .map((room) => room.variantId!)
+        .toSet();
+
+    final resolved = <String, Variant?>{};
+    for (final id in ids) {
+      try {
+        resolved[id] = await _sync.getVariant(id: id);
+      } catch (e) {
+        talker.warning('hotel: could not read variant $id: $e');
+        resolved[id] = null;
+      }
+    }
+    return resolved;
   }
 
   /// Visible for tests.
   @visibleForTesting
-  static void resetSweepState() => _sweepsInFlight.clear();
+  static void resetSweepState() {
+    _sweepsInFlight.clear();
+    _registrationsInFlight.clear();
+  }
 
   /// Registers [room] and returns it carrying its new `variantId`.
   ///
@@ -147,7 +190,27 @@ abstract final class HotelRoomRraService {
   /// A branch that is not on EBM is returned unchanged too. That is not a
   /// failure — there is no tax authority to register with — so it neither
   /// throws nor leaves a half-built product behind.
-  static Future<HotelRoom> registerRoom(HotelRoom room) async {
+  /// In-flight registrations, keyed by room id.
+  ///
+  /// The background sweep and the folio's own charge can both reach the same
+  /// room — the sweep's branch guard only stops sweep-versus-sweep. Two
+  /// concurrent runs would each mint a product, a variant and an RRA item for
+  /// one room, and RRA would hold two live items for the same bed.
+  static final Map<String, Future<HotelRoom>> _registrationsInFlight =
+      <String, Future<HotelRoom>>{};
+
+  static Future<HotelRoom> registerRoom(HotelRoom room) {
+    final existing = _registrationsInFlight[room.id];
+    if (existing != null) return existing;
+
+    final run = _registerRoom(room).whenComplete(() {
+      _registrationsInFlight.remove(room.id);
+    });
+    _registrationsInFlight[room.id] = run;
+    return run;
+  }
+
+  static Future<HotelRoom> _registerRoom(HotelRoom room) async {
     // A half-finished attempt to resume, if there is one. Registration is
     // several persisted steps, and a room whose variant exists but never
     // reached RRA must finish that variant rather than mint a second one.

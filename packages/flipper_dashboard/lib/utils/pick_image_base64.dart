@@ -100,18 +100,33 @@ Future<PickImageResult> pickImageAsBase64({required int maxSizeBytes}) async {
     );
   }
 
+  // Decoding doubles as validation. FilePicker filters by extension, not by
+  // content, so a renamed file reaches here looking like a PNG — and a stamp
+  // that cannot decode would be replicated to every device on the branch and
+  // then silently fail to draw on every document.
+  final aspectRatio = await _aspectRatio(bytes);
+  if (aspectRatio == null) {
+    return const PickImageResult.failed(
+      PickImageFailure.unreadable,
+      'That file is not a readable PNG or JPEG. Please pick another.',
+    );
+  }
+
   return PickImageResult.success(
     PickedImage(
       bytes: bytes,
       base64: base64Encode(bytes),
-      aspectRatio: await _aspectRatio(bytes),
+      aspectRatio: aspectRatio,
     ),
   );
 }
 
-/// Decodes just far enough to read the dimensions. A failure falls back to
-/// square, which renders a slightly wrong shape rather than nothing at all.
-Future<double> _aspectRatio(Uint8List bytes) async {
+/// height / width, or null when the bytes are not a decodable image.
+///
+/// Null is the caller's signal to reject the file. Guessing a square here used
+/// to let an undecodable file through, and it only surfaced later as a stamp
+/// that never appeared on a document.
+Future<double?> _aspectRatio(Uint8List bytes) async {
   try {
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
@@ -120,10 +135,10 @@ Future<double> _aspectRatio(Uint8List bytes) async {
     final height = image.height;
     image.dispose();
     codec.dispose();
-    if (width <= 0 || height <= 0) return 1.0;
+    if (width <= 0 || height <= 0) return null;
     return height / width;
   } catch (e) {
-    debugPrint('pickImageAsBase64: could not read image dimensions: $e');
-    return 1.0;
+    debugPrint('pickImageAsBase64: could not decode the selected image: $e');
+    return null;
   }
 }
