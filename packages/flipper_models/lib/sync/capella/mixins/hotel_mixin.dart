@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
+import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -1270,16 +1271,10 @@ mixin CapellaHotelMixin implements HotelInterface {
       // still bills guests, so record the nights as a plain line rather than
       // refusing: a folio that can never total anything is worse than one that
       // is simply not fiscalised.
-      // Cached read: this only decides whether the branch fiscalises at all,
-      // and `fetchRemote: true` (the default) skips Ditto and goes straight to
-      // Supabase — a network round trip on every room charge, in front of a
-      // clerk. `fetchRemote: false` still falls back to Supabase when Ditto
-      // has nothing, so a cold branch is correct, just slower.
-      final ebm = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).ebm(branchId: stay.branchId, fetchRemote: false);
-
-      if (!hotelBranchSupportsRra(ebm)) {
+      // Memoised: a branch with no EBM row has nothing cached in Ditto, so
+      // even `fetchRemote: false` falls through to Supabase. Asking per charge
+      // made the properties that never fiscalise pay the most.
+      if (!await HotelRraCapability.supports(stay.branchId)) {
         await _postUnfiscalisedRoomCharge(
           stay: stay,
           clerkTenantId: clerkTenantId,

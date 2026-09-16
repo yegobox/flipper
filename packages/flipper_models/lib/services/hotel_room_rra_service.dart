@@ -5,6 +5,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_room.dart';
+import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_services/constants.dart';
@@ -28,17 +29,8 @@ abstract final class HotelRoomRraService {
   ///
   /// A property that is not on EBM has no room items to register, so the desk
   /// should not offer it and nothing should warn about it.
-  static Future<bool> branchSupportsRra(String branchId) async {
-    try {
-      // Cached: this is a yes/no about the branch, not a read of the fiscal
-      // numbers, and it sits on the check-in path.
-      final ebm = await _sync.ebm(branchId: branchId, fetchRemote: false);
-      return hotelBranchSupportsRra(ebm);
-    } catch (e) {
-      talker.warning('hotel: could not read EBM for branch $branchId: $e');
-      return false;
-    }
-  }
+  static Future<bool> branchSupportsRra(String branchId) =>
+      HotelRraCapability.supports(branchId);
 
   /// Branches whose sweep is already running, so the four places that seed
   /// rooms cannot start four overlapping sweeps against the same branch.
@@ -178,8 +170,7 @@ abstract final class HotelRoomRraService {
     // are actually registering do we pay for the authoritative copy — the
     // tinNumber and bhfId below go onto a fiscal item, so those may not be
     // stale.
-    var branchEbm = await _sync.ebm(branchId: branchId, fetchRemote: false);
-    if (!hotelBranchSupportsRra(branchEbm)) {
+    if (!await HotelRraCapability.supports(branchId)) {
       talker.info(
         'hotel: branch $branchId is not on EBM, so room ${room.name} is kept '
         'as an unregistered room rather than sent to RRA.',
@@ -187,7 +178,7 @@ abstract final class HotelRoomRraService {
       return room;
     }
 
-    branchEbm = await _sync.ebm(branchId: branchId);
+    final branchEbm = await _sync.ebm(branchId: branchId);
     if (!hotelBranchSupportsRra(branchEbm)) {
       talker.info(
         'hotel: branch $branchId dropped off EBM between the cached and live '

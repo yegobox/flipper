@@ -3,6 +3,7 @@ import 'package:flipper_models/models/hotel_branch_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
+import 'package:flipper_models/services/hotel_rra_capability.dart';
 import 'package:flipper_models/sync/capella/mixins/hotel_mixin.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -230,8 +231,11 @@ void main() {
 
     tearDown(() async {
       ITransactionDittoAdapter.instance.resetOverrides();
+      HotelRraCapability.invalidate();
       await getIt.reset();
     });
+
+    setUp(HotelRraCapability.invalidate);
 
     Future<HotelRoom> savedRoom() async {
       final r = _room();
@@ -610,6 +614,49 @@ void main() {
         await sync.hotelFolioLines(transactionId: stay.transactionId),
         hasLength(1),
       );
+    });
+
+    test('a non-EBM branch looks its EBM up once, not once per charge', () async {
+      // A branch with no EBM row has nothing cached in Ditto, so every lookup
+      // falls through to Supabase. Asking per charge made the properties that
+      // never fiscalise pay the most.
+      final room = await savedRoom();
+      final stay = await sync.checkInGuest(
+        branchId: _branch,
+        room: room,
+        guestName: 'Aline Uwase',
+        checkInAt: DateTime.utc(2026, 1, 10, 14),
+        expectedCheckOutAt: DateTime.utc(2026, 1, 11, 11),
+        nightlyRate: 55000,
+        clerkTenantId: 'c1',
+        clerkName: 'Richie',
+      );
+      strategy.ebmFetchRemoteCalls.clear();
+
+      for (var i = 0; i < 3; i++) {
+        await sync.postRoomCharge(
+          stay: stay,
+          clerkTenantId: 'c1',
+          clerkName: 'Richie',
+        );
+      }
+
+      expect(
+        strategy.ebmFetchRemoteCalls,
+        hasLength(1),
+        reason: 'three charges should share one memoised EBM lookup',
+      );
+    });
+
+    test('the memo expires rather than pinning a branch as non-EBM forever',
+        () async {
+      // A property that configures EBM mid-session must start registering
+      // without a restart.
+      expect(await HotelRraCapability.supports(_branch), isFalse);
+      expect(HotelRraCapability.isCached(_branch), isTrue);
+
+      HotelRraCapability.invalidate(_branch);
+      expect(HotelRraCapability.isCached(_branch), isFalse);
     });
 
     test('posting a room charge never makes a remote EBM call', () async {
