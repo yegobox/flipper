@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
@@ -14,7 +16,38 @@ class PaymentVerificationNavigator {
   PaymentVerificationNavigator._();
 
   static final _routerService = locator<RouterService>();
-  static bool _isOnPaymentScreen = false;
+
+  /// The lockout screens.
+  ///
+  /// Being on one of these is the *only* reason a background check that comes
+  /// back healthy has to move the user: their subscription just started
+  /// working again and they are stuck behind a paywall that no longer applies.
+  ///
+  /// The current route is the single source of truth for "is this device
+  /// locked out". A boolean latch used to be kept alongside it, which went
+  /// stale the moment the user left the paywall by any route other than a
+  /// verification (back button, the plan screen navigating on its own).
+  @visibleForTesting
+  static const paywallRoutes = {
+    PaymentPlanUIRoute.name,
+    FailedPaymentRoute.name,
+  };
+
+  /// Whether a verification is allowed to send the user to the authenticated
+  /// home, given who asked for it and where the user currently is.
+  ///
+  /// Pure and exposed so the rule stays pinned by tests: a healthy background
+  /// check must not move a user who is working. Before this existed,
+  /// `_handleActiveSubscription` navigated home on every successful check, so a
+  /// periodic tick or a `plans` realtime event popped whatever page the user
+  /// was on even though nothing was owed.
+  @visibleForTesting
+  static bool mayEnterHomeFor({
+    required String currentRoute,
+    required bool userInitiated,
+    required bool isInitialStartup,
+  }) =>
+      userInitiated || isInitialStartup || paywallRoutes.contains(currentRoute);
 
   static const _criticalRoutes = {
     'AddProductView',
@@ -83,8 +116,25 @@ class PaymentVerificationNavigator {
     DateTime? lastUserActivity,
     Duration userActivityThreshold = const Duration(minutes: 5),
   }) async {
+    final currentRoute = _routerService.router.current.name;
+
+    // A verification that finds nothing wrong is not a reason to navigate.
+    // Only three things are: the user asked for the check, we are still on the
+    // splash screen and have nowhere else to be, or the user is sitting behind
+    // a paywall that has just been lifted.
+    //
+    // Without this gate every periodic tick and every `plans` realtime event
+    // pushed whoever was using the app back to the home shell — mid-report,
+    // mid-settings, mid-stock-count — because `_handleActiveSubscription`
+    // navigated home unconditionally. `_criticalRoutes` only ever covered
+    // checkout, so the rest of the app was fair game.
+    final mayEnterHome = mayEnterHomeFor(
+      currentRoute: currentRoute,
+      userInitiated: userInitiated,
+      isInitialStartup: isInitialStartup,
+    );
+
     if (!userInitiated) {
-      final currentRoute = _routerService.router.current.name;
       if (_criticalRoutes.contains(currentRoute)) {
         talker.info(
           'Skipping payment verification navigation - user on critical page: $currentRoute',
@@ -116,7 +166,7 @@ class PaymentVerificationNavigator {
 
     switch (response.result) {
       case PaymentVerificationResult.active:
-        await _handleActiveSubscription();
+        await _handleActiveSubscription(mayEnterHome: mayEnterHome);
         break;
       case PaymentVerificationResult.noPlan:
         await _handleNoPlan();
@@ -125,19 +175,25 @@ class PaymentVerificationNavigator {
         await _handleInactivePlan(response);
         break;
       case PaymentVerificationResult.error:
-        await _handleVerificationError(response);
+        await _handleVerificationError(response, mayEnterHome: mayEnterHome);
         break;
     }
   }
 
-  static Future<void> _handleActiveSubscription() async {
+  static Future<void> _handleActiveSubscription({
+    required bool mayEnterHome,
+  }) async {
     talker.info('Payment verification successful: Subscription is active');
 
-    if (_isOnPaymentScreen) {
+    // The latch is no longer true whatever we do next, and it must be cleared
+    // even when we do not navigate — otherwise a user who left the paywall on
+    // their own keeps looking "on the payment screen" for the whole session.
+    if (!mayEnterHome) {
       talker.info(
-        'Returning to main app after successful payment verification',
+        'Subscription active and user is already working - staying on '
+        '${_routerService.router.current.name}',
       );
-      _isOnPaymentScreen = false;
+      return;
     }
 
     final currentRoute = _routerService.router.current.name;
@@ -147,6 +203,7 @@ class PaymentVerificationNavigator {
       return;
     }
 
+    talker.info('Returning to main app after successful payment verification');
     await _navigateToAuthenticatedHome();
   }
 
@@ -154,7 +211,6 @@ class PaymentVerificationNavigator {
     if (await _navigateCommissionOnlyIfNeeded()) return;
 
     talker.warning('No payment plan found, directing to payment plan screen');
-    _isOnPaymentScreen = true;
     _routerService.navigateTo(PaymentPlanUIRoute());
   }
 
@@ -166,14 +222,33 @@ class PaymentVerificationNavigator {
     talker.error(
       'Payment plan exists but is not active: ${response.errorMessage}',
     );
-    _isOnPaymentScreen = true;
     _routerService.navigateTo(FailedPaymentRoute());
   }
 
   static Future<void> _handleVerificationError(
-    PaymentVerificationResponse response,
-  ) async {
+    PaymentVerificationResponse response, {
+    required bool mayEnterHome,
+  }) async {
     talker.error('Error during payment verification: ${response.errorMessage}');
+
+    // A verification that could not complete says nothing about whether money
+    // is owed, so it is never a reason to move someone who is already working.
+    // Only the two branches below that identify a *real* payment problem may
+    // still interrupt; everything else (a dropped connection, a Supabase
+    // hiccup, "no active business found") used to fall through to "proceed to
+    // main app" and pop the user's page for no reason.
+    final isPaymentProblem =
+        response.exception is NoPaymentPlanFound ||
+        response.exception is PaymentIncompleteException ||
+        response.exception is FailedPaymentException;
+
+    if (!mayEnterHome && !isPaymentProblem) {
+      talker.warning(
+        'Ignoring payment verification error while user is working on '
+        '${_routerService.router.current.name}',
+      );
+      return;
+    }
 
     if (await _navigateCommissionOnlyIfNeeded()) return;
 
@@ -188,13 +263,11 @@ class PaymentVerificationNavigator {
     }
 
     if (response.exception is NoPaymentPlanFound) {
-      _isOnPaymentScreen = true;
       _routerService.navigateTo(PaymentPlanUIRoute());
     } else if (response.exception is PaymentIncompleteException ||
         response.exception is FailedPaymentException) {
-      _isOnPaymentScreen = true;
       _routerService.navigateTo(FailedPaymentRoute());
-    } else {
+    } else if (mayEnterHome) {
       talker.warning(
         'Proceeding to main app despite payment verification error',
       );
