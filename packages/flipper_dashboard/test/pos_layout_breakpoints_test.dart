@@ -49,6 +49,58 @@ void main() {
         8,
       );
     });
+    test('grid rows fill the viewport without counting a trailing gap', () {
+      final rowExtent =
+          PosLayoutBreakpoints.productCardTotalHeight() + PosTokens.gridGap;
+
+      // Exactly three rows (two gaps) fits three, not two.
+      final threeRows = rowExtent * 3 - PosTokens.gridGap;
+      expect(
+        PosLayoutBreakpoints.productGridRowsForViewportHeight(threeRows, 1200),
+        3,
+      );
+      // One pixel short of the third row still only fits two.
+      expect(
+        PosLayoutBreakpoints.productGridRowsForViewportHeight(
+          threeRows - 1,
+          1200,
+        ),
+        2,
+      );
+      // A pane too short for a single row still asks for one.
+      expect(
+        PosLayoutBreakpoints.productGridRowsForViewportHeight(10, 1200),
+        1,
+      );
+      expect(
+        PosLayoutBreakpoints.productGridRowsForViewportHeight(
+          double.infinity,
+          1200,
+        ),
+        1,
+      );
+    });
+
+    test('page size fills the measured grid: rows x columns', () {
+      const paneWidth = 1200.0;
+      final cols = PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(
+        paneWidth,
+      );
+      const viewportHeight = 880.0;
+      final rows = PosLayoutBreakpoints.productGridRowsForViewportHeight(
+        viewportHeight,
+        paneWidth,
+      );
+      expect(
+        PosLayoutBreakpoints.productGridPageSizeForViewport(
+          viewportHeight: viewportHeight,
+          paneWidth: paneWidth,
+        ),
+        cols * rows,
+      );
+      // A 1200x880 catalog pane holds well over the old fixed 15-item page.
+      expect(cols * rows, greaterThan(15));
+    });
   });
 
   group('PosLayoutBreakpoints checkout layout', () {

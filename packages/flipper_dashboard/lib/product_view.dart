@@ -81,6 +81,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   bool _wasPagedMode = false;
   Timer? _debounce;
   Timer? _branchSwitchTimer;
+
+  /// Page size last asked of the catalog provider, so a rebuild that measures
+  /// the same viewport does not re-request it.
+  int? _requestedPageSize;
+  Timer? _pageSizeDebounce;
   int _lastCheckedBranchSwitchTimestamp = 0;
 
   /// Track OuterVariants front-evictions to keep scroll position stable.
@@ -219,6 +224,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   @override
   void dispose() {
     _debounce?.cancel();
+    _pageSizeDebounce?.cancel();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _branchSwitchTimer?.cancel();
@@ -1072,6 +1078,46 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         : _buildStockView(context, model, variants, startDate, endDate, ref);
   }
 
+  /// Asks the catalog provider for a page that fills the measured grid
+  /// viewport, so a tall window shows a full screen of products instead of a
+  /// fixed 15 with blank rows underneath. Debounced, because dragging the
+  /// window edge re-measures every frame.
+  void _requestPageSizeForViewport({
+    required double viewportHeight,
+    required double gridWidth,
+  }) {
+    if (!viewportHeight.isFinite || viewportHeight <= 0) return;
+    final pageSize = PosLayoutBreakpoints.productGridPageSizeForViewport(
+      viewportHeight: viewportHeight,
+      paneWidth: gridWidth,
+    );
+    if (pageSize == _requestedPageSize) return;
+    // The very first measurement only happens once the grid has painted, so
+    // asking for it right away keeps the short-page frame to a minimum; later
+    // changes come from window drags and are worth debouncing.
+    final isFirstMeasurement = _requestedPageSize == null;
+    _requestedPageSize = pageSize;
+
+    void apply() {
+      if (!mounted) return;
+      final branchId = ProxyService.box.getBranchId() ?? '';
+      if (branchId.isEmpty) return;
+      // Pages cached around the old page size do not survive the resize, so
+      // the neighbours of the new page have to be warmed again.
+      _prefetchedAround = null;
+      ref
+          .read(outerVariantsProvider(branchId).notifier)
+          .setItemsPerPage(pageSize);
+    }
+
+    _pageSizeDebounce?.cancel();
+    if (isFirstMeasurement) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => apply());
+      return;
+    }
+    _pageSizeDebounce = Timer(const Duration(milliseconds: 180), apply);
+  }
+
   Widget _buildProductGrid(
     BuildContext context,
     ProductViewModel model,
@@ -1137,30 +1183,41 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     _lastGridMainAxisSpacing = spacing;
     _lastGridChildAspectRatio = aspectRatio;
 
-    return GridView.builder(
-      controller: _scrollController,
-      padding: gridInset,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        mainAxisSpacing: spacing,
-        crossAxisSpacing: spacing,
-        childAspectRatio: aspectRatio,
-      ),
-      itemCount: variants.length,
-      itemBuilder: (context, index) {
-        return buildVariantRow(
-          forceRemoteUrl: false,
-          context: context,
-          model: model,
-          variant: variants[index],
-          isOrdering: false,
-          forceListView: false,
-          usePosCatalogTile: true,
-          stocksById: stocksById,
+    return LayoutBuilder(
+      builder: (context, gridConstraints) {
+        // The grid's own viewport (inset removed) decides how many whole rows
+        // a page should hold.
+        _requestPageSizeForViewport(
+          viewportHeight: gridConstraints.maxHeight - gridInset.vertical,
+          gridWidth: gridWidth,
+        );
+
+        return GridView.builder(
+          controller: _scrollController,
+          padding: gridInset,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: spacing,
+            crossAxisSpacing: spacing,
+            childAspectRatio: aspectRatio,
+          ),
+          itemCount: variants.length,
+          itemBuilder: (context, index) {
+            return buildVariantRow(
+              forceRemoteUrl: false,
+              context: context,
+              model: model,
+              variant: variants[index],
+              isOrdering: false,
+              forceListView: false,
+              usePosCatalogTile: true,
+              stocksById: stocksById,
+            );
+          },
+          physics: const AlwaysScrollableScrollPhysics(),
+          cacheExtent: 1000.0,
         );
       },
-      physics: const AlwaysScrollableScrollPhysics(),
-      cacheExtent: 1000.0,
     );
   }
 
