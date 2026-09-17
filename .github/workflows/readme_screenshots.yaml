@@ -3,13 +3,21 @@ name: README screenshots
 # Keeps the README hero image in sync with the shipped app.
 #
 # Runs the desktop app on a Windows runner, signs in to the demo business,
-# shoots the main screens (apps/flipper/integration_test/readme_screenshots_test.dart),
+# shoots the main screens twice — desktop, then the mobile layout through
+# DevicePreview (apps/flipper/integration_test/readme_screenshots_test.dart) —
 # composes them into .github/assets/screenshots/hero.png and opens a PR with
-# the result — only when the pixels actually changed. Nothing is ever pushed
-# to main directly.
+# the result. Nothing is ever pushed to main directly.
+#
+# Triggers on every merge into main, on v* tags, and on manual dispatch. The
+# `decide` job below skips the capture when a push only carried the
+# screenshots themselves, which is what stops merging this job's own PR from
+# triggering it again forever (every capture has a fresh transaction id, so
+# the pixels always differ and a PR is always opened).
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -36,9 +44,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Cheap gate in front of the ~50-minute Windows job.
+  decide:
+    name: Should capture
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Skip pushes that only carried screenshots
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "push" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "Not a branch push — capturing."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          before="${{ github.event.before }}"
+          if [ -z "$before" ] ||
+             [ "$before" = "0000000000000000000000000000000000000000" ] ||
+             ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            echo "No usable base commit ($before) — capturing."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Anything outside the asset directory means real app or workflow
+          # changes landed, so the screenshots are worth retaking.
+          changed=$(git diff --name-only "$before" "${{ github.sha }}" \
+            -- . ":(exclude)$ASSET_DIR" | head -20)
+          if [ -z "$changed" ]; then
+            echo "Push touched only $ASSET_DIR — skipping capture."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changed outside $ASSET_DIR:"
+            echo "$changed"
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
   capture:
     name: Capture on Windows
     runs-on: windows-2022
+    needs: decide
+    if: needs.decide.outputs.run == 'true'
     timeout-minutes: 120
     steps:
       - run: git config --global core.autocrlf false
