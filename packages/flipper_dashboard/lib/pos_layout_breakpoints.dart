@@ -57,6 +57,33 @@ abstract final class PosLayoutBreakpoints {
     return tileWidth / productCardTotalHeight();
   }
 
+  /// Whole product rows that fit a grid viewport [viewportHeight] tall (grid
+  /// padding already subtracted). Rows are [productCardTotalHeight] high with
+  /// [desktopGridSpacing] between them, so the last gap is not counted.
+  static int productGridRowsForViewportHeight(
+    double viewportHeight,
+    double paneWidth,
+  ) {
+    final spacing = desktopGridSpacing(paneWidth);
+    final rowExtent = productCardTotalHeight() + spacing;
+    if (!viewportHeight.isFinite || viewportHeight <= 0 || rowExtent <= 0) {
+      return 1;
+    }
+    final rows = ((viewportHeight + spacing) / rowExtent).floor();
+    return rows < 1 ? 1 : rows;
+  }
+
+  /// Page size that fills a [viewportHeight]-tall, [paneWidth]-wide catalog
+  /// grid with complete rows, so the page bar — not a scrollbar — moves
+  /// through the catalog.
+  static int productGridPageSizeForViewport({
+    required double viewportHeight,
+    required double paneWidth,
+  }) {
+    final cols = productGridCrossAxisCountForPaneWidth(paneWidth);
+    return cols * productGridRowsForViewportHeight(viewportHeight, paneWidth);
+  }
+
   /// Child aspect ratio for product cards in the grid (~104px thumb + body).
   static double desktopGridChildAspectRatio(int crossAxisCount) {
     // Legacy callers: approximate width for column count.

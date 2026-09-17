@@ -23,7 +23,22 @@ class OuterVariants extends _$OuterVariants {
   int _firstCachedPage = 0;
   int _lastCachedPage = -1;
 
-  static const int _maxCachedPages = 10;
+  /// Resident variants the page cache may hold. The cache evicts by page, but
+  /// the page allowance is derived from this budget, so a large monitor asking
+  /// for a 60-row page does not multiply what stays in memory — it just keeps
+  /// fewer pages of it.
+  static const int _maxCachedItems = 180;
+
+  /// Never drop below the working set the page bar prefetches: current page
+  /// plus its two neighbours.
+  static const int _minCachedPages = 3;
+  static const int _maxCachedPagesCap = 10;
+
+  int get _maxCachedPages {
+    final ipp = _itemsPerPage;
+    if (ipp == null || ipp <= 0) return _maxCachedPagesCap;
+    return (_maxCachedItems ~/ ipp).clamp(_minCachedPages, _maxCachedPagesCap);
+  }
 
   String _currentSearch = '';
   int _searchGeneration = 0;
@@ -44,7 +59,20 @@ class OuterVariants extends _$OuterVariants {
   final Map<int, Future<PagedVariants>> _inFlightPages = {};
   int? _totalCount;
   int? _itemsPerPage;
+
+  /// True when a stored preference owns the page size; auto-fit then never
+  /// overrides what the user asked for.
+  bool _itemsPerPageLocked = false;
+
+  /// Bumped on every [setItemsPerPage] so a slow resize cannot commit its page
+  /// on top of a newer one.
+  int _resizeGeneration = 0;
   bool _isVatEnabled = false;
+
+  /// Bounds for the height-driven page size, so a freak measurement cannot ask
+  /// for a 2-item or a 500-item page.
+  static const int minAutoPageSize = 8;
+  static const int maxAutoPageSize = 60;
 
   List<Variant> _flattenContiguousPages() {
     if (_pageCache.isEmpty) return [];
@@ -115,10 +143,10 @@ class OuterVariants extends _$OuterVariants {
     final int _defaultPageSize = 15; // Reduced from 20 for better performance
     const int _maxPageSize = 50; // Reduced max from 100
     final int? prefIpp = ProxyService.box.itemPerPage();
-    _itemsPerPage ??=
-        (prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize)
-        ? prefIpp
-        : _defaultPageSize;
+    final bool prefWins =
+        prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize;
+    _itemsPerPageLocked = prefWins;
+    _itemsPerPage ??= prefWins ? prefIpp : _defaultPageSize;
     talker.info(
       'OuterVariants: itemsPerPage=${_itemsPerPage ?? 'null'} '
       '(pref=${prefIpp ?? 'null'}, default=$_defaultPageSize, max=$_maxPageSize)',
@@ -164,10 +192,14 @@ class OuterVariants extends _$OuterVariants {
   Future<bool> _resolveBranchVatEnabled(String branchId) async {
     if (branchId.isEmpty) return false;
     try {
-      var ebm =
-          await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: false);
-      ebm ??=
-          await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+      var ebm = await ProxyService.strategy.ebm(
+        branchId: branchId,
+        fetchRemote: false,
+      );
+      ebm ??= await ProxyService.strategy.ebm(
+        branchId: branchId,
+        fetchRemote: true,
+      );
       return ebm?.vatEnabled ?? false;
     } catch (e) {
       talker.warning('OuterVariants: VAT lookup failed for $branchId: $e');
@@ -229,6 +261,7 @@ class OuterVariants extends _$OuterVariants {
     String searchString, {
     bool fetchRemote = false,
     bool countTotal = true,
+    int? itemsPerPage,
   }) async {
     talker.info(
       'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")',
@@ -246,7 +279,7 @@ class OuterVariants extends _$OuterVariants {
       fetchRemote: fetchRemote,
       branchId: branchId,
       page: page,
-      itemsPerPage: _itemsPerPage!,
+      itemsPerPage: itemsPerPage ?? _itemsPerPage!,
       taxTyCds: taxTyCds,
       scanMode: currentScanMode,
       countTotal: countTotal,
@@ -423,7 +456,9 @@ class OuterVariants extends _$OuterVariants {
     // entirely; leaving _viewPage on the missing key painted an empty grid even
     // though other cached pages still hold variants.
     final view = _viewPage;
-    if (view != null && !_pageCache.containsKey(view) && _pageCache.isNotEmpty) {
+    if (view != null &&
+        !_pageCache.containsKey(view) &&
+        _pageCache.isNotEmpty) {
       final keys = _pageCache.keys.toList()..sort();
       _viewPage = keys.lastWhere((k) => k < view, orElse: () => keys.first);
     }
@@ -480,6 +515,66 @@ class OuterVariants extends _$OuterVariants {
     _syncBoundsFromCache();
     state = AsyncValue.data(_currentView());
     return true;
+  }
+
+  /// Resizes the page to [value] rows — the catalog grid measures how many
+  /// whole rows its viewport holds, so a tall window shows a full screen of
+  /// products instead of leaving blank rows under a 15-item page.
+  ///
+  /// The new page is fetched *before* anything on screen changes, so a failed
+  /// or superseded resize leaves the current page exactly as it was.
+  Future<void> setItemsPerPage(int value) async {
+    if (_itemsPerPageLocked) return;
+    final next = value.clamp(minAutoPageSize, maxAutoPageSize);
+    final current = _itemsPerPage;
+    // Before [build] has picked a size there is nothing to resize; it will use
+    // the measured value on its own once the UI asks again.
+    if (current == null || current == next) return;
+
+    final resizeGeneration = ++_resizeGeneration;
+    final searchGeneration = _searchGeneration;
+    final cacheGeneration = _cacheGeneration;
+
+    // Keep the user near the rows they were looking at: the first item of the
+    // page on screen decides which page holds it under the new size. Scroll
+    // ("load more") mode has no single page to anchor to, so it restarts at 0.
+    final wasPaged = _viewPage != null;
+    final targetPage = wasPaged ? (_viewPage! * current) ~/ next : 0;
+
+    final PagedVariants paged;
+    try {
+      paged = await _fetchVariants(
+        branchId,
+        targetPage,
+        _currentSearch,
+        itemsPerPage: next,
+        countTotal: _totalCount == null,
+      );
+    } catch (e) {
+      talker.warning('OuterVariants: resize to $next items/page failed: $e');
+      return;
+    }
+
+    // A newer resize, a search, or a cache reset owns the view now.
+    if (resizeGeneration != _resizeGeneration ||
+        searchGeneration != _searchGeneration ||
+        cacheGeneration != _cacheGeneration) {
+      return;
+    }
+
+    _itemsPerPage = next;
+    // Every cached page is sliced at the old size, so none of them survive.
+    _resetPageCache();
+    _pageRequestGeneration++;
+    if (paged.totalCount != null) _totalCount = paged.totalCount;
+    _pageCache[targetPage] = List<Variant>.from(paged.variants);
+    _viewPage = wasPaged ? targetPage : null;
+    _syncBoundsFromCache();
+    talker.info(
+      'OuterVariants: itemsPerPage -> $next (page $targetPage, '
+      '${paged.variants.length} items)',
+    );
+    state = AsyncValue.data(_currentView());
   }
 
   /// Warms a page in the background without touching what is on screen, so the
