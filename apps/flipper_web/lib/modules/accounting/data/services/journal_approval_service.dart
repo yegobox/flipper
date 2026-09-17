@@ -90,11 +90,14 @@ class JournalApprovalService {
   final String _baseUrl;
   final ProductAnalytics? _analytics;
 
-  Uri _entryUri(String entryId) =>
-      Uri.parse('$_baseUrl/accounting/journal-entries/$entryId');
+  /// Legacy entry ids embed the human reference ('Auto · JE-9536'), so the id
+  /// has to be percent-encoded before it goes into the URL path.
+  Uri _entryUri(String entryId) => Uri.parse(
+      '$_baseUrl/accounting/journal-entries/${Uri.encodeComponent(entryId)}');
 
-  Uri _approveUri(String entryId) =>
-      Uri.parse('$_baseUrl/accounting/journal-entries/$entryId/approve');
+  Uri _approveUri(String entryId) => Uri.parse(
+      '$_baseUrl/accounting/journal-entries/'
+      '${Uri.encodeComponent(entryId)}/approve');
 
   Future<JournalEntryRemoteStatus> fetchStatus(String entryId) async {
     final response = await _get(_entryUri(entryId));

@@ -12,6 +12,7 @@ export 'accounting_models.dart';
 export 'accounting_transaction_semantics.dart';
 export 'default_chart_of_accounts_seed.dart';
 export 'ditto_accounting_ledger_repository.dart';
+export 'journal_entry_id.dart';
 export 'ledger_row_mapper.dart';
 export 'transaction_journal_poster.dart';
 export 'transaction_to_accounts.dart';

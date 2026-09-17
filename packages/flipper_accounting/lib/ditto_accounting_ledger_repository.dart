@@ -4,6 +4,7 @@ import 'package:flipper_accounting/default_chart_of_accounts_seed.dart';
 import 'package:flipper_accounting/ledger_row_mapper.dart';
 import 'package:flipper_accounting/accounting_ledger_repository.dart';
 import 'package:flipper_accounting/accounting_ditto_store.dart';
+import 'package:flipper_accounting/journal_entry_id.dart';
 import 'package:intl/intl.dart';
 
 class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
@@ -360,9 +361,14 @@ class DittoAccountingLedgerRepository implements AccountingLedgerRepository {
     String? entryId,
   }) async {
     // Line doc ids are `<entryId>_<accountCode>` (accounting_mixin), so an
-    // entry cannot carry two lines on the same account code.
-    entryId ??=
-        'je_${businessId}_${entry.id}_${DateTime.now().microsecondsSinceEpoch}';
+    // entry cannot carry two lines on the same account code. entry.id is the
+    // human reference ('Auto · JE-9536'), so it is slugified first: ids outside
+    // [A-Za-z0-9_-] are rejected by data-connector when approving the entry.
+    entryId ??= generateJournalEntryId(
+      businessId: businessId,
+      entryRef: entry.id,
+      microsecondsSinceEpoch: DateTime.now().microsecondsSinceEpoch,
+    );
     final header = LedgerRowMapper.entryToRow(
       businessId: businessId,
       entry: entry,
