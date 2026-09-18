@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -94,7 +95,7 @@ class UnifiedSearchField extends HookConsumerWidget {
                         ref
                             .read(selectedSupplierProvider.notifier)
                             .clearSupplier();
-                        ref.read(searchStringProvider.notifier).state = '';
+                        ref.read(supplierCatalogSearchProvider.notifier).state = '';
                         controller.clear();
                         searchText.value = '';
                       },
@@ -121,7 +122,7 @@ class UnifiedSearchField extends HookConsumerWidget {
                     onPressed: () {
                       controller.clear();
                       searchText.value = '';
-                      ref.read(searchStringProvider.notifier).state = '';
+                      ref.read(supplierCatalogSearchProvider.notifier).state = '';
                     },
                     tooltip: 'Clear search',
                   )
@@ -154,7 +155,7 @@ class UnifiedSearchField extends HookConsumerWidget {
             searchText.value = value;
             // Only update product search if supplier is selected
             if (selectedSupplier != null) {
-              ref.read(searchStringProvider.notifier).state = value;
+              ref.read(supplierCatalogSearchProvider.notifier).state = value;
             }
           },
         );
@@ -206,7 +207,7 @@ class UnifiedSearchField extends HookConsumerWidget {
         ref.read(selectedSupplierProvider.notifier).setSupplier(supplier);
         controller.clear();
         searchText.value = '';
-        ref.read(searchStringProvider.notifier).state = '';
+        ref.read(supplierCatalogSearchProvider.notifier).state = '';
       },
       emptyBuilder: (context) {
         // Only show empty state for supplier search

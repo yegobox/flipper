@@ -1,3 +1,4 @@
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -6,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/OrderingView.dart';
+import 'package:flipper_dashboard/ordering/ordering_desktop_view.dart';
 import 'package:flipper_dashboard/ordering/unified_search_field.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_services/constants.dart';
@@ -21,6 +23,9 @@ class Orders extends HookConsumerWidget {
     final pendingTransaction = ref.watch(
       pendingTransactionStreamProvider(isExpense: true),
     );
+    // The three-pane purchase order needs real desktop width; below that the
+    // mobile flow (search, then grid) still applies.
+    final isDesktop = MediaQuery.sizeOf(context).width > 600;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
@@ -28,6 +33,8 @@ class Orders extends HookConsumerWidget {
         if (!didPop) {
           ProxyService.box.writeBool(key: 'isOrdering', value: true);
         }
+        // Hand the cart providers back to whichever mode the box now holds.
+        syncPosCartIsExpenseWidget(ref);
         ref.read(previewingCart.notifier).state = false;
         onWillPop(
           context: context,
@@ -35,35 +42,31 @@ class Orders extends HookConsumerWidget {
           message: 'Done shopping?',
         );
       },
+      // The desktop purchase order brings its own chrome — back, order
+      // reference, supplier — so a second app bar above it would just repeat
+      // the back button.
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_outlined),
-            onPressed: () => locator<RouterService>().back(),
-          ),
-          elevation: 0,
-          backgroundColor: theme.colorScheme.surface,
-          actions: [
-            // You can add any actions here, such as a refresh button.
-          ],
-        ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth > 600) {
-              return _buildDesktopLayout(
+        appBar: isDesktop
+            ? null
+            : AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_outlined),
+                  onPressed: () => locator<RouterService>().back(),
+                ),
+                elevation: 0,
+                backgroundColor: theme.colorScheme.surface,
+              ),
+        body: isDesktop
+            ? _buildDesktopLayout(
                 context,
                 ref,
                 transaction: pendingTransaction.value,
-              );
-            } else {
-              return _buildMobileLayout(
+              )
+            : _buildMobileLayout(
                 context,
                 ref,
                 transaction: pendingTransaction.value,
-              );
-            }
-          },
-        ),
+              ),
       ),
     );
   }
@@ -74,16 +77,7 @@ class Orders extends HookConsumerWidget {
     ITransaction? transaction,
   }) {
     if (transaction == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          const UnifiedSearchField(),
-          const SizedBox(height: 24),
-          Expanded(child: OrderingView(transaction)),
-        ],
-      ),
-    );
+    return OrderingDesktopView(transaction);
   }
 
   Widget _buildMobileLayout(

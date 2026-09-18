@@ -80,13 +80,21 @@ class OrderingViewModel extends ProductViewModel
     }
   }
 
-  Future<void> handleOrderPlacement(
+  /// Places the order and notifies the supplier.
+  ///
+  /// Returns true only when the order actually went out, so a caller that
+  /// renders its own confirmation (the desktop purchase-order screen shows one
+  /// in place of the cart) can tell success from a handled failure. Pass
+  /// [showSuccessDialog] false in that case — otherwise the operator is told
+  /// twice, once in a modal and once on the screen behind it.
+  Future<bool> handleOrderPlacement(
     WidgetRef ref,
     ITransaction transaction,
     bool isOrdering,
     FinanceProvider financeOption,
-    BuildContext context,
-  ) async {
+    BuildContext context, {
+    bool showSuccessDialog = true,
+  }) async {
     try {
       setLoading(true);
 
@@ -119,7 +127,7 @@ class OrderingViewModel extends ProductViewModel
           description: 'Please select a supplier first.',
           data: {'status': InfoDialogStatus.error},
         );
-        return;
+        return false;
       }
 
       transaction.supplierId = supplier.serverId!;
@@ -145,17 +153,26 @@ class OrderingViewModel extends ProductViewModel
       // Refresh the transaction state
       // ignore:
       ref.refresh(pendingTransactionStreamProvider(isExpense: isOrdering));
-      await _dialogService.showCustomDialog(
-        variant: DialogType.info,
-        title: 'Order Placed Successfully',
-        description: 'Your order has been processed and confirmed.',
-        data: {'status': InfoDialogStatus.success},
-      );
+      if (showSuccessDialog) {
+        await _dialogService.showCustomDialog(
+          variant: DialogType.info,
+          title: 'Order Placed Successfully',
+          description: 'Your order has been processed and confirmed.',
+          data: {'status': InfoDialogStatus.success},
+        );
+      }
 
       // Switch back to product list AFTER success modal is closed
       ref.read(previewingCart.notifier).state = false;
 
-      showCustomSnackBar(context, 'Order Placed successfully');
+      // Left true on the success path before, which stuck the placing state on
+      // whichever button the operator had pressed.
+      setLoading(false);
+
+      if (showSuccessDialog) {
+        showCustomSnackBar(context, 'Order Placed successfully');
+      }
+      return true;
     } catch (e) {
       setLoading(false);
       _dialogService.showCustomDialog(
@@ -165,6 +182,7 @@ class OrderingViewModel extends ProductViewModel
         data: {'status': InfoDialogStatus.error},
       );
       talker.error(e);
+      return false;
     }
   }
 
@@ -193,7 +211,9 @@ class OrderingViewModel extends ProductViewModel
           );
 
       if (items.isEmpty) {
-        return;
+        // Returning quietly here let the caller go on to "Order Placed
+        // Successfully" over an order that was never created.
+        throw Exception('The cart is empty — add a product before ordering.');
       }
 
       final supplier = ref.read(selectedSupplierProvider);
