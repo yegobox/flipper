@@ -133,14 +133,17 @@ class _OrderingWorkspace extends HookConsumerWidget {
     }
 
     Future<void> placeOrder() async {
-      final finance = ref.read(orderingFinanceProvider);
-      if (finance == null) {
+      // Null is allowed: a business with no finance provider configured places
+      // an order without financing rather than being unable to order at all.
+      // Only an unanswered fork between several options stops us.
+      if (ref.read(orderingFinanceChoicePendingProvider)) {
         showErrorNotification(
           context,
           'Choose how you are paying before sending the order.',
         );
         return;
       }
+      final finance = ref.read(orderingEffectiveFinanceProvider);
 
       final summary = ref.read(posCartSummaryProvider);
       final placed = await model.handleOrderPlacement(

@@ -65,6 +65,29 @@ final orderingFinanceOptionsProvider =
       return ProxyService.getStrategy(Strategy.capella).financeProviders();
     });
 
+/// The finance option the order will actually be placed with.
+///
+/// A single configured option is not a choice, so it is taken implicitly rather
+/// than demanding a click with one possible answer. With none configured this is
+/// null and the order carries no financing at all — `createStockRequest` takes
+/// `financingId` as optional, so that is a valid purchase order, not an error.
+final orderingEffectiveFinanceProvider = Provider<FinanceProvider?>((ref) {
+  final chosen = ref.watch(orderingFinanceProvider);
+  if (chosen != null) return chosen;
+  final options = ref.watch(orderingFinanceOptionsProvider).value ?? const [];
+  return options.length == 1 ? options.first : null;
+});
+
+/// Whether the operator still owes a payment choice before the order can go.
+///
+/// Only a real fork blocks: several options and none picked. None configured
+/// blocks nothing, which is what stranded a business with no finance providers
+/// on a Place-order button that could never succeed.
+final orderingFinanceChoicePendingProvider = Provider<bool>((ref) {
+  final options = ref.watch(orderingFinanceOptionsProvider).value ?? const [];
+  return options.length > 1 && ref.watch(orderingFinanceProvider) == null;
+});
+
 /// What the picker offers: the branches ordered from before, and the rest.
 class SupplierOptions {
   const SupplierOptions({required this.frequent, required this.others});

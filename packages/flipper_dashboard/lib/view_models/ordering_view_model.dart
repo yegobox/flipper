@@ -91,7 +91,10 @@ class OrderingViewModel extends ProductViewModel
     WidgetRef ref,
     ITransaction transaction,
     bool isOrdering,
-    FinanceProvider financeOption,
+    /// Null when the business has no finance provider configured.
+    /// `createStockRequest` takes `financingId` as optional, so the order is
+    /// still valid — it simply carries no financing.
+    FinanceProvider? financeOption,
     BuildContext context, {
     bool showSuccessDialog = true,
   }) async {
@@ -191,7 +194,7 @@ class OrderingViewModel extends ProductViewModel
     required WidgetRef ref,
     bool isShoppingFromWareHouse = true,
     required ITransaction transaction,
-    required FinanceProvider financeOption,
+    required FinanceProvider? financeOption,
   }) async {
     if (!isShoppingFromWareHouse) {
       return;
@@ -229,7 +232,7 @@ class OrderingViewModel extends ProductViewModel
             subBranchId: ProxyService.box.getBranchId()!,
             deliveryNote: deliveryNote,
             orderNote: null,
-            financingId: financeOption.id,
+            financingId: financeOption?.id,
           );
       await _markItemsAsDone(items, transaction);
       await _changeTransactionStatus(transaction: transaction);

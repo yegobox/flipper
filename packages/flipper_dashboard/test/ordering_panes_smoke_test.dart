@@ -169,6 +169,108 @@ void main() {
   });
 
   group('order pane', () {
+    FinanceProvider finance(String id, String name) => FinanceProvider(
+      id: id,
+      name: name,
+      interestRate: 0,
+      suppliersThatAcceptThisFinanceFacility: '',
+    );
+
+    var placeTaps = 0;
+
+    Future<void> pumpCartWithFinance(
+      WidgetTester tester,
+      List<FinanceProvider> providers, {
+      List<TransactionItem> lines = const [],
+    }) async {
+      _useDesktopSurface(tester, const Size(430, 900));
+      placeTaps = 0;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            posCartDisplayItemsProvider.overrideWithValue(lines),
+            productFromSupplierWrapper.overrideWith((ref) async => const []),
+            orderingFinanceOptionsProvider.overrideWith(
+              (ref) async => providers,
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: OrderingCartPanel(
+                supplierName: 'Quincaillerie Rubavu',
+                noteController: TextEditingController(),
+                isPlacing: false,
+                onPlaceOrder: () => placeTaps++,
+                onStartAnother: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('with no payment option configured the order still goes',
+        (tester) async {
+      await pumpCartWithFinance(
+        tester,
+        const [],
+        lines: [_line('1', 'EQUERRE NTO', 1, 11000)],
+      );
+
+      expect(tester.takeException(), isNull);
+      // The dead end: financing is optional downstream, so nothing to set up
+      // must not read as something missing.
+      expect(
+        find.textContaining('the order will be sent without one'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Place order · RWF'), findsOneWidget);
+
+      await tester.tap(find.textContaining('Place order · RWF'));
+      await tester.pump();
+      expect(placeTaps, 1);
+    });
+
+    testWidgets('a lone payment option is taken without a click',
+        (tester) async {
+      await pumpCartWithFinance(
+        tester,
+        [finance('f1', 'Supplier credit')],
+        lines: [_line('1', 'EQUERRE NTO', 1, 11000)],
+      );
+
+      expect(find.text('Supplier credit'), findsOneWidget);
+      // One option is not a choice; blocking on it would be busywork.
+      expect(find.textContaining('Place order · RWF'), findsOneWidget);
+      await tester.tap(find.textContaining('Place order · RWF'));
+      await tester.pump();
+      expect(placeTaps, 1);
+    });
+
+    testWidgets('several options do block until one is picked',
+        (tester) async {
+      await pumpCartWithFinance(
+        tester,
+        [finance('f1', 'Supplier credit'), finance('f2', 'MoMo')],
+        lines: [_line('1', 'EQUERRE NTO', 1, 11000)],
+      );
+
+      expect(find.text('Choose how you are paying'), findsOneWidget);
+      await tester.tap(find.text('Choose how you are paying'));
+      await tester.pump();
+      expect(placeTaps, 0, reason: 'the button is disabled, not silently inert');
+
+      await tester.tap(find.text('MoMo'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Place order · RWF'), findsOneWidget);
+      await tester.tap(find.textContaining('Place order · RWF'));
+      await tester.pump();
+      expect(placeTaps, 1);
+    });
+
     Future<void> pumpCart(
       WidgetTester tester, {
       required List<TransactionItem> lines,

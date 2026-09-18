@@ -610,6 +610,10 @@ class _OrderFooter extends ConsumerWidget {
     // The rate is read back off the lines rather than assumed: a purchase can
     // mix taxable and exempt items, and the label should say what was charged.
     final rate = subtotal <= 0 ? null : (tax / subtotal * 100).round();
+    // Only an unanswered fork blocks. No finance provider configured is not a
+    // missing answer, and treating it as one made the order unplaceable.
+    final financePending = ref.watch(orderingFinanceChoicePendingProvider);
+    final canPlace = hasLines && !financePending && !isPlacing;
 
     return Container(
       decoration: const BoxDecoration(
@@ -667,16 +671,20 @@ class _OrderFooter extends ConsumerWidget {
           const SizedBox(height: 14),
           _NoteField(controller: noteController),
           const SizedBox(height: 14),
+          // The label carries the reason, so a disabled button never leaves
+          // the operator guessing what it wants.
           OrderingPrimaryButton(
             label: isPlacing
                 ? 'Sending order…'
-                : hasLines
-                ? 'Place order · ${orderingMoney(total)}'
-                : 'Add a product to continue',
+                : !hasLines
+                ? 'Add a product to continue'
+                : financePending
+                ? 'Choose how you are paying'
+                : 'Place order · ${orderingMoney(total)}',
             icon: isPlacing ? null : Icons.send_outlined,
             expand: true,
             height: 52,
-            onPressed: hasLines && !isPlacing ? onPlaceOrder : null,
+            onPressed: canPlace ? onPlaceOrder : null,
           ),
         ],
       ),
@@ -752,7 +760,9 @@ class _FinanceChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final options = ref.watch(orderingFinanceOptionsProvider);
-    final selected = ref.watch(orderingFinanceProvider);
+    // The effective one, so a lone option shows as taken rather than as an
+    // unmade decision.
+    final selected = ref.watch(orderingEffectiveFinanceProvider);
 
     return options.when(
       loading: () => Text(
@@ -760,17 +770,20 @@ class _FinanceChips extends ConsumerWidget {
         style: OrderingTokens.body.copyWith(fontSize: 12.5),
       ),
       error: (error, _) => Text(
-        'Payment options unavailable',
-        style: OrderingTokens.body.copyWith(
-          fontSize: 12.5,
-          color: OrderingTokens.danger,
-        ),
+        'Payment options unavailable — the order will be sent without one.',
+        style: OrderingTokens.body.copyWith(fontSize: 12.5),
       ),
       data: (providers) {
         if (providers.isEmpty) {
+          // Reassurance, not a blocker: financing is optional on a purchase
+          // order, and this business has none set up.
           return Text(
-            'No payment option is set up for this business yet.',
-            style: OrderingTokens.body.copyWith(fontSize: 12.5),
+            'No payment option set up for this business — the order will be '
+            'sent without one.',
+            style: OrderingTokens.body.copyWith(
+              fontSize: 12.5,
+              height: 1.45,
+            ),
           );
         }
         return Wrap(
