@@ -430,23 +430,31 @@ void main() {
   });
 
   group('supplier picker', () {
+    var addTaps = 0;
+
     Future<void> pumpPicker(
       WidgetTester tester, {
-      required List<Branch> frequent,
+      List<Branch> frequent = const [],
+      List<Branch> others = const [],
       Size size = const Size(1000, 760),
     }) async {
       _useDesktopSurface(tester, size);
+      addTaps = 0;
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            orderingFrequentSuppliersProvider.overrideWith(
-              (ref) => Stream.value(frequent),
+            orderingSupplierOptionsProvider.overrideWith(
+              (ref) async =>
+                  SupplierOptions(frequent: frequent, others: others),
             ),
           ],
           child: MaterialApp(
             home: Scaffold(
-              body: OrderingSupplierPicker(onPicked: (_) {}),
+              body: OrderingSupplierPicker(
+                onPicked: (_) {},
+                onAddSupplier: () => addTaps++,
+              ),
             ),
           ),
         ),
@@ -454,19 +462,28 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('offers the suppliers this branch orders from most',
+    Branch branch(String id, String name, {String? place, String? line}) =>
+        Branch(
+          id: id,
+          name: name,
+          businessId: 'biz',
+          location: place,
+          description: line,
+        );
+
+    testWidgets('ranks ordered-from suppliers above the rest of the roster',
         (tester) async {
       await pumpPicker(
         tester,
         frequent: [
-          Branch(
-            id: 'b2',
-            name: 'Quincaillerie Rubavu',
-            businessId: 'biz',
-            location: 'Rubavu',
-            description: '126 shared items',
+          branch(
+            'b2',
+            'Quincaillerie Rubavu',
+            place: 'Rubavu',
+            line: '126 shared items',
           ),
         ],
+        others: [branch('b3', 'Muhima Hardware'), branch('b4', 'duhire')],
       );
 
       expect(tester.takeException(), isNull);
@@ -478,14 +495,45 @@ void main() {
       expect(find.text('Quincaillerie Rubavu'), findsOneWidget);
       expect(find.text('126 shared items'), findsOneWidget);
       expect(find.text('Rubavu'), findsOneWidget);
-      expect(find.text('Add a new supplier'), findsOneWidget);
+
+      // The regression: branches never ordered from are still reachable, so a
+      // business with a large roster and little order history is not shown two
+      // rows and a dead end.
+      expect(find.text('OTHER BRANCHES YOU CAN ORDER FROM'), findsOneWidget);
+      expect(find.text('Muhima Hardware'), findsOneWidget);
+      expect(find.text('duhire'), findsOneWidget);
     });
 
-    testWidgets('says so when there is no order history', (tester) async {
-      await pumpPicker(tester, frequent: const []);
+    testWidgets('with no order history, the roster carries the whole list',
+        (tester) async {
+      await pumpPicker(
+        tester,
+        others: [branch('b3', 'Muhima Hardware')],
+      );
 
       expect(tester.takeException(), isNull);
-      expect(find.text('No orders yet'), findsOneWidget);
+      expect(find.text('SUPPLIERS YOU ORDER FROM MOST'), findsNothing);
+      expect(find.text('BRANCHES YOU CAN ORDER FROM'), findsOneWidget);
+      expect(find.text('Muhima Hardware'), findsOneWidget);
+    });
+
+    testWidgets('says so when there is nothing to order from', (tester) async {
+      await pumpPicker(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('No other branch to order from'), findsOneWidget);
+    });
+
+    testWidgets('Add a new supplier is wired up', (tester) async {
+      await pumpPicker(tester, others: [branch('b3', 'Muhima Hardware')]);
+
+      expect(find.text('Add a new supplier'), findsOneWidget);
+      await tester.tap(find.text('Add a new supplier'));
+      await tester.pump();
+
+      // It was inert: the picker took an optional callback the screen never
+      // passed, so the link rendered enabled and did nothing.
+      expect(addTaps, 1);
     });
 
     testWidgets('a long supplier row still fits a narrow window',
@@ -494,12 +542,11 @@ void main() {
         tester,
         size: const Size(620, 700),
         frequent: [
-          Branch(
-            id: 'b3',
-            name: 'Quincaillerie et Materiaux de Construction Rubavu Nord',
-            businessId: 'biz',
-            location: 'Rubavu · Gisenyi sector depot number four',
-            description:
+          branch(
+            'b3',
+            'Quincaillerie et Materiaux de Construction Rubavu Nord',
+            place: 'Rubavu · Gisenyi sector depot number four',
+            line:
                 'A description long enough to force the row to elide '
                 'rather than overflow its card',
           ),

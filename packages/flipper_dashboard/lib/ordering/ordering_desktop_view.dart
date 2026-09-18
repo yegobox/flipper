@@ -13,6 +13,7 @@ import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -59,6 +60,11 @@ class OrderingDesktopView extends HookConsumerWidget {
                 child: supplier == null
                     ? OrderingSupplierPicker(
                         onPicked: (picked) => _pickSupplier(ref, picked),
+                        // Suppliers are branches here, and AddBranch is the
+                        // only flow that creates one. The link was inert
+                        // without this.
+                        onAddSupplier: () => locator<RouterService>()
+                            .navigateTo(AddBranchRoute()),
                       )
                     : _OrderingWorkspace(
                         transaction: transaction,

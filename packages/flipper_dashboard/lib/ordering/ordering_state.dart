@@ -65,31 +65,107 @@ final orderingFinanceOptionsProvider =
       return ProxyService.getStrategy(Strategy.capella).financeProviders();
     });
 
-/// Suppliers this branch orders from most, for the picker's default list.
-///
-/// Ranked by how many orders this branch has sent them. `searchSuppliers`
-/// answers an empty query with nothing, so without this the picker would open
-/// blank and demand the operator already know the name.
-final orderingFrequentSuppliersProvider = StreamProvider<List<Branch>>((ref) {
-  final branchId = ProxyService.box.getBranchId();
-  if (branchId == null) return Stream.value(const []);
+/// What the picker offers: the branches ordered from before, and the rest.
+class SupplierOptions {
+  const SupplierOptions({required this.frequent, required this.others});
 
-  return ProxyService.getStrategy(Strategy.capella)
-      .requestsStreamOutgoing(branchId: branchId, filter: 'all', limit: 100)
-      .map((requests) {
-        final counts = <String, int>{};
-        final branches = <String, Branch>{};
-        for (final request in requests) {
-          final supplier = request.branch;
-          final id = request.mainBranchId;
-          if (id == null || id.isEmpty || id == branchId) continue;
-          counts[id] = (counts[id] ?? 0) + 1;
-          if (supplier != null) branches.putIfAbsent(id, () => supplier);
-        }
-        final ranked = branches.keys.toList()
-          ..sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0));
-        return [for (final id in ranked) branches[id]!];
-      });
+  const SupplierOptions.empty() : frequent = const [], others = const [];
+
+  /// Ordered from before, most orders first.
+  final List<Branch> frequent;
+
+  /// Everything else on this device, by name.
+  final List<Branch> others;
+
+  bool get isEmpty => frequent.isEmpty && others.isEmpty;
+}
+
+/// Who this branch has ordered from before, and how often.
+class SupplierOrderHistory {
+  const SupplierOrderHistory({required this.counts, required this.branches});
+
+  const SupplierOrderHistory.empty() : counts = const {}, branches = const {};
+
+  /// Orders sent, keyed by supplier branch id.
+  final Map<String, int> counts;
+
+  /// The supplier branch each request carried — the only record of a supplier
+  /// that is not in this device's own `branches` collection.
+  final Map<String, Branch> branches;
+}
+
+final orderingSupplierHistoryProvider =
+    StreamProvider<SupplierOrderHistory>((ref) {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        return Stream.value(const SupplierOrderHistory.empty());
+      }
+
+      return ProxyService.getStrategy(Strategy.capella)
+          .requestsStreamOutgoing(
+            branchId: branchId,
+            filter: 'all',
+            limit: 100,
+          )
+          .map((requests) {
+            final counts = <String, int>{};
+            final branches = <String, Branch>{};
+            for (final request in requests) {
+              final id = request.mainBranchId;
+              if (id == null || id.isEmpty || id == branchId) continue;
+              counts[id] = (counts[id] ?? 0) + 1;
+              final supplier = request.branch;
+              if (supplier != null) branches.putIfAbsent(id, () => supplier);
+            }
+            return SupplierOrderHistory(counts: counts, branches: branches);
+          });
+    });
+
+/// Every branch the operator could order from, ranked.
+///
+/// `searchSuppliers` answers an empty query with nothing, so the picker needs
+/// its own default list. Order history alone is not it: a business with many
+/// registered branches but few past orders saw two rows and no way to reach the
+/// rest. So the list is every branch on the device except this one — the same
+/// breadth typing gives — with the ones actually ordered from lifted to the top.
+///
+/// A supplier known only from order history (not in the local `branches`
+/// collection) is still included, from the branch embedded in its request.
+final orderingSupplierOptionsProvider = FutureProvider<SupplierOptions>((
+  ref,
+) async {
+  final branchId = ProxyService.box.getBranchId();
+  final history =
+      ref.watch(orderingSupplierHistoryProvider).value ??
+      const SupplierOrderHistory.empty();
+  final counts = history.counts;
+
+  final byId = <String, Branch>{};
+  // Deliberately unfiltered on `active`: Branch defaults it to false, so
+  // filtering here would hide most of the roster.
+  for (final branch in await ProxyService.getStrategy(Strategy.capella)
+      .branches(excludeId: branchId)) {
+    if (branch.id == branchId) continue;
+    byId[branch.id] = branch;
+  }
+
+  final frequent = <Branch>[];
+  for (final id in counts.keys.toList()
+    ..sort((a, b) => (counts[b] ?? 0).compareTo(counts[a] ?? 0))) {
+    // Fall back to the branch the request carried, so a supplier outside this
+    // device's own branches is still offered.
+    final branch = byId.remove(id) ?? history.branches[id];
+    if (branch != null) frequent.add(branch);
+  }
+
+  final others = byId.values.toList()
+    ..sort(
+      (a, b) => (a.name ?? '').toLowerCase().compareTo(
+        (b.name ?? '').toLowerCase(),
+      ),
+    );
+
+  return SupplierOptions(frequent: frequent, others: others);
 });
 
 /// Supplier name search, for when the operator types in the picker.

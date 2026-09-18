@@ -41,9 +41,7 @@ class OrderingSupplierPicker extends HookConsumerWidget {
     }
 
     final searching = query.value.trim().isNotEmpty;
-    final results = searching
-        ? ref.watch(orderingSupplierSearchProvider(query.value))
-        : ref.watch(orderingFrequentSuppliersProvider);
+    final options = ref.watch(orderingSupplierOptionsProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(
@@ -80,18 +78,25 @@ class OrderingSupplierPicker extends HookConsumerWidget {
                 onChanged: onQueryChanged,
               ),
               const SizedBox(height: 20),
-              OrderingEyebrow(
-                searching
-                    ? 'Search results'
-                    : 'Suppliers you order from most',
-                padding: const EdgeInsets.only(left: 2, bottom: 8),
-              ),
-              _Results(
-                results: results,
-                searching: searching,
-                query: query.value,
-                onPicked: onPicked,
-              ),
+              if (searching)
+                OrderingEyebrow(
+                  'Search results',
+                  padding: const EdgeInsets.only(left: 2, bottom: 8),
+                ),
+              // Unsearched, the list is split so the eyebrow stays honest: the
+              // ones actually ordered from, then the rest of the roster. A
+              // single "you order from most" heading over every branch on the
+              // device would be a lie.
+              if (!searching)
+                _Sections(options: options, onPicked: onPicked)
+              else
+                _Results(
+                  results: ref.watch(
+                    orderingSupplierSearchProvider(query.value),
+                  ),
+                  query: query.value,
+                  onPicked: onPicked,
+                ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -108,35 +113,113 @@ class OrderingSupplierPicker extends HookConsumerWidget {
   }
 }
 
+/// Unsearched view: "ordered from most", then everything else.
+class _Sections extends StatelessWidget {
+  const _Sections({required this.options, required this.onPicked});
+
+  final AsyncValue<SupplierOptions> options;
+  final ValueChanged<Branch> onPicked;
+
+  @override
+  Widget build(BuildContext context) {
+    return options.when(
+      loading: () => const _PickerSpinner(),
+      error: (error, _) => OrderingEmptyState(
+        icon: Icons.cloud_off_outlined,
+        title: 'Could not load suppliers',
+        hint: '$error',
+        padding: const EdgeInsets.symmetric(vertical: 40),
+      ),
+      data: (data) {
+        if (data.isEmpty) {
+          return const OrderingEmptyState(
+            icon: Icons.storefront_outlined,
+            title: 'No other branch to order from',
+            hint: 'Add a branch, or search for a supplier by name.',
+            padding: EdgeInsets.symmetric(vertical: 40),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (data.frequent.isNotEmpty) ...[
+              const OrderingEyebrow(
+                'Suppliers you order from most',
+                padding: EdgeInsets.only(left: 2, bottom: 8),
+              ),
+              for (final supplier in data.frequent)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _SupplierCard(
+                    supplier: supplier,
+                    onTap: () => onPicked(supplier),
+                  ),
+                ),
+            ],
+            if (data.others.isNotEmpty) ...[
+              OrderingEyebrow(
+                data.frequent.isEmpty
+                    ? 'Branches you can order from'
+                    : 'Other branches you can order from',
+                padding: EdgeInsets.only(
+                  left: 2,
+                  top: data.frequent.isEmpty ? 0 : 12,
+                  bottom: 8,
+                ),
+              ),
+              for (final supplier in data.others)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _SupplierCard(
+                    supplier: supplier,
+                    onTap: () => onPicked(supplier),
+                  ),
+                ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PickerSpinner extends StatelessWidget {
+  const _PickerSpinner();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 40),
+      child: Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.4,
+            color: OrderingTokens.blue,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Searched view.
 class _Results extends StatelessWidget {
   const _Results({
     required this.results,
-    required this.searching,
     required this.query,
     required this.onPicked,
   });
 
   final AsyncValue<List<Branch>> results;
-  final bool searching;
   final String query;
   final ValueChanged<Branch> onPicked;
 
   @override
   Widget build(BuildContext context) {
     return results.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.4,
-              color: OrderingTokens.blue,
-            ),
-          ),
-        ),
-      ),
+      loading: () => const _PickerSpinner(),
       error: (error, _) => OrderingEmptyState(
         icon: Icons.cloud_off_outlined,
         title: 'Could not load suppliers',
@@ -147,12 +230,8 @@ class _Results extends StatelessWidget {
         if (suppliers.isEmpty) {
           return OrderingEmptyState(
             icon: Icons.storefront_outlined,
-            title: searching
-                ? 'No supplier matches “$query”'
-                : 'No orders yet',
-            hint: searching
-                ? 'Check the spelling, or add them as a new supplier.'
-                : 'Search a branch name to place your first order.',
+            title: 'No supplier matches “$query”',
+            hint: 'Check the spelling, or add them as a new branch.',
             padding: const EdgeInsets.symmetric(vertical: 40),
           );
         }
