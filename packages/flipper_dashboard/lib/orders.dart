@@ -5,6 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/OrderingView.dart';
 import 'package:flipper_dashboard/ordering/ordering_desktop_view.dart';
@@ -12,6 +13,9 @@ import 'package:flipper_dashboard/ordering/unified_search_field.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
+// For [RouterService.replaceWithFlipperApp], used when nothing sits beneath
+// this route to pop back to.
+import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class Orders extends HookConsumerWidget {
@@ -26,13 +30,20 @@ class Orders extends HookConsumerWidget {
     // The three-pane purchase order needs real desktop width; below that the
     // mobile flow (search, then grid) still applies.
     final isDesktop = MediaQuery.sizeOf(context).width > 600;
+    // Refuse the pop until "Done shopping?" is answered, then allow exactly
+    // one. Leaving this permanently false made the confirmation unable to
+    // leave: its Yes popped this route, the refusal re-entered the callback
+    // below, and the second showDialog landed inside the navigator's history
+    // flush ('!_debugLocked' is not true) — so the dialog reappeared and the
+    // operator was stuck on the order.
+    final allowExit = useState(false);
     return PopScope(
-      canPop: false,
+      canPop: allowExit.value,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
+        // The confirmed pop; nothing left to ask.
+        if (didPop) return;
         ProxyService.box.writeBool(key: 'isOrdering', value: false);
-        if (!didPop) {
-          ProxyService.box.writeBool(key: 'isOrdering', value: true);
-        }
+        ProxyService.box.writeBool(key: 'isOrdering', value: true);
         // Hand the cart providers back to whichever mode the box now holds.
         syncPosCartIsExpenseWidget(ref);
         ref.read(previewingCart.notifier).state = false;
@@ -40,6 +51,24 @@ class Orders extends HookConsumerWidget {
           context: context,
           navigationPurpose: NavigationPurpose.home,
           message: 'Done shopping?',
+          onConfirmed: () {
+            ProxyService.box.writeBool(key: 'isOrdering', value: false);
+            syncPosCartIsExpenseWidget(ref);
+            allowExit.value = true;
+            // After this frame: the dialog's own pop is still flushing, and
+            // navigating inside that flush is what asserted before.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!context.mounted) return;
+              final rootNav = Navigator.of(context, rootNavigator: true);
+              // Mobile POS reaches ordering stacked on [CheckOutRoute]; on
+              // desktop it is pushed on its own, with nothing beneath to pop.
+              if (rootNav.canPop()) {
+                rootNav.pop();
+              } else {
+                locator<RouterService>().replaceWithFlipperApp();
+              }
+            });
+          },
         );
       },
       // The desktop purchase order brings its own chrome — back, order

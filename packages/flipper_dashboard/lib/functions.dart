@@ -24,6 +24,15 @@ onWillPop({
   required BuildContext context,
   required String navigationPurpose,
   required String message,
+
+  /// Called after the dialog closes, when the user confirms.
+  ///
+  /// A route whose `PopScope` refuses the pop cannot be left by popping it
+  /// from in here: the refusal re-enters that `onPopInvokedWithResult`, which
+  /// shows this dialog again from inside the navigator's own history flush and
+  /// trips `!_debugLocked`. Those callers pass this and own the exit
+  /// themselves; everyone else keeps the navigation below.
+  VoidCallback? onConfirmed,
 }) {
   showDialog(
     context: context,
@@ -90,6 +99,11 @@ onWillPop({
                     ),
                   ),
                   onPressed: () {
+                    if (onConfirmed != null) {
+                      Navigator.pop(context);
+                      onConfirmed();
+                      return;
+                    }
                     if (navigationPurpose == NavigationPurpose.home) {
                       ProxyService.box.writeBool(
                         key: 'isOrdering',
