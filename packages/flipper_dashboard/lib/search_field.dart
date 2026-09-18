@@ -20,6 +20,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -323,6 +324,9 @@ class SearchFieldState extends ConsumerState<SearchField>
     UmusadaHelper.handleOrderingFlow(context, () {
       try {
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
+        // Rebind the keepAlive cart providers to the purchase cart before the
+        // ordering screen builds (see [posCartIsExpenseProvider]).
+        syncPosCartIsExpenseWidget(ref);
 
         _routerService.navigateTo(OrdersRoute());
       } catch (e) {

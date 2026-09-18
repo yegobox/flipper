@@ -13,7 +13,44 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart' show StateProvider;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-bool _posCartIsExpense() => ProxyService.box.isOrdering() ?? false;
+/// Cart mode on screen: `true` while the operator is building a purchase
+/// (ordering), `false` for a sale.
+///
+/// [ProxyService.box.isOrdering] stays the source of truth; this mirrors it as
+/// a *reactive* value. [posCartDisplayItemsProvider] and
+/// [posCartStreamReconciliationProvider] are keepAlive, so reading the box
+/// straight from their bodies latched whichever mode was active the first time
+/// they built. Warmed by POS checkout (isExpense: false), they kept resolving
+/// the *sale* pending cart after the operator opened ordering: the purchase
+/// cart rendered empty while the ordering button counted the purchase lines the
+/// cart could not see ("Preview cart (4)" over an empty preview).
+final posCartIsExpenseProvider = StateProvider<bool>(
+  (ref) => ProxyService.box.isOrdering() ?? false,
+);
+
+bool _posCartIsExpense(Ref ref) => ref.watch(posCartIsExpenseProvider);
+
+/// Republishes [ProxyService.box.isOrdering] into [posCartIsExpenseProvider].
+///
+/// Call it wherever the mode flips (entering / leaving ordering) and from the
+/// cart-owning screens as a backstop for a flip that happened without a ref
+/// (e.g. `cron_service`'s reset). Deferred to the next microtask so it is safe
+/// from build / initState, and a no-op when the mode already matches.
+void syncPosCartIsExpenseContainer(ProviderContainer container) {
+  final fromBox = ProxyService.box.isOrdering() ?? false;
+  if (container.read(posCartIsExpenseProvider) == fromBox) return;
+  Future.microtask(() {
+    if (container.read(posCartIsExpenseProvider) == fromBox) return;
+    container.read(posCartIsExpenseProvider.notifier).state = fromBox;
+  });
+}
+
+void syncPosCartIsExpense(Ref ref) =>
+    syncPosCartIsExpenseContainer(ref.container);
+
+/// [WidgetRef] variant — not assignable to [Ref] in this Riverpod version.
+void syncPosCartIsExpenseWidget(WidgetRef ref) =>
+    syncPosCartIsExpenseContainer(ref.container);
 
 /// Bumped on every cart tap so [posCartDisplayItemsProvider] recomputes same frame.
 final posCartDisplayEpochProvider = StateProvider<int>((ref) => 0);
@@ -89,7 +126,7 @@ final effectiveSettlingTillTicketProvider = Provider<SettlingTillTicket?>((ref) 
   if (live != null) return live;
 
   // Purchases (ordering mode) never go through the till queue.
-  if (_posCartIsExpense()) return null;
+  if (_posCartIsExpense(ref)) return null;
 
   final cached = ref.watch(cachedPendingCartTransactionProvider(false));
   final streamed = ref
@@ -199,7 +236,7 @@ Future<void> _releaseCachedCartIfNotPending(
 final posCartStreamReconciliationProvider = Provider<void>((ref) {
   ref.keepAlive();
 
-  final isExpense = _posCartIsExpense();
+  final isExpense = _posCartIsExpense(ref);
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
 
   /// Lines the cashier can see for [transactionId]: saved rows plus ghosts.
@@ -361,7 +398,7 @@ final posCartDisplayItemsProvider = Provider<List<TransactionItem>>((ref) {
     return scoped.where((i) => i.active != false).toList();
   }
 
-  final isExpense = _posCartIsExpense();
+  final isExpense = _posCartIsExpense(ref);
   final optimisticState = ref.watch(optimisticCartProvider);
   final hasPending =
       optimisticState.pendingQtyByVariantId.values.any((q) => q > 0);

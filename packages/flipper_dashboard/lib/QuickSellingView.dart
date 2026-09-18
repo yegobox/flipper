@@ -20,7 +20,6 @@ import 'package:flipper_models/providers/counter_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
@@ -1219,7 +1218,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Re-check branch digital-payment config on the next sale (see memo above).
     _digitalPaymentEnabledFuture = null;
     ref.invalidate(paymentMethodsProvider);
-    ref.read(optimisticOrderCountProvider.notifier).reset();
     widget.deliveryNoteCotroller.clear();
     widget.receivedAmountController.clear();
     widget.discountController.clear();
