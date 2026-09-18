@@ -498,8 +498,11 @@ void main() {
 
       // The regression: branches never ordered from are still reachable, so a
       // business with a large roster and little order history is not shown two
-      // rows and a dead end.
-      expect(find.text('OTHER BRANCHES YOU CAN ORDER FROM'), findsOneWidget);
+      // rows and a dead end. The count is what tells a big roster to search.
+      expect(
+        find.text('OTHER BRANCHES YOU CAN ORDER FROM · 2'),
+        findsOneWidget,
+      );
       expect(find.text('Muhima Hardware'), findsOneWidget);
       expect(find.text('duhire'), findsOneWidget);
     });
@@ -513,8 +516,77 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('SUPPLIERS YOU ORDER FROM MOST'), findsNothing);
-      expect(find.text('BRANCHES YOU CAN ORDER FROM'), findsOneWidget);
+      expect(find.text('BRANCHES YOU CAN ORDER FROM · 1'), findsOneWidget);
       expect(find.text('Muhima Hardware'), findsOneWidget);
+    });
+
+    testWidgets('a long roster builds lazily instead of all at once',
+        (tester) async {
+      final roster = [
+        for (var i = 0; i < 300; i++)
+          branch('b$i', 'Branch ${i.toString().padLeft(3, '0')}'),
+      ];
+
+      await pumpPicker(tester, others: roster, size: const Size(900, 760));
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('BRANCHES YOU CAN ORDER FROM · 300'), findsOneWidget);
+      expect(find.text('Branch 000'), findsOneWidget);
+      // The point: row 299 is not in the tree until it is scrolled to. A
+      // Column would have built all 300 cards before painting the first.
+      expect(find.text('Branch 299'), findsNothing);
+
+      await tester.scrollUntilVisible(
+        find.text('Branch 299'),
+        600,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Branch 299'), findsOneWidget);
+    });
+
+    testWidgets('typing filters the roster on the keystroke', (tester) async {
+      await pumpPicker(
+        tester,
+        frequent: [branch('b2', 'Quincaillerie Rubavu', place: 'Rubavu')],
+        others: [branch('b3', 'Muhima Hardware'), branch('b4', 'duhire')],
+      );
+
+      await tester.enterText(find.byType(TextField), 'muh');
+      // One frame only — no debounce wait. The local roster must answer
+      // immediately; only the remote name search is debounced.
+      await tester.pump();
+
+      expect(find.text('ON THIS DEVICE · 1'), findsOneWidget);
+      expect(find.text('Muhima Hardware'), findsOneWidget);
+      expect(find.text('duhire'), findsNothing);
+      expect(find.text('Quincaillerie Rubavu'), findsNothing);
+      // The unsearched headings give way to the result sections.
+      expect(find.text('SUPPLIERS YOU ORDER FROM MOST'), findsNothing);
+    });
+
+    testWidgets('search matches a place, not just a name', (tester) async {
+      await pumpPicker(
+        tester,
+        others: [
+          branch('b3', 'Muhima Hardware', place: 'Muhima'),
+          branch('b5', 'Quincaillerie', place: 'Rubavu'),
+        ],
+      );
+
+      await tester.enterText(find.byType(TextField), 'rubavu');
+      await tester.pump();
+
+      expect(find.text('Quincaillerie'), findsOneWidget);
+      expect(find.text('Muhima Hardware'), findsNothing);
+    });
+
+    testWidgets('a query matching nothing local says so', (tester) async {
+      await pumpPicker(tester, others: [branch('b3', 'Muhima Hardware')]);
+
+      await tester.enterText(find.byType(TextField), 'zzzz');
+      await tester.pump();
+
+      expect(find.textContaining('No supplier matches'), findsOneWidget);
     });
 
     testWidgets('says so when there is nothing to order from', (tester) async {

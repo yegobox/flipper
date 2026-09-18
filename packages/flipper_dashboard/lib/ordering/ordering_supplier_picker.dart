@@ -8,11 +8,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+/// Minimum typed characters before the remote name search runs.
+///
+/// One letter matches most of the table and the answer is useless; the local
+/// roster below already responds on the first keystroke.
+const int _kRemoteSearchMinChars = 2;
+
 /// First step of the order: who it is going to.
 ///
 /// Fills the whole body until a supplier is picked — their catalogue, cost and
 /// stock are what the other two panes are made of, so there is nothing useful
 /// to show beside this.
+///
+/// Built search-first, because the roster is as long as the business is big.
+/// Everything is one lazy scroll view: typing filters the branches already on
+/// the device on the keystroke, and the slower name search against every branch
+/// in the org appends its extra finds underneath. Pagination would not help —
+/// `branches()` is a local query, so the rows are already in memory; paging
+/// would only put clicks between the operator and a name they can see.
 class OrderingSupplierPicker extends HookConsumerWidget {
   const OrderingSupplierPicker({
     super.key,
@@ -26,229 +39,286 @@ class OrderingSupplierPicker extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = useTextEditingController();
-    final query = useState('');
+
+    // Two states, deliberately: [typed] drives the local filter and must be
+    // immediate, [remoteQuery] drives the Supabase search and must not fire
+    // once per keystroke.
+    final typed = useState('');
+    final remoteQuery = useState('');
     final debounce = useRef<Timer?>(null);
 
     useEffect(() => () => debounce.value?.cancel(), const []);
 
-    // Typing a supplier name hits Supabase; settle first so a four-letter name
-    // is one query rather than four.
     void onQueryChanged(String value) {
+      typed.value = value;
       debounce.value?.cancel();
       debounce.value = Timer(const Duration(milliseconds: 280), () {
-        query.value = value;
+        remoteQuery.value = value;
       });
     }
 
-    final searching = query.value.trim().isNotEmpty;
+    final needle = typed.value.trim().toLowerCase();
+    final searching = needle.isNotEmpty;
     final options = ref.watch(orderingSupplierOptionsProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(
-        left: 22,
-        right: 22,
-        top: 48,
-        bottom: 64,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: OrderingTokens.pickerMaxWidth,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Which supplier are you ordering from?',
-                style: OrderingTokens.pickerTitle,
+    // Only consulted while searching, and only once the query is worth a
+    // round-trip.
+    final remote = searching && remoteQuery.value.trim().length >= _kRemoteSearchMinChars
+        ? ref.watch(orderingSupplierSearchProvider(remoteQuery.value))
+        : const AsyncValue<List<Branch>>.data([]);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: OrderingTokens.pickerMaxWidth,
+        ),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.only(
+                left: 22,
+                right: 22,
+                top: 48,
+                bottom: 20,
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Pick a branch you buy from. Their catalogue, your last cost '
-                'and their stock on hand load straight into the order.',
-                style: OrderingTokens.pickerBody,
-              ),
-              const SizedBox(height: 20),
-              OrderingSearchField(
-                controller: controller,
-                hintText: 'Search suppliers by name…',
-                fontSize: 15,
-                iconSize: 19,
-                verticalPadding: 15,
-                onChanged: onQueryChanged,
-              ),
-              const SizedBox(height: 20),
-              if (searching)
-                OrderingEyebrow(
-                  'Search results',
-                  padding: const EdgeInsets.only(left: 2, bottom: 8),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Which supplier are you ordering from?',
+                      style: OrderingTokens.pickerTitle,
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Pick a branch you buy from. Their catalogue, your last '
+                      'cost and their stock on hand load straight into the '
+                      'order.',
+                      style: OrderingTokens.pickerBody,
+                    ),
+                    const SizedBox(height: 20),
+                    OrderingSearchField(
+                      controller: controller,
+                      hintText: 'Search suppliers by name…',
+                      fontSize: 15,
+                      iconSize: 19,
+                      verticalPadding: 15,
+                      onChanged: onQueryChanged,
+                      onClear: searching
+                          ? () {
+                              controller.clear();
+                              debounce.value?.cancel();
+                              typed.value = '';
+                              remoteQuery.value = '';
+                            }
+                          : null,
+                    ),
+                  ],
                 ),
-              // Unsearched, the list is split so the eyebrow stays honest: the
-              // ones actually ordered from, then the rest of the roster. A
-              // single "you order from most" heading over every branch on the
-              // device would be a lie.
-              if (!searching)
-                _Sections(options: options, onPicked: onPicked)
-              else
-                _Results(
-                  results: ref.watch(
-                    orderingSupplierSearchProvider(query.value),
-                  ),
-                  query: query.value,
-                  onPicked: onPicked,
-                ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  const Text('Not on the list?', style: OrderingTokens.body),
-                  const SizedBox(width: 10),
-                  _AddSupplierLink(onPressed: onAddSupplier),
-                ],
               ),
-            ],
-          ),
+            ),
+            ..._body(
+              options: options,
+              remote: remote,
+              needle: needle,
+              rawQuery: typed.value.trim(),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.only(
+                left: 22,
+                right: 22,
+                top: 20,
+                bottom: 64,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  children: [
+                    const Text(
+                      'Not on the list?',
+                      style: OrderingTokens.body,
+                    ),
+                    const SizedBox(width: 10),
+                    _AddSupplierLink(onPressed: onAddSupplier),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-/// Unsearched view: "ordered from most", then everything else.
-class _Sections extends StatelessWidget {
-  const _Sections({required this.options, required this.onPicked});
+  List<Widget> _body({
+    required AsyncValue<SupplierOptions> options,
+    required AsyncValue<List<Branch>> remote,
+    required String needle,
+    required String rawQuery,
+  }) {
+    if (options.hasError) {
+      return [
+        _message(
+          icon: Icons.cloud_off_outlined,
+          title: 'Could not load suppliers',
+          hint: '${options.error}',
+        ),
+      ];
+    }
+    if (!options.hasValue) return [const _SliverSpinner()];
 
-  final AsyncValue<SupplierOptions> options;
-  final ValueChanged<Branch> onPicked;
+    final data = options.requireValue;
 
-  @override
-  Widget build(BuildContext context) {
-    return options.when(
-      loading: () => const _PickerSpinner(),
-      error: (error, _) => OrderingEmptyState(
-        icon: Icons.cloud_off_outlined,
-        title: 'Could not load suppliers',
-        hint: '$error',
-        padding: const EdgeInsets.symmetric(vertical: 40),
-      ),
-      data: (data) {
-        if (data.isEmpty) {
-          return const OrderingEmptyState(
+    if (needle.isEmpty) {
+      if (data.isEmpty) {
+        return [
+          _message(
             icon: Icons.storefront_outlined,
             title: 'No other branch to order from',
             hint: 'Add a branch, or search for a supplier by name.',
-            padding: EdgeInsets.symmetric(vertical: 40),
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (data.frequent.isNotEmpty) ...[
-              const OrderingEyebrow(
-                'Suppliers you order from most',
-                padding: EdgeInsets.only(left: 2, bottom: 8),
-              ),
-              for (final supplier in data.frequent)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _SupplierCard(
-                    supplier: supplier,
-                    onTap: () => onPicked(supplier),
-                  ),
-                ),
-            ],
-            if (data.others.isNotEmpty) ...[
-              OrderingEyebrow(
-                data.frequent.isEmpty
-                    ? 'Branches you can order from'
-                    : 'Other branches you can order from',
-                padding: EdgeInsets.only(
-                  left: 2,
-                  top: data.frequent.isEmpty ? 0 : 12,
-                  bottom: 8,
-                ),
-              ),
-              for (final supplier in data.others)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _SupplierCard(
-                    supplier: supplier,
-                    onTap: () => onPicked(supplier),
-                  ),
-                ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _PickerSpinner extends StatelessWidget {
-  const _PickerSpinner();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 40),
-      child: Center(
-        child: SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.4,
-            color: OrderingTokens.blue,
           ),
+        ];
+      }
+      return [
+        if (data.frequent.isNotEmpty)
+          ..._section(
+            label: 'Suppliers you order from most',
+            suppliers: data.frequent,
+          ),
+        if (data.others.isNotEmpty)
+          ..._section(
+            label: data.frequent.isEmpty
+                ? 'Branches you can order from'
+                : 'Other branches you can order from',
+            suppliers: data.others,
+            // Long rosters are the norm, so the heading carries the size —
+            // it is what tells the operator to type rather than scroll.
+            showCount: true,
+          ),
+      ];
+    }
+
+    // Local first: these rows are already on the device, so they appear on the
+    // keystroke while the remote search is still in flight.
+    final local = [
+      ...data.frequent,
+      ...data.others,
+    ].where((b) => _matches(b, needle)).toList();
+    final localIds = {for (final b in local) b.id};
+    final extra = (remote.value ?? const <Branch>[])
+        .where((b) => !localIds.contains(b.id))
+        .toList();
+
+    if (local.isEmpty && extra.isEmpty) {
+      if (remote.isLoading) return [const _SliverSpinner()];
+      return [
+        _message(
+          icon: Icons.storefront_outlined,
+          title: 'No supplier matches “$rawQuery”',
+          hint: 'Check the spelling, or add them as a new branch.',
+        ),
+      ];
+    }
+
+    return [
+      if (local.isNotEmpty)
+        ..._section(
+          label: 'On this device',
+          suppliers: local,
+          showCount: true,
+        ),
+      if (extra.isNotEmpty)
+        ..._section(
+          label: 'Found by name search',
+          suppliers: extra,
+          showCount: true,
+        ),
+      if (remote.isLoading) const _SliverSpinner(height: 60),
+    ];
+  }
+
+  /// Name, place and description — everything the row actually shows.
+  static bool _matches(Branch branch, String needle) {
+    final haystack = [
+      branch.name ?? '',
+      branch.location ?? '',
+      branch.description ?? '',
+    ].join(' ').toLowerCase();
+    return haystack.contains(needle);
+  }
+
+  List<Widget> _section({
+    required String label,
+    required List<Branch> suppliers,
+    bool showCount = false,
+  }) {
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.only(left: 24, right: 22, bottom: 8),
+        sliver: SliverToBoxAdapter(
+          child: OrderingEyebrow(
+            showCount ? '$label · ${suppliers.length}' : label,
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        // Built lazily: a business with a few hundred branches would otherwise
+        // build a card for every one of them before painting the first.
+        sliver: SliverList.builder(
+          itemCount: suppliers.length,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _SupplierCard(
+              supplier: suppliers[index],
+              onTap: () => onPicked(suppliers[index]),
+            ),
+          ),
+        ),
+      ),
+      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+    ];
+  }
+
+  Widget _message({
+    required IconData icon,
+    required String title,
+    String? hint,
+  }) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 22),
+      sliver: SliverToBoxAdapter(
+        child: OrderingEmptyState(
+          icon: icon,
+          title: title,
+          hint: hint,
+          padding: const EdgeInsets.symmetric(vertical: 40),
         ),
       ),
     );
   }
 }
 
-/// Searched view.
-class _Results extends StatelessWidget {
-  const _Results({
-    required this.results,
-    required this.query,
-    required this.onPicked,
-  });
+class _SliverSpinner extends StatelessWidget {
+  const _SliverSpinner({this.height = 80});
 
-  final AsyncValue<List<Branch>> results;
-  final String query;
-  final ValueChanged<Branch> onPicked;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
-    return results.when(
-      loading: () => const _PickerSpinner(),
-      error: (error, _) => OrderingEmptyState(
-        icon: Icons.cloud_off_outlined,
-        title: 'Could not load suppliers',
-        hint: '$error',
-        padding: const EdgeInsets.symmetric(vertical: 40),
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: height,
+        child: const Center(
+          child: SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              color: OrderingTokens.blue,
+            ),
+          ),
+        ),
       ),
-      data: (suppliers) {
-        if (suppliers.isEmpty) {
-          return OrderingEmptyState(
-            icon: Icons.storefront_outlined,
-            title: 'No supplier matches “$query”',
-            hint: 'Check the spelling, or add them as a new branch.',
-            padding: const EdgeInsets.symmetric(vertical: 40),
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final supplier in suppliers)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _SupplierCard(
-                  supplier: supplier,
-                  onTap: () => onPicked(supplier),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }
@@ -301,7 +371,9 @@ class _SupplierCard extends StatelessWidget {
                   children: [
                     Text(
                       supplier.name ?? 'Unnamed branch',
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      softWrap: false,
                       style: const TextStyle(
                         fontFamily: OrderingTokens.sans,
                         fontSize: 15.5,
@@ -314,7 +386,9 @@ class _SupplierCard extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         line,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        softWrap: false,
                         style: OrderingTokens.body.copyWith(fontSize: 13),
                       ),
                     ],
@@ -327,7 +401,9 @@ class _SupplierCard extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 160),
                   child: Text(
                     place,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    softWrap: false,
                     textAlign: TextAlign.right,
                     style: OrderingTokens.monoStyle(
                       fontSize: 12,
