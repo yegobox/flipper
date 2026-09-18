@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Ensures Ditto pending cart + catalog page exist before opening POS (mobile home).
 void warmMobilePosForCheckout(WidgetRef ref) {
+  syncPosCartIsExpenseWidget(ref);
   warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
 
   final branchId = ProxyService.box.getBranchId();

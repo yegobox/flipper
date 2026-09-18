@@ -32,7 +32,6 @@ import 'package:flipper_models/providers/cached_pending_cart_transaction_provide
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
-import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
@@ -100,6 +99,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   void _warmPendingCartAfterOpen() {
+    syncPosCartIsExpenseWidget(ref);
     warmPosCartPendingTransactionCacheWidget(ref, isExpense: false);
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null || branchId.isEmpty) return;
@@ -480,7 +480,6 @@ class CheckOutState extends ConsumerState<CheckOut>
       ),
     );
     ref.invalidate(oldImplementationOfRiverpod.paymentMethodsProvider);
-    ref.read(optimisticOrderCountProvider.notifier).reset();
 
     discountController.clear();
     receivedAmountController.clear();

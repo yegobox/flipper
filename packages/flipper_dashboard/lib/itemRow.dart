@@ -1228,9 +1228,8 @@ class _RowItemState extends ConsumerState<RowItem>
     ref
         .read(optimisticCartProvider.notifier)
         .rollbackPending(transactionId: txnForOpt, variantId: variantId);
-    // [optimisticOrderCountProvider] counts in-flight persists, not cart size —
-    // PosCartAddService._runPersist already decrements it in its `finally`, so
-    // decrementing here too drove the counter negative.
+    // No separate cart counter to adjust: every count on screen is derived
+    // from [posCartDisplayItemsProvider], so rolling the ghost back is enough.
   }
 
   Future<void> _decrementOne({

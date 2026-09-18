@@ -4,7 +4,6 @@ import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
-import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/pos_cart_sync_tap.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
@@ -54,8 +53,6 @@ class PosCartAddService {
     // Cache is warmed when checkout opens; avoid sync work on every grid tap.
     final resolvedTxnId =
         readPosCartTransactionIdFast(ref, isExpense: isExpense);
-
-    ref.read(optimisticOrderCountProvider.notifier).increment();
 
     final cartOptimismApplied = !isOrdering;
     if (cartOptimismApplied) {
@@ -182,7 +179,6 @@ class PosCartAddService {
       );
     } finally {
       if (ref.mounted) {
-        ref.read(optimisticOrderCountProvider.notifier).decrement();
         if (cartOptimismApplied) {
           ref
               .read(optimisticCartProvider.notifier)

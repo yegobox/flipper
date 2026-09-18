@@ -8,15 +8,14 @@ import 'package:flipper_dashboard/ordering/preview_sale_button_wrapper.dart';
 import 'package:flipper_dashboard/ordering/product_grid_view.dart';
 import 'package:flipper_dashboard/view_models/ordering_view_model.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 
 class OrderingView extends HookConsumerWidget {
   const OrderingView(this.transaction, {Key? key}) : super(key: key);
@@ -26,40 +25,20 @@ class OrderingView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOrdering = ProxyService.box.isOrdering()!;
 
-    // Watch the transaction items stream
-    // Watch the transaction items stream
-    final transactionItems = ref.watch(
-      transactionItemsStreamProvider(transactionId: transaction.id),
+    // Backstop for a mode flip that happened without a ref (cron_service resets
+    // `isOrdering`), so the keepAlive cart providers follow this screen.
+    syncPosCartIsExpenseWidget(ref);
+
+    // One source of truth for "what is in the cart": the same provider that
+    // renders the preview list ([posCartDisplayItemsProvider], via
+    // [posCartSummaryProvider]). This used to count a *different* stream — this
+    // screen's pending purchase row — floored by a counter that actually
+    // tracked in-flight persists rather than cart size. When the two disagreed
+    // the button advertised "Preview cart (4)" over a preview list that showed
+    // nothing.
+    final orderCount = ref.watch(
+      posCartSummaryProvider.select((s) => s.unitQtyTotal),
     );
-    // Calculate total quantity (handling both separate rows and aggregated quantities)
-    final streamCount =
-        transactionItems.value
-            ?.fold<double>(0.0, (sum, item) => sum + (item.qty.toDouble()))
-            .toInt() ??
-        0;
-
-    // Watch optimistic count for immediate UI updates
-    final optimisticCount = ref.watch(optimisticOrderCountProvider);
-
-    // Use the higher of optimistic or stream count to ensure we never show a lower count
-    // This provides instant feedback while the stream catches up
-    final orderCount = optimisticCount > streamCount
-        ? optimisticCount
-        : streamCount;
-
-    // Sync optimistic count with actual stream count when stream updates
-    ref.listen(transactionItemsStreamProvider(transactionId: transaction.id), (
-      previous,
-      next,
-    ) {
-      next.whenData((items) {
-        // Sync with total quantity, not just list length
-        final totalQty = items
-            .fold<double>(0.0, (sum, item) => sum + (item.qty.toDouble()))
-            .toInt();
-        ref.read(optimisticOrderCountProvider.notifier).syncWith(totalQty);
-      });
-    });
 
     return ViewModelBuilder<OrderingViewModel>.reactive(
       viewModelBuilder: () => OrderingViewModel(),

@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
+import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_dashboard/features/config/widgets/system_config_modal.dart';
@@ -62,6 +63,9 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
     UmusadaHelper.handleOrderingFlow(context, () {
       try {
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
+        // Rebind the keepAlive cart providers to the purchase cart before the
+        // ordering screen builds (see [posCartIsExpenseProvider]).
+        syncPosCartIsExpenseWidget(ref);
         locator<RouterService>().navigateTo(OrdersRoute());
       } catch (e) {
         debugPrint('$e');
