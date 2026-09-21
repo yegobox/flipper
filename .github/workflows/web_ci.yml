@@ -90,20 +90,14 @@ jobs:
       - name: Bootstrap melos
         run: dart run melos bootstrap
 
-      # Same secret files release.yml materialises. These are gitignored, so the
-      # append creates them. Without this the web build cannot compile.
-      - name: Configure missing files
-        shell: bash
+      # Non-secret stand-ins, NOT Actions secrets. The steps below run
+      # pull-request code, so no live credential should exist in this job.
+      # This is also what lets fork PRs build at all, since GitHub withholds
+      # secrets from them. See .github/ci-fixtures/README.md.
+      - name: Install CI fixtures for gitignored sources
         run: |
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
-          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-        env:
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          cp .github/ci-fixtures/models_secrets.dart packages/flipper_models/lib/secrets.dart
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_web/lib/core/secrets.dart
 
       - name: Unit tests
         working-directory: apps/${{ matrix.app }}

@@ -44,8 +44,7 @@ jobs:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -120,8 +119,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -260,8 +258,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -358,8 +355,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -456,8 +452,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }} # Use a token with repo scope for releases
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -595,8 +590,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
-          persist-credentials: true  # Keep this for checkout
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -742,8 +736,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
-          persist-credentials: true  # Keep this for checkout
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -925,8 +918,7 @@ jobs:
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
@@ -1325,8 +1317,7 @@ jobs:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false  # submodules are public; nothing after checkout needs a credential
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive

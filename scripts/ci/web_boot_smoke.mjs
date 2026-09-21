@@ -27,6 +27,12 @@ const IGNORE = [
   /favicon\.ico/i,
   /net::ERR_INTERNET_DISCONNECTED/i,
   /Failed to load resource.*\/assets\/AssetManifest/i,
+  // CI builds with non-secret fixtures whose endpoints use the reserved
+  // .invalid TLD, so every backend call is designed to fail DNS. These jobs
+  // verify the app shell compiles and boots; backend reachability is not in
+  // scope for them and belongs in a credentialed post-merge workflow.
+  /ci-fixture\.invalid/,
+  /net::ERR_NAME_NOT_RESOLVED/i,
 ];
 
 const ignored = (text) => IGNORE.some((re) => re.test(text));
