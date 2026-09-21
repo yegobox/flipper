@@ -45,36 +45,41 @@ class PaymentPrimaryButton extends StatelessWidget {
           child: InkWell(
             onTap: disabled ? null : onPressed,
             borderRadius: BorderRadius.circular(PaymentTokens.rMd),
-            child: Center(
-              child: loading
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          loadingLabel ?? 'Processing…',
-                          style: PaymentTypography.primaryButton(),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (icon != null) ...[
-                          Icon(icon, size: 20, color: Colors.white),
-                          const SizedBox(width: 10),
-                        ],
-                        Text(label, style: PaymentTypography.primaryButton()),
-                      ],
+            // The label ellipsises rather than overflowing: this button sits
+            // in a 286–380px rail, and a label like "Charge 1,250,000 RWF by
+            // Mobile Money" is wider than that. The handover does the same
+            // (`overflow: hidden; text-overflow: ellipsis`).
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (loading) ...[
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
                     ),
+                    const SizedBox(width: 10),
+                  ] else if (icon != null) ...[
+                    Icon(icon, size: 20, color: Colors.white),
+                    const SizedBox(width: 10),
+                  ],
+                  Flexible(
+                    child: Text(
+                      loading ? (loadingLabel ?? 'Processing…') : label,
+                      style: PaymentTypography.primaryButton(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

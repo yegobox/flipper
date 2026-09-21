@@ -291,6 +291,17 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           ),
         ],
       ],
+    ];
+  }
+
+  /// The sticky rail: what the chosen plan costs, how it is split, and the
+  /// button that starts it. On a narrow window these fall back under the plan
+  /// tiles in the order they are listed here, which is the order they were in
+  /// before the rail existed.
+  List<Widget> _buildAsideChildren() {
+    final template = _selectedTemplate;
+
+    return [
       if (template != null)
         PaymentTotalCard(
           total: _totalPrice,
@@ -316,6 +327,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         total: _totalPrice,
       ),
       Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PaymentPrimaryButton(
             label: 'Proceed to Payment',
@@ -352,6 +364,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       overlay: _isProceeding
           ? const PaymentLoadingOverlay(message: 'Setting up your plan…')
           : null,
+      aside: _buildAsideChildren(),
       children: _buildContentChildren(),
     );
   }
