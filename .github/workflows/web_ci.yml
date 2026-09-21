@@ -1,0 +1,138 @@
+# PR-time coverage for the web apps.
+#
+# Before this workflow, `flutter build web --release` ran only in release.yml,
+# so a change could break Books or HR on the web and nothing said so until a
+# release. This runs on every PR: unit tests, a release build, and a real
+# headless-Chrome boot check of the built bundle.
+name: Web CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in step with release.yml so CI and release build identically.
+  FLUTTER_VERSION: "3.44.9"
+  FLUTTER_TEST_CI: true
+
+jobs:
+  # Cheap guard for the local-dev dwds patch (scripts/patch_dwds_timeout.sh).
+  # Web release builds do not use dwds, so this never blocks shipping — it
+  # exists so a Flutter bump that moves dwds tells us immediately, instead of
+  # someone rediscovering the 20s Debugger.enable timeout mid-debug.
+  dwds-guard:
+    name: dwds patch still applies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Verify dwds patch target
+        run: ./scripts/patch_dwds_timeout.sh --ci
+
+  web:
+    name: ${{ matrix.app }} (test, build, boot)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [flipper_web, flipper_hr]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
+      # Same secret files release.yml materialises. These are gitignored, so the
+      # append creates them. Without this the web build cannot compile.
+      - name: Configure missing files
+        shell: bash
+        run: |
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$SECRETS" >> apps/flipper_web/lib/core/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+        env:
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+
+      - name: Unit tests
+        working-directory: apps/${{ matrix.app }}
+        run: flutter test --dart-define=FLUTTER_TEST_ENV=true
+
+      # dart2js only, matching release.yml: dual-target WASM serves main.dart.mjs
+      # to Chrome and the Ditto DQL read-after-write cold start breaks
+      # replication bootstrap. Keep these two in step.
+      - name: Build web (release)
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          flutter build web --release
+          test -f build/web/main.dart.js
+          rm -f build/web/main.dart.mjs build/web/main.dart.wasm
+
+      - name: Install smoke test deps
+        run: npm install --no-save puppeteer@24
+
+      - name: Boot smoke test in headless Chrome
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          python3 -m http.server 8080 --directory build/web &
+          server_pid=$!
+          trap 'kill $server_pid 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/ >/dev/null && break
+            sleep 1
+          done
+          node "$GITHUB_WORKSPACE/scripts/ci/web_boot_smoke.mjs" \
+            http://127.0.0.1:8080 \
+            --screenshot "$GITHUB_WORKSPACE/boot-${{ matrix.app }}.png"
+
+      - name: Upload boot screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot-${{ matrix.app }}
+          path: boot-${{ matrix.app }}.png
+          if-no-files-found: ignore
