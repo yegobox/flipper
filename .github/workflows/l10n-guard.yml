@@ -1,0 +1,68 @@
+name: l10n source guard
+
+# `app_en.arb` is the template every FlipperAppLocalizations getter is
+# generated from. When it is emptied, nothing fails until a Dart build runs —
+# and a Crowdin PR runs only the CodeQL scanners, so PR #540 merged an empty
+# `app_en.arb` with every check green and broke the Windows build on main.
+#
+# This is the cheap check that would have caught it: seconds, no toolchain.
+
+on:
+  pull_request:
+    paths:
+      - packages/flipper_localize/lib/l10n/**
+      - crowdin.yml
+      - .github/workflows/l10n-crowdin.yml
+      - .github/workflows/l10n-guard.yml
+  push:
+    branches: [main, v4]
+    paths:
+      - packages/flipper_localize/lib/l10n/**
+
+permissions:
+  contents: read
+
+jobs:
+  source-arb-intact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: The source ARB must not be empty or gutted
+        env:
+          ARB: packages/flipper_localize/lib/l10n/app_en.arb
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+
+          python3 - "$ARB" <<'PY'
+          import json, sys
+          path = sys.argv[1]
+          with open(path) as fh:
+              data = json.load(fh)
+          keys = [k for k in data if not k.startswith('@')]
+          print(f"{path}: {len(keys)} message keys")
+          if not keys:
+              sys.exit(
+                  f"::error file={path}::{path} has no message keys. It is the "
+                  "template FlipperAppLocalizations is generated from, so every "
+                  "l10n getter would vanish and the Dart build would fail. This "
+                  "is what Crowdin does when English is a target language: the "
+                  "translation pattern app_%two_letters_code%.arb resolves to "
+                  "the source file itself."
+              )
+          PY
+
+          # A large drop is the same failure arriving quietly. Compare against
+          # the base so a deliberate rename of a few keys still passes.
+          if [ -n "${BASE:-}" ] && git cat-file -e "$BASE:$ARB" 2>/dev/null; then
+            before=$(git show "$BASE:$ARB" | python3 -c 'import json,sys; print(len([k for k in json.load(sys.stdin) if not k.startswith("@")]))')
+            after=$(python3 -c 'import json,sys; print(len([k for k in json.load(open(sys.argv[1])) if not k.startswith("@")]))' "$ARB")
+            echo "base $before keys → head $after keys"
+            if [ "$before" -gt 0 ] && [ "$after" -lt $(( before * 9 / 10 )) ]; then
+              echo "::error file=$ARB::$ARB dropped from $before to $after keys (>10%). If that is intended, say so in the PR and remove the keys from the code in the same change."
+              exit 1
+            fi
+          fi
