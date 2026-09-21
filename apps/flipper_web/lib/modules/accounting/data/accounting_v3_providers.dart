@@ -8,6 +8,9 @@ import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
+import 'package:flipper_web/modules/accounting/data/fiscal_period_models.dart';
+import 'package:flipper_web/modules/accounting/data/repository/accounting_periods_repository.dart';
+import 'package:flipper_web/modules/accounting/data/repository/ditto_accounting_periods_repository.dart';
 import 'package:flipper_web/modules/accounting/data/party_models.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_documents_repository.dart';
 import 'package:flipper_web/modules/accounting/data/repository/accounting_recurring_repository.dart';
@@ -199,7 +202,87 @@ AuditEntry auditEntryFromRow(Map<String, dynamic> row) {
 
 final teamExtraProvider = StateProvider<List<TeamMember>>((ref) => []);
 
-final periodCloseLockedProvider = StateProvider<bool>((ref) => false);
+/// Periods are read and written through Ditto whatever `ACCOUNTING_BACKEND`
+/// says. Ditto is the authoritative accounting store and data-connector mirrors
+/// it into Postgres; the `fiscal_periods` table deliberately grants
+/// `authenticated` SELECT only, so a client cannot write a period lock
+/// directly. Books closing a period therefore goes through Ditto, and the
+/// mirror carries it to Postgres as service_role.
+final accountingPeriodsRepositoryProvider =
+    Provider<AccountingPeriodsRepository>((ref) {
+  return DittoAccountingPeriodsRepository(ref.watch(dittoServiceProvider));
+});
+
+/// Every fiscal period recorded for the business.
+final fiscalPeriodsProvider = StreamProvider<List<FiscalPeriod>>((ref) {
+  ref.watch(dittoReadyProvider);
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty) return Stream.value(const <FiscalPeriod>[]);
+  return ref
+      .watch(accountingPeriodsRepositoryProvider)
+      .watchPeriods(businessId: businessId);
+});
+
+/// The period the close screen acts on: the month the selected range ends in.
+///
+/// A month nobody has closed has no row, which is not an error -- it is an open
+/// period, so a missing row degrades to open rather than failing closed.
+final currentFiscalPeriodProvider = Provider<FiscalPeriod>((ref) {
+  final (_, end) = ref.watch(accountingDateRangeProvider);
+  final label = ref.watch(accountingPeriodLabelProvider);
+  final key = FiscalPeriod.keyFor(end);
+
+  final periods = ref.watch(fiscalPeriodsProvider).asData?.value ?? const [];
+  for (final p in periods) {
+    if (p.key == key) return p;
+  }
+  return FiscalPeriod.openMonth(end, name: label);
+});
+
+/// Whether the current period is closed.
+///
+/// Was a `StateProvider<bool>` that reset on reload, was shared with nobody and
+/// enforced nothing. It is now derived from the stored period.
+final periodCloseLockedProvider = Provider<bool>((ref) {
+  return ref.watch(currentFiscalPeriodProvider).isClosed;
+});
+
+/// Closes the current period, or reopens it.
+///
+/// Returns the period as written so the caller can report what happened;
+/// throws if the write fails, so the UI never claims a close that did not
+/// persist -- the failure mode the in-memory flag had by construction.
+Future<FiscalPeriod> setCurrentPeriodClosed(
+  WidgetRef ref, {
+  required bool closed,
+  required String actor,
+  String? reopenReason,
+}) async {
+  final businessId = ref.read(accountingBusinessIdProvider);
+  if (businessId.isEmpty) {
+    throw StateError('No business selected; cannot change the period.');
+  }
+  final current = ref.read(currentFiscalPeriodProvider);
+  final now = DateTime.now().toUtc();
+
+  final next = closed
+      ? current.copyWith(
+          status: FiscalPeriodStatus.closed,
+          closedAt: now,
+          closedBy: actor,
+        )
+      : current.copyWith(
+          status: FiscalPeriodStatus.open,
+          reopenedAt: now,
+          reopenedBy: actor,
+          reopenReason: reopenReason,
+        );
+
+  await ref
+      .read(accountingPeriodsRepositoryProvider)
+      .upsertPeriod(businessId: businessId, period: next);
+  return next;
+}
 
 final periodCloseTaskOverridesProvider = StateProvider<Map<String, bool>>(
   (ref) => {},
