@@ -50,15 +50,23 @@ if command -v realpath >/dev/null 2>&1; then
 fi
 FLUTTER_ROOT="$(cd "$(dirname "$flutter_bin")/.." && pwd)"
 
+# Resolving dwds has to work in two very different places:
+#
+#   * a dev machine, where flutter_tools has been built from source and its
+#     .dart_tool/package_config.json names the exact resolved path, and
+#   * CI, where Flutter ships a prebuilt snapshot, flutter_tools was never
+#     pub-got, and that file does not exist at all.
+#
+# packages/flutter_tools/pubspec.yaml pins dwds to an exact version and is
+# present in every Flutter checkout, so it is the reliable source. The
+# package_config is preferred when present because it also survives any local
+# dependency override.
 pkg_config="$FLUTTER_ROOT/packages/flutter_tools/.dart_tool/package_config.json"
-if [ ! -f "$pkg_config" ]; then
-  info "priming flutter_tools package config..."
-  flutter --version >/dev/null 2>&1 || true
-fi
-[ -f "$pkg_config" ] || die "cannot find $pkg_config"
+tools_pubspec="$FLUTTER_ROOT/packages/flutter_tools/pubspec.yaml"
 
-# Ask flutter_tools which dwds it actually resolves — never guess the version.
-dwds_root="$(python3 - "$pkg_config" <<'PY'
+dwds_root=""
+if [ -f "$pkg_config" ]; then
+  dwds_root="$(python3 - "$pkg_config" <<'PY'
 import json, sys, urllib.parse
 cfg = json.load(open(sys.argv[1]))
 for pkg in cfg.get("packages", []):
@@ -68,24 +76,46 @@ for pkg in cfg.get("packages", []):
         break
 PY
 )"
-[ -n "$dwds_root" ] || die "dwds not found in $pkg_config"
+fi
+
+if [ -n "$dwds_root" ]; then
+  dwds_version="$(basename "$dwds_root")"
+else
+  [ -f "$tools_pubspec" ] || die "cannot find $tools_pubspec"
+  pinned="$(grep -oE '^[[:space:]]*dwds:[[:space:]]*[0-9][0-9A-Za-z.+-]*' "$tools_pubspec" \
+            | head -1 | awk '{print $2}')"
+  [ -n "$pinned" ] || die "no exact dwds pin in $tools_pubspec"
+  dwds_version="dwds-$pinned"
+  dwds_root="$HOME/.pub-cache/hosted/pub.dev/$dwds_version"
+fi
 
 target="$dwds_root/lib/src/debugging/webkit_debugger.dart"
-[ -f "$target" ] || die "missing $target (dwds layout changed?)"
-
-dwds_version="$(basename "$dwds_root")"
 info "dwds: $dwds_version"
 
-current="$(grep -oE 'enable\(\)\.timeout\(const Duration\(seconds: [0-9]+\)\)' "$target" | grep -oE '[0-9]+' || true)"
-[ -n "$current" ] || die "timeout call not found in $target — dwds internals changed, re-derive the patch"
+# On CI the dwds sources are usually absent from pub-cache, because
+# flutter_tools was never pub-got. That is not an error: --ci still verifies
+# the version pin, which is what drift detection actually needs.
+have_source=0
+current=""
+if [ -f "$target" ]; then
+  have_source=1
+  current="$(grep -oE 'enable\(\)\.timeout\(const Duration\(seconds: [0-9]+\)\)' "$target" | grep -oE '[0-9]+' || true)"
+  [ -n "$current" ] || die "timeout call not found in $target — dwds internals changed, re-derive the patch"
+elif [ "$MODE" != "--ci" ]; then
+  die "dwds sources not found at $target — run 'flutter run -d chrome' once to populate pub-cache"
+fi
 
 case "$MODE" in
   --ci)
     # CI installs a pristine Flutter, so the patch is never applied there and
     # asking "is it patched?" would always fail. What CI checks instead is that
-    # the patch remains APPLICABLE: the call site still exists (already
-    # validated above, we die otherwise) and dwds has not moved underneath us.
-    info "call site present, stock timeout is ${current}s"
+    # the patch remains APPLICABLE: dwds has not moved underneath us, and the
+    # call site still looks right wherever the sources are available.
+    if [ "$have_source" = "1" ]; then
+      info "call site present, stock timeout is ${current}s"
+    else
+      info "dwds sources not in pub-cache (normal on CI) — checking the version pin only"
+    fi
     if [ "$dwds_version" != "$EXPECTED_DWDS" ]; then
       cat >&2 <<MSG
 

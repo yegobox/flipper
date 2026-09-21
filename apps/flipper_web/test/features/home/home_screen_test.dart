@@ -50,7 +50,10 @@ void main() {
       expect(find.text('See how it works'), findsOneWidget);
       expect(find.text('RRA / EBM-ready'), findsOneWidget);
 
-      expect(find.textContaining('Built for Rwandan businesses'), findsOneWidget);
+      expect(
+        find.textContaining('Built for businesses everywhere'),
+        findsOneWidget,
+      );
       expect(find.textContaining('Real-time'), findsWidgets);
       expect(find.textContaining('12,400+'), findsWidgets);
 
