@@ -4,6 +4,7 @@ import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flipper_web/core/localization/locale_provider.dart';
+import 'package:flipper_web/core/payments_endpoint_config.dart';
 import 'package:flipper_web/router/router_provider.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/foundation.dart';
@@ -58,6 +59,7 @@ Future<void> main() async {
       '[flipper_web] startup: Supabase ready; Ditto initializes after login',
     );
     AccountingBackendConfig.logStartupConfig();
+    PaymentsEndpointConfig.apply();
 
     runApp(const ProviderScope(child: MyApp()));
     WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -8,6 +8,7 @@ export 'payment_hero_badge.dart';
 export 'payment_input.dart';
 export 'payment_loading_overlay.dart';
 export 'payment_momo_card.dart';
+export 'payment_payer_tile.dart';
 export 'payment_plan_tile.dart';
 export 'payment_rail_selector.dart';
 export 'payment_primary_button.dart';

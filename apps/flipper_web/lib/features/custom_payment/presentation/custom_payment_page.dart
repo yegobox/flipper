@@ -85,228 +85,316 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
     final cardAvailable =
         ref.watch(customPaymentCardAvailableProvider).value ?? false;
 
+    // The two-column rail only makes sense while the operator is filling the
+    // form. The access gate and the settled receipt are self-contained blocks
+    // that read better centred, so they stay single-column.
+    final member = staff.value;
+    final settled = payment.isSettled && payment.view != null;
+    final showForm = staff.hasValue && member != null && !settled;
+
     return PaymentScreenShell(
       key: const Key('custom-payment-page'),
       title: 'Custom payment',
       showBack: true,
       onBack: () => context.go('/accounting'),
+      badge: dodoBuildMode == 'test'
+          ? const PaymentHeaderBadge(label: 'TEST')
+          : null,
       overlay: payment.stage == CustomPaymentStage.submitting
           ? PaymentLoadingOverlay(message: payment.message ?? 'One moment…')
           : null,
-      children: [
-        staff.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.all(40),
-            child: PaymentCenterLoading(message: 'Checking access…'),
-          ),
-          error: (error, _) => _Gate(
-            key: const Key('custom-payment-gate'),
-            message: 'Could not check staff access: ${_describe(error)}',
-          ),
-          data: (member) => member == null
-              ? const _Gate(
-                  key: Key('custom-payment-gate'),
-                  message:
-                      'This page is for billing staff. Ask an '
-                      'administrator to add you to the billing staff list.',
-                )
-              : _buildForm(
-                  context,
-                  staffName: member.displayName,
-                  payment: payment,
-                  cardAvailable: cardAvailable,
+      aside: showForm
+          ? _asideBlocks(
+              context,
+              payment: payment,
+              cardAvailable: cardAvailable,
+            )
+          : null,
+      children: showForm
+          ? _formBlocks(
+              context,
+              staffName: member.displayName,
+              payment: payment,
+              cardAvailable: cardAvailable,
+            )
+          : [
+              staff.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: PaymentCenterLoading(message: 'Checking access…'),
                 ),
-        ),
-      ],
+                error: (error, _) => _Gate(
+                  key: const Key('custom-payment-gate'),
+                  message: 'Could not check staff access: ${_describe(error)}',
+                ),
+                data: (member) => member == null
+                    ? const _Gate(
+                        key: Key('custom-payment-gate'),
+                        message:
+                            'This page is for billing staff. Ask an '
+                            'administrator to add you to the billing staff list.',
+                      )
+                    : _SettledCard(
+                        view: payment.view!,
+                        onNewPayment: () {
+                          ref
+                              .read(customPaymentControllerProvider.notifier)
+                              .reset();
+                          setState(() {
+                            _business = null;
+                            _amountController.clear();
+                            _noteController.clear();
+                          });
+                        },
+                      ),
+              ),
+            ],
     );
   }
 
-  Widget _buildForm(
+  CustomPaymentRail _effectiveRail(bool cardAvailable) =>
+      cardAvailable ? _rail : CustomPaymentRail.momo;
+
+  String get _periodSuffix =>
+      _cadence == CustomPaymentCadence.yearly ? '/year' : '/month';
+
+  /// The form column.
+  List<Widget> _formBlocks(
     BuildContext context, {
     String? staffName,
     required CustomPaymentState payment,
     required bool cardAvailable,
   }) {
-    final rail = cardAvailable ? _rail : CustomPaymentRail.momo;
+    final rail = _effectiveRail(cardAvailable);
     final locked = payment.isBusy;
 
-    if (payment.isSettled && payment.view != null) {
-      return _SettledCard(
-        view: payment.view!,
-        onNewPayment: () {
-          ref.read(customPaymentControllerProvider.notifier).reset();
-          setState(() {
-            _business = null;
-            _amountController.clear();
-            _noteController.clear();
-          });
-        },
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PaymentIntroBlock(
-          title: 'Negotiated price',
-          subtitle:
-              'Charge the amount agreed with the customer. It becomes '
-              'their recurring price, and whatever they were on before stops '
-              'billing.${staffName == null ? '' : ' Signed in as $staffName.'}',
-        ),
-        const SizedBox(height: PaymentTokens.blockGap),
-        const PaymentSectionLabel('Business'),
-        if (_business == null) ...[
-          PaymentInput(
-            key: const Key('custom-payment-search'),
-            controller: _searchController,
-            hintText: 'Search by name, phone, email or id',
-            leadingIcon: FluentIcons.search_20_regular,
-            onChanged: _onSearchChanged,
-            autofocus: true,
-          ),
+    return [
+      PaymentIntroBlock(
+        title: 'Negotiated price',
+        subtitle:
+            'Charge the amount agreed with the customer. It becomes '
+            'their recurring price, and whatever they were on before stops '
+            'billing.${staffName == null ? '' : ' Signed in as $staffName.'}',
+      ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const PaymentSectionLabel('Business'),
           const SizedBox(height: 8),
-          _SearchResults(query: _query, onPick: _pick),
-        ] else
-          _BusinessChip(
-            key: const Key('custom-payment-business'),
-            business: _business!,
-            onChange: locked ? null : () => setState(() => _business = null),
+          if (_business == null) ...[
+            PaymentInput(
+              key: const Key('custom-payment-search'),
+              controller: _searchController,
+              hintText: 'Search by name, phone, email or id',
+              leadingIcon: FluentIcons.search_20_regular,
+              onChanged: _onSearchChanged,
+              autofocus: true,
+              trailing: _searchController.text.isEmpty
+                  ? null
+                  : PaymentInputClearButton(
+                      onPressed: () => setState(() {
+                        _searchController.clear();
+                        _query = '';
+                      }),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            _SearchResults(query: _query, onPick: _pick),
+          ] else
+            _BusinessChip(
+              key: const Key('custom-payment-business'),
+              business: _business!,
+              onChange: locked ? null : () => setState(() => _business = null),
+            ),
+        ],
+      ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const PaymentSectionLabel('Agreed amount'),
+          const SizedBox(height: 8),
+          PaymentInput(
+            key: const Key('custom-payment-amount'),
+            controller: _amountController,
+            hintText: 'Amount in RWF per period',
+            leadingIcon: FluentIcons.money_20_regular,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            mono: true,
+            suffixText: _periodSuffix,
+            onChanged: (_) => setState(() {}),
           ),
-        const SizedBox(height: PaymentTokens.blockGap),
-        const PaymentSectionLabel('Agreed amount'),
-        PaymentInput(
-          key: const Key('custom-payment-amount'),
-          controller: _amountController,
-          hintText: 'Amount in RWF per period',
-          leadingIcon: FluentIcons.money_20_regular,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (_) => setState(() {}),
-        ),
-        if (_amount > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 4),
-            child: Text(
-              '${formatPaymentRwf(_amount)} RWF ${_cadence == CustomPaymentCadence.yearly ? 'per year' : 'per month'}',
-              style: PaymentTypography.hint(),
+          const SizedBox(height: 12),
+          IgnorePointer(
+            ignoring: locked,
+            child: PaymentCadenceSegment(
+              cadence: _cadence == CustomPaymentCadence.yearly
+                  ? BillingCadence.yearly
+                  : BillingCadence.monthly,
+              cadences: const [BillingCadence.monthly, BillingCadence.yearly],
+              yearlyDiscountPercent: 0,
+              onChanged: (value) => setState(() {
+                _cadence = value == BillingCadence.yearly
+                    ? CustomPaymentCadence.yearly
+                    : CustomPaymentCadence.monthly;
+              }),
             ),
           ),
-        const SizedBox(height: 12),
-        IgnorePointer(
-          ignoring: locked,
-          child: PaymentCadenceSegment(
-            cadence: _cadence == CustomPaymentCadence.yearly
-                ? BillingCadence.yearly
-                : BillingCadence.monthly,
-            cadences: const [BillingCadence.monthly, BillingCadence.yearly],
-            yearlyDiscountPercent: 0,
-            onChanged: (value) => setState(() {
-              _cadence = value == BillingCadence.yearly
-                  ? CustomPaymentCadence.yearly
-                  : CustomPaymentCadence.monthly;
-            }),
-          ),
-        ),
-        const SizedBox(height: PaymentTokens.blockGap),
-        const PaymentSectionLabel('Customer pays with'),
-        if (cardAvailable)
-          PaymentRailSelector(
-            key: const Key('custom-payment-rail'),
-            rail: rail.isCard ? PaymentRail.card : PaymentRail.mtnMomo,
-            enabled: !locked,
-            onChanged: (value) => setState(() {
-              _rail = value.isCard
-                  ? CustomPaymentRail.card
-                  : CustomPaymentRail.momo;
-            }),
-          ),
-        if (cardAvailable) const SizedBox(height: 12),
-        if (rail.isMomo)
-          PaymentMobileMoneyCard(
-            key: const Key('custom-payment-phone'),
-            useDifferentNumber: true,
-            onUseDifferentChanged: (_) {},
-            phoneController: _phoneController,
-            onPhoneChanged: (_) => setState(() {}),
-            phoneError:
-                _phoneController.text.isNotEmpty &&
-                    !MomoMsisdn.isPlausible(_phoneController.text)
-                ? 'Enter a valid Mobile Money number, e.g. 0788123456.'
-                : null,
-          )
-        else
-          PaymentCardCheckoutCard(
-            key: const Key('custom-payment-card'),
-            emailController: _emailController,
-            onEmailChanged: (_) => setState(() {}),
-            isTestMode: dodoBuildMode == 'test',
-            pendingCheckoutLink: payment.checkoutLink,
-            onOpenPendingLink: payment.checkoutLink == null
-                ? null
-                : () => _openLink(payment.checkoutLink!),
-          ),
-        if (rail.isCard && payment.checkoutLink != null) ...[
-          const SizedBox(height: 8),
-          _LinkRow(
-            key: const Key('custom-payment-link'),
-            link: payment.checkoutLink!,
-            onCopy: () => _copy(context, payment.checkoutLink!, 'Link copied'),
-            onOpen: () => _openLink(payment.checkoutLink!),
-          ),
         ],
-        const SizedBox(height: 12),
-        PaymentInput(
-          key: const Key('custom-payment-note'),
-          controller: _noteController,
-          hintText: 'Note for the record (optional)',
-          leadingIcon: FluentIcons.note_20_regular,
+      ),
+      if (cardAvailable)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PaymentSectionLabel('Customer pays with'),
+            const SizedBox(height: 8),
+            PaymentRailSelector(
+              key: const Key('custom-payment-rail'),
+              rail: rail.isCard ? PaymentRail.card : PaymentRail.mtnMomo,
+              enabled: !locked,
+              onChanged: (value) => setState(() {
+                _rail = value.isCard
+                    ? CustomPaymentRail.card
+                    : CustomPaymentRail.momo;
+              }),
+            ),
+          ],
         ),
-        const SizedBox(height: PaymentTokens.blockGap),
-        _StageBanner(payment: payment),
-        if (payment.inFlight != null)
-          _InFlightNote(inFlight: payment.inFlight!),
-        PaymentPrimaryButton(
-          key: const Key('custom-payment-submit'),
-          label: rail.isCard
-              ? 'Create card payment link'
-              : 'Charge ${formatPaymentRwf(_amount)} RWF by Mobile Money',
-          loading: locked,
-          loadingLabel: payment.stage == CustomPaymentStage.awaitingApproval
-              ? "Waiting for the customer's approval…"
-              : payment.stage == CustomPaymentStage.awaitingCheckout
-              ? 'Waiting for the card payment…'
-              : 'Starting…',
-          onPressed: locked || _business == null || _amount <= 0
+      if (rail.isMomo)
+        PaymentMobileMoneyCard(
+          key: const Key('custom-payment-phone'),
+          useDifferentNumber: true,
+          onUseDifferentChanged: (_) {},
+          phoneController: _phoneController,
+          onPhoneChanged: (_) => setState(() {}),
+          phoneError:
+              _phoneController.text.isNotEmpty &&
+                  !MomoMsisdn.isPlausible(_phoneController.text)
+              ? 'Enter a valid Mobile Money number, e.g. 0788123456.'
+              : null,
+        )
+      else
+        PaymentCardCheckoutCard(
+          key: const Key('custom-payment-card'),
+          emailController: _emailController,
+          onEmailChanged: (_) => setState(() {}),
+          isTestMode: dodoBuildMode == 'test',
+          pendingCheckoutLink: payment.checkoutLink,
+          onOpenPendingLink: payment.checkoutLink == null
               ? null
-              : () => _confirmAndSubmit(context, rail),
+              : () => _openLink(payment.checkoutLink!),
         ),
-        if (payment.stage == CustomPaymentStage.failed ||
-            payment.stage == CustomPaymentStage.timedOut) ...[
-          const SizedBox(height: 8),
-          PaymentSecondaryButton(
-            key: const Key('custom-payment-retry'),
-            label: payment.stage == CustomPaymentStage.timedOut
-                ? 'Check again'
-                : 'Start over',
-            onPressed: () {
-              final controller = ref.read(
-                customPaymentControllerProvider.notifier,
-              );
-              if (payment.stage == CustomPaymentStage.timedOut) {
-                controller.checkAgain();
-              } else {
-                controller.reset();
-              }
-            },
+      if (rail.isCard && payment.checkoutLink != null)
+        _LinkRow(
+          key: const Key('custom-payment-link'),
+          link: payment.checkoutLink!,
+          onCopy: () => _copy(context, payment.checkoutLink!, 'Link copied'),
+          onOpen: () => _openLink(payment.checkoutLink!),
+        ),
+      PaymentInput(
+        key: const Key('custom-payment-note'),
+        controller: _noteController,
+        hintText: 'Note for the record (optional)',
+        leadingIcon: FluentIcons.note_20_regular,
+      ),
+    ];
+  }
+
+  /// The sticky rail: what is about to be charged, and the button that does
+  /// it. Keeping the total and the call to action together, and in view while
+  /// the operator scrolls the form, is the point of the two-column layout —
+  /// nobody should be able to press Charge without the amount on screen.
+  List<Widget> _asideBlocks(
+    BuildContext context, {
+    required CustomPaymentState payment,
+    required bool cardAvailable,
+  }) {
+    final rail = _effectiveRail(cardAvailable);
+    final locked = payment.isBusy;
+    final cadenceLabel =
+        _cadence == CustomPaymentCadence.yearly ? 'Yearly' : 'Monthly';
+
+    return [
+      PaymentSummaryCard(
+        key: const Key('custom-payment-summary'),
+        rows: [
+          PaymentSummaryRow(
+            label: 'Business',
+            value: _business == null
+                ? 'Not selected'
+                : (_business!.name.isEmpty ? _business!.id : _business!.name),
+          ),
+          PaymentSummaryRow(
+            label: 'Billing period',
+            value: cadenceLabel,
+          ),
+          PaymentSummaryRow(
+            label: 'Pays with',
+            value: rail.isCard ? 'Card' : 'Mobile Money',
+          ),
+          PaymentSummaryRow(
+            label: 'Price per period',
+            value: '${formatPaymentRwf(_amount)} RWF',
+            mono: true,
+            highlight: true,
           ),
         ],
-        const SizedBox(height: 8),
-        PaymentCtaNote(
-          provider: rail.isCard ? 'Dodo Payments' : 'MTN Mobile Money',
-        ),
-      ],
-    );
+      ),
+      PaymentTotalCard(
+        key: const Key('custom-payment-total'),
+        total: _amount,
+        subtitle: 'Charged now, then every period',
+        cadence: _cadence == CustomPaymentCadence.yearly
+            ? BillingCadence.yearly
+            : BillingCadence.monthly,
+      ),
+      _StageBanner(payment: payment),
+      if (payment.inFlight != null) _InFlightNote(inFlight: payment.inFlight!),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PaymentPrimaryButton(
+            key: const Key('custom-payment-submit'),
+            label: rail.isCard
+                ? 'Create card payment link'
+                : 'Charge ${formatPaymentRwf(_amount)} RWF by Mobile Money',
+            loading: locked,
+            loadingLabel: payment.stage == CustomPaymentStage.awaitingApproval
+                ? "Waiting for the customer's approval…"
+                : payment.stage == CustomPaymentStage.awaitingCheckout
+                ? 'Waiting for the card payment…'
+                : 'Starting…',
+            onPressed: locked || _business == null || _amount <= 0
+                ? null
+                : () => _confirmAndSubmit(context, rail),
+          ),
+          if (payment.stage == CustomPaymentStage.failed ||
+              payment.stage == CustomPaymentStage.timedOut) ...[
+            const SizedBox(height: 8),
+            PaymentSecondaryButton(
+              key: const Key('custom-payment-retry'),
+              label: payment.stage == CustomPaymentStage.timedOut
+                  ? 'Check again'
+                  : 'Start over',
+              onPressed: () {
+                final controller = ref.read(
+                  customPaymentControllerProvider.notifier,
+                );
+                if (payment.stage == CustomPaymentStage.timedOut) {
+                  controller.checkAgain();
+                } else {
+                  controller.reset();
+                }
+              },
+            ),
+          ],
+          const SizedBox(height: 8),
+          PaymentCtaNote(
+            provider: rail.isCard ? 'Dodo Payments' : 'MTN Mobile Money',
+          ),
+        ],
+      ),
+    ];
   }
 
   Future<void> _confirmAndSubmit(
@@ -445,35 +533,20 @@ class _SearchResults extends ConsumerWidget {
                 style: PaymentTypography.hint(),
               ),
             )
-          : Container(
+          : Column(
               key: const Key('custom-payment-results'),
-              decoration: BoxDecoration(
-                color: PaymentTokens.surface,
-                border: Border.all(color: PaymentTokens.line),
-                borderRadius: BorderRadius.circular(PaymentTokens.rMd),
-              ),
-              // ListTile paints its ink on the nearest Material; give it one
-              // inside the decorated box so taps show and the assert stays quiet.
-              child: Material(
-                type: MaterialType.transparency,
-                child: Column(
-                  children: [
-                    for (final hit in hits)
-                      ListTile(
-                        key: Key('custom-payment-hit-${hit.id}'),
-                        dense: true,
-                        leading: const Icon(
-                          FluentIcons.building_shop_20_regular,
-                        ),
-                        title: Text(hit.name.isEmpty ? hit.id : hit.name),
-                        subtitle: hit.summary.isEmpty
-                            ? null
-                            : Text(hit.summary),
-                        onTap: () => onPick(hit),
-                      ),
-                  ],
-                ),
-              ),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final hit in hits) ...[
+                  PaymentPayerTile(
+                    key: Key('custom-payment-hit-${hit.id}'),
+                    name: hit.name.isEmpty ? hit.id : hit.name,
+                    subtitle: hit.summary.isEmpty ? hit.id : hit.summary,
+                    onTap: () => onPick(hit),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
             ),
     );
   }
