@@ -1,4 +1,5 @@
 import 'package:flipper_payments/flipper_payments.dart';
+import 'package:flipper_web/features/billing/data/books_payment_rails.dart';
 import 'package:flipper_web/features/billing/application/books_billing_providers.dart';
 import 'package:flipper_web/features/billing/application/books_subscription_controller.dart';
 import 'package:flipper_web/features/billing/data/books_entitlement.dart';
@@ -86,14 +87,39 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
         !payment.isBusy &&
         payment.stage != BooksPaymentStage.confirmed;
 
+    // The rail only appears once there is something to total up: a loaded
+    // catalogue with plans on sale, and a payment that has not already
+    // confirmed. Everything else is a single centred column.
+    final showChooser = !(payment.isConfirmed || unlocked);
+    final vm = showChooser && catalog.hasValue
+        ? _chooserVm(
+            catalog: catalog.value!,
+            access: access,
+            payment: payment,
+            cardAvailable: cardAvailable,
+          )
+        : null;
+
     return PaymentScreenShell(
       key: const Key('books-subscribe-page'),
       title: access.hasLapsed ? 'Renew your subscription' : 'Subscribe',
       showBack: true,
       onBack: () => context.go('/accounting'),
+      badge: ref.read(booksPaymentRailsProvider).isCardTestMode
+          ? const PaymentHeaderBadge(label: 'TEST')
+          : null,
       overlay: payment.stage == BooksPaymentStage.preparing
           ? PaymentLoadingOverlay(message: payment.message ?? 'One moment…')
           : null,
+      aside: vm == null
+          ? null
+          : _asideBlocks(
+              context,
+              vm: vm,
+              business: business,
+              branchId: branchId,
+              payment: payment,
+            ),
       children: [
         PaymentIntroBlock(
           title: business.name.isEmpty ? 'Flipper Books' : business.name,
@@ -101,7 +127,7 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
               'phone and the desktop app.',
         ),
         const SizedBox(height: PaymentTokens.blockGap),
-        if (payment.isConfirmed || unlocked)
+        if (!showChooser)
           _ConfirmedCard(
             message: payment.message ??
                 'Your subscription is active. Books is ready to open.',
@@ -117,47 +143,63 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
               actionLabel: 'Try again',
               onAction: () => ref.invalidate(booksCatalogProvider),
             ),
-            data: (catalog) => _buildChooser(
-              context,
-              catalog: catalog,
-              business: business,
-              branchId: branchId,
-              access: access,
-              payment: payment,
-              cardAvailable: cardAvailable,
-            ),
+            data: (_) => vm == null
+                ? const _Inline(message: 'No plans are on sale right now.')
+                : _buildChooser(
+                    context,
+                    vm: vm,
+                    payment: payment,
+                    cardAvailable: cardAvailable,
+                  ),
           ),
       ],
     );
   }
 
-  Widget _buildChooser(
-    BuildContext context, {
+
+  /// What the chooser and the sticky rail both need. Computed once in
+  /// `build`, because the total and the pay button now live in the shell's
+  /// aside while the plan tiles stay in the form column — two scopes, one
+  /// selection, and they must never disagree about the price.
+  _ChooserVm? _chooserVm({
     required SubscriptionPlanCatalog catalog,
-    required Business business,
-    required String? branchId,
     required BooksAccessState access,
     required BooksPaymentState payment,
     required bool cardAvailable,
   }) {
     final templates =
         catalog.templates.where((t) => !t.isEnterprise).toList(growable: false);
-    if (templates.isEmpty) {
-      return const _Inline(message: 'No plans are on sale right now.');
-    }
+    if (templates.isEmpty) return null;
 
     final template = _selectedTemplate(catalog, templates, access);
-    final selection = BooksPlanSelection(
+    return _ChooserVm(
+      templates: templates,
       template: template,
-      cadence: _cadence,
-      addonSlugs: _addonSlugs.toList(),
-      // Mobile always writes 0 here too; extra devices are not sold per seat.
-      additionalDevices: 0,
-      existing: access.plan,
+      selection: BooksPlanSelection(
+        template: template,
+        cadence: _cadence,
+        addonSlugs: _addonSlugs.toList(),
+        // Mobile always writes 0 here too; extra devices are not sold per seat.
+        additionalDevices: 0,
+        existing: access.plan,
+      ),
+      locked: payment.isBusy,
+      rails: ref.read(booksPaymentRailsProvider),
+      rail: cardAvailable ? _rail : PaymentRail.mtnMomo,
     );
-    final locked = payment.isBusy;
-    final rails = ref.read(booksPaymentRailsProvider);
-    final rail = cardAvailable ? _rail : PaymentRail.mtnMomo;
+  }
+
+  Widget _buildChooser(
+    BuildContext context, {
+    required _ChooserVm vm,
+    required BooksPaymentState payment,
+    required bool cardAvailable,
+  }) {
+    final templates = vm.templates;
+    final template = vm.template;
+    final locked = vm.locked;
+    final rails = vm.rails;
+    final rail = vm.rail;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,15 +255,6 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
             ),
         ],
         const SizedBox(height: PaymentTokens.blockGap),
-        PaymentTotalCard(
-          total: selection.totalRwf,
-          cadence: _cadence,
-          subtitle: paymentSelectionSubtitle(
-            planName: template.name,
-            addonNames: selection.addonNames,
-          ),
-        ),
-        const SizedBox(height: PaymentTokens.blockGap),
         const PaymentSectionLabel('Pay with'),
         if (cardAvailable)
           PaymentRailSelector(
@@ -253,7 +286,35 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
                 ? null
                 : () => _openLink(payment.checkoutLink!),
           ),
-        const SizedBox(height: PaymentTokens.blockGap),
+      ],
+    );
+  }
+
+  /// The sticky rail: the total and the button that charges it.
+  List<Widget> _asideBlocks(
+    BuildContext context, {
+    required _ChooserVm vm,
+    required Business business,
+    required String? branchId,
+    required BooksPaymentState payment,
+  }) {
+    final template = vm.template;
+    final selection = vm.selection;
+    final locked = vm.locked;
+    final rail = vm.rail;
+
+    return [
+      PaymentTotalCard(
+        total: selection.totalRwf,
+        cadence: _cadence,
+        subtitle: paymentSelectionSubtitle(
+          planName: template.name,
+          addonNames: selection.addonNames,
+        ),
+      ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         _StageBanner(payment: payment),
         PaymentPrimaryButton(
           key: const Key('books-subscribe-pay'),
@@ -290,8 +351,9 @@ class _BooksSubscribePageState extends ConsumerState<BooksSubscribePage> {
         PaymentCtaNote(
           provider: rail == PaymentRail.card ? 'Dodo Payments' : 'MTN Mobile Money',
         ),
-      ],
-    );
+        ],
+      ),
+    ];
   }
 
   SubscriptionPlanTemplate _selectedTemplate(
@@ -447,6 +509,25 @@ class _StageBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The plan selection shared by the form column and the sticky rail.
+class _ChooserVm {
+  const _ChooserVm({
+    required this.templates,
+    required this.template,
+    required this.selection,
+    required this.locked,
+    required this.rails,
+    required this.rail,
+  });
+
+  final List<SubscriptionPlanTemplate> templates;
+  final SubscriptionPlanTemplate template;
+  final BooksPlanSelection selection;
+  final bool locked;
+  final BooksPaymentRails rails;
+  final PaymentRail rail;
 }
 
 class _ConfirmedCard extends StatelessWidget {

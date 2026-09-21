@@ -403,6 +403,51 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                       ),
                     ],
                   ),
+                ),
+              // A close nobody can undo is not a close, it is a dead end. The
+              // reopen is recorded on the period (reopenedAt / reopenedBy) so
+              // it is auditable rather than indistinguishable from a period
+              // that was never closed.
+              if (locked)
+                AccountingButton(
+                  label: 'Reopen period',
+                  accIcon: AccIcon.shieldCheck,
+                  onPressed: () async {
+                    final messenger = context;
+                    try {
+                      await setCurrentPeriodClosed(
+                        ref,
+                        closed: false,
+                        actor: ref.read(accountingUserNameProvider),
+                        reopenReason: 'Reopened from the period close screen',
+                      );
+                    } catch (err) {
+                      if (!messenger.mounted) return;
+                      showAccountingToast(
+                        messenger,
+                        'Could not reopen the period',
+                        subtitle: err.toString(),
+                        accIcon: AccIcon.shieldCheck,
+                        tone: AccountingToastTone.warn,
+                      );
+                      return;
+                    }
+                    appendAuditLog(
+                      ref,
+                      action: 'reopened',
+                      target: period,
+                      detail: '$period reopened · entries are postable again',
+                      iconName: 'ShieldCheck',
+                    );
+                    if (!messenger.mounted) return;
+                    showAccountingToast(
+                      messenger,
+                      'Period reopened',
+                      subtitle: '$period is postable again',
+                      accIcon: AccIcon.shieldCheck,
+                      tone: AccountingToastTone.success,
+                    );
+                  },
                 )
               else
                 AccountingButton(
@@ -411,9 +456,28 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                   primary: true,
                   enabled: ready,
                   onPressed: ready
-                      ? () {
-                          ref.read(periodCloseLockedProvider.notifier).state =
-                              true;
+                      ? () async {
+                          final messenger = context;
+                          try {
+                            // Awaited, and the toast only fires on success:
+                            // the old flag claimed a close that lived in
+                            // memory and was gone on the next reload.
+                            await setCurrentPeriodClosed(
+                              ref,
+                              closed: true,
+                              actor: ref.read(accountingUserNameProvider),
+                            );
+                          } catch (err) {
+                            if (!messenger.mounted) return;
+                            showAccountingToast(
+                              messenger,
+                              'Could not close the period',
+                              subtitle: err.toString(),
+                              accIcon: AccIcon.shieldCheck,
+                              tone: AccountingToastTone.warn,
+                            );
+                            return;
+                          }
                           appendAuditLog(
                             ref,
                             action: 'closed',
@@ -422,8 +486,9 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                                 '$period locked · entries are now read-only',
                             iconName: 'ShieldCheck',
                           );
+                          if (!messenger.mounted) return;
                           showAccountingToast(
-                            context,
+                            messenger,
                             'Period closed',
                             subtitle:
                                 '$period locked · entries are now read-only',

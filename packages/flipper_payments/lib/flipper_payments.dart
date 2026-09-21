@@ -32,6 +32,11 @@ export 'src/dodo/dodo_client.dart';
 export 'src/dodo/dodo_models.dart';
 export 'src/dodo/dodo_subscription.dart';
 
+// ── staff / negotiated-price payments ──
+export 'src/custom/custom_payment_client.dart';
+export 'src/custom/custom_payment_models.dart';
+export 'src/custom/custom_payment_watcher.dart';
+
 // ── catalogue ──
 export 'src/catalog/billing_cadence.dart';
 export 'src/catalog/subscription_plan.dart';

@@ -97,6 +97,22 @@ mixin AccountingMixin on DittoCore {
     });
   }
 
+  Future<void> upsertFiscalPeriod(
+    String businessId,
+    Map<String, dynamic> data,
+    String docId,
+  ) async {
+    if (dittoInstance == null) {
+      return handleNotInitialized('upsertFiscalPeriod');
+    }
+    await executeUpsert('fiscal_periods', docId, {
+      ...data,
+      'businessId': businessId,
+      '_id': docId,
+      'id': docId,
+    });
+  }
+
   Future<void> deleteRecurringSchedule(String docId) async {
     if (dittoInstance == null) {
       return handleNotInitialized('deleteRecurringSchedule');

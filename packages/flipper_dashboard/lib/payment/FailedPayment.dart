@@ -813,6 +813,7 @@ class _FailedPaymentState extends State<FailedPayment>
       title: 'Payment Issue',
       showBack: false,
       actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
+      aside: _asideChildren(context),
       children: [
         FadeTransition(
           opacity: _fadeAnimation,
@@ -865,6 +866,15 @@ class _FailedPaymentState extends State<FailedPayment>
                 ? _buildCardSection()
                 : _buildPhoneNumberSection(),
           ),
+      ],
+    );
+  }
+
+  /// The sticky rail. Only the call to action and the help card move here:
+  /// the total lives inside the switch-plan card, where it means "this is
+  /// what the plan you are switching to costs" — pulled out of that card it
+  /// would read as the amount being retried, which it is not.
+  List<Widget> _asideChildren(BuildContext context) => [
         FadeTransition(
           opacity: _fadeAnimation,
           child: _buildRetryButton(context),
@@ -873,9 +883,7 @@ class _FailedPaymentState extends State<FailedPayment>
           opacity: _fadeAnimation,
           child: _buildHelpSection(),
         ),
-      ],
-    );
-  }
+      ];
 
   Widget _buildPaymentWaitingContent() {
     return Column(
