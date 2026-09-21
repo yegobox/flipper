@@ -72,7 +72,10 @@ cfg = json.load(open(sys.argv[1]))
 for pkg in cfg.get("packages", []):
     if pkg["name"] == "dwds":
         uri = pkg["rootUri"]
-        print(urllib.parse.urlparse(uri).path if uri.startswith("file://") else uri)
+        # urlparse keeps percent-encoding, so a path containing a space
+        # comes back as %20 and every later file test misses.
+        path = urllib.parse.urlparse(uri).path if uri.startswith("file://") else uri
+        print(urllib.parse.unquote(path))
         break
 PY
 )"

@@ -13,6 +13,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Least privilege: these jobs only read the repo and upload an artifact.
+permissions:
+  contents: read
+
 concurrency:
   group: web-ci-${{ github.ref }}
   cancel-in-progress: true
@@ -51,11 +55,14 @@ jobs:
       matrix:
         app: [flipper_web, flipper_hr]
     steps:
+      # No `token:` and no persisted credentials. Every submodule in
+      # .gitmodules is a public yegobox repo, so the default token suffices,
+      # and later steps run pull-request code — nothing should still be
+      # holding a credential by then.
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Force submodule update
         run: git submodule update --init --force --recursive
