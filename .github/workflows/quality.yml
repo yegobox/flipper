@@ -98,6 +98,12 @@ jobs:
         run: |
           cp .github/ci-fixtures/models_secrets.dart packages/flipper_models/lib/secrets.dart
           cp .github/ci-fixtures/web_secrets.dart apps/flipper_web/lib/core/secrets.dart
+          # apps/flipper_auth and apps/flipper are analyzed too, and both read
+          # gitignored files. Without these the analyzer reports
+          # URI_DOES_NOT_EXIST here and the baseline can never match a
+          # developer's machine, where the real files exist.
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_auth/lib/core/secrets.dart
+          cp .github/ci-fixtures/flipper_firebase_options.dart apps/flipper/lib/firebase_options.dart
 
       - name: Bootstrap melos
         run: dart run melos bootstrap
@@ -173,6 +179,12 @@ jobs:
         run: |
           cp .github/ci-fixtures/models_secrets.dart packages/flipper_models/lib/secrets.dart
           cp .github/ci-fixtures/web_secrets.dart apps/flipper_web/lib/core/secrets.dart
+          # apps/flipper_auth and apps/flipper are analyzed too, and both read
+          # gitignored files. Without these the analyzer reports
+          # URI_DOES_NOT_EXIST here and the baseline can never match a
+          # developer's machine, where the real files exist.
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_auth/lib/core/secrets.dart
+          cp .github/ci-fixtures/flipper_firebase_options.dart apps/flipper/lib/firebase_options.dart
 
       - name: Bootstrap melos
         run: dart run melos bootstrap

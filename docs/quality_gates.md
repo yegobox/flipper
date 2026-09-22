@@ -57,6 +57,19 @@ scripts/ci/format_changed.sh --fix
 A baseline bump with no explanation in the PR is the one thing that makes this
 whole system worthless. It is a ceiling, not a target.
 
+## The analyzer baseline is CI-authoritative
+
+Analyzer output depends on which files exist. `secrets.dart` and
+`firebase_options.dart` are gitignored, so a developer machine (real files) and
+a CI runner (none) can legitimately disagree. CI installs stand-ins from
+`.github/ci-fixtures/` to close that gap — that is why the fixture list covers
+`flipper_auth` and `flipper` as well as `flipper_web`.
+
+If `--update` locally produces different numbers from CI, **trust CI**: it is
+what enforces the gate. The job prints every package whose count moved with
+before → after figures, so the baseline can be reconciled from a run log
+without guessing.
+
 ## Known limitation
 
 The analyzer ratchet compares **counts**, not issue identities. You could

@@ -14,6 +14,18 @@
 # goes UP. Pre-existing issues stay legal; new ones cannot get in. When you fix
 # some, re-run with --update and the baseline drops, locking the gain in.
 #
+# THE BASELINE IS CI-AUTHORITATIVE
+# --------------------------------
+# Analyzer output depends on the environment. Several files this workspace
+# needs are gitignored (secrets.dart, firebase_options.dart), so a developer's
+# machine and a CI runner can legitimately disagree. CI installs stand-ins from
+# .github/ci-fixtures/ to close most of that gap, but if you run --update
+# locally and the numbers differ, TRUST CI: it is what enforces the gate.
+#
+# The "Analyzer ratchet" job prints every package whose count moved, with the
+# before -> after figures, so a baseline can always be reconciled from a run
+# log without guessing.
+#
 # Known limitation, stated plainly: this compares COUNTS, not identities. In
 # principle you could remove one warning and add a different one in the same
 # package and the ratchet would not notice. That trade buys immunity to file
