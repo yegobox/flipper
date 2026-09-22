@@ -14,6 +14,27 @@
 # goes UP. Pre-existing issues stay legal; new ones cannot get in. When you fix
 # some, re-run with --update and the baseline drops, locking the gain in.
 #
+# WHY ONLY ERRORS AND WARNINGS FAIL THE BUILD
+# -------------------------------------------
+# `info` findings are recorded but never fail a pull request. That is measured,
+# not squeamish. Comparing a local baseline against one generated on a runner:
+#
+#     errors   disagreed in  0 of 32 packages
+#     warnings disagreed in  0 of 32 packages
+#     infos    disagreed in 10 of 32 packages
+#
+# and `supabase_models` alone reported 186 infos locally, 190 on one runner and
+# 188 on another ten minutes later. Infos are lints, style and deprecation
+# notices, so they move with the SDK and with whatever `pub get` resolved that
+# morning; and a developer machine has build_runner output a clean runner does
+# not. Errors and warnings -- unused imports, dead code, unnecessary non-null
+# assertions, missing awaits -- were identical everywhere.
+#
+# Gating on infos would mean a gate that fails for reasons unrelated to the
+# change in front of it, which is precisely how a gate earns the reputation
+# that gets it switched off. They are still counted and still reported, so an
+# increase is visible; it just cannot block.
+#
 # THE BASELINE IS CI-AUTHORITATIVE
 # --------------------------------
 # Analyzer output depends on the environment. Several files this workspace
@@ -202,21 +223,27 @@ for pkg in packages:
         print(f"  {pkg}: new package, held to a clean baseline")
     for sev in ("error", "warning", "info"):
         before, after = was.get(sev, 0), now[sev]
+        # Infos are environment-dependent (see the header): reported, never fatal.
+        blocking = sev in ("error", "warning")
         if after > before:
-            failed = True
-            print(f"\nFAIL {pkg}: {sev} went {before} -> {after} (+{after - before})")
+            if blocking:
+                failed = True
+                print(f"\nFAIL {pkg}: {sev} went {before} -> {after} (+{after - before})")
+            else:
+                print(f"\nnote {pkg}: {sev} went {before} -> {after} "
+                      f"(+{after - before}; not blocking)")
             for item in samples[pkg][sev][:20]:
                 print(f"       {item}")
             if len(samples[pkg][sev]) > 20:
                 print(f"       ... and {len(samples[pkg][sev]) - 20} more")
-        elif after < before:
+        elif after < before and blocking:
             print(f"  {pkg}: {sev} {before} -> {after} (improved; run --update to lock it in)")
 
 if failed:
     print("""
 ------------------------------------------------------------------
-This PR adds new analyzer issues. Fix them, or -- if they are
-genuinely unavoidable -- justify them in review and run:
+This PR adds new analyzer errors or warnings. Fix them, or -- if
+they are genuinely unavoidable -- justify them in review and run:
     scripts/ci/analysis_ratchet.sh --update
 Pre-existing issues are NOT your problem here; only the increase is.
 ------------------------------------------------------------------""")

@@ -87,7 +87,7 @@ That is how the ceiling comes down and stays down.
 | Architecture | `scripts/ci/architecture_ratchet.sh` | ~10s | A new `packages/ → apps/` dependency; more `ProxyService.` call sites; a new file over 1,500 lines |
 | Documented rules | `scripts/ci/documented_rules_check.py` | ~5s | `updateCounters` writing `Sar.sarNo` (**hard rule, no exceptions**); a new unlisted `LocalStorage` key; more `ProxyService.strategy` in report/export code |
 | Formatting | `scripts/ci/format_changed.sh` | ~1min | A file **this PR changed** is not `dart format`-clean. Untouched files are ignored |
-| Analyzer | `scripts/ci/analysis_ratchet.sh` | ~5min | A package this PR touched gained analyzer findings |
+| Analyzer | `scripts/ci/analysis_ratchet.sh` | ~5min | A package this PR touched gained **errors or warnings** (infos are reported, never fatal) |
 | Tests | `melos run test:<suite>` | ~15min | any `dashboard`, `supabase_models`, `ai_feature` or `auth` test fails |
 
 Run any of them locally with the same command CI uses. All are bash-3.2
@@ -110,18 +110,42 @@ scripts/ci/format_changed.sh --fix
 A baseline bump with no explanation in the PR is the one thing that makes this
 whole system worthless. It is a ceiling, not a target.
 
-## The analyzer baseline is CI-authoritative
+## Only errors and warnings can fail the build
 
-Analyzer output depends on which files exist. `secrets.dart` and
-`firebase_options.dart` are gitignored, so a developer machine (real files) and
-a CI runner (none) can legitimately disagree. CI installs stand-ins from
-`.github/ci-fixtures/` to close that gap — that is why the fixture list covers
-`flipper_auth` and `flipper` as well as `flipper_web`.
+Infos are counted and reported but never fatal. That is a measured decision.
+Comparing a locally generated baseline against one generated on a runner:
 
-If `--update` locally produces different numbers from CI, **trust CI**: it is
-what enforces the gate. The job prints every package whose count moved with
-before → after figures, so the baseline can be reconciled from a run log
-without guessing.
+| severity | packages where local and CI disagreed |
+|---|---|
+| error | **0** of 32 |
+| warning | **0** of 32 |
+| info | **10** of 32 |
+
+`supabase_models` alone reported 186 infos locally, 190 on one runner, and 188
+on another ten minutes later. Infos are lints, style and deprecation notices —
+they move with the SDK and with whatever `pub get` resolved that morning, and a
+developer machine has `build_runner` output a clean runner does not. Errors and
+warnings (unused imports, dead code, unnecessary non-null assertions, missing
+awaits) were **identical everywhere**.
+
+A gate that fails for reasons unrelated to the change in front of it is how a
+gate earns the reputation that gets it switched off. So infos inform; they do
+not block.
+
+## Refreshing the analyzer baseline
+
+The baseline is generated **by CI**, not locally, because the two environments
+legitimately differ. Do not hand-edit it and do not reconcile it from a failure
+log — that was tried and cost three round trips.
+
+1. Actions → **Quality** → *Run workflow*, with **`refresh_baseline`** ticked.
+2. Download the `analysis-baseline` artifact from that run.
+3. Commit it over `.github/baselines/analysis.json`.
+
+CI fixtures in `.github/ci-fixtures/` close the part of the gap that *is*
+closable — gitignored sources such as `secrets.dart`, `firebase_options.dart`
+and `amplifyconfiguration.dart`, which would otherwise show up as errors on a
+runner and never locally.
 
 ## Known limitation
 
