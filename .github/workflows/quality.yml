@@ -37,8 +37,14 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Kept in step with web_ci.yml and release.yml.
-  FLUTTER_VERSION: "3.44.9"
+  # 3.44.6, matching release.yml -- NOT web_ci.yml's 3.44.9.
+  #
+  # These suites and the analyzer baseline are both known-good at 3.44.6: it is
+  # what release.yml runs them on and what the repo is developed against. Golden
+  # and layout tests are sensitive to Flutter patch versions, so pinning to the
+  # version the tests were written against keeps this job measuring the code
+  # rather than the toolchain. web_ci.yml stays on 3.44.9 for the web build.
+  FLUTTER_VERSION: "3.44.6"
   FLUTTER_TEST_CI: true
 
 jobs:
@@ -189,5 +195,19 @@ jobs:
       - name: Bootstrap melos
         run: dart run melos bootstrap
 
+      # One job per suite, deliberately.
+      #
+      # `melos run test:ci` chains all five suites in a single multi-line
+      # script, and melos runs such a script with `/bin/sh -c` and NO `set -e`
+      # (melos-7.3.0/lib/src/common/utils.dart:431). Only the last line's exit
+      # status survives, so a failure in any of the first four was discarded:
+      #
+      #     $ /bin/sh -c 'false
+      #     true'; echo $?
+      #     0
+      #
+      # That is why release.yml's "Unit Testing" job reported success for
+      # months while 22 flipper_dashboard tests failed. Giving each suite its
+      # own job means no failure can be masked by a later suite passing.
       - name: Run tests
-        run: dart run melos run test:${{ matrix.suite }}
+        run: dart run melos run "test:${{ matrix.suite }}"

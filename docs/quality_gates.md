@@ -9,9 +9,62 @@ introduce any of it.
 | Gap | Before |
 |---|---|
 | PR test coverage | `web_ci.yml` tested `flipper_web` and `flipper_hr` only. `melos run test:ci` — which covers `flipper_dashboard` (~216k LOC), `supabase_models`, `flipper_ai_feature`, `flipper_auth` — ran only in `release.yml`, on `push` to a fixed branch list that does **not** include `feat/*`. PRs from those branches ran no tests at all. |
+| Test results being believed | `melos run test:ci` reported green while 22 `flipper_dashboard` tests failed. See below. |
 | Static analysis | No CI job anywhere ran `dart analyze` or `dart format`. 18 of 35 packages had no `analysis_options.yaml` above them, including the two largest, so they were analyzed with no lint set. |
 | Architecture | `packages/flipper_models` depends on the `flipper_web` and `flipper_personal` **apps**; `flipper_dashboard` pulls in three apps. Nothing stopped that spreading. |
 | Documented rules | `AGENTS.md` and `docs/` record rules that cost real debugging time. Prose does not run in CI. `77b92324f` regressed the `sarNo` rule while the rule was written down. |
+
+## The `test:ci` script was discarding failures
+
+This is the most serious thing the work turned up, so it is worth stating
+plainly.
+
+`melos.yaml` defines `test:ci` as a multi-line script:
+
+```yaml
+test:ci:
+  run: |
+    dart run melos run test:dashboard
+    dart run melos run test:auth
+    dart run melos run test:flipper_web
+    dart run melos run test:supabase_models
+    dart run melos run test:ai_feature
+```
+
+Melos executes such a script with `/bin/sh -c 'eval "$MELOS_SCRIPT"'`
+(`melos-7.3.0/lib/src/common/utils.dart:431`) and **no `set -e`**. In POSIX sh
+a script's exit status is that of its *last* command, so only
+`test:ai_feature` could ever fail the job:
+
+```console
+$ /bin/sh -c 'false
+true'; echo $?
+0
+```
+
+`release.yml`'s "Unit Testing" job has therefore been reporting **success while
+22 `flipper_dashboard` tests fail**. Those failures reproduce locally, on the
+same Flutter version, with real secrets — they are genuine, not a CI artefact.
+
+Two separate problems, two separate fixes:
+
+1. **Reporting.** Each suite now runs as its own CI job, so a failure in one
+   cannot be masked by another passing later.
+2. **The 22 failures themselves.** They were all fixed rather than
+   grandfathered — none turned out to be a product bug. They were tests that
+   had drifted from deliberate design changes (upper-cased headings, one
+   shared status glyph with the meaning in colour, a responsive action bar, a
+   request-level rather than per-item Approve) plus an RBAC gate added to
+   `tapAdd` that fails closed under a widget harness, and a golden whose bytes
+   are macOS-specific.
+
+The suite is green, so all four test jobs are **strict**: any failing test
+fails the build. There is no known-failing list to maintain, which is the
+point — a ratchet with an empty baseline is machinery holding nothing back.
+
+**`melos.yaml` itself is deliberately not changed here.** Adding `set -e` to
+`test:ci` would turn `release.yml` red immediately, which is a decision about
+release process rather than a CI gate, and is not this change's to make.
 
 ## Everything is a ratchet
 
@@ -35,7 +88,7 @@ That is how the ceiling comes down and stays down.
 | Documented rules | `scripts/ci/documented_rules_check.py` | ~5s | `updateCounters` writing `Sar.sarNo` (**hard rule, no exceptions**); a new unlisted `LocalStorage` key; more `ProxyService.strategy` in report/export code |
 | Formatting | `scripts/ci/format_changed.sh` | ~1min | A file **this PR changed** is not `dart format`-clean. Untouched files are ignored |
 | Analyzer | `scripts/ci/analysis_ratchet.sh` | ~5min | A package this PR touched gained analyzer findings |
-| Tests | `melos run test:<suite>` | ~15min | `dashboard`, `supabase_models`, `ai_feature` or `auth` tests fail |
+| Tests | `melos run test:<suite>` | ~15min | any `dashboard`, `supabase_models`, `ai_feature` or `auth` test fails |
 
 Run any of them locally with the same command CI uses. All are bash-3.2
 compatible, so they behave identically on macOS and on `ubuntu-latest`.
