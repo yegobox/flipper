@@ -1,5 +1,19 @@
 name: Sync Crowdin translations
 
+# English is a target language in the Crowdin project, so the translation
+# pattern `app_%two_letters_code%.arb` resolves to `app_en.arb` — the source
+# file itself, and the template every `FlipperAppLocalizations` getter is
+# generated from. Letting the action commit its own download therefore
+# replaces the template with whatever English happens to have in Crowdin,
+# which under `skip_untranslated_strings` is nothing at all. That is how
+# PR #540 and PR #639 committed an empty `app_en.arb`.
+#
+# So the download and the commit are split: the action fetches into the
+# working tree, `merge_l10n_download.py` lays the English download over the
+# committed source instead of replacing it, and only then is the branch
+# pushed. English keeps round-tripping through Crowdin; the template can only
+# gain keys.
+
 on:
   push:
     branches: [main,v4]
@@ -15,6 +29,11 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  SOURCE_ARB: packages/flipper_localize/lib/l10n/app_en.arb
+  L10N_DIR: packages/flipper_localize/lib/l10n
+  BRANCH: l10n_translations
+
 jobs:
   synchronize-with-crowdin:
     runs-on: ubuntu-latest
@@ -23,19 +42,76 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # `push_translations: false` / `create_pull_request: false` stop the
+      # action committing the raw download. The merge step below owns the
+      # commit instead.
       - name: Crowdin sync
         uses: crowdin/github-action@v2
         with:
           upload_sources: true
           upload_translations: true
           download_translations: true
-          localization_branch_name: l10n_translations
-          create_pull_request: true
           skip_untranslated_strings: true
-          pull_request_title: New translations
-          pull_request_body: New translations via Crowdin.
-          pull_request_base_branch_name: main
+          push_sources: false
+          push_translations: false
+          create_pull_request: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Merge the English download into the source ARB
+        run: python3 .github/workflows/scripts/merge_l10n_download.py "$SOURCE_ARB"
+
+      # Belt and braces: the l10n guard would catch an emptied source ARB on
+      # the PR, but only after a human approves the workflow run on a bot PR.
+      # Failing here means the bad file is never pushed in the first place.
+      - name: The source ARB must still have its keys
+        run: |
+          python3 - "$SOURCE_ARB" <<'PY'
+          import json, subprocess, sys
+          path = sys.argv[1]
+          head = json.loads(subprocess.run(
+              ["git", "show", f"HEAD:{path}"], capture_output=True, text=True, check=True
+          ).stdout)
+          with open(path) as fh:
+              now = json.load(fh)
+          keys = lambda d: {k for k in d if not k.startswith("@")}
+          lost = keys(head) - keys(now)
+          if lost:
+              sys.exit(
+                  f"::error file={path}::the merge lost {len(lost)} key(s), e.g. "
+                  f"{sorted(lost)[:5]}. Refusing to push a template that would "
+                  "delete FlipperAppLocalizations getters."
+              )
+          print(f"{path}: {len(keys(now))} keys, none lost")
+          PY
+
+      - name: Push the translations branch and open a PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          git config user.name  "Crowdin Bot"
+          git config user.email "support+bot@crowdin.com"
+
+          if git diff --quiet -- "$L10N_DIR"; then
+            echo "No translation changes to push."
+            exit 0
+          fi
+
+          git checkout -B "$BRANCH"
+          git add -- "$L10N_DIR"
+          git commit -m "New translations"
+          git push --force origin "$BRANCH"
+
+          open_pr=$(gh pr list --head "$BRANCH" --base main --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$open_pr" ]; then
+            echo "PR #$open_pr already tracks $BRANCH; it now has the new commit."
+          else
+            gh pr create --head "$BRANCH" --base main \
+              --title "New translations" \
+              --body "New translations via Crowdin."
+          fi
