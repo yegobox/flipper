@@ -1,0 +1,74 @@
+# Repository-wide analyzer defaults.
+#
+# Why this file exists
+# --------------------
+# The analyzer resolves options by walking UP from each source file to the
+# nearest `analysis_options.yaml`. Before this file, 18 of the 35 packages in
+# the workspace had no options file anywhere above them -- including the two
+# largest, `flipper_dashboard` (~216k LOC) and `flipper_models` (~96k LOC).
+# Those packages were analyzed with NO lint set at all, so a whole class of
+# defect (unused imports that hide dead code, missing awaits, null-check
+# mistakes) was invisible in both the IDE and CI.
+#
+# A package that ships its own `analysis_options.yaml` still wins outright --
+# the nearest file replaces this one, it does not merge. So this changes
+# nothing for the 17 packages that already have one; it only gives the other
+# 18 the same baseline everyone else already had.
+#
+# This file deliberately mirrors `apps/flipper/analysis_options.yaml` (the
+# richest config in the repo) so the workspace converges on one rule set
+# instead of drifting further apart.
+#
+# Enforcement lives in CI, not here
+# ---------------------------------
+# Turning these lints on surfaces pre-existing issues. None of them are
+# errors, and NONE of them block a build. `scripts/ci/analysis_ratchet.sh`
+# records today's count per package in `.github/baselines/analysis.json` and
+# fails a PR only when that count goes UP. Existing issues are paid down at
+# whatever pace you choose; new ones cannot get in.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # Build output and generated code. Nothing here is hand-written, so lint
+    # findings in it are noise that would drown the real signal.
+    - "**/build/**"
+    - "**/.dart_tool/**"
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - "**/*.config.dart"
+    - "**/app.router.dart"
+    - "**/app.locator.dart"
+    - "**/app.dialogs.dart"
+    - "**/app.bottomsheets.dart"
+    - "**/generated_plugin_registrant.dart"
+    # Generated localisation output (regenerated from .arb by gen_l10n).
+    - "**/l10n/**"
+    # Vendored third-party forks. We track upstream here; restyling them to
+    # our lint set would make every upstream merge a conflict.
+    - "open-sources/**"
+    - "third_party/**"
+    # iOS/macOS CocoaPods symlink farms re-expose plugin sources that already
+    # live in the pub cache, which would otherwise be analyzed many times over.
+    - "**/.symlinks/**"
+    - "**/ephemeral/**"
+
+# Rules
+# -----
+# Deliberately just the `flutter_lints` defaults, with NO extra style rules
+# layered on top. That is a measured choice, not laziness.
+#
+# Adding `prefer_const_constructors` and
+# `always_put_required_named_parameters_first` here was tried and reverted:
+# between them they produced 1,987 of 2,161 findings in `flipper_dashboard`
+# alone -- pure formatting churn that would have buried the ~174 findings that
+# actually point at defects (unused locals, dead code, unnecessary non-null
+# assertions, deprecated API use).
+#
+# The packages that already opt into those two rules keep them; their own
+# options file still wins. This file just declines to impose them on the
+# 18 packages that had no rules at all.
+#
+# To tighten later, add ONE rule, run `scripts/ci/analysis_ratchet.sh --update`,
+# and pay the findings down before adding the next.
