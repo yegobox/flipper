@@ -60,6 +60,12 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
+      # crowdin/github-action is a Docker action, so it runs as root and the
+      # files it downloads come back owned by root while every later step runs
+      # as `runner`. Without this the merge dies on EACCES writing app_en.arb.
+      - name: Take ownership of the downloaded files
+        run: sudo chown -R "$(id -u):$(id -g)" "$L10N_DIR"
+
       - name: Merge the English download into the source ARB
         run: python3 .github/workflows/scripts/merge_l10n_download.py "$SOURCE_ARB"
 
