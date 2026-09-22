@@ -101,11 +101,31 @@ void main() {
 
       await tester.pump();
 
-      final mainRow = tester.widget<Row>(find.byType(Row).first);
-      expect(mainRow.mainAxisAlignment, MainAxisAlignment.end);
+      // The action bar is responsive: below OmTokens.compactBreakpoint (880)
+      // the buttons stretch to fill the width, and only above it are they
+      // right-aligned. The default 800x600 test surface is BELOW that
+      // breakpoint, which is why asserting end-alignment unconditionally
+      // stopped holding. Check both sides of the rule instead.
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      tester.view.devicePixelRatio = 1.0;
+
+      final endAligned = find.byWidgetPredicate(
+        (w) => w is Row && w.mainAxisAlignment == MainAxisAlignment.end,
+      );
+
+      tester.view.physicalSize = const Size(1000, 600);
+      await tester.pump();
+      expect(endAligned, findsOneWidget,
+          reason: 'wide: actions should sit to the right');
+
+      tester.view.physicalSize = const Size(600, 600);
+      await tester.pump();
+      expect(endAligned, findsNothing,
+          reason: 'narrow: actions stretch to fill instead of bunching right');
     });
 
-    testWidgets('handles approved request status', (tester) async {
+    testWidgets('renders no footer for an approved request', (tester) async {
       final approvedRequest = InventoryRequest(
         id: '1',
         branchId: '1',
@@ -130,8 +150,12 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Approve'), findsOneWidget);
-      expect(find.text('Void'), findsOneWidget);
+      // An approved request is history: it has no actionable footer at all
+      // ("Approved history / non-actionable: no footer", handoff section 6).
+      // The widget returns SizedBox.shrink() before it builds any buttons.
+      expect(find.text('Approve'), findsNothing);
+      expect(find.text('Void'), findsNothing);
+      expect(find.text('Produce'), findsNothing);
     });
 
     testWidgets('shows loading state initially', (tester) async {
