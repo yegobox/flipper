@@ -167,6 +167,35 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(name: 'is_fuel_managed', defaultValue: "false")
   bool? isFuelManaged;
 
+  /// Moving weighted-average unit cost (IAS 2).
+  ///
+  /// Distinct from [supplyPrice], which keeps meaning "the last price paid"
+  /// and still feeds the RRA/EBM payloads. Only this field is a costing basis.
+  ///
+  /// Null means "never seeded": the variant has not received stock since
+  /// average costing shipped, so readers fall back to [supplyPrice] and get
+  /// exactly the behaviour they had before. Do NOT coerce it to 0.0 — zero is
+  /// indistinguishable from "free", and would book sales at no cost.
+  @Sqlite(name: 'avg_cost')
+  @Supabase(name: 'avg_cost')
+  double? avgCost;
+
+  /// `seeded` (opening basis taken from [supplyPrice]) or `receipt` (earned
+  /// from real receipts). Lets an auditor tell an estimate from a measurement.
+  @Sqlite(name: 'avg_cost_source')
+  @Supabase(name: 'avg_cost_source')
+  String? avgCostSource;
+
+  /// Idempotency key of the last receipt blended into [avgCost].
+  ///
+  /// [avgCost] is a register (last-writer-wins), unlike the quantity COUNTER,
+  /// so a retried receipt would silently blend twice and there would be no
+  /// conflict to notice. Retries are real here: the server guards approval
+  /// with `already_processed` and the client polls for the result.
+  @Sqlite(name: 'last_avg_cost_receipt_ref')
+  @Supabase(name: 'last_avg_cost_receipt_ref')
+  String? lastAvgCostReceiptRef;
+
   @Sqlite(name: 'rrp')
   @Supabase(name: 'rrp')
   double? rrp;
@@ -195,6 +224,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.roomTypeCd,
     this.ttCatCd,
     bool? isFuelManaged,
+    this.avgCost,
+    this.avgCostSource,
+    this.lastAvgCostReceiptRef,
     this.rrp,
     this.rrpEffectiveDt,
     this.purchaseId,
@@ -400,6 +432,15 @@ class Variant extends OfflineFirstWithSupabaseModel {
         roomTypeCd: parseOrDefault<String?>(json['roomTypeCd'], null),
         ttCatCd: parseOrDefault<String?>(json['ttCatCd'], null),
         isFuelManaged: parseOrDefault<bool>(json['isFuelManaged'], false),
+        // No `?? 0.0` on purpose: null must survive the round trip, or every
+        // variant would look "seeded at zero" and re-seed on every receipt.
+        avgCost: (parseNum(json['avgCost']) ?? parseNum(json['avg_cost']))
+            ?.toDouble(),
+        avgCostSource:
+            (json['avgCostSource'] ?? json['avg_cost_source']) as String?,
+        lastAvgCostReceiptRef:
+            (json['lastAvgCostReceiptRef'] ?? json['last_avg_cost_receipt_ref'])
+                as String?,
         rrp: (parseNum(json['rrp']) ?? parseNum(json['RRP']))?.toDouble(),
         rrpEffectiveDt: (json['rrpEffectiveDt'] != null)
             ? DateTime.tryParse(json['rrpEffectiveDt'] as String)
@@ -519,6 +560,12 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'roomTypeCd': roomTypeCd,
       'ttCatCd': ttCatCd,
       'isFuelManaged': isFuelManaged,
+      'avgCost': avgCost,
+      'avg_cost': avgCost,
+      'avgCostSource': avgCostSource,
+      'avg_cost_source': avgCostSource,
+      'lastAvgCostReceiptRef': lastAvgCostReceiptRef,
+      'last_avg_cost_receipt_ref': lastAvgCostReceiptRef,
       'rrp': rrp,
       'rrpEffectiveDt': rrpEffectiveDt?.toIso8601String(),
     };
@@ -604,6 +651,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
     String? purchaseId,
     bool? isShared,
     bool? isFuelManaged,
+    double? avgCost,
+    String? avgCostSource,
+    String? lastAvgCostReceiptRef,
     double? rrp,
     DateTime? rrpEffectiveDt,
   }) {
@@ -689,6 +739,10 @@ class Variant extends OfflineFirstWithSupabaseModel {
       propertyTyCd: propertyTyCd ?? this.propertyTyCd,
       roomTypeCd: roomTypeCd ?? this.roomTypeCd,
       isFuelManaged: isFuelManaged ?? this.isFuelManaged,
+      avgCost: avgCost ?? this.avgCost,
+      avgCostSource: avgCostSource ?? this.avgCostSource,
+      lastAvgCostReceiptRef:
+          lastAvgCostReceiptRef ?? this.lastAvgCostReceiptRef,
       rrp: rrp ?? this.rrp,
       rrpEffectiveDt: rrpEffectiveDt ?? this.rrpEffectiveDt,
     );
