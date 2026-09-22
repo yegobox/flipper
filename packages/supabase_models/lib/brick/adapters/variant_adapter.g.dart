@@ -147,6 +147,13 @@ Future<Variant> _$VariantFromSupabase(
     isFuelManaged: data['is_fuel_managed'] == null
         ? null
         : data['is_fuel_managed'] as bool? ?? false,
+    avgCost: data['avg_cost'] == null ? null : data['avg_cost'] as double?,
+    avgCostSource: data['avg_cost_source'] == null
+        ? null
+        : data['avg_cost_source'] as String?,
+    lastAvgCostReceiptRef: data['last_avg_cost_receipt_ref'] == null
+        ? null
+        : data['last_avg_cost_receipt_ref'] as String?,
     rrp: data['rrp'] == null ? null : data['rrp'] as double?,
     rrpEffectiveDt: data['rrp_effective_dt'] == null
         ? null
@@ -251,6 +258,9 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'room_type_cd': instance.roomTypeCd,
     'tt_cat_cd': instance.ttCatCd,
     'is_fuel_managed': instance.isFuelManaged,
+    'avg_cost': instance.avgCost,
+    'avg_cost_source': instance.avgCostSource,
+    'last_avg_cost_receipt_ref': instance.lastAvgCostReceiptRef,
     'rrp': instance.rrp,
     'rrp_effective_dt': instance.rrpEffectiveDt?.toIso8601String(),
     'is_shared': instance.isShared,
@@ -409,6 +419,13 @@ Future<Variant> _$VariantFromSqlite(
     isFuelManaged: data['is_fuel_managed'] == null
         ? null
         : data['is_fuel_managed'] == 1,
+    avgCost: data['avg_cost'] == null ? null : data['avg_cost'] as double?,
+    avgCostSource: data['avg_cost_source'] == null
+        ? null
+        : data['avg_cost_source'] as String?,
+    lastAvgCostReceiptRef: data['last_avg_cost_receipt_ref'] == null
+        ? null
+        : data['last_avg_cost_receipt_ref'] as String?,
     rrp: data['rrp'] == null ? null : data['rrp'] as double?,
     rrpEffectiveDt: data['rrp_effective_dt'] == null
         ? null
@@ -513,6 +530,9 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'is_fuel_managed': instance.isFuelManaged == null
         ? null
         : (instance.isFuelManaged! ? 1 : 0),
+    'avg_cost': instance.avgCost,
+    'avg_cost_source': instance.avgCostSource,
+    'last_avg_cost_receipt_ref': instance.lastAvgCostReceiptRef,
     'rrp': instance.rrp,
     'rrp_effective_dt': instance.rrpEffectiveDt?.toIso8601String(),
     'is_shared': instance.isShared == null
@@ -833,6 +853,18 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'isFuelManaged': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_fuel_managed',
+    ),
+    'avgCost': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'avg_cost',
+    ),
+    'avgCostSource': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'avg_cost_source',
+    ),
+    'lastAvgCostReceiptRef': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_avg_cost_receipt_ref',
     ),
     'rrp': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1310,6 +1342,24 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       columnName: 'is_fuel_managed',
       iterable: false,
       type: bool,
+    ),
+    'avgCost': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'avg_cost',
+      iterable: false,
+      type: double,
+    ),
+    'avgCostSource': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'avg_cost_source',
+      iterable: false,
+      type: String,
+    ),
+    'lastAvgCostReceiptRef': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_avg_cost_receipt_ref',
+      iterable: false,
+      type: String,
     ),
     'rrp': const RuntimeSqliteColumnDefinition(
       association: false,

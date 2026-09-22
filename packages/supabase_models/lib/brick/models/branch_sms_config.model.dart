@@ -43,5 +43,10 @@ class BranchSmsConfig extends OfflineFirstWithSupabaseModel {
     this.whatsappProvider = WhatsAppChannel.openwa,
   }) : id = id ?? const Uuid().v4();
 
+  /// Derived, never stored. Without these annotations Brick generates a
+  /// persisted `has_any_channel_enabled` column for it, which can then go
+  /// stale relative to the two flags it is computed from.
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
   bool get hasAnyChannelEnabled => enableSms || enableWhatsapp;
 }

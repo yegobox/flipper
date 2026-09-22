@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260909182413.migration.dart';
+part '20260922100014.migration.dart';
 part '20260522081221.migration.dart';
 part '20260527030019.migration.dart';
 part '20260603185233.migration.dart';
@@ -15,10 +15,11 @@ part '20260723122459.migration.dart';
 part '20260728113000.migration.dart';
 part '20260728163000.migration.dart';
 part '20260807090000.migration.dart';
+part '20260909182413.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260909182413(),
+  const Migration20260922100014(),
   const Migration20260522081221(),
   const Migration20260527030019(),
   const Migration20260603185233(),
@@ -32,11 +33,12 @@ final migrations = <Migration>{
   const Migration20260728113000(),
   const Migration20260728163000(),
   const Migration20260807090000(),
+  const Migration20260909182413(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260807090000,
+  20260909182413,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1993,6 +1995,9 @@ final schema = Schema(
         SchemaColumn('room_type_cd', Column.varchar),
         SchemaColumn('tt_cat_cd', Column.varchar),
         SchemaColumn('is_fuel_managed', Column.boolean),
+        SchemaColumn('avg_cost', Column.Double),
+        SchemaColumn('avg_cost_source', Column.varchar),
+        SchemaColumn('last_avg_cost_receipt_ref', Column.varchar),
         SchemaColumn('rrp', Column.Double),
         SchemaColumn('rrp_effective_dt', Column.datetime),
         SchemaColumn('is_shared', Column.boolean),

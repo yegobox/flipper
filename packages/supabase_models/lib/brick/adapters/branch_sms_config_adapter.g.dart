@@ -12,9 +12,9 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSupabase(
     smsPhoneNumber: data['sms_phone_number'] == null
         ? null
         : data['sms_phone_number'] as String?,
-    enableSms: data['enable_sms'] as bool? ?? false,
-    enableWhatsapp: data['enable_whatsapp'] as bool? ?? false,
-    whatsappProvider: (data['whatsapp_provider'] as num?)?.toInt() ?? 1,
+    enableSms: data['enable_sms'] as bool,
+    enableWhatsapp: data['enable_whatsapp'] as bool,
+    whatsappProvider: data['whatsapp_provider'] as int,
   );
 }
 
@@ -46,7 +46,7 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSqlite(
         : data['sms_phone_number'] as String?,
     enableSms: data['enable_sms'] == 1,
     enableWhatsapp: data['enable_whatsapp'] == 1,
-    whatsappProvider: data['whatsapp_provider'] as int? ?? 1,
+    whatsappProvider: data['whatsapp_provider'] as int,
   )..primaryKey = data['_brick_id'] as int;
 }
 
