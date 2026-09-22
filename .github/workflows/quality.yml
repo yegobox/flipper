@@ -27,6 +27,14 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      refresh_baseline:
+        description: >-
+          Regenerate .github/baselines/analysis.json from THIS runner and
+          upload it as an artifact instead of checking against the committed
+          one. Download it and commit the result.
+        type: boolean
+        default: false
 
 # Least privilege: every job here only reads the repo.
 permissions:
@@ -110,6 +118,9 @@ jobs:
           # developer's machine, where the real files exist.
           cp .github/ci-fixtures/web_secrets.dart apps/flipper_auth/lib/core/secrets.dart
           cp .github/ci-fixtures/flipper_firebase_options.dart apps/flipper/lib/firebase_options.dart
+          # flipper_models imports package:flipper_rw/amplifyconfiguration.dart,
+          # which is gitignored inside apps/flipper.
+          cp .github/ci-fixtures/flipper_amplifyconfiguration.dart apps/flipper/lib/amplifyconfiguration.dart
 
       - name: Bootstrap melos
         run: dart run melos bootstrap
@@ -132,9 +143,29 @@ jobs:
       - name: Formatting (changed files only)
         run: ./scripts/ci/format_changed.sh --base "${{ steps.base.outputs.ref }}"
 
+      # Regenerate the baseline from THIS runner instead of checking.
+      #
+      # Analyzer output is environment-dependent in both directions: a
+      # developer machine has generated code (*.g.dart, build_runner output)
+      # and real gitignored sources that a clean runner does not, so the same
+      # commit legitimately produces different counts. Guessing CI's numbers
+      # from a failure log cost three round trips, so the runner produces them
+      # directly. Download the artifact, commit it, done.
+      - name: Refresh baseline (upload only, no check)
+        if: inputs.refresh_baseline
+        run: ./scripts/ci/analysis_ratchet.sh --update
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.refresh_baseline
+        with:
+          name: analysis-baseline
+          path: .github/baselines/analysis.json
+          if-no-files-found: error
+
       # On a PR, analyze only the packages the diff touches, for speed. On a
       # push to main, sweep everything so the baseline cannot silently rot.
       - name: Analyzer ratchet
+        if: ${{ !inputs.refresh_baseline }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             ./scripts/ci/analysis_ratchet.sh --changed --base "${{ steps.base.outputs.ref }}"
@@ -191,6 +222,9 @@ jobs:
           # developer's machine, where the real files exist.
           cp .github/ci-fixtures/web_secrets.dart apps/flipper_auth/lib/core/secrets.dart
           cp .github/ci-fixtures/flipper_firebase_options.dart apps/flipper/lib/firebase_options.dart
+          # flipper_models imports package:flipper_rw/amplifyconfiguration.dart,
+          # which is gitignored inside apps/flipper.
+          cp .github/ci-fixtures/flipper_amplifyconfiguration.dart apps/flipper/lib/amplifyconfiguration.dart
 
       - name: Bootstrap melos
         run: dart run melos bootstrap
