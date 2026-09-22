@@ -51,7 +51,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.data([])),
+            transactionItemsProvider(
+              mockRequest.id,
+            ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
@@ -71,7 +73,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.data([])),
+            transactionItemsProvider(
+              mockRequest.id,
+            ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
@@ -82,7 +86,10 @@ void main() {
       await tester.pump();
 
       expect(find.byType(Row), findsAtLeastNWidgets(3));
-      expect(find.byType(Material), findsAtLeastNWidgets(4)); // Scaffold + 3 actions
+      expect(
+        find.byType(Material),
+        findsAtLeastNWidgets(4),
+      ); // Scaffold + 3 actions
       expect(find.byType(InkWell), findsNWidgets(3));
       expect(find.text('Produce'), findsOneWidget);
     });
@@ -91,7 +98,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.data([])),
+            transactionItemsProvider(
+              mockRequest.id,
+            ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
@@ -116,13 +125,19 @@ void main() {
 
       tester.view.physicalSize = const Size(1000, 600);
       await tester.pump();
-      expect(endAligned, findsOneWidget,
-          reason: 'wide: actions should sit to the right');
+      expect(
+        endAligned,
+        findsOneWidget,
+        reason: 'wide: actions should sit to the right',
+      );
 
       tester.view.physicalSize = const Size(600, 600);
       await tester.pump();
-      expect(endAligned, findsNothing,
-          reason: 'narrow: actions stretch to fill instead of bunching right');
+      expect(
+        endAligned,
+        findsNothing,
+        reason: 'narrow: actions stretch to fill instead of bunching right',
+      );
     });
 
     testWidgets('renders no footer for an approved request', (tester) async {
@@ -140,7 +155,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            transactionItemsProvider(approvedRequest.id).overrideWithValue(AsyncValue.data([])),
+            transactionItemsProvider(
+              approvedRequest.id,
+            ).overrideWithValue(AsyncValue.data([])),
           ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: approvedRequest)),
@@ -162,7 +179,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.loading()),
+            transactionItemsProvider(
+              mockRequest.id,
+            ).overrideWithValue(AsyncValue.loading()),
           ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),

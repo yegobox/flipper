@@ -15,18 +15,35 @@
 # nothing for the 17 packages that already have one; it only gives the other
 # 18 the same baseline everyone else already had.
 #
-# This file deliberately mirrors `apps/flipper/analysis_options.yaml` (the
-# richest config in the repo) so the workspace converges on one rule set
-# instead of drifting further apart.
+# What this file does NOT do, and why
+# -----------------------------------
+# It carries no `include: package:flutter_lints/flutter.yaml`, and that is not
+# an oversight -- it was tried and it does not work from here.
 #
-# Enforcement lives in CI, not here
-# ---------------------------------
-# Turning these lints on surfaces pre-existing issues. None of them are
-# errors, and NONE of them block a build. `scripts/ci/analysis_ratchet.sh`
-# records today's count per package in `.github/baselines/analysis.json` and
-# fails a PR only when that count goes UP. Existing issues are paid down at
-# whatever pace you choose; new ones cannot get in.
-include: package:flutter_lints/flutter.yaml
+# The analyzer resolves an `include:` package URI against the package_config
+# of the package being ANALYZED, not the one next to this file. Adding
+# `flutter_lints` to the workspace root pubspec puts it in the root's
+# package_config only; `packages/flipper_dashboard/.dart_tool/package_config.json`
+# still has no entry for it, so the include fails to resolve and the analyzer
+# skips it with a warning that is easy to miss:
+#
+#     Warning: Package resolution error when reading "analysis_options.yaml":
+#     Failed to resolve package URI "package:flutter_lints/flutter.yaml"
+#
+# The measurable proof: flipper_dashboard has 88 `print(` calls in lib/, and
+# `avoid_print` (part of flutter_lints) reported none of them. A shared lint
+# set that silently applies to nothing is worse than no shared lint set, so
+# the include is gone rather than left in looking effective.
+#
+# Giving the 18 packages without their own config a real lint set means adding
+# `flutter_lints` to each of their pubspecs plus a three-line
+# analysis_options.yaml -- per package, measured one at a time. That is a
+# separate change from this one.
+#
+# What DOES work from here is the exclude list below: it needs no package
+# resolution and applies to every package that has no options file of its own.
+# It is the reason flipper_models dropped from 82 findings to 67 -- generated
+# code is no longer analyzed as if someone had written it.
 
 analyzer:
   exclude:

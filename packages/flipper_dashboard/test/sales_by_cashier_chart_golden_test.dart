@@ -34,14 +34,41 @@ ITransaction _tx({
 void main() {
   testWidgets('SalesByCashierChart golden', (tester) async {
     final txs = [
-      _tx(id: 't1', agentId: 'alice@example.com', subTotal: 460, cashReceived: 460),
-      _tx(id: 't2', agentId: 'chloe@example.com', subTotal: 230, cashReceived: 230),
-      _tx(id: 't3', agentId: 'bob@example.com', subTotal: 195, cashReceived: 195),
+      _tx(
+        id: 't1',
+        agentId: 'alice@example.com',
+        subTotal: 460,
+        cashReceived: 460,
+      ),
+      _tx(
+        id: 't2',
+        agentId: 'chloe@example.com',
+        subTotal: 230,
+        cashReceived: 230,
+      ),
+      _tx(
+        id: 't3',
+        agentId: 'bob@example.com',
+        subTotal: 195,
+        cashReceived: 195,
+      ),
     ];
     final sums = <String, TransactionPaymentSums>{
-      't1': const TransactionPaymentSums(byHand: 280, credit: 200, hasAnyRecord: true),
-      't2': const TransactionPaymentSums(byHand: 230, credit: 0, hasAnyRecord: true),
-      't3': const TransactionPaymentSums(byHand: 195, credit: 0, hasAnyRecord: true),
+      't1': const TransactionPaymentSums(
+        byHand: 280,
+        credit: 200,
+        hasAnyRecord: true,
+      ),
+      't2': const TransactionPaymentSums(
+        byHand: 230,
+        credit: 0,
+        hasAnyRecord: true,
+      ),
+      't3': const TransactionPaymentSums(
+        byHand: 195,
+        credit: 0,
+        hasAnyRecord: true,
+      ),
     };
 
     await tester.pumpWidget(
@@ -83,4 +110,3 @@ void main() {
     // explanation stays in the comment above.
   }, skip: !Platform.isMacOS);
 }
-

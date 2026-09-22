@@ -199,18 +199,30 @@ void main() {
       await pumpAt(600);
       var status = tester.getTopLeft(find.text('Status'));
       var requested = tester.getTopLeft(find.text('Requested On'));
-      expect(status.dy, requested.dy,
-          reason: 'wide: the two tiles should sit on the same line');
-      expect(status.dx, lessThan(requested.dx),
-          reason: 'wide: Status should be the left-hand tile');
+      expect(
+        status.dy,
+        requested.dy,
+        reason: 'wide: the two tiles should sit on the same line',
+      );
+      expect(
+        status.dx,
+        lessThan(requested.dx),
+        reason: 'wide: Status should be the left-hand tile',
+      );
 
       await pumpAt(320);
       status = tester.getTopLeft(find.text('Status'));
       requested = tester.getTopLeft(find.text('Requested On'));
-      expect(status.dy, lessThan(requested.dy),
-          reason: 'narrow: the tiles should stack instead of being squeezed');
-      expect(status.dx, requested.dx,
-          reason: 'narrow: stacked tiles share a left edge');
+      expect(
+        status.dy,
+        lessThan(requested.dy),
+        reason: 'narrow: the tiles should stack instead of being squeezed',
+      );
+      expect(
+        status.dx,
+        requested.dx,
+        reason: 'narrow: stacked tiles share a left edge',
+      );
     });
   });
 
