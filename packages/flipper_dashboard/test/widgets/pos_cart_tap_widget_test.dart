@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/widgets/pos_cart_table_host.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -35,9 +36,7 @@ void stubPosCartTapPersist(TestEnvironment env) {
     () => env.mockSyncStrategy.getStrategy(Strategy.capella),
   ).thenReturn(env.mockDbSync);
   when(() => env.mockBox.isOrdering()).thenReturn(false);
-  when(
-    () => env.mockDbSync.getStockById(id: any(named: 'id')),
-  ).thenAnswer(
+  when(() => env.mockDbSync.getStockById(id: any(named: 'id'))).thenAnswer(
     (_) async => Stock(
       id: 'stock-widget-tap-1',
       branchId: '1',
@@ -61,8 +60,9 @@ void stubPosCartTapPersist(TestEnvironment env) {
       invoiceNumber: any(named: 'invoiceNumber'),
       sarTyCd: any(named: 'sarTyCd'),
       useTransactionItemForQty: any(named: 'useTransactionItemForQty'),
-      updatePendingTransactionSubtotal:
-          any(named: 'updatePendingTransactionSubtotal'),
+      updatePendingTransactionSubtotal: any(
+        named: 'updatePendingTransactionSubtotal',
+      ),
     ),
   ).thenAnswer((_) async => true);
 }
@@ -167,8 +167,9 @@ void main() {
     );
     mockProductViewModel = MockProductViewModel();
     mockSettingsService = MockSettingsService();
-    when(() => mockSettingsService.isAllowSellingBelowStock())
-        .thenAnswer((_) async => true);
+    when(
+      () => mockSettingsService.isAllowSellingBelowStock(),
+    ).thenAnswer((_) async => true);
     if (locator.isRegistered<SettingsService>()) {
       locator.unregister<SettingsService>();
     }
@@ -222,12 +223,19 @@ void main() {
     return tester.pumpWidget(
       ProviderScope(
         overrides: [
-          cachedPendingCartTransactionProvider(false).overrideWith(
-            (ref) => pendingTxn,
-          ),
-          pendingTransactionStreamProvider(isExpense: false).overrideWith(
-            (ref) => Stream<ITransaction>.value(pendingTxn),
-          ),
+          // RBAC gate on PosCartAddService.tapAdd, added after this test was
+          // written (8ce553ba3, "feat(rbac): read-only POS/Inventory view
+          // mode"). It resolves through async access providers that never
+          // settle under this harness and it fails closed, so without this
+          // every tap is silently dropped and the cart stays empty. Same
+          // override as pos_catalog_stepper_widget_test.dart.
+          canSellProvider.overrideWithValue(true),
+          cachedPendingCartTransactionProvider(
+            false,
+          ).overrideWith((ref) => pendingTxn),
+          pendingTransactionStreamProvider(
+            isExpense: false,
+          ).overrideWith((ref) => Stream<ITransaction>.value(pendingTxn)),
           stockByVariantProvider('stock-$variantId').overrideWith(
             (ref) => Stream<Stock?>.value(
               Stock(
@@ -286,10 +294,7 @@ void main() {
         '1',
       );
       expect(find.text(variantName), findsOneWidget);
-      expect(
-        find.byKey(const Key('pos-cart-first-line-name')),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('pos-cart-first-line-name')), findsOneWidget);
     });
 
     testWidgets('cart appears before Capella stream would return', (
@@ -310,7 +315,8 @@ void main() {
       expect(
         sw.elapsedMilliseconds,
         lessThan(500),
-        reason: 'cart took ${sw.elapsedMilliseconds}ms — likely blocked on Ditto',
+        reason:
+            'cart took ${sw.elapsedMilliseconds}ms — likely blocked on Ditto',
       );
     });
 

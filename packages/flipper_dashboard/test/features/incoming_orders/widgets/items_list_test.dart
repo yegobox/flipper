@@ -92,7 +92,7 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Items'), findsOneWidget);
+      expect(find.text('ITEMS'), findsOneWidget);
     });
 
     testWidgets('shows loading indicator initially', (tester) async {
@@ -137,8 +137,37 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('5/10'), findsOneWidget); // Item 1: approved/requested
-      expect(find.text('8/8'), findsOneWidget); // Item 2: approved/requested
+      // mockRequest is still pending, and a pending request now shows only the
+      // requested quantity -- the approved-vs-requested split would be
+      // meaningless before anyone has approved anything. findRichText is
+      // required because the line is a Text.rich of label + value spans.
+      expect(find.text('Requested: 10', findRichText: true), findsOneWidget);
+      expect(find.text('Requested: 8', findRichText: true), findsOneWidget);
+      expect(find.text('Approved: 5/10', findRichText: true), findsNothing);
+    });
+
+    testWidgets('shows the approved split once the request is approved', (
+      tester,
+    ) async {
+      final approvedRequest = InventoryRequest(
+        id: '1',
+        branchId: '1',
+        status: 'approved',
+        branch: mockBranch,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(body: ItemsList(request: approvedRequest)),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.text('Approved: 5/10', findRichText: true), findsOneWidget);
+      expect(find.text('Approved: 8/8', findRichText: true), findsOneWidget);
     });
 
     testWidgets('shows pending quantity for partially approved items', (
@@ -154,10 +183,13 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Pending: 5'), findsOneWidget); // Item 1 has 5 pending
+      // "Pending: N" was removed in the redesign. What a partially approved
+      // request shows is the approved-vs-requested split, which carries the
+      // same information (10 requested, 5 approved => 5 outstanding).
+      expect(find.text('Requested: 10', findRichText: true), findsOneWidget);
     });
 
-    testWidgets('shows approve button for pending items', (tester) async {
+    testWidgets('offers no row-level approve action', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -168,11 +200,13 @@ void main() {
 
       await tester.pump();
 
-      expect(
-        find.text('Approve'),
-        findsOneWidget,
-      ); // Only Item 1 should have approve button
-      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+      // The per-item Approve button was removed in the redesign: approval is
+      // now a request-level action, not a row-level one. This widget's only
+      // row action is Update, and only for an editable outgoing request, so a
+      // plain incoming pending request should offer neither.
+      expect(find.text('Approve'), findsNothing);
+      expect(find.byIcon(Icons.check_circle_outline), findsNothing);
+      expect(find.text('Update'), findsNothing);
     });
 
     testWidgets('has correct structure', (tester) async {
@@ -186,8 +220,12 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Items'), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(2)); // 2 item cards
+      expect(find.text('ITEMS'), findsOneWidget);
+      // Rows are Containers with OmTokens borders now, not Material Cards.
+      // Assert one row per item by its name, which is what the list is for
+      // and does not re-break the next time the surface widget changes.
+      expect(find.text('Test Item 1'), findsOneWidget);
+      expect(find.text('Test Item 2'), findsOneWidget);
       expect(find.text('Test Item 1'), findsOneWidget);
       expect(find.text('Test Item 2'), findsOneWidget);
     });
@@ -210,8 +248,10 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Items'), findsOneWidget);
-      expect(find.byType(Card), findsNothing);
+      expect(find.text('ITEMS'), findsOneWidget);
+      // Empty list: the heading stands alone, with no item rows under it.
+      expect(find.text('Test Item 1'), findsNothing);
+      expect(find.text('Test Item 2'), findsNothing);
     });
 
     testWidgets('handles approved request status', (tester) async {

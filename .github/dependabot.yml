@@ -1,0 +1,30 @@
+# Dependency updates.
+#
+# Scoped to GitHub Actions ONLY, on purpose.
+#
+# The obvious next step is to add the `pub` ecosystem, and that is deliberately
+# not done here. This workspace pins a dozen packages through
+# `dependency_overrides` in melos.yaml and vendors several forks under
+# open-sources/. Dependabot cannot see those constraints, so a pub ecosystem
+# entry would open a stream of PRs that cannot merge and would train everyone
+# to ignore the bot. Add pub later, one package group at a time, once the
+# overrides have been reduced.
+#
+# Actions, by contrast, are unpinned, security-sensitive (they run with repo
+# credentials) and update cleanly.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    # One PR for all routine action bumps instead of five. Security updates
+    # still arrive on their own so they are not delayed behind a group.
+    groups:
+      github-actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "chore(deps)"
+    labels: ["dependencies", "ci"]

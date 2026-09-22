@@ -1,0 +1,247 @@
+# Quality gates for pull requests.
+#
+# What this closes
+# ----------------
+# Before this workflow, `web_ci.yml` was the only PR-triggered job that ran
+# tests, and it covered `apps/flipper_web` and `apps/flipper_hr` only. The
+# `melos run test:ci` suite -- which covers flipper_dashboard (~216k LOC),
+# supabase_models, flipper_ai_feature and flipper_auth -- ran only inside
+# release.yml, on `push` to a fixed branch list. That list does not include
+# `feat/*`, so PRs from those branches ran no tests at all.
+#
+# No CI job anywhere ran `dart analyze` or `dart format`.
+#
+# Everything here is a RATCHET
+# ----------------------------
+# The repo carries pre-existing analyzer findings, oversized files, inverted
+# package dependencies and a large service-locator surface. A gate that
+# demanded they all be fixed first would be switched off within a day. Instead
+# each check records today's numbers in .github/baselines/ and fails only when
+# a pull request makes something WORSE. Nobody is ever asked to clean up
+# something they did not touch.
+name: Quality
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      refresh_baseline:
+        description: >-
+          Regenerate .github/baselines/analysis.json from THIS runner and
+          upload it as an artifact instead of checking against the committed
+          one. Download it and commit the result.
+        type: boolean
+        default: false
+
+# Least privilege: every job here only reads the repo.
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 3.44.6, matching release.yml -- NOT web_ci.yml's 3.44.9.
+  #
+  # These suites and the analyzer baseline are both known-good at 3.44.6: it is
+  # what release.yml runs them on and what the repo is developed against. Golden
+  # and layout tests are sensitive to Flutter patch versions, so pinning to the
+  # version the tests were written against keeps this job measuring the code
+  # rather than the toolchain. web_ci.yml stays on 3.44.9 for the web build.
+  FLUTTER_VERSION: "3.44.6"
+  FLUTTER_TEST_CI: true
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Structure. Pure Python over the source text -- no Flutter, no pub, no
+  # bootstrap -- so it finishes in well under a minute and gives the fastest
+  # possible signal on the checks most likely to catch a design mistake.
+  # ---------------------------------------------------------------------
+  structure:
+    name: Architecture and documented rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Architecture ratchet
+        run: ./scripts/ci/architecture_ratchet.sh
+
+      - name: Documented rules
+        run: python3 scripts/ci/documented_rules_check.py
+
+  # ---------------------------------------------------------------------
+  # Static analysis and formatting.
+  # ---------------------------------------------------------------------
+  analysis:
+    name: Analyzer and formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      # fetch-depth: 0 because both checks below diff against the base branch.
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      # Same non-secret stand-ins web_ci.yml uses. These steps run
+      # pull-request code, so no live credential may exist in this job, and
+      # fork PRs (which GitHub denies secrets to) must still work.
+      - name: Install CI fixtures for gitignored sources
+        run: |
+          cp .github/ci-fixtures/models_secrets.dart packages/flipper_models/lib/secrets.dart
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_web/lib/core/secrets.dart
+          # apps/flipper_auth and apps/flipper are analyzed too, and both read
+          # gitignored files. Without these the analyzer reports
+          # URI_DOES_NOT_EXIST here and the baseline can never match a
+          # developer's machine, where the real files exist.
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_auth/lib/core/secrets.dart
+          cp .github/ci-fixtures/flipper_firebase_options.dart apps/flipper/lib/firebase_options.dart
+          # flipper_models imports package:flipper_rw/amplifyconfiguration.dart,
+          # which is gitignored inside apps/flipper.
+          cp .github/ci-fixtures/flipper_amplifyconfiguration.dart apps/flipper/lib/amplifyconfiguration.dart
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
+      # The base branch must exist locally for the diff-scoped checks.
+      - name: Resolve base ref
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="origin/${{ github.base_ref }}"
+            git fetch --no-tags --depth=0 origin "${{ github.base_ref }}" || true
+          else
+            base="origin/main"
+          fi
+          echo "ref=$base" >> "$GITHUB_OUTPUT"
+          echo "Diffing against $base"
+
+      # Only files this PR touched must be formatted. The rest of the repo is
+      # left exactly as it is, so no branch in flight gets a whitespace conflict.
+      - name: Formatting (changed files only)
+        run: ./scripts/ci/format_changed.sh --base "${{ steps.base.outputs.ref }}"
+
+      # Regenerate the baseline from THIS runner instead of checking.
+      #
+      # Analyzer output is environment-dependent in both directions: a
+      # developer machine has generated code (*.g.dart, build_runner output)
+      # and real gitignored sources that a clean runner does not, so the same
+      # commit legitimately produces different counts. Guessing CI's numbers
+      # from a failure log cost three round trips, so the runner produces them
+      # directly. Download the artifact, commit it, done.
+      - name: Refresh baseline (upload only, no check)
+        if: inputs.refresh_baseline
+        run: ./scripts/ci/analysis_ratchet.sh --update
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.refresh_baseline
+        with:
+          name: analysis-baseline
+          path: .github/baselines/analysis.json
+          if-no-files-found: error
+
+      # On a PR, analyze only the packages the diff touches, for speed. On a
+      # push to main, sweep everything so the baseline cannot silently rot.
+      - name: Analyzer ratchet
+        if: ${{ !inputs.refresh_baseline }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ./scripts/ci/analysis_ratchet.sh --changed --base "${{ steps.base.outputs.ref }}"
+          else
+            ./scripts/ci/analysis_ratchet.sh
+          fi
+
+  # ---------------------------------------------------------------------
+  # The test suites that release.yml runs, but on pull requests, where they
+  # can actually stop a regression. flipper_web and flipper_hr are left out
+  # on purpose: web_ci.yml already tests, builds and boot-checks both, and
+  # running them twice per PR would buy nothing.
+  # ---------------------------------------------------------------------
+  package-tests:
+    name: ${{ matrix.suite }} tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [dashboard, supabase_models, ai_feature, auth]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Install CI fixtures for gitignored sources
+        run: |
+          cp .github/ci-fixtures/models_secrets.dart packages/flipper_models/lib/secrets.dart
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_web/lib/core/secrets.dart
+          # apps/flipper_auth and apps/flipper are analyzed too, and both read
+          # gitignored files. Without these the analyzer reports
+          # URI_DOES_NOT_EXIST here and the baseline can never match a
+          # developer's machine, where the real files exist.
+          cp .github/ci-fixtures/web_secrets.dart apps/flipper_auth/lib/core/secrets.dart
+          cp .github/ci-fixtures/flipper_firebase_options.dart apps/flipper/lib/firebase_options.dart
+          # flipper_models imports package:flipper_rw/amplifyconfiguration.dart,
+          # which is gitignored inside apps/flipper.
+          cp .github/ci-fixtures/flipper_amplifyconfiguration.dart apps/flipper/lib/amplifyconfiguration.dart
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
+      # One job per suite, deliberately.
+      #
+      # `melos run test:ci` chains all five suites in a single multi-line
+      # script, and melos runs such a script with `/bin/sh -c` and NO `set -e`
+      # (melos-7.3.0/lib/src/common/utils.dart:431). Only the last line's exit
+      # status survives, so a failure in any of the first four was discarded:
+      #
+      #     $ /bin/sh -c 'false
+      #     true'; echo $?
+      #     0
+      #
+      # That is why release.yml's "Unit Testing" job reported success for
+      # months while 22 flipper_dashboard tests failed. Giving each suite its
+      # own job means no failure can be masked by a later suite passing.
+      - name: Run tests
+        run: dart run melos run "test:${{ matrix.suite }}"

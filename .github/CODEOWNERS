@@ -1,0 +1,40 @@
+# Code owners -- who gets review requested automatically.
+#
+# READ THIS BEFORE TURNING ON BRANCH PROTECTION
+# ---------------------------------------------
+# Do NOT enable "Require review from Code Owners" while this repo has a single
+# maintainer. GitHub does not let you approve your own pull request, so that
+# setting would block every PR you open, permanently. Enable it the day a
+# second reviewer exists.
+#
+# Until then this file does one useful thing: it records WHICH AREAS EXIST and
+# who is accountable for each, so the split is already drawn when someone new
+# joins. Replace the placeholder handles as people arrive.
+
+# Default owner for anything not matched below.
+*                                       @richard457
+
+# --- Sync and data integrity -------------------------------------------
+# The Ditto <-> Supabase <-> Brick boundary. Most of the expensive bugs in this
+# repo have lived here: deterministic ids, fingerprinting, retention windows,
+# read-after-write races. Changes want a second pair of eyes more than most.
+/packages/flipper_models/lib/sync/        @richard457
+/packages/supabase_models/lib/brick/      @richard457
+
+# --- Tax and RRA compliance --------------------------------------------
+# Getting a sequence wrong here is rejected by the revenue authority, not by a
+# test. See the sarNo rule in scripts/ci/documented_rules_check.py.
+/packages/flipper_models/lib/rw_tax.dart  @richard457
+/packages/flipper_models/lib/mixins/TaxController.dart  @richard457
+
+# --- Money -------------------------------------------------------------
+/packages/flipper_payments/               @richard457
+/packages/flipper_accounting/             @richard457
+/packages/accounting_models/              @richard457
+
+# --- Build, CI and release ---------------------------------------------
+# A mistake here is silent: the gate stops running and nobody notices.
+/.github/                                 @richard457
+/scripts/ci/                              @richard457
+/melos.yaml                               @richard457
+/analysis_options.yaml                    @richard457
