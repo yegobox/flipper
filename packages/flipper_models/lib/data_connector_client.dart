@@ -44,13 +44,13 @@ class DataConnectorClient extends http.BaseClient {
     required String baseUrl,
     http.Client? inner,
     DataConnectorAuth? auth,
-  })  : _baseUrl = baseUrl,
-        _inner = inner ?? http.Client(),
-        // Only close what we opened. Callers that resolve a base URL per
-        // request wrap one long-lived inner client repeatedly; closing it
-        // from a throwaway wrapper would break every later call.
-        _ownsInner = inner == null,
-        _auth = auth;
+  }) : _baseUrl = baseUrl,
+       _inner = inner ?? http.Client(),
+       // Only close what we opened. Callers that resolve a base URL per
+       // request wrap one long-lived inner client repeatedly; closing it
+       // from a throwaway wrapper would break every later call.
+       _ownsInner = inner == null,
+       _auth = auth;
 
   final String _baseUrl;
   final http.Client _inner;

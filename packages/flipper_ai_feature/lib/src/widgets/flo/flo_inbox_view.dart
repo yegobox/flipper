@@ -155,10 +155,11 @@ class _FloInboxViewState extends ConsumerState<FloInboxView> {
     try {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) return;
-      final inbound = thread.messages.reversed.cast<WhatsAppDittoMessage?>().firstWhere(
-            (m) => m != null && !m.outbound,
-            orElse: () => null,
-          );
+      final inbound =
+          thread.messages.reversed.cast<WhatsAppDittoMessage?>().firstWhere(
+                (m) => m != null && !m.outbound,
+                orElse: () => null,
+              );
       if (inbound == null) return;
       final draft = await widget.chatService.requestDraft(
         branchId: branchId,
@@ -503,7 +504,8 @@ class _EmptyCustomerList extends StatelessWidget {
             Text(
               'Inbound messages load from data-connector (local Ditto is a backup). When Meta posts to the webhook they appear here within a few seconds.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12.5, height: 1.4, color: FloTheme.ink3),
+              style:
+                  TextStyle(fontSize: 12.5, height: 1.4, color: FloTheme.ink3),
             ),
           ],
         ),
@@ -594,8 +596,7 @@ class _ThreadPaneState extends State<_ThreadPane> {
   void _syncMessageCursor({required bool forceScroll}) {
     final msgs = widget.thread.messages;
     final lastId = msgs.isEmpty ? null : msgs.last.id;
-    final grew =
-        msgs.length > _lastMessageCount || lastId != _lastMessageId;
+    final grew = msgs.length > _lastMessageCount || lastId != _lastMessageId;
     _lastMessageCount = msgs.length;
     _lastMessageId = lastId;
     if (forceScroll || grew) {
@@ -925,9 +926,8 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
                 : FloTheme.blueTint,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: onBlue
-                  ? Colors.white.withValues(alpha: 0.22)
-                  : FloTheme.line,
+              color:
+                  onBlue ? Colors.white.withValues(alpha: 0.22) : FloTheme.line,
             ),
           ),
           child: Row(

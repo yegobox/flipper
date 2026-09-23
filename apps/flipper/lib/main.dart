@@ -255,12 +255,12 @@ Future<void> _runInitStep(_InitStep step) async {
   final watch = Stopwatch()..start();
   try {
     await step.run().timeout(
-      step.budget,
-      onTimeout: () => throw TimeoutException(
-        '${step.label} timed out after ${step.budget.inSeconds}s',
-        step.budget,
-      ),
-    );
+          step.budget,
+          onTimeout: () => throw TimeoutException(
+            '${step.label} timed out after ${step.budget.inSeconds}s',
+            step.budget,
+          ),
+        );
     _finishedInitSteps.add(step.id);
     debugPrint('✅ [init] ${step.id} in ${watch.elapsedMilliseconds}ms');
   } catch (error, stackTrace) {
@@ -359,7 +359,7 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
           // step on every platform.
           registerFlipperPaymentsHost();
           // Same reason and the same ordering constraint: the data-connector
-          // token source reads ProxyService.box, so it needs the locator.
+          // token source reads the preference box, so it needs the locator.
           registerDataConnectorAuthHost();
         },
       ),
@@ -571,8 +571,7 @@ class _StartupFailure extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text(
                     'Initialization Failed',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(

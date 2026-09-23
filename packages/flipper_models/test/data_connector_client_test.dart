@@ -15,7 +15,9 @@ class _FakeAuth implements DataConnectorAuth {
 
   @override
   Future<Map<String, String>> authHeaders({required String baseUrl}) async {
-    final index = headerCalls < _tokens.length ? headerCalls : _tokens.length - 1;
+    final index = headerCalls < _tokens.length
+        ? headerCalls
+        : _tokens.length - 1;
     headerCalls++;
     final token = _tokens[index];
     if (token == null) return const {};
@@ -62,8 +64,9 @@ void main() {
         inner: inner,
         auth: _FakeAuth([null]),
       );
-      final res =
-          await client.get(Uri.parse('https://example.invalid/transactions'));
+      final res = await client.get(
+        Uri.parse('https://example.invalid/transactions'),
+      );
 
       expect(res.statusCode, 200);
       expect(seen.single, isNull);
@@ -85,8 +88,9 @@ void main() {
         inner: inner,
         auth: auth,
       );
-      final res =
-          await client.get(Uri.parse('https://example.invalid/transactions'));
+      final res = await client.get(
+        Uri.parse('https://example.invalid/transactions'),
+      );
 
       expect(res.statusCode, 200);
       expect(calls, 2, reason: 'exactly one retry');
@@ -106,8 +110,9 @@ void main() {
         inner: inner,
         auth: _FakeAuth(['a', 'b', 'c']),
       );
-      final res =
-          await client.get(Uri.parse('https://example.invalid/transactions'));
+      final res = await client.get(
+        Uri.parse('https://example.invalid/transactions'),
+      );
 
       expect(res.statusCode, 401);
       expect(calls, 2, reason: 'a second 401 must not loop');
@@ -127,8 +132,9 @@ void main() {
         inner: inner,
         auth: _FakeAuth(['a', 'b']),
       );
-      final res =
-          await client.get(Uri.parse('https://example.invalid/transactions'));
+      final res = await client.get(
+        Uri.parse('https://example.invalid/transactions'),
+      );
 
       expect(res.statusCode, 403);
       expect(calls, 1);
@@ -149,7 +155,9 @@ void main() {
         inner: inner,
         auth: _FakeAuth(['stale', 'fresh']),
       );
-      final payload = jsonEncode({'items': [1, 2, 3]});
+      final payload = jsonEncode({
+        'items': [1, 2, 3],
+      });
       final res = await client.post(
         Uri.parse('https://example.invalid/rra/products/bulk-add'),
         headers: const {'Content-Type': 'application/json'},
@@ -197,15 +205,17 @@ void main() {
 
   group('dataConnectorJsonHeaders', () {
     test('always sets the content type', () async {
-      final headers =
-          await dataConnectorJsonHeaders(baseUrl: 'https://example.invalid/');
+      final headers = await dataConnectorJsonHeaders(
+        baseUrl: 'https://example.invalid/',
+      );
       expect(headers['Content-Type'], 'application/json');
     });
 
     test('adds the bearer when auth is registered', () async {
       setDataConnectorAuth(_FakeAuth(['sse-tok']));
-      final headers =
-          await dataConnectorJsonHeaders(baseUrl: 'https://example.invalid/');
+      final headers = await dataConnectorJsonHeaders(
+        baseUrl: 'https://example.invalid/',
+      );
       expect(headers['Authorization'], 'Bearer sse-tok');
     });
   });

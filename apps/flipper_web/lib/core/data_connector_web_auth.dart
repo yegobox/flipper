@@ -19,7 +19,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// keeping a long-lived credential out of storage the page can read.
 class DataConnectorWebAuth implements DataConnectorAuth {
   DataConnectorWebAuth({http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 
@@ -99,7 +99,8 @@ class DataConnectorWebAuth implements DataConnectorAuth {
         // would be a tracking identifier we do not need. The connector keys
         // the device row on (installId, userId), so a per-tab id simply means
         // a new device row per tab, which is revocable individually.
-        'installId': _deviceId ?? 'web-${DateTime.now().millisecondsSinceEpoch}',
+        'installId':
+            _deviceId ?? 'web-${DateTime.now().millisecondsSinceEpoch}',
         'supabaseAccessToken': supabaseToken,
         'platform': 'flipper_web',
       },
@@ -121,7 +122,9 @@ class DataConnectorWebAuth implements DataConnectorAuth {
           )
           .timeout(_timeout);
       if (response.statusCode != 200) {
-        debugPrint('[flipper_web] data-connector $path → ${response.statusCode}');
+        debugPrint(
+          '[flipper_web] data-connector $path → ${response.statusCode}',
+        );
         return null;
       }
       final decoded = jsonDecode(response.body);

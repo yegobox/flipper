@@ -51,14 +51,21 @@ class DataConnectorSessionService {
 
   static http.Client get _client => testClient ?? http.Client();
 
+  /// The bits of app state this service needs.
+  ///
+  /// Injectable so the token lifecycle can be tested without booting the
+  /// locator, and so `ProxyService` is reached for in exactly one place
+  /// instead of scattered through every read and write.
+  static DataConnectorSessionEnv env = const ProxyServiceSessionEnv();
+
   /// Forgets the cached session. Call on logout and on branch switch: the
   /// token carries branch and business claims, so a stale one would ask the
   /// server for the wrong tenant.
   static Future<void> reset() async {
     _inFlight = null;
-    await ProxyService.box.writeString(key: _accessTokenKey, value: '');
-    await ProxyService.box.writeString(key: _accessExpiryKey, value: '');
-    await ProxyService.box.writeString(key: _refreshTokenKey, value: '');
+    await env.write(_accessTokenKey, '');
+    await env.write(_accessExpiryKey, '');
+    await env.write(_refreshTokenKey, '');
   }
 
   /// Drops only the access token, keeping the refresh token.
@@ -68,12 +75,12 @@ class DataConnectorSessionService {
   /// than re-enrol.
   static Future<void> invalidateAccessToken() async {
     _inFlight = null;
-    await ProxyService.box.writeString(key: _accessTokenKey, value: '');
-    await ProxyService.box.writeString(key: _accessExpiryKey, value: '');
+    await env.write(_accessTokenKey, '');
+    await env.write(_accessExpiryKey, '');
   }
 
   static String? _nonEmpty(String key) {
-    final v = ProxyService.box.readString(key: key);
+    final v = env.read(key);
     if (v == null || v.trim().isEmpty) return null;
     return v.trim();
   }
@@ -141,7 +148,10 @@ class DataConnectorSessionService {
   static Future<String?> _refreshOrEnroll({required String baseUrl}) async {
     final refreshToken = _nonEmpty(_refreshTokenKey);
     if (refreshToken != null) {
-      final token = await _refresh(baseUrl: baseUrl, refreshToken: refreshToken);
+      final token = await _refresh(
+        baseUrl: baseUrl,
+        refreshToken: refreshToken,
+      );
       if (token != null) return token;
       // The refresh token is dead — expired, revoked, or retired by a
       // rotation this device lost. Re-enrolling is the recovery path; logging
@@ -185,7 +195,7 @@ class DataConnectorSessionService {
   }
 
   static Future<String?> _enroll({required String baseUrl}) async {
-    final identity = await _identityProof();
+    final identity = await env.identityProof();
     if (identity == null) {
       // Not signed in yet, or Firebase has no current user. Normal during
       // boot; the next call will try again.
@@ -207,8 +217,8 @@ class DataConnectorSessionService {
               'enrollKey': AppSecrets.dataConnectorEnrollKey,
               'installId': installId,
               ...identity,
-              'businessId': ProxyService.box.getBusinessId()?.toString(),
-              'branchId': ProxyService.box.getBranchId()?.toString(),
+              'businessId': env.businessId,
+              'branchId': env.branchId,
               'platform': _platformLabel(),
             }),
           )
@@ -228,36 +238,19 @@ class DataConnectorSessionService {
     }
   }
 
-  /// The proof of identity this platform can offer the connector.
-  static Future<Map<String, String>?> _identityProof() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
-      final idToken = await user.getIdToken();
-      if (idToken == null || idToken.isEmpty) return null;
-      return {'firebaseIdToken': idToken};
-    } catch (e) {
-      talker.warning('data-connector: could not read Firebase ID token: $e');
-      return null;
-    }
-  }
-
-  /// Stable per-install id. Reuses `thisDeviceId`, which already survives
-  /// logout, so re-enrolling after a sign-out reuses one device row instead of
-  /// accumulating one per login.
+  /// Stable per-install id.
+  ///
+  /// Always `thisDeviceId`, never the server-assigned device id: the
+  /// connector keys its device row on (installId, userId), so sending the
+  /// device id back after the first enrolment would change the key and
+  /// create a second row every time.
   static String? _installId() {
-    final existing = _nonEmpty(_deviceIdKey) ?? ProxyService.box.getThisDeviceId();
+    final existing = env.installId;
     if (existing != null && existing.trim().isNotEmpty) return existing.trim();
     return null;
   }
 
-  static String _platformLabel() {
-    try {
-      return ProxyService.box.readString(key: 'defaultApp') ?? 'flipper';
-    } catch (_) {
-      return 'flipper';
-    }
-  }
+  static String _platformLabel() => env.read('defaultApp') ?? 'flipper';
 
   /// Stores a token response and returns the access token.
   ///
@@ -275,26 +268,84 @@ class DataConnectorSessionService {
       if (access is! String || access.isEmpty) return null;
 
       if (refresh is String && refresh.isNotEmpty) {
-        await ProxyService.box
-            .writeString(key: _refreshTokenKey, value: refresh);
+        await env.write(_refreshTokenKey, refresh);
       }
       final deviceId = decoded['deviceId'];
       if (deviceId is String && deviceId.isNotEmpty) {
-        await ProxyService.box.writeString(key: _deviceIdKey, value: deviceId);
+        await env.write(_deviceIdKey, deviceId);
       }
 
       final ttlSeconds = expiresIn is int
           ? expiresIn
           : int.tryParse('${expiresIn ?? ''}') ?? 900;
-      final expiresAt =
-          DateTime.now().add(Duration(seconds: ttlSeconds)).millisecondsSinceEpoch;
+      final expiresAt = DateTime.now()
+          .add(Duration(seconds: ttlSeconds))
+          .millisecondsSinceEpoch;
 
-      await ProxyService.box.writeString(key: _accessTokenKey, value: access);
-      await ProxyService.box
-          .writeString(key: _accessExpiryKey, value: '$expiresAt');
+      await env.write(_accessTokenKey, access);
+      await env.write(_accessExpiryKey, '$expiresAt');
       return access;
     } catch (e) {
       talker.warning('data-connector: could not parse token response: $e');
+      return null;
+    }
+  }
+}
+
+/// The app state [DataConnectorSessionService] depends on.
+///
+/// Exists so the service can be driven in a test without a service locator,
+/// a preference file or a signed-in Firebase user.
+abstract interface class DataConnectorSessionEnv {
+  String? read(String key);
+
+  Future<void> write(String key, String value);
+
+  /// Stable id for this install, surviving logout.
+  String? get installId;
+
+  String? get businessId;
+
+  String? get branchId;
+
+  /// Proof of identity for enrolment, or null when nobody is signed in.
+  Future<Map<String, String>?> identityProof();
+}
+
+/// The production implementation: preferences via the service locator's
+/// preference box, identity via Firebase.
+class ProxyServiceSessionEnv implements DataConnectorSessionEnv {
+  const ProxyServiceSessionEnv();
+
+  @override
+  String? read(String key) => ProxyService.box.readString(key: key);
+
+  @override
+  Future<void> write(String key, String value) =>
+      ProxyService.box.writeString(key: key, value: value);
+
+  /// Reuses `thisDeviceId`, which is deliberately excluded from the session
+  /// keys cleared at logout, so re-enrolling reuses one device row rather
+  /// than creating one per login.
+  @override
+  String? get installId => ProxyService.box.getThisDeviceId();
+
+  @override
+  String? get businessId => ProxyService.box.getBusinessId()?.toString();
+
+  @override
+  String? get branchId => ProxyService.box.getBranchId()?.toString();
+
+  @override
+  Future<Map<String, String>?> identityProof() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return null;
+      final idToken = await user.getIdToken();
+      if (idToken == null || idToken.isEmpty) return null;
+      return {'firebaseIdToken': idToken};
+    } catch (e) {
+      talker.warning('data-connector: could not read Firebase ID token: $e');
       return null;
     }
   }

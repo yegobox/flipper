@@ -37,8 +37,9 @@ void registerFlipperPaymentsHost() {
 Future<String?> _branchConnectorUrl() async {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return null;
-  final ebm = await ProxyService.getStrategy(Strategy.capella)
-      .ebm(branchId: branchId, fetchRemote: false);
+  final ebm = await ProxyService.getStrategy(
+    Strategy.capella,
+  ).ebm(branchId: branchId, fetchRemote: false);
   return ebm?.dataConnectorUrl;
 }
 
@@ -53,11 +54,10 @@ void _talkerSink(PaymentsLogLevel level, String message) {
   }
 }
 
-
-/// `ProxyService.http`, with the data-connector bearer swapped in.
+/// The app's shared HTTP client, with the data-connector bearer swapped in.
 ///
 /// Every payment rail posts to the connector (`/v2/api/*`, `/api/billing/*`,
-/// `/api/dodo/*`), and `ProxyService.http` unconditionally sets
+/// `/api/dodo/*`), and the shared client unconditionally sets
 /// `Authorization: Basic …` for the apihub. The connector reads only
 /// `Bearer`, so leaving the Basic header in place would read as "no
 /// credentials" and 401 once enforcement is on.
@@ -76,21 +76,21 @@ class _ConnectorAuthedPaymentsClient implements PaymentsHttpClient {
     Map<String, String>? headers,
     Object? body,
     Encoding? encoding,
-  }) async =>
-      ProxyService.http.post(
-        url,
-        headers: await _headers(url, headers),
-        body: body,
-        encoding: encoding,
-      );
+  }) async => ProxyService.http.post(
+    url,
+    headers: await _headers(url, headers),
+    body: body,
+    encoding: encoding,
+  );
 
   Future<Map<String, String>> _headers(
     Uri url,
     Map<String, String>? provided,
   ) async {
     final merged = <String, String>{...?provided};
-    final callerSetAuth = merged.keys
-        .any((k) => k.toLowerCase() == 'authorization');
+    final callerSetAuth = merged.keys.any(
+      (k) => k.toLowerCase() == 'authorization',
+    );
     if (callerSetAuth) return merged;
 
     final base = '${url.scheme}://${url.authority}';

@@ -12,7 +12,9 @@ const String kDataConnectorProdBaseUrl = 'https://data-connector.yegobox.com/';
 /// Resolves data-connector URL for QR login relay.
 ///
 /// Order: EBM `dataConnectorUrl` → release prod host → local dev default.
-Future<String> resolveQrLoginDataConnectorUrl({String? dataConnectorUrl}) async {
+Future<String> resolveQrLoginDataConnectorUrl({
+  String? dataConnectorUrl,
+}) async {
   final configured = dataConnectorUrl?.trim();
   if (configured != null && configured.isNotEmpty) {
     return configured.endsWith('/') ? configured : '$configured/';
@@ -38,8 +40,7 @@ Future<String> publishQrLoginEventViaDataConnector({
     throw ArgumentError('loginDetails must include channel');
   }
 
-  final eventId =
-      '${channel}_${DateTime.now().millisecondsSinceEpoch}';
+  final eventId = '${channel}_${DateTime.now().millisecondsSinceEpoch}';
   final body = <String, dynamic>{
     ...loginDetails,
     '_id': eventId,
@@ -47,8 +48,7 @@ Future<String> publishQrLoginEventViaDataConnector({
     'timestamp': DateTime.now().toIso8601String(),
   };
 
-  final normalizedBase =
-      baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+  final normalizedBase = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
   final uri = Uri.parse('${normalizedBase}api/events/qr-login');
   final encoded = jsonEncode(body);
 
@@ -60,11 +60,7 @@ Future<String> publishQrLoginEventViaDataConnector({
   );
 
   final response = await (client ?? DataConnectorClient(baseUrl: baseUrl))
-      .post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: encoded,
-      )
+      .post(uri, headers: {'Content-Type': 'application/json'}, body: encoded)
       .timeout(const Duration(seconds: 30));
 
   DataConnectorHttpLog.response(
@@ -83,6 +79,8 @@ Future<String> publishQrLoginEventViaDataConnector({
 
   final data = jsonDecode(response.body) as Map<String, dynamic>;
   final id = data['id']?.toString() ?? eventId;
-  talker.info('QR login event relayed via data-connector (id: $id, channel: $channel)');
+  talker.info(
+    'QR login event relayed via data-connector (id: $id, channel: $channel)',
+  );
   return id;
 }

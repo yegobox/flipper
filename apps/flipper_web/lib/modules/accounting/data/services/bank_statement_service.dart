@@ -92,8 +92,8 @@ class BankStatementParseException implements Exception {
 /// credentials ever pass through the browser.
 class BankStatementService {
   BankStatementService({http.Client? client, ProductAnalytics? analytics})
-      : _client = client ?? DataConnectorClient(baseUrl: _baseUrl),
-        _analytics = analytics;
+    : _client = client ?? DataConnectorClient(baseUrl: _baseUrl),
+      _analytics = analytics;
 
   static String get _baseUrl => kDebugMode
       ? 'http://localhost:8084'

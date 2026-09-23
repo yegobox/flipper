@@ -110,7 +110,9 @@ class ImportsPurchasesClient {
         .toList();
   }
 
-  Future<ImportPurchaseJobAccepted> syncImports(ImportPurchaseContext ctx) async {
+  Future<ImportPurchaseJobAccepted> syncImports(
+    ImportPurchaseContext ctx,
+  ) async {
     return _postJob(
       '${_base}imports/sync',
       ctx.toJson(includeVatEnabled: true),
@@ -136,8 +138,7 @@ class ImportsPurchasesClient {
     double? supplyPrice,
     String? itemNm,
   }) async {
-    final body = ctx.toJson()
-      ..['variantId'] = variantId;
+    final body = ctx.toJson()..['variantId'] = variantId;
     if (targetVariantId != null && targetVariantId.isNotEmpty) {
       body['targetVariantId'] = targetVariantId;
     }
@@ -169,7 +170,11 @@ class ImportsPurchasesClient {
     final body = ctx.toJson()
       ..['purchaseId'] = purchaseId
       ..['itemMapper'] = itemMapper;
-    return _postJob('${_base}purchases/approve', body, label: 'approve purchase');
+    return _postJob(
+      '${_base}purchases/approve',
+      body,
+      label: 'approve purchase',
+    );
   }
 
   Future<ImportPurchaseJobAccepted> rejectPurchase(
@@ -215,11 +220,7 @@ class ImportsPurchasesClient {
     bool compactLog = false,
   }) async {
     final uri = Uri.parse('${_base}imports-purchases/jobs/$jobId');
-    final response = await _get(
-      uri,
-      label: 'poll job',
-      compactLog: compactLog,
-    );
+    final response = await _get(uri, label: 'poll job', compactLog: compactLog);
     if (response.statusCode != 200) {
       throw Exception(
         'Import/purchase job poll failed (${response.statusCode}): ${response.body}',
@@ -229,10 +230,15 @@ class ImportsPurchasesClient {
     final job = decoded['job'] as Map<String, dynamic>?;
     return ImportPurchaseJobStatus(
       jobId: decoded['jobId'] as String? ?? jobId,
-      operation: decoded['operation'] as String? ?? job?['operation'] as String?,
-      status: decoded['status'] as String? ?? job?['status'] as String? ?? 'unknown',
+      operation:
+          decoded['operation'] as String? ?? job?['operation'] as String?,
+      status:
+          decoded['status'] as String? ??
+          job?['status'] as String? ??
+          'unknown',
       error: decoded['error'] as String? ?? job?['error'] as String?,
-      resultMsg: decoded['resultMsg'] as String? ?? job?['resultMsg'] as String?,
+      resultMsg:
+          decoded['resultMsg'] as String? ?? job?['resultMsg'] as String?,
       resultCd: decoded['resultCd'] as String? ?? job?['resultCd'] as String?,
       fetched: _asInt(decoded['fetched'] ?? job?['fetched']),
       steps: _parseSteps(decoded['steps'] ?? job?['steps']),
@@ -362,11 +368,7 @@ class ImportsPurchasesClient {
     return response;
   }
 
-  String _listQuery({
-    required String branchId,
-    String? status,
-    int? limit,
-  }) {
+  String _listQuery({required String branchId, String? status, int? limit}) {
     final params = <String, String>{'branchId': branchId};
     if (status != null && status.isNotEmpty) {
       params['status'] = status;
