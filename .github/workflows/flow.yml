@@ -1,3 +1,40 @@
+# Triage automation: files issues and PRs onto the org project board.
+#
+# Both jobs skip Dependabot. GitHub withholds ordinary repository secrets from
+# Dependabot-authored events -- they come from the separate Dependabot secrets
+# store -- so `secrets.ADD_TO_PROJECT_PAT` arrives empty and actions/add-to-project
+# fails before it does anything:
+#
+#     ##[error]Input required and not supplied: github-token
+#
+# This surfaced when .github/dependabot.yml started opening action-bump PRs:
+# those carry `dependencies`/`ci` labels, which fire `pull_request: [labeled]`,
+# and every one of them failed this workflow.
+#
+# Skipping is the correct fix, not a workaround. This board is for bugs needing
+# triage and PRs needing review; a dependency bump is neither, so it has no
+# business on it. The alternative -- copying the PAT into Dependabot secrets --
+# would hand a credential to a job that exists only to file things the board
+# does not want.
+#
+# Both the actor AND the author are checked, because they answer different
+# questions and only together cover the intent:
+#
+#   github.actor                          on a `labeled` event this is whoever
+#                                         APPLIED the label, so it is what
+#                                         decides whether secrets exist.
+#   github.event.pull_request.user.login  who OPENED the pull request, so it is
+#                                         what decides whether this belongs on
+#                                         the board at all.
+#
+# Actor alone leaves a gap: a maintainer applying `needs-review` and `size/XL`
+# to a Dependabot PR is not Dependabot, so the guard passes, the PAT is
+# available, and the bump lands on the board anyway. Author alone would miss
+# nothing here but says nothing about secrets. Checking both is neither belt
+# nor braces -- it is two separate conditions that happen to share a fix.
+#
+# A missing context resolves to an empty string rather than erroring, so the
+# pull_request checks are inert on `issues` events and vice versa.
 name: Add bugs to bugs project
 
 on:
@@ -8,10 +45,23 @@ on:
     types:
       - labeled
 
+# actions/add-to-project authenticates with ADD_TO_PROJECT_PAT, passed
+# explicitly below -- it never uses GITHUB_TOKEN, and nothing here checks out
+# the repository. So GITHUB_TOKEN needs no scopes at all, and saying so closes
+# the CodeQL "workflow does not contain permissions" finding on both jobs
+# rather than leaving them on the repository default.
+permissions: {}
+
 jobs:
   bugs:
     name: Add issue to project
     runs-on: ubuntu-latest
+    # See the note at the top: actor decides whether secrets exist, author
+    # decides whether this belongs on the board.
+    if: >-
+      github.actor != 'dependabot[bot]'
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+      && github.event.issue.user.login != 'dependabot[bot]'
     steps:
       - uses: actions/add-to-project@v0.4.0
         with:
@@ -22,6 +72,12 @@ jobs:
   pullRequest:
     name: Add issue to project
     runs-on: ubuntu-latest
+    # See the note at the top: actor decides whether secrets exist, author
+    # decides whether this belongs on the board.
+    if: >-
+      github.actor != 'dependabot[bot]'
+      && github.event.pull_request.user.login != 'dependabot[bot]'
+      && github.event.issue.user.login != 'dependabot[bot]'
     steps:
       - uses: actions/add-to-project@v0.4.0
         with:
