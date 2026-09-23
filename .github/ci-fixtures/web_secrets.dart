@@ -16,7 +16,6 @@
 // new secret: add it here. See .github/ci-fixtures/README.md.
 
 class AppSecrets {
-
   /// Gates `POST /auth/enroll` on the data-connector.
   ///
   /// Not a secret in any strong sense: it ships inside this app, so anyone
