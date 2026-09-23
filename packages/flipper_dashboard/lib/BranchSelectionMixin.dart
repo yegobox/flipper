@@ -9,6 +9,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/data_connector_session_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -454,6 +455,12 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         'Failed to set branch ID properly: expected ${branch.id}, got $verifyBranchId',
       );
     }
+
+    // The data-connector token carries branch and business claims, so the one
+    // we hold was minted for the branch we just left. Drop it here, after the
+    // new id is written and verified, so the next connector call enrols
+    // against the branch the user is actually looking at.
+    await DataConnectorSessionService.reset();
   }
 
   // Helper method to get the current branch ID

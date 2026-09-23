@@ -235,6 +235,86 @@ void _lifecycleTests() {
     );
   });
 
+  test('a 401 during a refresh does not start a second refresh', () async {
+    // The revocation race. A parallel request 401s while a refresh is in
+    // flight; if `invalidateAccessToken` drops the shared future, the next
+    // caller refreshes again with the same rotating token, the server sees a
+    // retired token replayed, and it revokes the whole device.
+    final bodies = <String>[];
+    env.store['dataConnectorRefreshToken'] = 'ref-old';
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      bodies.add(req.body);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return http.Response(tokenResponse('acc-2', 'ref-new'), 200);
+    });
+
+    final first = DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+    // Let the refresh get in flight, then simulate the 401 handler.
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await DataConnectorSessionService.invalidateAccessToken();
+    final second = DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+
+    expect(await first, 'acc-2');
+    expect(await second, 'acc-2');
+    expect(bodies.length, 1, reason: 'ref-old must be presented exactly once');
+    expect(jsonDecode(bodies.single)['refreshToken'], 'ref-old');
+  });
+
+  test('a network error during refresh keeps the refresh token', () async {
+    // Offline is not a rejection. Discarding the token here would force a
+    // re-enrolment, which needs a live Firebase user the device may not have.
+    env.store['dataConnectorRefreshToken'] = 'ref-keep';
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      throw const SocketException('offline');
+    });
+
+    final token = await DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+
+    expect(token, isNull);
+    expect(env.store['dataConnectorRefreshToken'], 'ref-keep');
+  });
+
+  test('a network error during refresh does not try to enrol', () async {
+    env.store['dataConnectorRefreshToken'] = 'ref-keep';
+    final paths = <String>[];
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      paths.add(req.url.path);
+      throw const SocketException('offline');
+    });
+
+    await DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+
+    expect(paths, ['/auth/token']);
+  });
+
+  test('reset clears every credential, for a branch switch', () async {
+    // The token carries branch and business claims, so one minted for the
+    // old branch would ask the server for the wrong tenant.
+    DataConnectorSessionService.testClient = MockClient(
+      (req) async => http.Response(tokenResponse('acc-1', 'ref-1'), 200),
+    );
+    await DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+    expect(env.store['dataConnectorRefreshToken'], 'ref-1');
+
+    await DataConnectorSessionService.reset();
+
+    expect(env.store['dataConnectorAccessToken'], isEmpty);
+    expect(env.store['dataConnectorAccessExpiresAt'], isEmpty);
+    expect(env.store['dataConnectorRefreshToken'], isEmpty);
+    // The install id survives: it identifies the device, not the session.
+    expect(env.store['dataConnectorDeviceId'], 'dev-1');
+  });
+
   test('a network failure yields null instead of throwing', () async {
     // POS must keep working when the connector is unreachable.
     DataConnectorSessionService.testClient = MockClient((req) async {

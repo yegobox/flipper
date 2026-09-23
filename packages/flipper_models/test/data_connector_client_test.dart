@@ -185,6 +185,31 @@ void main() {
       expect(seen.single, isNull);
     });
 
+    test('keeps a caller-supplied Authorization header', () async {
+      // CustomPaymentClient sends a staff token, which is a stronger claim
+      // than the device token. Overwriting it would silently downgrade the
+      // request to whatever this device happens to be enrolled as.
+      final auth = _FakeAuth(['device-tok']);
+      final seen = <String?>[];
+      final inner = MockClient((req) async {
+        seen.add(req.headers['Authorization']);
+        return http.Response('{}', 200);
+      });
+
+      final client = DataConnectorClient(
+        baseUrl: 'https://example.invalid/',
+        inner: inner,
+        auth: auth,
+      );
+      await client.get(
+        Uri.parse('https://example.invalid/transactions'),
+        headers: {'Authorization': 'Bearer staff-tok'},
+      );
+
+      expect(seen.single, 'Bearer staff-tok');
+      expect(auth.headerCalls, 0, reason: 'must not even mint a device token');
+    });
+
     test('uses the globally registered auth when none is injected', () async {
       setDataConnectorAuth(_FakeAuth(['global-tok']));
       final seen = <String?>[];

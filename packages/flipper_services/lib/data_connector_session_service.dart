@@ -61,8 +61,16 @@ class DataConnectorSessionService {
   /// Forgets the cached session. Call on logout and on branch switch: the
   /// token carries branch and business claims, so a stale one would ask the
   /// server for the wrong tenant.
+  ///
+  /// Abandoning an in-flight attempt is safe here precisely because this also
+  /// erases the refresh token: a caller that starts over goes to `_enroll`,
+  /// so no refresh token is ever presented twice.
   static Future<void> reset() async {
     _inFlight = null;
+    await _clearStoredCredentials();
+  }
+
+  static Future<void> _clearStoredCredentials() async {
     await env.write(_accessTokenKey, '');
     await env.write(_accessExpiryKey, '');
     await env.write(_refreshTokenKey, '');
@@ -73,8 +81,16 @@ class DataConnectorSessionService {
   /// This is the 401 path: the access token was rejected, but the refresh
   /// token is probably still good, so the next call should refresh rather
   /// than re-enrol.
+  ///
+  /// A refresh already running makes this a no-op. Clearing the cached token
+  /// under it would be pointless — the attempt is about to overwrite it — and
+  /// dropping `_inFlight` would be actively harmful: the next caller would
+  /// start a second refresh with the same refresh token, the server would see
+  /// a retired token replayed, and it would revoke the device. That is the
+  /// exact race the single-flight future exists to prevent, and a 401 on a
+  /// parallel request is the ordinary way to hit it.
   static Future<void> invalidateAccessToken() async {
-    _inFlight = null;
+    if (_inFlight != null) return;
     await env.write(_accessTokenKey, '');
     await env.write(_accessExpiryKey, '');
   }
@@ -129,7 +145,10 @@ class DataConnectorSessionService {
     try {
       return await attempt;
     } finally {
-      _inFlight = null;
+      // Only retract our own attempt. A `reset()` part-way through this one
+      // has already installed null (or a newer attempt), and clearing
+      // unconditionally would retract that instead.
+      if (identical(_inFlight, attempt)) _inFlight = null;
     }
   }
 
@@ -148,16 +167,24 @@ class DataConnectorSessionService {
   static Future<String?> _refreshOrEnroll({required String baseUrl}) async {
     final refreshToken = _nonEmpty(_refreshTokenKey);
     if (refreshToken != null) {
-      final token = await _refresh(
+      final result = await _refresh(
         baseUrl: baseUrl,
         refreshToken: refreshToken,
       );
-      if (token != null) return token;
+      if (result.token != null) return result.token;
+      if (!result.rejected) {
+        // We never reached the server, so we know nothing about the token.
+        // Keeping it is the whole point: re-enrolling needs a signed-in
+        // Firebase user, which an offline device may not be able to prove,
+        // so discarding a good token over a dropped connection could strand
+        // the device until the next login.
+        return null;
+      }
       // The refresh token is dead — expired, revoked, or retired by a
       // rotation this device lost. Re-enrolling is the recovery path; logging
       // the user out over it would be wildly disproportionate.
       talker.warning('data-connector: refresh failed, re-enrolling');
-      await reset();
+      await _clearStoredCredentials();
     }
     return _enroll(baseUrl: baseUrl);
   }
@@ -167,7 +194,7 @@ class DataConnectorSessionService {
     return Uri.parse('$normalized$path');
   }
 
-  static Future<String?> _refresh({
+  static Future<_RefreshResult> _refresh({
     required String baseUrl,
     required String refreshToken,
   }) async {
@@ -183,14 +210,19 @@ class DataConnectorSessionService {
         talker.warning(
           'data-connector: refresh rejected (${response.statusCode})',
         );
-        return null;
+        return const _RefreshResult.rejected();
       }
-      return _persist(response.body);
+      final token = await _persist(response.body);
+      // A 200 we cannot parse is still the server refusing to renew us, so
+      // treat it as a rejection rather than retrying against a token the
+      // server has already rotated away.
+      if (token == null) return const _RefreshResult.rejected();
+      return _RefreshResult.renewed(token);
     } catch (e) {
       // Offline, DNS failure, connector down. Not an auth problem; do not
       // discard the refresh token over it.
       talker.warning('data-connector: refresh errored: $e');
-      return null;
+      return const _RefreshResult.unreachable();
     }
   }
 
@@ -349,4 +381,23 @@ class ProxyServiceSessionEnv implements DataConnectorSessionEnv {
       return null;
     }
   }
+}
+
+/// The outcome of one refresh attempt.
+///
+/// A bare `String?` conflated two cases that call for opposite responses: the
+/// server saying "this token is dead" (re-enrol) and the network saying
+/// nothing at all (keep the token and try later). Collapsing them meant every
+/// offline blip burned the refresh token.
+class _RefreshResult {
+  const _RefreshResult.renewed(String this.token) : rejected = false;
+
+  /// The server answered, and the answer was no.
+  const _RefreshResult.rejected() : token = null, rejected = true;
+
+  /// We never got an answer. Says nothing about the token's validity.
+  const _RefreshResult.unreachable() : token = null, rejected = false;
+
+  final String? token;
+  final bool rejected;
 }

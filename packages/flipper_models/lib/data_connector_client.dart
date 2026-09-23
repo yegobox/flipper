@@ -64,6 +64,12 @@ class DataConnectorClient extends http.BaseClient {
     final auth = _resolvedAuth;
     if (auth == null) return _inner.send(request);
 
+    // A caller that set its own `Authorization` is making a stronger claim
+    // than the device token — a staff token, say — and overwriting it would
+    // silently downgrade the request. Matches
+    // `_ConnectorAuthedPaymentsClient._headers` in flipper_services.
+    if (_hasAuthorization(request.headers)) return _inner.send(request);
+
     final headers = await auth.authHeaders(baseUrl: _baseUrl);
     if (headers.isEmpty) return _inner.send(request);
 
@@ -101,6 +107,11 @@ class DataConnectorClient extends http.BaseClient {
   /// truncated body, which on `/rra/products/bulk-add` would be worse than
   /// the 401.
   static bool _isRetryable(http.BaseRequest request) => request is http.Request;
+
+  /// `http`'s own header map is case-insensitive, but a caller can hand us a
+  /// plain map, so do not rely on the key's casing.
+  static bool _hasAuthorization(Map<String, String> headers) =>
+      headers.keys.any((k) => k.toLowerCase() == 'authorization');
 
   http.BaseRequest _copyWith(
     http.BaseRequest original,
