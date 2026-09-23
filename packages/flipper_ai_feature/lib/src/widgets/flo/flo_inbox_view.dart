@@ -9,6 +9,7 @@ import 'package:flipper_services/data_connector_url.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/whatsapp_ditto_inbox.dart';
 import 'package:flipper_services/whatsapp_service.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 import '../../providers/whatsapp_message_provider.dart';
@@ -1027,8 +1028,9 @@ Future<Uint8List?> _loadPdfBytes(WhatsAppDittoMessage message) async {
       },
     );
     try {
-      final response =
-          await http.get(uri).timeout(const Duration(seconds: 45));
+      final response = await DataConnectorClient(baseUrl: base)
+          .get(uri)
+          .timeout(const Duration(seconds: 45));
       if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
         return response.bodyBytes;
       }

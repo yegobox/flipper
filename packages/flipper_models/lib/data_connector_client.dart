@@ -46,10 +46,15 @@ class DataConnectorClient extends http.BaseClient {
     DataConnectorAuth? auth,
   })  : _baseUrl = baseUrl,
         _inner = inner ?? http.Client(),
+        // Only close what we opened. Callers that resolve a base URL per
+        // request wrap one long-lived inner client repeatedly; closing it
+        // from a throwaway wrapper would break every later call.
+        _ownsInner = inner == null,
         _auth = auth;
 
   final String _baseUrl;
   final http.Client _inner;
+  final bool _ownsInner;
   final DataConnectorAuth? _auth;
 
   DataConnectorAuth? get _resolvedAuth => _auth ?? dataConnectorAuth;
@@ -120,7 +125,7 @@ class DataConnectorClient extends http.BaseClient {
 
   @override
   void close() {
-    _inner.close();
+    if (_ownsInner) _inner.close();
     super.close();
   }
 }

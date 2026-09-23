@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
@@ -77,14 +78,31 @@ class DataConnectorSessionService {
     return v.trim();
   }
 
-  static bool _accessTokenLooksValid() {
-    if (_nonEmpty(_accessTokenKey) == null) return false;
-    final rawExpiry = _nonEmpty(_accessExpiryKey);
-    if (rawExpiry == null) return false;
-    final epochMs = int.tryParse(rawExpiry);
+  /// Whether a token expiring at [expiresAtEpochMs] is still usable at [now].
+  ///
+  /// Pure and public so the skew behaviour can be tested without a preference
+  /// store, a signed-in user or a clock. An unparseable or missing expiry is
+  /// treated as stale: refreshing needlessly is cheap, using a dead token is
+  /// a failed request.
+  @visibleForTesting
+  static bool isAccessTokenFresh({
+    required String? expiresAtEpochMs,
+    required DateTime now,
+    Duration skew = _skew,
+  }) {
+    if (expiresAtEpochMs == null) return false;
+    final epochMs = int.tryParse(expiresAtEpochMs);
     if (epochMs == null) return false;
     final expiry = DateTime.fromMillisecondsSinceEpoch(epochMs);
-    return DateTime.now().isBefore(expiry.subtract(_skew));
+    return now.isBefore(expiry.subtract(skew));
+  }
+
+  static bool _accessTokenLooksValid() {
+    if (_nonEmpty(_accessTokenKey) == null) return false;
+    return isAccessTokenFresh(
+      expiresAtEpochMs: _nonEmpty(_accessExpiryKey),
+      now: DateTime.now(),
+    );
   }
 
   /// A usable access token, or null when one cannot be obtained.

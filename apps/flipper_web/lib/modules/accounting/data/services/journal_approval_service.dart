@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 /// Fresh journal entry status from the data-connector Ditto replica.
@@ -78,8 +79,9 @@ class JournalApprovalService {
     String? baseUrl,
     ProductAnalytics? analytics,
   })
-      : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? _defaultBaseUrl,
+      : _baseUrl = baseUrl ?? _defaultBaseUrl,
+        _client = client ??
+            DataConnectorClient(baseUrl: baseUrl ?? _defaultBaseUrl),
         _analytics = analytics;
 
   static String get _defaultBaseUrl => kDebugMode

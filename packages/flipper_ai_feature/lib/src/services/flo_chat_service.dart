@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/bulk_rra_client.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,6 +22,14 @@ class FloChatService {
   FloChatService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
+
+  /// Wraps the shared client with auth for one resolved base URL.
+  ///
+  /// The base is resolved per call (it comes from the active branch's EBM
+  /// record), so the wrapper cannot be built once in the constructor.
+  /// It borrows `_client` rather than opening its own.
+  http.Client _authed(String base) =>
+      DataConnectorClient(baseUrl: base, inner: _client);
 
   static const _connectTimeout = Duration(seconds: 30);
   static const _chatTimeout = Duration(minutes: 3);
@@ -58,7 +67,7 @@ class FloChatService {
     final uri = Uri.parse('${base}api/ai/chat');
     http.Response response;
     try {
-      response = await _client
+      response = await _authed(base)
           .post(
             uri,
             headers: {'Content-Type': 'application/json'},
@@ -96,7 +105,10 @@ class FloChatService {
     final base = await _baseUrl();
     final uri = Uri.parse('${base}api/ai/chat/stream');
     final request = http.Request('POST', uri);
-    request.headers['Content-Type'] = 'application/json';
+    // Streamed: the wrapper's 401-retry cannot replay a consumed stream, so
+    // the token is attached up front. An access token that expires mid-stream
+    // is fine -- the connection was authenticated when it opened.
+    request.headers.addAll(await dataConnectorJsonHeaders(baseUrl: base));
     request.headers['Accept'] = 'text/event-stream';
     request.body = jsonEncode({
       'branch_id': branchId,
@@ -153,7 +165,7 @@ class FloChatService {
     final uri = Uri.parse('${base}api/ai/whatsapp/draft');
     http.Response response;
     try {
-      response = await _client.post(
+      response = await _authed(base).post(
         uri,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -182,7 +194,7 @@ class FloChatService {
     );
     http.Response response;
     try {
-      response = await _client
+      response = await _authed(base)
           .get(uri)
           .timeout(_briefingTimeout);
     } catch (e) {

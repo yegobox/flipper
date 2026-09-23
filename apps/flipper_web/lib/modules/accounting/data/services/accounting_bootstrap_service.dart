@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 /// Result of server-side accounting bootstrap via data-connector.
@@ -37,8 +38,9 @@ class AccountingBootstrapException implements Exception {
 /// Ensures COA, journals, and settings exist server-side before Books opens.
 class AccountingBootstrapService {
   AccountingBootstrapService({http.Client? client, String? baseUrl})
-      : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? _defaultBaseUrl;
+      : _baseUrl = baseUrl ?? _defaultBaseUrl,
+        _client = client ??
+            DataConnectorClient(baseUrl: baseUrl ?? _defaultBaseUrl);
 
   static String get _defaultBaseUrl => kDebugMode
       ? 'http://localhost:8084'
