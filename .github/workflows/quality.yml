@@ -57,6 +57,61 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------
+  # Does this pull request touch anything the Dart jobs could possibly have
+  # an opinion about?
+  #
+  # Dependabot opens action-bump PRs that change one line of YAML, and without
+  # this they each spent ~45 runner-minutes on four Flutter suites to prove a
+  # workflow file still parses.
+  #
+  # The list below is deliberately wider than "*.dart". A pubspec, melos.yaml,
+  # an analyzer config, a ratchet script, a CI fixture or a baseline can all
+  # change what the Dart jobs conclude, so any of them counts as code.
+  #
+  # `.github/workflows/quality.yml` counts too, on purpose: editing THIS file
+  # must still run the jobs it defines, or a change that breaks them would
+  # skip its way to green. That is the failure mode a path filter usually
+  # introduces, and the reason this one names the file explicitly.
+  #
+  # Only pull requests are filtered. A push to main always runs everything, so
+  # the baselines cannot drift behind a series of filtered PRs.
+  # ---------------------------------------------------------------------
+  changes:
+    name: What changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "Not a pull request -- running every job."
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git fetch --no-tags origin "${{ github.base_ref }}" || true
+          changed="$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD || true)"
+          echo "Changed files:"
+          printf '%s\n' "$changed" | sed 's/^/  /'
+
+          if printf '%s\n' "$changed" | grep -qE \
+            '\.dart$|(^|/)pubspec\.yaml$|(^|/)melos\.yaml$|(^|/)analysis_options\.yaml$|^scripts/ci/|^\.github/ci-fixtures/|^\.github/baselines/|^\.github/workflows/quality\.yml$'
+          then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "=> Dart jobs will run."
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+            echo "=> Nothing here changes what the Dart jobs would conclude; skipping them."
+          fi
+
+  # ---------------------------------------------------------------------
   # Structure. Pure Python over the source text -- no Flutter, no pub, no
   # bootstrap -- so it finishes in well under a minute and gives the fastest
   # possible signal on the checks most likely to catch a design mistake.
@@ -83,6 +138,8 @@ jobs:
     name: Analyzer and formatting
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       # fetch-depth: 0 because both checks below diff against the base branch.
       - uses: actions/checkout@v4
@@ -183,6 +240,8 @@ jobs:
     name: ${{ matrix.suite }} tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     strategy:
       fail-fast: false
       matrix:

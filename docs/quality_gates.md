@@ -66,6 +66,25 @@ point — a ratchet with an empty baseline is machinery holding nothing back.
 `test:ci` would turn `release.yml` red immediately, which is a decision about
 release process rather than a CI gate, and is not this change's to make.
 
+## The expensive jobs only run when they could say something
+
+A `changes` job diffs the pull request and skips `Analyzer and formatting` and
+the four test suites when nothing in the diff could alter what they conclude.
+Dependabot action-bumps were spending ~45 runner-minutes on four Flutter
+suites to prove a one-line YAML change still parses.
+
+"Could alter what they conclude" is deliberately wider than `*.dart` — a
+pubspec, `melos.yaml`, an analyzer config, a ratchet script, a CI fixture or a
+baseline all count.
+
+So does **`.github/workflows/quality.yml` itself**. Editing this file must
+still run the jobs it defines, or a change that breaks them would skip its way
+to green. That is the usual failure mode of a path filter, and the reason this
+one names the file explicitly.
+
+Only pull requests are filtered. A push to `main` always runs everything, so
+baselines cannot drift behind a series of filtered PRs.
+
 ## Everything is a ratchet
 
 The repo carries pre-existing analyzer findings (700, zero of them errors),
