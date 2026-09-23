@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +11,7 @@ class BulkRraClient {
     required this.baseUrl,
     http.Client? httpClient,
     this.logHttp = true,
-  }) : _http = httpClient ?? http.Client(),
+  }) : _http = httpClient ?? DataConnectorClient(baseUrl: baseUrl),
        _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;

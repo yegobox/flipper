@@ -35,6 +35,12 @@ const Set<String> kSessionPrefKeys = {
   'UToken',
   'otp',
   'getIsTokenRegistered',
+  // data-connector tokens belong to the signed-in user, so they must not
+  // survive a logout. `dataConnectorDeviceId` deliberately is NOT here: it
+  // identifies the install, like `thisDeviceId`, and re-enrolment reuses it.
+  'dataConnectorAccessToken',
+  'dataConnectorAccessExpiresAt',
+  'dataConnectorRefreshToken',
   'pinLogin',
   'from_login',
   'freshSignup',

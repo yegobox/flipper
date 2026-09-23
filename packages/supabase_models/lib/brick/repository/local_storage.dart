@@ -140,6 +140,13 @@ class SharedPreferenceStorage implements LocalStorage {
     'freshSignup',
     'selectedDelegationDeviceId',
     'thisDeviceId',
+    // data-connector API auth. Writes to keys missing from this set are
+    // silently dropped, so a token would never persist and every request
+    // would re-enrol.
+    'dataConnectorDeviceId',
+    'dataConnectorAccessToken',
+    'dataConnectorAccessExpiresAt',
+    'dataConnectorRefreshToken',
     'enableAutoAddSearch',
     'whatsAppPhoneNumberId',
     'userLoggingEnabled',

@@ -26,6 +26,7 @@ import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/data_connector_auth_host.dart';
 import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
@@ -357,6 +358,9 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
           // the 'platform' step) threw and silently skipped the rest of that
           // step on every platform.
           registerFlipperPaymentsHost();
+          // Same reason and the same ordering constraint: the data-connector
+          // token source reads ProxyService.box, so it needs the locator.
+          registerDataConnectorAuthHost();
         },
       ),
       const _InitStep(

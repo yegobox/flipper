@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:http/http.dart' as http;
@@ -58,7 +59,7 @@ Future<String> publishQrLoginEventViaDataConnector({
     operation: 'qr-login',
   );
 
-  final response = await (client ?? http.Client())
+  final response = await (client ?? DataConnectorClient(baseUrl: baseUrl))
       .post(
         uri,
         headers: {'Content-Type': 'application/json'},
