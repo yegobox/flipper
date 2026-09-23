@@ -3,6 +3,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_hr/features/branding/hr_brand_panel.dart';
 import 'package:flipper_hr/router/hr_router.dart';
 import 'package:flipper_web/core/branding/brand_panel_builder.dart';
+import 'package:flipper_web/core/data_connector_web_auth.dart';
 import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/core/routing/post_selection_route.dart';
 import 'package:flipper_web/core/secrets.dart';
@@ -21,6 +22,11 @@ Future<void> main() async {
 
   await initializeCriticalDependencies();
   await initializeSupabase();
+
+  // The MoMo gateway posts to the data-connector, which authenticates every
+  // route. Must follow initializeSupabase(): the token source reads the
+  // Supabase session.
+  registerDataConnectorWebAuth();
 
   await FlipperAnalytics.initialize(
     appName: 'flipper_hr',

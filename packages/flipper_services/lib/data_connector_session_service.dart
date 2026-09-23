@@ -268,6 +268,11 @@ class DataConnectorSessionService {
               'enrollKey': AppSecrets.dataConnectorEnrollKey,
               'installId': installId,
               ...identity,
+              // The connector cannot derive this from a Firebase token:
+              // `users` is keyed by Flipper's own uuid and no row carries a
+              // Firebase uid yet. Sending it lets the server link the two on
+              // first use, and check it against the binding thereafter.
+              'userId': env.userId,
               'businessId': env.businessId,
               'branchId': env.branchId,
               'platform': _platformLabel(),
@@ -382,6 +387,9 @@ abstract interface class DataConnectorSessionEnv {
 
   String? get branchId;
 
+  /// Flipper's own user id (`users.id`), not the Firebase uid.
+  String? get userId;
+
   /// Proof of identity for enrolment, or null when nobody is signed in.
   Future<Map<String, String>?> identityProof();
 }
@@ -403,6 +411,9 @@ class ProxyServiceSessionEnv implements DataConnectorSessionEnv {
   /// than creating one per login.
   @override
   String? get installId => ProxyService.box.getThisDeviceId();
+
+  @override
+  String? get userId => ProxyService.box.getUserId()?.toString();
 
   @override
   String? get businessId => ProxyService.box.getBusinessId()?.toString();
