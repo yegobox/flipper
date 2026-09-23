@@ -96,6 +96,9 @@ class _FakeEnv implements DataConnectorSessionEnv {
   String? get installId => 'install-1';
 
   @override
+  String? get userId => 'user-uuid-1';
+
+  @override
   String? get businessId => 'biz-1';
 
   @override
@@ -141,6 +144,29 @@ void _lifecycleTests() {
     expect(env.store['dataConnectorRefreshToken'], 'ref-1');
     expect(env.store['dataConnectorDeviceId'], 'dev-1');
   });
+
+  test(
+    'enrolment sends the Flipper user id, not just the Firebase token',
+    () async {
+      // The connector cannot resolve a Firebase uid to a Flipper user on its
+      // own -- no existing users row carries one -- so omitting this makes
+      // every enrolment fail with "identity mismatch".
+      Map<String, dynamic>? sent;
+      DataConnectorSessionService.testClient = MockClient((req) async {
+        sent = jsonDecode(req.body) as Map<String, dynamic>;
+        return http.Response(tokenResponse('acc-1', 'ref-1'), 200);
+      });
+
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      );
+
+      expect(sent?['userId'], 'user-uuid-1');
+      expect(sent?['firebaseIdToken'], 'fb-token');
+      expect(sent?['businessId'], 'biz-1');
+      expect(sent?['installId'], 'install-1');
+    },
+  );
 
   test('a cached, still-fresh token is reused without a call', () async {
     var calls = 0;
