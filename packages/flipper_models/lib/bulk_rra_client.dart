@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +11,7 @@ class BulkRraClient {
     required this.baseUrl,
     http.Client? httpClient,
     this.logHttp = true,
-  }) : _http = httpClient ?? http.Client(),
+  }) : _http = httpClient ?? DataConnectorClient(baseUrl: baseUrl),
        _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;
@@ -53,11 +54,7 @@ class BulkRraClient {
     }
     final started = Stopwatch()..start();
     final response = await _http
-        .post(
-          uri,
-          headers: _jsonHeaders,
-          body: jsonEncode(body),
-        )
+        .post(uri, headers: _jsonHeaders, body: jsonEncode(body))
         .timeout(
           const Duration(minutes: 15),
           onTimeout: () {
@@ -140,8 +137,9 @@ class BulkRraClient {
     String jobId, {
     String? status,
   }) async {
-    final statusParam =
-        status != null && status.isNotEmpty ? '&status=$status' : '';
+    final statusParam = status != null && status.isNotEmpty
+        ? '&status=$status'
+        : '';
     final uri = Uri.parse(
       '${_base}rra/jobs/$jobId/items?limit=1000$statusParam',
     );
@@ -276,8 +274,7 @@ Future<String> resolveDataConnectorBaseUrl({String? dataConnectorUrl}) async {
       );
       return kDataConnectorFallbackBaseUrl;
     }
-    final normalized =
-        configured.endsWith('/') ? configured : '$configured/';
+    final normalized = configured.endsWith('/') ? configured : '$configured/';
     talker.info('Bulk RRA using data-connector at $normalized');
     return normalized;
   }

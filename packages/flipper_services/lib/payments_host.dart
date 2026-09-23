@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_payments/flipper_payments.dart';
+import 'package:flipper_services/data_connector_session_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:http/http.dart' as http;
 
 /// Lends `flipper_payments` the things only this app can supply.
 ///
@@ -21,7 +25,7 @@ import 'package:flipper_services/proxy.dart';
 /// `package:http` client and [kPaymentsApiBaseUrl], which is the correct answer
 /// for them and finally puts all three apps on one host.
 void registerFlipperPaymentsHost() {
-  setDefaultPaymentsHttpClient(ProxyService.http);
+  setDefaultPaymentsHttpClient(_ConnectorAuthedPaymentsClient());
   setPaymentsBaseUrlResolver(_branchConnectorUrl);
   setPaymentsLogSink(_talkerSink);
 }
@@ -33,8 +37,9 @@ void registerFlipperPaymentsHost() {
 Future<String?> _branchConnectorUrl() async {
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return null;
-  final ebm = await ProxyService.getStrategy(Strategy.capella)
-      .ebm(branchId: branchId, fetchRemote: false);
+  final ebm = await ProxyService.getStrategy(
+    Strategy.capella,
+  ).ebm(branchId: branchId, fetchRemote: false);
   return ebm?.dataConnectorUrl;
 }
 
@@ -46,5 +51,53 @@ void _talkerSink(PaymentsLogLevel level, String message) {
       talker.warning(message);
     case PaymentsLogLevel.error:
       talker.error(message);
+  }
+}
+
+/// The app's shared HTTP client, with the data-connector bearer swapped in.
+///
+/// Every payment rail posts to the connector (`/v2/api/*`, `/api/billing/*`,
+/// `/api/dodo/*`), and the shared client unconditionally sets
+/// `Authorization: Basic …` for the apihub. The connector reads only
+/// `Bearer`, so leaving the Basic header in place would read as "no
+/// credentials" and 401 once enforcement is on.
+///
+/// A caller that sets its own `Authorization` keeps it —
+/// `CustomPaymentClient` sends a staff token, which is a stronger claim than
+/// the device token and must not be overwritten.
+class _ConnectorAuthedPaymentsClient implements PaymentsHttpClient {
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async =>
+      ProxyService.http.get(url, headers: await _headers(url, headers));
+
+  @override
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async => ProxyService.http.post(
+    url,
+    headers: await _headers(url, headers),
+    body: body,
+    encoding: encoding,
+  );
+
+  Future<Map<String, String>> _headers(
+    Uri url,
+    Map<String, String>? provided,
+  ) async {
+    final merged = <String, String>{...?provided};
+    final callerSetAuth = merged.keys.any(
+      (k) => k.toLowerCase() == 'authorization',
+    );
+    if (callerSetAuth) return merged;
+
+    final base = '${url.scheme}://${url.authority}';
+    final auth = await DataConnectorSessionService.authHeaders(baseUrl: base);
+    // Empty while unenrolled or offline. The request still goes out, which is
+    // what keeps payments working during the warn-mode rollout.
+    merged.addAll(auth);
+    return merged;
   }
 }

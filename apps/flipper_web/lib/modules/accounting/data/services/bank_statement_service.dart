@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 /// One transaction row parsed from a bank statement PDF.
@@ -91,8 +92,8 @@ class BankStatementParseException implements Exception {
 /// credentials ever pass through the browser.
 class BankStatementService {
   BankStatementService({http.Client? client, ProductAnalytics? analytics})
-      : _client = client ?? http.Client(),
-        _analytics = analytics;
+    : _client = client ?? DataConnectorClient(baseUrl: _baseUrl),
+      _analytics = analytics;
 
   static String get _baseUrl => kDebugMode
       ? 'http://localhost:8084'

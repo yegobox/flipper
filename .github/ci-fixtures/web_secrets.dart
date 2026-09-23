@@ -16,6 +16,13 @@
 // new secret: add it here. See .github/ci-fixtures/README.md.
 
 class AppSecrets {
+  /// Gates `POST /auth/enroll` on the data-connector.
+  ///
+  /// Not a secret in any strong sense: it ships inside this app, so anyone
+  /// with a build can read it. It raises the cost of drive-by scanning; the
+  /// real proof of identity is the Firebase ID token sent alongside it, which
+  /// the connector verifies against Google's signing keys.
+  static const String dataConnectorEnrollKey = "ci-fixture.invalid";
   static bool isTestEnvironment() {
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }

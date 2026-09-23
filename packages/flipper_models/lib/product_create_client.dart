@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper_models/bulk_rra_client.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:http/http.dart' as http;
@@ -11,8 +12,8 @@ class ProductCreateClient {
     required this.baseUrl,
     http.Client? httpClient,
     this.logHttp = true,
-  })  : _http = httpClient ?? http.Client(),
-        _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+  }) : _http = httpClient ?? DataConnectorClient(baseUrl: baseUrl),
+       _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;
   final http.Client _http;
@@ -53,11 +54,7 @@ class ProductCreateClient {
 
     final started = Stopwatch()..start();
     final response = await _http
-        .post(
-          uri,
-          headers: _jsonHeaders,
-          body: jsonEncode(body),
-        )
+        .post(uri, headers: _jsonHeaders, body: jsonEncode(body))
         .timeout(
           const Duration(minutes: 5),
           onTimeout: () {
@@ -101,7 +98,8 @@ class ProductCreateClient {
     }
 
     final data = decoded['data'] as Map<String, dynamic>?;
-    final variantIds = (data?['variant_ids'] as List<dynamic>?)
+    final variantIds =
+        (data?['variant_ids'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
         const <String>[];

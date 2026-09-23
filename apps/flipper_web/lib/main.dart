@@ -1,5 +1,6 @@
 // router and auth wiring moved to router_provider
 import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_web/core/data_connector_web_auth.dart';
 import 'package:flipper_web/core/flipper_web_host.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/features/login/theme_provider.dart';
@@ -60,6 +61,10 @@ Future<void> main() async {
     );
     AccountingBackendConfig.logStartupConfig();
     PaymentsEndpointConfig.apply();
+    // Hands flipper_models a Supabase-backed token source for data-connector
+    // calls. Must follow initializeSupabase(); safe before login, since it
+    // yields no headers until there is a session.
+    registerDataConnectorWebAuth();
 
     runApp(const ProviderScope(child: MyApp()));
     WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -26,6 +26,7 @@ import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_services/app_shortcuts_platform.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/data_connector_auth_host.dart';
 import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/analytics/repository_analytics_event_store.dart';
@@ -254,12 +255,12 @@ Future<void> _runInitStep(_InitStep step) async {
   final watch = Stopwatch()..start();
   try {
     await step.run().timeout(
-      step.budget,
-      onTimeout: () => throw TimeoutException(
-        '${step.label} timed out after ${step.budget.inSeconds}s',
-        step.budget,
-      ),
-    );
+          step.budget,
+          onTimeout: () => throw TimeoutException(
+            '${step.label} timed out after ${step.budget.inSeconds}s',
+            step.budget,
+          ),
+        );
     _finishedInitSteps.add(step.id);
     debugPrint('✅ [init] ${step.id} in ${watch.elapsedMilliseconds}ms');
   } catch (error, stackTrace) {
@@ -357,6 +358,9 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
           // the 'platform' step) threw and silently skipped the rest of that
           // step on every platform.
           registerFlipperPaymentsHost();
+          // Same reason and the same ordering constraint: the data-connector
+          // token source reads the preference box, so it needs the locator.
+          registerDataConnectorAuthHost();
         },
       ),
       const _InitStep(
@@ -567,8 +571,7 @@ class _StartupFailure extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text(
                     'Initialization Failed',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(

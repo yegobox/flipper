@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 /// Result of server-side accounting bootstrap via data-connector.
@@ -37,13 +38,14 @@ class AccountingBootstrapException implements Exception {
 /// Ensures COA, journals, and settings exist server-side before Books opens.
 class AccountingBootstrapService {
   AccountingBootstrapService({http.Client? client, String? baseUrl})
-      : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? _defaultBaseUrl;
+    : _baseUrl = baseUrl ?? _defaultBaseUrl,
+      _client =
+          client ?? DataConnectorClient(baseUrl: baseUrl ?? _defaultBaseUrl);
 
   static String get _defaultBaseUrl => kDebugMode
       ? 'http://localhost:8084'
       : 'https://data-connector.yegobox.com';
- 
+
   final http.Client _client;
   final String _baseUrl;
 
@@ -71,14 +73,16 @@ class AccountingBootstrapService {
 
     return _inFlight.putIfAbsent(
       trimmed,
-      () => _postBootstrap(trimmed).then((r) {
-        _ready[trimmed] = r;
-        return r;
-      }).whenComplete(() {
-        // Braces matter: returning the removed Future from this callback
-        // would make whenComplete await it — i.e. await itself, deadlocking.
-        _inFlight.remove(trimmed);
-      }),
+      () => _postBootstrap(trimmed)
+          .then((r) {
+            _ready[trimmed] = r;
+            return r;
+          })
+          .whenComplete(() {
+            // Braces matter: returning the removed Future from this callback
+            // would make whenComplete await it — i.e. await itself, deadlocking.
+            _inFlight.remove(trimmed);
+          }),
     );
   }
 
@@ -105,8 +109,7 @@ class AccountingBootstrapService {
 
   void _throwIfError(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
-    String message =
-        'Accounting bootstrap failed (${response.statusCode})';
+    String message = 'Accounting bootstrap failed (${response.statusCode})';
     try {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {

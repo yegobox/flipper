@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 /// Fresh journal entry status from the data-connector Ditto replica.
@@ -17,8 +18,10 @@ class JournalEntryRemoteStatus {
     return JournalEntryRemoteStatus(
       entryId: (json['entryId'] ?? json['entry_id'] ?? '').toString(),
       status: (json['status'] ?? 'draft').toString(),
-      entryNumber: json['entryNumber'] as String? ?? json['entry_number'] as String?,
-      businessId: json['businessId'] as String? ?? json['business_id'] as String?,
+      entryNumber:
+          json['entryNumber'] as String? ?? json['entry_number'] as String?,
+      businessId:
+          json['businessId'] as String? ?? json['business_id'] as String?,
     );
   }
 
@@ -77,10 +80,10 @@ class JournalApprovalService {
     http.Client? client,
     String? baseUrl,
     ProductAnalytics? analytics,
-  })
-      : _client = client ?? http.Client(),
-        _baseUrl = baseUrl ?? _defaultBaseUrl,
-        _analytics = analytics;
+  }) : _baseUrl = baseUrl ?? _defaultBaseUrl,
+       _client =
+           client ?? DataConnectorClient(baseUrl: baseUrl ?? _defaultBaseUrl),
+       _analytics = analytics;
 
   static String get _defaultBaseUrl => kDebugMode
       ? 'http://localhost:8084'
@@ -93,11 +96,13 @@ class JournalApprovalService {
   /// Legacy entry ids embed the human reference ('Auto · JE-9536'), so the id
   /// has to be percent-encoded before it goes into the URL path.
   Uri _entryUri(String entryId) => Uri.parse(
-      '$_baseUrl/accounting/journal-entries/${Uri.encodeComponent(entryId)}');
+    '$_baseUrl/accounting/journal-entries/${Uri.encodeComponent(entryId)}',
+  );
 
   Uri _approveUri(String entryId) => Uri.parse(
-      '$_baseUrl/accounting/journal-entries/'
-      '${Uri.encodeComponent(entryId)}/approve');
+    '$_baseUrl/accounting/journal-entries/'
+    '${Uri.encodeComponent(entryId)}/approve',
+  );
 
   Future<JournalEntryRemoteStatus> fetchStatus(String entryId) async {
     final response = await _get(_entryUri(entryId));
@@ -168,8 +173,7 @@ class JournalApprovalService {
 
   void _throwIfError(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
-    String message =
-        'Journal approval request failed (${response.statusCode})';
+    String message = 'Journal approval request failed (${response.statusCode})';
     try {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {

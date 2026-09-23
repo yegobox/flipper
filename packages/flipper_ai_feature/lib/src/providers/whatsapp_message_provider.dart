@@ -8,6 +8,7 @@ import 'package:flipper_services/whatsapp_message_sync_service.dart';
 import 'package:flipper_services/data_connector_url.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 
 import 'whatsapp_connection_provider.dart';
@@ -92,7 +93,9 @@ Future<List<Map<String, dynamic>>> _fetchRemoteDocs({
         ? const Duration(seconds: 2)
         : const Duration(seconds: 15);
     try {
-      final response = await client.get(uri).timeout(timeout);
+      final response = await DataConnectorClient(baseUrl: base, inner: client)
+          .get(uri)
+          .timeout(timeout);
       if (response.statusCode != 200) {
         debugPrint(
           'WhatsApp inbox HTTP ${response.statusCode} @ $base',

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flipper_models/bulk_rra_client.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
@@ -82,7 +83,7 @@ Future<DailyReportPresignResponse> fetchDailyReportPresign({
     '${base}reports/daily-files/download',
   ).replace(queryParameters: {'branchId': branchId, 'objectKey': objectKey});
 
-  final res = await http.get(uri);
+  final res = await DataConnectorClient(baseUrl: base).get(uri);
   if (res.statusCode >= 400) {
     Map<String, dynamic>? err;
     try {
@@ -112,7 +113,7 @@ Future<DailyReportPreviewResponse> fetchDailyReportPreview({
     '${base}reports/daily-files/preview',
   ).replace(queryParameters: {'branchId': branchId, 'objectKey': objectKey});
 
-  final res = await http.get(uri);
+  final res = await DataConnectorClient(baseUrl: base).get(uri);
   if (res.statusCode >= 400) {
     Map<String, dynamic>? err;
     try {
@@ -162,7 +163,7 @@ Future<DailyReportArchiveResponse> archiveDailyReportFilesRemote({
   final base = trimmed.endsWith('/') ? trimmed : '$trimmed/';
   final uri = Uri.parse('${base}reports/daily-files/archive');
 
-  final res = await http.post(
+  final res = await DataConnectorClient(baseUrl: base).post(
     uri,
     headers: const {'content-type': 'application/json'},
     body: json.encode({'branchId': branchId, 'objectKeys': keys}),
@@ -209,7 +210,7 @@ Future<DailyReportPresignResponse> mergeDailyReportExcels({
   final base = trimmed.endsWith('/') ? trimmed : '$trimmed/';
   final uri = Uri.parse('${base}reports/daily-files/merge');
 
-  final res = await http.post(
+  final res = await DataConnectorClient(baseUrl: base).post(
     uri,
     headers: const {'content-type': 'application/json'},
     body: json.encode({'branchId': branchId, 'objectKeys': objectKeys}),
@@ -236,6 +237,9 @@ Future<DailyReportPresignResponse> mergeDailyReportExcels({
 Future<String> saveDailyReportFromPresignedUrl(
   DailyReportPresignResponse presign,
 ) async {
+  // Deliberately a bare client: this is a presigned S3 URL on another host.
+  // It carries its own signature, and attaching our bearer token would ship a
+  // connector credential to object storage for no reason.
   final dl = await http.get(Uri.parse(presign.downloadUrl));
   if (dl.statusCode >= 400) {
     throw DailyReportDownloadException('Download failed (${dl.statusCode})');

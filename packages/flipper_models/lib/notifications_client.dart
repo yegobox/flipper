@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,7 +16,7 @@ class NotificationsClient {
     required this.baseUrl,
     http.Client? httpClient,
     this.logHttp = true,
-  }) : _http = httpClient ?? http.Client(),
+  }) : _http = httpClient ?? DataConnectorClient(baseUrl: baseUrl),
        _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;
@@ -155,7 +156,8 @@ class NotificationsClient {
     }
 
     final message =
-        decodedMap['error']?.toString() ?? '$operation failed '
+        decodedMap['error']?.toString() ??
+        '$operation failed '
             '(${response.statusCode})';
 
     // Distinct type: out of credits is the one failure the desk can act on.
@@ -238,18 +240,23 @@ class NotifySmsResult {
     this.results = const [],
   });
 
-  factory NotifySmsResult.fromJson(Map<String, dynamic> json) => NotifySmsResult(
-    ok: json['ok'] == true,
-    deduplicated: json['deduplicated'] == true,
-    creditsCharged: (json['credits_charged'] as num?)?.toInt() ?? 0,
-    creditsRemaining: (json['credits_remaining'] as num?)?.toDouble(),
-    results: (json['results'] as List?)
-            ?.whereType<Map>()
-            .map((r) =>
-                NotifySmsRecipientResult.fromJson(Map<String, dynamic>.from(r)))
-            .toList() ??
-        const [],
-  );
+  factory NotifySmsResult.fromJson(Map<String, dynamic> json) =>
+      NotifySmsResult(
+        ok: json['ok'] == true,
+        deduplicated: json['deduplicated'] == true,
+        creditsCharged: (json['credits_charged'] as num?)?.toInt() ?? 0,
+        creditsRemaining: (json['credits_remaining'] as num?)?.toDouble(),
+        results:
+            (json['results'] as List?)
+                ?.whereType<Map>()
+                .map(
+                  (r) => NotifySmsRecipientResult.fromJson(
+                    Map<String, dynamic>.from(r),
+                  ),
+                )
+                .toList() ??
+            const [],
+      );
 
   final bool ok;
   final bool deduplicated;

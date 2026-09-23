@@ -140,6 +140,13 @@ class SharedPreferenceStorage implements LocalStorage {
     'freshSignup',
     'selectedDelegationDeviceId',
     'thisDeviceId',
+    // data-connector API auth. Writes to keys missing from this set are
+    // silently dropped, so a token would never persist and every request
+    // would re-enrol.
+    'dataConnectorDeviceId',
+    'dataConnectorAccessToken',
+    'dataConnectorAccessExpiresAt',
+    'dataConnectorRefreshToken',
     'enableAutoAddSearch',
     'whatsAppPhoneNumberId',
     'userLoggingEnabled',
@@ -361,7 +368,8 @@ class SharedPreferenceStorage implements LocalStorage {
     Map<String, dynamic> legacy,
     Map<String, dynamic> dittoMap,
   ) {
-    final localClearedAt = (legacy[_kSessionClearedAtKey] as num?)?.toInt() ?? 0;
+    final localClearedAt =
+        (legacy[_kSessionClearedAtKey] as num?)?.toInt() ?? 0;
     final dittoClearedAt =
         (dittoMap[_kSessionClearedAtKey] as num?)?.toInt() ?? 0;
     if (localClearedAt <= dittoClearedAt) return;
@@ -536,8 +544,8 @@ class SharedPreferenceStorage implements LocalStorage {
         try {
           final tempDir = Directory.systemTemp;
           _filePath = path.join(tempDir.path, '${_kPreferencesKey}_test.json');
-          _backupFilePath = path.join(
-              tempDir.path, '${_kPreferencesBackupKey}_test.json');
+          _backupFilePath =
+              path.join(tempDir.path, '${_kPreferencesBackupKey}_test.json');
         } catch (pathError) {
           // Fallback to hardcoded paths if even temp directory fails
           _filePath = '${_kPreferencesKey}_test.json';
@@ -1076,8 +1084,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String getDatabaseFilename() {
-    return (_cache['databaseFilename'] as String?) ??
-        'flipper.sqlite';
+    return (_cache['databaseFilename'] as String?) ?? 'flipper.sqlite';
   }
 
   @override

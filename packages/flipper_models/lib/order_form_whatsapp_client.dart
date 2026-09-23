@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:flipper_models/data_connector_http_log.dart';
 import 'package:http/http.dart' as http;
 
@@ -21,7 +22,7 @@ class OrderFormWhatsAppClient {
     http.Client? httpClient,
     this.logHttp = true,
     this.defaultProvider,
-  }) : _http = httpClient ?? http.Client(),
+  }) : _http = httpClient ?? DataConnectorClient(baseUrl: baseUrl),
        _base = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
 
   final String baseUrl;
