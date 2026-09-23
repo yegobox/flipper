@@ -315,6 +315,59 @@ void _lifecycleTests() {
     expect(env.store['dataConnectorDeviceId'], 'dev-1');
   });
 
+  test('a reset during enrolment discards the old-branch token', () async {
+    // Branch switch calls reset(). An enrolment already in flight was minted
+    // against the previous branch, so letting it persist would leave every
+    // later call reading an old-branch token back out of storage.
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return http.Response(tokenResponse('acc-old', 'ref-old'), 200);
+    });
+
+    final pending = DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await DataConnectorSessionService.reset();
+
+    expect(await pending, isNull, reason: 'must not hand back a dead token');
+    expect(env.store['dataConnectorAccessToken'] ?? '', isEmpty);
+    expect(env.store['dataConnectorRefreshToken'] ?? '', isEmpty);
+  });
+
+  test('a reset during a refresh discards the rotated token', () async {
+    env.store['dataConnectorRefreshToken'] = 'ref-old';
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return http.Response(tokenResponse('acc-old', 'ref-rotated'), 200);
+    });
+
+    final pending = DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await DataConnectorSessionService.reset();
+
+    expect(await pending, isNull);
+    expect(env.store['dataConnectorRefreshToken'] ?? '', isEmpty);
+  });
+
+  test('a reset does not block the next branch from enrolling', () async {
+    // The guard must not wedge the service: after the switch settles, the
+    // very next call has to be able to get a token for the new branch.
+    DataConnectorSessionService.testClient = MockClient(
+      (req) async => http.Response(tokenResponse('acc-new', 'ref-new'), 200),
+    );
+
+    await DataConnectorSessionService.reset();
+    final token = await DataConnectorSessionService.ensureAccessToken(
+      baseUrl: 'https://c.invalid/',
+    );
+
+    expect(token, 'acc-new');
+    expect(env.store['dataConnectorRefreshToken'], 'ref-new');
+  });
+
   test('a network failure yields null instead of throwing', () async {
     // POS must keep working when the connector is unreachable.
     DataConnectorSessionService.testClient = MockClient((req) async {

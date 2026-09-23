@@ -25,14 +25,12 @@ void main() {
   setUp(() => identity = StreamController<String?>.broadcast());
   tearDown(() => identity.close());
 
-  DataConnectorWebAuth build(
-    http.Client client, {
-    String? Function()? token,
-  }) => DataConnectorWebAuth(
-    client: client,
-    identityChanges: identity.stream,
-    currentIdentityToken: token ?? () => 'supabase-user-a',
-  );
+  DataConnectorWebAuth build(http.Client client, {String? Function()? token}) =>
+      DataConnectorWebAuth(
+        client: client,
+        identityChanges: identity.stream,
+        currentIdentityToken: token ?? () => 'supabase-user-a',
+      );
 
   test('enrols once and reuses the cached token', () async {
     var calls = 0;

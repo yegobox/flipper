@@ -46,6 +46,12 @@ class DataConnectorSessionService {
   /// Joins concurrent callers onto one refresh. See the class comment.
   static Future<String?>? _inFlight;
 
+  /// Bumped by [reset]. An attempt that started before the reset must not
+  /// write its result afterwards: on a branch switch that would persist a
+  /// token carrying the *old* branch's claims, and every later call would
+  /// read it back out of storage and ask the server for the wrong tenant.
+  static int _generation = 0;
+
   /// Lets tests inject a client without a DI container.
   static http.Client? testClient;
 
@@ -66,6 +72,7 @@ class DataConnectorSessionService {
   /// erases the refresh token: a caller that starts over goes to `_enroll`,
   /// so no refresh token is ever presented twice.
   static Future<void> reset() async {
+    _generation++;
     _inFlight = null;
     await _clearStoredCredentials();
   }
@@ -140,7 +147,7 @@ class DataConnectorSessionService {
     final existing = _inFlight;
     if (existing != null) return existing;
 
-    final attempt = _refreshOrEnroll(baseUrl: baseUrl);
+    final attempt = _refreshOrEnroll(baseUrl: baseUrl, generation: _generation);
     _inFlight = attempt;
     try {
       return await attempt;
@@ -164,14 +171,21 @@ class DataConnectorSessionService {
     return {'Authorization': 'Bearer $token'};
   }
 
-  static Future<String?> _refreshOrEnroll({required String baseUrl}) async {
+  static Future<String?> _refreshOrEnroll({
+    required String baseUrl,
+    required int generation,
+  }) async {
     final refreshToken = _nonEmpty(_refreshTokenKey);
     if (refreshToken != null) {
       final result = await _refresh(
         baseUrl: baseUrl,
         refreshToken: refreshToken,
+        generation: generation,
       );
       if (result.token != null) return result.token;
+      // A reset landed while we were waiting. Its clear already ran, so
+      // clearing again here could wipe a newer attempt's credentials.
+      if (generation != _generation) return null;
       if (!result.rejected) {
         // We never reached the server, so we know nothing about the token.
         // Keeping it is the whole point: re-enrolling needs a signed-in
@@ -185,8 +199,9 @@ class DataConnectorSessionService {
       // the user out over it would be wildly disproportionate.
       talker.warning('data-connector: refresh failed, re-enrolling');
       await _clearStoredCredentials();
+      if (generation != _generation) return null;
     }
-    return _enroll(baseUrl: baseUrl);
+    return _enroll(baseUrl: baseUrl, generation: generation);
   }
 
   static Uri _endpoint(String baseUrl, String path) {
@@ -197,6 +212,7 @@ class DataConnectorSessionService {
   static Future<_RefreshResult> _refresh({
     required String baseUrl,
     required String refreshToken,
+    required int generation,
   }) async {
     try {
       final response = await _client
@@ -212,7 +228,7 @@ class DataConnectorSessionService {
         );
         return const _RefreshResult.rejected();
       }
-      final token = await _persist(response.body);
+      final token = await _persist(response.body, generation);
       // A 200 we cannot parse is still the server refusing to renew us, so
       // treat it as a rejection rather than retrying against a token the
       // server has already rotated away.
@@ -226,7 +242,10 @@ class DataConnectorSessionService {
     }
   }
 
-  static Future<String?> _enroll({required String baseUrl}) async {
+  static Future<String?> _enroll({
+    required String baseUrl,
+    required int generation,
+  }) async {
     final identity = await env.identityProof();
     if (identity == null) {
       // Not signed in yet, or Firebase has no current user. Normal during
@@ -261,7 +280,7 @@ class DataConnectorSessionService {
         );
         return null;
       }
-      final token = await _persist(response.body);
+      final token = await _persist(response.body, generation);
       if (token != null) talker.info('data-connector: device enrolled');
       return token;
     } catch (e) {
@@ -289,7 +308,13 @@ class DataConnectorSessionService {
   /// The refresh token is written BEFORE this returns. The server has already
   /// retired the previous one, so losing the new one to a crash here would
   /// strand the device — recoverable only by re-enrolment.
-  static Future<String?> _persist(String responseBody) async {
+  ///
+  /// [generation] is the value [_generation] held when this attempt started.
+  /// `env.write` is asynchronous, so a [reset] can land between any two of
+  /// the writes below; re-checking after each one keeps a half-written
+  /// old-branch session from outliving the switch. On a mismatch we clear
+  /// whatever we already wrote rather than leaving a partial session behind.
+  static Future<String?> _persist(String responseBody, int generation) async {
     try {
       final decoded = jsonDecode(responseBody);
       if (decoded is! Map) return null;
@@ -299,12 +324,18 @@ class DataConnectorSessionService {
       final expiresIn = decoded['expiresIn'];
       if (access is! String || access.isEmpty) return null;
 
+      if (generation != _generation) return null;
+
       if (refresh is String && refresh.isNotEmpty) {
         await env.write(_refreshTokenKey, refresh);
+        if (generation != _generation) return _abandon();
       }
       final deviceId = decoded['deviceId'];
       if (deviceId is String && deviceId.isNotEmpty) {
+        // Not cleared by `_abandon`: the device id identifies the install,
+        // not the session, and survives reset by design.
         await env.write(_deviceIdKey, deviceId);
+        if (generation != _generation) return _abandon();
       }
 
       final ttlSeconds = expiresIn is int
@@ -315,12 +346,23 @@ class DataConnectorSessionService {
           .millisecondsSinceEpoch;
 
       await env.write(_accessTokenKey, access);
+      if (generation != _generation) return _abandon();
       await env.write(_accessExpiryKey, '$expiresAt');
+      if (generation != _generation) return _abandon();
       return access;
     } catch (e) {
       talker.warning('data-connector: could not parse token response: $e');
       return null;
     }
+  }
+
+  /// A reset overtook this attempt. Undo the partial write and hand the
+  /// caller nothing, so it falls back to an unauthenticated request rather
+  /// than one carrying the previous tenant's claims.
+  static Future<String?> _abandon() async {
+    talker.warning('data-connector: session reset mid-attempt, discarding');
+    await _clearStoredCredentials();
+    return null;
   }
 }
 
