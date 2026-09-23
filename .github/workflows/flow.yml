@@ -1,3 +1,21 @@
+# Triage automation: files issues and PRs onto the org project board.
+#
+# Both jobs skip Dependabot. GitHub withholds ordinary repository secrets from
+# Dependabot-authored events -- they come from the separate Dependabot secrets
+# store -- so `secrets.ADD_TO_PROJECT_PAT` arrives empty and actions/add-to-project
+# fails before it does anything:
+#
+#     ##[error]Input required and not supplied: github-token
+#
+# This surfaced when .github/dependabot.yml started opening action-bump PRs:
+# those carry `dependencies`/`ci` labels, which fire `pull_request: [labeled]`,
+# and every one of them failed this workflow.
+#
+# Skipping is the correct fix, not a workaround. This board is for bugs needing
+# triage and PRs needing review; a dependency bump is neither, so it has no
+# business on it. The alternative -- copying the PAT into Dependabot secrets --
+# would hand a credential to a job that exists only to file things the board
+# does not want.
 name: Add bugs to bugs project
 
 on:
@@ -12,6 +30,8 @@ jobs:
   bugs:
     name: Add issue to project
     runs-on: ubuntu-latest
+    # See the note at the top: no PAT is available on Dependabot events.
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/add-to-project@v0.4.0
         with:
@@ -22,6 +42,8 @@ jobs:
   pullRequest:
     name: Add issue to project
     runs-on: ubuntu-latest
+    # See the note at the top: no PAT is available on Dependabot events.
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/add-to-project@v0.4.0
         with:
