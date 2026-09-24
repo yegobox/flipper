@@ -1784,9 +1784,12 @@ class CoreSync extends AiStrategyImpl
     // data-connector's payNow. The server moves the date when money settles
     // (see data-connector `billing::due_guard`). Only a brand-new plan needs a
     // starting date, which the server re-anchors on the first payment.
-    final keepsServerDate = plan?.id != null;
-    final effectiveNextBillingDate =
-        keepsServerDate ? (plan?.nextBillingDate ?? nextBillingDate) : nextBillingDate;
+    //
+    // An existing plan with no date at all still gets one written, so the
+    // returned plan and the stored row always agree.
+    final existingDate = plan?.id != null ? plan?.nextBillingDate : null;
+    final keepsServerDate = existingDate != null;
+    final effectiveNextBillingDate = existingDate ?? nextBillingDate;
 
     final planData = {
       'id': planId,

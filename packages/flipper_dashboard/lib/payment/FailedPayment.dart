@@ -73,6 +73,10 @@ class _FailedPaymentState extends State<FailedPayment>
   StreamSubscription<List<Map<String, dynamic>>>? _subscription;
   bool _amountDueInFlight = false;
 
+  /// A plan id whose amount due was asked for while a request was in flight.
+  /// Kept (latest wins) so the answer shown is never the one for a stale plan.
+  String? _amountDueQueuedPlanId;
+
   // Discount code state
   String? _discountCode;
   double _discountAmount = 0;
@@ -433,9 +437,13 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Future<void> _refreshAmountDue(String planId) async {
-    // Every `plans` stream emission lands here; one request at a time is
-    // plenty, and overlapping ones only race each other's setState.
-    if (_amountDueInFlight) return;
+    // Every `plans` stream emission lands here. One request at a time, but an
+    // update that arrives mid-request is queued rather than dropped: the row
+    // may have changed what is owed, and no later event is guaranteed.
+    if (_amountDueInFlight) {
+      _amountDueQueuedPlanId = planId;
+      return;
+    }
     _amountDueInFlight = true;
     try {
       final data = await ProxyService.ht.getPlanAmountDue(
@@ -443,6 +451,8 @@ class _FailedPaymentState extends State<FailedPayment>
         planId: planId,
       );
       if (!_mounted) return;
+      // A newer plan update is waiting; its answer supersedes this one.
+      if (_amountDueQueuedPlanId != null) return;
       // data-connector answers `totalAmountDue`; `amountDue` is the old
       // flipper-turbo name.
       final raw = data?['totalAmountDue'] ?? data?['amountDue'];
@@ -456,6 +466,9 @@ class _FailedPaymentState extends State<FailedPayment>
       talker.error('Failed to load amount due: $e');
     } finally {
       _amountDueInFlight = false;
+      final queued = _amountDueQueuedPlanId;
+      _amountDueQueuedPlanId = null;
+      if (queued != null && _mounted) unawaited(_refreshAmountDue(queued));
     }
   }
 
@@ -655,8 +668,13 @@ class _FailedPaymentState extends State<FailedPayment>
               // plan whose billing date has passed is still expired. Leaving on
               // the flag alone sent the user home, where verification bounced
               // them straight back here — the screen flipped in a loop.
+              // Full timestamp, as `hasActiveSubscription` compares it:
+              // `_isPlanStillActive` drops the time, which would keep a plan
+              // billing later today on this screen.
+              final next = updatedPlan.nextBillingDate;
               if (updatedPlan.paymentCompletedByUser == true &&
-                  _isPlanStillActive(updatedPlan)) {
+                  next != null &&
+                  DateTime.now().isBefore(next)) {
                 _paymentTimeoutTimer?.cancel();
                 _paymentCompletionPollTimer?.cancel();
                 if (_mounted) {
