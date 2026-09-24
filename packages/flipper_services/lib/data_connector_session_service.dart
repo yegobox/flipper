@@ -248,8 +248,13 @@ class DataConnectorSessionService {
   }) async {
     final identity = await env.identityProof();
     if (identity == null) {
-      // Not signed in yet, or Firebase has no current user. Normal during
-      // boot; the next call will try again.
+      // Normal during boot, but indistinguishable from a real failure unless
+      // it says so: a silent null here looks exactly like a rejected
+      // enrolment from outside, which is what made this hard to place.
+      talker.warning(
+        'data-connector: no Firebase user, skipping enrolment '
+        '(requests go out unauthenticated)',
+      );
       return null;
     }
 
@@ -258,6 +263,11 @@ class DataConnectorSessionService {
       talker.warning('data-connector: no install id, cannot enrol');
       return null;
     }
+
+    talker.info(
+      'data-connector: enrolling device=$installId user=${env.userId} '
+      'business=${env.businessId} branch=${env.branchId}',
+    );
 
     try {
       final response = await _client
@@ -280,8 +290,11 @@ class DataConnectorSessionService {
           )
           .timeout(_timeout);
       if (response.statusCode != 200) {
+        // The body carries which check failed -- identity mismatch, branch
+        // access, enrol key -- and without it the status alone says nothing.
         talker.warning(
-          'data-connector: enrolment rejected (${response.statusCode})',
+          'data-connector: enrolment rejected (${response.statusCode}) '
+          '${response.body}',
         );
         return null;
       }
