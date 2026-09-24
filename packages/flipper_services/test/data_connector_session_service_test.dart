@@ -81,10 +81,16 @@ void main() {
 
 /// In-memory stand-in for preferences + Firebase.
 class _FakeEnv implements DataConnectorSessionEnv {
-  _FakeEnv({this.proof = const {'firebaseIdToken': 'fb-token'}});
+  _FakeEnv({
+    this.proof = const {'firebaseIdToken': 'fb-token'},
+    this.userId = 'user-uuid-1',
+  });
 
   final Map<String, String> store = {};
   final Map<String, String>? proof;
+
+  @override
+  String? userId;
 
   @override
   String? read(String key) => store[key];
@@ -94,9 +100,6 @@ class _FakeEnv implements DataConnectorSessionEnv {
 
   @override
   String? get installId => 'install-1';
-
-  @override
-  String? get userId => 'user-uuid-1';
 
   @override
   String? get businessId => 'biz-1';
@@ -259,6 +262,35 @@ void _lifecycleTests() {
       ),
       isNull,
     );
+  });
+
+  test('defers enrolment until the Flipper user id is known', () async {
+    // Before session setup writes the id, a Firebase enrolment can only be
+    // refused. It must not be sent, and must go through once the id lands.
+    final pending = _FakeEnv(userId: null);
+    DataConnectorSessionService.env = pending;
+    Map<String, dynamic>? sent;
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      sent = jsonDecode(req.body) as Map<String, dynamic>;
+      return http.Response(tokenResponse('acc-1', 'ref-1'), 200);
+    });
+
+    expect(
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      ),
+      isNull,
+    );
+    expect(sent, isNull);
+
+    pending.userId = 'user-uuid-1';
+    expect(
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      ),
+      'acc-1',
+    );
+    expect(sent?['userId'], 'user-uuid-1');
   });
 
   test('a 401 during a refresh does not start a second refresh', () async {

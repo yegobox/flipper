@@ -8,6 +8,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/supabase_session_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_models/brick/repository/storage.dart';
 
 /// Bearer tokens for the data-connector HTTP API.
 ///
@@ -247,6 +248,18 @@ class DataConnectorSessionService {
     required String baseUrl,
     required int generation,
   }) async {
+    // Session setup writes the Flipper user id after sign-in, and until it
+    // does the connector can only refuse a Firebase enrolment ("send userId
+    // to link it"). Nothing is cached on this path, so the next call after
+    // the id lands enrols normally.
+    final userId = env.userId;
+    if (userId == null || userId.trim().isEmpty) {
+      talker.warning(
+        'data-connector: no Flipper user id yet, deferring enrolment',
+      );
+      return null;
+    }
+
     final identity = await env.identityProof();
     if (identity == null) {
       // Normal during boot, but indistinguishable from a real failure unless
@@ -266,7 +279,7 @@ class DataConnectorSessionService {
     }
 
     talker.info(
-      'data-connector: enrolling device=$installId user=${env.userId} '
+      'data-connector: enrolling device=$installId user=$userId '
       'business=${env.businessId} branch=${env.branchId}',
     );
 
@@ -283,7 +296,7 @@ class DataConnectorSessionService {
               // `users` is keyed by Flipper's own uuid and no row carries a
               // Firebase uid yet. Sending it lets the server link the two on
               // first use, and check it against the binding thereafter.
-              'userId': env.userId,
+              'userId': userId,
               'businessId': env.businessId,
               'branchId': env.branchId,
               'platform': _platformLabel(),
@@ -413,27 +426,30 @@ abstract interface class DataConnectorSessionEnv {
 class ProxyServiceSessionEnv implements DataConnectorSessionEnv {
   const ProxyServiceSessionEnv();
 
+  /// The one place this reaches for the locator.
+  LocalStorage get _box => ProxyService.box;
+
   @override
-  String? read(String key) => ProxyService.box.readString(key: key);
+  String? read(String key) => _box.readString(key: key);
 
   @override
   Future<void> write(String key, String value) =>
-      ProxyService.box.writeString(key: key, value: value);
+      _box.writeString(key: key, value: value);
 
   /// Reuses `thisDeviceId`, which is deliberately excluded from the session
   /// keys cleared at logout, so re-enrolling reuses one device row rather
   /// than creating one per login.
   @override
-  String? get installId => ProxyService.box.getThisDeviceId();
+  String? get installId => _box.getThisDeviceId();
 
   @override
-  String? get userId => ProxyService.box.getUserId()?.toString();
+  String? get userId => _box.getUserId()?.toString();
 
   @override
-  String? get businessId => ProxyService.box.getBusinessId()?.toString();
+  String? get businessId => _box.getBusinessId()?.toString();
 
   @override
-  String? get branchId => ProxyService.box.getBranchId()?.toString();
+  String? get branchId => _box.getBranchId()?.toString();
 
   /// Firebase first, Supabase second.
   ///
