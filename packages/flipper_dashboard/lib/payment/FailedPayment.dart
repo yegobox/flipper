@@ -14,7 +14,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
-import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
+import 'package:flipper_payments/flipper_payments.dart'
+    show BillingCadence, defaultPaymentsHttpClient;
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -70,6 +71,7 @@ class _FailedPaymentState extends State<FailedPayment>
   Timer? _paymentTimeoutTimer;
   Timer? _paymentCompletionPollTimer;
   StreamSubscription<List<Map<String, dynamic>>>? _subscription;
+  bool _amountDueInFlight = false;
 
   // Discount code state
   String? _discountCode;
@@ -186,7 +188,7 @@ class _FailedPaymentState extends State<FailedPayment>
     final DodoSubscriptionStatus status;
     try {
       // Cheap: the connector answers from its own row, with no Dodo round trip.
-      status = await DodoClient(ProxyService.http).subscriptionForPlan(planId);
+      status = await DodoClient(defaultPaymentsHttpClient).subscriptionForPlan(planId);
     } catch (e) {
       // No subscription yet, or the connector is unreachable. Either way there
       // is nothing to resume, and this must never block the screen.
@@ -431,13 +433,19 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Future<void> _refreshAmountDue(String planId) async {
+    // Every `plans` stream emission lands here; one request at a time is
+    // plenty, and overlapping ones only race each other's setState.
+    if (_amountDueInFlight) return;
+    _amountDueInFlight = true;
     try {
       final data = await ProxyService.ht.getPlanAmountDue(
         flipperHttpClient: ProxyService.http,
         planId: planId,
       );
       if (!_mounted) return;
-      final raw = data?['amountDue'];
+      // data-connector answers `totalAmountDue`; `amountDue` is the old
+      // flipper-turbo name.
+      final raw = data?['totalAmountDue'] ?? data?['amountDue'];
       final amt = raw is num ? raw.toDouble() : double.tryParse('$raw');
       if (amt != null) {
         setState(() {
@@ -446,6 +454,8 @@ class _FailedPaymentState extends State<FailedPayment>
       }
     } catch (e) {
       talker.error('Failed to load amount due: $e');
+    } finally {
+      _amountDueInFlight = false;
     }
   }
 
@@ -641,7 +651,12 @@ class _FailedPaymentState extends State<FailedPayment>
 
               unawaited(_refreshAmountDue(updatedPlan.id!));
 
-              if (updatedPlan.paymentCompletedByUser == true) {
+              // Same rule as `hasActiveSubscription`: a completed flag on a
+              // plan whose billing date has passed is still expired. Leaving on
+              // the flag alone sent the user home, where verification bounced
+              // them straight back here — the screen flipped in a loop.
+              if (updatedPlan.paymentCompletedByUser == true &&
+                  _isPlanStillActive(updatedPlan)) {
                 _paymentTimeoutTimer?.cancel();
                 _paymentCompletionPollTimer?.cancel();
                 if (_mounted) {
@@ -1188,7 +1203,7 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Future<void> _reopenCheckout(String link) async {
-    final opened = await DodoCardCheckout(DodoClient(ProxyService.http))
+    final opened = await DodoCardCheckout(DodoClient(defaultPaymentsHttpClient))
         .openPaymentLink(link);
     if (!_mounted || opened) return;
     setState(() {
@@ -1211,6 +1226,9 @@ class _FailedPaymentState extends State<FailedPayment>
     final emailError = _getEmailError(_emailController.text);
     if (emailError != null) {
       setState(() => _emailError = emailError);
+      // The email field sits at the bottom of the form, usually off-screen
+      // from this button, so the inline error alone made the tap look dead.
+      _reportCardFailure(context, emailError);
       return;
     }
 
@@ -1352,7 +1370,7 @@ class _FailedPaymentState extends State<FailedPayment>
     if (_cardPollRunning || planId.isEmpty) return;
     _cardPollRunning = true;
 
-    final status = await DodoCardCheckout(DodoClient(ProxyService.http))
+    final status = await DodoCardCheckout(DodoClient(defaultPaymentsHttpClient))
         .awaitEntitlement(
       planId,
       isCancelled: () => !_mounted || !_waitingForPaymentCompletion,

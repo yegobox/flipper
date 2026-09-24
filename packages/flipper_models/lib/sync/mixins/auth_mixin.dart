@@ -288,8 +288,14 @@ mixin AuthMixin implements AuthInterface {
       talker.warning(
         'Subscription expired: nextBillingDate ($nextBillingDate) is in the past',
       );
-      // Update local state to reflect expired subscription
-      if (isPaymentCompletedLocally) {
+      // Update local state to reflect expired subscription.
+      //
+      // Only when the flag is actually set: `paymentStatus == 'COMPLETED'`
+      // also counts as completed but is never cleared here, so gating on
+      // [isPaymentCompletedLocally] rewrote the row on every check. Each write
+      // is a `plans` realtime event, which schedules the next check — the
+      // paywall re-rendered every second, forever.
+      if (plan.paymentCompletedByUser == true) {
         plan.paymentCompletedByUser = false;
         await ProxyService.legacyStrategy.upsertPlan(
           businessId: businessId,

@@ -1778,6 +1778,16 @@ class CoreSync extends AiStrategyImpl
     final planId = plan?.id ?? const Uuid().v4();
     final now = DateTime.now().toUtc();
 
+    // An existing plan keeps the billing date the server gave it. This runs
+    // *before* every payment attempt, and moving the date a period ahead here
+    // is what made an unpaid plan read as paid — on this device and to
+    // data-connector's payNow. The server moves the date when money settles
+    // (see data-connector `billing::due_guard`). Only a brand-new plan needs a
+    // starting date, which the server re-anchors on the first payment.
+    final keepsServerDate = plan?.id != null;
+    final effectiveNextBillingDate =
+        keepsServerDate ? (plan?.nextBillingDate ?? nextBillingDate) : nextBillingDate;
+
     final planData = {
       'id': planId,
       'business_id': businessId,
@@ -1790,7 +1800,8 @@ class CoreSync extends AiStrategyImpl
       'total_price': totalPrice.toInt(),
       'payment_method': paymentMethod,
       'payment_completed_by_user': false,
-      'next_billing_date': nextBillingDate.toIso8601String(),
+      if (!keepsServerDate)
+        'next_billing_date': nextBillingDate.toIso8601String(),
       'number_of_payments': numberOfPayments,
       'created_at': plan?.createdAt?.toIso8601String() ?? now.toIso8601String(),
       'updated_at': now.toIso8601String(),
@@ -1811,7 +1822,7 @@ class CoreSync extends AiStrategyImpl
       totalPrice: totalPrice.toInt(),
       createdAt: plan?.createdAt ?? now,
       numberOfPayments: numberOfPayments,
-      nextBillingDate: nextBillingDate,
+      nextBillingDate: effectiveNextBillingDate,
       paymentMethod: paymentMethod,
       addons: addons,
       paymentCompletedByUser: false,
