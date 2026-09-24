@@ -74,6 +74,5 @@ class _WebScrollBehavior extends MaterialScrollBehavior {
     BuildContext context,
     Widget child,
     ScrollableDetails details,
-  ) =>
-      child;
+  ) => child;
 }
