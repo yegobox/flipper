@@ -64,6 +64,7 @@ mixin PaymentHandler {
   Future<String?> handleMomoPayment(
     int finalPrice, {
     required Plan plan,
+
     /// Called as the mandate moves, so a screen can say "approve the request on
     /// your phone" instead of showing a silent spinner.
     void Function(MomoMandate mandate)? onMandate,
@@ -116,6 +117,7 @@ mixin PaymentHandler {
       selectedPlan: plan.selectedPlan!,
       totalPrice: finalPrice.toDouble(),
     );
+
     /// Consent first, money second.
     ///
     /// [MomoSubscriptionCharger] requests (or reuses) the mandate, waits for
@@ -135,7 +137,9 @@ mixin PaymentHandler {
       );
     }
 
-    final charger = MomoSubscriptionCharger(MomoClient(ConnectorAuthedPaymentsClient(ProxyService.http)));
+    final charger = MomoSubscriptionCharger(
+      MomoClient(ConnectorAuthedPaymentsClient(ProxyService.http)),
+    );
     final result = await charger.charge(
       phoneNumber: phone,
       amount: finalPrice,
@@ -295,7 +299,8 @@ mixin PaymentHandler {
       branchId: plan.branchId ?? ProxyService.box.getBranchId(),
       planTemplateId: plan.planTemplateId,
       selectedPlan: selectedPlan,
-      addons: plan.addons
+      addons:
+          plan.addons
               ?.map((addon) => addon.addonName)
               .whereType<String>()
               .toList() ??

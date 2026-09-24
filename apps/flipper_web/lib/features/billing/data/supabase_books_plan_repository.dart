@@ -24,8 +24,8 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
     this._http, {
     BooksOfflinePlanReader? offlineFallback,
     Duration nudgeTimeout = const Duration(seconds: 10),
-  })  : _offlineFallback = offlineFallback,
-        _nudgeTimeout = nudgeTimeout;
+  }) : _offlineFallback = offlineFallback,
+       _nudgeTimeout = nudgeTimeout;
 
   final SupabaseClient _supabase;
   final http.Client _http;
@@ -203,21 +203,18 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
   }
 
   @override
-  Future<void> nudgeDittoSync(String planId) => _post(
-        '/v2/api/plans/$planId/sync-ditto',
-        what: 'plan Ditto sync',
-      );
+  Future<void> nudgeDittoSync(String planId) =>
+      _post('/v2/api/plans/$planId/sync-ditto', what: 'plan Ditto sync');
 
   @override
   Future<void> finalizeOnSuccess({
     required String planId,
     required String reference,
-  }) =>
-      _post(
-        '/v2/api/payment/finalize-on-success',
-        body: {'planId': planId, 'paymentReference': reference},
-        what: 'payment finalize',
-      );
+  }) => _post(
+    '/v2/api/payment/finalize-on-success',
+    body: {'planId': planId, 'paymentReference': reference},
+    what: 'payment finalize',
+  );
 
   /// Best-effort POST to data-connector. Never throws: both callers are
   /// nudges, and the backend's own sweeps cover a nudge that never lands.

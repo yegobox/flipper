@@ -71,19 +71,21 @@ final hrAccessSnapshotProvider = Provider.family<HrAccessState, String?>((
 });
 
 /// What one plan costs this business, priced by the server.
-final hrPlanQuoteProvider =
-    FutureProvider.family<HrPlanQuote, HrQuoteRequest>((ref, request) async {
-      // Re-quoted whenever entitlement changes: a payment alters both the seats
-      // in use and whether there is anything left to buy.
-      ref.watch(hrAccessStateProvider(request.businessId));
-      return ref
-          .watch(hrBillingRepositoryProvider)
-          .quote(
-            businessId: request.businessId,
-            slug: request.slug,
-            isYearly: request.isYearly,
-          );
-    }, retry: (retryCount, error) => null);
+final hrPlanQuoteProvider = FutureProvider.family<HrPlanQuote, HrQuoteRequest>((
+  ref,
+  request,
+) async {
+  // Re-quoted whenever entitlement changes: a payment alters both the seats
+  // in use and whether there is anything left to buy.
+  ref.watch(hrAccessStateProvider(request.businessId));
+  return ref
+      .watch(hrBillingRepositoryProvider)
+      .quote(
+        businessId: request.businessId,
+        slug: request.slug,
+        isYearly: request.isYearly,
+      );
+}, retry: (retryCount, error) => null);
 
 /// The key of [hrPlanQuoteProvider]: which business, which tier, which period.
 class HrQuoteRequest {

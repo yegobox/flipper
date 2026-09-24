@@ -76,7 +76,9 @@ class PaymentService {
         ? branchId.trim()
         : mtnPayNowBranchId;
     try {
-      final collection = MomoCollection(MomoClient(ConnectorAuthedPaymentsClient(ProxyService.http)));
+      final collection = MomoCollection(
+        MomoClient(ConnectorAuthedPaymentsClient(ProxyService.http)),
+      );
       final result = await collection.collect(
         phoneNumber: phoneNumber,
         amount: finalPrice,
@@ -112,7 +114,8 @@ class PaymentService {
       return GigMomoSettlement(
         confirmed: false,
         paymentReference: result.reference ?? '',
-        refused: result.outcome == MomoCollectionOutcome.refused ||
+        refused:
+            result.outcome == MomoCollectionOutcome.refused ||
             result.outcome == MomoCollectionOutcome.notStarted,
         message: result.message,
       );

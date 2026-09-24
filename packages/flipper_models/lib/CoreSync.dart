@@ -1651,8 +1651,9 @@ class CoreSync extends AiStrategyImpl
       final cadence = storedRule != null
           ? BillingCadence.fromWire(storedRule)
           : (isYearlyPlan ? BillingCadence.yearly : BillingCadence.monthly);
-      final nextBillingDate =
-          DateTime.now().add(Duration(days: cadence.periodDays * num));
+      final nextBillingDate = DateTime.now().add(
+        Duration(days: cadence.periodDays * num),
+      );
       // Fetch existing plan and addons
       final existingPlanAddons = await _fetchExistingAddons(businessId);
 
@@ -2015,7 +2016,11 @@ class CoreSync extends AiStrategyImpl
           ownerName: business['name'] ?? '',
           phoneNumber: business['phoneNumber'] ?? '',
         );
-        final query = brick.Query.where('userId', pinToCache.userId, limit1: true);
+        final query = brick.Query.where(
+          'userId',
+          pinToCache.userId,
+          limit1: true,
+        );
         savedPin = await repository.upsert(
           pinToCache,
           query: query,
@@ -2362,7 +2367,8 @@ class CoreSync extends AiStrategyImpl
           return (t == null || t.isEmpty) ? null : t;
         }
 
-        final resolvedSalePhone = nonEmpty(customerPhone) ??
+        final resolvedSalePhone =
+            nonEmpty(customerPhone) ??
             nonEmpty(ProxyService.box.currentSaleCustomerPhoneNumber()) ??
             nonEmpty(transaction.customerPhone);
         if (countryCode != "N/A" &&
@@ -2374,7 +2380,8 @@ class CoreSync extends AiStrategyImpl
         if (resolvedSalePhone != null) {
           transaction.customerPhone = resolvedSalePhone;
         }
-        final resolvedCustomerName = nonEmpty(customerName) ??
+        final resolvedCustomerName =
+            nonEmpty(customerName) ??
             nonEmpty(ProxyService.box.customerName()) ??
             nonEmpty(transaction.customerName);
         if (resolvedCustomerName != null) {
@@ -2487,7 +2494,9 @@ class CoreSync extends AiStrategyImpl
                 .whereType<String>()
                 .toSet();
             for (final id in variantIds) {
-              final variant = await ProxyService.legacyStrategy.getVariant(id: id);
+              final variant = await ProxyService.legacyStrategy.getVariant(
+                id: id,
+              );
               if (variant != null) {
                 variant.lastTouched = DateTime.now().toUtc();
                 await repository.upsert<Variant>(variant);

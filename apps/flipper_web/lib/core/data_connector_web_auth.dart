@@ -276,14 +276,14 @@ void registerDataConnectorWebAuth() {
 /// [DataConnectorClient].
 class DataConnectorAuthedPaymentsClient implements PaymentsHttpClient {
   DataConnectorAuthedPaymentsClient([http.Client? inner])
-      : _inner = inner ?? http.Client();
+    : _inner = inner ?? http.Client();
 
   final http.Client _inner;
 
   http.Client _for(Uri url) => DataConnectorClient(
-        baseUrl: '${url.scheme}://${url.authority}',
-        inner: _inner,
-      );
+    baseUrl: '${url.scheme}://${url.authority}',
+    inner: _inner,
+  );
 
   @override
   Future<http.Response> get(Uri url, {Map<String, String>? headers}) =>
@@ -295,6 +295,5 @@ class DataConnectorAuthedPaymentsClient implements PaymentsHttpClient {
     Map<String, String>? headers,
     Object? body,
     Encoding? encoding,
-  }) =>
-      _for(url).post(url, headers: headers, body: body, encoding: encoding);
+  }) => _for(url).post(url, headers: headers, body: body, encoding: encoding);
 }
