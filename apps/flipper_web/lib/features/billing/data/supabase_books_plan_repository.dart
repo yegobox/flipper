@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/billing/data/books_plan_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -23,8 +24,8 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
     this._http, {
     BooksOfflinePlanReader? offlineFallback,
     Duration nudgeTimeout = const Duration(seconds: 10),
-  })  : _offlineFallback = offlineFallback,
-        _nudgeTimeout = nudgeTimeout;
+  }) : _offlineFallback = offlineFallback,
+       _nudgeTimeout = nudgeTimeout;
 
   final SupabaseClient _supabase;
   final http.Client _http;
@@ -202,21 +203,18 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
   }
 
   @override
-  Future<void> nudgeDittoSync(String planId) => _post(
-        '/v2/api/plans/$planId/sync-ditto',
-        what: 'plan Ditto sync',
-      );
+  Future<void> nudgeDittoSync(String planId) =>
+      _post('/v2/api/plans/$planId/sync-ditto', what: 'plan Ditto sync');
 
   @override
   Future<void> finalizeOnSuccess({
     required String planId,
     required String reference,
-  }) =>
-      _post(
-        '/v2/api/payment/finalize-on-success',
-        body: {'planId': planId, 'paymentReference': reference},
-        what: 'payment finalize',
-      );
+  }) => _post(
+    '/v2/api/payment/finalize-on-success',
+    body: {'planId': planId, 'paymentReference': reference},
+    what: 'payment finalize',
+  );
 
   /// Best-effort POST to data-connector. Never throws: both callers are
   /// nudges, and the backend's own sweeps cover a nudge that never lands.
@@ -227,7 +225,9 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
   }) async {
     try {
       final base = await paymentsApiBaseUrl();
-      final response = await _http
+      // Through the device-token client: the bare one 401s once the connector
+      // enforces auth, and a nudge that never lands just waits for a sweep.
+      final response = await DataConnectorClient(baseUrl: base, inner: _http)
           .post(
             Uri.parse('$base$path'),
             headers: const {'Content-Type': 'application/json'},

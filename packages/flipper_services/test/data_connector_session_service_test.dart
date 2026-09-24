@@ -81,10 +81,16 @@ void main() {
 
 /// In-memory stand-in for preferences + Firebase.
 class _FakeEnv implements DataConnectorSessionEnv {
-  _FakeEnv({this.proof = const {'firebaseIdToken': 'fb-token'}});
+  _FakeEnv({
+    this.proof = const {'firebaseIdToken': 'fb-token'},
+    this.userId = 'user-uuid-1',
+  });
 
   final Map<String, String> store = {};
   final Map<String, String>? proof;
+
+  @override
+  String? userId;
 
   @override
   String? read(String key) => store[key];
@@ -141,6 +147,29 @@ void _lifecycleTests() {
     expect(env.store['dataConnectorRefreshToken'], 'ref-1');
     expect(env.store['dataConnectorDeviceId'], 'dev-1');
   });
+
+  test(
+    'enrolment sends the Flipper user id, not just the Firebase token',
+    () async {
+      // The connector cannot resolve a Firebase uid to a Flipper user on its
+      // own -- no existing users row carries one -- so omitting this makes
+      // every enrolment fail with "identity mismatch".
+      Map<String, dynamic>? sent;
+      DataConnectorSessionService.testClient = MockClient((req) async {
+        sent = jsonDecode(req.body) as Map<String, dynamic>;
+        return http.Response(tokenResponse('acc-1', 'ref-1'), 200);
+      });
+
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      );
+
+      expect(sent?['userId'], 'user-uuid-1');
+      expect(sent?['firebaseIdToken'], 'fb-token');
+      expect(sent?['businessId'], 'biz-1');
+      expect(sent?['installId'], 'install-1');
+    },
+  );
 
   test('a cached, still-fresh token is reused without a call', () async {
     var calls = 0;
@@ -233,6 +262,35 @@ void _lifecycleTests() {
       ),
       isNull,
     );
+  });
+
+  test('defers enrolment until the Flipper user id is known', () async {
+    // Before session setup writes the id, a Firebase enrolment can only be
+    // refused. It must not be sent, and must go through once the id lands.
+    final pending = _FakeEnv(userId: null);
+    DataConnectorSessionService.env = pending;
+    Map<String, dynamic>? sent;
+    DataConnectorSessionService.testClient = MockClient((req) async {
+      sent = jsonDecode(req.body) as Map<String, dynamic>;
+      return http.Response(tokenResponse('acc-1', 'ref-1'), 200);
+    });
+
+    expect(
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      ),
+      isNull,
+    );
+    expect(sent, isNull);
+
+    pending.userId = 'user-uuid-1';
+    expect(
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      ),
+      'acc-1',
+    );
+    expect(sent?['userId'], 'user-uuid-1');
   });
 
   test('a 401 during a refresh does not start a second refresh', () async {

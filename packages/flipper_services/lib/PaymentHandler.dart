@@ -1,4 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_payments/flipper_payments.dart'
+    show defaultPaymentsHttpClient;
 import 'package:flipper_services/dodo/dodo_client.dart';
 import 'package:flipper_services/dodo/dodo_models.dart';
 import 'package:flipper_services/dodo/dodo_subscription.dart';
@@ -8,6 +10,7 @@ import 'package:flipper_services/momo/momo_subscription.dart';
 import 'package:flipper_services/payment_rail.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
+import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -61,6 +64,7 @@ mixin PaymentHandler {
   Future<String?> handleMomoPayment(
     int finalPrice, {
     required Plan plan,
+
     /// Called as the mandate moves, so a screen can say "approve the request on
     /// your phone" instead of showing a silent spinner.
     void Function(MomoMandate mandate)? onMandate,
@@ -113,6 +117,7 @@ mixin PaymentHandler {
       selectedPlan: plan.selectedPlan!,
       totalPrice: finalPrice.toDouble(),
     );
+
     /// Consent first, money second.
     ///
     /// [MomoSubscriptionCharger] requests (or reuses) the mandate, waits for
@@ -132,7 +137,9 @@ mixin PaymentHandler {
       );
     }
 
-    final charger = MomoSubscriptionCharger(MomoClient(ProxyService.http));
+    final charger = MomoSubscriptionCharger(
+      MomoClient(ConnectorAuthedPaymentsClient(ProxyService.http)),
+    );
     final result = await charger.charge(
       phoneNumber: phone,
       amount: finalPrice,
@@ -282,7 +289,7 @@ mixin PaymentHandler {
     );
 
     final checkout = DodoCardCheckout(
-      client ?? DodoClient(ProxyService.http),
+      client ?? DodoClient(defaultPaymentsHttpClient),
       openLink: openLink,
     );
 
@@ -292,7 +299,8 @@ mixin PaymentHandler {
       branchId: plan.branchId ?? ProxyService.box.getBranchId(),
       planTemplateId: plan.planTemplateId,
       selectedPlan: selectedPlan,
-      addons: plan.addons
+      addons:
+          plan.addons
               ?.map((addon) => addon.addonName)
               .whereType<String>()
               .toList() ??

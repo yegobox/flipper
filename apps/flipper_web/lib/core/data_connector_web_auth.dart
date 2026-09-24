@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/data_connector_client.dart';
+import 'package:flipper_payments/flipper_payments.dart'
+    show PaymentsHttpClient, setDefaultPaymentsHttpClient;
 import 'package:flipper_models/secrets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -177,9 +179,17 @@ class DataConnectorWebAuth implements DataConnectorAuth {
 
     final supabaseToken = _currentIdentityToken();
     if (supabaseToken == null || supabaseToken.isEmpty) {
-      // Not signed in yet. Normal during boot.
+      // Normal during boot, but indistinguishable from a real problem
+      // without a line in the log: a silent null here looks exactly like a
+      // rejected enrolment, and that ambiguity cost real debugging time.
+      debugPrint(
+        '[data-connector]: no Supabase session, skipping enrolment '
+        '(requests will go out unauthenticated)',
+      );
       return null;
     }
+
+    debugPrint('[data-connector]: enrolling…');
 
     return _post(
       baseUrl: baseUrl,
@@ -210,15 +220,16 @@ class DataConnectorWebAuth implements DataConnectorAuth {
           )
           .timeout(_timeout);
       if (response.statusCode != 200) {
-        debugPrint(
-          '[flipper_web] data-connector $path → ${response.statusCode}',
-        );
+        debugPrint('[data-connector] $path → ${response.statusCode}');
         return null;
       }
       final decoded = jsonDecode(response.body);
       if (decoded is! Map) return null;
 
       final access = decoded['accessToken'];
+      if (access is String && access.isNotEmpty) {
+        debugPrint('[data-connector] $path → ok');
+      }
       if (access is! String || access.isEmpty) return null;
 
       // The user signed out (or changed) while this was in flight. Writing
@@ -236,13 +247,53 @@ class DataConnectorWebAuth implements DataConnectorAuth {
     } catch (e) {
       // Offline or connector down. Callers send the request unauthenticated,
       // which still works while the connector is in warn mode.
-      debugPrint('[flipper_web] data-connector $path failed: $e');
+      debugPrint('[data-connector] $path failed: $e');
       return null;
     }
   }
 }
 
-/// Lends `flipper_models` this app's Supabase-backed token source.
+/// Lends `flipper_models` this app's Supabase-backed token source, and puts
+/// the payment rails on it too.
+///
+/// `MomoClient`, `DodoClient` and `CustomPaymentClient` are built on
+/// `defaultPaymentsHttpClient`, which is a bare client unless the host swaps
+/// one in — so Books' MoMo and card rails sent no device token and got 401 once
+/// the connector enforced auth. The mobile app does the same swap in
+/// `registerFlipperPaymentsHost`.
 void registerDataConnectorWebAuth() {
   setDataConnectorAuth(DataConnectorWebAuth());
+  setDefaultPaymentsHttpClient(DataConnectorAuthedPaymentsClient());
+}
+
+/// A [PaymentsHttpClient] that sends the data-connector device token.
+///
+/// Delegates to [DataConnectorClient] per request, keyed on the request's own
+/// origin: the payments base URL can be overridden at runtime
+/// (`PAYMENTS_BASE_URL`), so the token must follow the host actually called.
+/// A caller that sets its own `Authorization` (the custom-payment staff token)
+/// keeps it, and a 401 refreshes once and retries — both inherited from
+/// [DataConnectorClient].
+class DataConnectorAuthedPaymentsClient implements PaymentsHttpClient {
+  DataConnectorAuthedPaymentsClient([http.Client? inner])
+    : _inner = inner ?? http.Client();
+
+  final http.Client _inner;
+
+  http.Client _for(Uri url) => DataConnectorClient(
+    baseUrl: '${url.scheme}://${url.authority}',
+    inner: _inner,
+  );
+
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) =>
+      _for(url).get(url, headers: headers);
+
+  @override
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) => _for(url).post(url, headers: headers, body: body, encoding: encoding);
 }

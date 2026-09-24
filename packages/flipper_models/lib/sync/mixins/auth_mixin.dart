@@ -288,8 +288,14 @@ mixin AuthMixin implements AuthInterface {
       talker.warning(
         'Subscription expired: nextBillingDate ($nextBillingDate) is in the past',
       );
-      // Update local state to reflect expired subscription
-      if (isPaymentCompletedLocally) {
+      // Update local state to reflect expired subscription.
+      //
+      // Only when the flag is actually set: `paymentStatus == 'COMPLETED'`
+      // also counts as completed but is never cleared here, so gating on
+      // [isPaymentCompletedLocally] rewrote the row on every check. Each write
+      // is a `plans` realtime event, which schedules the next check — the
+      // paywall re-rendered every second, forever.
+      if (plan.paymentCompletedByUser == true) {
         plan.paymentCompletedByUser = false;
         await ProxyService.legacyStrategy.upsertPlan(
           businessId: businessId,
@@ -609,7 +615,7 @@ mixin AuthMixin implements AuthInterface {
       hasOfflineTenantData
           ? 'Login requires an internet connection'
           : 'Offline login unavailable: no local business/branch data. '
-              'Connect once to sync, then try again.',
+                'Connect once to sync, then try again.',
     );
   }
 
@@ -629,7 +635,8 @@ mixin AuthMixin implements AuthInterface {
     final target = pin.businessId?.toString();
     if (target == null || target.isEmpty) return false;
     final id = raw['id']?.toString();
-    final serverId = raw['serverId']?.toString() ?? raw['server_id']?.toString();
+    final serverId =
+        raw['serverId']?.toString() ?? raw['server_id']?.toString();
     return id == target || serverId == target;
   }
 
@@ -846,7 +853,8 @@ mixin AuthMixin implements AuthInterface {
     if (!isFreshSignup) {
       // Check if active business is individual type and default
       try {
-        final activeBusiness = await ProxyService.legacyStrategy.activeBusiness();
+        final activeBusiness = await ProxyService.legacyStrategy
+            .activeBusiness();
         if (activeBusiness != null &&
             activeBusiness.businessTypeId == 2 &&
             activeBusiness.isDefault == true) {
@@ -881,7 +889,8 @@ mixin AuthMixin implements AuthInterface {
   /// Used by [stopAfterConfigure] (POS PIN user switch) so checkout providers
   /// do not see a null branch after Ditto re-init for the new user.
   Future<void> _persistPinSessionContext(Pin pin) async {
-    final businessId = (pin.businessId != null && pin.businessId!.trim().isNotEmpty)
+    final businessId =
+        (pin.businessId != null && pin.businessId!.trim().isNotEmpty)
         ? pin.businessId!.trim()
         : ProxyService.box.getBusinessId();
     if (businessId != null && businessId.isNotEmpty) {
@@ -899,7 +908,10 @@ mixin AuthMixin implements AuthInterface {
     if (branchId != null && branchId.isNotEmpty) {
       talker.debug('stopAfterConfigure: setting branchId to $branchId');
       await ProxyService.box.writeString(key: 'branchId', value: branchId);
-      await ProxyService.box.writeString(key: 'branchIdString', value: branchId);
+      await ProxyService.box.writeString(
+        key: 'branchIdString',
+        value: branchId,
+      );
     } else {
       talker.warning(
         'stopAfterConfigure login: no branchId on pin or in box — '
@@ -972,7 +984,8 @@ mixin AuthMixin implements AuthInterface {
       alwaysHydrate: false,
     );
     uid ??= savedLocalPinForThis?.uid;
-    final sessionUserId = expectedPinUserId ??
+    final sessionUserId =
+        expectedPinUserId ??
         (ProxyService.box.readBool(key: 'authComplete') == true
             ? ProxyService.box.getUserId()
             : null) ??
@@ -1258,11 +1271,13 @@ mixin AuthMixin implements AuthInterface {
     if (response.statusCode == 200) {
       return _safeJsonDecode(response.body);
     } else {
-      throw Exception(_httpFailureMessage(
-        'Failed to request OTP',
-        response.statusCode,
-        response.body,
-      ));
+      throw Exception(
+        _httpFailureMessage(
+          'Failed to request OTP',
+          response.statusCode,
+          response.body,
+        ),
+      );
     }
   }
 
@@ -1278,11 +1293,13 @@ mixin AuthMixin implements AuthInterface {
       final responseData = _tryJsonDecode(response.body) ?? const {};
       final token = responseData['token'];
       if (token is! String || token.isEmpty) {
-        throw Exception(_httpFailureMessage(
-          'Failed to verify OTP',
-          response.statusCode,
-          response.body,
-        ));
+        throw Exception(
+          _httpFailureMessage(
+            'Failed to verify OTP',
+            response.statusCode,
+            response.body,
+          ),
+        );
       }
       final int serverId = responseData['serverId'] ?? 0;
       final String? businessId = responseData['businessId'];
@@ -1323,12 +1340,14 @@ mixin AuthMixin implements AuthInterface {
       return user;
     } else {
       final errorBody = _tryJsonDecode(response.body);
-      throw Exception(errorBody?['error'] ??
-          _httpFailureMessage(
-            'Failed to verify OTP',
-            response.statusCode,
-            response.body,
-          ));
+      throw Exception(
+        errorBody?['error'] ??
+            _httpFailureMessage(
+              'Failed to verify OTP',
+              response.statusCode,
+              response.body,
+            ),
+      );
     }
   }
 
@@ -1511,7 +1530,9 @@ mixin AuthMixin implements AuthInterface {
       localOnly: localOnly,
     );
     if (saved) {
-      talker.debug('user_access saved for Login Choices (localOnly=$localOnly)');
+      talker.debug(
+        'user_access saved for Login Choices (localOnly=$localOnly)',
+      );
     } else {
       talker.warning(
         'saveUserAccess failed during login '
@@ -1544,8 +1565,9 @@ mixin AuthMixin implements AuthInterface {
   /// application error instead of surfacing as a bare "Failed to ...".
   String _httpFailureMessage(String action, int statusCode, String body) {
     final snippet = body.trim().replaceAll(RegExp(r'\s+'), ' ');
-    final trimmed =
-        snippet.length > 200 ? '${snippet.substring(0, 200)}…' : snippet;
+    final trimmed = snippet.length > 200
+        ? '${snippet.substring(0, 200)}…'
+        : snippet;
     talker.error('$action: HTTP $statusCode body=$trimmed');
     return trimmed.isEmpty
         ? '$action (HTTP $statusCode)'

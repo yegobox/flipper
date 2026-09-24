@@ -3,6 +3,7 @@ import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/data/hr_momo_gateway.dart';
 import 'package:flipper_hr/features/billing/data/supabase_hr_billing_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,7 +17,15 @@ final hrBillingRepositoryProvider = Provider<HrBillingRepository>((ref) {
 final hrMomoGatewayProvider = Provider<HrMomoGateway>((ref) {
   final client = http.Client();
   ref.onDispose(client.close);
-  return HttpHrMomoGateway(client);
+  // The device token rides on every call; a bare client 401s once the
+  // connector enforces auth. `BILLING_API_TOKEN`, when compiled in, is set as
+  // the gateway's own `Authorization` and still wins.
+  return HttpHrMomoGateway(
+    DataConnectorClient(
+      baseUrl: HttpHrMomoGateway.defaultBaseUrl,
+      inner: client,
+    ),
+  );
 });
 
 /// Whether a business has paid, keyed by business id.
@@ -62,19 +71,21 @@ final hrAccessSnapshotProvider = Provider.family<HrAccessState, String?>((
 });
 
 /// What one plan costs this business, priced by the server.
-final hrPlanQuoteProvider =
-    FutureProvider.family<HrPlanQuote, HrQuoteRequest>((ref, request) async {
-      // Re-quoted whenever entitlement changes: a payment alters both the seats
-      // in use and whether there is anything left to buy.
-      ref.watch(hrAccessStateProvider(request.businessId));
-      return ref
-          .watch(hrBillingRepositoryProvider)
-          .quote(
-            businessId: request.businessId,
-            slug: request.slug,
-            isYearly: request.isYearly,
-          );
-    }, retry: (retryCount, error) => null);
+final hrPlanQuoteProvider = FutureProvider.family<HrPlanQuote, HrQuoteRequest>((
+  ref,
+  request,
+) async {
+  // Re-quoted whenever entitlement changes: a payment alters both the seats
+  // in use and whether there is anything left to buy.
+  ref.watch(hrAccessStateProvider(request.businessId));
+  return ref
+      .watch(hrBillingRepositoryProvider)
+      .quote(
+        businessId: request.businessId,
+        slug: request.slug,
+        isYearly: request.isYearly,
+      );
+}, retry: (retryCount, error) => null);
 
 /// The key of [hrPlanQuoteProvider]: which business, which tier, which period.
 class HrQuoteRequest {

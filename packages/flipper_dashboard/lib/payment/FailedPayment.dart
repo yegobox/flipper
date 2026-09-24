@@ -14,7 +14,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
-import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
+import 'package:flipper_payments/flipper_payments.dart'
+    show BillingCadence, defaultPaymentsHttpClient;
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -70,6 +71,11 @@ class _FailedPaymentState extends State<FailedPayment>
   Timer? _paymentTimeoutTimer;
   Timer? _paymentCompletionPollTimer;
   StreamSubscription<List<Map<String, dynamic>>>? _subscription;
+  bool _amountDueInFlight = false;
+
+  /// A plan id whose amount due was asked for while a request was in flight.
+  /// Kept (latest wins) so the answer shown is never the one for a stale plan.
+  String? _amountDueQueuedPlanId;
 
   // Discount code state
   String? _discountCode;
@@ -186,7 +192,9 @@ class _FailedPaymentState extends State<FailedPayment>
     final DodoSubscriptionStatus status;
     try {
       // Cheap: the connector answers from its own row, with no Dodo round trip.
-      status = await DodoClient(ProxyService.http).subscriptionForPlan(planId);
+      status = await DodoClient(
+        defaultPaymentsHttpClient,
+      ).subscriptionForPlan(planId);
     } catch (e) {
       // No subscription yet, or the connector is unreachable. Either way there
       // is nothing to resume, and this must never block the screen.
@@ -195,7 +203,8 @@ class _FailedPaymentState extends State<FailedPayment>
     }
 
     if (!_mounted || status.entitled) return;
-    final resumable = status.nextAction == DodoNextAction.openPaymentLink ||
+    final resumable =
+        status.nextAction == DodoNextAction.openPaymentLink ||
         status.nextAction == DodoNextAction.updatePaymentMethod;
     if (!resumable || !status.checkout.hasLink) return;
 
@@ -235,7 +244,8 @@ class _FailedPaymentState extends State<FailedPayment>
     try {
       final business = await ProxyService.strategy.activeBusiness();
       final email = business?.email?.toString().trim();
-      if (!_mounted || email == null || email.isEmpty || email == 'null') return;
+      if (!_mounted || email == null || email.isEmpty || email == 'null')
+        return;
       if (_emailController.text.trim().isEmpty) {
         _emailController.text = email;
       }
@@ -376,7 +386,7 @@ class _FailedPaymentState extends State<FailedPayment>
     if (template == null) return const {};
     final savedNames =
         plan.addons?.map((a) => a.addonName).whereType<String>().toSet() ??
-            const {};
+        const {};
     return template.addons
         .where((addon) => savedNames.contains(addon.name))
         .map((addon) => addon.slug)
@@ -393,8 +403,8 @@ class _FailedPaymentState extends State<FailedPayment>
     _switchPlanCadence = plan.rule != null
         ? BillingCadence.fromWire(plan.rule)
         : ((plan.isYearlyPlan ?? false)
-            ? BillingCadence.yearly
-            : BillingCadence.monthly);
+              ? BillingCadence.yearly
+              : BillingCadence.monthly);
     _switchPlanAddonSlugs
       ..clear()
       ..addAll(_savedAddonSlugsForPlan(plan));
@@ -431,13 +441,25 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Future<void> _refreshAmountDue(String planId) async {
+    // Every `plans` stream emission lands here. One request at a time, but an
+    // update that arrives mid-request is queued rather than dropped: the row
+    // may have changed what is owed, and no later event is guaranteed.
+    if (_amountDueInFlight) {
+      _amountDueQueuedPlanId = planId;
+      return;
+    }
+    _amountDueInFlight = true;
     try {
       final data = await ProxyService.ht.getPlanAmountDue(
         flipperHttpClient: ProxyService.http,
         planId: planId,
       );
       if (!_mounted) return;
-      final raw = data?['amountDue'];
+      // A newer plan update is waiting; its answer supersedes this one.
+      if (_amountDueQueuedPlanId != null) return;
+      // data-connector answers `totalAmountDue`; `amountDue` is the old
+      // flipper-turbo name.
+      final raw = data?['totalAmountDue'] ?? data?['amountDue'];
       final amt = raw is num ? raw.toDouble() : double.tryParse('$raw');
       if (amt != null) {
         setState(() {
@@ -446,6 +468,11 @@ class _FailedPaymentState extends State<FailedPayment>
       }
     } catch (e) {
       talker.error('Failed to load amount due: $e');
+    } finally {
+      _amountDueInFlight = false;
+      final queued = _amountDueQueuedPlanId;
+      _amountDueQueuedPlanId = null;
+      if (queued != null && _mounted) unawaited(_refreshAmountDue(queued));
     }
   }
 
@@ -554,9 +581,9 @@ class _FailedPaymentState extends State<FailedPayment>
   Future<void> _setupPlanSubscription() async {
     try {
       // Avoid an infinite spinner when Brick, Ditto, or Supabase never completes (e.g. flaky network).
-      final businessId = (await ProxyService.strategy
-          .activeBusiness()
-          .timeout(const Duration(seconds: 15)))?.id;
+      final businessId = (await ProxyService.strategy.activeBusiness().timeout(
+        const Duration(seconds: 15),
+      ))?.id;
       if (businessId == null) throw Exception('No active business');
 
       final fetchedPlan = await ProxyService.strategy
@@ -628,36 +655,47 @@ class _FailedPaymentState extends State<FailedPayment>
             .from('plans')
             .stream(primaryKey: ['id'])
             .eq('business_id', businessId)
-            .listen((rows) {
-              if (rows.isEmpty) return;
-              final updatedPlan = Plan.fromSupabaseJson(
-                Map<String, dynamic>.from(rows.first),
-              );
-              if (!_mounted) return;
+            .listen(
+              (rows) {
+                if (rows.isEmpty) return;
+                final updatedPlan = Plan.fromSupabaseJson(
+                  Map<String, dynamic>.from(rows.first),
+                );
+                if (!_mounted) return;
 
-              setState(() {
-                _plan = updatedPlan;
-              });
+                setState(() {
+                  _plan = updatedPlan;
+                });
 
-              unawaited(_refreshAmountDue(updatedPlan.id!));
+                unawaited(_refreshAmountDue(updatedPlan.id!));
 
-              if (updatedPlan.paymentCompletedByUser == true) {
-                _paymentTimeoutTimer?.cancel();
-                _paymentCompletionPollTimer?.cancel();
-                if (_mounted) {
-                  setState(() {
-                    _waitingForPaymentCompletion = false;
-                  });
-                  locator<RouterService>().navigateTo(FlipperAppRoute());
+                // Same rule as `hasActiveSubscription`: a completed flag on a
+                // plan whose billing date has passed is still expired. Leaving on
+                // the flag alone sent the user home, where verification bounced
+                // them straight back here — the screen flipped in a loop.
+                // Full timestamp, as `hasActiveSubscription` compares it:
+                // `_isPlanStillActive` drops the time, which would keep a plan
+                // billing later today on this screen.
+                final next = updatedPlan.nextBillingDate;
+                if (updatedPlan.paymentCompletedByUser == true &&
+                    next != null &&
+                    DateTime.now().isBefore(next)) {
+                  _paymentTimeoutTimer?.cancel();
+                  _paymentCompletionPollTimer?.cancel();
+                  if (_mounted) {
+                    setState(() {
+                      _waitingForPaymentCompletion = false;
+                    });
+                    locator<RouterService>().navigateTo(FlipperAppRoute());
+                  }
                 }
-              }
-            },
-            onError: (error, stackTrace) => logSupabaseRealtimeError(
-              error,
-              source: 'plans failed payment',
-              stackTrace: stackTrace,
-            ),
-          );
+              },
+              onError: (error, stackTrace) => logSupabaseRealtimeError(
+                error,
+                source: 'plans failed payment',
+                stackTrace: stackTrace,
+              ),
+            );
       } catch (_) {
         // Subscription fails when offline; initial plan came from Ditto / getPaymentPlan
       }
@@ -703,8 +741,7 @@ class _FailedPaymentState extends State<FailedPayment>
     });
 
     try {
-      final planPrice =
-          _plan != null ? _baseChargeBeforeDiscount(_plan!) : 0.0;
+      final planPrice = _plan != null ? _baseChargeBeforeDiscount(_plan!) : 0.0;
       // Initialize _originalPrice to planPrice if it's unset (<= 0) before validation
       final effectiveOriginalPrice = _originalPrice <= 0
           ? planPrice
@@ -803,9 +840,7 @@ class _FailedPaymentState extends State<FailedPayment>
         title: 'Payment Issue',
         showBack: false,
         actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
-        children: [
-          _buildPaymentWaitingContent(),
-        ],
+        children: [_buildPaymentWaitingContent()],
       );
     }
 
@@ -815,20 +850,14 @@ class _FailedPaymentState extends State<FailedPayment>
       actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
       aside: _asideChildren(context),
       children: [
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: _buildHeaderSection(),
-        ),
+        FadeTransition(opacity: _fadeAnimation, child: _buildHeaderSection()),
         if (_plan != null)
           FadeTransition(
             opacity: _fadeAnimation,
             child: _buildPlanDetails(_plan!),
           ),
         if (_errorMessage != null)
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: _buildErrorMessage(),
-          ),
+          FadeTransition(opacity: _fadeAnimation, child: _buildErrorMessage()),
         if (_plan != null)
           FadeTransition(
             opacity: _fadeAnimation,
@@ -875,15 +904,9 @@ class _FailedPaymentState extends State<FailedPayment>
   /// what the plan you are switching to costs" — pulled out of that card it
   /// would read as the amount being retried, which it is not.
   List<Widget> _asideChildren(BuildContext context) => [
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: _buildRetryButton(context),
-        ),
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: _buildHelpSection(),
-        ),
-      ];
+    FadeTransition(opacity: _fadeAnimation, child: _buildRetryButton(context)),
+    FadeTransition(opacity: _fadeAnimation, child: _buildHelpSection()),
+  ];
 
   Widget _buildPaymentWaitingContent() {
     return Column(
@@ -924,9 +947,9 @@ class _FailedPaymentState extends State<FailedPayment>
         Text(
           _rail.isCard
               ? 'Enter your card details on the page that opened.\n'
-                  'This screen updates on its own once the payment goes through.'
+                    'This screen updates on its own once the payment goes through.'
               : 'A payment request has been sent to your MTN Mobile Money.\n'
-                  'Open your phone and approve the transaction.',
+                    'Open your phone and approve the transaction.',
           style: PaymentTypography.body(),
           textAlign: TextAlign.center,
         ),
@@ -959,10 +982,7 @@ class _FailedPaymentState extends State<FailedPayment>
           ),
         ),
         const SizedBox(height: 16),
-        Text(
-          'Checking payment status…',
-          style: PaymentTypography.hint(),
-        ),
+        Text('Checking payment status…', style: PaymentTypography.hint()),
       ],
     );
   }
@@ -1105,9 +1125,7 @@ class _FailedPaymentState extends State<FailedPayment>
       decoration: BoxDecoration(
         color: PaymentTokens.lossTint,
         borderRadius: BorderRadius.circular(PaymentTokens.rMd),
-        border: Border.all(
-          color: PaymentTokens.loss.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: PaymentTokens.loss.withValues(alpha: 0.25)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1188,8 +1206,9 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Future<void> _reopenCheckout(String link) async {
-    final opened = await DodoCardCheckout(DodoClient(ProxyService.http))
-        .openPaymentLink(link);
+    final opened = await DodoCardCheckout(
+      DodoClient(defaultPaymentsHttpClient),
+    ).openPaymentLink(link);
     if (!_mounted || opened) return;
     setState(() {
       _errorMessage =
@@ -1211,6 +1230,9 @@ class _FailedPaymentState extends State<FailedPayment>
     final emailError = _getEmailError(_emailController.text);
     if (emailError != null) {
       setState(() => _emailError = emailError);
+      // The email field sits at the bottom of the form, usually off-screen
+      // from this button, so the inline error alone made the tap look dead.
+      _reportCardFailure(context, emailError);
       return;
     }
 
@@ -1240,7 +1262,8 @@ class _FailedPaymentState extends State<FailedPayment>
         case DodoCheckoutOutcome.resubscribeRequired:
           setState(() {
             _isLoading = false;
-            _errorMessage = result.message ??
+            _errorMessage =
+                result.message ??
                 'This subscription has ended. Pick a plan above to start again.';
           });
           return;
@@ -1277,7 +1300,8 @@ class _FailedPaymentState extends State<FailedPayment>
           setState(() {
             _isLoading = false;
             _pendingCheckout = result.checkout;
-            _errorMessage = result.message ??
+            _errorMessage =
+                result.message ??
                 'Could not open the card payment page on this device. Use the '
                     'link below, or pay with Mobile Money.';
           });
@@ -1352,11 +1376,11 @@ class _FailedPaymentState extends State<FailedPayment>
     if (_cardPollRunning || planId.isEmpty) return;
     _cardPollRunning = true;
 
-    final status = await DodoCardCheckout(DodoClient(ProxyService.http))
+    final status = await DodoCardCheckout(DodoClient(defaultPaymentsHttpClient))
         .awaitEntitlement(
-      planId,
-      isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
-    );
+          planId,
+          isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
+        );
 
     _cardPollRunning = false;
     if (!_mounted || !_waitingForPaymentCompletion) return;
@@ -1371,7 +1395,8 @@ class _FailedPaymentState extends State<FailedPayment>
 
     setState(() {
       _waitingForPaymentCompletion = false;
-      _errorMessage = status?.lastError ??
+      _errorMessage =
+          status?.lastError ??
           'The card payment has not come through. Try again, or use Mobile '
               'Money.';
     });
@@ -1547,14 +1572,15 @@ class _FailedPaymentState extends State<FailedPayment>
     final rows = <PaymentSummaryRow>[
       PaymentSummaryRow(
         label: 'Plan',
-        value:
-            _switchTemplateForPlan(plan)?.name ?? plan.selectedPlan ?? 'N/A',
+        value: _switchTemplateForPlan(plan)?.name ?? plan.selectedPlan ?? 'N/A',
       ),
       if (_discountAmount > 0) ...[
         PaymentSummaryRow(
           label: 'Subtotal',
           value: formatPaymentTotal(
-            _originalPrice > 0 ? _originalPrice : _baseChargeBeforeDiscount(plan),
+            _originalPrice > 0
+                ? _originalPrice
+                : _baseChargeBeforeDiscount(plan),
           ),
           mono: true,
         ),
@@ -1657,7 +1683,10 @@ class _FailedPaymentState extends State<FailedPayment>
     if (_switchUiDiffersFromPlan(plan)) {
       await ProxyService.strategy.saveOrUpdatePaymentPlan(
         businessId: (await ProxyService.strategy.activeBusiness())!.id,
-        selectedPlan: _selectedSwitchTemplate?.name ?? effectivePlan.selectedPlan ?? 'Mobile',
+        selectedPlan:
+            _selectedSwitchTemplate?.name ??
+            effectivePlan.selectedPlan ??
+            'Mobile',
         planTemplateId: _selectedSwitchTemplate?.id,
         additionalDevices: effectivePlan.additionalDevices ?? 0,
         isYearlyPlan: _switchPlanCadence.isYearly,
@@ -1721,7 +1750,8 @@ class _FailedPaymentState extends State<FailedPayment>
             return;
           }
 
-          final completed = settlement.isSuccessful &&
+          final completed =
+              settlement.isSuccessful &&
               // Still routed through checkPaymentStatus: that is what settles
               // the local payment row and grants credits, exactly once.
               await ProxyService.ht.checkPaymentStatus(

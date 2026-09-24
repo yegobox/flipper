@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/dodo/dodo_availability.dart';
+import 'package:flipper_payments/flipper_payments.dart'
+    show defaultPaymentsHttpClient;
 import 'package:flipper_services/dodo/dodo_client.dart';
 import 'package:flipper_services/dodo/dodo_models.dart';
 import 'package:flipper_services/dodo/dodo_subscription.dart';
@@ -95,7 +97,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     try {
       final business = await ProxyService.strategy.activeBusiness();
       final email = business?.email?.toString().trim();
-      if (!_mounted || email == null || email.isEmpty || email == 'null') return;
+      if (!_mounted || email == null || email.isEmpty || email == 'null')
+        return;
       if (_emailController.text.trim().isEmpty) {
         _emailController.text = email;
       }
@@ -124,27 +127,28 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           .from('plans')
           .stream(primaryKey: ['id'])
           .eq('business_id', businessId)
-          .listen((rows) {
-            if (rows.isEmpty) return;
-            final updatedPlan = Plan.fromSupabaseJson(
-              Map<String, dynamic>.from(rows.first),
-            );
-            if (!_mounted) return;
+          .listen(
+            (rows) {
+              if (rows.isEmpty) return;
+              final updatedPlan = Plan.fromSupabaseJson(
+                Map<String, dynamic>.from(rows.first),
+              );
+              if (!_mounted) return;
 
-            setState(() {
-              _plan = updatedPlan;
-            });
+              setState(() {
+                _plan = updatedPlan;
+              });
 
-            if (updatedPlan.paymentCompletedByUser == true) {
-              locator<RouterService>().navigateTo(FlipperAppRoute());
-            }
-          },
-          onError: (error, stackTrace) => logSupabaseRealtimeError(
-            error,
-            source: 'plans finalize',
-            stackTrace: stackTrace,
-          ),
-        );
+              if (updatedPlan.paymentCompletedByUser == true) {
+                locator<RouterService>().navigateTo(FlipperAppRoute());
+              }
+            },
+            onError: (error, stackTrace) => logSupabaseRealtimeError(
+              error,
+              source: 'plans finalize',
+              stackTrace: stackTrace,
+            ),
+          );
     } catch (e) {
       if (!_mounted || !context.mounted) return;
       ScaffoldMessenger.of(
@@ -331,7 +335,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           _pendingCheckout = result.checkout;
           _cardWaitMessage = result.start?.reusedExisting == true
               ? 'You already had a payment page open for this plan — we '
-                  'reopened it rather than starting a second subscription.'
+                    'reopened it rather than starting a second subscription.'
               : null;
         });
         _startCardPolling(result.planId);
@@ -356,7 +360,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     if (_cardPollRunning || planId.isEmpty) return;
     _cardPollRunning = true;
 
-    final checkout = DodoCardCheckout(DodoClient(ProxyService.http));
+    final checkout = DodoCardCheckout(DodoClient(defaultPaymentsHttpClient));
     final status = await checkout.awaitEntitlement(
       planId,
       isCancelled: () => !_mounted || !_awaitingCardPayment,
@@ -371,7 +375,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     }
 
     setState(() {
-      _cardWaitMessage = status?.lastError ??
+      _cardWaitMessage =
+          status?.lastError ??
           'We have not seen the payment yet. Finish it on the payment page, '
               'then tap "I have paid".';
     });
@@ -389,8 +394,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     });
 
     try {
-      final status =
-          await DodoClient(ProxyService.http).syncSubscription(planId);
+      final status = await DodoClient(
+        defaultPaymentsHttpClient,
+      ).syncSubscription(planId);
       if (!_mounted) return;
       if (status.entitled) {
         locator<RouterService>().navigateTo(FlipperAppRoute());
@@ -401,7 +407,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         _cardWaitMessage = status.nextAction == DodoNextAction.resubscribe
             ? 'That payment did not go through. Choose a plan to start again.'
             : 'The payment has not arrived yet. It can take a moment after you '
-                'finish on the payment page.';
+                  'finish on the payment page.';
       });
     } on DodoException catch (e) {
       if (!_mounted) return;
@@ -484,8 +490,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   }
 
   Future<void> _reopenCheckout(String link) async {
-    final opened = await DodoCardCheckout(DodoClient(ProxyService.http))
-        .openPaymentLink(link);
+    final opened = await DodoCardCheckout(
+      DodoClient(defaultPaymentsHttpClient),
+    ).openPaymentLink(link);
     if (!_mounted || opened) return;
     setState(() {
       _cardWaitMessage =
@@ -550,7 +557,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                         Text(
                           _rail.isCard
                               ? 'Payment will be processed by card on a secure '
-                                  'payment page'
+                                    'payment page'
                               : 'Payment will be processed using MTN Mobile Money',
                           style: TextStyle(
                             fontSize: 14,
@@ -702,7 +709,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                   }
                                 });
                               },
-                              activeColor: Theme.of(context).colorScheme.primary,
+                              activeColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                             ),
                           ),
                           if (useCustomPhoneNumber) ...[
@@ -753,7 +762,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     width: 2,
                                   ),
                                 ),
@@ -761,7 +772,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                   phoneNumberController.text,
                                 ),
                                 helperText: 'Must start with 250 78 or 250 79',
-                                suffixIcon: phoneNumberController.text.isNotEmpty
+                                suffixIcon:
+                                    phoneNumberController.text.isNotEmpty
                                     ? IconButton(
                                         icon: const Icon(Icons.clear),
                                         onPressed: () {
@@ -840,8 +852,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                     _awaitingCardPayment
                                         ? 'I have paid — check now'
                                         : _rail.isCard
-                                            ? 'Continue to payment page'
-                                            : 'Complete Payment',
+                                        ? 'Continue to payment page'
+                                        : 'Complete Payment',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -855,13 +867,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                             onPressed: isLoading
                                 ? null
                                 : () => setState(() {
-                                      // Abandons the wait, not the subscription:
-                                      // the pending Dodo subscription stays, and
-                                      // tapping again reopens *its* link rather
-                                      // than creating a second one.
-                                      _awaitingCardPayment = false;
-                                      _cardWaitMessage = null;
-                                    }),
+                                    // Abandons the wait, not the subscription:
+                                    // the pending Dodo subscription stays, and
+                                    // tapping again reopens *its* link rather
+                                    // than creating a second one.
+                                    _awaitingCardPayment = false;
+                                    _cardWaitMessage = null;
+                                  }),
                             child: const Text('Use a different payment method'),
                           ),
                         ],
@@ -928,9 +940,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           isLoading = false;
           _pendingCheckout = e.checkout ?? _pendingCheckout;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     } on DodoException catch (e) {
       talker.warning('Card payment refused: $e');
@@ -938,9 +950,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         setState(() {
           isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.displayMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.displayMessage)));
       }
     } on MomoPreapprovalDeclined catch (e) {
       // Consent was refused, so nothing was charged. Worth its own message:

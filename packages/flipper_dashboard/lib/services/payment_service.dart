@@ -2,6 +2,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/momo/momo_client.dart';
 import 'package:flipper_services/momo/momo_collection.dart';
 import 'package:flipper_services/momo/momo_msisdn.dart';
+import 'package:flipper_services/payments_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -75,7 +76,9 @@ class PaymentService {
         ? branchId.trim()
         : mtnPayNowBranchId;
     try {
-      final collection = MomoCollection(MomoClient(ProxyService.http));
+      final collection = MomoCollection(
+        MomoClient(ConnectorAuthedPaymentsClient(ProxyService.http)),
+      );
       final result = await collection.collect(
         phoneNumber: phoneNumber,
         amount: finalPrice,
@@ -111,7 +114,8 @@ class PaymentService {
       return GigMomoSettlement(
         confirmed: false,
         paymentReference: result.reference ?? '',
-        refused: result.outcome == MomoCollectionOutcome.refused ||
+        refused:
+            result.outcome == MomoCollectionOutcome.refused ||
             result.outcome == MomoCollectionOutcome.notStarted,
         message: result.message,
       );

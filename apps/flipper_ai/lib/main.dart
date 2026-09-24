@@ -9,17 +9,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_auth/features/auth/views/login_screen.dart';
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_web/core/data_connector_web_auth.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Supabase (same configuration as flipper_auth and flipper app)
   await Supabase.initialize(
     url: AppSecrets.superbaseurl,
     anonKey: AppSecrets.supabaseAnonKey,
   );
+
+  // Flo talks to the data-connector, which now authenticates every route.
+  // Without this the AI routes 401: this app signs in with Supabase, so it
+  // uses the same token source as flipper_web.
+  registerDataConnectorWebAuth();
 
   // Register on-device AI engine (no-op on Android/web → cloud only).
   initLocalAi();
@@ -70,7 +76,8 @@ class _AiAppState extends State<AiApp> {
       initialRoute: initialRoute,
       routes: {
         '/': (context) => const LoginScreen(), // Reuse flipper_auth login
-        '/home': (context) => const AiScreen(), // Use AiScreen from flipper_ai_feature
+        '/home': (context) =>
+            const AiScreen(), // Use AiScreen from flipper_ai_feature
       },
     );
   }

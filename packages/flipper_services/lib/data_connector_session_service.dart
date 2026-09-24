@@ -6,7 +6,9 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_models/brick/repository/storage.dart';
 
 /// Bearer tokens for the data-connector HTTP API.
 ///
@@ -246,10 +248,27 @@ class DataConnectorSessionService {
     required String baseUrl,
     required int generation,
   }) async {
+    // Session setup writes the Flipper user id after sign-in, and until it
+    // does the connector can only refuse a Firebase enrolment ("send userId
+    // to link it"). Nothing is cached on this path, so the next call after
+    // the id lands enrols normally.
+    final userId = env.userId;
+    if (userId == null || userId.trim().isEmpty) {
+      talker.warning(
+        'data-connector: no Flipper user id yet, deferring enrolment',
+      );
+      return null;
+    }
+
     final identity = await env.identityProof();
     if (identity == null) {
-      // Not signed in yet, or Firebase has no current user. Normal during
-      // boot; the next call will try again.
+      // Normal during boot, but indistinguishable from a real failure unless
+      // it says so: a silent null here looks exactly like a rejected
+      // enrolment from outside, which is what made this hard to place.
+      talker.warning(
+        'data-connector: no Firebase user and no Supabase session, '
+        'skipping enrolment (requests go out unauthenticated)',
+      );
       return null;
     }
 
@@ -258,6 +277,11 @@ class DataConnectorSessionService {
       talker.warning('data-connector: no install id, cannot enrol');
       return null;
     }
+
+    talker.info(
+      'data-connector: enrolling device=$installId user=$userId '
+      'business=${env.businessId} branch=${env.branchId}',
+    );
 
     try {
       final response = await _client
@@ -268,6 +292,11 @@ class DataConnectorSessionService {
               'enrollKey': AppSecrets.dataConnectorEnrollKey,
               'installId': installId,
               ...identity,
+              // The connector cannot derive this from a Firebase token:
+              // `users` is keyed by Flipper's own uuid and no row carries a
+              // Firebase uid yet. Sending it lets the server link the two on
+              // first use, and check it against the binding thereafter.
+              'userId': userId,
               'businessId': env.businessId,
               'branchId': env.branchId,
               'platform': _platformLabel(),
@@ -275,8 +304,11 @@ class DataConnectorSessionService {
           )
           .timeout(_timeout);
       if (response.statusCode != 200) {
+        // The body carries which check failed -- identity mismatch, branch
+        // access, enrol key -- and without it the status alone says nothing.
         talker.warning(
-          'data-connector: enrolment rejected (${response.statusCode})',
+          'data-connector: enrolment rejected (${response.statusCode}) '
+          '${response.body}',
         );
         return null;
       }
@@ -382,6 +414,9 @@ abstract interface class DataConnectorSessionEnv {
 
   String? get branchId;
 
+  /// Flipper's own user id (`users.id`), not the Firebase uid.
+  String? get userId;
+
   /// Proof of identity for enrolment, or null when nobody is signed in.
   Future<Map<String, String>?> identityProof();
 }
@@ -391,37 +426,62 @@ abstract interface class DataConnectorSessionEnv {
 class ProxyServiceSessionEnv implements DataConnectorSessionEnv {
   const ProxyServiceSessionEnv();
 
+  /// The one place this reaches for the locator.
+  LocalStorage get _box => ProxyService.box;
+
   @override
-  String? read(String key) => ProxyService.box.readString(key: key);
+  String? read(String key) => _box.readString(key: key);
 
   @override
   Future<void> write(String key, String value) =>
-      ProxyService.box.writeString(key: key, value: value);
+      _box.writeString(key: key, value: value);
 
   /// Reuses `thisDeviceId`, which is deliberately excluded from the session
   /// keys cleared at logout, so re-enrolling reuses one device row rather
   /// than creating one per login.
   @override
-  String? get installId => ProxyService.box.getThisDeviceId();
+  String? get installId => _box.getThisDeviceId();
 
   @override
-  String? get businessId => ProxyService.box.getBusinessId()?.toString();
+  String? get userId => _box.getUserId()?.toString();
 
   @override
-  String? get branchId => ProxyService.box.getBranchId()?.toString();
+  String? get businessId => _box.getBusinessId()?.toString();
 
+  @override
+  String? get branchId => _box.getBranchId()?.toString();
+
+  /// Firebase first, Supabase second.
+  ///
+  /// The POS app does not reliably have a Firebase user — on desktop
+  /// `FirebaseAuth.currentUser` is routinely null, which silently skipped
+  /// enrolment entirely and left every request unauthenticated. It always has
+  /// a Supabase session though, because that is what the rest of the app
+  /// signs in with, and the connector can resolve a Flipper user from the
+  /// verified email on it.
   @override
   Future<Map<String, String>?> identityProof() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
-      final idToken = await user.getIdToken();
-      if (idToken == null || idToken.isEmpty) return null;
-      return {'firebaseIdToken': idToken};
+      final idToken = await user?.getIdToken();
+      if (idToken != null && idToken.isNotEmpty) {
+        return {'firebaseIdToken': idToken};
+      }
     } catch (e) {
       talker.warning('data-connector: could not read Firebase ID token: $e');
-      return null;
     }
+
+    try {
+      final supabaseToken = await SupabaseSessionService.ensureAccessToken();
+      if (supabaseToken != null && supabaseToken.isNotEmpty) {
+        talker.info('data-connector: enrolling with the Supabase session');
+        return {'supabaseAccessToken': supabaseToken};
+      }
+    } catch (e) {
+      talker.warning('data-connector: could not read Supabase session: $e');
+    }
+
+    return null;
   }
 }
 

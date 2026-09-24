@@ -25,7 +25,7 @@ import 'package:http/http.dart' as http;
 /// `package:http` client and [kPaymentsApiBaseUrl], which is the correct answer
 /// for them and finally puts all three apps on one host.
 void registerFlipperPaymentsHost() {
-  setDefaultPaymentsHttpClient(_ConnectorAuthedPaymentsClient());
+  setDefaultPaymentsHttpClient(ConnectorAuthedPaymentsClient());
   setPaymentsBaseUrlResolver(_branchConnectorUrl);
   setPaymentsLogSink(_talkerSink);
 }
@@ -65,10 +65,23 @@ void _talkerSink(PaymentsLogLevel level, String message) {
 /// A caller that sets its own `Authorization` keeps it —
 /// `CustomPaymentClient` sends a staff token, which is a stronger claim than
 /// the device token and must not be overwritten.
-class _ConnectorAuthedPaymentsClient implements PaymentsHttpClient {
+///
+/// Wrap any client handed to `MomoClient` / `DodoClient` in this: built on the
+/// bare shared client they send Basic auth and every connector call 401s —
+/// preApprove, payNow and the status polls alike. [inner] defaults to
+/// `ProxyService.http`; pass the caller's own so injected clients still work.
+class ConnectorAuthedPaymentsClient implements PaymentsHttpClient {
+  ConnectorAuthedPaymentsClient([PaymentsHttpClient? inner]) : _inner = inner;
+
+  final PaymentsHttpClient? _inner;
+
+  PaymentsHttpClient get _client => _inner ?? ProxyService.http;
+
   @override
   Future<http.Response> get(Uri url, {Map<String, String>? headers}) async =>
-      ProxyService.http.get(url, headers: await _headers(url, headers));
+      _afterResponse(
+        await _client.get(url, headers: await _headers(url, headers)),
+      );
 
   @override
   Future<http.Response> post(
@@ -76,12 +89,23 @@ class _ConnectorAuthedPaymentsClient implements PaymentsHttpClient {
     Map<String, String>? headers,
     Object? body,
     Encoding? encoding,
-  }) async => ProxyService.http.post(
-    url,
-    headers: await _headers(url, headers),
-    body: body,
-    encoding: encoding,
+  }) async => _afterResponse(
+    await _client.post(
+      url,
+      headers: await _headers(url, headers),
+      body: body,
+      encoding: encoding,
+    ),
   );
+
+  /// A 401 means the cached access token was rejected; drop it so the next
+  /// call refreshes rather than presenting it again.
+  Future<http.Response> _afterResponse(http.Response response) async {
+    if (response.statusCode == 401) {
+      await DataConnectorSessionService.invalidateAccessToken();
+    }
+    return response;
+  }
 
   Future<Map<String, String>> _headers(
     Uri url,
