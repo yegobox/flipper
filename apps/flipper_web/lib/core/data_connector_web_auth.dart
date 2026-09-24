@@ -177,9 +177,17 @@ class DataConnectorWebAuth implements DataConnectorAuth {
 
     final supabaseToken = _currentIdentityToken();
     if (supabaseToken == null || supabaseToken.isEmpty) {
-      // Not signed in yet. Normal during boot.
+      // Normal during boot, but indistinguishable from a real problem
+      // without a line in the log: a silent null here looks exactly like a
+      // rejected enrolment, and that ambiguity cost real debugging time.
+      debugPrint(
+        '[data-connector]: no Supabase session, skipping enrolment '
+        '(requests will go out unauthenticated)',
+      );
       return null;
     }
+
+    debugPrint('[data-connector]: enrolling…');
 
     return _post(
       baseUrl: baseUrl,
@@ -210,15 +218,16 @@ class DataConnectorWebAuth implements DataConnectorAuth {
           )
           .timeout(_timeout);
       if (response.statusCode != 200) {
-        debugPrint(
-          '[flipper_web] data-connector $path → ${response.statusCode}',
-        );
+        debugPrint('[data-connector] $path → ${response.statusCode}');
         return null;
       }
       final decoded = jsonDecode(response.body);
       if (decoded is! Map) return null;
 
       final access = decoded['accessToken'];
+      if (access is String && access.isNotEmpty) {
+        debugPrint('[data-connector] $path → ok');
+      }
       if (access is! String || access.isEmpty) return null;
 
       // The user signed out (or changed) while this was in flight. Writing
@@ -236,7 +245,7 @@ class DataConnectorWebAuth implements DataConnectorAuth {
     } catch (e) {
       // Offline or connector down. Callers send the request unauthenticated,
       // which still works while the connector is in warn mode.
-      debugPrint('[flipper_web] data-connector $path failed: $e');
+      debugPrint('[data-connector] $path failed: $e');
       return null;
     }
   }
