@@ -15,7 +15,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Supabase (same configuration as flipper_auth and flipper app)
   await Supabase.initialize(
     url: AppSecrets.superbaseurl,
@@ -76,7 +76,8 @@ class _AiAppState extends State<AiApp> {
       initialRoute: initialRoute,
       routes: {
         '/': (context) => const LoginScreen(), // Reuse flipper_auth login
-        '/home': (context) => const AiScreen(), // Use AiScreen from flipper_ai_feature
+        '/home': (context) =>
+            const AiScreen(), // Use AiScreen from flipper_ai_feature
       },
     );
   }
