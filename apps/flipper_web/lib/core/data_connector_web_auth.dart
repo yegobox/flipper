@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/data_connector_client.dart';
+import 'package:flipper_payments/flipper_payments.dart'
+    show PaymentsHttpClient, setDefaultPaymentsHttpClient;
 import 'package:flipper_models/secrets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -251,7 +253,48 @@ class DataConnectorWebAuth implements DataConnectorAuth {
   }
 }
 
-/// Lends `flipper_models` this app's Supabase-backed token source.
+/// Lends `flipper_models` this app's Supabase-backed token source, and puts
+/// the payment rails on it too.
+///
+/// `MomoClient`, `DodoClient` and `CustomPaymentClient` are built on
+/// `defaultPaymentsHttpClient`, which is a bare client unless the host swaps
+/// one in — so Books' MoMo and card rails sent no device token and got 401 once
+/// the connector enforced auth. The mobile app does the same swap in
+/// `registerFlipperPaymentsHost`.
 void registerDataConnectorWebAuth() {
   setDataConnectorAuth(DataConnectorWebAuth());
+  setDefaultPaymentsHttpClient(DataConnectorAuthedPaymentsClient());
+}
+
+/// A [PaymentsHttpClient] that sends the data-connector device token.
+///
+/// Delegates to [DataConnectorClient] per request, keyed on the request's own
+/// origin: the payments base URL can be overridden at runtime
+/// (`PAYMENTS_BASE_URL`), so the token must follow the host actually called.
+/// A caller that sets its own `Authorization` (the custom-payment staff token)
+/// keeps it, and a 401 refreshes once and retries — both inherited from
+/// [DataConnectorClient].
+class DataConnectorAuthedPaymentsClient implements PaymentsHttpClient {
+  DataConnectorAuthedPaymentsClient([http.Client? inner])
+      : _inner = inner ?? http.Client();
+
+  final http.Client _inner;
+
+  http.Client _for(Uri url) => DataConnectorClient(
+        baseUrl: '${url.scheme}://${url.authority}',
+        inner: _inner,
+      );
+
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) =>
+      _for(url).get(url, headers: headers);
+
+  @override
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) =>
+      _for(url).post(url, headers: headers, body: body, encoding: encoding);
 }

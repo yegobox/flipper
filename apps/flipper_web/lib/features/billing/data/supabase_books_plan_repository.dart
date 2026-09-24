@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/billing/data/books_plan_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_models/data_connector_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -227,7 +228,9 @@ class SupabaseBooksPlanRepository implements BooksPlanRepository {
   }) async {
     try {
       final base = await paymentsApiBaseUrl();
-      final response = await _http
+      // Through the device-token client: the bare one 401s once the connector
+      // enforces auth, and a nudge that never lands just waits for a sweep.
+      final response = await DataConnectorClient(baseUrl: base, inner: _http)
           .post(
             Uri.parse('$base$path'),
             headers: const {'Content-Type': 'application/json'},

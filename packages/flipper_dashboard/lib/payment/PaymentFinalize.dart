@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/dodo/dodo_availability.dart';
+import 'package:flipper_payments/flipper_payments.dart'
+    show defaultPaymentsHttpClient;
 import 'package:flipper_services/dodo/dodo_client.dart';
 import 'package:flipper_services/dodo/dodo_models.dart';
 import 'package:flipper_services/dodo/dodo_subscription.dart';
@@ -356,7 +358,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     if (_cardPollRunning || planId.isEmpty) return;
     _cardPollRunning = true;
 
-    final checkout = DodoCardCheckout(DodoClient(ProxyService.http));
+    final checkout = DodoCardCheckout(DodoClient(defaultPaymentsHttpClient));
     final status = await checkout.awaitEntitlement(
       planId,
       isCancelled: () => !_mounted || !_awaitingCardPayment,
@@ -390,7 +392,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
     try {
       final status =
-          await DodoClient(ProxyService.http).syncSubscription(planId);
+          await DodoClient(defaultPaymentsHttpClient).syncSubscription(planId);
       if (!_mounted) return;
       if (status.entitled) {
         locator<RouterService>().navigateTo(FlipperAppRoute());
@@ -484,7 +486,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   }
 
   Future<void> _reopenCheckout(String link) async {
-    final opened = await DodoCardCheckout(DodoClient(ProxyService.http))
+    final opened = await DodoCardCheckout(DodoClient(defaultPaymentsHttpClient))
         .openPaymentLink(link);
     if (!_mounted || opened) return;
     setState(() {
