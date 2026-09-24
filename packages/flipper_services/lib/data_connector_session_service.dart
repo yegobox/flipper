@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/supabase_session_service.dart';
 import 'package:http/http.dart' as http;
 
 /// Bearer tokens for the data-connector HTTP API.
@@ -252,8 +253,8 @@ class DataConnectorSessionService {
       // it says so: a silent null here looks exactly like a rejected
       // enrolment from outside, which is what made this hard to place.
       talker.warning(
-        'data-connector: no Firebase user, skipping enrolment '
-        '(requests go out unauthenticated)',
+        'data-connector: no Firebase user and no Supabase session, '
+        'skipping enrolment (requests go out unauthenticated)',
       );
       return null;
     }
@@ -434,18 +435,37 @@ class ProxyServiceSessionEnv implements DataConnectorSessionEnv {
   @override
   String? get branchId => ProxyService.box.getBranchId()?.toString();
 
+  /// Firebase first, Supabase second.
+  ///
+  /// The POS app does not reliably have a Firebase user — on desktop
+  /// `FirebaseAuth.currentUser` is routinely null, which silently skipped
+  /// enrolment entirely and left every request unauthenticated. It always has
+  /// a Supabase session though, because that is what the rest of the app
+  /// signs in with, and the connector can resolve a Flipper user from the
+  /// verified email on it.
   @override
   Future<Map<String, String>?> identityProof() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
-      final idToken = await user.getIdToken();
-      if (idToken == null || idToken.isEmpty) return null;
-      return {'firebaseIdToken': idToken};
+      final idToken = await user?.getIdToken();
+      if (idToken != null && idToken.isNotEmpty) {
+        return {'firebaseIdToken': idToken};
+      }
     } catch (e) {
       talker.warning('data-connector: could not read Firebase ID token: $e');
-      return null;
     }
+
+    try {
+      final supabaseToken = await SupabaseSessionService.ensureAccessToken();
+      if (supabaseToken != null && supabaseToken.isNotEmpty) {
+        talker.info('data-connector: enrolling with the Supabase session');
+        return {'supabaseAccessToken': supabaseToken};
+      }
+    } catch (e) {
+      talker.warning('data-connector: could not read Supabase session: $e');
+    }
+
+    return null;
   }
 }
 
