@@ -9,11 +9,17 @@ part of 'visible_stocks_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// One Ditto observer for all stock rows on the current catalog page (max ~15).
+///
+/// [stockFilter] must match the catalog the grid renders, or the observer
+/// watches another page's stock rows.
 
 @ProviderFor(stocksForVisibleVariants)
 const stocksForVisibleVariantsProvider = StocksForVisibleVariantsFamily._();
 
 /// One Ditto observer for all stock rows on the current catalog page (max ~15).
+///
+/// [stockFilter] must match the catalog the grid renders, or the observer
+/// watches another page's stock rows.
 
 final class StocksForVisibleVariantsProvider
     extends
@@ -26,9 +32,12 @@ final class StocksForVisibleVariantsProvider
         $FutureModifier<Map<String, Stock?>>,
         $StreamProvider<Map<String, Stock?>> {
   /// One Ditto observer for all stock rows on the current catalog page (max ~15).
+  ///
+  /// [stockFilter] must match the catalog the grid renders, or the observer
+  /// watches another page's stock rows.
   const StocksForVisibleVariantsProvider._({
     required StocksForVisibleVariantsFamily super.from,
-    required String super.argument,
+    required (String, {PosStockFilter stockFilter}) super.argument,
   }) : super(
          retry: null,
          name: r'stocksForVisibleVariantsProvider',
@@ -44,7 +53,7 @@ final class StocksForVisibleVariantsProvider
   String toString() {
     return r'stocksForVisibleVariantsProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -55,8 +64,12 @@ final class StocksForVisibleVariantsProvider
 
   @override
   Stream<Map<String, Stock?>> create(Ref ref) {
-    final argument = this.argument as String;
-    return stocksForVisibleVariants(ref, argument);
+    final argument = this.argument as (String, {PosStockFilter stockFilter});
+    return stocksForVisibleVariants(
+      ref,
+      argument.$1,
+      stockFilter: argument.stockFilter,
+    );
   }
 
   @override
@@ -72,12 +85,19 @@ final class StocksForVisibleVariantsProvider
 }
 
 String _$stocksForVisibleVariantsHash() =>
-    r'53186bc8ff11755ef95de7a9fd3578971cc3fce9';
+    r'658f44a82b269b3b0813056cabc76510e878bb9a';
 
 /// One Ditto observer for all stock rows on the current catalog page (max ~15).
+///
+/// [stockFilter] must match the catalog the grid renders, or the observer
+/// watches another page's stock rows.
 
 final class StocksForVisibleVariantsFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<Map<String, Stock?>>, String> {
+    with
+        $FunctionalFamilyOverride<
+          Stream<Map<String, Stock?>>,
+          (String, {PosStockFilter stockFilter})
+        > {
   const StocksForVisibleVariantsFamily._()
     : super(
         retry: null,
@@ -88,9 +108,17 @@ final class StocksForVisibleVariantsFamily extends $Family
       );
 
   /// One Ditto observer for all stock rows on the current catalog page (max ~15).
+  ///
+  /// [stockFilter] must match the catalog the grid renders, or the observer
+  /// watches another page's stock rows.
 
-  StocksForVisibleVariantsProvider call(String branchId) =>
-      StocksForVisibleVariantsProvider._(argument: branchId, from: this);
+  StocksForVisibleVariantsProvider call(
+    String branchId, {
+    PosStockFilter stockFilter = PosStockFilter.all,
+  }) => StocksForVisibleVariantsProvider._(
+    argument: (branchId, stockFilter: stockFilter),
+    from: this,
+  );
 
   @override
   String toString() => r'stocksForVisibleVariantsProvider';

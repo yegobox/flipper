@@ -192,17 +192,25 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       )
                     : null);
 
+            // The POS lists in-stock items unless the cashier picks another
+            // stock view; ProductView reads the same catalog instance.
+            final posCatalog = outerVariantsProvider(
+              ProxyService.box.getBranchId() ?? "",
+              stockFilter: ref.watch(posCatalogStockFilterProvider),
+            );
             final catalogBody = ref
-                .watch(
-                  outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
-                )
+                .watch(posCatalog)
                 .when(
                   data: (variants) {
-                    if (variants.isEmpty) {
+                    // Empty because of the stock filter is not an empty
+                    // catalog: ProductView shows the way back to every item.
+                    if (variants.isEmpty &&
+                        !ref.read(posCatalog.notifier).isEmptyByStockFilter) {
                       return _buildEmptyItemsView(context);
                     }
                     return ProductView.normalMode(
                       suppressMobilePagination: isPhone,
+                      filterByStock: true,
                     );
                   },
                   error: (error, stackTrace) => _buildErrorView(context, error),
@@ -714,9 +722,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 } else {
                   // Cart lines name a txn that isn't among the usual candidates —
                   // resolve that owner rather than opening an unrelated pending cart.
-                  t = ref
-                      .read(transactionByIdProvider(itemTxnIds.first))
-                      .value;
+                  t = ref.read(transactionByIdProvider(itemTxnIds.first)).value;
                   if (t == null) {
                     showErrorNotification(
                       context,
@@ -883,7 +889,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () => ref.refresh(
-                outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
+                outerVariantsProvider(
+                  ProxyService.box.getBranchId() ?? "",
+                  stockFilter: ref.read(posCatalogStockFilterProvider),
+                ),
               ),
               icon: const Icon(FluentIcons.arrow_sync_20_filled),
               label: const Text('Retry'),

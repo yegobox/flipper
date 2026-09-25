@@ -96,6 +96,13 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
               )
               .removeVariantById(variantId);
+          for (final catalog in posStockFilteredCatalogs(
+            ProxyService.box.getBranchId()!,
+          )) {
+            if (ref.exists(catalog)) {
+              ref.read(catalog.notifier).removeVariantById(variantId);
+            }
+          }
           return;
         }
         // If the product is  composite, search and delete related composites
@@ -127,6 +134,13 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
               )
               .removeVariantById(variantId);
+          for (final catalog in posStockFilteredCatalogs(
+            ProxyService.box.getBranchId()!,
+          )) {
+            if (ref.exists(catalog)) {
+              ref.read(catalog.notifier).removeVariantById(variantId);
+            }
+          }
 
           // Delete associated assets
           if (product.imageUrl != null) {
@@ -182,8 +196,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Only fetch product asset if the variant doesn't have its own image.
     final needsAssetFallback =
         (variantImage == null || variantImage.isEmpty) && productId.isNotEmpty;
-    final assetAsync =
-        needsAssetFallback ? ref.watch(assetProvider(productId)) : null;
+    final assetAsync = needsAssetFallback
+        ? ref.watch(assetProvider(productId))
+        : null;
     if (assetAsync?.hasError ?? false) {
       talker.error(
         "Error fetching asset data: ${assetAsync!.error}",

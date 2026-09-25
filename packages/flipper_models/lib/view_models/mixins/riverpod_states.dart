@@ -274,9 +274,7 @@ class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
   AsyncValue<List<Customer>> build() {
     // Non-autoDispose: rebuild when branch/business changes (logout/login,
     // branch switch) instead of reusing the prior session's cached list.
-    ref.watch(
-      activeBranchProvider.select((async) => async.asData?.value.id),
-    );
+    ref.watch(activeBranchProvider.select((async) => async.asData?.value.id));
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null || branchId.isEmpty) {
       return const AsyncValue.data([]);
@@ -560,6 +558,9 @@ class CombinedNotifier {
 
     // Trigger refresh for outerVariantsProvider to show newly imported products
     ref.read(outerVariantsProvider(branchId).notifier).refresh();
+    for (final catalog in posStockFilteredCatalogs(branchId)) {
+      if (ref.exists(catalog)) ref.read(catalog.notifier).refresh();
+    }
 
     // Reload products
     ref

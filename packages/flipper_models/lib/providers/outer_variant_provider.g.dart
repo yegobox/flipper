@@ -8,6 +8,69 @@ part of 'outer_variant_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// The stock view the POS grid is showing. Starts on in-stock items every
+/// session; a search always lists everything regardless (see [PosStockFilter]).
+
+@ProviderFor(PosCatalogStockFilter)
+const posCatalogStockFilterProvider = PosCatalogStockFilterProvider._();
+
+/// The stock view the POS grid is showing. Starts on in-stock items every
+/// session; a search always lists everything regardless (see [PosStockFilter]).
+final class PosCatalogStockFilterProvider
+    extends $NotifierProvider<PosCatalogStockFilter, PosStockFilter> {
+  /// The stock view the POS grid is showing. Starts on in-stock items every
+  /// session; a search always lists everything regardless (see [PosStockFilter]).
+  const PosCatalogStockFilterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'posCatalogStockFilterProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$posCatalogStockFilterHash();
+
+  @$internal
+  @override
+  PosCatalogStockFilter create() => PosCatalogStockFilter();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PosStockFilter value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PosStockFilter>(value),
+    );
+  }
+}
+
+String _$posCatalogStockFilterHash() =>
+    r'2f552754bc9a80db117b4b8ed8ddd4929100b21a';
+
+/// The stock view the POS grid is showing. Starts on in-stock items every
+/// session; a search always lists everything regardless (see [PosStockFilter]).
+
+abstract class _$PosCatalogStockFilter extends $Notifier<PosStockFilter> {
+  PosStockFilter build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<PosStockFilter, PosStockFilter>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<PosStockFilter, PosStockFilter>,
+              PosStockFilter,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
 @ProviderFor(OuterVariants)
 const outerVariantsProvider = OuterVariantsFamily._();
@@ -16,7 +79,7 @@ final class OuterVariantsProvider
     extends $AsyncNotifierProvider<OuterVariants, List<Variant>> {
   const OuterVariantsProvider._({
     required OuterVariantsFamily super.from,
-    required String super.argument,
+    required (String, {PosStockFilter stockFilter}) super.argument,
   }) : super(
          retry: null,
          name: r'outerVariantsProvider',
@@ -32,7 +95,7 @@ final class OuterVariantsProvider
   String toString() {
     return r'outerVariantsProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -50,7 +113,7 @@ final class OuterVariantsProvider
   }
 }
 
-String _$outerVariantsHash() => r'6cb5dac4d34aebdc2d522fa5ff8c127dcac84d6a';
+String _$outerVariantsHash() => r'207a4d80f7c6c08769e33588f6a19ef796073f3c';
 
 final class OuterVariantsFamily extends $Family
     with
@@ -59,7 +122,7 @@ final class OuterVariantsFamily extends $Family
           AsyncValue<List<Variant>>,
           List<Variant>,
           FutureOr<List<Variant>>,
-          String
+          (String, {PosStockFilter stockFilter})
         > {
   const OuterVariantsFamily._()
     : super(
@@ -70,22 +133,31 @@ final class OuterVariantsFamily extends $Family
         isAutoDispose: true,
       );
 
-  OuterVariantsProvider call(String branchId) =>
-      OuterVariantsProvider._(argument: branchId, from: this);
+  OuterVariantsProvider call(
+    String branchId, {
+    PosStockFilter stockFilter = PosStockFilter.all,
+  }) => OuterVariantsProvider._(
+    argument: (branchId, stockFilter: stockFilter),
+    from: this,
+  );
 
   @override
   String toString() => r'outerVariantsProvider';
 }
 
 abstract class _$OuterVariants extends $AsyncNotifier<List<Variant>> {
-  late final _$args = ref.$arg as String;
-  String get branchId => _$args;
+  late final _$args = ref.$arg as (String, {PosStockFilter stockFilter});
+  String get branchId => _$args.$1;
+  PosStockFilter get stockFilter => _$args.stockFilter;
 
-  FutureOr<List<Variant>> build(String branchId);
+  FutureOr<List<Variant>> build(
+    String branchId, {
+    PosStockFilter stockFilter = PosStockFilter.all,
+  });
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
+    final created = build(_$args.$1, stockFilter: _$args.stockFilter);
     final ref = this.ref as $Ref<AsyncValue<List<Variant>>, List<Variant>>;
     final element =
         ref.element

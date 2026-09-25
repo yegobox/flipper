@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
-import 'package:flipper_dashboard/product_sort_labels.dart';
+import 'package:flipper_dashboard/product_view_menus.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -40,10 +40,16 @@ class ProductView extends StatefulHookConsumerWidget {
   final TextEditingController? linkedSearchController;
   final bool suppressMobilePagination;
 
+  /// Lists only what the cashier's stock filter asks for (in stock by
+  /// default). Only the POS checkout sets it: inventory and favourites must
+  /// keep listing sold-out items, which is where they get restocked.
+  final bool filterByStock;
+
   ProductView.normalMode({
     Key? key,
     this.linkedSearchController,
     this.suppressMobilePagination = false,
+    this.filterByStock = false,
   }) : favIndex = null,
        existingFavs = [],
        super(key: key);
@@ -54,6 +60,7 @@ class ProductView extends StatefulHookConsumerWidget {
     required this.existingFavs,
   }) : linkedSearchController = null,
        suppressMobilePagination = false,
+       filterByStock = false,
        super(key: key);
 
   @override
@@ -90,7 +97,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   /// Track OuterVariants front-evictions to keep scroll position stable.
   ProviderSubscription<AsyncValue<List<Variant>>>? _outerVariantsSub;
-  String? _listenedBranchId;
+  OuterVariantsProvider? _listenedCatalog;
   int? _lastFirstCachedPage;
 
   /// Last-known layout metrics used for scroll compensation.
@@ -103,18 +110,60 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   static const double _estimatedMobileListItemExtent =
       132.0; // card + separator
 
+  /// The stock view this grid lists; everything unless [ProductView.filterByStock].
+  PosStockFilter get _stockFilter => widget.filterByStock
+      ? ref.read(posCatalogStockFilterProvider)
+      : PosStockFilter.all;
+
+  /// The catalog instance this grid pages through. Each stock view is its own
+  /// instance, so every read, page hop and resize has to go through here.
+  OuterVariantsProvider _catalog(String branchId) =>
+      outerVariantsProvider(branchId, stockFilter: _stockFilter);
+
+  /// Runs [edit] on every live catalog for [branchId] — this grid's and the
+  /// ones other screens read — so an in-place removal reaches all of them.
+  void _editEveryLiveCatalog(
+    String branchId,
+    void Function(OuterVariants) edit,
+  ) {
+    for (final filter in PosStockFilter.values) {
+      final catalog = outerVariantsProvider(branchId, stockFilter: filter);
+      if (ref.exists(catalog)) edit(ref.read(catalog.notifier));
+    }
+  }
+
+  /// Switches the POS stock view. The target view is rebuilt fresh at page 0
+  /// (stock moves while it sits unwatched), so the page bar and the measured
+  /// page size start over with it.
+  void _setStockFilter(PosStockFilter filter) {
+    if (filter == ref.read(posCatalogStockFilterProvider)) return;
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    final target = outerVariantsProvider(branchId, stockFilter: filter);
+    if (ref.exists(target)) ref.invalidate(target);
+    _pageNavToken++;
+    _prefetchedAround = null;
+    _requestedPageSize = null;
+    setState(() {
+      _currentPage = 0;
+      _isPageLoading = false;
+    });
+    ref.read(posCatalogStockFilterProvider.notifier).set(filter);
+  }
+
   void _ensureOuterVariantsEvictionListener(String branchId) {
     if (branchId.isEmpty) return;
-    if (_listenedBranchId == branchId && _outerVariantsSub != null) return;
+    final catalog = _catalog(branchId);
+    if (_listenedCatalog == catalog && _outerVariantsSub != null) return;
 
     _outerVariantsSub?.close();
-    _listenedBranchId = branchId;
+    _listenedCatalog = catalog;
     _lastFirstCachedPage = null;
+    _wasPagedMode = false;
 
     _outerVariantsSub = ref.listenManual<AsyncValue<List<Variant>>>(
-      outerVariantsProvider(branchId),
+      _catalog(branchId),
       (prev, next) {
-        final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+        final notifier = ref.read(catalog.notifier);
 
         // Page-bar mode renders one page at a time and starts it at the top,
         // so cache evictions there must not nudge the scroll offset.
@@ -215,9 +264,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   void _loadMoreVariants() {
     ref
-        .read(
-          outerVariantsProvider(ProxyService.box.getBranchId() ?? "").notifier,
-        )
+        .read(_catalog(ProxyService.box.getBranchId() ?? "").notifier)
         .loadMore();
   }
 
@@ -261,6 +308,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     try {
       // Use the provider's refresh method instead of invalidation
       ref.invalidate(outerVariantsProvider(branchId));
+      for (final catalog in posStockFilteredCatalogs(branchId)) {
+        ref.invalidate(catalog);
+      }
 
       // Explicitly refresh the UI
       if (mounted) {
@@ -285,7 +335,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   void _goToPage(int page) async {
     if (page == _currentPage && !_isPageLoading) return;
     final branchId = ProxyService.box.getBranchId() ?? "";
-    final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+    final notifier = ref.read(_catalog(branchId).notifier);
     final token = ++_pageNavToken;
     // What the provider is actually painting, which is what a failed fetch
     // leaves on screen. `_currentPage` is only this widget's copy of it, and
@@ -509,7 +559,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
     if (response?.confirmed == true) {
       final branchId = ProxyService.box.getBranchId() ?? "";
-      final notifier = ref.read(outerVariantsProvider(branchId).notifier);
 
       // Reset and show progress
       ref.read(bulkDeleteProgressProvider.notifier).state = 0.01;
@@ -523,9 +572,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       );
 
       // Manual optimization: remove items from state for immediate UI feedback
-      for (final id in selectedIds) {
-        notifier.removeVariantById(id);
-      }
+      _editEveryLiveCatalog(branchId, (catalog) {
+        for (final id in selectedIds) {
+          catalog.removeVariantById(id);
+        }
+      });
 
       ref.read(selectedItemIdsProvider.notifier).clearSelection();
       // Reset progress
@@ -548,6 +599,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Consumer(
       builder: (context, ref, _) {
         final branchId = ProxyService.box.getBranchId() ?? "";
+        // Rebuild onto the other catalog instance when the stock view changes.
+        if (widget.filterByStock) ref.watch(posCatalogStockFilterProvider);
+        final catalog = _catalog(branchId);
         _ensureOuterVariantsEvictionListener(branchId);
         // If the search string changed, reset our local page to the first page
         // so that search results always start from page 0.
@@ -566,11 +620,18 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         }
 
         return ref
-            .watch(outerVariantsProvider(branchId))
+            .watch(catalog)
             .when(
               skipLoadingOnReload: true,
               skipLoadingOnRefresh: true,
               data: (variants) {
+                if (variants.isEmpty &&
+                    ref.read(catalog.notifier).isEmptyByStockFilter) {
+                  return PosStockFilterEmptyState(
+                    filter: _stockFilter,
+                    onSelected: _setStockFilter,
+                  );
+                }
                 if (variants.isEmpty) {
                   final hasBranch = branchId.isNotEmpty;
                   return Center(
@@ -614,9 +675,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                             ),
                             const SizedBox(height: 20),
                             FilledButton.icon(
-                              onPressed: () => ref.invalidate(
-                                outerVariantsProvider(branchId),
-                              ),
+                              onPressed: () => ref.invalidate(catalog),
                               icon: const Icon(
                                 FluentIcons.arrow_sync_20_filled,
                               ),
@@ -667,11 +726,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       ),
                       const SizedBox(height: 24),
                       FilledButton.icon(
-                        onPressed: () => ref.refresh(
-                          outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? "",
-                          ),
-                        ),
+                        onPressed: () => ref.refresh(catalog),
                         icon: const Icon(FluentIcons.arrow_sync_20_filled),
                         label: Text(context.flipperL10n.retry),
                       ),
@@ -681,9 +736,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               ),
               loading: () {
                 final hasBranch = branchId.isNotEmpty;
-                final notifier = ref.read(
-                  outerVariantsProvider(branchId).notifier,
-                );
+                final notifier = ref.read(catalog.notifier);
                 final knownTotal = notifier.totalCount;
 
                 // If there's no branch selected, show the empty/placeholder UI
@@ -721,7 +774,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
                 // If we already know there are zero products for this branch,
                 // show the empty-state immediately instead of shimmer.
-                if (knownTotal != null && knownTotal == 0) {
+                if (knownTotal != null &&
+                    knownTotal == 0 &&
+                    !notifier.isEmptyByStockFilter) {
                   return Center(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
@@ -760,8 +815,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           ),
                           const SizedBox(height: 20),
                           FilledButton.icon(
-                            onPressed: () =>
-                                ref.invalidate(outerVariantsProvider(branchId)),
+                            onPressed: () => ref.invalidate(catalog),
                             icon: const Icon(FluentIcons.arrow_sync_20_filled),
                             label: Text(context.flipperL10n.refreshProducts),
                           ),
@@ -797,7 +851,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final endDate = dateRange.endDate;
 
     final branchId = ProxyService.box.getBranchId() ?? "";
-    final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+    final notifier = ref.read(_catalog(branchId).notifier);
     final ipp = notifier.itemsPerPage;
 
     final loadedCount = variants.length;
@@ -865,7 +919,14 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   },
                 ),
               ),
-              _buildSortingDropdown(context, compact: isMobileLayout),
+              if (widget.filterByStock) ...[
+                PosStockFilterMenu(
+                  compact: isMobileLayout,
+                  onSelected: _setStockFilter,
+                ),
+                const SizedBox(width: 8),
+              ],
+              ProductSortMenu(compact: isMobileLayout),
             ],
           ),
         ),
@@ -1105,9 +1166,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       // Pages cached around the old page size do not survive the resize, so
       // the neighbours of the new page have to be warmed again.
       _prefetchedAround = null;
-      ref
-          .read(outerVariantsProvider(branchId).notifier)
-          .setItemsPerPage(pageSize);
+      ref.read(_catalog(branchId).notifier).setItemsPerPage(pageSize);
     }
 
     _pageSizeDebounce?.cancel();
@@ -1126,7 +1185,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }) {
     final branchId = ProxyService.box.getBranchId() ?? '';
     final stocksById =
-        ref.watch(stocksForVisibleVariantsProvider(branchId)).asData?.value ??
+        ref
+            .watch(
+              stocksForVisibleVariantsProvider(
+                branchId,
+                stockFilter: _stockFilter,
+              ),
+            )
+            .asData
+            ?.value ??
         const <String, Stock?>{};
 
     final bool isMobileLayout =
@@ -1294,89 +1361,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSortingDropdown(BuildContext context, {bool compact = false}) {
-    return Consumer(
-      builder: (context, ref, _) {
-        final currentSort = ref.watch(productSortProvider);
-        final l10n = context.flipperL10n;
-        final label = compact
-            ? currentSort.compactLabel(l10n)
-            : currentSort.localizedLabel(l10n);
-        return PopupMenuButton<ProductSortOption>(
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? 10 : 12,
-              vertical: compact ? 6 : 8,
-            ),
-            decoration: BoxDecoration(
-              color: compact ? Colors.white : PosTokens.surface,
-              border: Border.all(
-                color: compact
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.15)
-                    : PosTokens.line,
-              ),
-              borderRadius: BorderRadius.circular(
-                compact ? 10 : PosTokens.radiusSm,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: compact ? FontWeight.w700 : FontWeight.w500,
-                    fontSize: compact ? 13 : 12.5,
-                    color: compact ? null : PosTokens.ink2,
-                  ),
-                ),
-                SizedBox(width: compact ? 4 : 6),
-                Icon(
-                  FluentIcons.chevron_down_20_regular,
-                  size: compact ? 14 : 14,
-                  color: compact
-                      ? Theme.of(context).colorScheme.onSurface
-                      : PosTokens.ink3,
-                ),
-              ],
-            ),
-          ),
-          onSelected: (ProductSortOption option) {
-            ref.read(productSortProvider.notifier).set(option);
-          },
-          itemBuilder: (BuildContext context) {
-            return ProductSortOption.values.map((ProductSortOption option) {
-              return PopupMenuItem<ProductSortOption>(
-                value: option,
-                child: Row(
-                  children: [
-                    if (option == currentSort)
-                      Icon(
-                        FluentIcons.checkmark_20_filled,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    else
-                      const SizedBox(width: 16),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        option.localizedLabel(context.flipperL10n),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList();
-          },
-        );
-      },
     );
   }
 

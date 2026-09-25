@@ -42,5 +42,13 @@ void warmMobilePosForCheckout(WidgetRef ref) {
   );
 
   unawaited(ref.read(ebmVatEnabledProvider.future));
-  unawaited(ref.read(outerVariantsProvider(branchId).future));
+  // Warm the catalog the POS will actually open on (its stock view).
+  unawaited(
+    ref.read(
+      outerVariantsProvider(
+        branchId,
+        stockFilter: ref.read(posCatalogStockFilterProvider),
+      ).future,
+    ),
+  );
 }

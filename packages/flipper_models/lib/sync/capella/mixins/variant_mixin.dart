@@ -13,6 +13,7 @@ import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
 import 'package:flipper_services/log_service.dart';
@@ -90,9 +91,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       if (fetched == null || fetched.branchId.trim().isEmpty) return;
       variant.stock = fetched;
     } catch (e, st) {
-      talker.warning(
-        '_attachAuthenticCapellaStock($sid) failed: $e\n$st',
-      );
+      talker.warning('_attachAuthenticCapellaStock($sid) failed: $e\n$st');
     }
   }
 
@@ -103,6 +102,91 @@ mixin CapellaVariantMixin implements VariantInterface {
       "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
       arguments: {'doc': variant.toFlipperJson()},
     );
+  }
+
+  /// Chunk size for `IN (…)` id lookups, matching the cart cleanup path.
+  static const int _idLookupChunkSize = 80;
+
+  /// On-hand quantity for every stock id the catalog [rows] point at.
+  ///
+  /// One scan of the branch's stock rows (`stocks.branchId` is indexed), then a
+  /// by-id lookup for any stock id that scan did not return — a row with no
+  /// `branchId` still feeds the tile's live stock, so it must count here too.
+  Future<Map<String, double>> _stockQtyForCatalogRows(
+    Ditto ditto,
+    String branchId,
+    List<Map<String, dynamic>> rows,
+  ) async {
+    final branchStock = await ditto.store.execute(
+      stockQtySelectDql(whereClause: 'branchId = :branchId'),
+      arguments: {'branchId': branchId},
+    );
+    final qty = stockQtyByIdKeys(
+      branchStock.items.map((doc) => Map<String, dynamic>.from(doc.value)),
+    );
+
+    final missing = rows
+        .map(variantRowStockId)
+        .whereType<String>()
+        .where((id) => !qty.containsKey(id))
+        .toSet()
+        .toList();
+    for (var i = 0; i < missing.length; i += _idLookupChunkSize) {
+      final chunk = missing.sublist(
+        i,
+        i + _idLookupChunkSize < missing.length
+            ? i + _idLookupChunkSize
+            : missing.length,
+      );
+      // No catch here: a failed lookup must not read as "0 on hand", which
+      // would hide sellable items. It propagates to runPage, which lists the
+      // unfiltered page instead. A lookup that simply finds no row still
+      // leaves the item out of stock, as the tile shows it.
+      final lookup = idInLookup(chunk);
+      final found = await ditto.store.execute(
+        stockQtySelectDql(
+          whereClause:
+              '_id IN (${lookup.placeholders}) OR id IN (${lookup.placeholders})',
+        ),
+        arguments: lookup.arguments,
+      );
+      qty.addAll(
+        stockQtyByIdKeys(
+          found.items.map((doc) => Map<String, dynamic>.from(doc.value)),
+        ),
+      );
+    }
+    return qty;
+  }
+
+  /// Variant documents for [ids], returned in the order of [ids].
+  Future<List<dynamic>> _variantDocsInOrder(
+    Ditto ditto,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return [];
+    final byId = <String, dynamic>{};
+    for (var i = 0; i < ids.length; i += _idLookupChunkSize) {
+      final chunk = ids.sublist(
+        i,
+        i + _idLookupChunkSize < ids.length
+            ? i + _idLookupChunkSize
+            : ids.length,
+      );
+      final lookup = idInLookup(chunk);
+      final result = await ditto.store.execute(
+        'SELECT * FROM variants WHERE _id IN (${lookup.placeholders})',
+        arguments: lookup.arguments,
+      );
+      for (final doc in result.items) {
+        final id = doc.value['_id'];
+        if (id is String) byId[id] = doc;
+      }
+    }
+    return [
+      for (final id in ids)
+        if (byId[id] != null) byId[id],
+    ];
   }
 
   @override
@@ -129,6 +213,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     /// Skips the COUNT(*) pass when the caller already knows the total for this
     /// filter (page switching re-uses the count taken on the first page).
     bool countTotal = true,
+    bool? inStock,
   }) async {
     final logService = LogService();
     try {
@@ -276,8 +361,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       final bool isCatalogTextSearch =
           bcd == null && name != null && name.trim().isNotEmpty;
-      final String? searchTerm =
-          isCatalogTextSearch ? name.trim().toLowerCase() : null;
+      final String? searchTerm = isCatalogTextSearch
+          ? name.trim().toLowerCase()
+          : null;
 
       final bool barcodeLikeSearch =
           searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm);
@@ -339,9 +425,62 @@ mixin CapellaVariantMixin implements VariantInterface {
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
       // subscription predicates even after ORDER BY/LIMIT stripping.
 
-      Future<List<dynamic>> runExecute(String sql, Map<String, dynamic> args) async {
+      Future<List<dynamic>> runExecute(
+        String sql,
+        Map<String, dynamic> args,
+      ) async {
         final r = await ditto.store.execute(sql, arguments: args);
         return r.items.toList();
+      }
+
+      // Stock filter (POS grid, not while searching). Stock lives in its own
+      // collection and DQL has no joins, so the filter walks a light
+      // `_id, stockId` projection of the same filtered catalog in display
+      // order, checks each row against the branch's stock, then pages in Dart
+      // and loads only that page's documents. The match list doubles as the
+      // total, so the COUNT(*) pass below is skipped.
+      var stockFilterActive =
+          inStock != null && bcd == null && !isCatalogTextSearch;
+      int? stockFilteredOut;
+
+      Future<List<dynamic>> runStockFiltered() async {
+        final catalogArgs = Map<String, dynamic>.from(arguments)
+          ..remove('limit')
+          ..remove('offset');
+        final catalogRows = (await runExecute(
+          stockFilterCatalogQuery(filterQuery, orderSuffix),
+          catalogArgs,
+        )).map((doc) => Map<String, dynamic>.from(doc.value)).toList();
+        final matching = variantIdsMatchingStock(
+          rows: catalogRows,
+          qtyByStockId: await _stockQtyForCatalogRows(
+            ditto,
+            branchId,
+            catalogRows,
+          ),
+          inStock: inStock!,
+        );
+        totalCount = matching.length;
+        stockFilteredOut = catalogRows.length - matching.length;
+        return _variantDocsInOrder(
+          ditto,
+          pageOfIds(matching, page: page, itemsPerPage: itemsPerPage),
+        );
+      }
+
+      // The filter must never blank the POS: if it cannot run, list the
+      // unfiltered page exactly as before it existed.
+      Future<List<dynamic>> runPage() async {
+        if (!stockFilterActive) return runExecute(query, arguments);
+        try {
+          return await runStockFiltered();
+        } catch (e) {
+          talker.warning('Stock filter failed, listing every item: $e');
+          stockFilterActive = false;
+          stockFilteredOut = null;
+          totalCount = null;
+          return runExecute(query, arguments);
+        }
       }
 
       if (barcodeLikeSearch) {
@@ -361,7 +500,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           items = await runExecute(fallbackQuery, fallbackArgs);
         }
       } else {
-        items = await runExecute(query, arguments);
+        items = await runPage();
       }
 
       // First page only: empty may mean sync not landed yet; later pages empty
@@ -374,7 +513,11 @@ mixin CapellaVariantMixin implements VariantInterface {
           productId == null &&
           variantId == null &&
           bcd == null;
-      if (items.isEmpty && shouldWaitForRemote) {
+      // A filtered page is empty either because nothing has synced (wait, as
+      // before) or because every synced item sits on the other side of the
+      // stock line (a real answer — waiting would only stall the grid).
+      bool stillSyncing() => !stockFilterActive || stockFilteredOut == 0;
+      if (items.isEmpty && shouldWaitForRemote && stillSyncing()) {
         const delays = <Duration>[
           Duration(milliseconds: 2000),
           Duration(milliseconds: 3500),
@@ -382,8 +525,8 @@ mixin CapellaVariantMixin implements VariantInterface {
         ];
         for (final d in delays) {
           await Future.delayed(d);
-          items = await runExecute(query, arguments);
-          if (items.isNotEmpty) break;
+          items = await runPage();
+          if (items.isNotEmpty || !stillSyncing()) break;
         }
       }
 
@@ -411,7 +554,8 @@ mixin CapellaVariantMixin implements VariantInterface {
       if (countTotal &&
           page != null &&
           itemsPerPage != null &&
-          !isCatalogTextSearch) {
+          !isCatalogTextSearch &&
+          !stockFilterActive) {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
@@ -554,6 +698,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         // With countTotal off the caller keeps its own total; reporting the
         // page length here would overwrite it with a per-page number.
         totalCount: totalCount ?? (countTotal ? pagedVariants.length : null),
+        stockFilteredOut: stockFilteredOut,
       );
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');
@@ -799,8 +944,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           arguments: arguments,
         );
         if (existing.items.isNotEmpty) {
-          final data =
-              Map<String, dynamic>.from(existing.items.first.value);
+          final data = Map<String, dynamic>.from(existing.items.first.value);
           final dittoId = data['_id']?.toString();
           if (dittoId != null &&
               dittoId.isNotEmpty &&
@@ -812,9 +956,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           return variant;
         }
       } catch (e, st) {
-        talker.warning(
-          'getVariant execute fast-path failed: $e\n$st',
-        );
+        talker.warning('getVariant execute fast-path failed: $e\n$st');
       }
 
       // Interactive POS/checkout: return after local execute — do not wait on
@@ -826,9 +968,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       // Bulk / fetchRemote: subscribe and wait for a non-empty hit.
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.warning(
-          'getVariant: Ditto unavailable for observer fallback',
-        );
+        talker.warning('getVariant: Ditto unavailable for observer fallback');
         return null;
       }
 
@@ -874,8 +1014,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (completer.isCompleted || result.items.isEmpty) {
             return;
           }
-          final data =
-              Map<String, dynamic>.from(result.items.first.value);
+          final data = Map<String, dynamic>.from(result.items.first.value);
           final dittoId = data['_id']?.toString();
           if (dittoId != null &&
               dittoId.isNotEmpty &&
@@ -1168,8 +1307,9 @@ mixin CapellaVariantMixin implements VariantInterface {
     // Empty in Ditto. The legacy getter seeds `mockUnits` when the branch has
     // none at all, so this both backfills pre-migration rows and covers a
     // first-run branch.
-    final existing =
-        await ProxyService.legacyStrategy.units(branchId: branchId);
+    final existing = await ProxyService.legacyStrategy.units(
+      branchId: branchId,
+    );
     for (final unit in existing) {
       await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
     }
@@ -1311,7 +1451,8 @@ mixin CapellaVariantMixin implements VariantInterface {
     required Variant variant,
     Stock? stock,
   }) async {
-    final effective = stock ??
+    final effective =
+        stock ??
         Stock(
           id: const Uuid().v4(),
           currentStock: variant.qty ?? 0,
@@ -1350,8 +1491,9 @@ mixin CapellaVariantMixin implements VariantInterface {
     // `daysToExpiry` widens the window forward; without it "expired" means
     // already past. Same threshold rule as the Brick implementation.
     final now = DateTime.now().toUtc();
-    final threshold =
-        daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
+    final threshold = daysToExpiry != null
+        ? now.add(Duration(days: daysToExpiry))
+        : now;
 
     try {
       final result = await ditto.store.execute(
@@ -1383,7 +1525,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
       return limited;
     } catch (e, st) {
-      talker.error('Ditto getExpiredItems failed, falling back to Brick: $e\n$st');
+      talker.error(
+        'Ditto getExpiredItems failed, falling back to Brick: $e\n$st',
+      );
       return ProxyService.legacyStrategy.getExpiredItems(
         branchId: branchId,
         daysToExpiry: daysToExpiry,

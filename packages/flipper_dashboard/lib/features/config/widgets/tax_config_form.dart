@@ -55,8 +55,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   }
 
   Future<void> _loadData() async {
-    final ebm = await ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!);
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
     final serverUrl =
         ebm?.taxServerUrl ?? await ProxyService.box.getServerUrl();
 
@@ -69,8 +70,10 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     _mrcController.text = (mrc == null || mrc.isEmpty) ? '' : mrc;
 
     if (ebm != null) {
-      await ProxyService.box
-          .writeBool(key: 'vatEnabled', value: ebm.vatEnabled ?? false);
+      await ProxyService.box.writeBool(
+        key: 'vatEnabled',
+        value: ebm.vatEnabled ?? false,
+      );
     }
 
     if (!mounted) return;
@@ -113,8 +116,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
   void _feedbackError(String message) {
     if (!mounted) return;
-    final text =
-        message.length > 200 ? '${message.substring(0, 200)}…' : message;
+    final text = message.length > 200
+        ? '${message.substring(0, 200)}…'
+        : message;
     showErrorNotification(context, text);
   }
 
@@ -157,9 +161,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -174,20 +176,22 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                     Text(
                       'Tax Configuration',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Save applies to EBM / tax URL, data connector URL, branch code, and MRC.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade700,
-                          ),
+                        color: Colors.grey.shade700,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Consumer(
                       builder: (context, ref, child) {
-                        final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+                        final vatEnabledAsync = ref.watch(
+                          ebmVatEnabledProvider,
+                        );
                         return vatEnabledAsync.when(
                           data: (vatEnabled) {
                             if (_vatEnabled != vatEnabled) {
@@ -206,8 +210,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                               ),
                               value: vatEnabled,
                               activeThumbColor: Colors.blue,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 0),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                              ),
                               onChanged: null,
                             );
                           },
@@ -216,8 +221,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                             subtitle: const Text('Loading...'),
                             value: _vatEnabled,
                             activeThumbColor: Colors.blue,
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 0),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                            ),
                             onChanged: null,
                           ),
                           error: (error, stack) => SwitchListTile(
@@ -225,8 +231,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                             subtitle: const Text('Error loading VAT status'),
                             value: _vatEnabled,
                             activeThumbColor: Colors.blue,
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 0),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 0,
+                            ),
                             onChanged: null,
                           ),
                         );
@@ -336,8 +343,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       width: double.infinity,
                       textColor: Colors.white,
                       isLoading: _isSaving,
-                      onPressed:
-                          _dataLoaded && !_isSaving ? _saveForm : null,
+                      onPressed: _dataLoaded && !_isSaving ? _saveForm : null,
                       text: 'Save',
                     ),
                   ],
@@ -429,8 +435,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     }
 
     final trimmedServer = trimTaxConfigUrl(_serverUrlController.text);
-    final dataConnectorForSave =
-        normalizeOptionalConnectorUrl(_dataConnectorUrlController.text);
+    final dataConnectorForSave = normalizeOptionalConnectorUrl(
+      _dataConnectorUrlController.text,
+    );
     final bhf = trimTaxConfigUrl(_branchController.text);
     final mrc = trimTaxConfigUrl(_mrcController.text);
 
@@ -458,28 +465,20 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       final dcBox = dataConnectorForSave ?? '';
 
       await Future.wait([
-        ProxyService.box.writeString(
-          key: 'getServerUrl',
-          value: trimmedServer,
-        ),
-        ProxyService.box.writeString(
-          key: 'dataConnectorUrl',
-          value: dcBox,
-        ),
-        ProxyService.box.writeString(
-          key: 'bhfId',
-          value: bhf,
-        ),
-        ProxyService.box.writeString(
-          key: 'mrc',
-          value: mrc,
-        ),
+        ProxyService.box.writeString(key: 'getServerUrl', value: trimmedServer),
+        ProxyService.box.writeString(key: 'dataConnectorUrl', value: dcBox),
+        ProxyService.box.writeString(key: 'bhfId', value: bhf),
+        ProxyService.box.writeString(key: 'mrc', value: mrc),
         ProxyService.box.writeBool(key: 'vatEnabled', value: _vatEnabled),
       ]);
 
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
         ref.refresh(outerVariantsProvider(branchId));
+        // The VAT regime decides which tax codes the POS lists too.
+        for (final catalog in posStockFilteredCatalogs(branchId)) {
+          ref.invalidate(catalog);
+        }
         ref.invalidate(ebmVatEnabledProvider);
       }
 

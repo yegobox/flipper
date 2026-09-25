@@ -74,7 +74,10 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
       enabledBorder: baseBorder,
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _FuelModalPalette.amber, width: 1.5),
+        borderSide: const BorderSide(
+          color: _FuelModalPalette.amber,
+          width: 1.5,
+        ),
       ),
     );
   }
@@ -85,10 +88,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
     final branchId = ProxyService.box.getBranchId();
     final businessId = ProxyService.box.getBusinessId();
     if (branchId == null || branchId.isEmpty) {
-      showErrorNotification(
-        context,
-        'Select a branch before syncing fuel.',
-      );
+      showErrorNotification(context, 'Select a branch before syncing fuel.');
       return;
     }
     if (businessId == null || businessId.isEmpty) {
@@ -153,6 +153,9 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
       if (mounted) {
         ref.invalidate(outerVariantsProvider(branchId));
         await ref.read(outerVariantsProvider(branchId).notifier).refresh();
+        for (final catalog in posStockFilteredCatalogs(branchId)) {
+          ref.invalidate(catalog);
+        }
       }
 
       if (!mounted) return;
@@ -239,9 +242,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                           children: [
                             Text(
                               'Sync Fuel',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
+                              style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: _FuelModalPalette.title,
@@ -250,9 +251,7 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                             const SizedBox(height: 4),
                             Text(
                               'Diesel & gasoline from RRA',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: _FuelModalPalette.muted),
                             ),
                           ],
@@ -265,9 +264,9 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                     'Imports regulated fuel products from RRA. '
                     'Manual fuel registration is not allowed — use this sync instead.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: _FuelModalPalette.muted,
-                          height: 1.45,
-                        ),
+                      color: _FuelModalPalette.muted,
+                      height: 1.45,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -333,7 +332,9 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: _syncing ? null : () => Navigator.of(context).pop(),
+                    onPressed: _syncing
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     child: const Text('Cancel'),
                   ),
                 ],

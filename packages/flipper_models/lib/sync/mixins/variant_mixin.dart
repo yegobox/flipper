@@ -37,20 +37,20 @@ mixin VariantMixin implements VariantInterface {
     // miss does not pay Capella's sync-wait path.
     if (fetchRemote) {
       try {
-        final fromDitto =
-            await ProxyService.getStrategy(Strategy.capella).getVariant(
-          id: id,
-          modrId: modrId,
-          name: name,
-          itemCd: itemCd,
-          bcd: bcd,
-          productId: productId,
-          taskCd: taskCd,
-          itemClsCd: itemClsCd,
-          itemNm: itemNm,
-          stockId: stockId,
-          fetchRemote: true,
-        );
+        final fromDitto = await ProxyService.getStrategy(Strategy.capella)
+            .getVariant(
+              id: id,
+              modrId: modrId,
+              name: name,
+              itemCd: itemCd,
+              bcd: bcd,
+              productId: productId,
+              taskCd: taskCd,
+              itemClsCd: itemClsCd,
+              itemNm: itemNm,
+              stockId: stockId,
+              fetchRemote: true,
+            );
         if (fromDitto != null) return fromDitto;
       } catch (e, st) {
         talker.warning(
@@ -109,9 +109,7 @@ mixin VariantMixin implements VariantInterface {
       if (stock == null || stock.branchId.trim().isEmpty) return;
       variant.stock = stock;
     } catch (e, st) {
-      talker.warning(
-        '_attachCapellaStockOntoVariant($sid) failed: $e\n$st',
-      );
+      talker.warning('_attachCapellaStockOntoVariant($sid) failed: $e\n$st');
     }
   }
 
@@ -171,6 +169,9 @@ mixin VariantMixin implements VariantInterface {
     /// Skips the COUNT(*) pass when the caller already knows the total for this
     /// filter (page switching re-uses the count taken on the first page).
     bool countTotal = true,
+
+    /// Not applied here: the POS grid reads Capella.
+    bool? inStock,
   }) async {
     try {
       final List<WhereCondition> conditions = [
@@ -404,8 +405,9 @@ mixin VariantMixin implements VariantInterface {
                 stockId: newStockId,
               );
             } else {
-              final savedStock =
-                  await repository.upsert<Stock>(variantToSave.stock!);
+              final savedStock = await repository.upsert<Stock>(
+                variantToSave.stock!,
+              );
               variantToSave = variantToSave.copyWith(
                 stock: savedStock,
                 stockId: savedStock.id,

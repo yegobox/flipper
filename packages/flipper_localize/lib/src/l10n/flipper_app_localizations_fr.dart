@@ -1301,6 +1301,29 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get sortCompactDate => 'Date';
 
   @override
+  String get posStockFilterInStock => 'En stock';
+
+  @override
+  String get posStockFilterOutOfStock => 'En rupture de stock';
+
+  @override
+  String get posStockFilterAll => 'Tous les articles';
+
+  @override
+  String get posStockFilterNoneInStock => 'Aucun article en stock';
+
+  @override
+  String get posStockFilterNoneOutOfStock =>
+      'Aucun article en rupture de stock';
+
+  @override
+  String get posStockFilterEmptyHint =>
+      'Recherchez un article ou changez le filtre de stock.';
+
+  @override
+  String get posStockFilterShowAll => 'Afficher tous les articles';
+
+  @override
   String showingRangeOfResults(String start, String end, String total) {
     return 'Affichage de $start–$end sur $total résultats';
   }

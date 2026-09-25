@@ -2431,6 +2431,48 @@ abstract class FlipperAppLocalizations {
   /// **'Date'**
   String get sortCompactDate;
 
+  /// POS catalog stock filter option: only items with stock (the default)
+  ///
+  /// In en, this message translates to:
+  /// **'In stock'**
+  String get posStockFilterInStock;
+
+  /// POS catalog stock filter option: only items with no stock
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get posStockFilterOutOfStock;
+
+  /// POS catalog stock filter option: every item, in stock or not
+  ///
+  /// In en, this message translates to:
+  /// **'All items'**
+  String get posStockFilterAll;
+
+  /// POS catalog empty state when the in-stock filter hides every item
+  ///
+  /// In en, this message translates to:
+  /// **'No items in stock'**
+  String get posStockFilterNoneInStock;
+
+  /// POS catalog empty state when the out-of-stock filter finds nothing
+  ///
+  /// In en, this message translates to:
+  /// **'No out-of-stock items'**
+  String get posStockFilterNoneOutOfStock;
+
+  /// Hint under the POS catalog stock-filter empty state
+  ///
+  /// In en, this message translates to:
+  /// **'Search to find any item, or change the stock filter.'**
+  String get posStockFilterEmptyHint;
+
+  /// Button on the POS catalog stock-filter empty state that switches to every item
+  ///
+  /// In en, this message translates to:
+  /// **'Show all items'**
+  String get posStockFilterShowAll;
+
   /// Pagination summary above the product grid
   ///
   /// In en, this message translates to:
