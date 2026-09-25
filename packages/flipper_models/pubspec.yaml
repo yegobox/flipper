@@ -104,6 +104,13 @@ dependency_overrides:
   
 dev_dependencies:
   build_runner: ^2.4.15
+  # Real-store DQL tests (test/*_ditto_test.dart): the native Ditto store plus
+  # a fake path_provider. Pinned to what the rest of the monorepo resolves.
+  ditto_live: 5.0.3
+  flutter_test:
+    sdk: flutter
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
   dart_mappable_builder: ^4.4.0
   json_serializable: ^6.9.4
   # cloud_firestore_odm_generator: ^1.0.0-dev.89

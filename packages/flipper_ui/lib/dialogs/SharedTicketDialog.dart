@@ -18,6 +18,7 @@ const Color _kLabel = Color(0xFF9CA3AF);
 const Color _kCardBorder = Color(0xFFE5E7EB);
 const Color _kLoanPurple = Color(0xFF6B4EA2);
 const Color _kLoanBg = Color(0xFFF5F9FF);
+const Color _kKitchenOrange = Color(0xFFEA580C);
 const double _kSheetRadius = 26;
 const double _kFieldRadius = 14;
 
@@ -260,8 +261,7 @@ class _ParkTicketFooter extends StatelessWidget {
                                 (formKey.currentState?.validate() ?? false),
                             onPressed: () async {
                               final ok =
-                                  await formKey.currentState?.submit() ??
-                                  false;
+                                  await formKey.currentState?.submit() ?? false;
                               if (!ok || !context.mounted) return;
                               onParked?.call();
                               Navigator.of(context).pop();
@@ -382,6 +382,10 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   late TextEditingController _noteController;
 
   bool _isLoan = false;
+
+  /// Also put the parked ticket on the Kitchen Display. Off by default: a
+  /// ticket is only a kitchen order when someone sends it there.
+  bool _sendToKitchen = false;
   DateTime? _dueDate;
   _DuePreset _duePreset = _DuePreset.twoWeeks;
   Customer? _selectedCustomer;
@@ -509,6 +513,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
         transaction: widget.transaction,
         ticketNote: _noteController.text.trim(),
         customerId: _selectedCustomer?.id,
+        sendToKitchen: _sendToKitchen,
       );
       return true;
     } catch (e) {
@@ -533,7 +538,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
       ),
       builder: (sheetContext) {
         var query = '';
@@ -577,13 +583,11 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                         filled: true,
                         fillColor: const Color(0xFFF9FAFB),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(_kFieldRadius),
+                          borderRadius: BorderRadius.circular(_kFieldRadius),
                           borderSide: const BorderSide(color: _kCardBorder),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(_kFieldRadius),
+                          borderRadius: BorderRadius.circular(_kFieldRadius),
                           borderSide: const BorderSide(color: _kCardBorder),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -608,8 +612,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              onTap: () =>
-                                  Navigator.pop(sheetContext, false),
+                              onTap: () => Navigator.pop(sheetContext, false),
                             );
                           }
                           final c = filtered[index - 1];
@@ -696,7 +699,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     }
     return ValueListenableBuilder<bool>(
       valueListenable: saving,
-      builder: (context, isSaving, _) => _buildForm(context, isSaving: isSaving),
+      builder: (context, isSaving, _) =>
+          _buildForm(context, isSaving: isSaving),
     );
   }
 
@@ -715,9 +719,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
           children: [
             const _SheetHandle(),
             _ParkHeader(
-              onClose: isSaving
-                  ? null
-                  : () => Navigator.of(context).pop(),
+              onClose: isSaving ? null : () => Navigator.of(context).pop(),
             ),
             if (isSaving) ...[
               const SizedBox(height: 12),
@@ -774,8 +776,75 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                     )
                   : const SizedBox.shrink(),
             ),
+            const SizedBox(height: 12),
+            _kitchenSection(isSaving: isSaving),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _kitchenSection({required bool isSaving}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(_kFieldRadius),
+        border: Border.all(color: _kCardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _kKitchenOrange,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.restaurant_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Send to kitchen',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: _kInk,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Show this ticket on the Kitchen Display',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: _kLabel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Transform.scale(
+            scale: 0.92,
+            child: CupertinoSwitch(
+              key: const Key('park_send_to_kitchen_switch'),
+              value: _sendToKitchen,
+              activeTrackColor: _kPrimary,
+              onChanged: isSaving
+                  ? null
+                  : (val) => setState(() => _sendToKitchen = val),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -797,8 +866,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     final name = _selectedCustomer?.custNm?.trim();
     final phone = _formatPhoneDisplay(_selectedCustomer?.telNo?.trim() ?? '');
     final hasCustomer = name != null && name.isNotEmpty;
-    final initial =
-        hasCustomer ? name[0].toUpperCase() : null;
+    final initial = hasCustomer ? name[0].toUpperCase() : null;
 
     return Material(
       color: Colors.transparent,
@@ -947,7 +1015,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: _presetChip('1 month', _DuePreset.oneMonth, isSaving: isSaving),
+          child:
+              _presetChip('1 month', _DuePreset.oneMonth, isSaving: isSaving),
         ),
       ],
     );

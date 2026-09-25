@@ -1,15 +1,23 @@
 import 'package:flipper_analytics/flipper_analytics.dart';
+import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
-import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/kitchen_orders_provider.dart';
+import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+/// Kitchen Display: orders sent to the kitchen (`kitchen_orders`, Capella).
+///
+/// Moving a card only ever writes the order's kitchen stage. The ticket's own
+/// `status` is left alone, so the till can still Collect / Resume it and the
+/// Tickets badge still counts it while the kitchen is cooking.
 class KitchenDisplayScreen extends ConsumerStatefulWidget {
   const KitchenDisplayScreen({Key? key}) : super(key: key);
 
@@ -19,48 +27,42 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
-  bool _pendingDrag = false;
-
   ProductAnalytics get _analytics => ProxyService.productAnalytics;
 
-  /// Same Capella observer as the tickets screen (WAITING + PARKED + IN_PROGRESS).
-  static final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((
-    ref,
-  ) {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) {
-      return Stream.value([]);
-    }
+  DatabaseSyncInterface get _capella => ref.read(kitchenCapellaProvider);
 
-    return ProxyService.getStrategy(Strategy.capella)
-        .openPosTicketsTransactionsStream(
-          branchId: branchId,
-          removeAdjustmentTransactions: true,
-          forceRealData: true,
-          skipOriginalTransactionCheck: true,
-        )
-        .map((allOrders) {
-          final filteredOrders =
-              allOrders.where((t) => t.isLoan != true).toList();
-          filteredOrders.sort((a, b) {
-            final statusA = a.status;
-            final statusB = b.status;
-            if (statusA == WAITING && statusB != WAITING) return -1;
-            if (statusA != WAITING && statusB == WAITING) return 1;
-            if (statusA == PARKED && statusB == IN_PROGRESS) return -1;
-            if (statusA == IN_PROGRESS && statusB == PARKED) return 1;
-            final dateA = a.createdAt ?? DateTime(1970);
-            final dateB = b.createdAt ?? DateTime(1970);
-            return dateB.compareTo(dateA);
-          });
-          return filteredOrders;
-        });
-  });
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_repairLegacyTickets());
+  }
+
+  /// Tickets the old Kitchen Display stranded as `inProgress` / `waiting` go
+  /// back to `parked` and onto this display. No-op once there are none.
+  Future<void> _repairLegacyTickets() async {
+    final branchId = ref.read(kitchenBranchIdProvider);
+    if (branchId == null) return;
+    try {
+      await _capella.repairLegacyKitchenStatuses(branchId: branchId);
+    } catch (e, s) {
+      talker.error('Kitchen Display: legacy ticket repair failed: $e', s);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final kitchenOrdersStream = ref.watch(kitchenOrdersStreamProvider);
-    final optimisticOrders = ref.watch(kitchenOrdersProvider);
+    final ordersAsync = ref.watch(kitchenOrdersStreamProvider);
+    final overrides = ref.watch(kitchenStageOverridesProvider);
+
+    // Drop pending drags the stream now agrees with.
+    ref.listen(kitchenOrdersStreamProvider, (_, next) {
+      final views = next.value;
+      if (views == null) return;
+      final settled = settledOverrides([
+        for (final v in views) v.order,
+      ], ref.read(kitchenStageOverridesProvider));
+      ref.read(kitchenStageOverridesProvider.notifier).removeAll(settled);
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -75,58 +77,56 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
           ),
         ],
       ),
-      body: kitchenOrdersStream.when(
-        data: (transactions) {
-          final streamOrders = categorizeKitchenOrders(transactions);
-          if (_pendingDrag &&
-              !kitchenDisplayOrdersDiffer(streamOrders, optimisticOrders)) {
-            _pendingDrag = false;
-            Future.microtask(() {
-              if (mounted) {
-                ref.read(kitchenOrdersProvider.notifier).clearOrders();
-              }
-            });
-          }
-
-          final kitchenOrders = _pendingDrag &&
-                  kitchenDisplayOrdersDiffer(streamOrders, optimisticOrders)
-              ? optimisticOrders
-              : streamOrders;
+      body: ordersAsync.when(
+        // Keep the columns on screen while the stream reloads (refresh,
+        // branch switch) instead of flashing a spinner mid-drag.
+        skipLoadingOnReload: true,
+        data: (views) {
+          final effective = [
+            for (final v in views)
+              if (overrides[v.order.transactionId] case final stage?)
+                KitchenOrderView(
+                  order: v.order.copyWith(stage: stage),
+                  ticket: v.ticket,
+                )
+              else
+                v,
+          ];
+          final columns = groupKitchenOrders<KitchenOrderView>(
+            effective,
+            (v) => v.order,
+          );
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: OrderColumn(
-                    title: OrderStatus.incoming.displayName,
-                    orders: kitchenOrders[OrderStatus.incoming] ?? [],
-                    color: OrderStatus.incoming.color,
-                    status: OrderStatus.incoming,
-                    onOrderAccepted: _handleOrderMoved,
+                for (final stage in KitchenStage.active) ...[
+                  if (stage != KitchenStage.active.first)
+                    const SizedBox(width: 16),
+                  Expanded(
+                    child: OrderColumn(
+                      stage: stage,
+                      orders: columns[stage] ?? const [],
+                      onOrderMoved: (id, from, to) {
+                        // The order can leave the stream mid-drag (served on
+                        // another screen, ticket deleted): drop the move.
+                        for (final view in effective) {
+                          if (view.order.transactionId == id) {
+                            unawaited(_moveOrder(view, from, to));
+                            return;
+                          }
+                        }
+                      },
+                      onSetDueDate: (view, dueDate) =>
+                          unawaited(_setDueDate(view, dueDate)),
+                      onServed: (view) => unawaited(
+                        _moveOrder(view, stage, KitchenStage.served),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OrderColumn(
-                    title: OrderStatus.inProgress.displayName,
-                    orders: kitchenOrders[OrderStatus.inProgress] ?? [],
-                    color: OrderStatus.inProgress.color,
-                    status: OrderStatus.inProgress,
-                    onOrderAccepted: _handleOrderMoved,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OrderColumn(
-                    title: OrderStatus.waiting.displayName,
-                    orders: kitchenOrders[OrderStatus.waiting] ?? [],
-                    color: OrderStatus.waiting.color,
-                    status: OrderStatus.waiting,
-                    onOrderAccepted: _handleOrderMoved,
-                  ),
-                ),
+                ],
               ],
             ),
           );
@@ -142,88 +142,86 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     );
   }
 
-  void _handleOrderMoved(
-    ITransaction order,
-    OrderStatus fromStatus,
-    OrderStatus toStatus,
+  Future<void> _moveOrder(
+    KitchenOrderView view,
+    KitchenStage from,
+    KitchenStage to,
   ) async {
-    if (fromStatus == toStatus) return;
+    if (from == to) return;
+    final id = view.order.transactionId;
+    final overridesNotifier = ref.read(kitchenStageOverridesProvider.notifier);
+    overridesNotifier.set(id, to);
 
-    setState(() => _pendingDrag = true);
-    ref
-        .read(kitchenOrdersProvider.notifier)
-        .moveOrder(order, fromStatus, toStatus);
-
-    final status = _getStatusString(toStatus);
-    final clearDueDate =
-        toStatus == OrderStatus.incoming && order.isLoan != true;
-    DateTime? dueDate;
-    if (!clearDueDate &&
-        toStatus == OrderStatus.inProgress &&
-        order.isLoan != true) {
-      dueDate =
-          order.dueDate ?? DateTime.now().toUtc().add(const Duration(minutes: 30));
-    } else if (!clearDueDate) {
-      dueDate = order.dueDate?.toUtc();
-    }
+    final due = dueDateForMove(
+      to: to,
+      current: view.order.dueDate,
+      now: DateTime.now(),
+    );
 
     try {
-      await ProxyService.getStrategy(Strategy.capella)
-          .updateKitchenOrderStatusFast(
-        transactionId: order.id,
-        status: status,
-        dueDate: dueDate,
-        clearDueDate: clearDueDate,
+      await _capella.updateKitchenStage(
+        transactionId: id,
+        stage: to,
+        dueDate: due.dueDate,
+        clearDueDate: due.clear,
       );
+      if (to == KitchenStage.served && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(servedMessage(view.ticket?.status))),
+        );
+      }
 
       unawaited(
         _analytics.track(
           'kitchen_order_status_changed',
           properties: {
-            'order_id': order.id,
-            'from_status': fromStatus.toString(),
-            'to_status': toStatus.toString(),
-            'is_loan': order.isLoan == true,
-            'business_id': ProxyService.box.getBusinessId()!,
-            'branch_id': ProxyService.box.getBranchId()!,
+            'order_id': id,
+            'from_status': from.wire,
+            'to_status': to.wire,
+            'is_loan': view.ticket?.isLoan == true,
+            'business_id': ProxyService.box.getBusinessId() ?? '',
+            'branch_id': ProxyService.box.getBranchId() ?? '',
             'timestamp': DateTime.now().toIso8601String(),
             'source': 'kitchen_display',
           },
         ),
       );
-    } catch (e) {
-      // Track error event
-      await _analytics.track(
-        'kitchen_order_status_change_failed',
-        properties: {
-          'order_id': order.id,
-          'from_status': fromStatus.toString(),
-          'to_status': toStatus.toString(),
-          'error': e.toString(),
-          'source': 'kitchen_display',
-          'timestamp': DateTime.now().toIso8601String(),
-        },
+    } catch (e, s) {
+      talker.error('Kitchen Display: move $id $from -> $to failed: $e', s);
+      unawaited(
+        _analytics.track(
+          'kitchen_order_status_change_failed',
+          properties: {
+            'order_id': id,
+            'from_status': from.wire,
+            'to_status': to.wire,
+            'error': e.toString(),
+            'source': 'kitchen_display',
+            'timestamp': DateTime.now().toIso8601String(),
+          },
+        ),
       );
-
-      if (mounted) {
-        setState(() => _pendingDrag = false);
-        ref.read(kitchenOrdersProvider.notifier).clearOrders();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update order: $e')));
-        ref.invalidate(kitchenOrdersStreamProvider);
-      }
+      if (!mounted) return;
+      overridesNotifier.remove(id);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update order: $e')));
     }
   }
 
-  String _getStatusString(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.incoming:
-        return PARKED;
-      case OrderStatus.inProgress:
-        return IN_PROGRESS;
-      case OrderStatus.waiting:
-        return WAITING;
+  Future<void> _setDueDate(KitchenOrderView view, DateTime dueDate) async {
+    try {
+      await _capella.updateKitchenStage(
+        transactionId: view.order.transactionId,
+        stage: view.order.stage,
+        dueDate: dueDate,
+      );
+    } catch (e, s) {
+      talker.error('Kitchen Display: set due date failed: $e', s);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to set due date: $e')));
     }
   }
 }

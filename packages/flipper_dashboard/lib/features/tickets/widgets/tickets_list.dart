@@ -20,6 +20,8 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
+import 'package:flipper_models/providers/kitchen_orders_provider.dart';
+import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/order_form_whatsapp_client.dart';
@@ -366,9 +368,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: filterChips,
               ),
-            Expanded(
-              child: _buildTicketsPaneWithWhatsAppPicker(context),
-            ),
+            Expanded(child: _buildTicketsPaneWithWhatsAppPicker(context)),
           ],
         );
         return LayoutBuilder(
@@ -439,20 +439,24 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               pickerTicket.id,
             ),
             onClose: _closeWhatsAppPicker,
-            onStaffSelected: (member) => unawaited(
-              _sendOrderFormWhatsAppTo(member, pickerTicket),
-            ),
+            onStaffSelected: (member) =>
+                unawaited(_sendOrderFormWhatsAppTo(member, pickerTicket)),
           ),
         );
 
         return LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
-            final useOverlay = width <
-                PosLayoutBreakpoints.mobileLayoutMaxWidth + _whatsAppPickerPanelWidth;
+            final useOverlay =
+                width <
+                PosLayoutBreakpoints.mobileLayoutMaxWidth +
+                    _whatsAppPickerPanelWidth;
 
             if (useOverlay) {
-              final panelWidth = (width * 0.88).clamp(280.0, _whatsAppPickerPanelWidth);
+              final panelWidth = (width * 0.88).clamp(
+                280.0,
+                _whatsAppPickerPanelWidth,
+              );
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -748,8 +752,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         (s) => s.contains(ticket.id),
                       ),
                     );
-                    final canCollect =
-                        ref.watch(canCollectPosPaymentProvider);
+                    final canCollect = ref.watch(canCollectPosPaymentProvider);
                     final canRecordHandover = ref.watch(
                       featureAccessProvider(
                         userId: ProxyService.box.getUserId() ?? '',
@@ -761,6 +764,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         (ticket.status ?? '').toLowerCase() == PARKED;
                     final isAwaitingHandover =
                         (ticket.status ?? '') == AWAITING_HANDOVER;
+                    // One branch-wide observer; each card selects its own
+                    // stage so a kitchen move rebuilds only that card.
+                    final kitchenStage = ref.watch(
+                      kitchenOrderStagesProvider.select(
+                        (async) => async.value?[ticket.id],
+                      ),
+                    );
                     final isWhatsAppPickerActive =
                         _whatsAppPickerTicket?.id == ticket.id;
                     return TicketCard(
@@ -776,7 +786,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         paymentSumsByTxnId,
                       ),
                       showCollect: canCollect && isParked,
-                      showComplete: reviewWorkflowOn &&
+                      showComplete:
+                          reviewWorkflowOn &&
                           canCollect &&
                           !isParked &&
                           !(isAwaitingHandover && canRecordHandover),
@@ -784,14 +795,30 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       // must not be yanked into the till cart.
                       showResume: !reviewWorkflowOn && canCollect && isParked,
                       canManage: canCollect,
+                      kitchenStage: kitchenStage,
+                      // Any viewer of an open ticket can send it — waiters
+                      // are the ones who do. Never touches ticket status.
+                      // Served tickets can go back for another round.
+                      onSendToKitchen:
+                          isParked &&
+                              (kitchenStage == null ||
+                                  kitchenStage == KitchenStage.served)
+                          ? () => unawaited(_sendTicketToKitchen(ticket))
+                          : null,
+                      isSendingToKitchen: _sendingToKitchenTicketIds.contains(
+                        ticket.id,
+                      ),
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
-                      isPrintingOrderForm:
-                          _printingOrderFormTicketIds.contains(ticket.id),
+                      isPrintingOrderForm: _printingOrderFormTicketIds.contains(
+                        ticket.id,
+                      ),
                       isSendingOrderFormWhatsApp:
-                          _sendingOrderFormWhatsAppTicketIds.contains(ticket.id),
-                      orderFormWhatsAppSent:
-                          _sentOrderFormWhatsAppTicketIds.contains(ticket.id),
+                          _sendingOrderFormWhatsAppTicketIds.contains(
+                            ticket.id,
+                          ),
+                      orderFormWhatsAppSent: _sentOrderFormWhatsAppTicketIds
+                          .contains(ticket.id),
                       onTap: () => _handleTicketTap(ticket),
                       onCollect: () => unawaited(_collectTillTicket(ticket)),
                       onComplete: () =>
@@ -800,7 +827,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                           unawaited(_recordHandover(context, ticket)),
                       onPrintOrderForm: () =>
                           unawaited(_printReviewedTicketOrderForm(ticket)),
-                      onSendOrderFormWhatsApp: () => _openWhatsAppPicker(ticket),
+                      onSendOrderFormWhatsApp: () =>
+                          _openWhatsAppPicker(ticket),
                       onDelete: () => _deleteTicket(ticket),
                       onSelectionChanged: (selected) {
                         ref
@@ -880,8 +908,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         context: context,
         ticket: ticket,
         onResume: (t) async {
-          resumeSucceeded =
-              await _handOffTicketToCheckout(t, asSettling: true);
+          resumeSucceeded = await _handOffTicketToCheckout(t, asSettling: true);
         },
       );
     } finally {
@@ -933,8 +960,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // still owns a PENDING ticket, and collecting a second one without
     // re-parking it first would strand it off the till queue.
     final currentSettling = ref.read(effectiveSettlingTillTicketProvider);
-    if (currentSettling != null &&
-        currentSettling.transactionId == ticket.id) {
+    if (currentSettling != null && currentSettling.transactionId == ticket.id) {
       logHandoff('already-settling-close');
       if (MediaQuery.sizeOf(context).width < 600) {
         unawaited(openMobileCheckoutForTransaction(context, ref, ticket));
@@ -956,8 +982,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       }
     }
 
-    final parkedAt =
-        ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
+    final parkedAt = ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
 
     final ok = await _resumeOrder(ticket);
     // Resume awaits clearPendingSaleCartsExcept, which sweeps every orphan
@@ -1003,10 +1028,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     try {
       seedItems = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-        transactionId: ticket.id,
-        branchId: settlingBranchId,
-        active: true,
-      );
+            transactionId: ticket.id,
+            branchId: settlingBranchId,
+            active: true,
+          );
     } catch (e, st) {
       talker.warning('Collect: seed items prefetch failed: $e', st);
     }
@@ -1052,11 +1077,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Collect forces its snapshot to PENDING at hand-off, so it can be
       // trusted; a recovered snapshot is only as fresh as the cart row it came
       // from, so re-read before parking on it.
-      var txn = (settling.recovered ? null : settling.ticketSnapshot) ??
-          await ProxyService.getStrategy(Strategy.capella).getTransaction(
-            id: settling.transactionId,
-            branchId: branchId,
-          );
+      var txn =
+          (settling.recovered ? null : settling.ticketSnapshot) ??
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getTransaction(id: settling.transactionId, branchId: branchId);
       // Nothing locally: ask the server once before concluding anything. A
       // ticket collected on another device may not have replicated here yet,
       // and this hand-off now refuses to proceed on an unresolved row — so
@@ -1087,12 +1112,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return false;
       }
       if ((txn.status ?? '').toLowerCase() == PENDING.toLowerCase()) {
-        await ref.read(parkTransactionProvider.notifier).park(
+        await ref
+            .read(parkTransactionProvider.notifier)
+            .park(
               ticketName: pendingSaleCartReparkTicketName(
                 id: settling.transactionId,
                 ticketName: settling.ticketName,
-                customerName: settling.ticketSnapshot?.customerName ??
-                    txn.customerName,
+                customerName:
+                    settling.ticketSnapshot?.customerName ?? txn.customerName,
                 reference: settling.displayRef,
               ),
               ticketNote: settling.ticketNote ?? 'Sent to till for payment',
@@ -1202,6 +1229,45 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  /// Tickets with a Send to kitchen write in flight.
+  final Set<String> _sendingToKitchenTicketIds = {};
+
+  /// Puts [ticket] on the Kitchen Display (`kitchen_orders`). The ticket row
+  /// is not written, so Collect / Resume and the badge are unaffected.
+  Future<void> _sendTicketToKitchen(ITransaction ticket) async {
+    if (_sendingToKitchenTicketIds.contains(ticket.id)) return;
+    // Listed tickets come from a branch-scoped query, so every one carries
+    // its branch; the session branch is only a fallback.
+    final branchId = ticket.branchId ?? ref.read(kitchenBranchIdProvider);
+    if (branchId == null || branchId.isEmpty) return;
+    setState(() => _sendingToKitchenTicketIds.add(ticket.id));
+    try {
+      await ref
+          .read(kitchenCapellaProvider)
+          .sendTicketToKitchen(
+            transactionId: ticket.id,
+            branchId: branchId,
+            sentBy: ProxyService.box.getUserId(),
+          );
+      if (mounted) {
+        showCustomSnackBarUtil(context, 'Sent to kitchen');
+      }
+    } catch (e, st) {
+      talker.error('Send ticket ${ticket.id} to kitchen failed: $e', st);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Could not send to kitchen. Try again.',
+          backgroundColor: Colors.red,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sendingToKitchenTicketIds.remove(ticket.id));
+      }
+    }
+  }
+
   /// Tickets currently printing their post-review Order Form, so the
   /// stepper's "Print Order Form" node can show a spinner and block re-taps.
   final Set<String> _printingOrderFormTicketIds = {};
@@ -1224,10 +1290,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-        transactionId: ticket.id,
-        branchId: branchId,
-        active: true,
-      );
+            transactionId: ticket.id,
+            branchId: branchId,
+            active: true,
+          );
       final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
       if (!mounted) return;
       if (UniversalPlatform.isDesktopOrWeb && !kIsWeb) {
@@ -1275,14 +1341,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-        transactionId: ticket.id,
-        branchId: branchId,
-        active: true,
-      );
+            transactionId: ticket.id,
+            branchId: branchId,
+            active: true,
+          );
       final bytes = await buildOrderFormPdfBytes(ticket: ticket, items: items);
       final refLabel = _ticketDisplayRef(ticket);
-      final customer =
-          (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+      final customer = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in')
+          .trim();
       final caption =
           'Order form · Ticket #$refLabel · ${customer.isEmpty ? 'Walk-in' : customer}';
 
@@ -1315,11 +1381,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     } on OrderFormWhatsAppException catch (e) {
       talker.error('Order form WhatsApp send failed: $e');
       if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          e.message,
-          backgroundColor: Colors.red,
-        );
+        showCustomSnackBarUtil(context, e.message, backgroundColor: Colors.red);
       }
     } catch (e, st) {
       talker.error('Order form WhatsApp send failed: $e', st);
@@ -1339,7 +1401,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Ticket Review + Handover workflow: stock manager confirms the item
   /// physically left stock. Pure status/audit stamp — no stock mutation.
-  Future<void> _recordHandover(BuildContext context, ITransaction ticket) async {
+  Future<void> _recordHandover(
+    BuildContext context,
+    ITransaction ticket,
+  ) async {
     final confirmed =
         await showDialog<bool>(
           context: context,
@@ -1354,8 +1419,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // deferred to here. Run it BEFORE flipping to completed; if signing fails
     // the ticket stays in awaitingHandover so nothing is lost and the user
     // can retry. When the workflow is off, the sale was already finalized at Pay.
-    final reviewWorkflowOn =
-        ProxyService.settings.enableTicketReviewWorkflow;
+    final reviewWorkflowOn = ProxyService.settings.enableTicketReviewWorkflow;
     try {
       if (reviewWorkflowOn) {
         await finalizeTicketHandover(context: context, ticket: ticket);
@@ -1389,8 +1453,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   /// Delete a ticket with confirmation and loading
   Future<void> _deleteTicket(ITransaction ticket) async {
     if (!(await canDeleteTicket(ticket))) {
-      final reviewBlocked =
-          isTicketDeleteBlockedByReviewWorkflow(ticket.status);
+      final reviewBlocked = isTicketDeleteBlockedByReviewWorkflow(
+        ticket.status,
+      );
       await _dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Error',
@@ -1547,8 +1612,7 @@ class _RecordHandoverDialog extends StatelessWidget {
     final total = (ticket.subTotal ?? 0).toCurrencyFormatted();
     final media = MediaQuery.sizeOf(context);
     final maxWidth = media.width < 460 ? media.width - 48 : 420.0;
-    final reviewWorkflowOn =
-        ProxyService.settings.enableTicketReviewWorkflow;
+    final reviewWorkflowOn = ProxyService.settings.enableTicketReviewWorkflow;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -2032,23 +2096,27 @@ class TicketCard extends StatelessWidget {
   final ValueChanged<bool> onSelectionChanged;
   final bool showCollect;
   final VoidCallback? onCollect;
+
   /// Ticket Review + Handover workflow: replaces [showResume] when on — runs
   /// QuickSellingView Pay completion or handover finalize from the list.
   final bool showComplete;
   final VoidCallback? onComplete;
   final bool showResume;
   final bool isCollecting;
+
   /// Ticket Review + Handover workflow: shows the "Record handover" action
   /// when true (only meaningful while `ticket.status == AWAITING_HANDOVER`;
   /// gate this on `AppFeature.StockHandover` access at the call site).
   final bool showRecordHandover;
   final VoidCallback? onRecordHandover;
+
   /// Ticket Review + Handover workflow: shows the review action when true
   /// (only meaningful while `ticket.status == PENDING_REVIEW`). Used by the
   /// Review Queue screen — typically opens details; approve lives in the
   /// review sheet so reviewers check line items/payments first.
   final bool showMarkReviewed;
   final VoidCallback? onMarkReviewed;
+
   /// Label for [showMarkReviewed] (default "Mark as reviewed"). Review Queue
   /// uses "Review details" because approve is confirmed inside the sheet.
   final String markReviewedLabel;
@@ -2081,6 +2149,15 @@ class TicketCard extends StatelessWidget {
   /// `canCollectPosPaymentProvider` (`AppFeature.Tickets` write) at the call
   /// site — the same population allowed to collect/complete tickets.
   final bool canManage;
+
+  /// Where this ticket is on the Kitchen Display — or [KitchenStage.served]
+  /// when the kitchen served it in the last day; null when never sent. Display
+  /// only, independent of [ITransaction.status].
+  final KitchenStage? kitchenStage;
+
+  /// Shows "Send to kitchen" (or "Send again" once served) when non-null.
+  final VoidCallback? onSendToKitchen;
+  final bool isSendingToKitchen;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -2107,7 +2184,102 @@ class TicketCard extends StatelessWidget {
     this.isSendingOrderFormWhatsApp = false,
     this.orderFormWhatsAppSent = false,
     this.canManage = true,
+    this.kitchenStage,
+    this.onSendToKitchen,
+    this.isSendingToKitchen = false,
   });
+
+  Widget _kitchenRow() {
+    final stage = kitchenStage;
+    if (stage == KitchenStage.served) {
+      // Food is out: this ticket is now the cashier's to collect.
+      return Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Container(
+            key: ValueKey('kitchen_served_tag_${ticket.id}'),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 13,
+                  color: _kRegularGreen,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Served · ready for payment',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: _kRegularGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onSendToKitchen != null) _sendToKitchenButton('Send again'),
+        ],
+      );
+    }
+    if (stage != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: stage.color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.restaurant_rounded, size: 13, color: stage.color),
+            const SizedBox(width: 6),
+            Text(
+              'In kitchen · ${stage.label}',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: stage.color,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return _sendToKitchenButton('Send to kitchen');
+  }
+
+  Widget _sendToKitchenButton(String label) {
+    return OutlinedButton.icon(
+      key: ValueKey('send_to_kitchen_${ticket.id}'),
+      onPressed: isSendingToKitchen ? null : onSendToKitchen,
+      icon: isSendingToKitchen
+          ? const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.restaurant_rounded, size: 14),
+      label: Text(
+        label,
+        style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
 
   Color _leftAccent() {
     if (ticket.isLoan != true) return _kAccentBlue;
@@ -2171,8 +2343,9 @@ class TicketCard extends StatelessWidget {
     final progress = total <= 0 ? 0.0 : (paid / total).clamp(0.0, 1.0);
     final fullyPaid = total > 0 && (remClamped <= 0 || progress >= 1.0 - 1e-9);
     final progressColor = fullyPaid ? _kRegularGreen : _kProgressOrange;
-    final deleteBlockedByReview =
-        isTicketDeleteBlockedByReviewWorkflow(ticket.status);
+    final deleteBlockedByReview = isTicketDeleteBlockedByReviewWorkflow(
+      ticket.status,
+    );
 
     const whatsAppPickerGreen = Color(0xFF16A34A);
     final cardBg = isWhatsAppPickerActive
@@ -2185,8 +2358,7 @@ class TicketCard extends StatelessWidget {
         : isSelected
         ? _kAccentBlue
         : Colors.grey[300]!;
-    final cardBorderWidth =
-        isWhatsAppPickerActive || isSelected ? 1.5 : 1.0;
+    final cardBorderWidth = isWhatsAppPickerActive || isSelected ? 1.5 : 1.0;
 
     return Material(
       color: Colors.transparent,
@@ -2197,10 +2369,7 @@ class TicketCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: cardBorder,
-              width: cardBorderWidth,
-            ),
+            border: Border.all(color: cardBorder, width: cardBorderWidth),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(11),
@@ -2247,37 +2416,36 @@ class TicketCard extends StatelessWidget {
                               const SizedBox(width: 6),
                               Flexible(
                                 child:
-                                    (ticket.status ?? '') ==
-                                            AWAITING_HANDOVER
-                                        ? _ReviewToOrderFormStepper(
-                                            onPrintOrderForm: onPrintOrderForm,
-                                            isPrinting: isPrintingOrderForm,
-                                            onSendWhatsApp:
-                                                onSendOrderFormWhatsApp,
-                                            isSendingWhatsApp:
-                                                isSendingOrderFormWhatsApp,
-                                            whatsAppSent: orderFormWhatsAppSent,
-                                          )
-                                        : Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: statusBg,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Text(
-                                              statusLabel,
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
-                                                color: statusFg,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                    (ticket.status ?? '') == AWAITING_HANDOVER
+                                    ? _ReviewToOrderFormStepper(
+                                        onPrintOrderForm: onPrintOrderForm,
+                                        isPrinting: isPrintingOrderForm,
+                                        onSendWhatsApp: onSendOrderFormWhatsApp,
+                                        isSendingWhatsApp:
+                                            isSendingOrderFormWhatsApp,
+                                        whatsAppSent: orderFormWhatsAppSent,
+                                      )
+                                    : Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusBg,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
                                           ),
+                                        ),
+                                        child: Text(
+                                          statusLabel,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: statusFg,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                               ),
                             ],
                           ),
@@ -2324,6 +2492,11 @@ class TicketCard extends StatelessWidget {
                                 ),
                               ],
                             ),
+                          ],
+                          if (kitchenStage != null ||
+                              onSendToKitchen != null) ...[
+                            const SizedBox(height: 8),
+                            _kitchenRow(),
                           ],
                           const SizedBox(height: 10),
                           Row(
@@ -2496,8 +2669,8 @@ class TicketCard extends StatelessWidget {
                                   style: TextButton.styleFrom(
                                     backgroundColor: _kCollectBlue,
                                     foregroundColor: Colors.white,
-                                    disabledBackgroundColor:
-                                        _kCollectBlue.withValues(alpha: 0.7),
+                                    disabledBackgroundColor: _kCollectBlue
+                                        .withValues(alpha: 0.7),
                                     disabledForegroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
@@ -2520,9 +2693,9 @@ class TicketCard extends StatelessWidget {
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
                                                 valueColor:
-                                                    AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
@@ -2546,14 +2719,15 @@ class TicketCard extends StatelessWidget {
                                         ),
                                 ),
                                 const SizedBox(width: 8),
-                              ] else if (showComplete && onComplete != null) ...[
+                              ] else if (showComplete &&
+                                  onComplete != null) ...[
                                 TextButton(
                                   onPressed: isCollecting ? null : onComplete,
                                   style: TextButton.styleFrom(
                                     backgroundColor: _kRegularGreen,
                                     foregroundColor: Colors.white,
-                                    disabledBackgroundColor:
-                                        _kRegularGreen.withValues(alpha: 0.7),
+                                    disabledBackgroundColor: _kRegularGreen
+                                        .withValues(alpha: 0.7),
                                     disabledForegroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
@@ -2576,9 +2750,9 @@ class TicketCard extends StatelessWidget {
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
                                                 valueColor:
-                                                    AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
