@@ -229,8 +229,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
-      if (_formKey.currentState!.validate() &&
-          !ref.read(isCompositeProvider)) {
+      if (_formKey.currentState!.validate() && !ref.read(isCompositeProvider)) {
         final syncedProductName = _syncProductNameFromForm(model, productRef);
         if (syncedProductName.length < 3) {
           _showNoProductNameToast(context);
@@ -1102,14 +1101,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         onSave: () => _onDesktopSave(model, productRef),
         formListenable: _formTick,
         canSaveBuilder: () {
-          final nameFilled =
-              productNameController.text.trim().isNotEmpty;
+          final nameFilled = productNameController.text.trim().isNotEmpty;
           final retailFilled =
               retailPriceController.text.trim().isNotEmpty &&
               double.tryParse(retailPriceController.text) != null;
           final invFilled = selectedCategoryId != null;
-          final compFilled =
-              ref.read(selectedVariantsLocalProvider).isNotEmpty;
+          final compFilled = ref.read(selectedVariantsLocalProvider).isNotEmpty;
           return nameFilled &&
               retailFilled &&
               (isComposite ? compFilled : invFilled);
@@ -1128,230 +1125,222 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) async {
-            try {
-              if (widget.productId != null) {
-                Product product = await model.getProduct(
+        try {
+          if (widget.productId != null) {
+            Product product = await model.getProduct(
+              productId: widget.productId!,
+            );
+            if (!mounted) return;
+            ref
+                .read(unsavedProductProvider.notifier)
+                .emitProduct(value: product);
+
+            productNameController.text = product.name;
+            model.setProductName(name: product.name);
+
+            // Fetch variants WITHOUT tax filtering to ensure we find all variants
+            // for the product when in edit mode.
+            final paged = await ProxyService.getStrategy(Strategy.capella)
+                .variants(
+                  taxTyCds: [],
                   productId: widget.productId!,
+                  branchId: ProxyService.box.getBranchId()!,
+                  fetchRemote: true,
                 );
-                if (!mounted) return;
-                ref
-                    .read(unsavedProductProvider.notifier)
-                    .emitProduct(value: product);
 
-                productNameController.text = product.name;
-                model.setProductName(name: product.name);
+            List<Variant> variants = List<Variant>.from(paged.variants);
+            if (!mounted) return;
 
-                // Fetch variants WITHOUT tax filtering to ensure we find all variants
-                // for the product when in edit mode.
-                final paged = await ProxyService.getStrategy(Strategy.capella)
-                    .variants(
-                      taxTyCds: [],
-                      productId: widget.productId!,
-                      branchId: ProxyService.box.getBranchId()!,
-                      fetchRemote: true,
-                    );
-
-                List<Variant> variants = List<Variant>.from(paged.variants);
-                if (!mounted) return;
-
-                if (variants.isNotEmpty) {
-                  if (variants.first.itemTyCd != null) {
-                    selectedProductType = variants.first.itemTyCd!;
-                  }
-
-                  supplyPriceController.text = variants.first.supplyPrice
-                      .toString();
-                  retailPriceController.text = variants.first.retailPrice
-                      .toString();
-
-                  // Explicitly update model prices to ensure UI sync
-                  model.setRetailPrice(price: retailPriceController.text);
-                  model.setSupplyPrice(price: supplyPriceController.text);
-
-                  if (variants.first.categoryId != null) {
-                    String? catName = variants.first.categoryName;
-                    if (catName == null) {
-                      Category? fetchedCategory =
-                          await ProxyService.getStrategy(
-                            Strategy.capella,
-                          ).category(id: variants.first.categoryId!);
-                      catName = fetchedCategory?.name;
-                    }
-                    setState(() {
-                      selectedCategoryId = variants.first.categoryId;
-                      selectedCategoryName = catName;
-                    });
-                  }
-
-                  model.setScannedVariants(variants);
-
-                  if (variants.first.color != null) {
-                    pickerColor = getColorOrDefault(variants.first.color!);
-                  }
-                }
-              } else {
-                Product? product = await model.createProduct(
-                  name: TEMP_PRODUCT,
-                  createItemCode: false,
-                );
-                if (!mounted) return;
-                if (product != null) {
-                  ref
-                      .read(unsavedProductProvider.notifier)
-                      .emitProduct(value: product);
-                }
+            if (variants.isNotEmpty) {
+              if (variants.first.itemTyCd != null) {
+                selectedProductType = variants.first.itemTyCd!;
               }
 
-              model.initialize();
-              // Ensure we are not in loading state AFTER data is loaded
-              ref.read(loadingProvider.notifier).stopLoading();
-            } catch (e, s) {
-              talker.error('ProductEntryScreen load failed', e, s);
-              if (!mounted) return;
-              // Never leave the editor stuck on the loading spinner.
-              ref.read(loadingProvider.notifier).stopLoading();
-              showErrorNotification(
-                context,
-                e is ProductNotFoundException
-                    ? 'This product could not be loaded. It may have been deleted.'
-                    : 'Could not load this product. Please try again.',
-              );
+              supplyPriceController.text = variants.first.supplyPrice
+                  .toString();
+              retailPriceController.text = variants.first.retailPrice
+                  .toString();
+
+              // Explicitly update model prices to ensure UI sync
+              model.setRetailPrice(price: retailPriceController.text);
+              model.setSupplyPrice(price: supplyPriceController.text);
+
+              if (variants.first.categoryId != null) {
+                String? catName = variants.first.categoryName;
+                if (catName == null) {
+                  Category? fetchedCategory = await ProxyService.getStrategy(
+                    Strategy.capella,
+                  ).category(id: variants.first.categoryId!);
+                  catName = fetchedCategory?.name;
+                }
+                setState(() {
+                  selectedCategoryId = variants.first.categoryId;
+                  selectedCategoryName = catName;
+                });
+              }
+
+              model.setScannedVariants(variants);
+
+              if (variants.first.color != null) {
+                pickerColor = getColorOrDefault(variants.first.color!);
+              }
             }
-            },
-            builder: (context, model, child) {
-              final isPhone =
-                  responsive.ResponsiveLayout.isPhone(context) ||
-                  responsive.ResponsiveLayout.isTinyLimit(context);
-              // itemTyCd sync is done in _onProductTypeChanged; avoid
-              // mutating variants inside build() to prevent unnecessary jank.
-              if (isPhone && !ref.watch(isCompositeProvider)) {
-                return Form(
-                  key: _formKey,
-                  child: _MobileProductEntry(
-                    productId: widget.productId,
-                    productRef: productRef,
-                    model: model,
-                    formKey: _formKey,
-                    onSave: () async {
-                      if (!mounted) return;
-                      if (_formKey.currentState!.validate()) {
-                        if (productRef == null) {
-                          showErrorNotification(
-                            context,
-                            'Invalid product reference',
-                          );
-                          return;
-                        }
-                        await _onSaveButtonPressed(
-                          model,
-                          context,
-                          productRef,
-                          selectedProductType: selectedProductType,
-                        );
-                      }
-                    },
-                    onClose: () => Navigator.maybePop(context),
-                    // Controllers
-                    productNameController: productNameController,
-                    retailPriceController: retailPriceController,
-                    supplyPriceController: supplyPriceController,
-                    scannedInputController: scannedInputController,
-                    scannedInputFocusNode: _scannedInputFocusNode,
-                    // Advanced/inventory plumbing
-                    selectedPackageUnitValue: selectedPackageUnitValue,
-                    pkgUnits: model.pkgUnits,
-                    onPackageUnitChanged: (newValue) {
-                      if (newValue != null) {
-                        setState(() => selectedPackageUnitValue = newValue);
-                      }
-                    },
-                    selectedCategoryId: selectedCategoryId,
-                    selectedCategoryName: selectedCategoryName,
-                    onCategoryChanged: _onCategorySelected,
-                    onAddCategory: _createAndSelectCategory,
+          } else {
+            Product? product = await model.createProduct(
+              name: TEMP_PRODUCT,
+              createItemCode: false,
+            );
+            if (!mounted) return;
+            if (product != null) {
+              ref
+                  .read(unsavedProductProvider.notifier)
+                  .emitProduct(value: product);
+            }
+          }
+
+          model.initialize();
+          // Ensure we are not in loading state AFTER data is loaded
+          ref.read(loadingProvider.notifier).stopLoading();
+        } catch (e, s) {
+          talker.error('ProductEntryScreen load failed', e, s);
+          if (!mounted) return;
+          // Never leave the editor stuck on the loading spinner.
+          ref.read(loadingProvider.notifier).stopLoading();
+          showErrorNotification(
+            context,
+            e is ProductNotFoundException
+                ? 'This product could not be loaded. It may have been deleted.'
+                : 'Could not load this product. Please try again.',
+          );
+        }
+      },
+      builder: (context, model, child) {
+        final isPhone =
+            responsive.ResponsiveLayout.isPhone(context) ||
+            responsive.ResponsiveLayout.isTinyLimit(context);
+        // itemTyCd sync is done in _onProductTypeChanged; avoid
+        // mutating variants inside build() to prevent unnecessary jank.
+        if (isPhone && !ref.watch(isCompositeProvider)) {
+          return Form(
+            key: _formKey,
+            child: _MobileProductEntry(
+              productId: widget.productId,
+              productRef: productRef,
+              model: model,
+              formKey: _formKey,
+              onSave: () async {
+                if (!mounted) return;
+                if (_formKey.currentState!.validate()) {
+                  if (productRef == null) {
+                    showErrorNotification(context, 'Invalid product reference');
+                    return;
+                  }
+                  await _onSaveButtonPressed(
+                    model,
+                    context,
+                    productRef,
                     selectedProductType: selectedProductType,
-                    onProductTypeChanged: (newValue) {
-                      if (newValue != null) {
-                        setState(() => selectedProductType = newValue);
-                      }
-                    },
-                    countryOfOriginController: countryOfOriginController,
-                    isSaving: isLoading,
-                    onScan: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScannView(
-                            intent: BARCODE,
-                            scannerActions: DashboardScannerActions(
-                              context,
-                              ref,
-                            ),
-                          ),
-                        ),
-                      );
-                      final barcode = ProxyService.productService.barCode;
-                      if (barcode.trim().isNotEmpty) {
-                        await _showVariantSheet(
-                          context: context,
-                          ref: ref,
-                          model: model,
-                          productRef: productRef,
-                          retailPriceController: retailPriceController,
-                          supplyPriceController: supplyPriceController,
-                          countryOfOriginController: countryOfOriginController,
-                          selectedProductType: selectedProductType,
-                          isEditMode: widget.productId != null,
-                          initialBarcode: barcode.trim(),
-                        );
-                      }
-                    },
-                    onAddVariant: () {
-                      _showVariantSheet(
-                        context: context,
-                        ref: ref,
-                        model: model,
-                        productRef: productRef,
-                        retailPriceController: retailPriceController,
-                        supplyPriceController: supplyPriceController,
-                        countryOfOriginController: countryOfOriginController,
-                        selectedProductType: selectedProductType,
-                        isEditMode: widget.productId != null,
-                      );
-                    },
-                    onEditVariant: (variant) {
-                      _showVariantSheet(
-                        context: context,
-                        ref: ref,
-                        model: model,
-                        productRef: productRef,
-                        retailPriceController: retailPriceController,
-                        supplyPriceController: supplyPriceController,
-                        countryOfOriginController: countryOfOriginController,
-                        selectedProductType: selectedProductType,
-                        isEditMode: widget.productId != null,
-                        existingVariant: variant,
-                      );
-                    },
-                    onDeleteVariant: (variant) =>
-                        model.removeVariant(id: variant.id),
-                    pickerColor: pickerColor,
-                    onColorSelected: (color) {
-                      setState(() {
-                        pickerColor = color;
-                      });
-                    },
+                  );
+                }
+              },
+              onClose: () => Navigator.maybePop(context),
+              // Controllers
+              productNameController: productNameController,
+              retailPriceController: retailPriceController,
+              supplyPriceController: supplyPriceController,
+              scannedInputController: scannedInputController,
+              scannedInputFocusNode: _scannedInputFocusNode,
+              // Advanced/inventory plumbing
+              selectedPackageUnitValue: selectedPackageUnitValue,
+              pkgUnits: model.pkgUnits,
+              onPackageUnitChanged: (newValue) {
+                if (newValue != null) {
+                  setState(() => selectedPackageUnitValue = newValue);
+                }
+              },
+              selectedCategoryId: selectedCategoryId,
+              selectedCategoryName: selectedCategoryName,
+              onCategoryChanged: _onCategorySelected,
+              onAddCategory: _createAndSelectCategory,
+              selectedProductType: selectedProductType,
+              onProductTypeChanged: (newValue) {
+                if (newValue != null) {
+                  setState(() => selectedProductType = newValue);
+                }
+              },
+              countryOfOriginController: countryOfOriginController,
+              isSaving: isLoading,
+              onScan: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ScannView(
+                      intent: BARCODE,
+                      scannerActions: DashboardScannerActions(context, ref),
+                    ),
                   ),
                 );
-              }
+                final barcode = ProxyService.productService.barCode;
+                if (barcode.trim().isNotEmpty) {
+                  await _showVariantSheet(
+                    context: context,
+                    ref: ref,
+                    model: model,
+                    productRef: productRef,
+                    retailPriceController: retailPriceController,
+                    supplyPriceController: supplyPriceController,
+                    countryOfOriginController: countryOfOriginController,
+                    selectedProductType: selectedProductType,
+                    isEditMode: widget.productId != null,
+                    initialBarcode: barcode.trim(),
+                  );
+                }
+              },
+              onAddVariant: () {
+                _showVariantSheet(
+                  context: context,
+                  ref: ref,
+                  model: model,
+                  productRef: productRef,
+                  retailPriceController: retailPriceController,
+                  supplyPriceController: supplyPriceController,
+                  countryOfOriginController: countryOfOriginController,
+                  selectedProductType: selectedProductType,
+                  isEditMode: widget.productId != null,
+                );
+              },
+              onEditVariant: (variant) {
+                _showVariantSheet(
+                  context: context,
+                  ref: ref,
+                  model: model,
+                  productRef: productRef,
+                  retailPriceController: retailPriceController,
+                  supplyPriceController: supplyPriceController,
+                  countryOfOriginController: countryOfOriginController,
+                  selectedProductType: selectedProductType,
+                  isEditMode: widget.productId != null,
+                  existingVariant: variant,
+                );
+              },
+              onDeleteVariant: (variant) => model.removeVariant(id: variant.id),
+              pickerColor: pickerColor,
+              onColorSelected: (color) {
+                setState(() {
+                  pickerColor = color;
+                });
+              },
+            ),
+          );
+        }
 
-              return _buildDesktopProductEditor(
-                context: context,
-                model: model,
-                productRef: productRef,
-                isLoading: isLoading,
-              );
-            },
+        return _buildDesktopProductEditor(
+          context: context,
+          model: model,
+          productRef: productRef,
+          isLoading: isLoading,
+        );
+      },
     );
   }
 }

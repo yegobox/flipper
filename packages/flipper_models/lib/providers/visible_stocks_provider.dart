@@ -31,7 +31,5 @@ Stream<Map<String, Stock?>> stocksForVisibleVariants(
     return Stream.value(const {});
   }
 
-  return ProxyService.getStrategy(
-    Strategy.capella,
-  ).watchStocksByIds(stockIds);
+  return ProxyService.getStrategy(Strategy.capella).watchStocksByIds(stockIds);
 }

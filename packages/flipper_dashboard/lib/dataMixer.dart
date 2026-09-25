@@ -196,8 +196,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Only fetch product asset if the variant doesn't have its own image.
     final needsAssetFallback =
         (variantImage == null || variantImage.isEmpty) && productId.isNotEmpty;
-    final assetAsync =
-        needsAssetFallback ? ref.watch(assetProvider(productId)) : null;
+    final assetAsync = needsAssetFallback
+        ? ref.watch(assetProvider(productId))
+        : null;
     if (assetAsync?.hasError ?? false) {
       talker.error(
         "Error fetching asset data: ${assetAsync!.error}",
