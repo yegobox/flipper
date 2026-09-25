@@ -188,7 +188,11 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             base="origin/${{ github.base_ref }}"
-            git fetch --no-tags --depth=0 origin "${{ github.base_ref }}" || true
+            # Checkout already has full history (fetch-depth: 0); this only
+            # refreshes the base ref. Must not be swallowed: `--depth=0` is
+            # invalid and failed on every run behind `|| true`, and a missing
+            # base would silently skip the diff-scoped gates.
+            git fetch --no-tags origin "${{ github.base_ref }}"
           else
             base="origin/main"
           fi
