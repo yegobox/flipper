@@ -274,9 +274,7 @@ class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
   AsyncValue<List<Customer>> build() {
     // Non-autoDispose: rebuild when branch/business changes (logout/login,
     // branch switch) instead of reusing the prior session's cached list.
-    ref.watch(
-      activeBranchProvider.select((async) => async.asData?.value.id),
-    );
+    ref.watch(activeBranchProvider.select((async) => async.asData?.value.id));
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null || branchId.isEmpty) {
       return const AsyncValue.data([]);

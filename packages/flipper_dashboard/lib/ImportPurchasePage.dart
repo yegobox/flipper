@@ -135,9 +135,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
 
     if (result.mode == IpmPurchaseMappingMode.mapExisting) {
       setState(() {
-        _itemMapper
-            .putIfAbsent(result.catalogVariant!.id, () => [])
-            .add(line);
+        _itemMapper.putIfAbsent(result.catalogVariant!.id, () => []).add(line);
       });
       _notify('Mapped to existing variant');
       return const IpmPurchaseMappingSaveResult(success: true);
@@ -153,9 +151,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
         return const IpmPurchaseMappingSaveResult(success: false);
       }
       final branchId = ProxyService.box.getBranchId() ?? '';
-      ref.read(outerVariantsProvider(branchId).notifier).addVariants(
-            [catalogVariant],
-          );
+      ref.read(outerVariantsProvider(branchId).notifier).addVariants([
+        catalogVariant,
+      ]);
       for (final catalog in posStockFilteredCatalogs(branchId)) {
         if (ref.exists(catalog)) {
           ref.read(catalog.notifier).addVariants([catalogVariant]);
@@ -189,7 +187,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
     final catalogVariants =
         ref.watch(outerVariantsProvider(branchId)).value ?? [];
 
-    if (state.isLoading && state.importItems.isEmpty && state.purchases.isEmpty) {
+    if (state.isLoading &&
+        state.importItems.isEmpty &&
+        state.purchases.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -351,43 +351,42 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
         }
       },
       onSavePurchaseMapping: _savePurchaseMapping,
-      acceptPurchases: ({
-        required List<model.Purchase> purchases,
-        required String pchsSttsCd,
-        required model.Purchase purchase,
-        model.Variant? clickedVariant,
-      }) async {
-        final isDecline = pchsSttsCd == '04';
-        if (!isDecline) {
-          final lines = purchase.variants ?? [];
-          final unmapped =
-              lines.where((line) => !_isPurchaseLineMapped(line)).length;
-          if (unmapped > 0) {
-            _notify(
-              '$unmapped line(s) still need mapping',
-              success: false,
-            );
-            return;
-          }
-        }
-        try {
-          if (isDecline) {
-            await notifier.rejectPurchase(purchase: purchase);
-          } else {
-            await notifier.approvePurchase(
-              purchase: purchase,
-              itemMapper: _itemMapper,
-            );
-          }
-          _itemMapper.clear();
-          _notify(isDecline ? 'Purchase declined' : 'Purchase accepted');
-        } catch (e) {
-          _notify(
-            'Could not ${isDecline ? 'decline' : 'accept'} purchase: $e',
-            success: false,
-          );
-        }
-      },
+      acceptPurchases:
+          ({
+            required List<model.Purchase> purchases,
+            required String pchsSttsCd,
+            required model.Purchase purchase,
+            model.Variant? clickedVariant,
+          }) async {
+            final isDecline = pchsSttsCd == '04';
+            if (!isDecline) {
+              final lines = purchase.variants ?? [];
+              final unmapped = lines
+                  .where((line) => !_isPurchaseLineMapped(line))
+                  .length;
+              if (unmapped > 0) {
+                _notify('$unmapped line(s) still need mapping', success: false);
+                return;
+              }
+            }
+            try {
+              if (isDecline) {
+                await notifier.rejectPurchase(purchase: purchase);
+              } else {
+                await notifier.approvePurchase(
+                  purchase: purchase,
+                  itemMapper: _itemMapper,
+                );
+              }
+              _itemMapper.clear();
+              _notify(isDecline ? 'Purchase declined' : 'Purchase accepted');
+            } catch (e) {
+              _notify(
+                'Could not ${isDecline ? 'decline' : 'accept'} purchase: $e',
+                success: false,
+              );
+            }
+          },
     );
   }
 }

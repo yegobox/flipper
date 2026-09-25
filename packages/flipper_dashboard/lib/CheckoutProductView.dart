@@ -722,9 +722,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 } else {
                   // Cart lines name a txn that isn't among the usual candidates —
                   // resolve that owner rather than opening an unrelated pending cart.
-                  t = ref
-                      .read(transactionByIdProvider(itemTxnIds.first))
-                      .value;
+                  t = ref.read(transactionByIdProvider(itemTxnIds.first)).value;
                   if (t == null) {
                     showErrorNotification(
                       context,

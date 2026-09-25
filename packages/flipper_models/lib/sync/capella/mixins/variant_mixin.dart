@@ -91,9 +91,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       if (fetched == null || fetched.branchId.trim().isEmpty) return;
       variant.stock = fetched;
     } catch (e, st) {
-      talker.warning(
-        '_attachAuthenticCapellaStock($sid) failed: $e\n$st',
-      );
+      talker.warning('_attachAuthenticCapellaStock($sid) failed: $e\n$st');
     }
   }
 
@@ -364,8 +362,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       final bool isCatalogTextSearch =
           bcd == null && name != null && name.trim().isNotEmpty;
-      final String? searchTerm =
-          isCatalogTextSearch ? name.trim().toLowerCase() : null;
+      final String? searchTerm = isCatalogTextSearch
+          ? name.trim().toLowerCase()
+          : null;
 
       final bool barcodeLikeSearch =
           searchTerm != null && isLikelyCatalogBarcodeQuery(searchTerm);
@@ -427,7 +426,10 @@ mixin CapellaVariantMixin implements VariantInterface {
       // taxes, pagination) runs via execute below; Ditto 5 can reject complex
       // subscription predicates even after ORDER BY/LIMIT stripping.
 
-      Future<List<dynamic>> runExecute(String sql, Map<String, dynamic> args) async {
+      Future<List<dynamic>> runExecute(
+        String sql,
+        Map<String, dynamic> args,
+      ) async {
         final r = await ditto.store.execute(sql, arguments: args);
         return r.items.toList();
       }
@@ -943,8 +945,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           arguments: arguments,
         );
         if (existing.items.isNotEmpty) {
-          final data =
-              Map<String, dynamic>.from(existing.items.first.value);
+          final data = Map<String, dynamic>.from(existing.items.first.value);
           final dittoId = data['_id']?.toString();
           if (dittoId != null &&
               dittoId.isNotEmpty &&
@@ -956,9 +957,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           return variant;
         }
       } catch (e, st) {
-        talker.warning(
-          'getVariant execute fast-path failed: $e\n$st',
-        );
+        talker.warning('getVariant execute fast-path failed: $e\n$st');
       }
 
       // Interactive POS/checkout: return after local execute — do not wait on
@@ -970,9 +969,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       // Bulk / fetchRemote: subscribe and wait for a non-empty hit.
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.warning(
-          'getVariant: Ditto unavailable for observer fallback',
-        );
+        talker.warning('getVariant: Ditto unavailable for observer fallback');
         return null;
       }
 
@@ -1018,8 +1015,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           if (completer.isCompleted || result.items.isEmpty) {
             return;
           }
-          final data =
-              Map<String, dynamic>.from(result.items.first.value);
+          final data = Map<String, dynamic>.from(result.items.first.value);
           final dittoId = data['_id']?.toString();
           if (dittoId != null &&
               dittoId.isNotEmpty &&
@@ -1312,8 +1308,9 @@ mixin CapellaVariantMixin implements VariantInterface {
     // Empty in Ditto. The legacy getter seeds `mockUnits` when the branch has
     // none at all, so this both backfills pre-migration rows and covers a
     // first-run branch.
-    final existing =
-        await ProxyService.legacyStrategy.units(branchId: branchId);
+    final existing = await ProxyService.legacyStrategy.units(
+      branchId: branchId,
+    );
     for (final unit in existing) {
       await upsertReferenceDoc(ditto, unitsCollection, unitToDittoDoc(unit));
     }
@@ -1455,7 +1452,8 @@ mixin CapellaVariantMixin implements VariantInterface {
     required Variant variant,
     Stock? stock,
   }) async {
-    final effective = stock ??
+    final effective =
+        stock ??
         Stock(
           id: const Uuid().v4(),
           currentStock: variant.qty ?? 0,
@@ -1494,8 +1492,9 @@ mixin CapellaVariantMixin implements VariantInterface {
     // `daysToExpiry` widens the window forward; without it "expired" means
     // already past. Same threshold rule as the Brick implementation.
     final now = DateTime.now().toUtc();
-    final threshold =
-        daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
+    final threshold = daysToExpiry != null
+        ? now.add(Duration(days: daysToExpiry))
+        : now;
 
     try {
       final result = await ditto.store.execute(
@@ -1527,7 +1526,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
       return limited;
     } catch (e, st) {
-      talker.error('Ditto getExpiredItems failed, falling back to Brick: $e\n$st');
+      talker.error(
+        'Ditto getExpiredItems failed, falling back to Brick: $e\n$st',
+      );
       return ProxyService.legacyStrategy.getExpiredItems(
         branchId: branchId,
         daysToExpiry: daysToExpiry,
