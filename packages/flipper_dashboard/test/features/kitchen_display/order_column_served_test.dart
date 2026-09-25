@@ -17,7 +17,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          kitchenTicketItemsProvider.overrideWith((ref, id) async => []),
+          kitchenTicketItemsProvider.overrideWith((ref, key) async => []),
         ],
         child: MaterialApp(
           home: Scaffold(

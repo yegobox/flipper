@@ -221,7 +221,9 @@ Future<int> repairLegacyKitchenStatusesOnStore(
     // still stranded but no worse off, and the next run retries it.
     final existing = await kitchenOrderOnStore(store, id);
     if (existing == null) {
-      final rawDue = doc['dueDate'];
+      // On a loan ticket dueDate is the loan's due date (days or weeks out),
+      // not a kitchen promise — it would read "20160 min left" on the card.
+      final rawDue = doc['isLoan'] == true ? null : doc['dueDate'];
       await store.execute(
         'INSERT INTO kitchen_orders DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
         arguments: {

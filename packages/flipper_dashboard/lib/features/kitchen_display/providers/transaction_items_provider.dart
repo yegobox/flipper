@@ -16,14 +16,34 @@ final transactionItemsProvider = FutureProvider.family
       );
     });
 
+/// Which lines to load for a Kitchen Display card: the ticket, plus a
+/// revision of it so the list reloads when the ticket changes.
+typedef KitchenTicketItemsKey = ({String id, String? rev});
+
+/// [KitchenTicketItemsKey] for [transactionId]. The revision folds in every
+/// field a line change touches — a park writes updatedAt, a cart delta may
+/// only move lastTouched / subTotal — so dishes added to a ticket already in
+/// the kitchen show up without reopening the card.
+KitchenTicketItemsKey kitchenTicketItemsKey(
+  String transactionId,
+  ITransaction? ticket,
+) => (
+  id: transactionId,
+  rev: ticket == null
+      ? null
+      : '${ticket.updatedAt?.toIso8601String()}'
+            '|${ticket.lastTouched?.toIso8601String()}'
+            '|${ticket.subTotal}',
+);
+
 /// Lines for a Kitchen Display card, read from Capella (Ditto) — the store
 /// tickets are written to. [transactionItemsProvider] reads the default
 /// strategy, which off-web is not Capella, so kitchen cards came up with
 /// "No items found". Kept separate so [transactionItemsProvider]'s other
 /// caller (the sale indicator) is unaffected.
 final kitchenTicketItemsProvider = FutureProvider.family
-    .autoDispose<List<TransactionItem>, String>((ref, transactionId) {
+    .autoDispose<List<TransactionItem>, KitchenTicketItemsKey>((ref, key) {
       return ref
           .watch(kitchenCapellaProvider)
-          .transactionItems(transactionId: transactionId, active: true);
+          .transactionItems(transactionId: key.id, active: true);
     });

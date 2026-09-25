@@ -67,8 +67,16 @@ class OrderCard extends HookConsumerWidget {
     final isPaid = ticket?.status == COMPLETE;
 
     final transactionItemsAsync = ref.watch(
-      kitchenTicketItemsProvider(view.order.transactionId),
+      kitchenTicketItemsProvider(
+        kitchenTicketItemsKey(view.order.transactionId, ticket),
+      ),
     );
+    // A new revision is a new provider instance, so it starts out loading;
+    // keep painting the last lines meanwhile instead of flashing a spinner.
+    final lastItems = useRef<List<TransactionItem>?>(null);
+    if (transactionItemsAsync.hasValue) {
+      lastItems.value = transactionItemsAsync.value;
+    }
 
     return Card(
       margin: const EdgeInsets.all(8),
@@ -287,80 +295,85 @@ class OrderCard extends HookConsumerWidget {
                 ),
 
               if (isExpanded.value)
-                transactionItemsAsync.when(
-                  data: (items) {
-                    if (items.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'No items found',
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Divider(),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(
-                            'Items:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        for (final item in items)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${item.qty}x',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    item.name,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Text(
-                                  item.totAmt?.toCurrencyFormatted(
-                                        symbol: ProxyService.box
-                                            .defaultCurrency(),
-                                      ) ??
-                                      '',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
+                (transactionItemsAsync.isLoading && lastItems.value != null
+                        ? AsyncValue.data(lastItems.value!)
+                        : transactionItemsAsync)
+                    .when(
+                      data: (items) {
+                        if (items.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'No items found',
+                              style: TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey,
+                              ),
                             ),
-                          ),
-                      ],
-                    );
-                  },
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Divider(),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                              child: Text(
+                                'Items:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            for (final item in items)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4.0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      '${item.qty}x',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        item.name,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      item.totAmt?.toCurrencyFormatted(
+                                            symbol: ProxyService.box
+                                                .defaultCurrency(),
+                                          ) ??
+                                          '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      error: (error, stack) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          'Error loading items: $error',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
                     ),
-                  ),
-                  error: (error, stack) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      'Error loading items: $error',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

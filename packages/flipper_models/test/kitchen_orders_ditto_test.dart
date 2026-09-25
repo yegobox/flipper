@@ -39,6 +39,8 @@ void main() {
     String? ticketName = 'Table 1',
     double subTotal = 5000,
     String branchId = branch,
+    bool isLoan = false,
+    String? dueDate,
   }) async {
     await store.execute(
       'INSERT INTO transactions DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
@@ -52,7 +54,8 @@ void main() {
           'subTotal': subTotal,
           'isOriginalTransaction': true,
           'transactionType': 'Sale',
-          'dueDate': null,
+          'isLoan': isLoan,
+          'dueDate': dueDate,
         },
       },
     );
@@ -316,6 +319,33 @@ void main() {
         stage: KitchenStage.served,
       );
       expect(await statusOf('paid_serve'), 'completed');
+    },
+  );
+
+  test(
+    'repair keeps a kitchen due date but never copies a loan due date',
+    skip: skip,
+    () async {
+      await ticket(
+        'stuck_timed',
+        status: 'inProgress',
+        dueDate: '2026-09-25T12:30:00.000Z',
+      );
+      await ticket(
+        'stuck_loan',
+        status: 'inProgress',
+        isLoan: true,
+        dueDate: '2026-10-09T00:00:00.000Z',
+      );
+      await repairLegacyKitchenStatusesOnStore(store, branchId: branch);
+
+      expect(
+        (await kitchenOrderOnStore(store, 'stuck_timed'))!.dueDate,
+        DateTime.utc(2026, 9, 25, 12, 30),
+      );
+      final loan = (await kitchenOrderOnStore(store, 'stuck_loan'))!;
+      expect(loan.dueDate, isNull);
+      expect(await statusOf('stuck_loan'), 'parked');
     },
   );
 }
