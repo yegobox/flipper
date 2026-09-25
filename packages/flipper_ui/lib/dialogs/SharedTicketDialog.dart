@@ -18,6 +18,7 @@ const Color _kLabel = Color(0xFF9CA3AF);
 const Color _kCardBorder = Color(0xFFE5E7EB);
 const Color _kLoanPurple = Color(0xFF6B4EA2);
 const Color _kLoanBg = Color(0xFFF5F9FF);
+const Color _kKitchenOrange = Color(0xFFEA580C);
 const double _kSheetRadius = 26;
 const double _kFieldRadius = 14;
 
@@ -382,6 +383,10 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
   late TextEditingController _noteController;
 
   bool _isLoan = false;
+
+  /// Also put the parked ticket on the Kitchen Display. Off by default: a
+  /// ticket is only a kitchen order when someone sends it there.
+  bool _sendToKitchen = false;
   DateTime? _dueDate;
   _DuePreset _duePreset = _DuePreset.twoWeeks;
   Customer? _selectedCustomer;
@@ -509,6 +514,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
         transaction: widget.transaction,
         ticketNote: _noteController.text.trim(),
         customerId: _selectedCustomer?.id,
+        sendToKitchen: _sendToKitchen,
       );
       return true;
     } catch (e) {
@@ -774,8 +780,75 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                     )
                   : const SizedBox.shrink(),
             ),
+            const SizedBox(height: 12),
+            _kitchenSection(isSaving: isSaving),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _kitchenSection({required bool isSaving}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(_kFieldRadius),
+        border: Border.all(color: _kCardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _kKitchenOrange,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.restaurant_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Send to kitchen',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: _kInk,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Show this ticket on the Kitchen Display',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: _kLabel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Transform.scale(
+            scale: 0.92,
+            child: CupertinoSwitch(
+              key: const Key('park_send_to_kitchen_switch'),
+              value: _sendToKitchen,
+              activeTrackColor: _kPrimary,
+              onChanged: isSaving
+                  ? null
+                  : (val) => setState(() => _sendToKitchen = val),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/sync/ditto_observer_registry.dart';
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
+import 'package:flipper_models/sync/utils/kitchen_orders_store.dart';
 import 'package:flipper_models/sync/utils/local_store_indexes.dart';
 import 'package:flipper_models/sync/utils/pending_subtotal_deltas.dart';
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
@@ -2907,6 +2908,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required String ticketName,
     required String ticketNote,
     String? customerId,
+    bool sendToKitchen = false,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -2954,6 +2956,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           talker.info(
             'parkSaleTicketFast: merged ${transaction.id} into ${other.id}',
           );
+          // The merged-away ticket may already be on the Kitchen Display
+          // (a re-park); move it onto the ticket it merged into rather than
+          // leave a card whose ticket no longer exists.
+          final carriedFromKitchen = await _retireKitchenOrderOnMerge(
+            ditto,
+            transaction.id,
+          );
+          if (sendToKitchen || carriedFromKitchen) {
+            await _sendParkedTicketToKitchen(ditto, other.id, branchId);
+          }
           unawaited(
             manageTransaction(
               branchId: branchId,
@@ -3060,6 +3072,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       arguments: args,
     );
 
+    if (sendToKitchen) {
+      await _sendParkedTicketToKitchen(ditto, targetId, branchId);
+    }
+
     final transactionType = transaction.transactionType ?? SALE;
     if (_isPosCartTransactionType(transactionType)) {
       unawaited(
@@ -3163,6 +3179,338 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       'WHERE _id = :id OR id = :id',
       arguments: args,
     );
+  }
+
+  /// Park's "Send to kitchen". The park already landed, so a failure here is
+  /// logged rather than thrown — failing the park would invite a second park
+  /// of the same cart. The ticket card's Send to kitchen action retries it.
+  Future<void> _sendParkedTicketToKitchen(
+    dynamic ditto,
+    String ticketId,
+    String branchId,
+  ) async {
+    try {
+      _registerKitchenOrdersSubscription(ditto, branchId);
+      await sendTicketToKitchenOnStore(
+        ditto.store,
+        transactionId: ticketId,
+        branchId: branchId,
+        sentBy: ProxyService.box.getUserId(),
+      );
+    } catch (e, s) {
+      talker.error('parkSaleTicketFast: send to kitchen failed for $ticketId: $e', s);
+    }
+  }
+
+  /// Marks [fromId]'s kitchen order served after a merge deleted the ticket.
+  /// True when there was one still on the display.
+  Future<bool> _retireKitchenOrderOnMerge(dynamic ditto, String fromId) async {
+    try {
+      final existing = await kitchenOrderOnStore(ditto.store, fromId);
+      if (existing == null || existing.stage == KitchenStage.served) {
+        return false;
+      }
+      await updateKitchenStageOnStore(
+        ditto.store,
+        transactionId: fromId,
+        stage: KitchenStage.served,
+      );
+      return true;
+    } catch (e, s) {
+      talker.error('parkSaleTicketFast: kitchen hand-over failed: $e', s);
+      return false;
+    }
+  }
+
+  void _registerKitchenOrdersSubscription(dynamic ditto, String branchId) {
+    final prepared = prepareDqlSyncSubscription(
+      kitchenOrdersBranchSubscriptionDql,
+      {'branchId': branchId},
+    );
+    ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
+  }
+
+  dynamic _requireKitchenDitto(String caller) {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for $caller');
+      throw StateError('Ditto not initialized for $caller');
+    }
+    return ditto;
+  }
+
+  @override
+  Stream<List<KitchenOrderView>> kitchenOrdersStream({
+    required String branchId,
+  }) {
+    final dynamic ditto;
+    try {
+      ditto = _requireKitchenDitto('kitchenOrdersStream');
+      _registerKitchenOrdersSubscription(ditto, branchId);
+      // Tickets live in `transactions`; peers need the branch subscription to
+      // pull tickets parked on another device.
+      final preparedTx = prepareDqlSyncSubscription(
+        'SELECT * FROM transactions WHERE branchId = :branchId',
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedTx.dql,
+        arguments: preparedTx.arguments,
+      );
+    } catch (e, s) {
+      return Stream.error(e, s);
+    }
+
+    // Two observers: `kitchen_orders` decides which orders are on the
+    // display; a second one, over just those ticket ids, keeps each card's
+    // ticket (name, lines total, payment) live. The ticket observer is only
+    // re-registered when the set of ids changes, not on every stage move.
+    // Single-subscription + onListen, as in [openPosTicketsTransactionsStream].
+    TrackedDittoObserver? kitchenObserver;
+    TrackedDittoObserver? ticketObserver;
+    var cancelled = false;
+    var listenStarted = false;
+    var orders = const <KitchenOrder>[];
+    var tickets = <String, ITransaction>{};
+    var watchedIds = <String>{};
+    var ticketsLoaded = false;
+    var ticketGeneration = 0;
+
+    late final StreamController<List<KitchenOrderView>> controller;
+
+    void emit() {
+      if (cancelled || controller.isClosed) return;
+      controller.add([
+        for (final order in orders)
+          KitchenOrderView(order: order, ticket: tickets[order.transactionId]),
+      ]);
+    }
+
+    Map<String, ITransaction> convertTickets(dynamic queryResult) {
+      final byId = <String, ITransaction>{};
+      for (final item in queryResult.items) {
+        try {
+          final ticket = _convertFromDittoDocument(
+            Map<String, dynamic>.from(item.value),
+          );
+          byId[ticket.id] = ticket;
+        } catch (e) {
+          talker.error('kitchenOrdersStream: bad ticket doc: $e');
+        }
+      }
+      return byId;
+    }
+
+    Future<void> watchTickets(Set<String> ids) async {
+      final generation = ++ticketGeneration;
+      watchedIds = ids;
+      ticketsLoaded = false;
+      final previous = ticketObserver;
+      ticketObserver = null;
+      await cancelDittoStoreObserver(previous);
+      if (cancelled || generation != ticketGeneration) return;
+
+      if (ids.isEmpty) {
+        tickets = {};
+        ticketsLoaded = true;
+        emit();
+        return;
+      }
+      final args = {'ids': ids.toList()};
+      ticketObserver = registerTrackedObserver(
+        ditto: ditto,
+        name: 'kitchenOrdersStream.tickets',
+        collection: 'transactions',
+        query: kitchenTicketsDql,
+        arguments: args,
+        onChange: (queryResult) {
+          if (cancelled || generation != ticketGeneration) return;
+          tickets = convertTickets(queryResult);
+          emit();
+        },
+      );
+      final snapshot = await ditto.store.execute(
+        kitchenTicketsDql,
+        arguments: args,
+      );
+      if (cancelled || generation != ticketGeneration) return;
+      tickets = convertTickets(snapshot);
+      ticketsLoaded = true;
+      emit();
+    }
+
+    void onOrders(dynamic queryResult) {
+      if (cancelled) return;
+      orders = kitchenOrdersFromResult(queryResult);
+      final ids = {for (final o in orders) o.transactionId};
+      final sameIds =
+          ids.length == watchedIds.length && ids.containsAll(watchedIds);
+      if (ticketsLoaded && sameIds) {
+        // A stage move: tickets are already loaded, emit straight away.
+        emit();
+      } else {
+        // Emit once the new tickets are loaded, so a card never renders
+        // without its ticket for a frame.
+        unawaited(
+          watchTickets(ids).catchError((Object e, StackTrace s) {
+            talker.error('kitchenOrdersStream: ticket load failed: $e', s);
+          }),
+        );
+      }
+    }
+
+    controller = StreamController<List<KitchenOrderView>>(
+      onListen: () {
+        if (listenStarted) return;
+        listenStarted = true;
+        unawaited(() async {
+          try {
+            final args = activeKitchenOrdersArgs(branchId);
+            kitchenObserver = registerTrackedObserver(
+              ditto: ditto,
+              name: 'kitchenOrdersStream',
+              collection: KitchenOrder.collection,
+              query: activeKitchenOrdersDql,
+              arguments: args,
+              onChange: onOrders,
+            );
+            final snapshot = await ditto.store.execute(
+              activeKitchenOrdersDql,
+              arguments: args,
+            );
+            onOrders(snapshot);
+          } catch (e, s) {
+            talker.error('kitchenOrdersStream setup failed: $e', s);
+            if (!cancelled && !controller.isClosed) controller.addError(e, s);
+          }
+        }());
+      },
+      onCancel: () async {
+        cancelled = true;
+        await cancelDittoStoreObserver(kitchenObserver);
+        await cancelDittoStoreObserver(ticketObserver);
+        if (!controller.isClosed) await controller.close();
+      },
+    );
+    return controller.stream;
+  }
+
+  @override
+  Stream<Map<String, KitchenStage>> kitchenOrderStagesStream({
+    required String branchId,
+  }) {
+    final dynamic ditto;
+    try {
+      ditto = _requireKitchenDitto('kitchenOrderStagesStream');
+      _registerKitchenOrdersSubscription(ditto, branchId);
+    } catch (e, s) {
+      return Stream.error(e, s);
+    }
+
+    TrackedDittoObserver? observer;
+    var cancelled = false;
+    var listenStarted = false;
+    late final StreamController<Map<String, KitchenStage>> controller;
+
+    void emit(dynamic queryResult) {
+      if (cancelled || controller.isClosed) return;
+      controller.add({
+        for (final o in kitchenOrdersFromResult(queryResult))
+          o.transactionId: o.stage,
+      });
+    }
+
+    controller = StreamController<Map<String, KitchenStage>>(
+      onListen: () {
+        if (listenStarted) return;
+        listenStarted = true;
+        unawaited(() async {
+          try {
+            // Served in the last day still tags an open ticket "ready for
+            // payment"; older served docs are history and stay out.
+            final args = kitchenTicketTagsArgs(
+              branchId,
+              DateTime.now().subtract(const Duration(hours: 24)),
+            );
+            observer = registerTrackedObserver(
+              ditto: ditto,
+              name: 'kitchenOrderStagesStream',
+              collection: KitchenOrder.collection,
+              query: kitchenTicketTagsDql,
+              arguments: args,
+              onChange: emit,
+            );
+            emit(
+              await ditto.store.execute(
+                kitchenTicketTagsDql,
+                arguments: args,
+              ),
+            );
+          } catch (e, s) {
+            talker.error('kitchenOrderStagesStream setup failed: $e', s);
+            if (!cancelled && !controller.isClosed) controller.add(const {});
+          }
+        }());
+      },
+      onCancel: () async {
+        cancelled = true;
+        await cancelDittoStoreObserver(observer);
+        if (!controller.isClosed) await controller.close();
+      },
+    );
+    return controller.stream;
+  }
+
+  @override
+  Future<void> sendTicketToKitchen({
+    required String transactionId,
+    required String branchId,
+    String? sentBy,
+  }) async {
+    final ditto = _requireKitchenDitto('sendTicketToKitchen');
+    _registerKitchenOrdersSubscription(ditto, branchId);
+    await sendTicketToKitchenOnStore(
+      ditto.store,
+      transactionId: transactionId,
+      branchId: branchId,
+      sentBy: sentBy ?? ProxyService.box.getUserId(),
+    );
+  }
+
+  @override
+  Future<void> updateKitchenStage({
+    required String transactionId,
+    required KitchenStage stage,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    final ditto = _requireKitchenDitto('updateKitchenStage');
+    await updateKitchenStageOnStore(
+      ditto.store,
+      transactionId: transactionId,
+      stage: stage,
+      dueDate: dueDate,
+      clearDueDate: clearDueDate,
+    );
+  }
+
+  @override
+  Future<int> repairLegacyKitchenStatuses({required String branchId}) async {
+    final ditto = _requireKitchenDitto('repairLegacyKitchenStatuses');
+    final repaired = await repairLegacyKitchenStatusesOnStore(
+      ditto.store,
+      branchId: branchId,
+    );
+    if (repaired > 0) {
+      talker.info(
+        'repairLegacyKitchenStatuses: returned $repaired kitchen-stranded '
+        'ticket(s) to parked in branch $branchId',
+      );
+    }
+    return repaired;
   }
 
   @override

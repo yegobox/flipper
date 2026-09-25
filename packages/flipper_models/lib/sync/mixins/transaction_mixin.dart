@@ -1344,12 +1344,14 @@ mixin TransactionMixin implements TransactionInterface {
     required String ticketName,
     required String ticketNote,
     String? customerId,
+    bool sendToKitchen = false,
   }) async {
     await ProxyService.getStrategy(Strategy.capella).parkSaleTicketFast(
       transaction: transaction,
       ticketName: ticketName,
       ticketNote: ticketNote,
       customerId: customerId,
+      sendToKitchen: sendToKitchen,
     );
   }
 
@@ -1375,12 +1377,66 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? dueDate,
     bool clearDueDate = false,
   }) async {
+    // ignore: deprecated_member_use_from_same_package
     await ProxyService.getStrategy(Strategy.capella).updateKitchenOrderStatusFast(
       transactionId: transactionId,
       status: status,
       dueDate: dueDate,
       clearDueDate: clearDueDate,
     );
+  }
+
+  @override
+  Stream<List<KitchenOrderView>> kitchenOrdersStream({
+    required String branchId,
+  }) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).kitchenOrdersStream(branchId: branchId);
+  }
+
+  @override
+  Stream<Map<String, KitchenStage>> kitchenOrderStagesStream({
+    required String branchId,
+  }) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).kitchenOrderStagesStream(branchId: branchId);
+  }
+
+  @override
+  Future<void> sendTicketToKitchen({
+    required String transactionId,
+    required String branchId,
+    String? sentBy,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).sendTicketToKitchen(
+      transactionId: transactionId,
+      branchId: branchId,
+      sentBy: sentBy,
+    );
+  }
+
+  @override
+  Future<void> updateKitchenStage({
+    required String transactionId,
+    required KitchenStage stage,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  }) async {
+    await ProxyService.getStrategy(Strategy.capella).updateKitchenStage(
+      transactionId: transactionId,
+      stage: stage,
+      dueDate: dueDate,
+      clearDueDate: clearDueDate,
+    );
+  }
+
+  @override
+  Future<int> repairLegacyKitchenStatuses({required String branchId}) {
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).repairLegacyKitchenStatuses(branchId: branchId);
   }
 
   @override

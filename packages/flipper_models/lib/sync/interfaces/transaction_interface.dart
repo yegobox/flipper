@@ -292,11 +292,15 @@ abstract class TransactionInterface {
   });
 
   /// Single targeted Ditto UPDATE for park — no pre-read, ensure-next-cart deferred.
+  ///
+  /// [sendToKitchen] also puts the parked ticket (or, for a merge, the ticket
+  /// it merged into) on the Kitchen Display — see [sendTicketToKitchen].
   Future<void> parkSaleTicketFast({
     required ITransaction transaction,
     required String ticketName,
     required String ticketNote,
     String? customerId,
+    bool sendToKitchen = false,
   });
 
   /// Clear other pending carts + minimal Ditto UPDATE to resume on this device.
@@ -308,10 +312,55 @@ abstract class TransactionInterface {
   });
 
   /// Kitchen display column moves — status/timestamps only, no POS cart side effects.
+  @Deprecated(
+    'Writes a kitchen status onto transactions.status, which strands the '
+    'ticket for the till. Use updateKitchenStage.',
+  )
   Future<void> updateKitchenOrderStatusFast({
     required String transactionId,
     required String status,
     DateTime? dueDate,
     bool clearDueDate = false,
   });
+
+  /// Orders on the Kitchen Display for [branchId] (`kitchen_orders` not yet
+  /// served), each paired with its ticket. Branch-wide — every agent's
+  /// tickets — and independent of ticket status, so a ticket paid at the till
+  /// stays until the kitchen serves it.
+  Stream<List<KitchenOrderView>> kitchenOrdersStream({required String branchId});
+
+  /// Kitchen stage per ticket id for [branchId]: orders in the kitchen plus
+  /// ones served in the last 24 hours (a served ticket still open is waiting
+  /// on the cashier). One observer for the whole Tickets list.
+  Stream<Map<String, KitchenStage>> kitchenOrderStagesStream({
+    required String branchId,
+  });
+
+  /// Puts a ticket on the Kitchen Display. Never touches the ticket itself.
+  Future<void> sendTicketToKitchen({
+    required String transactionId,
+    required String branchId,
+    String? sentBy,
+  });
+
+  /// Moves an order between Kitchen Display columns (`kitchen_orders` only).
+  Future<void> updateKitchenStage({
+    required String transactionId,
+    required KitchenStage stage,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+  });
+
+  /// Returns tickets the old Kitchen Display left as `inProgress` / `waiting`
+  /// to `parked`, and onto the Kitchen Display. Returns how many it fixed.
+  Future<int> repairLegacyKitchenStatuses({required String branchId});
+}
+
+/// A Kitchen Display order and the ticket behind it. [ticket] is null when
+/// the ticket was deleted (or has not synced yet).
+class KitchenOrderView {
+  const KitchenOrderView({required this.order, this.ticket});
+
+  final KitchenOrder order;
+  final ITransaction? ticket;
 }

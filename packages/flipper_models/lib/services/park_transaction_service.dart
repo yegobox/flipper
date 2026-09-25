@@ -14,13 +14,15 @@ class ParkTransactionService {
     required String ticketNote,
     required ITransaction transaction,
     String? customerId,
+    bool sendToKitchen = false,
   }) async {
     if (ticketName.trim().isEmpty) {
       throw ArgumentError('ticketName is required to park a sale');
     }
 
     talker.info(
-      'park (Capella fast) ticketName=$ticketName customerId=$customerId txn=${transaction.id}',
+      'park (Capella fast) ticketName=$ticketName customerId=$customerId '
+      'sendToKitchen=$sendToKitchen txn=${transaction.id}',
     );
 
     await ProxyService.getStrategy(Strategy.capella).parkSaleTicketFast(
@@ -28,6 +30,7 @@ class ParkTransactionService {
       ticketName: ticketName,
       ticketNote: ticketNote,
       customerId: customerId,
+      sendToKitchen: sendToKitchen,
     );
 
     // Parking with "Mark as loan" is a credit sale: link the debtor to a

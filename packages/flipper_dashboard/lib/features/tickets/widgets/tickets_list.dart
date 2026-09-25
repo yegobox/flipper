@@ -20,6 +20,8 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
+import 'package:flipper_models/providers/kitchen_orders_provider.dart';
+import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_models/helpers/ticket_review_actions.dart';
 import 'package:flipper_models/helpers/pending_sale_cart_cleanup.dart';
 import 'package:flipper_models/order_form_whatsapp_client.dart';
@@ -761,6 +763,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         (ticket.status ?? '').toLowerCase() == PARKED;
                     final isAwaitingHandover =
                         (ticket.status ?? '') == AWAITING_HANDOVER;
+                    // One branch-wide observer; each card selects its own
+                    // stage so a kitchen move rebuilds only that card.
+                    final kitchenStage = ref.watch(
+                      kitchenOrderStagesProvider.select(
+                        (async) => async.value?[ticket.id],
+                      ),
+                    );
                     final isWhatsAppPickerActive =
                         _whatsAppPickerTicket?.id == ticket.id;
                     return TicketCard(
@@ -784,6 +793,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                       // must not be yanked into the till cart.
                       showResume: !reviewWorkflowOn && canCollect && isParked,
                       canManage: canCollect,
+                      kitchenStage: kitchenStage,
+                      // Any viewer of an open ticket can send it — waiters
+                      // are the ones who do. Never touches ticket status.
+                      // Served tickets can go back for another round.
+                      onSendToKitchen: isParked &&
+                              (kitchenStage == null ||
+                                  kitchenStage == KitchenStage.served)
+                          ? () => unawaited(_sendTicketToKitchen(ticket))
+                          : null,
+                      isSendingToKitchen:
+                          _sendingToKitchenTicketIds.contains(ticket.id),
                       isCollecting: _collectingTicketId == ticket.id,
                       showRecordHandover: canRecordHandover,
                       isPrintingOrderForm:
@@ -1199,6 +1219,40 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
       }
       return false;
+    }
+  }
+
+  /// Tickets with a Send to kitchen write in flight.
+  final Set<String> _sendingToKitchenTicketIds = {};
+
+  /// Puts [ticket] on the Kitchen Display (`kitchen_orders`). The ticket row
+  /// is not written, so Collect / Resume and the badge are unaffected.
+  Future<void> _sendTicketToKitchen(ITransaction ticket) async {
+    if (_sendingToKitchenTicketIds.contains(ticket.id)) return;
+    final branchId = ticket.branchId ?? ProxyService.box.getBranchId() ?? '';
+    if (branchId.isEmpty) return;
+    setState(() => _sendingToKitchenTicketIds.add(ticket.id));
+    try {
+      await ProxyService.getStrategy(Strategy.capella).sendTicketToKitchen(
+        transactionId: ticket.id,
+        branchId: branchId,
+      );
+      if (mounted) {
+        showCustomSnackBarUtil(context, 'Sent to kitchen');
+      }
+    } catch (e, st) {
+      talker.error('Send ticket ${ticket.id} to kitchen failed: $e', st);
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Could not send to kitchen. Try again.',
+          backgroundColor: Colors.red,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sendingToKitchenTicketIds.remove(ticket.id));
+      }
     }
   }
 
@@ -2081,6 +2135,15 @@ class TicketCard extends StatelessWidget {
   /// `canCollectPosPaymentProvider` (`AppFeature.Tickets` write) at the call
   /// site — the same population allowed to collect/complete tickets.
   final bool canManage;
+
+  /// Where this ticket is on the Kitchen Display — or [KitchenStage.served]
+  /// when the kitchen served it in the last day; null when never sent. Display
+  /// only, independent of [ITransaction.status].
+  final KitchenStage? kitchenStage;
+
+  /// Shows "Send to kitchen" (or "Send again" once served) when non-null.
+  final VoidCallback? onSendToKitchen;
+  final bool isSendingToKitchen;
   const TicketCard({
     super.key,
     required this.ticket,
@@ -2107,7 +2170,104 @@ class TicketCard extends StatelessWidget {
     this.isSendingOrderFormWhatsApp = false,
     this.orderFormWhatsAppSent = false,
     this.canManage = true,
+    this.kitchenStage,
+    this.onSendToKitchen,
+    this.isSendingToKitchen = false,
   });
+
+  Widget _kitchenRow() {
+    final stage = kitchenStage;
+    if (stage == KitchenStage.served) {
+      // Food is out: this ticket is now the cashier's to collect.
+      return Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Container(
+            key: ValueKey('kitchen_served_tag_${ticket.id}'),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 13,
+                  color: _kRegularGreen,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Served · ready for payment',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: _kRegularGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onSendToKitchen != null) _sendToKitchenButton('Send again'),
+        ],
+      );
+    }
+    if (stage != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: stage.color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.restaurant_rounded, size: 13, color: stage.color),
+            const SizedBox(width: 6),
+            Text(
+              'In kitchen · ${stage.label}',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: stage.color,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return _sendToKitchenButton('Send to kitchen');
+  }
+
+  Widget _sendToKitchenButton(String label) {
+    return OutlinedButton.icon(
+      key: ValueKey('send_to_kitchen_${ticket.id}'),
+      onPressed: isSendingToKitchen ? null : onSendToKitchen,
+      icon: isSendingToKitchen
+          ? const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.restaurant_rounded, size: 14),
+      label: Text(
+        label,
+        style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
 
   Color _leftAccent() {
     if (ticket.isLoan != true) return _kAccentBlue;
@@ -2324,6 +2484,11 @@ class TicketCard extends StatelessWidget {
                                 ),
                               ],
                             ),
+                          ],
+                          if (kitchenStage != null ||
+                              onSendToKitchen != null) ...[
+                            const SizedBox(height: 8),
+                            _kitchenRow(),
                           ],
                           const SizedBox(height: 10),
                           Row(

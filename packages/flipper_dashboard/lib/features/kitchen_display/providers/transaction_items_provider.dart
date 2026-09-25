@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,3 +17,15 @@ final transactionItemsProvider =
     );
   },
 );
+
+/// Lines for a Kitchen Display card, read from Capella (Ditto) — the store
+/// tickets are written to. [transactionItemsProvider] goes through
+/// `ProxyService.strategy`, which off-web is not Capella, so kitchen cards
+/// came up with "No items found". Kept separate so [transactionItemsProvider]'s
+/// other caller (the sale indicator) is unaffected.
+final kitchenTicketItemsProvider = FutureProvider.family
+    .autoDispose<List<TransactionItem>, String>((ref, transactionId) {
+      return ProxyService.getStrategy(
+        Strategy.capella,
+      ).transactionItems(transactionId: transactionId, active: true);
+    });
