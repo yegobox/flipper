@@ -138,24 +138,23 @@ mixin CapellaVariantMixin implements VariantInterface {
             ? i + _idLookupChunkSize
             : missing.length,
       );
-      try {
-        final lookup = idInLookup(chunk);
-        final found = await ditto.store.execute(
-          stockQtySelectDql(
-            whereClause:
-                '_id IN (${lookup.placeholders}) OR id IN (${lookup.placeholders})',
-          ),
-          arguments: lookup.arguments,
-        );
-        qty.addAll(
-          stockQtyByIdKeys(
-            found.items.map((doc) => Map<String, dynamic>.from(doc.value)),
-          ),
-        );
-      } catch (e) {
-        // Unresolved stock reads as 0 on the tile as well.
-        talker.warning('Stock filter: stock lookup failed: $e');
-      }
+      // No catch here: a failed lookup must not read as "0 on hand", which
+      // would hide sellable items. It propagates to runPage, which lists the
+      // unfiltered page instead. A lookup that simply finds no row still
+      // leaves the item out of stock, as the tile shows it.
+      final lookup = idInLookup(chunk);
+      final found = await ditto.store.execute(
+        stockQtySelectDql(
+          whereClause:
+              '_id IN (${lookup.placeholders}) OR id IN (${lookup.placeholders})',
+        ),
+        arguments: lookup.arguments,
+      );
+      qty.addAll(
+        stockQtyByIdKeys(
+          found.items.map((doc) => Map<String, dynamic>.from(doc.value)),
+        ),
+      );
     }
     return qty;
   }
