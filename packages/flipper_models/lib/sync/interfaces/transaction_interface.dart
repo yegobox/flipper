@@ -27,6 +27,7 @@ abstract class TransactionInterface {
     String? customerId,
     String? agentId,
     String? attributedAgentUserId,
+
     /// When true with [startDate]/[endDate], filters on [createdAt] instead of
     /// [lastTouched] (used for agent commission reporting).
     bool filterPeriodByCreatedAt = false,
@@ -327,7 +328,9 @@ abstract class TransactionInterface {
   /// served), each paired with its ticket. Branch-wide — every agent's
   /// tickets — and independent of ticket status, so a ticket paid at the till
   /// stays until the kitchen serves it.
-  Stream<List<KitchenOrderView>> kitchenOrdersStream({required String branchId});
+  Stream<List<KitchenOrderView>> kitchenOrdersStream({
+    required String branchId,
+  });
 
   /// Kitchen stage per ticket id for [branchId]: orders in the kitchen plus
   /// ones served in the last 24 hours (a served ticket still open is waiting

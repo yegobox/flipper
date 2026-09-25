@@ -40,8 +40,7 @@ class ParkTransactionService {
     // never reaches PARKED on this object (parkSaleTicketFast returns before
     // the status mutation), so merged carts are skipped here.
     if (transaction.isLoan == true && transaction.status == PARKED) {
-      if ((transaction.customerId == null ||
-              transaction.customerId!.isEmpty) &&
+      if ((transaction.customerId == null || transaction.customerId!.isEmpty) &&
           customerId != null &&
           customerId.isNotEmpty) {
         transaction.customerId = customerId;

@@ -3,7 +3,6 @@ import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/kitchen_orders_provider.dart';
@@ -30,8 +29,7 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
   ProductAnalytics get _analytics => ProxyService.productAnalytics;
 
-  DatabaseSyncInterface get _capella =>
-      ProxyService.getStrategy(Strategy.capella);
+  DatabaseSyncInterface get _capella => ref.read(kitchenCapellaProvider);
 
   @override
   void initState() {
@@ -42,8 +40,8 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
   /// Tickets the old Kitchen Display stranded as `inProgress` / `waiting` go
   /// back to `parked` and onto this display. No-op once there are none.
   Future<void> _repairLegacyTickets() async {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null || branchId.isEmpty) return;
+    final branchId = ref.read(kitchenBranchIdProvider);
+    if (branchId == null) return;
     try {
       await _capella.repairLegacyKitchenStatuses(branchId: branchId);
     } catch (e, s) {

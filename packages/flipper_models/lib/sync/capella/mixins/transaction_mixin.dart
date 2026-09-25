@@ -1180,7 +1180,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required String configId,
     required double taxPercentage,
   }) async {
-    return ProxyService.legacyStrategy.saveTax(configId: configId, taxPercentage: taxPercentage);
+    return ProxyService.legacyStrategy.saveTax(
+      configId: configId,
+      taxPercentage: taxPercentage,
+    );
   }
 
   @override
@@ -1218,8 +1221,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           .maybeSingle();
       if (row == null) return null;
 
-      final config =
-          configurationFromSupabaseRow(Map<String, dynamic>.from(row));
+      final config = configurationFromSupabaseRow(
+        Map<String, dynamic>.from(row),
+      );
       if (ditto != null) {
         await upsertReferenceDoc(
           ditto,
@@ -1251,8 +1255,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // or-create with [_ensureNextPendingCartIfNeeded] so Send-for-Review /
     // stream-empty handlers cannot mint two pending ids in a race.
     if (status == PENDING) {
-      final lock =
-          _lockForPendingCartScope(branchId, transactionType, isExpense);
+      final lock = _lockForPendingCartScope(
+        branchId,
+        transactionType,
+        isExpense,
+      );
       return lock.synchronized(
         () => _findOrCreateTransactionUnlocked(
           transactionType: transactionType,
@@ -1352,8 +1359,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // This used to hardcode "TS" for sales, which tagged every sale as a
         // training receipt and blocked sharing/printing it. Proforma/Training
         // are *sale* modes, so an expense stays NS either way.
-        receiptType:
-            isExpense ? TransactionReceptType.NS : defaultSaleReceiptType(),
+        receiptType: isExpense
+            ? TransactionReceptType.NS
+            : defaultSaleReceiptType(),
       );
 
       await ditto.store.execute(
@@ -1502,7 +1510,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for removeCustomerFromTransaction');
-      throw StateError('Ditto not initialized for removeCustomerFromTransaction');
+      throw StateError(
+        'Ditto not initialized for removeCustomerFromTransaction',
+      );
     }
 
     final targetId = transaction.id;
@@ -1748,7 +1758,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           );
           final maxSeq = seqResult.items.isEmpty
               ? 0
-              : ((seqResult.items.first.value['itemSeq'] as num?)?.toInt() ?? 0);
+              : ((seqResult.items.first.value['itemSeq'] as num?)?.toInt() ??
+                    0);
           nextItemSeq = maxSeq + 1;
         }
         seqMs = seqSw.elapsedMilliseconds;
@@ -2024,8 +2035,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             qty: resolvedNewQty,
             dcRt: dcRt ?? (d['dcRt'] as num?)?.toDouble() ?? 0.0,
             taxTyCd: d['taxTyCd']?.toString() ?? 'B',
-            taxPercentage:
-                (d['taxPercentage'] as num?)?.toDouble() ?? 18.0,
+            taxPercentage: (d['taxPercentage'] as num?)?.toDouble() ?? 18.0,
           );
           addUpdate('totAmt', pricing.totAmt);
           addUpdate('taxAmt', pricing.taxAmt);
@@ -2204,19 +2214,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     _pendingSubtotalDeltas.add(
       transactionId: transactionId,
       delta: delta,
-      onFlush: (id, summed) =>
-          dittoAdjustTransactionSubtotalByDelta(transactionId: id, delta: summed),
+      onFlush: (id, summed) => dittoAdjustTransactionSubtotalByDelta(
+        transactionId: id,
+        delta: summed,
+      ),
     );
   }
 
   /// Writes the gathered delta for [transactionId] now, if any is owed.
-  Future<void> flushPendingSubtotalDelta({
-    required String transactionId,
-  }) {
+  Future<void> flushPendingSubtotalDelta({required String transactionId}) {
     return _pendingSubtotalDeltas.flush(
       transactionId: transactionId,
-      onFlush: (id, summed) =>
-          dittoAdjustTransactionSubtotalByDelta(transactionId: id, delta: summed),
+      onFlush: (id, summed) => dittoAdjustTransactionSubtotalByDelta(
+        transactionId: id,
+        delta: summed,
+      ),
     );
   }
 
@@ -2681,13 +2693,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     final withItems = <String>{};
     // Chunk to keep DQL arg lists bounded (resume can see 100+ orphan carts).
-    for (var i = 0;
-        i < candidateIds.length;
-        i += _pendingSaleCartMutationChunkSize) {
-      final end =
-          (i + _pendingSaleCartMutationChunkSize < candidateIds.length)
-              ? i + _pendingSaleCartMutationChunkSize
-              : candidateIds.length;
+    for (
+      var i = 0;
+      i < candidateIds.length;
+      i += _pendingSaleCartMutationChunkSize
+    ) {
+      final end = (i + _pendingSaleCartMutationChunkSize < candidateIds.length)
+          ? i + _pendingSaleCartMutationChunkSize
+          : candidateIds.length;
       final chunk = candidateIds.sublist(i, end);
       final result = await ditto.store.execute(
         'SELECT transactionId FROM transaction_items '
@@ -2696,7 +2709,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
       for (final item in result.items) {
         final data = Map<String, dynamic>.from(item.value);
-        final tid = data['transactionId'] as String? ??
+        final tid =
+            data['transactionId'] as String? ??
             data['transaction_id'] as String?;
         if (tid != null && tid.isNotEmpty) withItems.add(tid);
       }
@@ -2715,9 +2729,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       throw StateError('Ditto not initialized for pending sale cart mutations');
     }
 
-    for (var i = 0;
-        i < deleteIds.length;
-        i += _pendingSaleCartMutationChunkSize) {
+    for (
+      var i = 0;
+      i < deleteIds.length;
+      i += _pendingSaleCartMutationChunkSize
+    ) {
       final end = (i + _pendingSaleCartMutationChunkSize < deleteIds.length)
           ? i + _pendingSaleCartMutationChunkSize
           : deleteIds.length;
@@ -2740,13 +2756,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (reparkRows.isEmpty) return;
 
     final nowIso = DateTime.now().toUtc().toIso8601String();
-    for (var i = 0;
-        i < reparkRows.length;
-        i += _pendingSaleCartMutationChunkSize) {
-      final end =
-          (i + _pendingSaleCartMutationChunkSize < reparkRows.length)
-              ? i + _pendingSaleCartMutationChunkSize
-              : reparkRows.length;
+    for (
+      var i = 0;
+      i < reparkRows.length;
+      i += _pendingSaleCartMutationChunkSize
+    ) {
+      final end = (i + _pendingSaleCartMutationChunkSize < reparkRows.length)
+          ? i + _pendingSaleCartMutationChunkSize
+          : reparkRows.length;
       final chunk = reparkRows.sublist(i, end);
       await ditto.store.transaction((txn) async {
         for (final row in chunk) {
@@ -2792,7 +2809,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized for clearPendingSaleCartsExcept');
-        throw StateError('Ditto not initialized for clearPendingSaleCartsExcept');
+        throw StateError(
+          'Ditto not initialized for clearPendingSaleCartsExcept',
+        );
       }
 
       final args = _pendingSaleCartArgs(
@@ -2964,7 +2983,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             transaction.id,
           );
           if (sendToKitchen || carriedFromKitchen) {
-            await _sendParkedTicketToKitchen(ditto, other.id, branchId);
+            await _sendParkedTicketToKitchen(
+              ditto,
+              other.id,
+              branchId,
+              sentBy: transaction.agentId,
+            );
           }
           unawaited(
             manageTransaction(
@@ -3073,7 +3097,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     );
 
     if (sendToKitchen) {
-      await _sendParkedTicketToKitchen(ditto, targetId, branchId);
+      // The parking agent is who sent it.
+      await _sendParkedTicketToKitchen(
+        ditto,
+        targetId,
+        branchId,
+        sentBy: transaction.agentId,
+      );
     }
 
     final transactionType = transaction.transactionType ?? SALE;
@@ -3187,18 +3217,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<void> _sendParkedTicketToKitchen(
     dynamic ditto,
     String ticketId,
-    String branchId,
-  ) async {
+    String branchId, {
+    String? sentBy,
+  }) async {
     try {
       _registerKitchenOrdersSubscription(ditto, branchId);
       await sendTicketToKitchenOnStore(
         ditto.store,
         transactionId: ticketId,
         branchId: branchId,
-        sentBy: ProxyService.box.getUserId(),
+        sentBy: sentBy,
       );
     } catch (e, s) {
-      talker.error('parkSaleTicketFast: send to kitchen failed for $ticketId: $e', s);
+      talker.error(
+        'parkSaleTicketFast: send to kitchen failed for $ticketId: $e',
+        s,
+      );
     }
   }
 
@@ -3444,10 +3478,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
               onChange: emit,
             );
             emit(
-              await ditto.store.execute(
-                kitchenTicketTagsDql,
-                arguments: args,
-              ),
+              await ditto.store.execute(kitchenTicketTagsDql, arguments: args),
             );
           } catch (e, s) {
             talker.error('kitchenOrderStagesStream setup failed: $e', s);
@@ -3476,7 +3507,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       ditto.store,
       transactionId: transactionId,
       branchId: branchId,
-      sentBy: sentBy ?? ProxyService.box.getUserId(),
+      sentBy: sentBy,
     );
   }
 
@@ -3613,7 +3644,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
   }) async {
-    return ProxyService.legacyStrategy.transactionsAndItems(startDate: startDate, endDate: endDate, status: status, transactionType: transactionType, branchId: branchId, isCashOut: isCashOut, fetchRemote: fetchRemote, id: id, isExpense: isExpense, filterType: filterType, includeZeroSubTotal: includeZeroSubTotal, includePending: includePending, includeParked: includeParked, skipOriginalTransactionCheck: skipOriginalTransactionCheck);
+    return ProxyService.legacyStrategy.transactionsAndItems(
+      startDate: startDate,
+      endDate: endDate,
+      status: status,
+      transactionType: transactionType,
+      branchId: branchId,
+      isCashOut: isCashOut,
+      fetchRemote: fetchRemote,
+      id: id,
+      isExpense: isExpense,
+      filterType: filterType,
+      includeZeroSubTotal: includeZeroSubTotal,
+      includePending: includePending,
+      includeParked: includeParked,
+      skipOriginalTransactionCheck: skipOriginalTransactionCheck,
+    );
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/helpers/default_sale_receipt_type.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/utils/rra_sar_sequence.dart';
@@ -1370,6 +1371,10 @@ mixin TransactionMixin implements TransactionInterface {
     );
   }
 
+  /// Kitchen Display calls all live on Capella; one locator lookup for them.
+  DatabaseSyncInterface get _kitchenCapella =>
+      ProxyService.getStrategy(Strategy.capella);
+
   @override
   Future<void> updateKitchenOrderStatusFast({
     required String transactionId,
@@ -1378,7 +1383,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool clearDueDate = false,
   }) async {
     // ignore: deprecated_member_use_from_same_package
-    await ProxyService.getStrategy(Strategy.capella).updateKitchenOrderStatusFast(
+    await _kitchenCapella.updateKitchenOrderStatusFast(
       transactionId: transactionId,
       status: status,
       dueDate: dueDate,
@@ -1390,18 +1395,14 @@ mixin TransactionMixin implements TransactionInterface {
   Stream<List<KitchenOrderView>> kitchenOrdersStream({
     required String branchId,
   }) {
-    return ProxyService.getStrategy(
-      Strategy.capella,
-    ).kitchenOrdersStream(branchId: branchId);
+    return _kitchenCapella.kitchenOrdersStream(branchId: branchId);
   }
 
   @override
   Stream<Map<String, KitchenStage>> kitchenOrderStagesStream({
     required String branchId,
   }) {
-    return ProxyService.getStrategy(
-      Strategy.capella,
-    ).kitchenOrderStagesStream(branchId: branchId);
+    return _kitchenCapella.kitchenOrderStagesStream(branchId: branchId);
   }
 
   @override
@@ -1410,7 +1411,7 @@ mixin TransactionMixin implements TransactionInterface {
     required String branchId,
     String? sentBy,
   }) async {
-    await ProxyService.getStrategy(Strategy.capella).sendTicketToKitchen(
+    await _kitchenCapella.sendTicketToKitchen(
       transactionId: transactionId,
       branchId: branchId,
       sentBy: sentBy,
@@ -1424,7 +1425,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? dueDate,
     bool clearDueDate = false,
   }) async {
-    await ProxyService.getStrategy(Strategy.capella).updateKitchenStage(
+    await _kitchenCapella.updateKitchenStage(
       transactionId: transactionId,
       stage: stage,
       dueDate: dueDate,
@@ -1434,9 +1435,7 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<int> repairLegacyKitchenStatuses({required String branchId}) {
-    return ProxyService.getStrategy(
-      Strategy.capella,
-    ).repairLegacyKitchenStatuses(branchId: branchId);
+    return _kitchenCapella.repairLegacyKitchenStatuses(branchId: branchId);
   }
 
   @override

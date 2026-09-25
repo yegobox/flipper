@@ -261,8 +261,7 @@ class _ParkTicketFooter extends StatelessWidget {
                                 (formKey.currentState?.validate() ?? false),
                             onPressed: () async {
                               final ok =
-                                  await formKey.currentState?.submit() ??
-                                  false;
+                                  await formKey.currentState?.submit() ?? false;
                               if (!ok || !context.mounted) return;
                               onParked?.call();
                               Navigator.of(context).pop();
@@ -539,7 +538,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(_kSheetRadius)),
       ),
       builder: (sheetContext) {
         var query = '';
@@ -583,13 +583,11 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                         filled: true,
                         fillColor: const Color(0xFFF9FAFB),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(_kFieldRadius),
+                          borderRadius: BorderRadius.circular(_kFieldRadius),
                           borderSide: const BorderSide(color: _kCardBorder),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(_kFieldRadius),
+                          borderRadius: BorderRadius.circular(_kFieldRadius),
                           borderSide: const BorderSide(color: _kCardBorder),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
@@ -614,8 +612,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              onTap: () =>
-                                  Navigator.pop(sheetContext, false),
+                              onTap: () => Navigator.pop(sheetContext, false),
                             );
                           }
                           final c = filtered[index - 1];
@@ -702,7 +699,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     }
     return ValueListenableBuilder<bool>(
       valueListenable: saving,
-      builder: (context, isSaving, _) => _buildForm(context, isSaving: isSaving),
+      builder: (context, isSaving, _) =>
+          _buildForm(context, isSaving: isSaving),
     );
   }
 
@@ -721,9 +719,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
           children: [
             const _SheetHandle(),
             _ParkHeader(
-              onClose: isSaving
-                  ? null
-                  : () => Navigator.of(context).pop(),
+              onClose: isSaving ? null : () => Navigator.of(context).pop(),
             ),
             if (isSaving) ...[
               const SizedBox(height: 12),
@@ -870,8 +866,7 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
     final name = _selectedCustomer?.custNm?.trim();
     final phone = _formatPhoneDisplay(_selectedCustomer?.telNo?.trim() ?? '');
     final hasCustomer = name != null && name.isNotEmpty;
-    final initial =
-        hasCustomer ? name[0].toUpperCase() : null;
+    final initial = hasCustomer ? name[0].toUpperCase() : null;
 
     return Material(
       color: Colors.transparent,
@@ -1020,7 +1015,8 @@ class SharedTicketFormState extends ConsumerState<SharedTicketForm> {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: _presetChip('1 month', _DuePreset.oneMonth, isSaving: isSaving),
+          child:
+              _presetChip('1 month', _DuePreset.oneMonth, isSaving: isSaving),
         ),
       ],
     );
