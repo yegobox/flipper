@@ -1661,6 +1661,34 @@
     "@sortCompactDate": {
         "description": "Compact sort chip label, paired with an arrow"
     },
+    "posStockFilterInStock": "In stock",
+    "@posStockFilterInStock": {
+        "description": "POS catalog stock filter option: only items with stock (the default)"
+    },
+    "posStockFilterOutOfStock": "Out of stock",
+    "@posStockFilterOutOfStock": {
+        "description": "POS catalog stock filter option: only items with no stock"
+    },
+    "posStockFilterAll": "All items",
+    "@posStockFilterAll": {
+        "description": "POS catalog stock filter option: every item, in stock or not"
+    },
+    "posStockFilterNoneInStock": "No items in stock",
+    "@posStockFilterNoneInStock": {
+        "description": "POS catalog empty state when the in-stock filter hides every item"
+    },
+    "posStockFilterNoneOutOfStock": "No out-of-stock items",
+    "@posStockFilterNoneOutOfStock": {
+        "description": "POS catalog empty state when the out-of-stock filter finds nothing"
+    },
+    "posStockFilterEmptyHint": "Search to find any item, or change the stock filter.",
+    "@posStockFilterEmptyHint": {
+        "description": "Hint under the POS catalog stock-filter empty state"
+    },
+    "posStockFilterShowAll": "Show all items",
+    "@posStockFilterShowAll": {
+        "description": "Button on the POS catalog stock-filter empty state that switches to every item"
+    },
     "showingRangeOfResults": "Showing {start}–{end} of {total} results",
     "@showingRangeOfResults": {
         "description": "Pagination summary above the product grid",

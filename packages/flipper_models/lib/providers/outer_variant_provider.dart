@@ -10,10 +10,36 @@ import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_tax_ty_cds.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+export 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart'
+    show PosStockFilter;
+
 part 'outer_variant_provider.g.dart';
+
+/// The stock view the POS grid is showing. Starts on in-stock items every
+/// session; a search always lists everything regardless (see [PosStockFilter]).
+@Riverpod(keepAlive: true)
+class PosCatalogStockFilter extends _$PosCatalogStockFilter {
+  @override
+  PosStockFilter build() => PosStockFilter.inStock;
+
+  void set(PosStockFilter filter) => state = filter;
+}
+
+/// The POS grid's stock-filtered catalogs for [branchId].
+///
+/// Every other screen (inventory, purchase mapping, pickers) reads the
+/// unfiltered `outerVariantsProvider(branchId)`, so anything that edits the
+/// catalog in place — add, delete, refresh — has to reach these too, or the
+/// POS keeps showing what the unfiltered catalog already changed.
+List<OuterVariantsProvider> posStockFilteredCatalogs(String branchId) => [
+  for (final filter in PosStockFilter.values)
+    if (filter != PosStockFilter.all)
+      outerVariantsProvider(branchId, stockFilter: filter),
+];
 
 @riverpod
 class OuterVariants extends _$OuterVariants {
@@ -59,6 +85,10 @@ class OuterVariants extends _$OuterVariants {
   final Map<int, Future<PagedVariants>> _inFlightPages = {};
   int? _totalCount;
   int? _itemsPerPage;
+
+  /// Rows the stock filter hid on the last unsearched fetch; null when this
+  /// catalog is unfiltered or has not fetched yet.
+  int? _stockFilteredOut;
 
   /// True when a stored preference owns the page size; auto-fit then never
   /// overrides what the user asked for.
@@ -136,7 +166,10 @@ class OuterVariants extends _$OuterVariants {
   }
 
   @override
-  FutureOr<List<Variant>> build(String branchId) async {
+  FutureOr<List<Variant>> build(
+    String branchId, {
+    PosStockFilter stockFilter = PosStockFilter.all,
+  }) async {
     ref.keepAlive();
 
     // Initialize itemsPerPage once. Use a smaller default for better performance
@@ -236,7 +269,7 @@ class OuterVariants extends _$OuterVariants {
     String branchId,
   ) async {
     var paged = await _fetchVariants(branchId, 0, '', fetchRemote: true);
-    if (paged.variants.isNotEmpty) return paged;
+    if (_hasSyncedCatalog(paged)) return paged;
 
     const delays = <Duration>[
       Duration(milliseconds: 400),
@@ -250,10 +283,16 @@ class OuterVariants extends _$OuterVariants {
       );
       await Future.delayed(d);
       paged = await _fetchVariants(branchId, 0, '', fetchRemote: true);
-      if (paged.variants.isNotEmpty) break;
+      if (_hasSyncedCatalog(paged)) break;
     }
     return paged;
   }
+
+  /// An empty stock-filtered page is still a synced catalog when the filter
+  /// hid rows — every item simply sits on the other side of the stock line,
+  /// and retrying would only hold the grid on a spinner.
+  bool _hasSyncedCatalog(PagedVariants paged) =>
+      paged.variants.isNotEmpty || (paged.stockFilteredOut ?? 0) > 0;
 
   Future<PagedVariants> _fetchVariants(
     String branchId,
@@ -283,11 +322,17 @@ class OuterVariants extends _$OuterVariants {
       taxTyCds: taxTyCds,
       scanMode: currentScanMode,
       countTotal: countTotal,
+      // variants() ignores this while searching, so a search still finds a
+      // sold-out product.
+      inStock: stockFilter.inStockArg,
     );
 
     talker.info(
       'OuterVariants: _fetchVariants returned ${paged.variants.length} items (totalCount=${paged.totalCount ?? 'null'})',
     );
+    // A search bypasses the filter and reports nothing here; keep the last
+    // unsearched figure for when the search is cleared.
+    if (searchString.trim().isEmpty) _stockFilteredOut = paged.stockFilteredOut;
 
     return paged;
   }
@@ -387,6 +432,21 @@ class OuterVariants extends _$OuterVariants {
     // Get IDs of new/updated variants
     final newVariantIds = newVariants.map((v) => v.id).toSet();
 
+    // A stock-filtered catalog keeps only the rows its filter would list, so
+    // an edit that moves a variant across the stock line drops it here. Save
+    // callbacks do not always attach stock, and a variant whose stock is not
+    // known is kept rather than guessed away — its tile still shows the live
+    // quantity. While searching the filter is off, so everything goes in.
+    final wantInStock = _currentSearch.trim().isEmpty
+        ? stockFilter.inStockArg
+        : null;
+    final incoming = wantInStock == null
+        ? newVariants
+        : newVariants.where((v) {
+            final qty = v.stock?.currentStock;
+            return qty == null || posTileHasStock(qty) == wantInStock;
+          }).toList();
+
     final existingFlat = _pageCache.isEmpty
         ? List<Variant>.from(state.value!)
         : _flattenContiguousPages();
@@ -397,7 +457,7 @@ class OuterVariants extends _$OuterVariants {
         .toList();
 
     // Prepend the new/updated variants to the list
-    var newList = [...newVariants, ...filteredExisting];
+    var newList = [...incoming, ...filteredExisting];
     final ipp = _itemsPerPage ?? 15;
     final maxItems = _maxCachedPages * ipp;
     if (newList.length > maxItems) {
@@ -632,6 +692,12 @@ class OuterVariants extends _$OuterVariants {
   int get loadedCount => state.value?.length ?? 0;
 
   int? get totalCount => _totalCount;
+
+  /// True when the stock filter — not an empty catalog — is why this catalog
+  /// lists nothing, so the grid can offer to show everything instead of
+  /// claiming there are no products.
+  bool get isEmptyByStockFilter =>
+      _currentSearch.trim().isEmpty && (_stockFilteredOut ?? 0) > 0;
 
   /// Highest page index currently present in the page cache (0-based).
   int get currentPage => _lastCachedPage;

@@ -171,6 +171,9 @@ mixin VariantMixin implements VariantInterface {
     /// Skips the COUNT(*) pass when the caller already knows the total for this
     /// filter (page switching re-uses the count taken on the first page).
     bool countTotal = true,
+
+    /// Not applied here: the POS grid reads Capella.
+    bool? inStock,
   }) async {
     try {
       final List<WhereCondition> conditions = [

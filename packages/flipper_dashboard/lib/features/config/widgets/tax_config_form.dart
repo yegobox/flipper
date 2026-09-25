@@ -480,6 +480,10 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
         ref.refresh(outerVariantsProvider(branchId));
+        // The VAT regime decides which tax codes the POS lists too.
+        for (final catalog in posStockFilteredCatalogs(branchId)) {
+          ref.invalidate(catalog);
+        }
         ref.invalidate(ebmVatEnabledProvider);
       }
 

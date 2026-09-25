@@ -96,6 +96,13 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
               )
               .removeVariantById(variantId);
+          for (final catalog in posStockFilteredCatalogs(
+            ProxyService.box.getBranchId()!,
+          )) {
+            if (ref.exists(catalog)) {
+              ref.read(catalog.notifier).removeVariantById(variantId);
+            }
+          }
           return;
         }
         // If the product is  composite, search and delete related composites
@@ -127,6 +134,13 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
               )
               .removeVariantById(variantId);
+          for (final catalog in posStockFilteredCatalogs(
+            ProxyService.box.getBranchId()!,
+          )) {
+            if (ref.exists(catalog)) {
+              ref.read(catalog.notifier).removeVariantById(variantId);
+            }
+          }
 
           // Delete associated assets
           if (product.imageUrl != null) {

@@ -211,6 +211,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     final branchId = ProxyService.box.getBranchId();
     if (branchId != null && mounted) {
       ref.read(outerVariantsProvider(branchId).notifier).addVariants(variants);
+      for (final catalog in posStockFilteredCatalogs(branchId)) {
+        if (ref.exists(catalog)) {
+          ref.read(catalog.notifier).addVariants(variants);
+        }
+      }
     }
   }
 

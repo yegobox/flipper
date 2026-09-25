@@ -560,6 +560,9 @@ class CombinedNotifier {
 
     // Trigger refresh for outerVariantsProvider to show newly imported products
     ref.read(outerVariantsProvider(branchId).notifier).refresh();
+    for (final catalog in posStockFilteredCatalogs(branchId)) {
+      if (ref.exists(catalog)) ref.read(catalog.notifier).refresh();
+    }
 
     // Reload products
     ref

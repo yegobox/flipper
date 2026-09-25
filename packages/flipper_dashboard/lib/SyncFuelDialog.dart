@@ -153,6 +153,9 @@ class _SyncFuelDialogState extends ConsumerState<SyncFuelDialog> {
       if (mounted) {
         ref.invalidate(outerVariantsProvider(branchId));
         await ref.read(outerVariantsProvider(branchId).notifier).refresh();
+        for (final catalog in posStockFilteredCatalogs(branchId)) {
+          ref.invalidate(catalog);
+        }
       }
 
       if (!mounted) return;

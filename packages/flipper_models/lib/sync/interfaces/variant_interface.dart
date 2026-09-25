@@ -28,6 +28,11 @@ abstract class VariantInterface {
     /// Skips the COUNT(*) pass when the caller already knows the total for this
     /// filter (page switching re-uses the count taken on the first page).
     bool countTotal = true,
+
+    /// POS grid stock filter: true lists only sellable items, false only
+    /// sold-out ones, null everything. Ignored while searching by name or
+    /// barcode, so a search still finds a sold-out product.
+    bool? inStock,
   });
   Future<Variant?> getVariant({required String id});
 

@@ -70,9 +70,13 @@ class InventoryApp extends HookConsumerWidget {
 
   Widget buildProductSection(WidgetRef ref) {
     // Browse-only under view (read+) access; add-to-cart etc. are gated on
-    // canSellProvider inside the catalog.
+    // canSellProvider inside the catalog. This is the desktop POS catalog, so
+    // it follows the cashier's stock filter (in stock by default).
     return Expanded(
-      child: ProductView.normalMode(linkedSearchController: searchController),
+      child: ProductView.normalMode(
+        linkedSearchController: searchController,
+        filterByStock: true,
+      ),
     ).shouldViewTheApp(ref, featureName: AppFeature.Sales);
   }
 

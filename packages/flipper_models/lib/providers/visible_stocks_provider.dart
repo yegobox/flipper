@@ -7,12 +7,18 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'visible_stocks_provider.g.dart';
 
 /// One Ditto observer for all stock rows on the current catalog page (max ~15).
+///
+/// [stockFilter] must match the catalog the grid renders, or the observer
+/// watches another page's stock rows.
 @riverpod
 Stream<Map<String, Stock?>> stocksForVisibleVariants(
   Ref ref,
-  String branchId,
-) {
-  final variantsAsync = ref.watch(outerVariantsProvider(branchId));
+  String branchId, {
+  PosStockFilter stockFilter = PosStockFilter.all,
+}) {
+  final variantsAsync = ref.watch(
+    outerVariantsProvider(branchId, stockFilter: stockFilter),
+  );
   final variants = variantsAsync.asData?.value ?? const <Variant>[];
   final stockIds = variants
       .map((v) => v.stockId)

@@ -156,6 +156,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
       ref.read(outerVariantsProvider(branchId).notifier).addVariants(
             [catalogVariant],
           );
+      for (final catalog in posStockFilteredCatalogs(branchId)) {
+        if (ref.exists(catalog)) {
+          ref.read(catalog.notifier).addVariants([catalogVariant]);
+        }
+      }
       setState(() {
         _itemMapper.putIfAbsent(catalogVariant.id, () => []).add(line);
       });
