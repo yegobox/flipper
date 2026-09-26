@@ -389,6 +389,7 @@ class DodoHealth {
     this.modesAvailable = const [],
     this.onDemandEnabled = false,
     this.onDemandReadyModes = const [],
+    this.discountCodes = false,
   });
 
   final bool enabled;
@@ -423,6 +424,14 @@ class DodoHealth {
 
   /// Modes with an on-demand product configured, e.g. `['live']`.
   final List<String> onDemandReadyModes;
+
+  /// The connector bills Flipper discount codes on the card rail, as Dodo
+  /// discounts (`flipper_discount_codes`). An older connector ignores the
+  /// code and charges full price, so the card must say so instead.
+  final bool discountCodes;
+
+  /// Whether a discount code applied on the card rail will be charged.
+  bool get discountCodesForThisBuild => readyForThisBuild && discountCodes;
 
   /// Whether the mode *this build* transacts in can create a negotiated-price
   /// card subscription.
@@ -474,6 +483,7 @@ class DodoHealth {
     returnUrlConfigured: json['return_url_configured'] == true,
     onDemandEnabled: json['on_demand_enabled'] == true,
     onDemandReadyModes: _readyModes(json['on_demand_ready']),
+    discountCodes: json['flipper_discount_codes'] == true,
   );
 
   /// `{"live": true, "test": false}` → `['live']`.

@@ -157,9 +157,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     }
   }
 
-  /// The connector can bill a discount on the card rail only as an on-demand
-  /// subscription, which Dodo must enable per account.
-  bool get _discountOnCard => _dodoHealth?.onDemandReadyForThisBuild ?? false;
+  /// The connector bills a discount on the card rail as a Dodo discount code.
+  /// An older connector ignores the code, so it reports whether it can.
+  bool get _discountOnCard => _dodoHealth?.discountCodesForThisBuild ?? false;
 
   /// The code to send with a card payment, or null when the card pays full
   /// price (no code, or no on-demand support).

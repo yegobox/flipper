@@ -111,6 +111,10 @@ class _FailedPaymentState extends State<FailedPayment>
   String? _emailError;
   DodoCheckout? _pendingCheckout;
 
+  /// The discount code [_pendingCheckout] was opened with; null for a
+  /// full-price one, or one resumed from the connector.
+  String? _pendingCheckoutCode;
+
   /// Bumped whenever a card wait starts or is abandoned. A poll only acts
   /// while the number it started with is current, so a wait the customer left
   /// can never end the one they started next (card or Mobile Money).
@@ -219,6 +223,7 @@ class _FailedPaymentState extends State<FailedPayment>
     setState(() {
       _waitingForPaymentCompletion = true;
       _pendingCheckout = status.checkout;
+      _pendingCheckoutCode = null;
     });
     _startCardPolling(planId);
   }
@@ -957,7 +962,9 @@ class _FailedPaymentState extends State<FailedPayment>
           style: PaymentTypography.body(),
           textAlign: TextAlign.center,
         ),
-        if (_rail.isCard && _pendingCheckout?.paymentLink != null) ...[
+        if (_rail.isCard &&
+            _pendingCheckoutIsCurrent &&
+            _pendingCheckout?.paymentLink != null) ...[
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: () => _reopenCheckout(_pendingCheckout!.paymentLink!),
@@ -1193,14 +1200,20 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
-  /// The connector can bill a discount on the card rail only as an on-demand
-  /// subscription, which Dodo must enable per account.
-  bool get _discountOnCard => _dodoHealth?.onDemandReadyForThisBuild ?? false;
+  /// The connector bills a discount on the card rail as a Dodo discount code.
+  /// An older connector ignores the code, so it reports whether it can.
+  bool get _discountOnCard => _dodoHealth?.discountCodesForThisBuild ?? false;
 
   /// The code to send with a card payment, or null when the card pays full
   /// price (no code, or no on-demand support).
   String? get _cardDiscountCode =>
       _discountAmount > 0 && _discountOnCard ? _discountCode : null;
+
+  /// The open checkout is at the price Pay would charge now. One opened
+  /// before a code was applied (or removed) is not: Pay replaces it, and
+  /// offering it would be how the customer pays the old amount.
+  bool get _pendingCheckoutIsCurrent =>
+      _pendingCheckoutCode == _cardDiscountCode;
 
   Widget _buildCardSection() {
     return PaymentCardCheckoutCard(
@@ -1212,8 +1225,11 @@ class _FailedPaymentState extends State<FailedPayment>
       // discounted card subscription charges one discounted period from
       // today. Dodo's page shows the exact figure.
       discountOnCard: _discountOnCard,
-      pendingCheckoutLink: _pendingCheckout?.paymentLink,
-      onOpenPendingLink: _pendingCheckout?.paymentLink == null
+      pendingCheckoutLink: _pendingCheckoutIsCurrent
+          ? _pendingCheckout?.paymentLink
+          : null,
+      onOpenPendingLink:
+          !_pendingCheckoutIsCurrent || _pendingCheckout?.paymentLink == null
           ? null
           : () => _reopenCheckout(_pendingCheckout!.paymentLink!),
       onEmailChanged: (_) {
@@ -1311,6 +1327,7 @@ class _FailedPaymentState extends State<FailedPayment>
             _isLoading = false;
             _waitingForPaymentCompletion = true;
             _pendingCheckout = result.checkout;
+            _pendingCheckoutCode = result.start?.discount?.code;
           });
           // No timeout, unlike Mobile Money: the customer is in a browser,
           // possibly through 3-D Secure, and this screen stays until they pay
@@ -1327,6 +1344,7 @@ class _FailedPaymentState extends State<FailedPayment>
           setState(() {
             _isLoading = false;
             _pendingCheckout = result.checkout;
+            _pendingCheckoutCode = result.start?.discount?.code;
             _errorMessage =
                 result.message ??
                 'Could not open the card payment page on this device. Use the '

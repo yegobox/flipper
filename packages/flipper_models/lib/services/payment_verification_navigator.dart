@@ -49,6 +49,23 @@ class PaymentVerificationNavigator {
   }) =>
       userInitiated || isInitialStartup || paywallRoutes.contains(currentRoute);
 
+  /// Whether a verification that *could not complete* may still send the user
+  /// home ("proceed despite the error").
+  ///
+  /// Narrower than [mayEnterHomeFor]: an error says nothing about whether money
+  /// is owed, so it must not lift a paywall. Startup keeps failing open so an
+  /// offline shop can still trade, and a check the user asked for may too. A
+  /// background check on the paywall may not: the card checkout writes the
+  /// `plans` row before it calls the connector, that write triggers a
+  /// verification, and any blip in it (a turbo timeout, a dev backend that
+  /// isn't up) waved an unpaid user into the dashboard until the next check
+  /// sent them back.
+  @visibleForTesting
+  static bool mayFailOpenFor({
+    required bool userInitiated,
+    required bool isInitialStartup,
+  }) => userInitiated || isInitialStartup;
+
   static const _criticalRoutes = {
     'AddProductView',
     'Sell',
@@ -175,7 +192,13 @@ class PaymentVerificationNavigator {
         await _handleInactivePlan(response);
         break;
       case PaymentVerificationResult.error:
-        await _handleVerificationError(response, mayEnterHome: mayEnterHome);
+        await _handleVerificationError(
+          response,
+          mayFailOpen: mayFailOpenFor(
+            userInitiated: userInitiated,
+            isInitialStartup: isInitialStartup,
+          ),
+        );
         break;
     }
   }
@@ -227,7 +250,7 @@ class PaymentVerificationNavigator {
 
   static Future<void> _handleVerificationError(
     PaymentVerificationResponse response, {
-    required bool mayEnterHome,
+    required bool mayFailOpen,
   }) async {
     talker.error('Error during payment verification: ${response.errorMessage}');
 
@@ -236,15 +259,16 @@ class PaymentVerificationNavigator {
     // Only the two branches below that identify a *real* payment problem may
     // still interrupt; everything else (a dropped connection, a Supabase
     // hiccup, "no active business found") used to fall through to "proceed to
-    // main app" and pop the user's page for no reason.
+    // main app" and pop the user's page for no reason. Nor may it lift a
+    // paywall from the background: see [mayFailOpenFor].
     final isPaymentProblem =
         response.exception is NoPaymentPlanFound ||
         response.exception is PaymentIncompleteException ||
         response.exception is FailedPaymentException;
 
-    if (!mayEnterHome && !isPaymentProblem) {
+    if (!mayFailOpen && !isPaymentProblem) {
       talker.warning(
-        'Ignoring payment verification error while user is working on '
+        'Ignoring payment verification error on '
         '${_routerService.router.current.name}',
       );
       return;
@@ -267,7 +291,7 @@ class PaymentVerificationNavigator {
     } else if (response.exception is PaymentIncompleteException ||
         response.exception is FailedPaymentException) {
       _routerService.navigateTo(FailedPaymentRoute());
-    } else if (mayEnterHome) {
+    } else if (mayFailOpen) {
       talker.warning(
         'Proceeding to main app despite payment verification error',
       );
@@ -294,12 +318,11 @@ class PaymentVerificationNavigator {
     bool skipPersonalCheck = false,
     bool skipCommissionCheck = false,
     bool clearStack = false,
-  }) =>
-      _navigateToAuthenticatedHome(
-        skipPersonalCheck: skipPersonalCheck,
-        skipCommissionCheck: skipCommissionCheck,
-        clearStack: clearStack,
-      );
+  }) => _navigateToAuthenticatedHome(
+    skipPersonalCheck: skipPersonalCheck,
+    skipCommissionCheck: skipCommissionCheck,
+    clearStack: clearStack,
+  );
 
   static Future<void> _navigateToAuthenticatedHome({
     bool skipPersonalCheck = false,
@@ -367,7 +390,8 @@ class PaymentVerificationNavigator {
   /// [FlipperAppRoute], whose startup redirect resolves the mode properly, so
   /// only the bar needs answering here.
   static bool _shouldOpenBarMode() {
-    final barEnabled = ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
+    final barEnabled =
+        ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
     if (!barEnabled) return false;
 
     final device = ProxyService.box.readString(key: _deviceServiceModeKey);
