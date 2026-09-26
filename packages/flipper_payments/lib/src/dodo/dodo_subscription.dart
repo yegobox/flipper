@@ -83,7 +83,7 @@ typedef DodoLinkOpener = Future<bool> Function(Uri url);
 /// over the right link and then find out what happened.
 class DodoCardCheckout {
   DodoCardCheckout(this._client, {DodoLinkOpener? openLink})
-      : _openLink = openLink ?? _launchExternal;
+    : _openLink = openLink ?? _launchExternal;
 
   final DodoClient _client;
   final DodoLinkOpener _openLink;
@@ -104,10 +104,8 @@ class DodoCardCheckout {
   /// staring at a spinner until the connector's own 15-minute sweep runs.
   static const int forceSyncEveryNthPoll = 4;
 
-  static Future<bool> _launchExternal(Uri url) => launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
+  static Future<bool> _launchExternal(Uri url) =>
+      launchUrl(url, mode: LaunchMode.externalApplication);
 
   /// Starts the subscription and opens the checkout page.
   ///
@@ -130,6 +128,7 @@ class DodoCardCheckout {
     String? phoneNumber,
     String? country,
     int? additionalDevices,
+
     /// Where Dodo sends the customer after the hosted checkout. A web host
     /// points this back at its own paywall so the returning tab can resume
     /// polling; native apps leave it unset.
@@ -167,7 +166,8 @@ class DodoCardCheckout {
 
       case DodoNextAction.openPaymentLink:
       case DodoNextAction.updatePaymentMethod:
-        final needsCard = result.nextAction == DodoNextAction.updatePaymentMethod;
+        final needsCard =
+            result.nextAction == DodoNextAction.updatePaymentMethod;
         if (!result.checkout.hasLink) {
           // The connector said "open a link" and sent none. Never reported as a
           // charge failure: the subscription exists upstream.
@@ -177,7 +177,8 @@ class DodoCardCheckout {
                 : DodoCheckoutOutcome.awaitingPayment,
             planId: result.planId,
             start: result,
-            message: 'The payment page is not ready yet. Try again in a moment.',
+            message:
+                'The payment page is not ready yet. Try again in a moment.',
           );
         }
         if (!openCheckout) {
@@ -194,8 +195,8 @@ class DodoCardCheckout {
         return DodoCheckoutResult(
           outcome: launched
               ? (needsCard
-                  ? DodoCheckoutOutcome.needsPaymentMethod
-                  : DodoCheckoutOutcome.awaitingPayment)
+                    ? DodoCheckoutOutcome.needsPaymentMethod
+                    : DodoCheckoutOutcome.awaitingPayment)
               : DodoCheckoutOutcome.couldNotOpenLink,
           planId: result.planId,
           start: result,
@@ -204,7 +205,7 @@ class DodoCardCheckout {
           message: launched
               ? null
               : 'Could not open the payment page on this device. Copy the link, '
-                  'or pay with Mobile Money instead.',
+                    'or pay with Mobile Money instead.',
         );
 
       case DodoNextAction.none:
