@@ -542,14 +542,6 @@ jobs:
         shell: pwsh
         run: ./scripts/ci/prefetch-pdfium.ps1
 
-      # Unique per run: pubspec's msix_version alone repeats across builds
-      # whenever a merge lands without a hook bump, and the Store rejects a
-      # second, different package under the same name. See the script.
-      - name: Compute msix_version
-        id: get_version
-        shell: bash
-        run: ./scripts/ci/msix_version.sh
-
       - name: Build and Package
         shell: pwsh
         run: |
@@ -565,7 +557,13 @@ jobs:
           Set-Location ../..
           ./scripts/ci/bundle-native-assets.ps1
           Set-Location apps/flipper
-          dart run msix:create -v --build-windows false --install-certificate false --signtool-options "/td SHA256" --version ${{ steps.get_version.outputs.version }}
+          dart run msix:create -v --build-windows false --install-certificate false --signtool-options "/td SHA256"
+
+      - name: Extract msix_version
+        id: get_version
+        shell: powershell
+        run: |
+          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "version=$MSIX_VERSION" >> $env:GITHUB_OUTPUT
 
       - name: Create Debug Release
         uses: softprops/action-gh-release@v3
@@ -585,6 +583,11 @@ jobs:
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
+    # One Store-format build at a time: each reads the highest released msix
+    # version and publishes the next one, so two at once could pick the same.
+    concurrency:
+      group: windows-store-msix
+      cancel-in-progress: false
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
     # needs: [unit-testing] # Requires Supabase to be initialized
@@ -686,12 +689,15 @@ jobs:
         shell: pwsh
         run: ./scripts/ci/prefetch-pdfium.ps1
 
-      # Unique per run: pubspec's msix_version alone repeats across builds
-      # whenever a merge lands without a hook bump, and the Store rejects a
-      # second, different package under the same name. See the script.
+      # Next free Store version: only the second number moves (1.478.0.0 ->
+      # 1.479.0.0). pubspec's msix_version alone repeats whenever a merge
+      # lands without a hook bump, and the Store rejects a second, different
+      # package under the same name. See the script.
       - name: Compute msix_version
         id: get_version
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ./scripts/ci/msix_version.sh
 
       - name: Build and Package
@@ -712,16 +718,18 @@ jobs:
           dart run msix:create --store --build-windows false --version ${{ steps.get_version.outputs.version }}
 
       # A Store package name must never point at two different builds. The
-      # version is unique per run, so this only trips on a re-run of a run that
-      # already published: push a new commit (a new run number) instead.
-      - name: Refuse to overwrite a published msix
+      # version step already picks an unused one (and a re-run simply takes
+      # the next), so this is a last check against anything that bypasses it.
+      - name: Refuse to reuse a published msix version
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v${{ steps.get_version.outputs.version }}_windows_prod
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::Release $TAG already exists. Re-publishing would put a different msix under a name the Store may already have. Push a new commit instead of re-running."
+          set -euo pipefail
+          refs=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v${VERSION}_windows_" --jq '.[].ref')
+          if printf '%s\n' "$refs" | grep -Eq '_windows_(prod$|prerelease)'; then
+            echo "::error::A Store-format release of $VERSION already exists. Publishing again would put a different msix under a name the Store may already have. Re-run the job to take the next free version."
             exit 1
           fi
 
@@ -750,6 +758,11 @@ jobs:
     runs-on: windows-latest
     # Fail fast instead of burning the 6h default on a hung pub fetch.
     timeout-minutes: 60
+    # One Store-format build at a time: each reads the highest released msix
+    # version and publishes the next one, so two at once could pick the same.
+    concurrency:
+      group: windows-store-msix
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -844,12 +857,15 @@ jobs:
         shell: pwsh
         run: ./scripts/ci/prefetch-pdfium.ps1
 
-      # Unique per run: pubspec's msix_version alone repeats across builds
-      # whenever a merge lands without a hook bump, and the Store rejects a
-      # second, different package under the same name. See the script.
+      # Next free Store version: only the second number moves (1.478.0.0 ->
+      # 1.479.0.0). pubspec's msix_version alone repeats whenever a merge
+      # lands without a hook bump, and the Store rejects a second, different
+      # package under the same name. See the script.
       - name: Compute msix_version
         id: get_version
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: ./scripts/ci/msix_version.sh
 
       - name: Build and Package
@@ -877,24 +893,26 @@ jobs:
           # `v<version>_windows_prerelease` tag would be claimed by whichever
           # of ditto-only-migration / hotfix-* built last and would silently
           # replace the other's msix on the same GitHub release.
-          # The msix version is unique per run, but keep the slug: it makes
-          # the branch obvious on the releases page.
+          # The msix version is unique now, but keep the slug: it makes the
+          # branch obvious on the releases page.
           slug=$(printf '%s' "${GITHUB_REF_NAME}" \
             | sed -e 's#[^A-Za-z0-9._-]#-#g' -e 's/--*/-/g' -e 's/^-//' -e 's/-$//')
           echo "slug=${slug:-build}" >> "$GITHUB_OUTPUT"
           echo "Release tag suffix: ${slug:-build}"
 
       # A Store package name must never point at two different builds. The
-      # version is unique per run, so this only trips on a re-run of a run that
-      # already published: push a new commit (a new run number) instead.
-      - name: Refuse to overwrite a published msix
+      # version step already picks an unused one (and a re-run simply takes
+      # the next), so this is a last check against anything that bypasses it.
+      - name: Refuse to reuse a published msix version
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v${{ steps.get_version.outputs.version }}_windows_prerelease_${{ steps.branch_slug.outputs.slug }}
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "::error::Release $TAG already exists. Re-publishing would put a different msix under a name the Store may already have. Push a new commit instead of re-running."
+          set -euo pipefail
+          refs=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v${VERSION}_windows_" --jq '.[].ref')
+          if printf '%s\n' "$refs" | grep -Eq '_windows_(prod$|prerelease)'; then
+            echo "::error::A Store-format release of $VERSION already exists. Publishing again would put a different msix under a name the Store may already have. Re-run the job to take the next free version."
             exit 1
           fi
 
