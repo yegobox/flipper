@@ -110,7 +110,11 @@ class _FailedPaymentState extends State<FailedPayment>
   final TextEditingController _emailController = TextEditingController();
   String? _emailError;
   DodoCheckout? _pendingCheckout;
-  bool _cardPollRunning = false;
+
+  /// Bumped whenever a card wait starts or is abandoned. A poll only acts
+  /// while the number it started with is current, so a wait the customer left
+  /// can never end the one they started next (card or Mobile Money).
+  int _cardWaitAttempt = 0;
   bool _railInitialisedFromPlan = false;
 
   @override
@@ -1270,6 +1274,25 @@ class _FailedPaymentState extends State<FailedPayment>
 
         case DodoCheckoutOutcome.awaitingPayment:
         case DodoCheckoutOutcome.needsPaymentMethod:
+          // The connector asked for a payment page and sent no link, so no
+          // browser opened. Waiting would show "complete payment on the card
+          // page" with no page, and now that the wait has no timeout, forever.
+          // Only this case: an `awaiting_activation` reply also has no link,
+          // but there the customer has paid and waiting is right.
+          final startAction = result.start?.nextAction;
+          if (result.checkout == null &&
+              (startAction == DodoNextAction.openPaymentLink ||
+                  startAction == DodoNextAction.updatePaymentMethod)) {
+            final message =
+                result.message ??
+                'The payment page is not ready yet. Try again in a moment.';
+            setState(() {
+              _isLoading = false;
+              _errorMessage = message;
+            });
+            _reportCardFailure(context, message);
+            return;
+          }
           setState(() {
             _isLoading = false;
             _waitingForPaymentCompletion = true;
@@ -1330,6 +1353,7 @@ class _FailedPaymentState extends State<FailedPayment>
   /// webhook still settles it. This only stops *this screen* waiting.
   void _stopWaitingForCard() {
     _paymentTimeoutTimer?.cancel();
+    _cardWaitAttempt++;
     if (!_mounted) return;
     setState(() {
       _waitingForPaymentCompletion = false;
@@ -1363,8 +1387,12 @@ class _FailedPaymentState extends State<FailedPayment>
   /// so a webhook that never arrives costs seconds rather than the connector's
   /// whole reconcile interval.
   Future<void> _startCardPolling(String planId) async {
-    if (_cardPollRunning || planId.isEmpty) return;
-    _cardPollRunning = true;
+    if (planId.isEmpty) return;
+    final attempt = ++_cardWaitAttempt;
+    bool superseded() =>
+        !_mounted ||
+        !_waitingForPaymentCompletion ||
+        attempt != _cardWaitAttempt;
 
     // Wait until the customer finishes, not until a clock runs out: they are on
     // Dodo's page, and flipping this screen back to the options mid-checkout
@@ -1372,17 +1400,12 @@ class _FailedPaymentState extends State<FailedPayment>
     final checkout = DodoCardCheckout(DodoClient(defaultPaymentsHttpClient));
     DodoSubscriptionStatus? status;
     do {
-      status = await checkout.awaitEntitlement(
-        planId,
-        isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
-      );
-    } while (_mounted &&
-        _waitingForPaymentCompletion &&
+      status = await checkout.awaitEntitlement(planId, isCancelled: superseded);
+    } while (!superseded() &&
         status?.entitled != true &&
         status?.nextAction != DodoNextAction.resubscribe);
 
-    _cardPollRunning = false;
-    if (!_mounted || !_waitingForPaymentCompletion) return;
+    if (superseded()) return;
 
     _paymentTimeoutTimer?.cancel();
 
