@@ -141,6 +141,7 @@ class DodoStartResult {
     this.recurringPreTaxAmount,
     this.nextBillingDate,
     this.reusedExisting = false,
+    this.discount,
     this.raw = const {},
   });
 
@@ -171,6 +172,10 @@ class DodoStartResult {
   /// than a second subscription on the customer's card.
   final bool reusedExisting;
 
+  /// Set when a Flipper discount code was applied. [totalPrice] is then the
+  /// discounted amount the card is charged now and at every renewal.
+  final DodoAppliedDiscount? discount;
+
   final Map<String, dynamic> raw;
 
   factory DodoStartResult.fromJson(Map<String, dynamic> json) {
@@ -187,6 +192,12 @@ class DodoStartResult {
       recurringPreTaxAmount: _int(json['recurring_pre_tax_amount']),
       nextBillingDate: _string(json['next_billing_date']),
       reusedExisting: json['reused_existing'] == true,
+      discount: switch (_object(json['discount'])) {
+        final Map<String, dynamic> discount => DodoAppliedDiscount.fromJson(
+          discount,
+        ),
+        null => null,
+      },
       raw: json,
     );
   }
@@ -194,7 +205,38 @@ class DodoStartResult {
   @override
   String toString() =>
       'DodoStartResult($status, action=${nextAction.name}, '
-      'sub=$dodoSubscriptionId, reused=$reusedExisting)';
+      'sub=$dodoSubscriptionId, reused=$reusedExisting'
+      '${discount == null ? '' : ', discount=${discount!.code}'})';
+}
+
+/// The discount the connector applied to a card subscription, priced from its
+/// own catalogue. What the screen should show, since it is what the card pays.
+class DodoAppliedDiscount {
+  const DodoAppliedDiscount({
+    required this.code,
+    this.originalPrice,
+    this.discountAmount,
+    this.finalPrice,
+    this.customPaymentId,
+  });
+
+  final String code;
+  final int? originalPrice;
+  final int? discountAmount;
+  final int? finalPrice;
+
+  /// `custom_payments.id` — the reference support looks the payment up by.
+  final String? customPaymentId;
+
+  factory DodoAppliedDiscount.fromJson(Map<String, dynamic> json) {
+    return DodoAppliedDiscount(
+      code: _string(json['code']) ?? '',
+      originalPrice: _int(json['original_price']),
+      discountAmount: _int(json['discount_amount']),
+      finalPrice: _int(json['final_price']),
+      customPaymentId: _string(json['custom_payment_id']),
+    );
+  }
 }
 
 /// One read of `GET /api/dodo/subscriptions/{plan_id}` (or `…/sync`).

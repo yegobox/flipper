@@ -1193,12 +1193,25 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
+  /// The connector can bill a discount on the card rail only as an on-demand
+  /// subscription, which Dodo must enable per account.
+  bool get _discountOnCard => _dodoHealth?.onDemandReadyForThisBuild ?? false;
+
+  /// The code to send with a card payment, or null when the card pays full
+  /// price (no code, or no on-demand support).
+  String? get _cardDiscountCode =>
+      _discountAmount > 0 && _discountOnCard ? _discountCode : null;
+
   Widget _buildCardSection() {
     return PaymentCardCheckoutCard(
       emailController: _emailController,
       emailError: _emailError,
       isTestMode: _dodoHealth?.isTestMode ?? false,
       discountApplied: _discountAmount > 0,
+      // No amount here: this screen's total can include arrears, while a
+      // discounted card subscription charges one discounted period from
+      // today. Dodo's page shows the exact figure.
+      discountOnCard: _discountOnCard,
       pendingCheckoutLink: _pendingCheckout?.paymentLink,
       onOpenPendingLink: _pendingCheckout?.paymentLink == null
           ? null
@@ -1253,6 +1266,7 @@ class _FailedPaymentState extends State<FailedPayment>
       final result = await handleCardPayment(
         plan: effectivePlan,
         email: _emailController.text.trim(),
+        discountCode: _cardDiscountCode,
       );
 
       if (!_mounted) return;

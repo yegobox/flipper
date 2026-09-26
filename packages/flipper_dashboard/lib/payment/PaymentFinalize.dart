@@ -157,6 +157,15 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     }
   }
 
+  /// The connector can bill a discount on the card rail only as an on-demand
+  /// subscription, which Dodo must enable per account.
+  bool get _discountOnCard => _dodoHealth?.onDemandReadyForThisBuild ?? false;
+
+  /// The code to send with a card payment, or null when the card pays full
+  /// price (no code, or no on-demand support).
+  String? get _cardDiscountCode =>
+      _discountAmount > 0 && _discountOnCard ? _discountCode : null;
+
   /// Validates and applies a discount code
   Future<void> _validateDiscountCode(String code) async {
     if (code.trim().isEmpty) {
@@ -283,10 +292,10 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
   /// Sends the customer to Dodo's hosted checkout, then waits for the money.
   ///
-  /// Nothing here recomputes the price: Dodo bills the amount fixed on its
-  /// product, so [PaymentHandler.handleCardPayment] deliberately does not send
-  /// one. That is also why a Flipper discount code cannot apply on this rail —
-  /// the card card says so rather than showing a total the card will not match.
+  /// Nothing here sends a price: the connector prices the tier itself. An
+  /// applied discount code travels as the code alone and, where the connector
+  /// supports on-demand card subscriptions, is billed as a discounted
+  /// subscription; elsewhere the card card says the card pays full price.
   Future<void> _handleCardPayment(Plan paymentPlan) async {
     final emailError = _getEmailError(_emailController.text);
     if (emailError != null) {
@@ -301,6 +310,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     final result = await handleCardPayment(
       plan: paymentPlan,
       email: _emailController.text.trim(),
+      discountCode: _cardDiscountCode,
     );
 
     if (!_mounted) return;
@@ -814,6 +824,14 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                             emailError: _emailError,
                             isTestMode: _dodoHealth?.isTestMode ?? false,
                             discountApplied: _discountAmount > 0,
+                            discountOnCard: _discountOnCard,
+                            discountedTotal: _discountAmount > 0
+                                ? (_originalPrice - _discountAmount)
+                                      .toCurrencyFormatted(
+                                        symbol: ProxyService.box
+                                            .defaultCurrency(),
+                                      )
+                                : null,
                             onEmailChanged: (_) {
                               if (_emailError != null) {
                                 setState(() => _emailError = null);

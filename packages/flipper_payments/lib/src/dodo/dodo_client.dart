@@ -136,10 +136,14 @@ class DodoClient {
 
   /// Creates (or reuses) the Dodo subscription and returns the checkout link.
   ///
-  /// [totalPrice] is deliberately **not** a parameter. Dodo bills the price
-  /// fixed on its product, so sending a client-side figure — a discounted one
-  /// especially — would only make `plans.total_price` disagree with what the
-  /// card is actually charged. The connector prices the tier from the catalogue.
+  /// [totalPrice] is deliberately **not** a parameter: the connector prices the
+  /// tier from its catalogue, and the Dodo routes may be open, so a price from
+  /// the client could never be trusted.
+  ///
+  /// [discountCode] is a Flipper discount code. Dodo cannot discount a
+  /// fixed-price product, so the connector re-validates the code, prices the
+  /// discount itself and starts an on-demand subscription at that amount, which
+  /// then bills every renewal. [DodoStartResult.discount] says what it applied.
   ///
   /// [email] is optional here but required *somewhere*: the connector falls back
   /// to `businesses.email` and fails if neither has one, rather than inventing
@@ -159,6 +163,7 @@ class DodoClient {
     String? returnUrl,
     int? additionalDevices,
     Map<String, String>? metadata,
+    String? discountCode,
   }) async {
     if (businessId.trim().isEmpty) {
       throw const DodoException('A business is required to start a card subscription.');
@@ -179,6 +184,8 @@ class DodoClient {
       if (_present(returnUrl)) 'return_url': returnUrl!.trim(),
       if (additionalDevices != null) 'additional_devices': additionalDevices,
       if (metadata != null && metadata.isNotEmpty) 'metadata': metadata,
+      if (_present(discountCode))
+        'flipper_discount_code': discountCode!.trim().toUpperCase(),
       'mode': dodoBuildMode,
     };
 
@@ -189,7 +196,8 @@ class DodoClient {
     // otherwise.
     payLogInfo(
       'Dodo start [$dodoBuildMode] → $url  business=$businessId plan=$planId '
-      'tier=$selectedPlan yearly=$isYearlyPlan addons=${addons.length}',
+      'tier=$selectedPlan yearly=$isYearlyPlan addons=${addons.length}'
+      '${_present(discountCode) ? ' discount=${discountCode!.trim()}' : ''}',
     );
 
     final response = await _send(
