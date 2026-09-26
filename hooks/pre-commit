@@ -113,6 +113,26 @@ bump_msix_version() {
   echo "$major.$minor.0.0"
 }
 
+# When NOT to bump. A stacked PR must not carry version bumps of its own:
+# every commit rewrites the same two lines (`version:` / `msix_version:` in
+# apps/flipper/pubspec.yaml), so a new commit on a parent branch then
+# conflicts with every child above it. Only the bottom PR of a stack (the one
+# targeting main) bumps; children set FLIPPER_SKIP_VERSION_BUMP=1.
+#   - A merge commit never bumps: it ships no code of its own, and bumping it
+#     re-creates the conflict it just resolved.
+#   - FLIPPER_SKIP_VERSION_BUMP=1 skips the bump for this commit.
+# Everything else in this hook (the root-manifest guard below) still runs,
+# which `git commit --no-verify` would not.
+skip_bump_reason=""
+if [ -f "$(git rev-parse --git-path MERGE_HEAD)" ]; then
+  skip_bump_reason="merge commit"
+elif [ "${FLIPPER_SKIP_VERSION_BUMP:-}" = "1" ]; then
+  skip_bump_reason="FLIPPER_SKIP_VERSION_BUMP=1"
+fi
+
+if [ -n "$skip_bump_reason" ]; then
+  echo "Skipping version bump ($skip_bump_reason)."
+else
 eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PUBSPEC_PATH; do
   APP_DIR=$(dirname "$PUBSPEC_PATH")
   APP_REL="${APP_DIR#./}"
@@ -198,6 +218,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
     fi
   fi
 done
+fi
 
 # The root pubspec.yaml is the pub/melos workspace manifest, not an app. If a
 # commit is about to change its `name:`, something wrote an app manifest over
