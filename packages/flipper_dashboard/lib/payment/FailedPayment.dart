@@ -1275,20 +1275,10 @@ class _FailedPaymentState extends State<FailedPayment>
             _waitingForPaymentCompletion = true;
             _pendingCheckout = result.checkout;
           });
-          // Longer than the Mobile Money timeout: a card, possibly through a
-          // 3-D Secure step, in a browser the customer had to switch to, is not
-          // a 90-second affair.
+          // No timeout, unlike Mobile Money: the customer is in a browser,
+          // possibly through 3-D Secure, and this screen stays until they pay
+          // or tap "Not now" (see _startCardPolling).
           _paymentTimeoutTimer?.cancel();
-          _paymentTimeoutTimer = Timer(const Duration(minutes: 12), () {
-            if (!_mounted) return;
-            setState(() {
-              _waitingForPaymentCompletion = false;
-              _errorMessage =
-                  'We have not seen the card payment yet. If you completed it, '
-                  'reopen this screen in a moment — it can take a little while '
-                  'to arrive.';
-            });
-          });
           _startCardPolling(result.planId);
           return;
 
@@ -1376,11 +1366,20 @@ class _FailedPaymentState extends State<FailedPayment>
     if (_cardPollRunning || planId.isEmpty) return;
     _cardPollRunning = true;
 
-    final status = await DodoCardCheckout(DodoClient(defaultPaymentsHttpClient))
-        .awaitEntitlement(
-          planId,
-          isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
-        );
+    // Wait until the customer finishes, not until a clock runs out: they are on
+    // Dodo's page, and flipping this screen back to the options mid-checkout
+    // reads as "your payment failed" when nothing did. "Not now" is the way out.
+    final checkout = DodoCardCheckout(DodoClient(defaultPaymentsHttpClient));
+    DodoSubscriptionStatus? status;
+    do {
+      status = await checkout.awaitEntitlement(
+        planId,
+        isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
+      );
+    } while (_mounted &&
+        _waitingForPaymentCompletion &&
+        status?.entitled != true &&
+        status?.nextAction != DodoNextAction.resubscribe);
 
     _cardPollRunning = false;
     if (!_mounted || !_waitingForPaymentCompletion) return;

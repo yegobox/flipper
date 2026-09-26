@@ -462,6 +462,25 @@ void main() {
       expect(status?.entitled, isTrue);
     });
 
+    test('on_hold does not end the wait', () async {
+      // A checkout opened to fix a failed card starts on_hold; ending the wait
+      // there bounced the screen back to the options on the first poll.
+      final http = _FakeHttpClient()
+        ..queue('/api/dodo/subscriptions/plan-1', [
+          _Reply(200, _view(status: 'on_hold', nextAction: 'update_payment_method')),
+          _Reply(200, _view(status: 'on_hold', nextAction: 'update_payment_method')),
+          _Reply(200, _view(status: 'active', entitled: true, nextAction: 'none')),
+        ]);
+
+      final status = await DodoCardCheckout(DodoClient(http)).awaitEntitlement(
+        'plan-1',
+        pollInterval: const Duration(milliseconds: 1),
+        timeout: const Duration(seconds: 2),
+      );
+
+      expect(status?.entitled, isTrue);
+    });
+
     test('gives up on a subscription Dodo has failed', () async {
       final http = _FakeHttpClient()
         ..queue('/api/dodo/subscriptions/plan-1', [

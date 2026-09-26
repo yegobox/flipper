@@ -266,6 +266,13 @@ class DodoCardCheckout {
   ///
   /// A read that throws does **not** end the wait: a connector blip while the
   /// customer is on Dodo's page says nothing about whether they paid.
+  ///
+  /// Neither does `on_hold` (`update_payment_method`). It is the *starting*
+  /// state of a checkout opened to fix a failed card — the very page the
+  /// customer is on — and a card declined mid-checkout lands there too, while
+  /// Dodo's page lets them retry. Ending the wait on it bounced the screen back
+  /// to the payment options on the first poll, while the customer was still
+  /// typing their card number. Only `resubscribe` is a verdict.
   Future<DodoSubscriptionStatus?> awaitEntitlement(
     String planId, {
     Duration timeout = defaultTimeout,
@@ -291,8 +298,7 @@ class DodoCardCheckout {
           payLogInfo('Dodo: plan $planId is entitled after $attempt polls');
           return status;
         }
-        if (status.nextAction == DodoNextAction.resubscribe ||
-            status.nextAction == DodoNextAction.updatePaymentMethod) {
+        if (status.nextAction == DodoNextAction.resubscribe) {
           payLogWarning(
             'Dodo: plan $planId stopped at ${status.status} '
             '(${status.nextAction.name})',
