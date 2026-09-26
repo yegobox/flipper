@@ -228,7 +228,7 @@ class DodoClient {
   /// Reads the connector's view of a plan's subscription. Cheap; no Dodo call.
   Future<DodoSubscriptionStatus> subscriptionForPlan(String planId) async {
     final id = _requireId(planId, 'plan');
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/subscriptions/$id');
+    final url = await _scoped('/api/dodo/subscriptions/$id');
     final response = await _send(
       'GET',
       url,
@@ -242,7 +242,7 @@ class DodoClient {
   /// Same view, by business rather than plan.
   Future<DodoSubscriptionStatus> subscriptionForBusiness(String businessId) async {
     final id = _requireId(businessId, 'business');
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/businesses/$id/subscription');
+    final url = await _scoped('/api/dodo/businesses/$id/subscription');
     final response = await _send(
       'GET',
       url,
@@ -260,7 +260,7 @@ class DodoClient {
   /// to learn that the money landed.
   Future<DodoSubscriptionStatus> syncSubscription(String planId) async {
     final id = _requireId(planId, 'plan');
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/subscriptions/$id/sync');
+    final url = await _scoped('/api/dodo/subscriptions/$id/sync');
     final response = await _send(
       'POST',
       url,
@@ -280,7 +280,7 @@ class DodoClient {
   /// "update card" screen.
   Future<DodoCheckout> updatePaymentMethod(String planId) async {
     final id = _requireId(planId, 'plan');
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/subscriptions/$id/payment-method');
+    final url = await _scoped('/api/dodo/subscriptions/$id/payment-method');
     final response = await _send(
       'POST',
       url,
@@ -304,7 +304,7 @@ class DodoClient {
   /// A Dodo customer-portal link: invoices, payment methods, self-serve cancel.
   Future<String> customerPortalLink(String planId) async {
     final id = _requireId(planId, 'plan');
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/subscriptions/$id/portal');
+    final url = await _scoped('/api/dodo/subscriptions/$id/portal');
     final response = await _send(
       'POST',
       url,
@@ -328,7 +328,7 @@ class DodoClient {
     bool atPeriodEnd = true,
   }) async {
     final id = _requireId(planId, 'plan');
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/subscriptions/$id/cancel');
+    final url = await _scoped('/api/dodo/subscriptions/$id/cancel');
     final response = await _send(
       'POST',
       url,
@@ -338,6 +338,15 @@ class DodoClient {
   }
 
   // ── internals ────────────────────────────────────────────────────────────
+
+  /// A per-plan or per-business route, scoped to this build's Dodo account.
+  ///
+  /// The `plans` row is shared by test and live, so without `mode` the
+  /// connector answers with the newest subscription of *either* account: a
+  /// debug build then resumes, polls and reopens a production checkout.
+  static Future<Uri> _scoped(String path) async => Uri.parse(
+    '${await paymentsApiBaseUrl()}$path',
+  ).replace(queryParameters: {'mode': dodoBuildMode});
 
   static bool _present(String? value) =>
       value != null && value.trim().isNotEmpty;

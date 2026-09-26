@@ -38,7 +38,7 @@ class PaymentCardCheckoutCard extends StatelessWidget {
   final bool discountApplied;
 
   /// True when the connector will bill the discount on the card
-  /// (`DodoHealth.onDemandReadyForThisBuild`). False keeps the "Mobile Money
+  /// (`DodoHealth.discountCodesForThisBuild`). False keeps the "Mobile Money
   /// only" notice.
   final bool discountOnCard;
 
