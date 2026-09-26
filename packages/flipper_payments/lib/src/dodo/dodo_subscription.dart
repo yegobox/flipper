@@ -134,6 +134,9 @@ class DodoCardCheckout {
     /// polling; native apps leave it unset.
     String? returnUrl,
     Map<String, String>? metadata,
+
+    /// A Flipper discount code; see [DodoClient.startSubscription].
+    String? discountCode,
     bool openCheckout = true,
   }) async {
     final result = await _client.startSubscription(
@@ -151,6 +154,7 @@ class DodoCardCheckout {
       additionalDevices: additionalDevices,
       returnUrl: returnUrl,
       metadata: metadata,
+      discountCode: discountCode,
     );
 
     // Switch on `next_action`, never on `status`: the connector promises the

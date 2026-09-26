@@ -221,11 +221,15 @@ mixin PaymentHandler {
   /// payment screen already listens to), so the screen can show "finish on the
   /// payment page" rather than a silent spinner.
   ///
-  /// [finalPrice] is accepted for symmetry and **is not sent**: Dodo bills the
-  /// price fixed on its product, so a discounted figure would only make
-  /// `plans.total_price` disagree with what the card is actually charged. A
-  /// Flipper discount code therefore does not apply on this rail — say so in
-  /// the UI rather than quietly charging full price against a shown discount.
+  /// [finalPrice] is accepted for symmetry and **is not sent**: the connector
+  /// prices the tier from its catalogue, never from the client.
+  ///
+  /// [discountCode] is a Flipper discount code the screen already validated.
+  /// Only the code is sent. The connector re-validates it, prices the
+  /// discount itself and bills it as an on-demand card subscription (a custom
+  /// payment on this tier), so the discounted amount is charged now and at
+  /// every renewal. Pass it only when [DodoHealth.onDemandReadyForThisBuild];
+  /// otherwise the connector answers 400 and the card cannot take the code.
   ///
   /// Throws [CardCheckoutUnavailable] when we cannot even get as far as a link.
   Future<DodoCheckoutResult> handleCardPayment({
@@ -235,6 +239,7 @@ mixin PaymentHandler {
     DodoClient? client,
     DodoLinkOpener? openLink,
     bool openCheckout = true,
+    String? discountCode,
   }) async {
     final planId = plan.id;
     if (planId == null || planId.isEmpty) {
@@ -311,6 +316,7 @@ mixin PaymentHandler {
       phoneNumber: plan.phoneNumber ?? business.phoneNumber,
       country: business.country,
       additionalDevices: plan.additionalDevices,
+      discountCode: discountCode,
       openCheckout: openCheckout,
     );
 

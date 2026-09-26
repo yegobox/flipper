@@ -10,10 +10,11 @@ import 'package:flutter/material.dart';
 /// are consequences of Dodo owning the checkout rather than us:
 ///
 /// * they are about to leave the app for Dodo's payment page, and
-/// * a Flipper discount code does not reduce a card charge, because Dodo bills
-///   the price fixed on its product. Showing a discount and then charging full
-///   price would be the worse kind of surprise, so the notice is not optional
-///   when a code is applied.
+/// * what a Flipper discount code does to the card charge. Where the connector
+///   can bill a negotiated amount (Dodo on-demand), the discounted total is
+///   charged now and at every renewal. Where it cannot, the card pays the
+///   product's fixed price, and saying so is not optional: showing a discount
+///   and then charging full price would be the worse kind of surprise.
 class PaymentCardCheckoutCard extends StatelessWidget {
   const PaymentCardCheckoutCard({
     super.key,
@@ -21,6 +22,8 @@ class PaymentCardCheckoutCard extends StatelessWidget {
     this.onEmailChanged,
     this.emailError,
     this.discountApplied = false,
+    this.discountOnCard = false,
+    this.discountedTotal,
     this.isTestMode = false,
     this.pendingCheckoutLink,
     this.onOpenPendingLink,
@@ -31,8 +34,16 @@ class PaymentCardCheckoutCard extends StatelessWidget {
   final ValueChanged<String>? onEmailChanged;
   final String? emailError;
 
-  /// True when a Flipper discount code is applied, which this rail cannot honour.
+  /// True when a Flipper discount code is applied.
   final bool discountApplied;
+
+  /// True when the connector will bill the discount on the card
+  /// (`DodoHealth.onDemandReadyForThisBuild`). False keeps the "Mobile Money
+  /// only" notice.
+  final bool discountOnCard;
+
+  /// The discounted amount, formatted, for the notice.
+  final String? discountedTotal;
 
   /// True when the connector is pointed at Dodo's test account. Debug-visible
   /// only, but worth showing: a test subscription can never settle a live plan,
@@ -127,7 +138,19 @@ class PaymentCardCheckoutCard extends StatelessWidget {
           PaymentInputHint(
             text: emailError ?? 'Invoices and card receipts are sent here.',
           ),
-          if (discountApplied) ...[
+          if (discountApplied && discountOnCard) ...[
+            const SizedBox(height: 14),
+            _Notice(
+              icon: FluentIcons.checkmark_circle_20_regular,
+              tint: PaymentTokens.gainTint,
+              ink: PaymentTokens.gainInk,
+              text: discountedTotal == null
+                  ? 'Your discount applies to card payments: the card is '
+                      'charged the discounted price now and at each renewal.'
+                  : 'Your discount applies: the card is charged '
+                      '$discountedTotal now and at each renewal.',
+            ),
+          ] else if (discountApplied) ...[
             const SizedBox(height: 14),
             _Notice(
               icon: FluentIcons.info_20_regular,
