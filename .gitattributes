@@ -1,0 +1,4 @@
+# CI shell scripts run under Git Bash on the Windows runners too, where a CRLF
+# checkout (core.autocrlf=true) breaks bash with $'\r' errors. Every file here
+# is already stored with LF, so this renormalizes nothing.
+scripts/ci/*.sh text eol=lf
