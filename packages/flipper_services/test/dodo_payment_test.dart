@@ -58,47 +58,52 @@ class _FakeHttpClient implements HttpClientInterface {
   }
 
   @override
-  Future<http.Response> post(Uri url,
-          {Map<String, String>? headers,
-          Object? body,
-          Encoding? encoding}) async =>
-      _record('POST', url, body);
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async => _record('POST', url, body);
 
   @override
   Future<http.Response> get(Uri url, {Map<String, String>? headers}) async =>
       _record('GET', url, null);
 
   @override
-  Future<http.Response> put(Uri url,
-          {Map<String, String>? headers,
-          Object? body,
-          Encoding? encoding}) async =>
-      _record('PUT', url, body);
+  Future<http.Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async => _record('PUT', url, body);
 
   @override
-  Future<http.Response> patch(Uri url,
-          {Map<String, String>? headers,
-          Object? body,
-          Encoding? encoding}) async =>
-      _record('PATCH', url, body);
+  Future<http.Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async => _record('PATCH', url, body);
 
   @override
-  Future<http.Response> delete(Uri url,
-          {Map<String, String>? headers,
-          Object? body,
-          Encoding? encoding}) async =>
-      _record('DELETE', url, body);
+  Future<http.Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async => _record('DELETE', url, body);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) =>
       throw UnimplementedError();
 
   @override
-  Future<http.Response> getUniversalProducts(Uri url,
-          {Map<String, String>? headers,
-          Object? body,
-          Encoding? encoding}) =>
-      throw UnimplementedError();
+  Future<http.Response> getUniversalProducts(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) => throw UnimplementedError();
 }
 
 String _startOk({
@@ -108,53 +113,51 @@ String _startOk({
   String nextAction = 'open_payment_link',
   String? paymentLink = 'https://checkout.dodopayments.com/xyz',
   bool reusedExisting = false,
-}) =>
-    jsonEncode({
-      'plan_id': planId,
-      'business_id': 'biz-1',
-      'dodo_subscription_id': subscriptionId,
-      'status': status,
-      'total_price': 5100,
-      'currency': 'RWF',
-      'rule': 'monthly',
-      'recurring_pre_tax_amount': 5100,
-      'next_action': nextAction,
-      'reused_existing': reusedExisting,
-      if (paymentLink != null)
-        'checkout': {
-          'payment_link': paymentLink,
-          'payment_id': 'pay_1',
-          'expires_on': '2026-08-26T11:00:00Z',
-        },
-    });
+}) => jsonEncode({
+  'plan_id': planId,
+  'business_id': 'biz-1',
+  'dodo_subscription_id': subscriptionId,
+  'status': status,
+  'total_price': 5100,
+  'currency': 'RWF',
+  'rule': 'monthly',
+  'recurring_pre_tax_amount': 5100,
+  'next_action': nextAction,
+  'reused_existing': reusedExisting,
+  if (paymentLink != null)
+    'checkout': {
+      'payment_link': paymentLink,
+      'payment_id': 'pay_1',
+      'expires_on': '2026-08-26T11:00:00Z',
+    },
+});
 
 String _view({
   bool entitled = false,
   String status = 'pending',
   String nextAction = 'awaiting_activation',
   String? lastError,
-}) =>
-    jsonEncode({
-      'plan_id': 'plan-1',
-      'dodo_subscription_id': 'sub_abc',
-      'status': status,
-      'entitled': entitled,
+}) => jsonEncode({
+  'plan_id': 'plan-1',
+  'dodo_subscription_id': 'sub_abc',
+  'status': status,
+  'entitled': entitled,
+  'currency': 'RWF',
+  'recurring_pre_tax_amount': 5100,
+  'plan_total_price': 5100,
+  'next_action': nextAction,
+  'cancel_at_next_billing_date': false,
+  if (lastError != null) 'last_error': lastError,
+  'recent_payments': [
+    {
+      'dodo_payment_id': 'pay_1',
+      'status': entitled ? 'succeeded' : 'processing',
+      'kind': 'first',
+      'amount': 5100,
       'currency': 'RWF',
-      'recurring_pre_tax_amount': 5100,
-      'plan_total_price': 5100,
-      'next_action': nextAction,
-      'cancel_at_next_billing_date': false,
-      if (lastError != null) 'last_error': lastError,
-      'recent_payments': [
-        {
-          'dodo_payment_id': 'pay_1',
-          'status': entitled ? 'succeeded' : 'processing',
-          'kind': 'first',
-          'amount': 5100,
-          'currency': 'RWF',
-        }
-      ],
-    });
+    },
+  ],
+});
 
 void main() {
   setUpAll(() => setPaymentsApiBaseUrlOverride('https://connector.test'));
@@ -190,14 +193,15 @@ void main() {
       final http = _FakeHttpClient()
         ..queue('/api/dodo/health', [
           _Reply(
-              200,
-              jsonEncode({
-                'status': 'ok',
-                'enabled': true,
-                'ready': true,
-                'mode': 'live',
-                'currency': 'RWF',
-              })),
+            200,
+            jsonEncode({
+              'status': 'ok',
+              'enabled': true,
+              'ready': true,
+              'mode': 'live',
+              'currency': 'RWF',
+            }),
+          ),
         ]);
 
       final health = await DodoClient(http).health();
@@ -205,17 +209,19 @@ void main() {
       expect(health.isTestMode, isFalse);
     });
 
-    test('an unreachable connector hides the option instead of failing',
-        () async {
-      // A payment screen must not fail to load because a *second* rail could
-      // not be probed. Mobile Money is unaffected either way.
-      final http = _FakeHttpClient()
-        ..queue('/api/dodo/health', [const _Reply(503, 'Bad Gateway')]);
+    test(
+      'an unreachable connector hides the option instead of failing',
+      () async {
+        // A payment screen must not fail to load because a *second* rail could
+        // not be probed. Mobile Money is unaffected either way.
+        final http = _FakeHttpClient()
+          ..queue('/api/dodo/health', [const _Reply(503, 'Bad Gateway')]);
 
-      final health = await DodoClient(http).health();
-      expect(health.ready, isFalse);
-      expect(health.enabled, isFalse);
-    });
+        final health = await DodoClient(http).health();
+        expect(health.ready, isFalse);
+        expect(health.enabled, isFalse);
+      },
+    );
   });
 
   group('starting a subscription', () {
@@ -273,11 +279,13 @@ void main() {
 
       expect(
         () => DodoClient(http).startSubscription(businessId: 'biz-1'),
-        throwsA(isA<DodoException>().having(
-          (e) => e.message,
-          'message',
-          contains('no reference'),
-        )),
+        throwsA(
+          isA<DodoException>().having(
+            (e) => e.message,
+            'message',
+            contains('no reference'),
+          ),
+        ),
       );
     });
 
@@ -289,10 +297,15 @@ void main() {
 
       await expectLater(
         DodoClient(http).startSubscription(businessId: 'biz-1'),
-        throwsA(isA<DodoException>()
-            .having((e) => e.statusCode, 'statusCode', 503)
-            .having((e) => e.displayMessage, 'displayMessage',
-                contains('disabled'))),
+        throwsA(
+          isA<DodoException>()
+              .having((e) => e.statusCode, 'statusCode', 503)
+              .having(
+                (e) => e.displayMessage,
+                'displayMessage',
+                contains('disabled'),
+              ),
+        ),
       );
     });
   });
@@ -327,7 +340,9 @@ void main() {
 
     test('a failed renewal asks for a card, not a new subscription', () {
       final status = DodoSubscriptionStatus.fromJson(
-        jsonDecode(_view(status: 'on_hold', nextAction: 'update_payment_method'))
+        jsonDecode(
+              _view(status: 'on_hold', nextAction: 'update_payment_method'),
+            )
             as Map<String, dynamic>,
       );
       expect(
@@ -353,8 +368,7 @@ void main() {
 
       expect(result.outcome, DodoCheckoutOutcome.awaitingPayment);
       expect(result.launched, isTrue);
-      expect(opened.single.toString(),
-          'https://checkout.dodopayments.com/xyz');
+      expect(opened.single.toString(), 'https://checkout.dodopayments.com/xyz');
     });
 
     test('a browser that will not open is not a charge failure', () async {
@@ -376,8 +390,9 @@ void main() {
       // The connector returns *that* subscription and its existing link, so no
       // second subscription lands on the customer's card.
       final http = _FakeHttpClient()
-        ..queue('/subscriptions/start',
-            [_Reply(200, _startOk(reusedExisting: true))]);
+        ..queue('/subscriptions/start', [
+          _Reply(200, _startOk(reusedExisting: true)),
+        ]);
 
       final result = await DodoCardCheckout(
         DodoClient(http),
@@ -413,7 +428,10 @@ void main() {
       final http = _FakeHttpClient()
         ..queue('/api/dodo/subscriptions/plan-1', [
           _Reply(200, _view()),
-          _Reply(200, _view(status: 'active', entitled: true, nextAction: 'none')),
+          _Reply(
+            200,
+            _view(status: 'active', entitled: true, nextAction: 'none'),
+          ),
         ]);
 
       final seen = <String>[];
@@ -441,8 +459,11 @@ void main() {
         timeout: const Duration(milliseconds: 60),
       );
 
-      expect(http.forPath('/sync'), isNotEmpty,
-          reason: 'a forced sync must happen without a webhook');
+      expect(
+        http.forPath('/sync'),
+        isNotEmpty,
+        reason: 'a forced sync must happen without a webhook',
+      );
     });
 
     test('a connector blip does not end the wait', () async {
@@ -450,7 +471,38 @@ void main() {
       final http = _FakeHttpClient()
         ..queue('/api/dodo/subscriptions/plan-1', [
           const _Reply(500, 'boom'),
-          _Reply(200, _view(status: 'active', entitled: true, nextAction: 'none')),
+          _Reply(
+            200,
+            _view(status: 'active', entitled: true, nextAction: 'none'),
+          ),
+        ]);
+
+      final status = await DodoCardCheckout(DodoClient(http)).awaitEntitlement(
+        'plan-1',
+        pollInterval: const Duration(milliseconds: 1),
+        timeout: const Duration(seconds: 2),
+      );
+
+      expect(status?.entitled, isTrue);
+    });
+
+    test('on_hold does not end the wait', () async {
+      // A checkout opened to fix a failed card starts on_hold; ending the wait
+      // there bounced the screen back to the options on the first poll.
+      final http = _FakeHttpClient()
+        ..queue('/api/dodo/subscriptions/plan-1', [
+          _Reply(
+            200,
+            _view(status: 'on_hold', nextAction: 'update_payment_method'),
+          ),
+          _Reply(
+            200,
+            _view(status: 'on_hold', nextAction: 'update_payment_method'),
+          ),
+          _Reply(
+            200,
+            _view(status: 'active', entitled: true, nextAction: 'none'),
+          ),
         ]);
 
       final status = await DodoCardCheckout(DodoClient(http)).awaitEntitlement(
@@ -482,11 +534,14 @@ void main() {
       // Cutting access the instant someone taps cancel takes away something
       // they already bought.
       final status = DodoSubscriptionStatus.fromJson(
-        jsonDecode(_view(
-          status: 'cancelled',
-          entitled: true,
-          nextAction: 'resubscribe',
-        )) as Map<String, dynamic>,
+        jsonDecode(
+              _view(
+                status: 'cancelled',
+                entitled: true,
+                nextAction: 'resubscribe',
+              ),
+            )
+            as Map<String, dynamic>,
       );
       expect(status.entitled, isTrue);
       expect(DodoCardCheckout.outcomeFor(status), DodoCheckoutOutcome.entitled);
@@ -498,27 +553,27 @@ void main() {
       final http = _FakeHttpClient()
         ..queue('/subscriptions/start', [
           _Reply(
-              400,
-              jsonEncode({
-                'error': 'no Dodo product is configured for tier "enterprise"',
-              })),
+            400,
+            jsonEncode({
+              'error': 'no Dodo product is configured for tier "enterprise"',
+            }),
+          ),
         ]);
 
       await expectLater(
         DodoClient(http).startSubscription(businessId: 'biz-1'),
-        throwsA(isA<DodoException>().having(
-          (e) => e.displayMessage,
-          'displayMessage',
-          contains('no Dodo product is configured'),
-        )),
+        throwsA(
+          isA<DodoException>().having(
+            (e) => e.displayMessage,
+            'displayMessage',
+            contains('no Dodo product is configured'),
+          ),
+        ),
       );
     });
 
     test('non-JSON from a proxy still yields one readable line', () {
-      expect(
-        dodoGatewayMessage('502 Bad Gateway\nnginx'),
-        '502 Bad Gateway',
-      );
+      expect(dodoGatewayMessage('502 Bad Gateway\nnginx'), '502 Bad Gateway');
     });
   });
 }

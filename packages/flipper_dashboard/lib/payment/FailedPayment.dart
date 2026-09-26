@@ -110,7 +110,11 @@ class _FailedPaymentState extends State<FailedPayment>
   final TextEditingController _emailController = TextEditingController();
   String? _emailError;
   DodoCheckout? _pendingCheckout;
-  bool _cardPollRunning = false;
+
+  /// Bumped whenever a card wait starts or is abandoned. A poll only acts
+  /// while the number it started with is current, so a wait the customer left
+  /// can never end the one they started next (card or Mobile Money).
+  int _cardWaitAttempt = 0;
   bool _railInitialisedFromPlan = false;
 
   @override
@@ -1270,25 +1274,34 @@ class _FailedPaymentState extends State<FailedPayment>
 
         case DodoCheckoutOutcome.awaitingPayment:
         case DodoCheckoutOutcome.needsPaymentMethod:
+          // The connector asked for a payment page and sent no link, so no
+          // browser opened. Waiting would show "complete payment on the card
+          // page" with no page, and now that the wait has no timeout, forever.
+          // Only this case: an `awaiting_activation` reply also has no link,
+          // but there the customer has paid and waiting is right.
+          final startAction = result.start?.nextAction;
+          if (result.checkout == null &&
+              (startAction == DodoNextAction.openPaymentLink ||
+                  startAction == DodoNextAction.updatePaymentMethod)) {
+            final message =
+                result.message ??
+                'The payment page is not ready yet. Try again in a moment.';
+            setState(() {
+              _isLoading = false;
+              _errorMessage = message;
+            });
+            _reportCardFailure(context, message);
+            return;
+          }
           setState(() {
             _isLoading = false;
             _waitingForPaymentCompletion = true;
             _pendingCheckout = result.checkout;
           });
-          // Longer than the Mobile Money timeout: a card, possibly through a
-          // 3-D Secure step, in a browser the customer had to switch to, is not
-          // a 90-second affair.
+          // No timeout, unlike Mobile Money: the customer is in a browser,
+          // possibly through 3-D Secure, and this screen stays until they pay
+          // or tap "Not now" (see _startCardPolling).
           _paymentTimeoutTimer?.cancel();
-          _paymentTimeoutTimer = Timer(const Duration(minutes: 12), () {
-            if (!_mounted) return;
-            setState(() {
-              _waitingForPaymentCompletion = false;
-              _errorMessage =
-                  'We have not seen the card payment yet. If you completed it, '
-                  'reopen this screen in a moment — it can take a little while '
-                  'to arrive.';
-            });
-          });
           _startCardPolling(result.planId);
           return;
 
@@ -1340,6 +1353,7 @@ class _FailedPaymentState extends State<FailedPayment>
   /// webhook still settles it. This only stops *this screen* waiting.
   void _stopWaitingForCard() {
     _paymentTimeoutTimer?.cancel();
+    _cardWaitAttempt++;
     if (!_mounted) return;
     setState(() {
       _waitingForPaymentCompletion = false;
@@ -1373,17 +1387,25 @@ class _FailedPaymentState extends State<FailedPayment>
   /// so a webhook that never arrives costs seconds rather than the connector's
   /// whole reconcile interval.
   Future<void> _startCardPolling(String planId) async {
-    if (_cardPollRunning || planId.isEmpty) return;
-    _cardPollRunning = true;
+    if (planId.isEmpty) return;
+    final attempt = ++_cardWaitAttempt;
+    bool superseded() =>
+        !_mounted ||
+        !_waitingForPaymentCompletion ||
+        attempt != _cardWaitAttempt;
 
-    final status = await DodoCardCheckout(DodoClient(defaultPaymentsHttpClient))
-        .awaitEntitlement(
-          planId,
-          isCancelled: () => !_mounted || !_waitingForPaymentCompletion,
-        );
+    // Wait until the customer finishes, not until a clock runs out: they are on
+    // Dodo's page, and flipping this screen back to the options mid-checkout
+    // reads as "your payment failed" when nothing did. "Not now" is the way out.
+    final checkout = DodoCardCheckout(DodoClient(defaultPaymentsHttpClient));
+    DodoSubscriptionStatus? status;
+    do {
+      status = await checkout.awaitEntitlement(planId, isCancelled: superseded);
+    } while (!superseded() &&
+        status?.entitled != true &&
+        status?.nextAction != DodoNextAction.resubscribe);
 
-    _cardPollRunning = false;
-    if (!_mounted || !_waitingForPaymentCompletion) return;
+    if (superseded()) return;
 
     _paymentTimeoutTimer?.cancel();
 
