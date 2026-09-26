@@ -146,9 +146,9 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               ink: PaymentTokens.gainInk,
               text: discountedTotal == null
                   ? 'Your discount applies to card payments: the card is '
-                      'charged the discounted price now and at each renewal.'
+                        'charged the discounted price now and at each renewal.'
                   : 'Your discount applies: the card is charged '
-                      '$discountedTotal now and at each renewal.',
+                        '$discountedTotal now and at each renewal.',
             ),
           ] else if (discountApplied) ...[
             const SizedBox(height: 14),
@@ -156,7 +156,8 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               icon: FluentIcons.info_20_regular,
               tint: PaymentTokens.warnTint,
               ink: PaymentTokens.warnAmber,
-              text: 'Discount codes apply to Mobile Money payments only. '
+              text:
+                  'Discount codes apply to Mobile Money payments only. '
                   'Paying by card charges the full plan price.',
             ),
           ],
@@ -166,7 +167,8 @@ class PaymentCardCheckoutCard extends StatelessWidget {
               icon: FluentIcons.link_20_regular,
               tint: PaymentTokens.blueTint,
               ink: PaymentTokens.blue700,
-              text: 'A payment page is already waiting for this plan. Open it '
+              text:
+                  'A payment page is already waiting for this plan. Open it '
                   'to finish — a new one would not replace it.',
               action: onOpenPendingLink == null
                   ? null
@@ -217,10 +219,9 @@ class _Notice extends StatelessWidget {
               Expanded(
                 child: Text(
                   text,
-                  style: PaymentTypography.body(color: ink).copyWith(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: PaymentTypography.body(
+                    color: ink,
+                  ).copyWith(fontSize: 12.5, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
