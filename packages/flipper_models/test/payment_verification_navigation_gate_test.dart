@@ -50,6 +50,26 @@ void main() {
       expect(may('Reports', userInitiated: true), isTrue);
     });
 
+    test('a failed background check does not lift the paywall', () {
+      // Regression: the card checkout writes `plans` before calling the
+      // connector; the verification that write triggered errored (dev turbo
+      // unreachable) and "proceed despite the error" let an unpaid user into
+      // the dashboard until the next check bounced them back.
+      bool failOpen({
+        bool userInitiated = false,
+        bool isInitialStartup = false,
+      }) => PaymentVerificationNavigator.mayFailOpenFor(
+        userInitiated: userInitiated,
+        isInitialStartup: isInitialStartup,
+      );
+
+      expect(failOpen(), isFalse);
+      // Startup still fails open so an offline shop can trade…
+      expect(failOpen(isInitialStartup: true), isTrue);
+      // …and a check the user asked for may still navigate.
+      expect(failOpen(userInitiated: true), isTrue);
+    });
+
     test('paywall route set covers both lockout screens', () {
       expect(
         PaymentVerificationNavigator.paywallRoutes,
