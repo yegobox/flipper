@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-
 import 'package:flipper_payments/src/http/payments_http_client.dart';
 import 'package:flipper_payments/src/logging.dart';
 import 'package:flipper_payments/src/dodo/dodo_models.dart';
@@ -73,7 +72,9 @@ class DodoClient {
     try {
       return await request().timeout(_timeout);
     } on TimeoutException {
-      payLogError('Dodo $what: no response from $url within ${_timeout.inSeconds}s');
+      payLogError(
+        'Dodo $what: no response from $url within ${_timeout.inSeconds}s',
+      );
       throw DodoException(
         'The payments service did not respond. Check your connection and try '
         'again.',
@@ -166,7 +167,9 @@ class DodoClient {
     String? discountCode,
   }) async {
     if (businessId.trim().isEmpty) {
-      throw const DodoException('A business is required to start a card subscription.');
+      throw const DodoException(
+        'A business is required to start a card subscription.',
+      );
     }
 
     final payload = <String, dynamic>{
@@ -189,7 +192,9 @@ class DodoClient {
       'mode': dodoBuildMode,
     };
 
-    final url = Uri.parse('${await paymentsApiBaseUrl()}/api/dodo/subscriptions/start');
+    final url = Uri.parse(
+      '${await paymentsApiBaseUrl()}/api/dodo/subscriptions/start',
+    );
 
     // The host is in the line because "nothing happened" is almost always a
     // build pointed somewhere there is no connector, and that is invisible
@@ -213,7 +218,9 @@ class DodoClient {
       // The subscription may well exist upstream, so this is never reported as
       // a plain failure — a caller that "retries" a start it thinks failed is
       // relying on the connector's reuse rule to save it.
-      payLogError('Dodo start: HTTP ${response.statusCode} with no ids. ${response.body}');
+      payLogError(
+        'Dodo start: HTTP ${response.statusCode} with no ids. ${response.body}',
+      );
       throw DodoException(
         'The card subscription started but the connector sent no reference. '
         'Check the billing screen before trying again.',
@@ -240,7 +247,9 @@ class DodoClient {
   }
 
   /// Same view, by business rather than plan.
-  Future<DodoSubscriptionStatus> subscriptionForBusiness(String businessId) async {
+  Future<DodoSubscriptionStatus> subscriptionForBusiness(
+    String businessId,
+  ) async {
     final id = _requireId(businessId, 'business');
     final url = await _scoped('/api/dodo/businesses/$id/subscription');
     final response = await _send(
@@ -332,7 +341,11 @@ class DodoClient {
     final response = await _send(
       'POST',
       url,
-      () => _http.post(url, headers: _headers, body: json.encode({'at_period_end': atPeriodEnd})),
+      () => _http.post(
+        url,
+        headers: _headers,
+        body: json.encode({'at_period_end': atPeriodEnd}),
+      ),
     );
     return _requireObject(response, 'cancel the card subscription');
   }

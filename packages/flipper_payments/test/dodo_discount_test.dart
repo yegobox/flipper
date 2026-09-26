@@ -117,7 +117,11 @@ void main() {
     };
 
     test('read, sync and the business lookup', () async {
-      final client = _ScriptedHttp([_ok(status()), _ok(status()), _ok(status())]);
+      final client = _ScriptedHttp([
+        _ok(status()),
+        _ok(status()),
+        _ok(status()),
+      ]);
       final dodo = DodoClient(client);
       await dodo.subscriptionForPlan('plan-1');
       await dodo.syncSubscription('plan-1');
@@ -127,12 +131,16 @@ void main() {
         expect(
           call.url.queryParameters['mode'],
           dodoBuildMode,
-          reason: '${call.method} ${call.url.path} must not read the other Dodo account',
+          reason:
+              '${call.method} ${call.url.path} must not read the other Dodo account',
         );
       }
       expect(client.calls[0].url.path, '/api/dodo/subscriptions/plan-1');
       expect(client.calls[1].url.path, '/api/dodo/subscriptions/plan-1/sync');
-      expect(client.calls[2].url.path, '/api/dodo/businesses/biz-1/subscription');
+      expect(
+        client.calls[2].url.path,
+        '/api/dodo/businesses/biz-1/subscription',
+      );
     });
 
     test('payment-method, portal and cancel', () async {
@@ -160,11 +168,16 @@ void main() {
       'ready': true,
       'modes_available': [dodoBuildMode],
     };
-    expect(DodoHealth.fromJson(base).discountCodesForThisBuild, isFalse,
-        reason: 'an older connector ignores the code, so the card must say so');
     expect(
-      DodoHealth.fromJson({...base, 'flipper_discount_codes': true})
-          .discountCodesForThisBuild,
+      DodoHealth.fromJson(base).discountCodesForThisBuild,
+      isFalse,
+      reason: 'an older connector ignores the code, so the card must say so',
+    );
+    expect(
+      DodoHealth.fromJson({
+        ...base,
+        'flipper_discount_codes': true,
+      }).discountCodesForThisBuild,
       isTrue,
     );
     expect(
