@@ -2,7 +2,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/notifications_client.dart';
-import 'package:flipper_services/data_connector_url.dart';
+import 'package:flipper_services/notifications/notifications_host.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
 
@@ -171,8 +171,7 @@ abstract final class BookingNotificationService {
   static Future<NotificationsClient> _client() async {
     final override = clientOverride;
     if (override != null) return override();
-    final url = await resolveEbmDataConnectorUrl();
-    return createNotificationsClient(dataConnectorUrl: url ?? '');
+    return createBranchNotificationsClient();
   }
 
   /// Guests quote a room and a date back, not a UUID — but the server needs
