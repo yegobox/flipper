@@ -13,7 +13,7 @@ import 'package:flipper_models/notifications_client.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
-import 'package:flipper_services/data_connector_url.dart';
+import 'package:flipper_services/notifications/notifications_host.dart';
 import 'package:flipper_services/notifications/booking_notification_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -282,10 +282,8 @@ abstract final class HotelDeskActions {
       final businessName = await HotelQuotationActions.resolveBusinessName();
       final bytes = await HotelQuotationActions.buildPdf(quotation);
 
-      final url = await resolveEbmDataConnectorUrl();
-      final client = await createNotificationsClient(
-        dataConnectorUrl: url ?? '',
-      );
+      // Same connector and bearer token as the payment rails.
+      final client = await createBranchNotificationsClient();
 
       final result = await client.sendEmail(
         to: [email],
