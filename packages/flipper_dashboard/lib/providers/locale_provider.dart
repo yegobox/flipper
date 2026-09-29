@@ -19,7 +19,11 @@ const String kDefaultLanguageKey = 'defaultLanguage';
 const List<AppLanguage> kSelectableLanguages = [
   AppLanguage(code: 'en', englishName: 'English', nativeName: 'English'),
   AppLanguage(code: 'fr', englishName: 'French', nativeName: 'Français'),
-  AppLanguage(code: 'rw', englishName: 'Kinyarwanda', nativeName: 'Ikinyarwanda'),
+  AppLanguage(
+    code: 'rw',
+    englishName: 'Kinyarwanda',
+    nativeName: 'Ikinyarwanda',
+  ),
   AppLanguage(code: 'sw', englishName: 'Swahili', nativeName: 'Kiswahili'),
 ];
 
@@ -112,10 +116,9 @@ String languageDisplayName(FlipperAppLocalizations l10n, String code) {
   }
 }
 
-bool isSupportedLanguageCode(String code) =>
-    FlipperAppLocalizations.supportedLocales.any(
-      (locale) => locale.languageCode == code,
-    );
+bool isSupportedLanguageCode(String code) => FlipperAppLocalizations
+    .supportedLocales
+    .any((locale) => locale.languageCode == code);
 
 /// Picks the first device language Flipper can render, falling back to English.
 ///

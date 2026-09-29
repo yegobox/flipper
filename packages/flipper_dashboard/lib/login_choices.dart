@@ -377,12 +377,14 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                 'LoginChoices: businesses empty, waiting for Ditto sync '
                 '(retry $_emptyBusinessRetries/$_maxEmptyBusinessRetries)',
               );
-              _businessRetryTimer =
-                  Timer(const Duration(milliseconds: 1200), () {
-                if (mounted) {
-                  ref.invalidate(businessesProvider);
-                }
-              });
+              _businessRetryTimer = Timer(
+                const Duration(milliseconds: 1200),
+                () {
+                  if (mounted) {
+                    ref.invalidate(businessesProvider);
+                  }
+                },
+              );
             }
             return Scaffold(
               backgroundColor: Colors.white,

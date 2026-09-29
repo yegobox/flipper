@@ -277,10 +277,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     }
     final channel = await _promptWhatsAppChannel(initial: whatsappProvider);
     if (!mounted || channel == null) return;
-    await _updateSmsConfig(
-      enableWhatsapp: true,
-      whatsappProvider: channel,
-    );
+    await _updateSmsConfig(enableWhatsapp: true, whatsappProvider: channel);
   }
 
   Future<int?> _promptWhatsAppChannel({required int initial}) {
@@ -1585,7 +1582,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, context.flipperL10n.adminProfile, _kAdminBarBlue),
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.adminProfile,
+          _kAdminBarBlue,
+        ),
         const SizedBox(height: 4),
         Container(
           decoration: _adminCardDecoration(),
@@ -1833,7 +1834,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, context.flipperL10n.quickActions, _kAdminBarBlue),
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.quickActions,
+          _kAdminBarBlue,
+        ),
         Row(
           children: [
             Expanded(
@@ -1992,7 +1997,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, context.flipperL10n.smsNotifications, _kAdminBarTeal),
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.smsNotifications,
+          _kAdminBarTeal,
+        ),
         Container(
           decoration: _adminCardDecoration(),
           child: Column(
@@ -2095,7 +2104,8 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                 padding: const EdgeInsets.all(16),
                 child: _AdminSwitchRow(
                   title: context.flipperL10n.enableSmsNotifications,
-                  subtitle: context.flipperL10n.receiveSmsNotificationsForOrders,
+                  subtitle:
+                      context.flipperL10n.receiveSmsNotificationsForOrders,
                   leading: _adminLeadingSvg(
                     AdminDashboardSvgs.enableNotifications,
                     const Color(0xFF16A34A).withValues(alpha: 0.1),

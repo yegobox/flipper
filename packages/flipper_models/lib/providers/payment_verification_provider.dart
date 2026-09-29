@@ -30,8 +30,10 @@ Future<PaymentVerificationResponse> forcePaymentVerification(Ref ref) async {
 /// A provider of its own so tests can swap it for a fake.
 final manualPaymentVerificationRunnerProvider =
     Provider<Future<PaymentVerificationResponse> Function()>(
-      (ref) => () =>
-          PaymentVerificationNavigator.verifyAndNavigate(userInitiated: true),
+      (ref) =>
+          () => PaymentVerificationNavigator.verifyAndNavigate(
+            userInitiated: true,
+          ),
     );
 
 /// State of the user-requested subscription check (sales / post-signup).
@@ -60,7 +62,9 @@ class ManualPaymentVerificationNotifier
   Future<PaymentVerificationResponse> run() async {
     state = const AsyncLoading();
     try {
-      final response = await ref.read(manualPaymentVerificationRunnerProvider)();
+      final response = await ref.read(
+        manualPaymentVerificationRunnerProvider,
+      )();
       if (ref.mounted) state = AsyncData(response);
       return response;
     } catch (e, st) {
