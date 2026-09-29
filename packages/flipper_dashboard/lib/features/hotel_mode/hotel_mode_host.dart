@@ -57,7 +57,8 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       // Opening the desk on this terminal is what makes it the desk terminal:
       // the startup redirect and the sales pane both read the device pick, so
       // the screen it was left on is the screen it comes back to.
-      if (HotelModeSettings.enabled) {
+      // A phone is never pinned: it must keep opening on its own home.
+      if (HotelModeSettings.enabled && !isPhoneLayout) {
         setDeviceServiceMode(ServiceMode.hotel);
       }
       if (!mounted) return;
@@ -116,19 +117,6 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
   Widget build(BuildContext context) {
     final hotel = ref.watch(hotelModeProvider);
 
-    final Widget screen = switch (hotel.screen) {
-      HotelScreen.starting => const ColoredBox(
-        color: HotelTokens.posBg,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      HotelScreen.lock => const HotelLockScreen(),
-      HotelScreen.dashboard => const HotelDashboardScreen(),
-      HotelScreen.rooms => const HotelRoomsScreen(),
-      HotelScreen.calendar => const HotelCalendarScreen(),
-      HotelScreen.quotes => const HotelQuotationsScreen(),
-      HotelScreen.folio => const HotelFolioScreen(),
-    };
-
     final desk = Scaffold(
       backgroundColor: HotelTokens.stageBg,
       body: LayoutBuilder(
@@ -136,12 +124,26 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
           final isMobile = HotelLayoutBreakpoints.isHotelMobileLayout(
             constraints.maxWidth,
           );
+          final shown = hotelVisibleScreen(hotel.screen, mobile: isMobile);
+
+          final Widget screen = switch (shown) {
+            HotelScreen.starting => const ColoredBox(
+              color: HotelTokens.posBg,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            HotelScreen.lock => const HotelLockScreen(),
+            HotelScreen.dashboard => const HotelDashboardScreen(),
+            HotelScreen.rooms => const HotelRoomsScreen(),
+            HotelScreen.calendar => const HotelCalendarScreen(),
+            HotelScreen.quotes => const HotelQuotationsScreen(),
+            HotelScreen.folio => const HotelFolioScreen(),
+          };
 
           final stack = Stack(
             children: [
               AnimatedSwitcher(
                 duration: HotelTokens.fadeIn,
-                child: KeyedSubtree(key: ValueKey(hotel.screen), child: screen),
+                child: KeyedSubtree(key: ValueKey(shown), child: screen),
               ),
               if (hotel.showManagerModal) const HotelManagerPinModal(),
               if (hotel.toastMessage != null)

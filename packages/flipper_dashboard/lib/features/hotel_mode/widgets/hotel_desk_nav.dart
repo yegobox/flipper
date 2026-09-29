@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -22,7 +23,13 @@ class HotelDeskNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(hotelModeProvider).screen;
+    final mobile = HotelLayoutBreakpoints.isHotelMobileLayout(
+      MediaQuery.sizeOf(context).width,
+    );
+    final current = hotelVisibleScreen(
+      ref.watch(hotelModeProvider).screen,
+      mobile: mobile,
+    );
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -35,7 +42,9 @@ class HotelDeskNav extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final (screen, label, icon) in _tabs)
-            _tab(ref, screen, label, icon, current == screen),
+            // No Today tab on a phone: it would only redraw Rooms.
+            if (!mobile || screen != HotelScreen.dashboard)
+              _tab(ref, screen, label, icon, current == screen),
         ],
       ),
     );

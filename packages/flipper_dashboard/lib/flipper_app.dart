@@ -67,8 +67,9 @@ class FlipperApp extends HookConsumerWidget {
   /// Safety net when a login path lands on [FlipperApp] before branch settings
   /// hydrate.
   ///
-  /// Which surface this terminal opens is [activeServiceMode]: the device's own
-  /// pick when it has one, else the branch default. A property running both a
+  /// Which surface this terminal opens is [startupServiceMode]: the device's
+  /// own pick when it has one, else the branch default — and never a service
+  /// mode on a phone. A property running both a
   /// front desk and a bar counter is exactly why the pick is per device.
   /// Pull the branch's document branding (the company stamp) into the local
   /// cache and keep watching it.
@@ -124,7 +125,7 @@ class FlipperApp extends HookConsumerWidget {
   ) {
     if (router.router.current.name != routeAtStart) return false;
 
-    switch (activeServiceMode) {
+    switch (startupServiceMode) {
       case ServiceMode.hotel:
         router.navigateTo(HotelModeHostRoute());
         return true;

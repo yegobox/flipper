@@ -23,6 +23,14 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 /// desk letting anyone in.
 enum HotelScreen { starting, lock, dashboard, rooms, calendar, quotes, folio }
 
+/// The screen actually drawn for [screen].
+///
+/// The Today dashboard is a desk-terminal overview laid out for a wide
+/// screen; on a phone it opens on Rooms instead. Presentation only — the
+/// state keeps [HotelScreen.dashboard], so widening the window shows it again.
+HotelScreen hotelVisibleScreen(HotelScreen screen, {required bool mobile}) =>
+    mobile && screen == HotelScreen.dashboard ? HotelScreen.rooms : screen;
+
 class HotelModeState {
   const HotelModeState({
     this.screen = HotelScreen.starting,
