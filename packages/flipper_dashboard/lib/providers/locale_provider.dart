@@ -13,11 +13,17 @@ const String kDefaultLanguageKey = 'defaultLanguage';
 
 /// Languages offered in the picker, in display order.
 ///
-/// [FlipperAppLocalizations.supportedLocales] also carries `fr` (translated but
-/// not advertised), so the app still resolves French if the device asks for it.
+/// Every code here must be in [FlipperAppLocalizations.supportedLocales]
+/// (pinned by `locale_provider_test.dart`). French was translated in full but
+/// left off this list, so no picker on any platform ever offered it.
 const List<AppLanguage> kSelectableLanguages = [
   AppLanguage(code: 'en', englishName: 'English', nativeName: 'English'),
-  AppLanguage(code: 'rw', englishName: 'Kinyarwanda', nativeName: 'Ikinyarwanda'),
+  AppLanguage(code: 'fr', englishName: 'French', nativeName: 'Français'),
+  AppLanguage(
+    code: 'rw',
+    englishName: 'Kinyarwanda',
+    nativeName: 'Ikinyarwanda',
+  ),
   AppLanguage(code: 'sw', englishName: 'Swahili', nativeName: 'Kiswahili'),
 ];
 
@@ -110,10 +116,9 @@ String languageDisplayName(FlipperAppLocalizations l10n, String code) {
   }
 }
 
-bool isSupportedLanguageCode(String code) =>
-    FlipperAppLocalizations.supportedLocales.any(
-      (locale) => locale.languageCode == code,
-    );
+bool isSupportedLanguageCode(String code) => FlipperAppLocalizations
+    .supportedLocales
+    .any((locale) => locale.languageCode == code);
 
 /// Picks the first device language Flipper can render, falling back to English.
 ///

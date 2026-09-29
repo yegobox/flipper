@@ -377,12 +377,14 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                 'LoginChoices: businesses empty, waiting for Ditto sync '
                 '(retry $_emptyBusinessRetries/$_maxEmptyBusinessRetries)',
               );
-              _businessRetryTimer =
-                  Timer(const Duration(milliseconds: 1200), () {
-                if (mounted) {
-                  ref.invalidate(businessesProvider);
-                }
-              });
+              _businessRetryTimer = Timer(
+                const Duration(milliseconds: 1200),
+                () {
+                  if (mounted) {
+                    ref.invalidate(businessesProvider);
+                  }
+                },
+              );
             }
             return Scaffold(
               backgroundColor: Colors.white,
@@ -707,8 +709,14 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       _selectedBranchId = null;
     });
 
-    // Check if this is an individual business (businessTypeId == 2)
-    if (business.businessTypeId == 2) {
+    // Individual businesses (businessTypeId == 2) only get the personal app
+    // where it is enabled — see PaymentVerificationNavigator.personalAppEnabled.
+    // Everywhere else they pick a branch and land on the POS like any shop;
+    // pushing PersonalHomeScreen here used to strand them with no branch set.
+    if (PaymentVerificationNavigator.isPersonalAppFor(
+      businessTypeId: business.businessTypeId,
+      isDefault: true,
+    )) {
       // Navigate to personal app screen
       if (mounted) {
         Navigator.of(context).push(

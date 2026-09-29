@@ -224,9 +224,9 @@ void _onCheckSubscriptionTap(BuildContext context) {
   final container = ProviderScope.containerOf(context);
   unawaited(() async {
     try {
-      final response = await container.refresh(
-        manualPaymentVerificationProvider.future,
-      );
+      final response = await container
+          .read(manualPaymentVerificationProvider.notifier)
+          .run();
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(paymentVerificationResultMessage(response))),
