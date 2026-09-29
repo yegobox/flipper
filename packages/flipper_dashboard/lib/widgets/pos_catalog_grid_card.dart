@@ -27,6 +27,7 @@ class PosCatalogGridCard extends StatefulWidget {
     required this.onLongPress,
     this.showPrice = true,
     this.stockLabelColor,
+    this.selectionMode = false,
   });
 
   final String productName;
@@ -44,6 +45,11 @@ class PosCatalogGridCard extends StatefulWidget {
   final bool showPrice;
   final Color? stockLabelColor;
 
+  /// Multi-select is active in the catalog. Taps then toggle selection rather
+  /// than sell, so an out-of-stock tile must still accept them — otherwise it
+  /// could only be picked by long-press.
+  final bool selectionMode;
+
   @override
   State<PosCatalogGridCard> createState() => _PosCatalogGridCardState();
 }
@@ -55,7 +61,7 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
   @override
   Widget build(BuildContext context) {
     final reducedMotion = PosTokens.prefersReducedMotion(context);
-    final interactive = !widget.isOutOfStock;
+    final interactive = !widget.isOutOfStock || widget.selectionMode;
     final hover = _hovered && interactive;
     final scale = !reducedMotion && _pressed && interactive
         ? PosTokens.cardPressScale
@@ -72,16 +78,14 @@ class _PosCatalogGridCardState extends State<PosCatalogGridCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      cursor: widget.isOutOfStock
-          ? SystemMouseCursors.forbidden
-          : SystemMouseCursors.click,
+      cursor: interactive
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.forbidden,
       child: GestureDetector(
-        onTapDown: widget.isOutOfStock
-            ? null
-            : (_) => setState(() => _pressed = true),
+        onTapDown: interactive ? (_) => setState(() => _pressed = true) : null,
         onTapUp: (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
-        onTap: widget.isOutOfStock ? null : widget.onTap,
+        onTap: interactive ? widget.onTap : null,
         onLongPress: widget.onLongPress,
         child: AnimatedScale(
           scale: scale,

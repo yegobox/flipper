@@ -20,6 +20,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -134,6 +135,11 @@ class _RowItemState extends ConsumerState<RowItem>
     ),
   );
 
+  static bool _isSelectModifierPressed() {
+    final keyboard = HardwareKeyboard.instance;
+    return keyboard.isMetaPressed || keyboard.isControlPressed;
+  }
+
   /// True when stock quantities should be hidden from this user — an opt-in
   /// privacy grant (grant-to-hide). Absence of the grant shows quantities.
   bool _hideStockQuantity(WidgetRef ref) => ref.watch(
@@ -244,6 +250,15 @@ class _RowItemState extends ConsumerState<RowItem>
       }
       return;
     }
+    // Desktop convention: Cmd/Ctrl+click starts (or extends) a multi-select
+    // for bulk delete instead of selling. Same gate as long-press.
+    if (_isSelectModifierPressed() &&
+        itemId != null &&
+        !widget.isOrdering &&
+        _canManageProducts()) {
+      ref.read(selectedItemIdsProvider.notifier).toggleSelection(itemId);
+      return;
+    }
     final flipperWatch? w = kDebugMode
         ? flipperWatch('onAddingItemToQuickSell')
         : null;
@@ -317,7 +332,10 @@ class _RowItemState extends ConsumerState<RowItem>
               posParseTileColor(widget.variant?.color) ??
               posParseTileColor(widget.product?.color),
         ),
-        onTap: isOut
+        // While multi-selecting, a tap toggles selection — out-of-stock tiles
+        // included, since they are just as deletable.
+        selectionMode: isMultiSelectActive,
+        onTap: isOut && !isMultiSelectActive
             ? null
             : () => _handleProductTap(
                 isMultiSelectActive: isMultiSelectActive,

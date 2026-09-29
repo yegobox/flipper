@@ -453,22 +453,29 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     return res;
   }
 
-  Future<void> bulkDelete({
+  /// Deletes every id in [ids] and returns the ids that were actually deleted.
+  ///
+  /// Each item is attempted on its own: one failure no longer aborts the rest,
+  /// and callers only drop the returned ids from the catalog, so a tile that
+  /// could not be deleted stays visible. Shared variants are skipped, matching
+  /// the single-tile delete.
+  Future<Set<String>> bulkDelete({
     required Set<String> ids,
     required String type,
     Function(double progress)? onProgress,
   }) async {
-    try {
-      int count = 0;
-      int total = ids.length;
-      for (final id in ids) {
+    final deleted = <String>{};
+    int count = 0;
+    int total = ids.length;
+    for (final id in ids) {
+      try {
         if (type == 'variant') {
           // get variant by id directly
           Variant? variation = await ProxyService.getStrategy(
             Strategy.capella,
           ).getVariant(id: id);
 
-          if (variation != null) {
+          if (variation != null && variation.isShared != true) {
             // If it's a variant, we should also delete the product
             await deleteProduct(productId: variation.productId!);
 
@@ -478,6 +485,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
               endPoint: 'variant',
               flipperHttpClient: ProxyService.http,
             );
+            deleted.add(id);
 
             // check if it's a favorite and delete that too
             Favorite? fav = await ProxyService.strategy.getFavoriteByProdId(
@@ -491,16 +499,18 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
           }
         } else if (type == 'product') {
           await deleteProduct(productId: id);
+          deleted.add(id);
         }
-        count++;
-        if (onProgress != null) {
-          onProgress(count / total);
-        }
+      } catch (e, s) {
+        talker.warning('bulkDelete: failed to delete $type $id: $e');
+        talker.error(s);
       }
-    } catch (e, s) {
-      talker.warning(e);
-      talker.error(s);
+      count++;
+      if (onProgress != null) {
+        onProgress(count / total);
+      }
     }
+    return deleted;
   }
 
   Future<void> deleteProduct({required String productId}) async {
