@@ -9,6 +9,13 @@ environment:
   sdk: ">=3.3.0 <4.0.0"
 
 
+# Same as flipper_services: use the system libsqlite3 so `flutter test` does
+# not depend on the sqlite3 build hook downloading a dylib from GitHub.
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+
 dependencies:
   flutter:
     sdk: flutter
@@ -27,6 +34,10 @@ dependencies:
   styled_widget: ^0.4.1
   wolt_modal_sheet: ^0.11.0
   dropdown_search: ^6.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
   
   
 dependency_overrides:
