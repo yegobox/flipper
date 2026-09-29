@@ -12,6 +12,7 @@ import 'package:flipper_models/helperModels/sale_device_id.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/services/payment_verification_navigator.dart';
+import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -694,6 +695,13 @@ mixin AuthMixin implements AuthInterface {
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
     print('After configureSystem');
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
+    // Refresh the offline staff roster so the shared register (hotel desk,
+    // bar lock, POS user switch) can list staff if the device goes offline.
+    if (!offlineLogin) {
+      unawaited(
+        FlipperBaseModel.fetchBarStaffTenants().then((_) {}, onError: (_) {}),
+      );
+    }
     print('After setting authComplete');
 
     if (stopAfterConfigure) {

@@ -48,6 +48,7 @@ dependencies:
   talker_flutter: ^4.1.5
   rxdart: ^0.28.0
   collection: ^1.19.0
+  crypto: ^3.0.3
   intl: ^0.20.2
   amplify_core: ^2.7.0
   amplify_api: ^2.7.0

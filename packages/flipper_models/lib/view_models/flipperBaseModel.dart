@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flipper_models/sync/utils/staff_roster_cache.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -299,7 +302,9 @@ class FlipperBaseModel extends ReactiveViewModel {
         tenantFromSupabaseRow(row),
         pinsByUserId,
       );
-      if (ownerName != null && ownerName.isNotEmpty && tenant.name != ownerName) {
+      if (ownerName != null &&
+          ownerName.isNotEmpty &&
+          tenant.name != ownerName) {
         return Tenant(
           id: tenant.id,
           name: ownerName,
@@ -429,8 +434,7 @@ class FlipperBaseModel extends ReactiveViewModel {
           name: (userName != null && userName.isNotEmpty)
               ? userName
               : (ownerNameByUser[uid] ?? 'Staff'),
-          phoneNumber:
-              row['phone_number']?.toString() ?? phoneByUser[uid],
+          phoneNumber: row['phone_number']?.toString() ?? phoneByUser[uid],
           businessId: businessUuid,
           userId: uid,
           pin: pin,
@@ -449,8 +453,7 @@ class FlipperBaseModel extends ReactiveViewModel {
     Map<String, int> pinsByUserId,
   ) {
     final uid = tenant.userId;
-    final fromPins =
-        (uid != null && uid.isNotEmpty) ? pinsByUserId[uid] : null;
+    final fromPins = (uid != null && uid.isNotEmpty) ? pinsByUserId[uid] : null;
     final effectivePin = fromPins ?? parseStaffPinValue(tenant.pin);
     if (effectivePin == tenant.pin) return tenant;
     return Tenant(
@@ -472,12 +475,76 @@ class FlipperBaseModel extends ReactiveViewModel {
     );
   }
 
+  /// How long the shared-register roster waits on Supabase before showing the
+  /// cached roster instead (the fetch keeps running and refreshes the cache).
+  static const Duration staffRosterRemoteTimeout = Duration(seconds: 10);
+
   /// Bar Mode staff roster — same tenants as User Management, with PINs merged
   /// from the `pins` table when `tenants.pin` is null.
+  ///
+  /// Offline-safe: each successful fetch is cached in the box (PINs hashed, see
+  /// [encodeStaffRoster]); when Supabase fails, returns nothing, or is slower
+  /// than [staffRosterRemoteTimeout], the cached roster is returned instead.
   static Future<List<Tenant>> fetchBarStaffTenants({String? businessId}) async {
     final id = businessId ?? ProxyService.box.getBusinessId();
     if (id == null || id.isEmpty) return const [];
 
+    final remote = _fetchBarStaffTenantsRemote(id).then((tenants) {
+      if (tenants.isNotEmpty) _writeStaffRosterCache(id, tenants);
+      return tenants;
+    });
+
+    try {
+      final tenants = await remote.timeout(staffRosterRemoteTimeout);
+      if (tenants.isNotEmpty) return tenants;
+      return _readStaffRosterCache(id);
+    } on TimeoutException {
+      final cached = _readStaffRosterCache(id);
+      if (cached.isNotEmpty) {
+        unawaited(remote.then((_) {}, onError: (_) {}));
+        return cached;
+      }
+      try {
+        return await remote;
+      } catch (e, s) {
+        debugPrint('fetchBarStaffTenants (slow, no cache): $e\n$s');
+        return const [];
+      }
+    } catch (e, s) {
+      debugPrint('fetchBarStaffTenants: $e\n$s — using cached roster');
+      return _readStaffRosterCache(id);
+    }
+  }
+
+  static void _writeStaffRosterCache(String businessId, List<Tenant> tenants) {
+    try {
+      unawaited(
+        ProxyService.box
+            .writeString(
+              key: staffRosterCacheKey(businessId),
+              value: encodeStaffRoster(tenants),
+            )
+            .catchError((Object e) {
+              debugPrint('staff roster cache write failed: $e');
+            }),
+      );
+    } catch (e) {
+      debugPrint('staff roster cache write failed: $e');
+    }
+  }
+
+  static List<Tenant> _readStaffRosterCache(String businessId) {
+    try {
+      return decodeStaffRoster(
+        ProxyService.box.readString(key: staffRosterCacheKey(businessId)),
+      );
+    } catch (e) {
+      debugPrint('staff roster cache read failed: $e');
+      return const [];
+    }
+  }
+
+  static Future<List<Tenant>> _fetchBarStaffTenantsRemote(String id) async {
     final businessUuid = await resolveBusinessUuidForTenants(id);
     if (businessUuid == null || businessUuid.isEmpty) return const [];
 
@@ -486,15 +553,19 @@ class FlipperBaseModel extends ReactiveViewModel {
       await fetchTenantsFromSupabase(businessUuid),
     ).map((t) => withPinFromLookup(t, pinsByUserId)).toList();
 
-    final ownerStaff =
-        await fetchBusinessOwnerStaffMember(businessUuid, pinsByUserId);
+    final ownerStaff = await fetchBusinessOwnerStaffMember(
+      businessUuid,
+      pinsByUserId,
+    );
     if (ownerStaff != null) {
       tenants.removeWhere((t) => t.userId == ownerStaff.userId);
       tenants.add(withPinFromLookup(ownerStaff, pinsByUserId));
     }
 
-    final knownUserIds =
-        tenants.map((t) => t.userId).whereType<String>().toSet();
+    final knownUserIds = tenants
+        .map((t) => t.userId)
+        .whereType<String>()
+        .toSet();
     tenants = [
       ...tenants,
       ...await tenantsFromPinsOnlyUsers(
@@ -543,8 +614,7 @@ class FlipperBaseModel extends ReactiveViewModel {
               .select('user_id')
               .eq('id', businessUuid)
               .maybeSingle();
-          final isOwner =
-              ownerRow?['user_id']?.toString() == currentUserId;
+          final isOwner = ownerRow?['user_id']?.toString() == currentUserId;
           tenants = [
             ...tenants,
             Tenant(
@@ -565,9 +635,8 @@ class FlipperBaseModel extends ReactiveViewModel {
     tenants = dedupeBarStaffForDisplay(tenants);
 
     tenants.sort(
-      (a, b) => (a.name ?? '').toLowerCase().compareTo(
-        (b.name ?? '').toLowerCase(),
-      ),
+      (a, b) =>
+          (a.name ?? '').toLowerCase().compareTo((b.name ?? '').toLowerCase()),
     );
     return tenants;
   }

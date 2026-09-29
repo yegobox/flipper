@@ -203,6 +203,9 @@ class SharedPreferenceStorage implements LocalStorage {
   static const String _pendingDigitalReceiptPrefix = 'pending_digital_receipt_';
   static const String _mfaTotpSecretPrefix = 'mfa_totp_secret_';
 
+  /// Offline staff roster per business (see flipper_models staff_roster_cache.dart).
+  static const String _staffRosterPrefix = 'staff_roster_';
+
   SharedPreferences? _webPrefs;
 
   bool get _isFlutterTestEnv =>
@@ -406,7 +409,11 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> _writeDittoPayload() async {
     final store = DittoService.instance.store;
     if (store == null) return;
-    final payload = jsonEncode(_cache);
+    // The staff roster (hashed PINs) is device-local; never mirror it.
+    final payload = jsonEncode({
+      for (final e in _cache.entries)
+        if (!e.key.startsWith(_staffRosterPrefix)) e.key: e.value,
+    });
     await store.execute(
       'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
       arguments: {
@@ -637,6 +644,7 @@ class SharedPreferenceStorage implements LocalStorage {
   bool _isKeyAllowed(String key) {
     if (key.startsWith(_pendingDigitalReceiptPrefix)) return true;
     if (key.startsWith(_mfaTotpSecretPrefix)) return true;
+    if (key.startsWith(_staffRosterPrefix)) return true;
     return _allowedKeys.contains(key);
   }
 
