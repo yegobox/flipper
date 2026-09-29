@@ -514,11 +514,17 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         );
 
     if (isEbmEnabled && !kDebugMode) {
+      final strategy = ProxyService.getStrategy(Strategy.capella);
       for (final id in selectedIds) {
-        final variant = await ProxyService.getStrategy(
-          Strategy.capella,
-        ).getVariant(id: id);
-        if (variant != null && (variant.stock?.currentStock ?? 0) > 0) {
+        final variant = await strategy.getVariant(id: id);
+        if (variant == null) continue;
+        // Same stock source as the single-tile delete: the variant's embedded
+        // stock is not always hydrated, which would let stocked items through.
+        final stockId = variant.stockId;
+        final stock = (stockId != null && stockId.isNotEmpty)
+            ? (await strategy.getStockById(id: stockId)) ?? variant.stock
+            : variant.stock;
+        if ((stock?.currentStock ?? 0) > 0) {
           final dialogService = locator<DialogService>();
           dialogService.showCustomDialog(
             variant: DialogType.info,
@@ -563,7 +569,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       // Reset and show progress
       ref.read(bulkDeleteProgressProvider.notifier).state = 0.01;
 
-      await model.bulkDelete(
+      final deletedIds = await model.bulkDelete(
         ids: selectedIds,
         type: 'variant',
         onProgress: (p) {
@@ -572,8 +578,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       );
 
       // Manual optimization: remove items from state for immediate UI feedback
+      // Only drop tiles that were really deleted; failures stay visible.
       _editEveryLiveCatalog(branchId, (catalog) {
-        for (final id in selectedIds) {
+        for (final id in deletedIds) {
           catalog.removeVariantById(id);
         }
       });
@@ -585,7 +592,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       if (context.mounted) {
         showCustomSnackBarUtil(
           context,
-          context.flipperL10n.deletedItemsCount(selectedIds.length),
+          context.flipperL10n.deletedItemsCount(deletedIds.length),
         );
       }
     }
