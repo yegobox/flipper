@@ -9,7 +9,7 @@ Future<PaymentVerificationResponse> triggerManualPaymentVerification(
 ) async {
   talker.info('Manual payment verification triggered');
   try {
-    return await ref.refresh(manualPaymentVerificationProvider.future);
+    return await ref.read(manualPaymentVerificationProvider.notifier).run();
   } catch (e, st) {
     talker.error('Manual payment verification failed: $e', st);
     rethrow;

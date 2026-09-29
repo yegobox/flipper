@@ -1189,7 +1189,12 @@ class _AdminControlState extends ConsumerState<AdminControl> {
             ),
             leading: IconButton(
               style: _adminAppBarCircleIconStyle(),
-              onPressed: () => navigator.navigateTo(FlipperAppRoute()),
+              // Go back to wherever Admin was opened from (POS, bar floor…).
+              // Pushing a fresh FlipperAppRoute here stacked a second
+              // dashboard and dropped bar-floor users out of bar mode.
+              onPressed: () => navigator.router.canPop()
+                  ? navigator.back()
+                  : navigator.clearStackAndShow(FlipperAppRoute()),
               icon: const Icon(Icons.close, size: 22),
               tooltip: context.flipperL10n.close,
             ),

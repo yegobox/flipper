@@ -66,3 +66,34 @@ jobs:
               exit 1
             fi
           fi
+
+      - name: Translation ARBs must carry every source key
+        env:
+          L10N_DIR: packages/flipper_localize/lib/l10n
+        run: |
+          set -euo pipefail
+
+          # Crowdin PR #636 replaced app_rw.arb and app_sw.arb with `{}` and
+          # merged green. The committed generated Dart still held the strings,
+          # so nothing looked wrong — until the next gen-l10n would have
+          # silently turned Kinyarwanda and Swahili into English.
+          python3 - "$L10N_DIR" <<'PY'
+          import json, pathlib, sys
+          l10n = pathlib.Path(sys.argv[1])
+          def keys(p):
+              return {k for k in json.loads(p.read_text()) if not k.startswith('@')}
+          template = keys(l10n / 'app_en.arb')
+          failed = False
+          for arb in sorted(l10n.glob('app_*.arb')):
+              if arb.name == 'app_en.arb':
+                  continue
+              missing = template - keys(arb)
+              print(f"{arb}: {len(template) - len(missing)}/{len(template)} source keys")
+              if missing:
+                  failed = True
+                  sample = ', '.join(sorted(missing)[:10])
+                  print(f"::error file={arb}::{arb.name} is missing {len(missing)} of "
+                        f"{len(template)} source keys ({sample}…). Regenerating "
+                        "localizations from it would render those strings in English.")
+          sys.exit(1 if failed else 0)
+          PY

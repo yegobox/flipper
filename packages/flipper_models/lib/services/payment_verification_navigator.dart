@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flipper_models/exceptions.dart';
@@ -418,12 +419,51 @@ class PaymentVerificationNavigator {
     return view.physicalSize.width / view.devicePixelRatio < 600;
   }
 
+  /// Kill switch for the personal (gamified) app, `PersonalHomeScreen`.
+  ///
+  /// It is unfinished — mock XP, streaks and gems — and was only ever meant
+  /// for phones. While it was reachable, any business with
+  /// `businessTypeId == 2` (which includes real shops, because web signup
+  /// used to send 2 for "Individual") was routed onto it instead of the POS,
+  /// on Windows and macOS too, with no way back short of logging out.
+  static const bool personalAppEnabled = false;
+
+  /// Whether a business should be sent to the personal app rather than the
+  /// POS. Pure so the rule stays pinned by tests; [enabled] and [platform]
+  /// default to the real values.
+  @visibleForTesting
+  static bool personalAppAllowedFor({
+    required int? businessTypeId,
+    required bool? isDefault,
+    bool enabled = personalAppEnabled,
+    bool isWeb = kIsWeb,
+    TargetPlatform? platform,
+  }) {
+    if (!enabled || isWeb) return false;
+    final target = platform ?? defaultTargetPlatform;
+    final isPhone =
+        target == TargetPlatform.android || target == TargetPlatform.iOS;
+    return isPhone && businessTypeId == 2 && isDefault == true;
+  }
+
+  /// Shared with LoginChoices so both entry points follow one rule.
+  static bool isPersonalAppFor({
+    required int? businessTypeId,
+    required bool? isDefault,
+  }) => personalAppAllowedFor(
+    businessTypeId: businessTypeId,
+    isDefault: isDefault,
+  );
+
   static Future<bool> _shouldNavigateToPersonalApp() async {
+    if (!personalAppEnabled) return false;
     try {
       final activeBusiness = await ProxyService.strategy.activeBusiness();
       return activeBusiness != null &&
-          activeBusiness.businessTypeId == 2 &&
-          activeBusiness.isDefault == true;
+          isPersonalAppFor(
+            businessTypeId: activeBusiness.businessTypeId,
+            isDefault: activeBusiness.isDefault,
+          );
     } catch (e) {
       talker.warning('Error checking if should navigate to personal app: $e');
       return false;

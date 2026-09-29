@@ -707,8 +707,14 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       _selectedBranchId = null;
     });
 
-    // Check if this is an individual business (businessTypeId == 2)
-    if (business.businessTypeId == 2) {
+    // Individual businesses (businessTypeId == 2) only get the personal app
+    // where it is enabled — see PaymentVerificationNavigator.personalAppEnabled.
+    // Everywhere else they pick a branch and land on the POS like any shop;
+    // pushing PersonalHomeScreen here used to strand them with no branch set.
+    if (PaymentVerificationNavigator.isPersonalAppFor(
+      businessTypeId: business.businessTypeId,
+      isDefault: true,
+    )) {
       // Navigate to personal app screen
       if (mounted) {
         Navigator.of(context).push(

@@ -1,5 +1,6 @@
 import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Pins the rule that a healthy payment check must not move a working user.
@@ -75,6 +76,77 @@ void main() {
         PaymentVerificationNavigator.paywallRoutes,
         containsAll(<String>[PaymentPlanUIRoute.name, FailedPaymentRoute.name]),
       );
+    });
+  });
+
+  /// Pins the rule that the unfinished personal (gamified) app never replaces
+  /// the POS. Real shops carry `businessTypeId == 2`, and on Windows they were
+  /// routed onto `PersonalHomeScreen` with no way back short of logging out.
+  group('PaymentVerificationNavigator.personalAppAllowedFor', () {
+    test('the personal app is switched off', () {
+      expect(PaymentVerificationNavigator.personalAppEnabled, isFalse);
+    });
+
+    test('an individual business lands on the POS on every platform', () {
+      for (final platform in TargetPlatform.values) {
+        for (final isWeb in const [false, true]) {
+          expect(
+            PaymentVerificationNavigator.personalAppAllowedFor(
+              businessTypeId: 2,
+              isDefault: true,
+              isWeb: isWeb,
+              platform: platform,
+            ),
+            isFalse,
+            reason: '$platform (web: $isWeb) must not open the personal app',
+          );
+        }
+      }
+      expect(
+        PaymentVerificationNavigator.isPersonalAppFor(
+          businessTypeId: 2,
+          isDefault: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('once enabled, it is still phones only', () {
+      bool allowed(TargetPlatform platform, {bool isWeb = false}) =>
+          PaymentVerificationNavigator.personalAppAllowedFor(
+            businessTypeId: 2,
+            isDefault: true,
+            enabled: true,
+            isWeb: isWeb,
+            platform: platform,
+          );
+
+      expect(allowed(TargetPlatform.android), isTrue);
+      expect(allowed(TargetPlatform.iOS), isTrue);
+      for (final desktop in const [
+        TargetPlatform.windows,
+        TargetPlatform.macOS,
+        TargetPlatform.linux,
+      ]) {
+        expect(allowed(desktop), isFalse, reason: '$desktop is not a phone');
+      }
+      expect(allowed(TargetPlatform.android, isWeb: true), isFalse);
+    });
+
+    test('once enabled, ordinary businesses never qualify', () {
+      bool allowed({int? typeId, bool? isDefault}) =>
+          PaymentVerificationNavigator.personalAppAllowedFor(
+            businessTypeId: typeId,
+            isDefault: isDefault,
+            enabled: true,
+            isWeb: false,
+            platform: TargetPlatform.android,
+          );
+
+      expect(allowed(typeId: 1, isDefault: true), isFalse);
+      expect(allowed(typeId: null, isDefault: true), isFalse);
+      expect(allowed(typeId: 2, isDefault: false), isFalse);
+      expect(allowed(typeId: 2, isDefault: null), isFalse);
     });
   });
 }
