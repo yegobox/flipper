@@ -1,6 +1,7 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/utils/ditto_transaction_line.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
+import 'package:flipper_models/sync/utils/staff_roster_cache.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -11,10 +12,13 @@ const int barPinCellCount = 6;
 /// `0` means "no PIN" on `users` / `tenants` rows — real login PINs live in `pins`.
 bool isUsableStaffPin(int? pin) => pin != null && pin != 0;
 
-/// Whether [enteredPin] matches the staff PIN on [tenant] (local merge from `pins`).
+/// Whether [enteredPin] matches the staff PIN on [tenant] (local merge from `pins`,
+/// or the hashed offline roster cache when the tenant was restored from it).
 bool barPinMatchesTenant(Tenant tenant, String enteredPin) {
   final stored = tenant.pin;
-  if (!isUsableStaffPin(stored)) return false;
+  if (!isUsableStaffPin(stored)) {
+    return staffRosterPinMatches(tenant, enteredPin);
+  }
   final parsed = int.tryParse(enteredPin);
   if (parsed != null && parsed == stored) return true;
   return stored.toString() == enteredPin;
@@ -68,13 +72,12 @@ String? barRraItemCd({
   String? sku,
   String? legacyItemCd,
   String? variantId,
-}) =>
-    rraItemCd(
-      variant: variant,
-      sku: sku,
-      legacyItemCd: legacyItemCd,
-      variantId: variantId,
-    );
+}) => rraItemCd(
+  variant: variant,
+  sku: sku,
+  legacyItemCd: legacyItemCd,
+  variantId: variantId,
+);
 
 /// Tourism tax category — RRA only accepts `TT` when applicable.
 String? barRraTtCatCd({Variant? variant, String? legacy}) =>
@@ -91,8 +94,7 @@ TransactionItem? barTransactionLineFromDitto(Map<String, dynamic> data) =>
 /// Fills RRA-required fields on bar tab lines (variant catalog + pricing).
 Future<List<TransactionItem>> enrichBarTabLinesForRraReceipt(
   List<TransactionItem> lines,
-) =>
-    enrichLinesForRraReceipt(lines, context: 'receipt');
+) => enrichLinesForRraReceipt(lines, context: 'receipt');
 
 /// Merge key: variant + cashier + default price only.
 bool barLineMatchesMerge({
@@ -100,13 +102,12 @@ bool barLineMatchesMerge({
   required String variantId,
   required String cashierTenantId,
   required num defaultPrice,
-}) =>
-    lineMatchesMerge(
-      line: line,
-      variantId: variantId,
-      loggedByTenantId: cashierTenantId,
-      defaultPrice: defaultPrice,
-    );
+}) => lineMatchesMerge(
+  line: line,
+  variantId: variantId,
+  loggedByTenantId: cashierTenantId,
+  defaultPrice: defaultPrice,
+);
 
 String barTenantInitials(String? name) => tenantInitials(name);
 

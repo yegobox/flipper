@@ -151,13 +151,24 @@ class _HotelLockDesktopScreenState
         const SizedBox(height: 18),
         Expanded(
           child: staff.isEmpty
-              ? Text(
-                  'No staff yet. Add users in User Management — they appear '
-                  'here with their PINs.',
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    color: HotelTokens.ink3,
-                  ),
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'No staff to show. Add users in User Management — they '
+                      'appear here with their PINs. If this device is offline, '
+                      'connect once so staff can sign in offline afterwards.',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        color: HotelTokens.ink3,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () => ref.invalidate(hotelStaffProvider),
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 )
               : ListView.separated(
                   itemCount: staff.length,
