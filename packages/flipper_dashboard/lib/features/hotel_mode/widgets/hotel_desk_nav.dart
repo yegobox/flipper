@@ -23,9 +23,13 @@ class HotelDeskNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mobile = HotelLayoutBreakpoints.isHotelMobileLayout(
-      MediaQuery.sizeOf(context).width,
-    );
+    // The host's own flag, so Today is hidden exactly when the host swaps it
+    // for Rooms; the window width only stands in outside the host.
+    final mobile =
+        HotelLayoutScope.maybeMobileOf(context) ??
+        HotelLayoutBreakpoints.isHotelMobileLayout(
+          MediaQuery.sizeOf(context).width,
+        );
     final current = hotelVisibleScreen(
       ref.watch(hotelModeProvider).screen,
       mobile: mobile,

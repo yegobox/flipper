@@ -411,7 +411,10 @@ class PaymentVerificationNavigator {
     final views = WidgetsBinding.instance.platformDispatcher.views;
     if (views.isEmpty) return false;
     final view = views.first;
-    if (view.devicePixelRatio <= 0) return false;
+    // Unsized (not laid out yet, or a minimized window): not a phone.
+    if (view.devicePixelRatio <= 0 || view.physicalSize.width <= 0) {
+      return false;
+    }
     return view.physicalSize.width / view.devicePixelRatio < 600;
   }
 

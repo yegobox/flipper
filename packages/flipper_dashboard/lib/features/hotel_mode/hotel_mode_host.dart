@@ -139,21 +139,24 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
             HotelScreen.folio => const HotelFolioScreen(),
           };
 
-          final stack = Stack(
-            children: [
-              AnimatedSwitcher(
-                duration: HotelTokens.fadeIn,
-                child: KeyedSubtree(key: ValueKey(shown), child: screen),
-              ),
-              if (hotel.showManagerModal) const HotelManagerPinModal(),
-              if (hotel.toastMessage != null)
-                HotelToast(
-                  message: hotel.toastMessage!,
-                  mobile: isMobile,
-                  onDone: () =>
-                      ref.read(hotelModeProvider.notifier).clearToast(),
+          final stack = HotelLayoutScope(
+            mobile: isMobile,
+            child: Stack(
+              children: [
+                AnimatedSwitcher(
+                  duration: HotelTokens.fadeIn,
+                  child: KeyedSubtree(key: ValueKey(shown), child: screen),
                 ),
-            ],
+                if (hotel.showManagerModal) const HotelManagerPinModal(),
+                if (hotel.toastMessage != null)
+                  HotelToast(
+                    message: hotel.toastMessage!,
+                    mobile: isMobile,
+                    onDone: () =>
+                        ref.read(hotelModeProvider.notifier).clearToast(),
+                  ),
+              ],
+            ),
           );
 
           if (isMobile) return SafeArea(child: stack);

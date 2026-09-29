@@ -95,6 +95,10 @@ class FlipperApp extends HookConsumerWidget {
       return;
     }
 
+    // Phone or desktop is decided from the view width, which is zero until
+    // the first metrics arrive and while a desktop window starts minimized.
+    await waitForViewSize();
+
     // Act on what the local cache already knows before waiting on the network.
     // `hydrateForActiveBranch` blocks for up to 12 seconds when a branch has no
     // remote document, and doing that for hotel first left a bar-only branch
