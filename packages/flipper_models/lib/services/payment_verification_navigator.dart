@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -390,6 +390,10 @@ class PaymentVerificationNavigator {
   /// [FlipperAppRoute], whose startup redirect resolves the mode properly, so
   /// only the bar needs answering here.
   static bool _shouldOpenBarMode() {
+    // A phone opens on its own home, never a service mode. Mirrors
+    // `resolveStartupServiceMode` / `isPhoneLayout` (600 logical px).
+    if (_isPhoneLayout()) return false;
+
     final barEnabled =
         ProxyService.box.readBool(key: _barModeEnabledKey) ?? false;
     if (!barEnabled) return false;
@@ -401,6 +405,17 @@ class PaymentVerificationNavigator {
     // No device pick: hotel wins, so a front desk is never dropped onto the
     // bar's table floor by a payment check.
     return !(ProxyService.box.readBool(key: _hotelModeEnabledKey) ?? false);
+  }
+
+  static bool _isPhoneLayout() {
+    final views = WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) return false;
+    final view = views.first;
+    // Unsized (not laid out yet, or a minimized window): not a phone.
+    if (view.devicePixelRatio <= 0 || view.physicalSize.width <= 0) {
+      return false;
+    }
+    return view.physicalSize.width / view.devicePixelRatio < 600;
   }
 
   static Future<bool> _shouldNavigateToPersonalApp() async {

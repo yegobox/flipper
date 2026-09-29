@@ -32,13 +32,15 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       await BarModeSettings.hydrateForActiveBranch();
       BarModeSettings.startWatchingActiveBranch();
       if (branchId != null) {
-        await ProxyService.getStrategy(Strategy.capella)
-            .seedDefaultFloorPlan(branchId: branchId);
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).seedDefaultFloorPlan(branchId: branchId);
       }
       // Opening the bar floor on this terminal is what makes it the bar
       // terminal: the startup redirect and the sales pane both read the device
       // pick, so the screen it was left on is the screen it comes back to.
-      if (BarModeSettings.enabled) {
+      // A phone is never pinned: it must keep opening on its own home.
+      if (BarModeSettings.enabled && !isPhoneLayout) {
         setDeviceServiceMode(ServiceMode.bar);
       }
       ref.read(barModeProvider.notifier).setScreen(BarScreen.lock);
@@ -65,8 +67,9 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
       backgroundColor: BarTokens.stageBg,
       body: LayoutBuilder(
         builder: (context, constraints) {
-          final isMobile =
-              BarLayoutBreakpoints.isBarMobileLayout(constraints.maxWidth);
+          final isMobile = BarLayoutBreakpoints.isBarMobileLayout(
+            constraints.maxWidth,
+          );
 
           if (isMobile) {
             return SafeArea(

@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
 import 'package:flipper_models/services/hotel_mode_branch_settings_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 /// Bumped whenever a service-mode master toggle (Bar / Hotel) flips, or this
 /// device changes which surface it runs.
@@ -104,6 +107,91 @@ ServiceMode resolveServiceMode({
 
 /// The mode this device currently runs, from the local cache.
 ServiceMode get activeServiceMode => resolveServiceMode(
+  hotelEnabled: HotelModeSettings.enabled,
+  barEnabled: BarModeSettings.enabled,
+  deviceMode: deviceServiceMode,
+);
+
+/// Whether [logicalWidth] gets the phone shell rather than the desktop one —
+/// the same cut [FlipperApp] makes between the mobile home and the dashboard.
+bool isPhoneWidth(double logicalWidth) =>
+    logicalWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
+
+/// This view's width in logical px, or null while it has no size.
+///
+/// `physicalSize` is zero before the first metrics arrive and while a desktop
+/// window is minimized; reading that as a width would call a desktop a phone.
+double? get currentViewLogicalWidth {
+  final views = WidgetsBinding.instance.platformDispatcher.views;
+  if (views.isEmpty) return null;
+  final view = views.first;
+  if (view.devicePixelRatio <= 0 || view.physicalSize.width <= 0) return null;
+  return view.physicalSize.width / view.devicePixelRatio;
+}
+
+/// Whether this device is running the phone shell right now.
+///
+/// Context-free so the startup redirect and the mode hosts can ask before any
+/// widget of theirs is laid out. An unsized view is not a phone: that is the
+/// behaviour every device had before phones were special-cased.
+bool get isPhoneLayout {
+  final width = currentViewLogicalWidth;
+  return width != null && isPhoneWidth(width);
+}
+
+/// Completes once the view has a size, or after [timeout].
+///
+/// The startup redirect waits on this so it decides phone-or-desktop from a
+/// real width rather than committing to one on an unsized view.
+Future<void> waitForViewSize({
+  Duration timeout = const Duration(seconds: 5),
+}) async {
+  if (currentViewLogicalWidth != null) return;
+  final sized = Completer<void>();
+  final observer = _ViewSizeObserver(() {
+    if (currentViewLogicalWidth != null && !sized.isCompleted) {
+      sized.complete();
+    }
+  });
+  WidgetsBinding.instance.addObserver(observer);
+  try {
+    await sized.future.timeout(timeout, onTimeout: () {});
+  } finally {
+    WidgetsBinding.instance.removeObserver(observer);
+  }
+}
+
+class _ViewSizeObserver with WidgetsBindingObserver {
+  _ViewSizeObserver(this._onMetrics);
+
+  final VoidCallback _onMetrics;
+
+  @override
+  void didChangeMetrics() => _onMetrics();
+}
+
+/// Which surface a device opens by itself at startup.
+///
+/// A phone is never a desk or counter terminal: it shares the branch's flags,
+/// so a desktop turning Hotel or Bar on used to drop every phone in the branch
+/// onto the front-desk dashboard, escapable only with Back. Phones stay on
+/// their own home; a service mode opens there only when someone asks for it.
+ServiceMode resolveStartupServiceMode({
+  required bool isPhone,
+  required bool hotelEnabled,
+  required bool barEnabled,
+  ServiceMode? deviceMode,
+}) => isPhone
+    ? ServiceMode.pos
+    : resolveServiceMode(
+        hotelEnabled: hotelEnabled,
+        barEnabled: barEnabled,
+        deviceMode: deviceMode,
+      );
+
+/// [resolveStartupServiceMode] for this device, from the local cache.
+ServiceMode get startupServiceMode => resolveStartupServiceMode(
+  isPhone: isPhoneLayout,
   hotelEnabled: HotelModeSettings.enabled,
   barEnabled: BarModeSettings.enabled,
   deviceMode: deviceServiceMode,
