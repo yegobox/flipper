@@ -439,11 +439,25 @@ class PaymentVerificationNavigator {
     bool isWeb = kIsWeb,
     TargetPlatform? platform,
   }) {
+    final deviceAllowed = personalAppAllowedOnThisDevice(
+      enabled: enabled,
+      isWeb: isWeb,
+      platform: platform,
+    );
+    return deviceAllowed && businessTypeId == 2 && isDefault == true;
+  }
+
+  /// Device-level half of [personalAppAllowedFor]: kill switch + phone
+  /// platform, no business lookup. `PersonalHomeScreen` checks this itself so
+  /// any route onto it — known or not — bounces desktop/web users to the POS.
+  static bool personalAppAllowedOnThisDevice({
+    bool enabled = personalAppEnabled,
+    bool isWeb = kIsWeb,
+    TargetPlatform? platform,
+  }) {
     if (!enabled || isWeb) return false;
     final target = platform ?? defaultTargetPlatform;
-    final isPhone =
-        target == TargetPlatform.android || target == TargetPlatform.iOS;
-    return isPhone && businessTypeId == 2 && isDefault == true;
+    return target == TargetPlatform.android || target == TargetPlatform.iOS;
   }
 
   /// Shared with LoginChoices so both entry points follow one rule.

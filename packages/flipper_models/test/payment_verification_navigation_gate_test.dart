@@ -111,6 +111,40 @@ void main() {
       );
     });
 
+    /// `PersonalHomeScreen` checks this on its own, so a route that skips the
+    /// business-level gate still bounces desktop users to the POS.
+    test('the screen-level device guard refuses desktop and web', () {
+      expect(
+        PaymentVerificationNavigator.personalAppAllowedOnThisDevice(
+          platform: TargetPlatform.windows,
+        ),
+        isFalse,
+      );
+      for (final platform in const [
+        TargetPlatform.windows,
+        TargetPlatform.macOS,
+        TargetPlatform.linux,
+      ]) {
+        expect(
+          PaymentVerificationNavigator.personalAppAllowedOnThisDevice(
+            enabled: true,
+            isWeb: false,
+            platform: platform,
+          ),
+          isFalse,
+          reason: '$platform must never show the personal screen',
+        );
+      }
+      expect(
+        PaymentVerificationNavigator.personalAppAllowedOnThisDevice(
+          enabled: true,
+          isWeb: true,
+          platform: TargetPlatform.android,
+        ),
+        isFalse,
+      );
+    });
+
     test('once enabled, it is still phones only', () {
       bool allowed(TargetPlatform platform, {bool isWeb = false}) =>
           PaymentVerificationNavigator.personalAppAllowedFor(

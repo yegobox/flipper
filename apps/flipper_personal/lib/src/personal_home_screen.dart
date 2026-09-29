@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_models/services/payment_verification_navigator.dart';
 import 'widgets/challenge_widgets.dart';
 import 'widgets/challenge_finder_widget.dart';
 import 'rewards_screen.dart';
@@ -66,9 +67,24 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
     );
   }
 
+  /// Last line of defence: this screen is unfinished and phones-only. If any
+  /// route lands here on desktop/web (or while the kill switch is off), send
+  /// the user straight to the POS instead of stranding them on mock data.
+  final bool _allowedHere =
+      PaymentVerificationNavigator.personalAppAllowedOnThisDevice();
+
   @override
   void initState() {
     super.initState();
+    if (!_allowedHere) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        PaymentVerificationNavigator.navigateToAuthenticatedHome(
+          skipPersonalCheck: true,
+          clearStack: true,
+        );
+      });
+    }
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -86,6 +102,9 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (!_allowedHere) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       backgroundColor: FlipperPalette.backgroundColor,
       body: Stack(
