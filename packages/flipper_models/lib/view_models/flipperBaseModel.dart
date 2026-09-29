@@ -479,6 +479,10 @@ class FlipperBaseModel extends ReactiveViewModel {
   /// cached roster instead (the fetch keeps running and refreshes the cache).
   static const Duration staffRosterRemoteTimeout = Duration(seconds: 10);
 
+  /// Extra wait on a first-time device (no cached roster) before giving up and
+  /// showing the empty-staff screen, which offers a retry.
+  static const Duration staffRosterNoCacheTimeout = Duration(seconds: 20);
+
   /// Bar Mode staff roster — same tenants as User Management, with PINs merged
   /// from the `pins` table when `tenants.pin` is null.
   ///
@@ -505,7 +509,7 @@ class FlipperBaseModel extends ReactiveViewModel {
         return cached;
       }
       try {
-        return await remote;
+        return await remote.timeout(staffRosterNoCacheTimeout);
       } catch (e, s) {
         debugPrint('fetchBarStaffTenants (slow, no cache): $e\n$s');
         return const [];
@@ -516,21 +520,30 @@ class FlipperBaseModel extends ReactiveViewModel {
     }
   }
 
+  /// Per business: the newest write started (a late encode of an older roster
+  /// must not overwrite a newer one) and the roster last written, so an
+  /// unchanged roster is not re-hashed on every fetch.
+  static final Map<String, int> _staffRosterWriteGen = {};
+  static final Map<String, String> _staffRosterWrittenFingerprint = {};
+
   static void _writeStaffRosterCache(String businessId, List<Tenant> tenants) {
-    try {
-      unawaited(
-        ProxyService.box
-            .writeString(
-              key: staffRosterCacheKey(businessId),
-              value: encodeStaffRoster(tenants),
-            )
-            .catchError((Object e) {
-              debugPrint('staff roster cache write failed: $e');
-            }),
-      );
-    } catch (e) {
-      debugPrint('staff roster cache write failed: $e');
-    }
+    unawaited(() async {
+      try {
+        final fingerprint = staffRosterFingerprint(tenants);
+        if (_staffRosterWrittenFingerprint[businessId] == fingerprint) return;
+        final gen = (_staffRosterWriteGen[businessId] ?? 0) + 1;
+        _staffRosterWriteGen[businessId] = gen;
+        final raw = await encodeStaffRosterInBackground(tenants);
+        if (_staffRosterWriteGen[businessId] != gen) return;
+        await ProxyService.box.writeString(
+          key: staffRosterCacheKey(businessId),
+          value: raw,
+        );
+        _staffRosterWrittenFingerprint[businessId] = fingerprint;
+      } catch (e) {
+        debugPrint('staff roster cache write failed: $e');
+      }
+    }());
   }
 
   static List<Tenant> _readStaffRosterCache(String businessId) {
