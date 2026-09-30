@@ -159,6 +159,46 @@ exclusion for your local clone path (e.g. `C:\...\flipper\`).
 Note: don't run two Windows builds against the same checkout at once — concurrent
 builds write the same PDBs and fail with `C1041`.
 
+### 🔍 Testing open PRs before they merge (`next.sh`)
+
+Changes land only through PRs, so don't merge a branch just to try it. The
+workspace script `scripts/next.sh` (in the `yego-project/` folder that contains
+this repo) builds a **preview tree**: `origin/main` plus every open, non-parked
+PR, checked out at `flipper-next/` next to this repo. It creates no branch,
+pushes nothing and never touches this checkout.
+
+Run it from `yego-project/`:
+
+```bash
+./scripts/next.sh flipper                                # main + open PRs
+./scripts/next.sh --branch flipper:fix/my-branch flipper # + a local branch, no PR needed
+./scripts/next.sh --include flipper#683 flipper          # + a PR skipped by default (bots)
+./scripts/next.sh --force flipper                        # discard edits made in flipper-next
+./scripts/next.sh                                        # flipper, data-connector, supabase, flipper-turbo
+```
+
+The script prints what it included and skipped, and writes the same list to
+`flipper-next/NEXT_MANIFEST.txt`. `--branch` includes only the branch's
+**commits**; uncommitted edits are left out. Your local secrets
+(`secrets.dart`, `firebase_options.dart`, `.env`, `google-services.json`, …)
+are copied in, so the preview runs like a normal build:
+
+```bash
+cd flipper-next/apps/flipper
+flutter pub get          # or `melos bootstrap` in flipper-next/ if packages are missing
+flutter devices
+flutter run -d <device-id>
+```
+
+Rules:
+
+- **Never edit, commit, push or deploy from `flipper-next/`.** Fix things on the
+  branch that owns them, push, then re-run the script.
+- **Rebuild whenever a PR changes.** The preview is a snapshot.
+- **A merge conflict while building** usually means a child PR wasn't rebased
+  after its parent changed.
+- **Parked PRs** (the `PARKED` list at the top of the script) are always left out.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! If you're interested in helping improve Flipper, please follow these steps:

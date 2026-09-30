@@ -20,15 +20,16 @@ class MfaProvider {
     return canReachMfaStore(userId);
   }
 
-  /// Best-effort: pull MFA secret from Supabase and cache for offline login.
+  /// Best-effort: cache the MFA secret on this device if it isn't already,
+  /// so the authenticator check needs no network. No-op once cached.
   Future<bool> prefetchSecret({required String userId, int? pin}) =>
       MfaService().prefetchAndCacheSecret(userId: userId, pin: pin);
 
   /// Validate a TOTP code for the given user and, if valid, complete login.
   ///
-  /// Always attempts Supabase first, then falls back to the local cache.
-  /// [forceOffline] only affects the login session, not TOTP verification —
-  /// connectivity checkers often report offline while the network still works.
+  /// The code is verified on device against the cached secret (see
+  /// [MfaService.verifyTotpForUser]); the server only supplies the secret
+  /// the first time. [forceOffline] only affects the login session.
   Future<TotpVerifyOutcome> validateTotpThenLogin({
     required IPin pin,
     required String code,
@@ -43,7 +44,8 @@ class MfaProvider {
       userId: userId.trim(),
       code: code,
       pin: pin.pin,
-      // Never skip remote solely because connectivity said "offline".
+      // Verified on device; remote is used only to obtain a missing/stale
+      // secret, so a connectivity "offline" must not block that.
       localOnly: false,
     );
 

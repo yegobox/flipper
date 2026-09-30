@@ -1,7 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:flipper_services/internet_probe.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -51,8 +51,9 @@ class StatusAppBarForWindowsAndWeb
     _connectivityListening = true;
     // Listen to connectivity changes
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult
-          .any((result) => result != ConnectivityResult.none)) {
+      if (connectivityResult.any(
+        (result) => result != ConnectivityResult.none,
+      )) {
         // If connected to the internet, clear only the internet-related error message
         if (_statusText.value == _internetDownMsg) {
           _statusText.value = "";
@@ -151,9 +152,7 @@ class StatusAppBarForWindowsAndWeb
   }
 
   @override
-  Future<bool> isInternetAvailable() async {
-    return await InternetConnectionChecker().hasConnection;
-  }
+  Future<bool> isInternetAvailable() => InternetProbe.isOnline();
 
   StatusAppBarForWindowsAndWeb() {
     listenToReactiveValues([_statusColor, _statusText]);
@@ -176,8 +175,9 @@ class StatusAppBarForAndroidAndIos
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: color, // Android physical status bar
-        statusBarIconBrightness:
-            color.computeLuminance() > 0.5 ? Brightness.dark : Brightness.light,
+        statusBarIconBrightness: color.computeLuminance() > 0.5
+            ? Brightness.dark
+            : Brightness.light,
       ),
     );
 
@@ -189,8 +189,9 @@ class StatusAppBarForAndroidAndIos
     _statusText.value = "";
 
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult
-          .any((result) => result != ConnectivityResult.none)) {
+      if (connectivityResult.any(
+        (result) => result != ConnectivityResult.none,
+      )) {
         if (_statusText.value == "flipper could not connect to internet") {
           _statusText.value = "";
           _statusColor.value = Colors.black;
@@ -209,7 +210,5 @@ class StatusAppBarForAndroidAndIos
     listenToReactiveValues([_statusColor, _statusText]);
   }
   @override
-  Future<bool> isInternetAvailable() async {
-    return await InternetConnectionChecker().hasConnection;
-  }
+  Future<bool> isInternetAvailable() => InternetProbe.isOnline();
 }

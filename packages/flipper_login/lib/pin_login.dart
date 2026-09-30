@@ -6,6 +6,7 @@ import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_login/mfa_provider.dart';
 import 'package:flipper_mfa/flipper_mfa.dart';
 import 'package:flipper_login/pin_login_brand_panel.dart';
+import 'package:flipper_login/pin_login_error_text.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
 import 'package:flipper_login/pin_login_signin_widgets.dart';
 import 'package:flipper_login/signin_tokens.dart';
@@ -124,7 +125,10 @@ class _PinLoginState extends State<PinLogin>
   }
 
   void _clearErrorOnKeypress() {
-    if (!_hasError) return;
+    // Failure paths clear the PIN right after setting the error; that clear
+    // lands here too. Only a new digit should dismiss the message, or the user
+    // sees the shake with no reason.
+    if (!_hasError || _pinController.text.isEmpty) return;
     setState(() {
       _hasError = false;
       _errorMessage = '';
@@ -216,14 +220,24 @@ class _PinLoginState extends State<PinLogin>
   void _appendPinDigit(String digit) {
     if (_isProcessing || _isDone) return;
     if (_pinController.text.length >= SignInTokens.pinCellCount) return;
-    _pinController.text = '${_pinController.text}$digit';
+    _setPinText('${_pinController.text}$digit');
   }
 
   void _backspacePin() {
     if (_isProcessing || _isDone) return;
     final text = _pinController.text;
     if (text.isEmpty) return;
-    _pinController.text = text.substring(0, text.length - 1);
+    _setPinText(text.substring(0, text.length - 1));
+  }
+
+  /// Keeps the caret at the end. `controller.text =` leaves an invalid
+  /// selection, which some Android keyboards attached to the hidden field
+  /// answer with a stale editing state that can drop or repeat a digit.
+  void _setPinText(String text) {
+    _pinController.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
   }
 
   /// PIN rules for the 6-cell UI (supports 4–6 digit PINs used in the field).
@@ -361,7 +375,7 @@ class _PinLoginState extends State<PinLogin>
           }
           final response =
               await _mfa.requestSmsOtp(pinString: _pinController.text);
-          if (response['requiresOtp']) {
+          if (response['requiresOtp'] == true) {
             setState(() {
               _showOtpField = true;
               _otpFocusNode.requestFocus();
@@ -391,7 +405,8 @@ class _PinLoginState extends State<PinLogin>
           }
           final userId = pinRecord.userId;
           if (userId != null && userId.isNotEmpty) {
-            // Best-effort: cache secret while we still might have network.
+            // First authenticator sign-in on this device: seed the secret so
+            // the code is verified locally. No-op once cached.
             unawaited(_mfa.prefetchSecret(userId: userId, pin: pinRecord.pin));
           }
           setState(() {
@@ -434,9 +449,9 @@ class _PinLoginState extends State<PinLogin>
           return _iPinFromBrickPin(fromDb);
         }
       } catch (_) {}
-      // Offline: treat as unknown PIN instead of surfacing host-lookup errors.
-      final online = await ProxyService.status.isInternetAvailable();
-      if (!online) return null;
+      // Surface the real failure (no internet, server down, TLS…) through
+      // pinLoginErrorText. Returning null here said "Invalid PIN" for a
+      // correct PIN whenever the connectivity probe misreported offline.
       rethrow;
     }
   }
@@ -518,18 +533,11 @@ class _PinLoginState extends State<PinLogin>
       return;
     }
 
-    String errorMessage;
-    if (e is TimeoutException) {
-      errorMessage = e.message?.isNotEmpty == true
-          ? e.message!
-          : 'Sign-in timed out. Check your connection and try again.';
-    } else if (e is NeedSignUpException) {
-      errorMessage = 'Account not found';
-    } else {
-      final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
-      errorMessage = (errorDetails['errorMessage'] as String?) ??
-          'An unexpected error occurred.';
+    if (e is! TimeoutException && e is! NeedSignUpException) {
+      // Logs + Sentry; the user-facing text comes from pinLoginErrorText.
+      await ProxyService.strategy.handleLoginError(e, s);
     }
+    final errorMessage = pinLoginErrorText(e as Object);
 
     GlobalErrorHandler.logError(
       e,
@@ -542,9 +550,7 @@ class _PinLoginState extends State<PinLogin>
 
     setState(() {
       _hasError = true;
-      _errorMessage = errorMessage.isNotEmpty
-          ? errorMessage
-          : 'That PIN doesn’t match. Try again.';
+      _errorMessage = errorMessage;
       _pinController.clear();
     });
     _playPinShake();

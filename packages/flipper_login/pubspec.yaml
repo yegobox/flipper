@@ -63,6 +63,10 @@ dependency_overrides:
   jni: ^0.14.2
   
 
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
 flutter:
   assets:
     - assets/

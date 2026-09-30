@@ -1165,27 +1165,25 @@ class CoreSync extends AiStrategyImpl
         return local;
       }
 
-      // No local cache — avoid DNS/connect noise when clearly offline.
-      try {
-        final online = await ProxyService.status.isInternetAvailable();
-        if (!online) {
-          talker.debug(
-            'getPin: no local PIN for $pinString and device is offline',
+      // No local cache — always ask the API. Do not return null on a
+      // connectivity-probe "offline": probes misreport on mobile carriers,
+      // and null surfaces as "Invalid PIN" for a correct PIN. A real network
+      // failure throws below so the UI can say what actually went wrong.
+      final response = await flipperHttpClient
+          .get(uri)
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () => throw TimeoutException(
+              'The Flipper server took too long to answer.',
+            ),
           );
-          return null;
-        }
-      } catch (_) {
-        // Status probe failed; still try the network below.
-      }
-
-      final response = await flipperHttpClient.get(uri);
 
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
       } else if (response.statusCode == 404) {
         throw NeedSignUpException(term: "User does not exist needs signup.");
       } else {
-        throw PinError(term: "Not found");
+        throw PinError(term: "HTTP ${response.statusCode}");
       }
     } catch (e) {
       // Offline / network failure: reuse a previously cached PIN if present.
