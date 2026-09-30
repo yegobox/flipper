@@ -11,7 +11,8 @@ import 'package:window_manager/window_manager.dart';
 //
 // Checks the real OS window: after the same call main() makes, the window is
 // maximized. Deliberately does not boot the full app (no secrets, Ditto or DB).
-bool get isDesktop => Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+bool get isDesktop =>
+    Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
