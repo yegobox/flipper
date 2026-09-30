@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:http/retry.dart';
+import 'package:flipper_models/http_retry_policy.dart';
 
 import 'package:supabase_models/brick/models/universalProduct.model.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -57,7 +58,12 @@ mixin FlipperHttpClient implements HttpClientInterface {
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     // Handle retries and errors
     const retries = 3;
-    var retryClient = RetryClient(_inner, retries: retries);
+    var retryClient = RetryClient(
+      _inner,
+      retries: retries,
+      whenError: (error, _) =>
+          isRetryableTransportError(error, method: request.method),
+    );
 
     try {
       return await retryClient.send(request);

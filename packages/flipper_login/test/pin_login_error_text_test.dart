@@ -29,6 +29,14 @@ void main() {
       expect(text, endsWith('(TLS)'));
     });
 
+    test('a dropped handshake is a network problem, not the clock', () {
+      final text = pinLoginErrorText(Exception(
+        'Failed to connect: Connection terminated during handshake',
+      ));
+      expect(text, isNot(contains('date and time')));
+      expect(text, endsWith('(TLS-NET)'));
+    });
+
     test('timeouts are reported as slow connection', () {
       expect(
         pinLoginErrorText(TimeoutException('slow')),

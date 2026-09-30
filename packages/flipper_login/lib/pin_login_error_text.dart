@@ -32,11 +32,17 @@ String pinLoginErrorText(Object error) {
   final raw = error.toString();
   final text = raw.toLowerCase();
 
-  if (text.contains('handshake') ||
-      text.contains('certificate') ||
-      text.contains('cert_')) {
+  // Only a certificate rejection can be the phone clock. The app's own
+  // HttpClient accepts any certificate, so a bare handshake failure there is
+  // the network dropping the connection before it was secured.
+  if (text.contains('certificate') || text.contains('cert_')) {
     return 'Secure connection failed. Make sure your phone\'s date and time '
         'are set automatically, then try again. (TLS)';
+  }
+  if (text.contains('handshake')) {
+    return 'The connection to the Flipper server dropped before it was '
+        'secured. Your network may be unstable. Try again, or switch between '
+        'mobile data and Wi-Fi. (TLS-NET)';
   }
   if (text.contains('failed host lookup') ||
       text.contains('no address associated')) {
