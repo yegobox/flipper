@@ -39,6 +39,7 @@ dependencies:
   flipper_ui: any
   http: ^1.2.2
   flipper_design_system: any
+  flipper_mfa: any
 
 #  NOTE: Review and remove obsolete dependency overrides quarterly
 dependency_overrides:

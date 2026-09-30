@@ -405,7 +405,8 @@ class _PinLoginState extends State<PinLogin>
           }
           final userId = pinRecord.userId;
           if (userId != null && userId.isNotEmpty) {
-            // Best-effort: cache secret while we still might have network.
+            // First authenticator sign-in on this device: seed the secret so
+            // the code is verified locally. No-op once cached.
             unawaited(_mfa.prefetchSecret(userId: userId, pin: pinRecord.pin));
           }
           setState(() {

@@ -1,10 +1,9 @@
-import 'package:totp_authenticator/totp_authenticator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flipper_models/models/user_mfa_secret.dart';
 import 'package:flipper_models/repositories/user_mfa_secret_repository.dart';
 import 'package:flipper_mfa/src/local_mfa_secret_cache.dart';
+import 'package:flipper_mfa/src/totp_service.dart';
 
 /// Result of verifying a user TOTP against remote and/or local MFA secret.
 enum TotpVerifyOutcome {
@@ -19,6 +18,18 @@ enum TotpVerifyOutcome {
 }
 
 class MfaService {
+  MfaService({Future<String?> Function(String userId)? remoteSecret})
+    : _remoteSecret = remoteSecret ?? _supabaseSecret;
+
+  /// Where a missing or stale secret comes from; tests pass a fake.
+  final Future<String?> Function(String userId) _remoteSecret;
+
+  static Future<String?> _supabaseSecret(String userId) async {
+    final repo = UserMfaSecretRepository(Supabase.instance.client);
+    final record = await repo.getSecretByUserId(userId);
+    return record?.secret;
+  }
+
   /// Generates a new TOTP secret using base32 encoding
   String generateSecret() {
     // Generate a more reliable base32 secret
@@ -76,7 +87,8 @@ class MfaService {
     final encodedLabel = Uri.encodeComponent('$issuer:$accountName');
 
     // Build the TOTP URI according to specification
-    final uri = 'otpauth://totp/$encodedLabel'
+    final uri =
+        'otpauth://totp/$encodedLabel'
         '?secret=$cleanSecret'
         '&issuer=$encodedIssuer'
         '&algorithm=SHA1'
@@ -86,25 +98,23 @@ class MfaService {
     return uri;
   }
 
-  /// Verifies a TOTP code against a secret.
+  static final TOTPService _totp = TOTPService();
+
+  /// Verifies a TOTP code against a secret, entirely on device.
   ///
-  /// [secret]: The TOTP secret in base32 format.
-  /// [code]: The 6-digit code entered by the user.
-  bool verifyCode({
-    required String secret,
-    required String code,
-  }) {
+  /// Uses the same [TOTPService] Flipper Auth generates codes with (RFC 6238,
+  /// SHA1, 30s, 6 digits), allowing ±2 steps of clock drift.
+  bool verifyCode({required String secret, required String code}) {
     try {
-      final totp = TOTP();
-      final cleanSecret =
-          secret.toUpperCase().replaceAll(RegExp(r'[^A-Z2-7]'), '');
+      final cleanSecret = secret.toUpperCase().replaceAll(
+        RegExp(r'[^A-Z2-7]'),
+        '',
+      );
       final cleanCode = code.replaceAll(RegExp(r'[^0-9]'), '');
       if (cleanSecret.isEmpty || cleanCode.length != 6) {
         return false;
       }
-      // Library already allows ±1 time step (discrepancy); widen to ±2 for
-      // desktop clock skew.
-      return totp.verifyCode(cleanSecret, cleanCode, discrepancy: 2);
+      return _totp.validateTOTP(cleanSecret, cleanCode);
     } catch (e) {
       return false;
     }
@@ -116,24 +126,16 @@ class MfaService {
         : TotpVerifyOutcome.invalidCode;
   }
 
-  Future<TotpVerifyOutcome> _verifyAgainstLocalCache(
-    String userId,
-    String code, {
-    int? pin,
-  }) async {
-    final local = await LocalMfaSecretCache.read(userId, pin: pin);
-    if (local == null || local.isEmpty) {
-      return TotpVerifyOutcome.unavailable;
-    }
-    return _verifyAgainstSecret(local, code);
-  }
-
-  /// Verify a TOTP code for [userId].
+  /// Verify a TOTP code for [userId] on device.
   ///
-  /// Online: loads secret from Supabase, caches it locally, then verifies.
-  /// Offline / network error: verifies against [LocalMfaSecretCache] when present.
+  /// The code is checked against the secret cached on this device
+  /// ([LocalMfaSecretCache]); a normal sign-in makes no network call. The
+  /// server is contacted only to obtain a secret, never to verify:
+  /// - no secret cached yet (first authenticator sign-in on this device), or
+  /// - the code fails against the cached secret, in case MFA was re-enrolled
+  ///   elsewhere and the cached secret is stale.
   ///
-  /// When [localOnly] is true, skips Supabase and uses the local cache only.
+  /// When [localOnly] is true the server is never contacted.
   /// Optional [pin] is used as a secondary local-cache key.
   Future<TotpVerifyOutcome> verifyTotpForUser({
     required String userId,
@@ -141,52 +143,46 @@ class MfaService {
     bool localOnly = false,
     int? pin,
   }) async {
-    if (localOnly) {
-      return _verifyAgainstLocalCache(userId, code, pin: pin);
+    final cached = await LocalMfaSecretCache.read(userId, pin: pin);
+    if (cached != null && cached.isNotEmpty) {
+      final outcome = _verifyAgainstSecret(cached, code);
+      if (outcome == TotpVerifyOutcome.valid || localOnly) return outcome;
+      final fresh = await _fetchAndCacheSecret(userId: userId, pin: pin);
+      if (fresh == null || fresh == cached) return outcome;
+      return _verifyAgainstSecret(fresh, code);
     }
 
-    try {
-      final repo = UserMfaSecretRepository(Supabase.instance.client);
-      final UserMfaSecret? record = await repo.getSecretByUserId(userId);
-      if (record == null || record.secret.isEmpty) {
-        final localOutcome =
-            await _verifyAgainstLocalCache(userId, code, pin: pin);
-        if (localOutcome != TotpVerifyOutcome.unavailable) {
-          return localOutcome;
-        }
-        return TotpVerifyOutcome.unavailable;
-      }
-      await LocalMfaSecretCache.save(
-        userId: userId,
-        secret: record.secret,
-        pin: pin,
-      );
-      return _verifyAgainstSecret(record.secret, code);
-    } catch (_) {
-      return _verifyAgainstLocalCache(userId, code, pin: pin);
-    }
+    if (localOnly) return TotpVerifyOutcome.unavailable;
+    final fresh = await _fetchAndCacheSecret(userId: userId, pin: pin);
+    if (fresh == null) return TotpVerifyOutcome.unavailable;
+    return _verifyAgainstSecret(fresh, code);
   }
 
-  /// Fetch MFA secret from Supabase (if reachable) and persist locally.
-  /// Call after PIN validation so offline TOTP works on the next attempt.
-  Future<bool> prefetchAndCacheSecret({
+  Future<String?> _fetchAndCacheSecret({
     required String userId,
     int? pin,
   }) async {
     try {
-      final repo = UserMfaSecretRepository(Supabase.instance.client);
-      final record =
-          await repo.getSecretByUserId(userId).timeout(const Duration(seconds: 5));
-      if (record == null || record.secret.isEmpty) return false;
-      await LocalMfaSecretCache.save(
-        userId: userId,
-        secret: record.secret,
-        pin: pin,
-      );
-      return true;
+      final secret = await _remoteSecret(
+        userId,
+      ).timeout(const Duration(seconds: 5));
+      if (secret == null || secret.isEmpty) return null;
+      await LocalMfaSecretCache.save(userId: userId, secret: secret, pin: pin);
+      return secret;
     } catch (_) {
-      return false;
+      return null;
     }
+  }
+
+  /// Seed the on-device secret after PIN validation so the authenticator
+  /// check that follows needs no network. No-op when already cached.
+  Future<bool> prefetchAndCacheSecret({
+    required String userId,
+    int? pin,
+  }) async {
+    final cached = await LocalMfaSecretCache.read(userId, pin: pin);
+    if (cached != null && cached.isNotEmpty) return true;
+    return await _fetchAndCacheSecret(userId: userId, pin: pin) != null;
   }
 
   /// Persist [secret] for [userId] on this device (call after MFA setup).
@@ -215,10 +211,11 @@ class MfaService {
   /// Generates a TOTP code for testing purposes
   String generateCode(String secret) {
     try {
-      final totp = TOTP();
-      final cleanSecret =
-          secret.toUpperCase().replaceAll(RegExp(r'[^A-Z2-7]'), '');
-      return totp.generateTOTPCode(cleanSecret);
+      final cleanSecret = secret.toUpperCase().replaceAll(
+        RegExp(r'[^A-Z2-7]'),
+        '',
+      );
+      return _totp.generateTOTPCode(cleanSecret);
     } catch (e) {
       return '';
     }
