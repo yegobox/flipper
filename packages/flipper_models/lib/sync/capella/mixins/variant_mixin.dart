@@ -16,6 +16,7 @@ import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:flipper_models/sync/utils/stock_threshold.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -80,6 +81,24 @@ mixin CapellaVariantMixin implements VariantInterface {
     // Ditto only on this branch — `stocks` is in data-connector's SYNC_TABLES,
     // so Supabase still receives it without the Brick mirror main keeps here.
     await _syncStockToDitto(stock);
+  }
+
+  /// Writes only the low-stock alert settings (`lowStock`, `showLowStockAlert`)
+  /// of an existing stock document.
+  ///
+  /// [_syncStockToDittoIfAbsent] skips existing rows, which silently dropped a
+  /// reorder level edited on a saved product. This touches no qty register or
+  /// COUNTER, so it cannot resurrect deducted stock. The daily report email's
+  /// low-stock section (data-connector) reads these fields.
+  Future<void> _syncStockThresholdToDitto(Stock stock) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+    await updateStockThresholdOnStore(
+      ditto.store,
+      stockId: stock.id,
+      lowStock: stock.lowStock,
+      showLowStockAlert: stock.showLowStockAlert,
+    );
   }
 
   /// Skip null / empty-branchId Ditto rows so qty-based display stock is kept.
@@ -1215,6 +1234,9 @@ mixin CapellaVariantMixin implements VariantInterface {
               // registers here would resurrect stock a concurrent sale or
               // transfer already deducted. See [_syncStockToDittoIfAbsent].
               await _syncStockToDittoIfAbsent(variantToSave.stock!);
+              // The reorder level the user just set is not quantity, so it
+              // still has to land on the existing document.
+              await _syncStockThresholdToDitto(variantToSave.stock!);
             }
           }
           await _syncVariantToDitto(variantToSave);
