@@ -476,4 +476,144 @@ void main() {
       );
     });
   });
+
+  group('isHotelRoomItem', () {
+    test('is a service sold by the night', () {
+      expect(
+        isHotelRoomItem(
+          Variant(branchId: 'b1', name: '101', itemTyCd: '3', pkgUnitCd: 'NT'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a plain service or a good sold by the night is not a room', () {
+      expect(
+        isHotelRoomItem(
+          Variant(branchId: 'b1', name: 'Wash', itemTyCd: '3', pkgUnitCd: 'U'),
+        ),
+        isFalse,
+      );
+      expect(
+        isHotelRoomItem(
+          Variant(branchId: 'b1', name: 'Tent', itemTyCd: '2', pkgUnitCd: 'NT'),
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('isHotelRoomPlaceholderVariant', () {
+    final rooms = [
+      HotelRoom(
+        id: 'r101',
+        branchId: 'b1',
+        floorId: 'ground',
+        floorName: 'Ground Floor',
+        name: '101',
+        roomType: 'Double',
+        capacity: 2,
+        nightlyRate: 60000,
+        variantId: 'room-item-101',
+      ),
+    ];
+
+    // What createProduct minted beside a room item: price 0, qty 1, no
+    // itemCd, on the room item's product.
+    Variant placeholder({
+      String id = 'stray',
+      String name = '101',
+      String? productId = 'room-product',
+      double? retailPrice = 0,
+      String? itemCd,
+      String? itemTyCd = '2',
+    }) => Variant(
+      id: id,
+      branchId: 'b1',
+      name: name,
+      productId: productId,
+      retailPrice: retailPrice,
+      itemCd: itemCd,
+      itemTyCd: itemTyCd,
+    );
+
+    bool judge(
+      Variant v, {
+      Set<String> roomProductIds = const {'room-product'},
+      Set<String> existingProductIds = const {'room-product'},
+    }) => isHotelRoomPlaceholderVariant(
+      variant: v,
+      rooms: rooms,
+      roomProductIds: roomProductIds,
+      existingProductIds: existingProductIds,
+    );
+
+    test('a placeholder on a room item\'s product is purged', () {
+      expect(judge(placeholder()), isTrue);
+    });
+
+    test('the room item need not be the one the room points at', () {
+      // Production: fourteen "101" room items on one branch from repeated
+      // registrations, each with its own placeholder — the room doc names
+      // only the newest.
+      expect(
+        judge(
+          placeholder(productId: 'duplicate-product'),
+          roomProductIds: const {'room-product', 'duplicate-product'},
+          existingProductIds: const {'room-product', 'duplicate-product'},
+        ),
+        isTrue,
+      );
+    });
+
+    test('a room product placeholder is purged even after a rename', () {
+      expect(judge(placeholder(name: 'Old name')), isTrue);
+    });
+
+    test('a room-named placeholder whose product is gone is purged', () {
+      expect(
+        judge(
+          placeholder(productId: 'deleted-product'),
+          roomProductIds: const {},
+          existingProductIds: const {},
+        ),
+        isTrue,
+      );
+    });
+
+    test('an orphan not named like a room is kept', () {
+      expect(
+        judge(
+          placeholder(name: 'Skol', productId: 'deleted-product'),
+          roomProductIds: const {},
+          existingProductIds: const {},
+        ),
+        isFalse,
+      );
+    });
+
+    test('never touches a room item or the room\'s own variant', () {
+      expect(judge(placeholder(id: 'room-item-101')), isFalse);
+      expect(judge(placeholder(itemTyCd: '3')), isFalse);
+    });
+
+    test('keeps a merchant product that merely shares a room name', () {
+      expect(
+        judge(
+          placeholder(productId: 'merchant-product'),
+          existingProductIds: const {'room-product', 'merchant-product'},
+        ),
+        isFalse,
+      );
+    });
+
+    test('keeps anything priced or registered with RRA', () {
+      expect(judge(placeholder(retailPrice: 1500)), isFalse);
+      expect(judge(placeholder(itemCd: 'RW2NTU0000001')), isFalse);
+    });
+
+    test('keeps a variant with no product link', () {
+      expect(judge(placeholder(productId: null)), isFalse);
+    });
+  });
 }

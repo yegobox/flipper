@@ -233,6 +233,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     /// filter (page switching re-uses the count taken on the first page).
     bool countTotal = true,
     bool? inStock,
+    List<String>? excludeVariantIds,
   }) async {
     final logService = LogService();
     try {
@@ -355,6 +356,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       if (itemTyCd != null) {
         query += ' AND itemTyCd = :itemTyCd';
         arguments['itemTyCd'] = itemTyCd;
+      }
+
+      // Bound as a bare array: `IN (:arr)` silently matches nothing in DQL.
+      if (excludeVariantIds != null && excludeVariantIds.isNotEmpty) {
+        query += ' AND NOT (_id IN :excludeVariantIds)';
+        arguments['excludeVariantIds'] = excludeVariantIds;
       }
 
       // Exact barcode match (scan / POS). Avoids "123" matching "123456789".
@@ -611,6 +618,10 @@ mixin CapellaVariantMixin implements VariantInterface {
 
           if (itemTyCd != null) {
             countQuery += ' AND itemTyCd = :itemTyCd';
+          }
+
+          if (excludeVariantIds != null && excludeVariantIds.isNotEmpty) {
+            countQuery += ' AND NOT (_id IN :excludeVariantIds)';
           }
 
           if (bcd != null && bcd.trim().isNotEmpty) {

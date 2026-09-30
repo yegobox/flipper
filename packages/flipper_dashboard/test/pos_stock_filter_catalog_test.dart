@@ -47,6 +47,7 @@ class _FakeCapella extends Fake implements DatabaseSyncInterface {
     String? itemTyCd,
     bool countTotal = true,
     bool? inStock,
+    List<String>? excludeVariantIds,
   }) async {
     final call = (inStock: inStock, name: name, page: page);
     calls.add(call);

@@ -150,6 +150,52 @@ bool isHotelRoomVariantRegistered(Variant? variant) {
       variant.ttCatCd == 'TT';
 }
 
+/// Whether [variant] is the room item itself: an RRA service sold by the
+/// night. Only room registration produces this pairing.
+bool isHotelRoomItem(Variant variant) =>
+    variant.itemTyCd == '3' && variant.pkgUnitCd == hotelRraPackagingUnit;
+
+/// Whether [variant] is a stray "Regular" placeholder left by room
+/// registration rather than anything a merchant sells.
+///
+/// Room registration used to call `createProduct` without
+/// `skipRegularVariant`, which minted a price-0, qty-1 variant beside the real
+/// room item on the same product. Every retry of a room registered again, so a
+/// single room could end up with a dozen room items and a dozen placeholders,
+/// only one of which the room still points at.
+///
+/// Deliberately narrow, so a merchant's own product is never touched:
+/// * never a room item, and never a room's own variant;
+/// * unpriced and never registered with RRA (no `itemCd`), so deleting it
+///   locally cannot orphan anything the tax authority holds;
+/// * and either its product carries a room item ([roomProductIds]), or its
+///   product is gone (a rolled-back attempt) and it is named like a room.
+bool isHotelRoomPlaceholderVariant({
+  required Variant variant,
+  required Iterable<HotelRoom> rooms,
+  required Set<String> roomProductIds,
+  required Set<String> existingProductIds,
+}) {
+  if (isHotelRoomItem(variant) || variant.itemTyCd == '3') return false;
+  if ((variant.retailPrice ?? 0) != 0) return false;
+  if (variant.itemCd?.trim().isNotEmpty == true) return false;
+
+  final productId = variant.productId;
+  if (productId == null || productId.isEmpty) return false;
+
+  final name = variant.name.trim().toLowerCase();
+  var namedLikeRoom = false;
+  for (final room in rooms) {
+    if (room.variantId == variant.id) return false;
+    if (name.isNotEmpty && room.name.trim().toLowerCase() == name) {
+      namedLikeRoom = true;
+    }
+  }
+
+  if (roomProductIds.contains(productId)) return true;
+  return namedLikeRoom && !existingProductIds.contains(productId);
+}
+
 /// Whether this branch is on EBM at all.
 ///
 /// A property that does not file with RRA has no EBM row, or one without the

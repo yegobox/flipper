@@ -7,6 +7,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -98,6 +99,12 @@ class OuterVariants extends _$OuterVariants {
   /// on top of a newer one.
   int _resizeGeneration = 0;
   bool _isVatEnabled = false;
+
+  /// The branch's hotel-room items and everything on their products (see
+  /// [HotelRoomRraService.posHiddenVariantIds]). Rooms are registered as RRA
+  /// service variants so a folio can bill them, but they are sold at the
+  /// front desk and must never appear as tiles on the POS grid.
+  List<String> _posHiddenVariantIds = const [];
 
   /// Bounds for the height-driven page size, so a freak measurement cannot ask
   /// for a 2-item or a 500-item page.
@@ -191,6 +198,9 @@ class OuterVariants extends _$OuterVariants {
     // branch's tax-code set — filtering out items (e.g. cross-VAT transfers)
     // that are correctly coded for THIS branch. Resolve VAT for [branchId].
     _isVatEnabled = await _resolveBranchVatEnabled(branchId);
+    _posHiddenVariantIds = await HotelRoomRraService.posHiddenVariantIds(
+      branchId,
+    );
 
     _currentSearch = ref.read(searchStringProvider);
 
@@ -325,6 +335,7 @@ class OuterVariants extends _$OuterVariants {
       // variants() ignores this while searching, so a search still finds a
       // sold-out product.
       inStock: stockFilter.inStockArg,
+      excludeVariantIds: _posHiddenVariantIds,
     );
 
     talker.info(
@@ -386,6 +397,10 @@ class OuterVariants extends _$OuterVariants {
   /// on top of this refresh (or vice versa) and resurrect stale filtered rows.
   Future<void> refresh() async {
     final generation = ++_searchGeneration;
+    // A room registered since the last load must not surface on this refresh.
+    _posHiddenVariantIds = await HotelRoomRraService.posHiddenVariantIds(
+      branchId,
+    );
     final paged = await _fetchVariants(branchId, 0, '');
     if (generation != _searchGeneration) return;
     _currentSearch = '';
@@ -733,6 +748,7 @@ class OuterVariants extends _$OuterVariants {
       taxTyCds: taxTyCds,
       scanMode: currentScanMode,
       fetchRemote: true, // Ensure we have latest data for export
+      excludeVariantIds: _posHiddenVariantIds,
     );
 
     return List<Variant>.from(paged.variants);
