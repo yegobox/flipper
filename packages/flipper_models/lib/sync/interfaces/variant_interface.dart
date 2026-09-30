@@ -33,6 +33,10 @@ abstract class VariantInterface {
     /// sold-out ones, null everything. Ignored while searching by name or
     /// barcode, so a search still finds a sold-out product.
     bool? inStock,
+
+    /// Variant ids never to list — the POS catalog passes the branch's hotel
+    /// room items, which are sold at the front desk, not rung up at the till.
+    List<String>? excludeVariantIds,
   });
   Future<Variant?> getVariant({required String id});
 

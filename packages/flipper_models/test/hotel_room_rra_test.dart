@@ -476,4 +476,119 @@ void main() {
       );
     });
   });
+
+  group('isHotelRoomPlaceholderVariant', () {
+    final rooms = [
+      HotelRoom(
+        id: 'r101',
+        branchId: 'b1',
+        floorId: 'ground',
+        floorName: 'Ground Floor',
+        name: '101',
+        roomType: 'Double',
+        capacity: 2,
+        nightlyRate: 60000,
+        variantId: 'room-item-101',
+      ),
+    ];
+
+    // What createProduct minted beside the room item: price 0, qty 1, no
+    // itemCd, named after the room.
+    Variant placeholder({
+      String id = 'stray',
+      String name = '101',
+      String? productId = 'room-product-101',
+      double? retailPrice = 0,
+      String? itemCd,
+      String? itemTyCd = '2',
+    }) => Variant(
+      id: id,
+      branchId: 'b1',
+      name: name,
+      productId: productId,
+      retailPrice: retailPrice,
+      itemCd: itemCd,
+      itemTyCd: itemTyCd,
+    );
+
+    bool judge(
+      Variant v, {
+      Set<String> roomProductIds = const {'room-product-101'},
+      Set<String> existingProductIds = const {'room-product-101'},
+    }) => isHotelRoomPlaceholderVariant(
+      variant: v,
+      rooms: rooms,
+      roomProductIds: roomProductIds,
+      existingProductIds: existingProductIds,
+    );
+
+    test('a placeholder hanging off the room product is purged', () {
+      expect(judge(placeholder()), isTrue);
+    });
+
+    test('a placeholder whose rolled-back product is gone is purged', () {
+      // The case that multiplied the tiles: each failed attempt deleted the
+      // room item and product but left this behind.
+      expect(
+        judge(
+          placeholder(productId: 'deleted-product'),
+          roomProductIds: const {},
+          existingProductIds: const {},
+        ),
+        isTrue,
+      );
+    });
+
+    test('matches the room name case- and whitespace-insensitively', () {
+      final rooms = [
+        HotelRoom(
+          id: 'r1',
+          branchId: 'b1',
+          floorId: 'f',
+          floorName: 'F',
+          name: ' Garden ',
+          roomType: 'Suite',
+          capacity: 2,
+          nightlyRate: 1,
+        ),
+      ];
+      expect(
+        isHotelRoomPlaceholderVariant(
+          variant: placeholder(name: 'garden', productId: 'gone'),
+          rooms: rooms,
+          roomProductIds: const {},
+          existingProductIds: const {},
+        ),
+        isTrue,
+      );
+    });
+
+    test('never touches the room item itself', () {
+      expect(judge(placeholder(id: 'room-item-101')), isFalse);
+      expect(judge(placeholder(itemTyCd: '3')), isFalse);
+    });
+
+    test('keeps a merchant product that merely shares a room name', () {
+      // Its own live product, not a room's.
+      expect(
+        judge(
+          placeholder(productId: 'merchant-product'),
+          existingProductIds: const {'room-product-101', 'merchant-product'},
+        ),
+        isFalse,
+      );
+      // Priced, or registered with RRA — somebody sells it.
+      expect(judge(placeholder(retailPrice: 1500)), isFalse);
+      expect(judge(placeholder(itemCd: 'RW2NTU0000001')), isFalse);
+    });
+
+    test('keeps anything not named like a room', () {
+      expect(judge(placeholder(name: 'Skol')), isFalse);
+      expect(judge(placeholder(name: '')), isFalse);
+    });
+
+    test('keeps a variant with no product link', () {
+      expect(judge(placeholder(productId: null)), isFalse);
+    });
+  });
 }

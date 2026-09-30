@@ -172,6 +172,9 @@ mixin VariantMixin implements VariantInterface {
 
     /// Not applied here: the POS grid reads Capella.
     bool? inStock,
+
+    /// Not applied here either, for the same reason.
+    List<String>? excludeVariantIds,
   }) async {
     try {
       final List<WhereCondition> conditions = [

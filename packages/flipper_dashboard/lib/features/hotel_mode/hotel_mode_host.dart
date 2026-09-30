@@ -52,7 +52,15 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
         // the counter. Unawaited: it is fifteen round trips on a fresh
         // property and the desk must open now. Idempotent, and once every
         // room is registered it costs a cached read and a Ditto query.
-        unawaited(HotelRoomRraService.registerUnregisteredRooms(branchId));
+        //
+        // The purge first clears the price-0 "Regular" tiles older
+        // registrations left on the POS grid (see
+        // isHotelRoomPlaceholderVariant); also idempotent and never throws.
+        unawaited(
+          HotelRoomRraService.purgeRoomPlaceholderVariants(branchId).then(
+            (_) => HotelRoomRraService.registerUnregisteredRooms(branchId),
+          ),
+        );
       }
       // Opening the desk on this terminal is what makes it the desk terminal:
       // the startup redirect and the sales pane both read the device pick, so

@@ -150,6 +150,48 @@ bool isHotelRoomVariantRegistered(Variant? variant) {
       variant.ttCatCd == 'TT';
 }
 
+/// Whether [variant] is a stray "Regular" placeholder left by room
+/// registration rather than anything a merchant sells.
+///
+/// Room registration used to call `createProduct` without
+/// `skipRegularVariant`, which minted a price-0, qty-1 variant named after the
+/// room beside the real room item. A rolled-back attempt deleted the room item
+/// and its product but not the placeholder, so every retry left one more tile
+/// on the POS grid.
+///
+/// Deliberately narrow — every condition must hold, so a merchant's own
+/// product that happens to share a room's name is never touched:
+/// * named exactly like a room, and not any room's own variant;
+/// * not a service (`itemTyCd` `3` is the room item itself);
+/// * unpriced and never registered with RRA (no `itemCd`), so deleting it
+///   locally cannot orphan anything the tax authority holds;
+/// * its product is gone (a rolled-back attempt) or is a room's product.
+bool isHotelRoomPlaceholderVariant({
+  required Variant variant,
+  required Iterable<HotelRoom> rooms,
+  required Set<String> roomProductIds,
+  required Set<String> existingProductIds,
+}) {
+  final name = variant.name.trim().toLowerCase();
+  if (name.isEmpty) return false;
+
+  var namedLikeRoom = false;
+  for (final room in rooms) {
+    if (room.variantId == variant.id) return false;
+    if (room.name.trim().toLowerCase() == name) namedLikeRoom = true;
+  }
+  if (!namedLikeRoom) return false;
+
+  if (variant.itemTyCd == '3') return false;
+  if ((variant.retailPrice ?? 0) != 0) return false;
+  if (variant.itemCd?.trim().isNotEmpty == true) return false;
+
+  final productId = variant.productId;
+  if (productId == null || productId.isEmpty) return false;
+  return roomProductIds.contains(productId) ||
+      !existingProductIds.contains(productId);
+}
+
 /// Whether this branch is on EBM at all.
 ///
 /// A property that does not file with RRA has no EBM row, or one without the

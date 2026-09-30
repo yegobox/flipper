@@ -10,6 +10,7 @@ import 'package:flipper_models/sync/utils/hotel_room_rra.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -175,6 +176,116 @@ abstract final class HotelRoomRraService {
     return resolved;
   }
 
+  /// Deletes the "Regular" placeholder variants earlier room registrations
+  /// left on [branchId] — the price-0 tiles named after rooms that showed up
+  /// on the POS grid. See [isHotelRoomPlaceholderVariant] for what qualifies.
+  ///
+  /// Call it unawaited on entry to Hotel Mode. Registration no longer mints
+  /// placeholders, so once a branch is clean this is one rooms read and one
+  /// variants query that match nothing.
+  ///
+  /// Returns how many variants it deleted.
+  static Future<int> purgeRoomPlaceholderVariants(String branchId) async {
+    if (branchId.isEmpty) return 0;
+    try {
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto == null) return 0;
+
+      final rooms = await _sync.hotelRooms(branchId: branchId);
+      if (rooms.isEmpty) return 0;
+
+      final names = {
+        for (final room in rooms)
+          if (room.name.trim().isNotEmpty) room.name.trim(),
+      }.toList();
+      if (names.isEmpty) return 0;
+
+      final named = await ditto.store.execute(
+        'SELECT * FROM variants WHERE branchId = :branchId AND name IN :names',
+        arguments: {'branchId': branchId, 'names': names},
+      );
+      final candidates = named.items
+          .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
+          .where((v) => v.itemTyCd != '3')
+          .toList();
+      if (candidates.isEmpty) return 0;
+
+      // The products the rooms' own items hang off, and which of the
+      // candidates' products still exist.
+      final roomVariantIds = [
+        for (final room in rooms)
+          if (room.isRegisteredWithRra) room.variantId!,
+      ];
+      final roomProductIds = <String>{};
+      if (roomVariantIds.isNotEmpty) {
+        final roomVariants = await ditto.store.execute(
+          'SELECT productId FROM variants WHERE _id IN :ids',
+          arguments: {'ids': roomVariantIds},
+        );
+        for (final doc in roomVariants.items) {
+          final productId = doc.value['productId'];
+          if (productId is String && productId.isNotEmpty) {
+            roomProductIds.add(productId);
+          }
+        }
+      }
+
+      final candidateProductIds = {
+        for (final v in candidates)
+          if (v.productId?.isNotEmpty == true) v.productId!,
+      }.toList();
+      final existingProductIds = <String>{};
+      if (candidateProductIds.isNotEmpty) {
+        final products = await ditto.store.execute(
+          'SELECT _id FROM products WHERE _id IN :ids',
+          arguments: {'ids': candidateProductIds},
+        );
+        for (final doc in products.items) {
+          final id = doc.value['_id'];
+          if (id is String) existingProductIds.add(id);
+        }
+      }
+
+      var deleted = 0;
+      for (final variant in candidates) {
+        if (!isHotelRoomPlaceholderVariant(
+          variant: variant,
+          rooms: rooms,
+          roomProductIds: roomProductIds,
+          existingProductIds: existingProductIds,
+        )) {
+          continue;
+        }
+        final stockId = variant.stockId;
+        if (stockId != null && stockId.isNotEmpty) {
+          await ditto.store.execute(
+            'DELETE FROM stocks WHERE _id = :id',
+            arguments: {'id': stockId},
+          );
+        }
+        await ditto.store.execute(
+          'DELETE FROM variants WHERE _id = :id',
+          arguments: {'id': variant.id},
+        );
+        deleted++;
+      }
+
+      if (deleted > 0) {
+        talker.info(
+          'hotel: removed $deleted room placeholder variant(s) from the POS '
+          'catalog on branch $branchId',
+        );
+      }
+      return deleted;
+    } catch (e, st) {
+      // Housekeeping only; the desk must open whatever happens here.
+      talker.warning(
+        'hotel: room placeholder purge failed on $branchId: $e\n$st',
+      );
+      return 0;
+    }
+  }
+
   /// Visible for tests.
   @visibleForTesting
   static void resetSweepState() {
@@ -297,6 +408,11 @@ abstract final class HotelRoomRraService {
         // itemTyCd '3' service. Letting createProduct call RRA as well would
         // register the placeholder product as a second item.
         skipRRaCall: true,
+        // The room's own variant is built below. Without this createProduct
+        // also mints a "Regular" variant (price 0, qty 1) named after the
+        // room, which lands on the POS grid as a sellable tile — and a
+        // rolled-back attempt used to leave one behind every retry.
+        skipRegularVariant: true,
       );
 
       if (product == null) {

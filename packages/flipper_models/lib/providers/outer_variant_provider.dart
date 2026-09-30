@@ -99,6 +99,11 @@ class OuterVariants extends _$OuterVariants {
   int _resizeGeneration = 0;
   bool _isVatEnabled = false;
 
+  /// The branch's hotel-room items. Rooms are registered as RRA service
+  /// variants so a folio can bill them, but they are sold at the front desk
+  /// and must never appear as tiles on the POS grid.
+  List<String> _hotelRoomVariantIds = const [];
+
   /// Bounds for the height-driven page size, so a freak measurement cannot ask
   /// for a 2-item or a 500-item page.
   static const int minAutoPageSize = 8;
@@ -191,6 +196,7 @@ class OuterVariants extends _$OuterVariants {
     // branch's tax-code set — filtering out items (e.g. cross-VAT transfers)
     // that are correctly coded for THIS branch. Resolve VAT for [branchId].
     _isVatEnabled = await _resolveBranchVatEnabled(branchId);
+    _hotelRoomVariantIds = await _resolveHotelRoomVariantIds(branchId);
 
     _currentSearch = ref.read(searchStringProvider);
 
@@ -237,6 +243,27 @@ class OuterVariants extends _$OuterVariants {
     } catch (e) {
       talker.warning('OuterVariants: VAT lookup failed for $branchId: $e');
       return false;
+    }
+  }
+
+  /// Variant ids of [branchId]'s hotel rooms, to keep them off the catalog.
+  /// A branch without rooms answers from an empty local collection; a failed
+  /// read lists everything rather than blanking the POS.
+  Future<List<String>> _resolveHotelRoomVariantIds(String branchId) async {
+    if (branchId.isEmpty) return const [];
+    try {
+      final rooms = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).hotelRooms(branchId: branchId);
+      return [
+        for (final room in rooms)
+          if (room.isRegisteredWithRra) room.variantId!,
+      ];
+    } catch (e) {
+      talker.warning(
+        'OuterVariants: hotel room lookup failed for $branchId: $e',
+      );
+      return const [];
     }
   }
 
@@ -325,6 +352,7 @@ class OuterVariants extends _$OuterVariants {
       // variants() ignores this while searching, so a search still finds a
       // sold-out product.
       inStock: stockFilter.inStockArg,
+      excludeVariantIds: _hotelRoomVariantIds,
     );
 
     talker.info(
@@ -733,6 +761,7 @@ class OuterVariants extends _$OuterVariants {
       taxTyCds: taxTyCds,
       scanMode: currentScanMode,
       fetchRemote: true, // Ensure we have latest data for export
+      excludeVariantIds: _hotelRoomVariantIds,
     );
 
     return List<Variant>.from(paged.variants);
