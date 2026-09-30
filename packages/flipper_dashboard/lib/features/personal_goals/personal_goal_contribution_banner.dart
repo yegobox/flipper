@@ -41,8 +41,10 @@ class PersonalGoalBannerData {
   factory PersonalGoalBannerData.fromCredits(
     List<PersonalGoalCredit> credits, {
     required String Function(double amount) formatAmount,
+    DateTime? now,
   }) {
     assert(credits.isNotEmpty);
+    final at = now ?? DateTime.now();
     final byGoal = <String, PersonalGoalCredit>{};
     for (final c in credits) {
       final prev = byGoal[c.goal.id];
@@ -57,9 +59,15 @@ class PersonalGoalBannerData {
       final goal = merged.single.goal;
       final amount = merged.single.amount;
       if (goal.isAtOrAboveTarget) {
+        final period = goal.isRecurring ? goal.periodKey : null;
         return PersonalGoalBannerData(
-          headline: 'Goal reached: ${goal.name}',
-          detail: 'Target of ${formatAmount(goal.targetAmount)} met',
+          headline: period == null
+              ? 'Goal reached: ${goal.name}'
+              : 'Goal reached for ${goalPeriodName(period)}: ${goal.name}',
+          detail: period == null
+              ? 'Target of ${formatAmount(goal.targetAmount)} met'
+              : 'Target of ${formatAmount(goal.targetAmount)} met · '
+                    '${goal.recurrence.restartDateLabel(at)}',
           progress: 1,
           percentLabel: '100%',
           reached: true,

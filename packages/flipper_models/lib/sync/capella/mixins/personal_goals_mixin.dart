@@ -22,14 +22,19 @@ mixin CapellaPersonalGoalsMixin {
 
   static bool _collectionWideSubscriptionRegistered = false;
 
+  /// Maps rows to goals **as of now**: recurring goals from an earlier period
+  /// come back rolled over ([PersonalGoal.effectiveAt]), so the UI, the branch
+  /// cache and the auto-sweep all see the current period. Read-only; the
+  /// rollover is persisted by the next credit or edit.
   List<PersonalGoal> _personalGoalsFromQueryResult(dynamic queryResult) {
+    final now = DateTime.now();
     final list = <PersonalGoal>[];
     for (final item in queryResult.items as Iterable<dynamic>) {
       try {
         list.add(
           PersonalGoal.fromJson(
             Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>),
-          ),
+          ).effectiveAt(now),
         );
       } catch (e) {
         talker.error('Error mapping personal goal: $e');
@@ -110,7 +115,9 @@ mixin CapellaPersonalGoalsMixin {
       talker.debug(
         'personal_goals: using ${cached.length} cached goals for branch $branchId',
       );
-      return cached;
+      // The cache can outlive a period boundary.
+      final now = DateTime.now();
+      return cached.map((g) => g.effectiveAt(now)).toList();
     }
 
     await _registerPersonalGoalsBranchSubscription(ditto, branchId);
@@ -360,12 +367,11 @@ mixin CapellaPersonalGoalsMixin {
     }
 
     final raw = Map<String, dynamic>.from(result.items.first.value);
-    final existing = PersonalGoal.fromJson(raw);
-    double toDouble(dynamic v) {
-      if (v == null) return 0;
-      if (v is num) return v.toDouble();
-      return double.tryParse(v.toString()) ?? 0;
-    }
+    final now = DateTime.now();
+    // Roll a recurring goal into the current period first, so a goal reached
+    // last period takes credits again and the rollover is persisted together
+    // with this credit in the single write below.
+    final existing = PersonalGoal.fromJson(raw).effectiveAt(now);
 
     if (enforceTargetCap && existing.isAtOrAboveTarget) {
       talker.debug(
@@ -385,9 +391,8 @@ mixin CapellaPersonalGoalsMixin {
     }
     if (credit <= 0) return;
 
-    final newSaved = toDouble(raw['savedAmount']) + credit;
+    final newSaved = existing.savedAmount + credit;
     final deviceKey = await personalGoalContributionDeviceKey();
-    final now = DateTime.now();
     final doc = existing
         .copyWith(savedAmount: newSaved, updatedAt: now)
         .toJson();

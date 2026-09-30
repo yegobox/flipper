@@ -178,35 +178,26 @@ void main() {
       expect(profit, 60);
     });
 
-    test('gross profit zero when supply matches retail (no allocation w/o revenue fallback)', () {
-      final profit = computeSaleGrossProfitFromSaleLines([
-        const SaleLineForProfit(
-          price: 100,
-          qty: 1,
-          supplyPriceAtSale: 100,
-        ),
-      ]);
-      expect(profit, 0);
-      final revenue = computeSaleLineRevenueForPersonalGoals([
-        const SaleLineForProfit(
-          price: 100,
-          qty: 1,
-          supplyPriceAtSale: 100,
-        ),
-      ]);
-      expect(revenue, 100);
-    });
+    test(
+      'gross profit zero when supply matches retail (no allocation w/o revenue fallback)',
+      () {
+        final profit = computeSaleGrossProfitFromSaleLines([
+          const SaleLineForProfit(price: 100, qty: 1, supplyPriceAtSale: 100),
+        ]);
+        expect(profit, 0);
+        final revenue = computeSaleLineRevenueForPersonalGoals([
+          const SaleLineForProfit(price: 100, qty: 1, supplyPriceAtSale: 100),
+        ]);
+        expect(revenue, 100);
+      },
+    );
   });
 
   group('computeSaleLineRevenueForPersonalGoals', () {
     test('matches price x qty with same skips as profit', () {
       final rev = computeSaleLineRevenueForPersonalGoals([
         const SaleLineForProfit(price: 10, qty: 3, supplyPrice: 5),
-        const SaleLineForProfit(
-          price: 999,
-          qty: 1,
-          ignoreForReport: true,
-        ),
+        const SaleLineForProfit(price: 999, qty: 1, ignoreForReport: true),
       ]);
       expect(rev, 30);
     });
@@ -302,6 +293,32 @@ void main() {
       expect(rows.length, 1);
       expect(rows.first.goalId, 'open');
       expect(rows.first.amount, 100);
+    });
+
+    test('recurring goal reached last period is credited again', () {
+      final reachedInAugust = PersonalGoal(
+        id: 'rent',
+        branchId: 'b',
+        name: 'Rent',
+        savedAmount: 100,
+        targetAmount: 100,
+        autoAllocationPercent: 10,
+        recurrence: GoalRecurrence.monthly,
+        periodKey: '2026-08',
+      );
+      expect(
+        computeAutoAllocationContributions(
+          allocationBase: 1000,
+          goals: [reachedInAugust],
+        ),
+        isEmpty,
+      );
+      final rows = computeAutoAllocationContributions(
+        allocationBase: 1000,
+        goals: [reachedInAugust.effectiveAt(DateTime(2026, 9, 1))],
+      );
+      expect(rows.single.goalId, 'rent');
+      expect(rows.single.amount, 100);
     });
 
     test('caps contribution to remaining amount to target', () {

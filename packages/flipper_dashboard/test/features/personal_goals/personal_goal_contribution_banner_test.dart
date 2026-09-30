@@ -44,6 +44,20 @@ void main() {
       expect(d.displayDuration, const Duration(seconds: 8));
     });
 
+    test('recurring goal reached names the period and the restart', () {
+      final goal = _goal(
+        saved: 100000,
+      ).copyWith(recurrence: GoalRecurrence.monthly, periodKey: '2026-09');
+      final d = PersonalGoalBannerData.fromCredits(
+        [PersonalGoalCredit(goal: goal, amount: 8000)],
+        formatAmount: _fmt,
+        now: DateTime(2026, 9, 20),
+      );
+      expect(d.headline, 'Goal reached for September: New truck');
+      expect(d.detail, 'Target of RWF 100000 met · restarts 1 Oct');
+      expect(d.reached, isTrue);
+    });
+
     test('goal without a target omits progress', () {
       final d = _data([
         PersonalGoalCredit(goal: _goal(target: 0, saved: 3000), amount: 3000),

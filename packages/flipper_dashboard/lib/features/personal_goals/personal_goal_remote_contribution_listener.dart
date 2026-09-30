@@ -44,7 +44,7 @@ class _PersonalGoalRemoteContributionListenerState
   String? _localDeviceKey;
   String? _attachedBranchId;
   ProviderSubscription<AsyncValue<List<PersonalGoal>>>? _subscription;
-  final Map<String, double> _baselineSaved = {};
+  final Map<String, PersonalGoal> _baseline = {};
   bool _primed = false;
   final Map<String, DateTime> _lastNotified = {};
   bool _syncScheduled = false;
@@ -115,7 +115,7 @@ class _PersonalGoalRemoteContributionListenerState
     _subscription = null;
     _attachedBranchId = branchId;
     _primed = false;
-    _baselineSaved.clear();
+    _baseline.clear();
     _lastNotified.clear();
     _generation++;
     _coalesceTimer?.cancel();
@@ -344,22 +344,21 @@ class _PersonalGoalRemoteContributionListenerState
 
     if (!_primed) {
       for (final g in goals) {
-        _baselineSaved[g.id] = g.savedAmount;
+        _baseline[g.id] = g;
       }
       _primed = true;
       return;
     }
 
     for (final g in goals) {
-      final prev = _baselineSaved[g.id];
-      if (prev == null) {
-        _baselineSaved[g.id] = g.savedAmount;
-        continue;
-      }
-      if (g.savedAmount > prev + 0.0001) {
+      final prev = _baseline[g.id];
+      _baseline[g.id] = g;
+      if (prev == null) continue;
+      // creditSince also catches a recurring rollover + credit, where
+      // savedAmount drops but lastContributionAmount was still added.
+      if (g.creditSince(prev) > 0.0001) {
         _maybeNotifyRemoteCredit(g);
       }
-      _baselineSaved[g.id] = g.savedAmount;
     }
   }
 
