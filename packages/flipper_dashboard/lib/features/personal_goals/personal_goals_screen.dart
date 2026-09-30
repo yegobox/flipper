@@ -74,8 +74,12 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
   Widget _buildBody(
     BuildContext context,
     String branchId,
-    List<PersonalGoal> goals,
+    List<PersonalGoal> streamed,
   ) {
+    // Roll recurring goals over at build time too, so a screen left open
+    // across a period boundary shows the new period on its next rebuild.
+    final now = DateTime.now();
+    final goals = streamed.map((g) => g.effectiveAt(now)).toList();
     final totalReserved = goals.fold<double>(0, (s, g) => s + g.savedAmount);
     final onTrack = goals.where((g) => g.progressRatio >= 0.5).length;
     final top =
@@ -223,15 +227,38 @@ class _PersonalGoalsScreenState extends ConsumerState<PersonalGoalsScreen> {
       }
     }
 
-    final goal = PersonalGoal(
-      id: id,
-      branchId: branchId,
+    // Start from the existing goal (as of now) so fields the editor does not
+    // show — note, last contribution, cycle history — survive the save.
+    final base =
+        existing?.effectiveAt(now) ??
+        PersonalGoal(
+          id: id,
+          branchId: branchId,
+          name: result.name,
+          savedAmount: 0,
+          targetAmount: 0,
+          createdAt: now,
+        );
+    final recurrence = result.recurrence;
+    // Keep the current period when the frequency is unchanged; switching it
+    // on or to another frequency starts from the current period without
+    // resetting what is already saved.
+    final periodKey = !recurrence.isRecurring
+        ? null
+        : (base.recurrence == recurrence && base.periodKey != null)
+        ? base.periodKey
+        : recurrence.periodKey(now);
+    final goal = base.copyWith(
       name: result.name,
       savedAmount: result.savedAmount,
       targetAmount: result.targetAmount,
       isTopPriority: isTopPriority,
       autoAllocationPercent: result.autoAllocationPercent,
-      createdAt: existing?.createdAt ?? now,
+      clearAutoAllocationPercent: result.autoAllocationPercent == null,
+      recurrence: recurrence,
+      periodKey: periodKey,
+      clearPeriodKey: periodKey == null,
+      createdAt: base.createdAt ?? now,
       updatedAt: now,
     );
     await ds.upsertPersonalGoal(goal);
@@ -326,6 +353,10 @@ class _TopPriorityCard extends ConsumerWidget {
                 ),
               ],
             ),
+            if (goal.isRecurring) ...[
+              const SizedBox(height: 14),
+              _RecurrenceStatus(goal: goal, onDark: true),
+            ],
             const SizedBox(height: 16),
             Row(
               children: [
@@ -519,25 +550,28 @@ class _GoalListCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    Icons.savings_outlined,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Updated from profits',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
+              if (goal.isRecurring)
+                _RecurrenceStatus(goal: goal)
+              else
+                Row(
+                  children: [
+                    Icon(
+                      Icons.savings_outlined,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Updated from profits',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
@@ -590,6 +624,92 @@ class _GoalListCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// "↻ Monthly · restarts in 12 days" or "✓ Reached for September · restarts
+/// 1 Oct", plus the last finished period when there is history.
+class _RecurrenceStatus extends StatelessWidget {
+  const _RecurrenceStatus({required this.goal, this.onDark = false});
+
+  final PersonalGoal goal;
+  final bool onDark;
+
+  static String _capitalize(String s) =>
+      s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final recurrence = goal.recurrence;
+    final reached = goal.isAtOrAboveTarget;
+    final muted = onDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final green = onDark ? const Color(0xFF34D399) : const Color(0xFF16A34A);
+    final period = goal.periodKey;
+
+    final status = reached && period != null
+        ? 'Reached for ${goalPeriodName(period)} · '
+              '${recurrence.restartDateLabel(now)}'
+        : '${recurrence.shortLabel} · ${recurrence.restartLabel(now)}';
+
+    final last = goal.cycleHistory.isEmpty ? null : goal.cycleHistory.first;
+    String? lastLine;
+    if (last != null) {
+      final name = _capitalize(goalPeriodName(last.periodKey));
+      lastLine = last.reached
+          ? '$name: ${formatRwfCompact(last.savedAmount)} · reached'
+          : '$name: ${formatRwfCompact(last.savedAmount)} of '
+                '${formatRwfCompact(last.targetAmount).replaceFirst('RWF ', '')}';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              reached ? Icons.check_circle_rounded : Icons.autorenew_rounded,
+              size: 16,
+              color: reached ? green : muted,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                status,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: reached ? FontWeight.w600 : FontWeight.w400,
+                  color: reached ? green : muted,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (lastLine != null) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                last!.reached ? Icons.done_rounded : Icons.history_rounded,
+                size: 16,
+                color: muted,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  lastLine,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(fontSize: 12, color: muted),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }
@@ -664,6 +784,7 @@ class _PersonalGoalEditorResult {
     required this.savedAmount,
     this.autoAllocationPercent,
     required this.isTopPriority,
+    this.recurrence = GoalRecurrence.none,
   });
 
   final String name;
@@ -671,6 +792,7 @@ class _PersonalGoalEditorResult {
   final double savedAmount;
   final int? autoAllocationPercent;
   final bool isTopPriority;
+  final GoalRecurrence recurrence;
 }
 
 /// Polished goal create / edit sheet-style dialog (Outfit + soft fields).
@@ -694,6 +816,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
   late final TextEditingController _savedCtrl;
   late final TextEditingController _pctCtrl;
   bool _topPriority = false;
+  GoalRecurrence _recurrence = GoalRecurrence.none;
 
   bool get _isEditing => widget.existing != null;
 
@@ -714,6 +837,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
       text: e?.autoAllocationPercent?.toString() ?? '',
     );
     _topPriority = e?.isTopPriority ?? false;
+    _recurrence = e?.recurrence ?? GoalRecurrence.none;
   }
 
   String _formatAmount(double v) {
@@ -805,6 +929,7 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
         savedAmount: saved < 0 ? 0 : saved,
         autoAllocationPercent: pct,
         isTopPriority: _topPriority,
+        recurrence: _recurrence,
       ),
     );
   }
@@ -974,6 +1099,64 @@ class _PersonalGoalEditorDialogState extends State<_PersonalGoalEditorDialog> {
                             return null;
                           },
                         ),
+                        const SizedBox(height: 18),
+                        _sectionLabel('REPEATS'),
+                        DropdownButtonFormField<GoalRecurrence>(
+                          key: const Key('personal_goal_recurrence'),
+                          initialValue: _recurrence,
+                          borderRadius: BorderRadius.circular(14),
+                          dropdownColor: Colors.white,
+                          icon: Icon(
+                            Icons.expand_more_rounded,
+                            color: Colors.grey.shade600,
+                          ),
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF111827),
+                          ),
+                          decoration: _fieldDecoration('Repeats'),
+                          items: [
+                            for (final r in GoalRecurrence.values)
+                              DropdownMenuItem(
+                                value: r,
+                                child: Text(r.optionLabel),
+                              ),
+                          ],
+                          onChanged: (r) => setState(
+                            () => _recurrence = r ?? GoalRecurrence.none,
+                          ),
+                        ),
+                        if (_recurrence.isRecurring) ...[
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 1),
+                                  child: Icon(
+                                    Icons.autorenew_rounded,
+                                    size: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    _recurrence.restartExplanation,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      height: 1.35,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 18),
                         _sectionLabel('OPTIONAL'),
                         TextFormField(

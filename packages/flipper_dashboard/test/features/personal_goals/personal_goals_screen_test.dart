@@ -101,4 +101,60 @@ void main() {
     expect(find.text('Tax Reserve'), findsOneWidget);
     expect(find.text('All goals'), findsOneWidget);
   });
+
+  testWidgets('recurring goal card shows its restart and last period', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final now = DateTime.now();
+    final goals = [
+      PersonalGoal(
+        id: 'g1',
+        branchId: 'branch-test',
+        name: 'Emergency Fund',
+        savedAmount: 1e5,
+        targetAmount: 3e5,
+        isTopPriority: true,
+      ),
+      PersonalGoal(
+        id: 'g2',
+        branchId: 'branch-test',
+        name: 'Rent',
+        savedAmount: 4e5,
+        targetAmount: 1e6,
+        recurrence: GoalRecurrence.monthly,
+        periodKey: GoalRecurrence.monthly.periodKey(now),
+        cycleHistory: const [
+          GoalCycle(
+            periodKey: '2026-08',
+            savedAmount: 1e6,
+            targetAmount: 1e6,
+            reached: true,
+          ),
+        ],
+      ),
+    ];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          personalGoalsDataSourceProvider.overrideWithValue(
+            FakePersonalGoalsDataSource(goals),
+          ),
+        ],
+        child: const TestApp(child: PersonalGoalsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Monthly · ${GoalRecurrence.monthly.restartLabel(now)}'),
+      findsOneWidget,
+    );
+    expect(find.text('August: RWF 1M · reached'), findsOneWidget);
+    // Only the one-shot goal keeps the static row.
+    expect(find.text('Updated from profits'), findsOneWidget);
+  });
 }

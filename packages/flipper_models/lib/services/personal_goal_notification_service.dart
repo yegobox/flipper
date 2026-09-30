@@ -33,7 +33,7 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
   String? _localDeviceKey;
   String? _attachedBranchId;
 
-  final Map<String, double> _savedAmountBaseline = {};
+  final Map<String, PersonalGoal> _savedAmountBaseline = {};
   final Set<String> _processedContributionEvents = {};
 
   static const _goalsQuery =
@@ -124,19 +124,19 @@ class PersonalGoalNotificationService with WidgetsBindingObserver {
         final goals = _mapGoals(result);
         if (!goalsPrimed) {
           for (final g in goals) {
-            _savedAmountBaseline[g.id] = g.savedAmount;
+            _savedAmountBaseline[g.id] = g;
           }
           goalsPrimed = true;
           return;
         }
         for (final g in goals) {
-          final prev = _savedAmountBaseline[g.id] ?? 0;
-          final diff = g.savedAmount - prev;
+          final prev = _savedAmountBaseline[g.id];
+          // creditSince handles a recurring rollover + credit, where
+          // savedAmount drops (100,000 → 500) but 500 was still credited.
+          final diff = prev == null ? g.savedAmount : g.creditSince(prev);
+          _savedAmountBaseline[g.id] = g;
           if (diff > 0.0001) {
-            _savedAmountBaseline[g.id] = g.savedAmount;
             _maybeNotifyFromGoal(g, diff);
-          } else {
-            _savedAmountBaseline[g.id] = g.savedAmount;
           }
         }
       },
