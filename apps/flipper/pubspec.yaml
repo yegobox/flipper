@@ -41,6 +41,7 @@ dependencies:
   font_awesome_flutter: ^9.0.0
   upgrader: ^13.5.0
   universal_platform: ^1.0.0+1
+  window_manager: ^0.5.1
   ionicons: ^0.1.2
   overlay_support: ^2.1.0
   flutter_settings_ui: ^3.0.1

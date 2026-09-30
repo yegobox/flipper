@@ -433,6 +433,7 @@ jobs:
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
+          flutter test -d windows integration_test/desktop_window_maximized_test.dart
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
