@@ -4,9 +4,11 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/hooks/use_tenant_names_realtime.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
+import 'package:flipper_models/services/tenant_name_sync.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -37,7 +39,7 @@ class FlipperApp extends HookConsumerWidget {
     // Handles initialization and lifecycle events.
     useEffect(() {
       _initServices(context, coreViewModel);
-      final observer = _AppLifecycleObserver(_handleResumedState);
+      final observer = _AppLifecycleObserver(() => _handleResumedState(ref));
       WidgetsBinding.instance.addObserver(observer);
       return () => WidgetsBinding.instance.removeObserver(observer);
     }, [coreViewModel]);
@@ -62,7 +64,19 @@ class FlipperApp extends HookConsumerWidget {
     }
   }
 
-  void _handleResumedState() => ProxyService.status.updateStatusColor();
+  void _handleResumedState(WidgetRef ref) {
+    ProxyService.status.updateStatusColor();
+    // Pick up business/branch renames made in Supabase while backgrounded.
+    // Throttled inside catchUp; offline is a logged no-op.
+    unawaited(TenantNameSync.catchUp().then((changed) {
+      if (!changed) return;
+      try {
+        invalidateTenantNameProviders(ref);
+      } catch (_) {
+        // Widget disposed while the catch-up ran; nothing left to refresh.
+      }
+    }));
+  }
 
   /// Safety net when a login path lands on [FlipperApp] before branch settings
   /// hydrate.
