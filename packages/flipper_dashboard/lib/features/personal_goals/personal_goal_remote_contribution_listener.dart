@@ -58,6 +58,11 @@ class _PersonalGoalRemoteContributionListenerState
   Timer? _dismissTimer;
   Duration _dismissAfter = Duration.zero;
 
+  /// Bumped on every branch switch. Pending credits and deferred banner
+  /// callbacks from an earlier generation are dropped, so one branch's goal
+  /// balances never surface after switching to another.
+  int _generation = 0;
+
   bool get _isDesktop =>
       !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
@@ -112,6 +117,11 @@ class _PersonalGoalRemoteContributionListenerState
     _primed = false;
     _baselineSaved.clear();
     _lastNotified.clear();
+    _generation++;
+    _coalesceTimer?.cancel();
+    _coalesceTimer = null;
+    _pendingCredits.clear();
+    _removeBannerNow();
 
     _subscription = ref.listenManual<AsyncValue<List<PersonalGoal>>>(
       personalGoalsStreamProvider(branchId),
@@ -161,24 +171,40 @@ class _PersonalGoalRemoteContributionListenerState
   }
 
   void _flushPendingCredits() {
-    if (!mounted || _pendingCredits.isEmpty) return;
+    if (!mounted) return;
+    final branchId = _attachedBranchId;
+    // Belt and braces with the generation reset: only this branch's goals.
+    final credits = _pendingCredits
+        .where(
+          (c) =>
+              branchId != null &&
+              c.goal.branchId.trim().toLowerCase() ==
+                  branchId.trim().toLowerCase(),
+        )
+        .toList();
+    _pendingCredits.clear();
+    if (credits.isEmpty) return;
+    final generation = _generation;
     final symbol = ProxyService.box.defaultCurrency();
     final data = PersonalGoalBannerData.fromCredits(
-      List.of(_pendingCredits),
+      credits,
       formatAmount: (v) => v.toCurrencyFormatted(
         symbol: symbol,
         decimalDigits: v == v.roundToDouble() ? 0 : 2,
       ),
     );
-    _pendingCredits.clear();
 
     // Overlay insert must not run during layout (stream can emit mid-frame).
+    // addPostFrameCallback does not request a frame, and this timer fires
+    // after the frame that delivered the credit, so ask for one or an idle
+    // app would never show the card.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       _removeBannerNow();
       if (_isDesktop && _showDesktopBanner(data)) return;
       _showMobileBanner(data);
     });
+    WidgetsBinding.instance.scheduleFrame();
   }
 
   Widget _card(PersonalGoalBannerData data, {ValueChanged<bool>? onHover}) {
