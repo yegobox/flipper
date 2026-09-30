@@ -20,8 +20,13 @@ String pinLoginErrorText(Object error) {
   }
   if (error is PinError) {
     final status = _httpStatus(error.term);
-    if (status != null) return _httpStatusText(status);
+    if (status != null) return _httpStatusText(status, pinLookup: true);
     return 'That PIN could not be checked. Try again. (PIN)';
+  }
+
+  if (error is FormatException) {
+    return 'The Flipper server sent an unexpected response. Try again in a '
+        'minute. (BAD-RESPONSE)';
   }
 
   final raw = error.toString();
@@ -55,17 +60,23 @@ String pinLoginErrorText(Object error) {
   }
 
   final status = _httpStatus(raw);
-  if (status != null) return _httpStatusText(status);
-
-  final detail = raw
-      .replaceFirst(RegExp(r'^(Exception|Error):\s*'), '')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
-  if (detail.isEmpty || detail.startsWith('Instance of')) {
-    return 'Sign-in failed for an unknown reason. Try again. (UNKNOWN)';
+  if (status != null) {
+    // The OTP request is keyed by PIN: the server 404s it only when no PIN
+    // row matches, so that 404 does mean "unknown PIN".
+    return _httpStatusText(
+      status,
+      pinLookup: raw.contains('Failed to request OTP'),
+    );
   }
-  final short = detail.length > 140 ? '${detail.substring(0, 140)}…' : detail;
-  return 'Sign-in failed: $short';
+
+  if (text.contains('authenticate offline')) {
+    return 'This phone can\'t sign you in offline yet. Connect to the internet '
+        'and sign in once, then offline sign-in will work. (OFFLINE-FIRST)';
+  }
+
+  // Raw exception text can carry response bodies or internals; it is already
+  // logged (GlobalErrorHandler + Sentry), so the user gets a stable message.
+  return 'Sign-in failed. Try again. (UNKNOWN)';
 }
 
 const String _noAccountForPin =
@@ -76,8 +87,15 @@ int? _httpStatus(String text) {
   return match == null ? null : int.parse(match.group(1)!);
 }
 
-String _httpStatusText(int status) {
-  if (status == 404) return _noAccountForPin;
+/// [pinLookup] marks responses to a PIN-keyed request, where 404 means no
+/// account has that PIN. Any other 404 gets a neutral message.
+String _httpStatusText(int status, {bool pinLookup = false}) {
+  if (status == 404) {
+    return pinLookup
+        ? _noAccountForPin
+        : 'The Flipper server could not find what the app asked for. Update '
+            'the app and try again. (HTTP-404)';
+  }
   if (status == 429) {
     return 'Too many attempts. Wait a minute, then try again. (HTTP-429)';
   }

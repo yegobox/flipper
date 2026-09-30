@@ -41,12 +41,21 @@ void main() {
         pinLoginErrorText(NeedSignUpException(term: 'x')),
         endsWith('(PIN-404)'),
       );
+      // flipper-turbo /v2/api/login/pin 404s only when no PIN row matches.
       expect(
         pinLoginErrorText(
           Exception('Failed to request OTP (HTTP 404): not found'),
         ),
         endsWith('(PIN-404)'),
       );
+    });
+
+    test('other 404s are not reported as a missing account', () {
+      final text = pinLoginErrorText(
+        Exception('Failed to verify OTP (HTTP 404): not found'),
+      );
+      expect(text, endsWith('(HTTP-404)'));
+      expect(text, isNot(contains('No account')));
     });
 
     test('server errors carry the HTTP status', () {
@@ -60,15 +69,28 @@ void main() {
       );
     });
 
-    test('anything else keeps the original detail, trimmed', () {
-      expect(
-        pinLoginErrorText(Exception('Cannot authenticate offline')),
-        'Sign-in failed: Cannot authenticate offline',
+    test('malformed server responses get a stable message', () {
+      final text = pinLoginErrorText(
+        const FormatException('Unexpected character', '<html>secret body'),
       );
+      expect(text, endsWith('(BAD-RESPONSE)'));
+      expect(text, isNot(contains('secret body')));
+    });
+
+    test('offline sign-in without a saved user explains the fix', () {
       expect(
-        pinLoginErrorText(Object()),
-        endsWith('(UNKNOWN)'),
+        pinLoginErrorText(
+          Exception('Cannot authenticate offline without a saved user id'),
+        ),
+        endsWith('(OFFLINE-FIRST)'),
       );
+    });
+
+    test('unmapped failures never show raw exception text', () {
+      const internal = 'StateError: repository closed at /data/app/x.db';
+      final text = pinLoginErrorText(Exception(internal));
+      expect(text, 'Sign-in failed. Try again. (UNKNOWN)');
+      expect(pinLoginErrorText(Object()), endsWith('(UNKNOWN)'));
     });
   });
 }
