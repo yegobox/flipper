@@ -49,76 +49,102 @@ void main() {
       final store = ditto.store;
       await store.execute('ALTER SYSTEM SET DQL_STRICT_MODE = true');
 
-      Future<void> variant(String id, String name, String productId) =>
-          store.execute(
-            'INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-            arguments: {
-              'doc': {
-                '_id': id,
-                'id': id,
-                'branchId': 'b1',
-                'name': name,
-                'productId': productId,
-              },
-            },
-          );
-
-      await variant('room-item', '101', 'room-product');
-      await variant('stray', '101', 'gone-product');
-      await variant('skol', 'Skol', 'skol-product');
-      await store.execute(
-        'INSERT INTO products DOCUMENTS (:doc)',
+      Future<void> variant(
+        String id,
+        String name,
+        String productId, {
+        String? itemTyCd,
+        String? pkgUnitCd,
+      }) => store.execute(
+        'INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
         arguments: {
-          'doc': {'_id': 'room-product', 'name': '101'},
+          'doc': {
+            '_id': id,
+            'id': id,
+            'branchId': 'b1',
+            'name': name,
+            'productId': productId,
+            'itemTyCd': ?itemTyCd,
+            'pkgUnitCd': ?pkgUnitCd,
+          },
         },
       );
 
-      Future<Set<String>> ids(String sql, Map<String, dynamic> args) async =>
-          (await store.execute(
-            sql,
-            arguments: args,
-          )).items.map((d) => d.value['_id'] as String).toSet();
+      // Two registrations of room 101, each with its placeholder, plus a
+      // real product and a room-named orphan whose product is gone.
+      await variant('room-a', '101', 'prod-a', itemTyCd: '3', pkgUnitCd: 'NT');
+      await variant('ph-a', '101', 'prod-a', itemTyCd: '2', pkgUnitCd: 'CT');
+      await variant('room-b', '101', 'prod-b', itemTyCd: '3', pkgUnitCd: 'NT');
+      await variant('ph-b', '101', 'prod-b', itemTyCd: '2', pkgUnitCd: 'CT');
+      await variant('orphan', '101', 'gone');
+      await variant('skol', 'Skol', 'skol-product', itemTyCd: '2');
+      await store.execute(
+        'INSERT INTO products DOCUMENTS (:doc)',
+        arguments: {
+          'doc': {'_id': 'prod-a', 'name': '101'},
+        },
+      );
+
+      Future<Set<String>> field(
+        String name,
+        String sql,
+        Map<String, dynamic> args,
+      ) async => (await store.execute(
+        sql,
+        arguments: args,
+      )).items.map((d) => d.value[name] as String).toSet();
+
+      // _roomProductIds
+      final roomProducts = await field(
+        'productId',
+        'SELECT productId FROM variants WHERE branchId = :branchId '
+            'AND itemTyCd = :itemTyCd AND pkgUnitCd = :pkgUnitCd',
+        {'branchId': 'b1', 'itemTyCd': '3', 'pkgUnitCd': 'NT'},
+      );
+      expect(roomProducts, {'prod-a', 'prod-b'});
+
+      // posHiddenVariantIds
+      final hidden = await field(
+        '_id',
+        'SELECT _id FROM variants WHERE branchId = :branchId '
+            'AND productId IN :productIds',
+        {'branchId': 'b1', 'productIds': roomProducts.toList()},
+      );
+      expect(hidden, {'room-a', 'ph-a', 'room-b', 'ph-b'});
 
       // The catalog exclusion, as variants() appends it.
       expect(
-        await ids(
+        await field(
+          '_id',
           'SELECT _id FROM variants WHERE branchId = :branchId '
-          'AND NOT (_id IN :excludeVariantIds)',
-          {
-            'branchId': 'b1',
-            'excludeVariantIds': ['room-item'],
-          },
+              'AND NOT (_id IN :excludeVariantIds)',
+          {'branchId': 'b1', 'excludeVariantIds': hidden.toList()},
         ),
-        {'stray', 'skol'},
+        {'orphan', 'skol'},
       );
 
-      // The purge's candidate query, matching on room names.
+      // The purge's candidate query.
       expect(
-        await ids(
-          'SELECT * FROM variants WHERE branchId = :branchId AND name IN :names',
+        await field(
+          '_id',
+          'SELECT * FROM variants WHERE branchId = :branchId '
+              'AND (productId IN :productIds OR name IN :names)',
           {
             'branchId': 'b1',
+            'productIds': roomProducts.toList(),
             'names': ['101'],
           },
         ),
-        {'room-item', 'stray'},
+        {'room-a', 'ph-a', 'room-b', 'ph-b', 'orphan'},
       );
 
       // Which candidate products still exist.
       expect(
-        await ids('SELECT _id FROM products WHERE _id IN :ids', {
-          'ids': ['room-product', 'gone-product'],
+        await field('_id', 'SELECT _id FROM products WHERE _id IN :ids', {
+          'ids': ['prod-a', 'prod-b', 'gone'],
         }),
-        {'room-product'},
+        {'prod-a'},
       );
-
-      final roomProducts = await store.execute(
-        'SELECT productId FROM variants WHERE _id IN :ids',
-        arguments: {
-          'ids': ['room-item'],
-        },
-      );
-      expect(roomProducts.items.single.value['productId'], 'room-product');
 
       await ditto.close();
       await dir.delete(recursive: true);

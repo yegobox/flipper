@@ -477,6 +477,32 @@ void main() {
     });
   });
 
+  group('isHotelRoomItem', () {
+    test('is a service sold by the night', () {
+      expect(
+        isHotelRoomItem(
+          Variant(branchId: 'b1', name: '101', itemTyCd: '3', pkgUnitCd: 'NT'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a plain service or a good sold by the night is not a room', () {
+      expect(
+        isHotelRoomItem(
+          Variant(branchId: 'b1', name: 'Wash', itemTyCd: '3', pkgUnitCd: 'U'),
+        ),
+        isFalse,
+      );
+      expect(
+        isHotelRoomItem(
+          Variant(branchId: 'b1', name: 'Tent', itemTyCd: '2', pkgUnitCd: 'NT'),
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('isHotelRoomPlaceholderVariant', () {
     final rooms = [
       HotelRoom(
@@ -492,12 +518,12 @@ void main() {
       ),
     ];
 
-    // What createProduct minted beside the room item: price 0, qty 1, no
-    // itemCd, named after the room.
+    // What createProduct minted beside a room item: price 0, qty 1, no
+    // itemCd, on the room item's product.
     Variant placeholder({
       String id = 'stray',
       String name = '101',
-      String? productId = 'room-product-101',
+      String? productId = 'room-product',
       double? retailPrice = 0,
       String? itemCd,
       String? itemTyCd = '2',
@@ -513,8 +539,8 @@ void main() {
 
     bool judge(
       Variant v, {
-      Set<String> roomProductIds = const {'room-product-101'},
-      Set<String> existingProductIds = const {'room-product-101'},
+      Set<String> roomProductIds = const {'room-product'},
+      Set<String> existingProductIds = const {'room-product'},
     }) => isHotelRoomPlaceholderVariant(
       variant: v,
       rooms: rooms,
@@ -522,13 +548,29 @@ void main() {
       existingProductIds: existingProductIds,
     );
 
-    test('a placeholder hanging off the room product is purged', () {
+    test('a placeholder on a room item\'s product is purged', () {
       expect(judge(placeholder()), isTrue);
     });
 
-    test('a placeholder whose rolled-back product is gone is purged', () {
-      // The case that multiplied the tiles: each failed attempt deleted the
-      // room item and product but left this behind.
+    test('the room item need not be the one the room points at', () {
+      // Production: fourteen "101" room items on one branch from repeated
+      // registrations, each with its own placeholder — the room doc names
+      // only the newest.
+      expect(
+        judge(
+          placeholder(productId: 'duplicate-product'),
+          roomProductIds: const {'room-product', 'duplicate-product'},
+          existingProductIds: const {'room-product', 'duplicate-product'},
+        ),
+        isTrue,
+      );
+    });
+
+    test('a room product placeholder is purged even after a rename', () {
+      expect(judge(placeholder(name: 'Old name')), isTrue);
+    });
+
+    test('a room-named placeholder whose product is gone is purged', () {
       expect(
         judge(
           placeholder(productId: 'deleted-product'),
@@ -539,52 +581,35 @@ void main() {
       );
     });
 
-    test('matches the room name case- and whitespace-insensitively', () {
-      final rooms = [
-        HotelRoom(
-          id: 'r1',
-          branchId: 'b1',
-          floorId: 'f',
-          floorName: 'F',
-          name: ' Garden ',
-          roomType: 'Suite',
-          capacity: 2,
-          nightlyRate: 1,
-        ),
-      ];
+    test('an orphan not named like a room is kept', () {
       expect(
-        isHotelRoomPlaceholderVariant(
-          variant: placeholder(name: 'garden', productId: 'gone'),
-          rooms: rooms,
+        judge(
+          placeholder(name: 'Skol', productId: 'deleted-product'),
           roomProductIds: const {},
           existingProductIds: const {},
         ),
-        isTrue,
+        isFalse,
       );
     });
 
-    test('never touches the room item itself', () {
+    test('never touches a room item or the room\'s own variant', () {
       expect(judge(placeholder(id: 'room-item-101')), isFalse);
       expect(judge(placeholder(itemTyCd: '3')), isFalse);
     });
 
     test('keeps a merchant product that merely shares a room name', () {
-      // Its own live product, not a room's.
       expect(
         judge(
           placeholder(productId: 'merchant-product'),
-          existingProductIds: const {'room-product-101', 'merchant-product'},
+          existingProductIds: const {'room-product', 'merchant-product'},
         ),
         isFalse,
       );
-      // Priced, or registered with RRA — somebody sells it.
-      expect(judge(placeholder(retailPrice: 1500)), isFalse);
-      expect(judge(placeholder(itemCd: 'RW2NTU0000001')), isFalse);
     });
 
-    test('keeps anything not named like a room', () {
-      expect(judge(placeholder(name: 'Skol')), isFalse);
-      expect(judge(placeholder(name: '')), isFalse);
+    test('keeps anything priced or registered with RRA', () {
+      expect(judge(placeholder(retailPrice: 1500)), isFalse);
+      expect(judge(placeholder(itemCd: 'RW2NTU0000001')), isFalse);
     });
 
     test('keeps a variant with no product link', () {

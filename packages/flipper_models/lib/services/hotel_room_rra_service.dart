@@ -1,3 +1,4 @@
+import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -176,13 +177,67 @@ abstract final class HotelRoomRraService {
     return resolved;
   }
 
+  /// Products on [branchId] that carry a room item ([isHotelRoomItem]) —
+  /// linked to a room or not. Repeated registrations left several room items
+  /// per room, and only the newest is on the room doc.
+  static Future<Set<String>> _roomProductIds(
+    Ditto ditto,
+    String branchId,
+  ) async {
+    final result = await ditto.store.execute(
+      'SELECT productId FROM variants WHERE branchId = :branchId '
+      'AND itemTyCd = :itemTyCd AND pkgUnitCd = :pkgUnitCd',
+      arguments: {
+        'branchId': branchId,
+        'itemTyCd': '3',
+        'pkgUnitCd': hotelRraPackagingUnit,
+      },
+    );
+    return {
+      for (final doc in result.items)
+        if (doc.value['productId'] case final String id when id.isNotEmpty) id,
+    };
+  }
+
+  /// Every variant the POS grid must not list on [branchId]: room items and
+  /// anything else on a room's product (the old price-0 placeholders).
+  ///
+  /// Rooms are sold at the front desk, never rung up at the till. Two
+  /// queries, once per catalog load; a branch with no rooms answers from the
+  /// first and returns nothing. Never throws — a failure lists everything
+  /// rather than blanking the POS.
+  static Future<List<String>> posHiddenVariantIds(String branchId) async {
+    if (branchId.isEmpty) return const [];
+    try {
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto == null) return const [];
+
+      final productIds = await _roomProductIds(ditto, branchId);
+      if (productIds.isEmpty) return const [];
+
+      final result = await ditto.store.execute(
+        'SELECT _id FROM variants WHERE branchId = :branchId '
+        'AND productId IN :productIds',
+        arguments: {'branchId': branchId, 'productIds': productIds.toList()},
+      );
+      return [
+        for (final doc in result.items)
+          if (doc.value['_id'] case final String id) id,
+      ];
+    } catch (e) {
+      talker.warning('hotel: POS room lookup failed on $branchId: $e');
+      return const [];
+    }
+  }
+
   /// Deletes the "Regular" placeholder variants earlier room registrations
   /// left on [branchId] — the price-0 tiles named after rooms that showed up
   /// on the POS grid. See [isHotelRoomPlaceholderVariant] for what qualifies.
   ///
   /// Call it unawaited on entry to Hotel Mode. Registration no longer mints
-  /// placeholders, so once a branch is clean this is one rooms read and one
-  /// variants query that match nothing.
+  /// placeholders, so once a branch is clean this is a few queries that match
+  /// nothing. The duplicate room items themselves are kept: each holds an
+  /// `itemCd` RRA knows, and [posHiddenVariantIds] keeps them off the POS.
   ///
   /// Returns how many variants it deleted.
   static Future<int> purgeRoomPlaceholderVariants(String branchId) async {
@@ -192,44 +247,32 @@ abstract final class HotelRoomRraService {
       if (ditto == null) return 0;
 
       final rooms = await _sync.hotelRooms(branchId: branchId);
-      if (rooms.isEmpty) return 0;
-
+      final roomProductIds = await _roomProductIds(ditto, branchId);
       final names = {
         for (final room in rooms)
           if (room.name.trim().isNotEmpty) room.name.trim(),
       }.toList();
-      if (names.isEmpty) return 0;
+      if (roomProductIds.isEmpty && names.isEmpty) return 0;
 
-      final named = await ditto.store.execute(
-        'SELECT * FROM variants WHERE branchId = :branchId AND name IN :names',
-        arguments: {'branchId': branchId, 'names': names},
+      final matches = [
+        if (roomProductIds.isNotEmpty) 'productId IN :productIds',
+        if (names.isNotEmpty) 'name IN :names',
+      ].join(' OR ');
+      final found = await ditto.store.execute(
+        'SELECT * FROM variants WHERE branchId = :branchId AND ($matches)',
+        arguments: {
+          'branchId': branchId,
+          if (roomProductIds.isNotEmpty) 'productIds': roomProductIds.toList(),
+          if (names.isNotEmpty) 'names': names,
+        },
       );
-      final candidates = named.items
+      final candidates = found.items
           .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
           .where((v) => v.itemTyCd != '3')
           .toList();
       if (candidates.isEmpty) return 0;
 
-      // The products the rooms' own items hang off, and which of the
-      // candidates' products still exist.
-      final roomVariantIds = [
-        for (final room in rooms)
-          if (room.isRegisteredWithRra) room.variantId!,
-      ];
-      final roomProductIds = <String>{};
-      if (roomVariantIds.isNotEmpty) {
-        final roomVariants = await ditto.store.execute(
-          'SELECT productId FROM variants WHERE _id IN :ids',
-          arguments: {'ids': roomVariantIds},
-        );
-        for (final doc in roomVariants.items) {
-          final productId = doc.value['productId'];
-          if (productId is String && productId.isNotEmpty) {
-            roomProductIds.add(productId);
-          }
-        }
-      }
-
+      // Which candidates' products still exist, for the rolled-back case.
       final candidateProductIds = {
         for (final v in candidates)
           if (v.productId?.isNotEmpty == true) v.productId!,
