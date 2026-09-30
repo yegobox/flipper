@@ -319,6 +319,26 @@ jobs:
           test -f build/web/main.dart.js
           rm -f build/web/main.dart.mjs build/web/main.dart.wasm
 
+      - name: Resolve Flipper HR preview channel
+        id: hr_channel
+        if: github.ref != 'refs/heads/main'
+        run: |
+          # One channel per branch, same scheme as the flipper_web job above.
+          # This used to be `preview-<run_number>`: every push to every branch
+          # created a new channel that lived 7 days, and the `flipper-hr` site
+          # hit Firebase's 50-channel cap ("HTTP 429 ... channel quota
+          # reached"), failing every HR deploy. Reusing one channel per branch
+          # keeps the count at roughly the number of active branches.
+          slug=$(printf '%s' "${GITHUB_REF_NAME}" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -e 's/[^a-z0-9-]/-/g' -e 's/--*/-/g' -e 's/^-//' -e 's/-$//' \
+            | cut -c1-14 \
+            | sed -e 's/-$//')
+          ref_hash=$(printf '%s' "${GITHUB_REF_NAME}" | sha1sum | cut -c1-6)
+          channel="pr-${slug:-build}-${ref_hash}"
+          echo "id=${channel}" >> "$GITHUB_OUTPUT"
+          echo "Preview channel: ${channel}"
+
       - name: Deploy Flipper HR app to Firebase Hosting
         id: deploy_flipper_hr
         uses: FirebaseExtended/action-hosting-deploy@v0.11.0
@@ -329,11 +349,11 @@ jobs:
           # apps/flipper_hr/firebase.json pins hosting.site to `flipper-hr`, so no
           # jq retarget is needed: main deploys live to that site (which owns
           # hr.useflipper.com) and other branches get a preview channel on it.
-          # Preview channels are keyed by run_number, so each run gets a fresh
-          # URL. (flipper_web instead keys its channel by branch, so its preview
-          # URL is stable across pushes — either is fine, they are just
-          # different trade-offs.)
-          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || format('preview-{0}', github.run_number) }}
+          # Preview channels are keyed by branch (step above), so a branch's
+          # preview URL is stable across pushes. Branches that stop pushing
+          # free their slot after `expires`.
+          channelId: ${{ github.ref == 'refs/heads/main' && 'live' || steps.hr_channel.outputs.id }}
+          expires: 3d
           projectId: yegobox-2ee43
 
       - name: Echo Flipper HR URL
