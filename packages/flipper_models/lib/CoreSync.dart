@@ -1169,7 +1169,9 @@ class CoreSync extends AiStrategyImpl
       // connectivity-probe "offline": probes misreport on mobile carriers,
       // and null surfaces as "Invalid PIN" for a correct PIN. A real network
       // failure throws below so the UI can say what actually went wrong.
-      final response = await flipperHttpClient.get(uri).timeout(
+      final response = await flipperHttpClient
+          .get(uri)
+          .timeout(
             const Duration(seconds: 20),
             onTimeout: () => throw TimeoutException(
               'The Flipper server took too long to answer.',

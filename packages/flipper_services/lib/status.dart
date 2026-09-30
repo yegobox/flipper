@@ -51,8 +51,9 @@ class StatusAppBarForWindowsAndWeb
     _connectivityListening = true;
     // Listen to connectivity changes
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult
-          .any((result) => result != ConnectivityResult.none)) {
+      if (connectivityResult.any(
+        (result) => result != ConnectivityResult.none,
+      )) {
         // If connected to the internet, clear only the internet-related error message
         if (_statusText.value == _internetDownMsg) {
           _statusText.value = "";
@@ -174,8 +175,9 @@ class StatusAppBarForAndroidAndIos
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: color, // Android physical status bar
-        statusBarIconBrightness:
-            color.computeLuminance() > 0.5 ? Brightness.dark : Brightness.light,
+        statusBarIconBrightness: color.computeLuminance() > 0.5
+            ? Brightness.dark
+            : Brightness.light,
       ),
     );
 
@@ -187,8 +189,9 @@ class StatusAppBarForAndroidAndIos
     _statusText.value = "";
 
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
-      if (connectivityResult
-          .any((result) => result != ConnectivityResult.none)) {
+      if (connectivityResult.any(
+        (result) => result != ConnectivityResult.none,
+      )) {
         if (_statusText.value == "flipper could not connect to internet") {
           _statusText.value = "";
           _statusColor.value = Colors.black;

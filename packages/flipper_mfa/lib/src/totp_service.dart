@@ -25,8 +25,9 @@ class TOTPService {
 
     final processedSecret = _processSecret(secret, provider, debug: debug);
 
-    final timestamp = (time ?? DateTime.now().toUtc())
-        .add(Duration(seconds: timeAdjustmentSeconds));
+    final timestamp = (time ?? DateTime.now().toUtc()).add(
+      Duration(seconds: timeAdjustmentSeconds),
+    );
 
     try {
       final code = OTP.generateTOTPCodeString(
@@ -59,8 +60,9 @@ class TOTPService {
     if (secret.isEmpty || code.isEmpty) return false;
     allowedDriftWindows = max(allowedDriftWindows, 0);
 
-    final now =
-        DateTime.now().toUtc().add(Duration(seconds: timeAdjustmentSeconds));
+    final now = DateTime.now().toUtc().add(
+      Duration(seconds: timeAdjustmentSeconds),
+    );
 
     for (int i = -allowedDriftWindows; i <= allowedDriftWindows; i++) {
       final windowTime = now.add(Duration(seconds: i * intervalSeconds));
@@ -97,7 +99,8 @@ class TOTPService {
       // Ensure the secret length is appropriate
       if (cleanSecret.length < 10) {
         throw ArgumentError(
-            'GitHub secret too short after cleaning: ${cleanSecret.length} chars');
+          'GitHub secret too short after cleaning: ${cleanSecret.length} chars',
+        );
       }
 
       return cleanSecret;
