@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_dashboard/services/stamp_ink.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/lead.dart';
@@ -2263,7 +2264,9 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
 
     final PdfBitmap bitmap;
     try {
-      bitmap = PdfBitmap(base64Decode(settings.stampImageBase64!));
+      bitmap = PdfBitmap(
+        inkifyStamp(base64Decode(settings.stampImageBase64!)),
+      );
     } catch (_) {
       // A corrupt stamp costs the document its stamp, not its existence.
       return;
@@ -2290,9 +2293,15 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     }
     final top = size.height - height - inset;
 
+    // Tilted about its centre by the same ~4° as the quotation stamp.
     page.graphics.save();
     page.graphics.setTransparency(0.9);
-    page.graphics.drawImage(bitmap, Rect.fromLTWH(left, top, width, height));
+    page.graphics.translateTransform(left + width / 2, top + height / 2);
+    page.graphics.rotateTransform(-4);
+    page.graphics.drawImage(
+      bitmap,
+      Rect.fromLTWH(-width / 2, -height / 2, width, height),
+    );
     page.graphics.restore();
   }
 

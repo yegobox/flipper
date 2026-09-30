@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/services/pdf_assets.dart';
+import 'package:flipper_dashboard/services/stamp_ink.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +27,8 @@ class DocumentStamp {
       final bytes = base64Decode(settings.stampImageBase64!);
       if (bytes.isEmpty) return null;
       return DocumentStamp(
-        bytes: bytes,
+        // The upload is a photo; drawn raw it prints as a grey square.
+        bytes: inkifyStamp(bytes),
         placement: settings.stampPlacement,
         widthMm: settings.stampWidthMm,
         aspectRatio: settings.stampAspectRatio,
@@ -342,14 +344,7 @@ abstract final class HotelQuotationPdf {
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
             if (stamp != null) ...[
-              pw.Opacity(
-                opacity: stamp.opacity,
-                child: pw.Image(
-                  pw.MemoryImage(stamp.bytes),
-                  width: stamp.widthPt,
-                  height: stamp.heightPt,
-                ),
-              ),
+              _stampImage(stamp),
               pw.SizedBox(width: 16),
             ],
             pw.Text(
@@ -442,6 +437,17 @@ abstract final class HotelQuotationPdf {
   static pw.Widget _stampWidget(DocumentStamp stamp) {
     return pw.Align(
       alignment: _stampAlignment(stamp.placement),
+      child: _stampImage(stamp),
+    );
+  }
+
+  /// A hand-pressed stamp never lands square; a slight tilt is most of what
+  /// separates "stamped" from "pasted".
+  static const double _stampTiltRadians = -0.07; // about -4°
+
+  static pw.Widget _stampImage(DocumentStamp stamp) {
+    return pw.Transform.rotate(
+      angle: _stampTiltRadians,
       child: pw.Opacity(
         opacity: stamp.opacity,
         child: pw.Image(
