@@ -20,6 +20,8 @@ import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/supabase_models.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart'
+    show getApplicationSupportDirectory;
 // ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
 // ignore: depend_on_referenced_packages
@@ -29,7 +31,9 @@ export 'package:brick_core/query.dart'
 import 'repository/auth_refreshing_client.dart';
 import 'repository/database_manager.dart';
 import 'repository/legacy_database_migration.dart';
+import 'repository/main_db_opener.dart';
 import 'repository/queue_manager.dart';
+import 'package:brick_sqlite/turso.dart' show TursoReplicaPaths;
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
 import 'package:supabase_models/brick/models/counter.model.dart';
@@ -53,6 +57,23 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // "Repository not initialized", which reads as a hard startup failure even
   // though the real attempt was merely still in progress.
   static Future<void>? _initializationInFlight;
+
+  // Set once the published singleton's main DB has opened and migrated, so
+  // initialize() does not migrate a second time.
+  static bool _migrated = false;
+
+  static String? _mainDbTier;
+  static List<LocalDbTierFailure> _mainDbFallbacks = const [];
+  static String? _queueDbTier;
+
+  /// Which way the main Brick DB was opened (`sqflite`, `turso`, `memory`, …).
+  static String? get mainDbTier => _mainDbTier;
+
+  /// Why earlier tiers were skipped past. Empty on a healthy device.
+  static List<LocalDbTierFailure> get mainDbFallbacks => _mainDbFallbacks;
+
+  /// Which way the offline request queue DB was opened.
+  static String? get queueDbTier => _queueDbTier;
 
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
@@ -105,8 +126,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }
 
   static String get _generatedDefaultDbFileName {
+    // Phones keep Brick in the OS's SQLite; a separate name keeps it from ever
+    // opening a file that Turso wrote (different WAL and sync sidecars).
+    if (!kIsWeb && !PlatformHelpers.usesTursoMainDatabase) {
+      return '${_dbFileBaseName}_mobile.sqlite';
+    }
     return '$_dbFileBaseName.sqlite';
   }
+
+  /// The Turso-era main DB that phones no longer open.
+  static const _retiredTursoDbFileName = '$_dbFileBaseName.sqlite';
 
   static String get _generatedDefaultQueueFileName {
     return '${_queueFileBaseName}_v$_effectiveVersion.sqlite';
@@ -216,58 +245,61 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }) async {
     print('🚀 [Repository] Getting SharedPreferenceStorage...');
     final storage = await getSharedPreferenceStorage();
-    print('✅ [Repository] SharedPreferenceStorage acquired');
     if (storage == null) {
-      throw StateError('Failed to initialize SharedPreferenceStorage');
+      // The database does not read preferences; losing them must not stop
+      // the till from opening.
+      _logger.warning(
+          'SharedPreferenceStorage unavailable; continuing without it');
+    } else {
+      print('✅ [Repository] SharedPreferenceStorage acquired');
     }
 
+    final inMemoryPath = PlatformHelpers.getInMemoryDatabasePath();
+    String? directory;
     String dbPath;
     String queuePath;
 
     if (kIsWeb) {
       // For web, use in-memory database or a web-specific approach
-      dbPath = PlatformHelpers.getInMemoryDatabasePath();
-      queuePath = PlatformHelpers.getInMemoryDatabasePath();
+      dbPath = inMemoryPath;
+      queuePath = inMemoryPath;
     } else {
       print('🚀 [Repository] Initializing platform...');
       PlatformHelpers.initializePlatform();
       print('✅ [Repository] Platform initialized');
 
       print('🚀 [Repository] Getting database directory...');
-      // Get the appropriate directory path for native platforms
-      final directory = await DatabasePath.getDatabaseDirectory();
+      directory = await _resolveDatabaseDirectory();
 
-      // Use the generated filenames directly
-      final dbFileName = _generatedDefaultDbFileName;
-      final queueFileName = _generatedDefaultQueueFileName;
+      if (directory == null) {
+        // Nowhere to write: boot on in-memory databases rather than not at all.
+        dbPath = inMemoryPath;
+        queuePath = inMemoryPath;
+      } else {
+        final dbFileName = _generatedDefaultDbFileName;
+        final databaseManager = DatabaseManager(dbFileName: dbFileName);
 
-      // Create database manager for initialization
-      final databaseManager = DatabaseManager(dbFileName: dbFileName);
+        // The v4x files predate the move to Turso; phones start a fresh
+        // sqflite cache instead of seeding it from a stale copy.
+        if (PlatformHelpers.usesTursoMainDatabase) {
+          try {
+            await migrateLegacyMainDatabaseIfNeeded(
+              directory: directory,
+              targetFileName: dbFileName,
+            );
+          } catch (e) {
+            _logger.warning('Legacy main DB migration skipped: $e');
+          }
+        }
 
-      // Ensure the database directory exists
-      await databaseManager.initializeDatabaseDirectory(directory);
+        dbPath = databaseManager.getDatabasePath(directory);
+        queuePath = join(directory, _generatedDefaultQueueFileName);
+        print('✅ [Repository] Paths constructed: $dbPath, $queuePath');
+        PlatformHelpers.registerMainDatabasePath(dbPath);
+      }
 
-      await migrateLegacyMainDatabaseIfNeeded(
-        directory: directory,
-        targetFileName: dbFileName,
-      );
-
-      print('🚀 [Repository] Constructing database and queue paths...');
-      // Construct the full database path
-      dbPath = databaseManager.getDatabasePath(directory);
-      queuePath = join(directory, queueFileName);
-      print('✅ [Repository] Paths constructed: $dbPath, $queuePath');
-      PlatformHelpers.registerMainDatabasePath(dbPath);
-
-      print(
-          '🚀 [Repository] Ensuring directory exists and initializing queue database...');
-      // Atomically ensure the queue directory exists
-      await _ensureDirectoryExists(dirname(queuePath));
-
-      // Ensure the queue database is properly initialized (schema setup).
-      // This static method opens a temporary connection and closes it.
-      await _ensureQueueDatabaseInitialized(queuePath);
-      print('✅ [Repository] Queue database initialized');
+      queuePath = await _initializeQueueDatabaseWithFallback(queuePath);
+      print('✅ [Repository] Queue database initialized ($_queueDbTier)');
     }
 
     // Create the client and queue for OfflineFirst
@@ -338,23 +370,45 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       modelDictionary: supabaseModelDictionary,
     );
 
-    // Turso requires a file path; web uses in-memory sqflite.
-    final sqliteProvider = SqliteProvider(
-      kIsWeb ? PlatformHelpers.getInMemoryDatabasePath() : dbPath,
-      databaseFactory: PlatformHelpers.getMainDatabaseFactory(dbPath),
-      modelDictionary: sqliteModelDictionary,
+    // Open and migrate the main DB before publishing the singleton. Publishing
+    // first meant a failed open stayed cached (SqliteProvider memoizes its
+    // open future) while the next attempt saw "already initialized" and
+    // skipped setup, so "Try again" could never recover.
+    final opened = await openFirstWorkingTier<Repository>(
+      tiers: _mainDbTiers(
+        dbPath: dbPath,
+        directory: directory,
+        inMemoryPath: inMemoryPath,
+      ),
+      attempt: (tier) => _openMainDbCandidate(
+        tier,
+        (sqliteProvider) => Repository._(
+          supabaseProvider: provider,
+          sqliteProvider: sqliteProvider,
+          migrations: migrations,
+          offlineRequestQueue: queue,
+          memoryCacheProvider: MemoryCacheProvider(),
+          dbPath: tier.path,
+        ),
+      ),
+      discardLate: (orphan) => orphan._closeMainDbQuietly(),
     );
+    _singleton = opened.value;
+    _migrated = true;
+    _mainDbTier = opened.tier.name;
+    _mainDbFallbacks = opened.failures;
+    print('✅ [Repository] Main DB ready (${opened.tier.name})');
 
-    // Create and assign the singleton instance
-    _singleton = Repository._(
-      supabaseProvider: provider,
-      sqliteProvider: sqliteProvider,
-      migrations: migrations,
-      offlineRequestQueue: queue,
-      memoryCacheProvider: MemoryCacheProvider(),
-      dbPath: dbPath,
-    );
-    await _singleton!._ensurePendingAnalyticsEventTable();
+    if (!kIsWeb &&
+        !PlatformHelpers.usesTursoMainDatabase &&
+        directory != null) {
+      // Reclaim the space held by the Turso-era file phones no longer open.
+      final retired = join(directory, _retiredTursoDbFileName);
+      unawaited(deleteDatabaseFilesQuietly(
+        retired,
+        sidecars: TursoReplicaPaths.syncSidecarPaths(retired),
+      ));
+    }
 
     // Clear jobs that have already exhausted their reattempts. Queues in the
     // field can hold requests that looped on a 401 for as long as the app has
@@ -366,6 +420,161 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     _markReady();
     print('✅ [Repository] Repository marked as ready');
+  }
+
+  /// Main DB tiers, best first. Every list ends in an in-memory database so a
+  /// device that can install Flipper can always boot it.
+  static List<LocalDbTier> _mainDbTiers({
+    required String dbPath,
+    required String? directory,
+    required String inMemoryPath,
+  }) {
+    final memory = LocalDbTier(
+      name: 'memory',
+      path: inMemoryPath,
+      factory: PlatformHelpers.getQueueDatabaseFactory,
+    );
+    if (kIsWeb) {
+      return [memory];
+    }
+    if (directory == null) {
+      return [memory];
+    }
+
+    final engine = PlatformHelpers.usesTursoMainDatabase ? 'turso' : 'sqflite';
+    final tiers = <LocalDbTier>[
+      LocalDbTier(
+        name: engine,
+        path: dbPath,
+        factory: () => PlatformHelpers.getMainDatabaseFactory(dbPath),
+        // Turso's own cloud connect can take 20s before it falls back to the
+        // local replica.
+        timeout: const Duration(seconds: 30),
+      ),
+      LocalDbTier(
+        name: '$engine-fresh',
+        path: dbPath,
+        factory: () => PlatformHelpers.getMainDatabaseFactory(dbPath),
+        prepare: freshFileAfterCorruption(
+          dbPath,
+          extraSidecars: PlatformHelpers.usesTursoMainDatabase
+              ? TursoReplicaPaths.syncSidecarPaths(dbPath)
+              : const [],
+          beforeMove: () {
+            // A new Turso factory, so the failed one's state is not reused.
+            PlatformHelpers.clearMainDatabaseFactoryCache();
+            PlatformHelpers.registerMainDatabasePath(dbPath);
+          },
+        ),
+      ),
+    ];
+    if (PlatformHelpers.usesTursoMainDatabase) {
+      // Desktop only: the OS/FFI SQLite on a separate file when Turso itself
+      // cannot run.
+      tiers.add(LocalDbTier(
+        name: 'sqflite-fallback',
+        path: join(directory, '${_dbFileBaseName}_fallback.sqlite'),
+        factory: PlatformHelpers.getQueueDatabaseFactory,
+      ));
+    }
+    tiers.add(memory);
+    return tiers;
+  }
+
+  /// Builds a Repository on [tier] and proves the DB works by creating the
+  /// analytics table and running migrations. Closes it again on failure.
+  static Future<Repository> _openMainDbCandidate(
+    LocalDbTier tier,
+    Repository Function(SqliteProvider sqliteProvider) build,
+  ) async {
+    final candidate = build(SqliteProvider(
+      tier.path,
+      databaseFactory: tier.factory(),
+      modelDictionary: sqliteModelDictionary,
+    ));
+    try {
+      await candidate._ensurePendingAnalyticsEventTable();
+      await candidate._migrateMainDb();
+      return candidate;
+    } catch (_) {
+      await candidate._closeMainDbQuietly();
+      rethrow;
+    }
+  }
+
+  /// [migrate] minus the queue: a broken queue DB must not disqualify a
+  /// working main DB (the queue has its own fallback).
+  Future<void> _migrateMainDb() async {
+    final lastVersion = await sqliteProvider.lastMigrationVersion();
+    await sqliteProvider
+        .migrate(migrationManager.migrationsSince(lastVersion));
+  }
+
+  /// Closes the connection only. Not [SqliteProvider.resetDb], which deletes
+  /// the database file and reopens it.
+  Future<void> _closeMainDbQuietly() async {
+    try {
+      // ignore: invalid_use_of_protected_member
+      await (await sqliteProvider.getDb()).close();
+    } catch (e) {
+      _logger.fine('Closing unused main DB candidate: $e');
+    }
+  }
+
+  /// The platform database directory, or null when none can be had — the
+  /// caller then runs on in-memory databases.
+  static Future<String?> _resolveDatabaseDirectory() async {
+    try {
+      final directory = await DatabasePath.getDatabaseDirectory()
+          .timeout(const Duration(seconds: 10));
+      await _ensureDirectoryExists(directory);
+      return directory;
+    } catch (e) {
+      _logger.severe('Database directory unavailable: $e');
+    }
+    try {
+      final support = await getApplicationSupportDirectory()
+          .timeout(const Duration(seconds: 10));
+      final directory = join(support.path, 'db');
+      await _ensureDirectoryExists(directory);
+      return directory;
+    } catch (e) {
+      _logger.severe('Application support directory unavailable: $e');
+      return null;
+    }
+  }
+
+  /// Sets up the offline queue DB and returns the path the queue should use.
+  /// A queue that cannot open is moved aside (its pending jobs stay on disk
+  /// for recovery) and recreated; failing that, the queue runs in memory for
+  /// this session so Supabase still initializes.
+  static Future<String> _initializeQueueDatabaseWithFallback(
+      String queuePath) async {
+    final inMemoryPath = PlatformHelpers.getInMemoryDatabasePath();
+    if (queuePath == inMemoryPath) {
+      _queueDbTier = 'memory';
+      return inMemoryPath;
+    }
+    Object? lastError;
+    for (final fresh in [false, true]) {
+      try {
+        if (fresh) {
+          if (lastError != null && isLocalDbLockError(lastError)) {
+            break;
+          }
+          await quarantineDatabaseFiles(queuePath);
+        }
+        await _ensureQueueDatabaseInitialized(queuePath)
+            .timeout(const Duration(seconds: 15));
+        _queueDbTier = fresh ? 'sqflite-fresh' : 'sqflite';
+        return queuePath;
+      } catch (e) {
+        lastError = e;
+        _logger.severe('Queue database unavailable at $queuePath: $e');
+      }
+    }
+    _queueDbTier = 'memory';
+    return inMemoryPath;
   }
 
   /// Atomically ensure directory exists
@@ -434,6 +643,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // 3. Reset the singleton and mark as disposed
       _singleton = null;
       _isDisposed = true;
+      _migrated = false;
       PlatformHelpers.clearMainDatabaseFactoryCache();
     }
   }
@@ -567,7 +777,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   @override
   Future<void> initialize() async {
     print('🚀 [Repository] initialize() started');
-    await migrate();
+    if (_migrated) {
+      // The main DB migrated while it was being opened; only the queue's
+      // schema is left, and a failure there must not block startup.
+      try {
+        await offlineRequestQueue.client.requestManager.migrate();
+      } catch (e) {
+        _logger.severe('Offline queue migration failed: $e');
+      }
+    } else {
+      await migrate();
+    }
     offlineRequestQueue.start();
     unawaited(_backgroundTursoSync());
     print('✅ [Repository] initialize() completed (Turso sync in background)');
