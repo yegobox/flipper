@@ -7,6 +7,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:logging/logging.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_rw/desktop_window.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_models/amplify_config_helper.dart';
@@ -415,6 +416,10 @@ Future<void> main() async {
 
   // Initialize WidgetsBinding
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Open maximized on a computer, before anything else draws.
+  await maximizeOnLaunch();
+
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Configure logging
