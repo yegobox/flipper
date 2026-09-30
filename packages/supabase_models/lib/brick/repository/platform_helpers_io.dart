@@ -19,9 +19,13 @@ class PlatformHelpers {
   static String? _cachedMainDatabaseFactoryPath;
   static String? _registeredMainDatabasePath;
 
-  /// Native Flipper (including tests) uses Turso for the main Brick database.
-  /// Web stays on in-memory sqflite.
-  static bool get usesTursoMainDatabase => !kIsWeb;
+  /// Desktop Flipper (including host tests) uses Turso for the main Brick
+  /// database. Phones use the OS's own SQLite through sqflite: Turso's native
+  /// library and its cloud connect kept some Android/iOS devices on the
+  /// "Initialization Failed" screen, and Ditto is the store phones actually
+  /// run on — Brick is a cache there. Web stays on in-memory sqflite.
+  static bool get usesTursoMainDatabase =>
+      !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
 
   /// True when the main Brick DB syncs with Turso Cloud (embedded replica).
   static bool get usesTursoCloudSync =>
@@ -99,13 +103,15 @@ class PlatformHelpers {
     }
   }
 
-  /// Main Brick model database factory. Turso on all native platforms (including tests).
-  /// When [AppSecrets.tursoCloudSyncEnabled], syncs [localPath] with Turso Cloud;
-  /// otherwise local-only Turso. Web uses in-memory sqflite.
+  /// Main Brick model database factory. Turso on desktop (including tests);
+  /// when [AppSecrets.tursoCloudSyncEnabled], syncs [localPath] with Turso
+  /// Cloud, otherwise local-only Turso. Phones and web use sqflite — this path
+  /// must not touch any Turso or `package:sqlite3` API on a phone, so the
+  /// native library is never loaded there.
   ///
   /// The factory is cached per [localPath] so Turso sync opens one replica only.
   static DatabaseFactory getMainDatabaseFactory(String localPath) {
-    if (kIsWeb) {
+    if (!usesTursoMainDatabase) {
       return getQueueDatabaseFactory();
     }
 
