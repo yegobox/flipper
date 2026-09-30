@@ -48,6 +48,7 @@ import 'package:flipper_services/FirebaseCrashlyticService.dart';
 // Flag to control dependency initialization in tests
 // import 'package:flipper_web/core/utils/initialization.dart';
 //
+import 'package:supabase_models/brick/repository.dart' show Repository;
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 
 import 'package:ditto_live/ditto_live.dart';
@@ -90,12 +91,37 @@ Future<void> _initializeFirebase() async {
 Future<void> _initializeSupabase() async {
   try {
     await loadSupabase();
+    _reportLocalDbFallback();
 
     // await initializeDitto(); // Initialization moved to AppService
   } catch (e, stackTrace) {
     GlobalErrorHandler.report(e, stackTrace, type: 'supabase_init_error');
     rethrow;
   }
+}
+
+/// Makes a degraded local DB visible: a device that booted on a fresh file or
+/// in memory works, but silently, so without this we would never know.
+void _reportLocalDbFallback() {
+  final fallbacks = Repository.mainDbFallbacks;
+  final queueTier = Repository.queueDbTier;
+  final queueDegraded = queueTier != null && queueTier != 'sqflite';
+  if (fallbacks.isEmpty && !queueDegraded) {
+    return;
+  }
+  unawaited(GlobalErrorHandler.logMessage(
+    'Local database opened on a fallback tier',
+    type: 'local_db_fallback',
+    tags: {
+      'local_db_tier': Repository.mainDbTier ?? 'unknown',
+      'queue_db_tier': queueTier ?? 'unknown',
+    },
+    extra: {
+      'failures': [for (final f in fallbacks) f.toString()],
+    },
+  ).catchError((Object e) {
+    debugPrint('Failed to report local DB fallback: $e');
+  }));
 }
 
 // Function to initialize Print Delegation (Real-time Ditto-based)
@@ -335,14 +361,15 @@ List<_InitStep> _buildInitSteps() => <_InitStep>[
         budget: const Duration(seconds: 5),
         run: () async => GlobalErrorHandler.initialize(),
       ),
-      // The local Brick/SQLite store. Without it there is nothing to read or
-      // sell from, so this one genuinely blocks startup — but a locked or busy
-      // database is transient, which is what the automatic retry is for.
+      // The local Brick store (sqflite on phones, Turso on desktop) and the
+      // Supabase client created with it. Repository falls back from a broken
+      // file to a fresh one to an in-memory DB, so this can only fail if even
+      // that cannot open. The budget covers every fallback tier timing out.
       const _InitStep(
         id: 'database',
         label: 'Opening local database',
         isCritical: true,
-        budget: Duration(seconds: 45),
+        budget: Duration(seconds: 120),
         run: _initializeSupabase,
       ),
       // ProxyService.box and every sync strategy come from here.
