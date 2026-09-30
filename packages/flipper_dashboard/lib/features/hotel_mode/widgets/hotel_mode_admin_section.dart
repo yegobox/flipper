@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_charge_picker.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_plan_editor.dart';
+import 'package:flipper_dashboard/services/stamp_ink.dart';
 import 'package:flipper_dashboard/utils/pick_image_base64.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
@@ -588,7 +589,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     final encoded = _documents.stampImageBase64;
     if (encoded == null || encoded.isEmpty) return null;
     try {
-      return base64Decode(encoded);
+      // Preview what will print, not the raw photo.
+      return inkifyStamp(base64Decode(encoded));
     } catch (_) {
       return null;
     }
