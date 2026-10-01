@@ -83,7 +83,7 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -142,7 +142,7 @@ jobs:
     if: needs.changes.outputs.code == 'true'
     steps:
       # fetch-depth: 0 because both checks below diff against the base branch.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false
@@ -251,7 +251,7 @@ jobs:
       matrix:
         suite: [dashboard, supabase_models, ai_feature, auth]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
           persist-credentials: false
