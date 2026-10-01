@@ -231,7 +231,8 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   final center = tester.getCenter(finder);
   final hit = tester.hitTestOnBinding(center);
   final target = tester.renderObject(finder);
-  final landed = hit.path.any((e) => e.target == target ||
+  final landed = hit.path.any((e) =>
+      e.target == target ||
       (e.target is RenderObject &&
           _isDescendant(e.target as RenderObject, target)));
   if (!landed) {
