@@ -286,3 +286,59 @@ jobs:
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           labels: documentation
           delete-branch: true
+
+  # This job failed on every push to main from 2026-09-28 to 2026-10-01
+  # (#690) and nobody saw it. Keep one open issue while main's capture is
+  # broken: open it on the first failure, comment on later ones, and close it
+  # on the next success, so "is it fixed?" has a single place to look.
+  # Branch dispatches and runs cancelled by a newer push don't count.
+  report:
+    name: Track capture health on main
+    needs: capture
+    if: >-
+      always() && github.ref == 'refs/heads/main' &&
+      (needs.capture.result == 'failure' || needs.capture.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      RESULT: ${{ needs.capture.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      SHA: ${{ github.sha }}
+      TITLE: "README screenshots capture is failing on main"
+    steps:
+      - name: Open, update or close the tracking issue
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue=$(gh issue list --repo "$REPO" --state open --search "\"$TITLE\" in:title" \
+            --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
+
+          if [ "$RESULT" = success ]; then
+            if [ -n "$issue" ]; then
+              gh issue close "$issue" --repo "$REPO" \
+                --comment "Capture passed on \`${SHA:0:9}\`: $RUN_URL"
+              echo "Closed #$issue."
+            else
+              echo "Capture passed and no tracking issue is open."
+            fi
+            exit 0
+          fi
+
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --repo "$REPO" \
+              --body "Still failing on \`${SHA:0:9}\`: $RUN_URL"
+            echo "Commented on #$issue."
+          else
+            gh issue create --repo "$REPO" --label bug --title "$TITLE" --body "$(cat <<BODY
+          The **README screenshots** capture failed on \`main\` at \`${SHA:0:9}\`: $RUN_URL
+
+          Download the run's \`readme-screenshots\` artifact first. A \`zz_timeout_*.png\` shows the screen the test was stuck on. If it's the Hotel or Bar screen, the per-device POS pick in \`apps/flipper/integration_test/readme_screenshots_test.dart\` stopped working.
+
+          This issue is updated by every capture on \`main\` and closes itself on the next one that passes.
+          BODY
+          )"
+          fi

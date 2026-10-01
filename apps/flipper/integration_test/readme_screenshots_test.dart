@@ -77,128 +77,167 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('capture README screenshots', (tester) async {
-    final out = _out = Directory(_outDir)..createSync(recursive: true);
-    debugPrint('[readme-screenshots] writing to ${out.absolute.path}');
-
-    await app_main.main();
-    // Not pumpAndSettle: the sign-in screen animates continuously, so it
-    // would never settle and would burn its 10-minute default timeout.
-    await tester.pump(const Duration(seconds: 5));
-
-    // ── Sign in ─────────────────────────────────────────────────────────
-    // Three possible first screens, all leading to the PIN screen:
-    //  * desktop-width window → QR login (DesktopLoginView) with a
-    //    "Switch to PIN login" button;
-    //  * compact window, fresh install → landing page with "Sign in";
-    //  * compact window, seen a login before → PIN screen directly.
-    final mainApp = find.byKey(const Key('mainApp'));
-    final appChoice = find.text('Choose your app');
-    final pinScreen = find.byKey(const Key(LoginMaestroIds.pinScreen));
-    final desktopPinSwitch = find.byKey(const Key('pinLogin_desktop'));
-    final landingSignIn = find.byKey(const Key(LoginMaestroIds.landingSignIn));
-    // The phone pass runs on the same runner right after the desktop pass, so
-    // the device may already be signed in and open straight on the dashboard.
-    await _waitForAny(tester, [
-      pinScreen,
-      desktopPinSwitch,
-      landingSignIn,
-      mainApp,
-      appChoice,
-    ]);
-    // The README shows POS. The demo branch has Hotel Mode on, and a branch
-    // service mode takes over the screen after sign-in (the front desk on
-    // desktop, and on the phone pass too: DevicePreview runs in a
-    // desktop-sized window). Pin this device to POS, the same per-device pick a
-    // cashier terminal makes. Storage is ready by now: the first screen only
-    // appears once AppBootstrap has initialised, and the post-sign-in
-    // redirect has not run yet. The phone pass reuses this device's storage,
-    // so it inherits the pick.
-    setDeviceServiceMode(ServiceMode.pos);
-    final signedIn =
-        mainApp.evaluate().isNotEmpty || appChoice.evaluate().isNotEmpty;
-    if (!signedIn) {
-      if (pinScreen.evaluate().isEmpty) {
-        await _tap(
-          tester,
-          desktopPinSwitch.evaluate().isNotEmpty
-              ? desktopPinSwitch
-              : landingSignIn,
-        );
-        await _waitFor(tester, pinScreen);
-      }
-      await _settle(tester);
-      await _shoot(tester, out, '01_sign_in');
-
-      // Six digits auto-submit the PIN (see _onPinTextChanged in
-      // pin_login.dart) and reveal the OTP step, which defaults to
-      // Authenticator.
-      await tester.enterText(
-        find.byKey(const Key(LoginMaestroIds.pinField)),
-        _demoPin,
-      );
-      await _waitFor(
-        tester,
-        find.byKey(const Key(LoginMaestroIds.otpField)),
-        timeout: const Duration(seconds: 60),
-      );
-
-      // The demo account is verified with a fixed SMS code, so switch to SMS
-      // — this also triggers the OTP request — then submit the code.
-      await _tap(tester, find.byKey(const Key(LoginMaestroIds.authSms)));
-      await tester.pump(const Duration(seconds: 2));
-      await tester.enterText(
-        find.byKey(const Key(LoginMaestroIds.otpField)),
-        _demoOtp,
-      );
-      await _tap(tester, find.byKey(const Key(LoginMaestroIds.pinSubmit)));
-    }
-
-    // ── Business / branch choice, if the demo account has more than one ──
-    await _waitForAny(
-      tester,
-      [mainApp, find.text('Choose a business'), find.text('Choose a branch')],
-      timeout: const Duration(seconds: 180),
-    );
-    if (find.text('Choose a business').evaluate().isNotEmpty) {
-      await _tap(tester, _byTypeName('_BusinessChoiceTile').first);
-      await _waitForAny(
-        tester,
-        [mainApp, find.text('Choose a branch')],
-        timeout: const Duration(seconds: 60),
-      );
-    }
-    if (find.text('Choose a branch').evaluate().isNotEmpty) {
-      // First branch is preselected; the gradient button continues.
-      await _tap(tester, _byTypeName('FlipperGradientButton').first);
-    }
-
-    // First sign-in on a device asks which app to start in (AppChoiceDialog,
-    // shown when no defaultApp is stored). The first tile is POS.
-    await _waitForAny(
-      tester,
-      [mainApp, appChoice],
-      timeout: const Duration(seconds: 90),
-    );
-    if (appChoice.evaluate().isNotEmpty) {
-      await _tap(tester, _byTypeName('_AppChoiceTile').first);
-    }
-    await _waitFor(tester, mainApp, timeout: const Duration(seconds: 120));
-    // Let the post-login toasts ("Products refreshed for new branch", ...)
-    // time out before the first shot.
-    await tester.pump(const Duration(seconds: 8));
-
-    // ── Screens ─────────────────────────────────────────────────────────
-    final router = locator<RouterService>();
-    for (final entry in _screens.entries) {
-      if (entry.value != null) {
-        unawaited(router.navigateTo(entry.value!));
-      }
-      // Give Ditto observers a moment to fill lists before the shot.
-      await tester.pump(const Duration(seconds: 3));
-      await _settle(tester);
-      await _shoot(tester, out, entry.key);
+    // The app installs its own FlutterError.onError (dependency_initializer),
+    // which never hands errors back to flutter_test. A failure then trips the
+    // binding's `_pendingExceptionDetails != null` assert and the test hangs
+    // until its 15-minute timeout instead of failing. Put flutter_test's
+    // handler back before the failure propagates so it fails at once.
+    final testErrorHandler = FlutterError.onError;
+    try {
+      await _capture(tester);
+    } catch (_) {
+      FlutterError.onError = testErrorHandler;
+      rethrow;
     }
   }, timeout: const Timeout(Duration(minutes: 15)));
+}
+
+Future<void> _capture(WidgetTester tester) async {
+  final out = _out = Directory(_outDir)..createSync(recursive: true);
+  debugPrint('[readme-screenshots] writing to ${out.absolute.path}');
+
+  await app_main.main();
+  // Not pumpAndSettle: the sign-in screen animates continuously, so it
+  // would never settle and would burn its 10-minute default timeout.
+  await tester.pump(const Duration(seconds: 5));
+
+  // ── Sign in ─────────────────────────────────────────────────────────
+  // Three possible first screens, all leading to the PIN screen:
+  //  * desktop-width window → QR login (DesktopLoginView) with a
+  //    "Switch to PIN login" button;
+  //  * compact window, fresh install → landing page with "Sign in";
+  //  * compact window, seen a login before → PIN screen directly.
+  final mainApp = find.byKey(const Key('mainApp'));
+  final appChoice = find.text('Choose your app');
+  final pinScreen = find.byKey(const Key(LoginMaestroIds.pinScreen));
+  final desktopPinSwitch = find.byKey(const Key('pinLogin_desktop'));
+  final landingSignIn = find.byKey(const Key(LoginMaestroIds.landingSignIn));
+  // The phone pass runs on the same runner right after the desktop pass, so
+  // the device may already be signed in and open straight on the dashboard.
+  await _waitForAny(tester, [
+    pinScreen,
+    desktopPinSwitch,
+    landingSignIn,
+    mainApp,
+    appChoice,
+  ]);
+  // The README shows POS. The demo branch has Hotel Mode on, and a branch
+  // service mode takes over the screen after sign-in (the front desk on
+  // desktop, and on the phone pass too: DevicePreview runs in a
+  // desktop-sized window). Pin this device to POS, the same per-device pick a
+  // cashier terminal makes. Storage is ready by now: the first screen only
+  // appears once AppBootstrap has initialised, and the post-sign-in
+  // redirect has not run yet. The phone pass reuses this device's storage,
+  // so it inherits the pick.
+  setDeviceServiceMode(ServiceMode.pos);
+  final signedIn =
+      mainApp.evaluate().isNotEmpty || appChoice.evaluate().isNotEmpty;
+  if (!signedIn) {
+    if (pinScreen.evaluate().isEmpty) {
+      await _tap(
+        tester,
+        desktopPinSwitch.evaluate().isNotEmpty
+            ? desktopPinSwitch
+            : landingSignIn,
+      );
+      await _waitFor(tester, pinScreen);
+    }
+    await _settle(tester);
+    await _shoot(tester, out, '01_sign_in');
+
+    // Six digits auto-submit the PIN (see _onPinTextChanged in
+    // pin_login.dart) and reveal the OTP step, which defaults to
+    // Authenticator.
+    await tester.enterText(
+      find.byKey(const Key(LoginMaestroIds.pinField)),
+      _demoPin,
+    );
+    await _waitFor(
+      tester,
+      find.byKey(const Key(LoginMaestroIds.otpField)),
+      timeout: const Duration(seconds: 60),
+    );
+
+    // The demo account is verified with a fixed SMS code, so switch to SMS
+    // — this also triggers the OTP request — then submit the code.
+    await _tap(tester, find.byKey(const Key(LoginMaestroIds.authSms)));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.enterText(
+      find.byKey(const Key(LoginMaestroIds.otpField)),
+      _demoOtp,
+    );
+    await _tap(tester, find.byKey(const Key(LoginMaestroIds.pinSubmit)));
+  }
+
+  // ── Business / branch choice, if the demo account has more than one ──
+  await _waitForAny(
+    tester,
+    [mainApp, find.text('Choose a business'), find.text('Choose a branch')],
+    timeout: const Duration(seconds: 180),
+  );
+  if (find.text('Choose a business').evaluate().isNotEmpty) {
+    await _tap(tester, _byTypeName('_BusinessChoiceTile').first);
+    await _waitForAny(
+      tester,
+      [mainApp, find.text('Choose a branch')],
+      timeout: const Duration(seconds: 60),
+    );
+  }
+  if (find.text('Choose a branch').evaluate().isNotEmpty) {
+    // First branch is preselected; the gradient button continues.
+    await _tap(tester, _byTypeName('FlipperGradientButton').first);
+  }
+
+  // First sign-in on a device asks which app to start in (AppChoiceDialog,
+  // shown when no defaultApp is stored). The first tile is POS.
+  await _waitForAny(
+    tester,
+    [mainApp, appChoice],
+    timeout: const Duration(seconds: 90),
+  );
+  if (appChoice.evaluate().isNotEmpty) {
+    await _tap(tester, _byTypeName('_AppChoiceTile').first);
+  }
+  await _waitFor(tester, mainApp, timeout: const Duration(seconds: 120));
+  // Let the post-login toasts ("Products refreshed for new branch", ...)
+  // time out before the first shot.
+  await tester.pump(const Duration(seconds: 8));
+
+  // ── Screens ─────────────────────────────────────────────────────────
+  final router = locator<RouterService>();
+  for (final entry in _screens.entries) {
+    if (entry.value != null) {
+      unawaited(router.navigateTo(entry.value!));
+    }
+    // Give Ditto observers a moment to fill lists before the shot.
+    await tester.pump(const Duration(seconds: 3));
+    await _settle(tester);
+    _failOnServiceMode('before shooting ${entry.key}');
+    await _shoot(tester, out, entry.key);
+  }
+}
+
+/// Service-mode hosts that replace POS after sign-in. The README must never
+/// show one; if the per-device POS pick stops working, fail loudly here
+/// rather than shoot the front desk as "02_dashboard" (which the desktop pass
+/// did, and passed, from 2026-09-28 until #690).
+final _serviceModeRoutes = {HotelModeHostRoute.name, BarModeHostRoute.name};
+
+void _failOnServiceMode(String step) {
+  String? current;
+  try {
+    if (!locator.isRegistered<RouterService>()) return;
+    current = locator<RouterService>().router.current.name;
+  } catch (_) {
+    return; // Router not attached yet: still on the bootstrap screens.
+  }
+  if (_serviceModeRoutes.contains(current)) {
+    throw TestFailure(
+      'The app opened $current $step, but the README screenshots must show '
+      'POS. The demo branch runs a service mode; check that '
+      'setDeviceServiceMode(ServiceMode.pos) still pins this device.',
+    );
+  }
 }
 
 /// Rasterises the whole window at physical resolution and writes a PNG.
@@ -282,6 +321,7 @@ Future<void> _waitForAny(
   final deadline = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(deadline)) {
     await tester.pump(const Duration(milliseconds: 250));
+    _failOnServiceMode('while waiting');
     if (finders.any((f) => f.evaluate().isNotEmpty)) return;
   }
   // Leave evidence: what was on screen, and a picture of it. The PNG lands in
