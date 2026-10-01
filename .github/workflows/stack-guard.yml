@@ -1,0 +1,279 @@
+# Keeps stacked PRs from merging into a branch that has already landed.
+#
+# A stacked PR targets its parent's branch, not main. If the parent merges
+# first and the child is merged later, the child lands on the dead parent
+# branch: GitHub shows it as merged, nothing conflicts, and main never gets the
+# code. That happened to #659/#664 (rescued by #665) and #680 (rescued by #682).
+#
+# Two jobs, both on a PR being closed:
+#   retarget-children  when a PR merges, moves every open PR based on its branch
+#                      onto the nearest base that is still live, so the
+#                      children's next merge goes to the right place. When a PR
+#                      is closed without merging, warns its children instead:
+#                      their base is orphaned, and whether to carry the
+#                      parent's commits is a human call.
+#   stranded-check     when a PR merges into a stack that no longer leads to
+#                      main (some branch below it has no open PR), checks
+#                      whether its changes are on main anyway. If they are
+#                      not, says so on the PR and opens an issue, instead of us
+#                      finding out from a build that is missing a fix.
+#                      #659/#664 were this case: their parents were open, but
+#                      #658 below them sat on a landed branch.
+#
+# Branches are identified by name within this repo only. A fork PR's head
+# branch can share a name with one of ours, so every lookup drops
+# cross-repository PRs, and a closed fork PR never retargets anything.
+#
+# pull_request_target runs this file from the base branch with a write token.
+# It never checks out or runs PR code: the only checkout is the default branch,
+# and the PR's diff is only ever passed to `git apply --check`.
+name: Stack guard
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  retarget-children:
+    name: Retarget children of the closed PR
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      DEFAULT: ${{ github.event.repository.default_branch }}
+      MERGED: ${{ github.event.pull_request.merged }}
+      PARENT_NUMBER: ${{ github.event.pull_request.number }}
+      PARENT_HEAD: ${{ github.event.pull_request.head.ref }}
+      PARENT_BASE: ${{ github.event.pull_request.base.ref }}
+    steps:
+      - name: Move open children onto the nearest live base
+        run: |
+          set -euo pipefail
+
+          # Follow a branch down through PRs that have already merged until we
+          # reach one that is still live: the default branch, a branch with an
+          # open PR, or a branch that never merged as a PR. Needed because stack
+          # PRs can close faster than these jobs run: in C -> B -> A -> main, if
+          # A and B both merge before A's job looks, A's job no longer sees B,
+          # and B's job would point C at the merged A.
+          # Assumes a branch that merged as a PR is done. A long-lived branch
+          # that merges into main and keeps going (the old `dev`) would be
+          # followed past; none exists today.
+          live_base() {
+            local b="$1" next
+            for _ in $(seq 1 30); do
+              [ "$b" = "$DEFAULT" ] && break
+              if [ "$(gh pr list --repo "$REPO" --state open --head "$b" \
+                    --json isCrossRepository \
+                    --jq 'map(select(.isCrossRepository | not)) | length')" != 0 ]; then
+                break
+              fi
+              next=$(gh pr list --repo "$REPO" --state merged --head "$b" \
+                --json baseRefName,isCrossRepository,mergedAt \
+                --jq 'map(select(.isCrossRepository | not)) | sort_by(.mergedAt) | last | .baseRefName // empty')
+              [ -z "$next" ] && break
+              b="$next"
+            done
+            echo "$b"
+          }
+
+          children=$(gh pr list --repo "$REPO" --state open --base "$PARENT_HEAD" \
+            --json number --jq '.[].number')
+          if [ -z "$children" ]; then
+            echo "No open PRs are based on $PARENT_HEAD."
+            exit 0
+          fi
+          for n in $children; do
+            if [ "$MERGED" != "true" ]; then
+              echo "Warning #$n: parent #$PARENT_NUMBER closed without merging"
+              gh pr comment "$n" --repo "$REPO" --body "$(cat <<EOF
+          Stack guard: the parent PR #$PARENT_NUMBER (\`$PARENT_HEAD\`) was closed without merging, so this PR's base no longer leads to \`$DEFAULT\`. Merging it as it stands would leave its changes off \`$DEFAULT\`.
+
+          Either retarget it to \`$PARENT_BASE\` (its diff will then include #$PARENT_NUMBER's commits), or rebase only this PR's own commits onto \`$PARENT_BASE\` first.
+          EOF
+          )"
+              continue
+            fi
+
+            # Re-resolve after each move: another job may merge the new base
+            # while we work. Stop once the destination holds still.
+            dest=$(live_base "$PARENT_BASE")
+            for _ in 1 2 3 4 5; do
+              echo "Retargeting #$n onto $dest"
+              # REST, not `gh pr edit --base`: that trips the Projects-classic
+              # GraphQL deprecation in this repo.
+              gh api -X PATCH "repos/$REPO/pulls/$n" -f base="$dest" >/dev/null
+              again=$(live_base "$dest")
+              [ "$again" = "$dest" ] && break
+              dest="$again"
+            done
+
+            gh pr comment "$n" --repo "$REPO" --body "$(cat <<EOF
+          Stack guard: the parent PR #$PARENT_NUMBER (\`$PARENT_HEAD\`) merged, so this PR now targets \`$dest\`. Merging it into \`$PARENT_HEAD\` would have left its changes off \`$DEFAULT\`.
+
+          If the parent was squash-merged, the diff may now show the parent's commits as well. Rebase onto \`$dest\` before merging (take \`$dest\`'s side of the \`apps/flipper/pubspec.yaml\` version lines). CI on this PR ran against the old base, so push a commit or re-run it.
+          EOF
+          )"
+          done
+
+  stranded-check:
+    name: Check the merge reached main
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref != github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      NUMBER: ${{ github.event.pull_request.number }}
+      BASE: ${{ github.event.pull_request.base.ref }}
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      DEFAULT: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Find whether the stack still leads to main
+        id: chain
+        run: |
+          set -euo pipefail
+
+          # Merging into a parent that is still open is normal stacking, as long
+          # as the chain under it still leads to main. Walk it: each branch must
+          # be the head of an open PR from this repo, until a PR's base is main.
+          # A branch with no open PR has landed or been abandoned, so nothing
+          # merged into it will reach main through the stack. (Look for open
+          # PRs, not merged ones: the README screenshot bot reuses one branch
+          # name, so old merged PRs share it.)
+          branch="$BASE"
+          chain="$BASE"
+          dead=""
+          for _ in $(seq 1 30); do
+            if [ "$branch" = "$DEFAULT" ]; then break; fi
+            next=$(gh pr list --repo "$REPO" --state open --head "$branch" \
+              --json baseRefName,isCrossRepository \
+              --jq 'map(select(.isCrossRepository | not)) | .[0].baseRefName // empty')
+            if [ -z "$next" ]; then dead="$branch"; break; fi
+            branch="$next"
+            chain="$chain -> $next"
+          done
+          if [ -z "$dead" ]; then
+            echo "Chain $chain still leads to $DEFAULT. Nothing to do."
+            echo "suspect=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          landed=$(gh pr list --repo "$REPO" --state all --head "$dead" \
+            --json number,state,isCrossRepository \
+            --jq 'map(select(.isCrossRepository | not) | "#\(.number) (\(.state | ascii_downcase))") | join(", ")')
+          if [ -z "$landed" ]; then
+            # Never a PR head: a long-lived branch someone targets on purpose,
+            # not a stack level that landed.
+            echo "Chain $chain ends at $dead, which was never a PR branch. Not a stack; nothing to do."
+            echo "suspect=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Chain $chain stops at $dead, which has no open PR ($landed)."
+
+          # Merging a whole stack in one go still puts every commit on main,
+          # with each child briefly showing its parent's branch as the base.
+          # Give main a few minutes to catch up.
+          for attempt in 1 2 3 4 5 6; do
+            status=$(gh api "repos/$REPO/compare/$MERGE_SHA...$DEFAULT" --jq .status)
+            if [ "$status" = "ahead" ] || [ "$status" = "identical" ]; then
+              echo "#$NUMBER ($MERGE_SHA) is on $DEFAULT."
+              echo "suspect=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Attempt $attempt: $MERGE_SHA not on $DEFAULT yet (compare status: $status)."
+            sleep 30
+          done
+
+          # The commit is not on main, but that alone does not prove the
+          # changes are missing (a squash or rebase merge further down
+          # re-creates them under new SHAs). The next steps check the content.
+          {
+            echo "suspect=true"
+            echo "dead=$dead"
+            echo "chain=$chain"
+            echo "landed=$landed"
+          } >> "$GITHUB_OUTPUT"
+          files=$(gh pr diff "$NUMBER" --repo "$REPO" --name-only 2>/dev/null || true)
+          {
+            echo "files<<STACK_GUARD_EOF"
+            # Anchor each path so the sparse checkout matches it literally.
+            printf '%s\n' "$files" | sed '/^$/d; s|^|/|'
+            echo "STACK_GUARD_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check out the files the PR touched on main
+        if: steps.chain.outputs.suspect == 'true' && steps.chain.outputs.files != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: ${{ steps.chain.outputs.files }}
+          sparse-checkout-cone-mode: false
+          submodules: false
+          persist-credentials: false
+
+      - name: Report whether the changes are on main
+        if: steps.chain.outputs.suspect == 'true'
+        env:
+          DEAD: ${{ steps.chain.outputs.dead }}
+          CHAIN: ${{ steps.chain.outputs.chain }}
+          LANDED: ${{ steps.chain.outputs.landed }}
+        run: |
+          set -euo pipefail
+
+          # The PR's whole diff, whatever the merge method, so the same check
+          # and the same recovery work for merge, squash and rebase merges.
+          verdict=unverified
+          if gh pr diff "$NUMBER" --repo "$REPO" > "$RUNNER_TEMP/pr.diff" 2>/dev/null \
+              && [ -s "$RUNNER_TEMP/pr.diff" ]; then
+            if git apply --check -R "$RUNNER_TEMP/pr.diff" 2>/dev/null; then
+              verdict=present
+            elif git apply --check "$RUNNER_TEMP/pr.diff" 2>/dev/null; then
+              verdict=missing
+            fi
+          fi
+          echo "Verdict for #$NUMBER: $verdict"
+
+          if [ "$verdict" = present ]; then
+            echo "The stack under #$NUMBER no longer led to $DEFAULT, but its changes are on $DEFAULT anyway."
+            exit 0
+          fi
+
+          if [ "$verdict" = missing ]; then
+            title="#$NUMBER merged into a landed branch and is missing from $DEFAULT"
+            finding="These changes are **not on \`$DEFAULT\`**: the PR's diff still applies cleanly to it."
+          else
+            title="#$NUMBER merged into a landed branch and may be missing from $DEFAULT"
+            finding="Its merge commit is not on \`$DEFAULT\`, and the content check was inconclusive (\`$DEFAULT\` has since changed the same lines, or the diff was too large to fetch). **Check by hand before re-applying.**"
+          fi
+
+          body=$(cat <<EOF
+          #$NUMBER was merged into \`$BASE\`, but that stack no longer leads to \`$DEFAULT\`: \`$DEAD\` has no open PR ($LANDED). $finding
+
+          Stack at merge time: \`$CHAIN\`
+
+          To re-apply it in a new PR (this works for merge, squash and rebase merges, because it uses the PR's whole diff):
+
+          \`\`\`sh
+          git fetch origin
+          git worktree add -b fix/restore-pr-$NUMBER ../restore-$NUMBER origin/$DEFAULT
+          cd ../restore-$NUMBER
+          gh pr diff $NUMBER | git apply --3way
+          git commit -m "fix: restore #$NUMBER, merged into a landed branch"
+          git push -u origin fix/restore-pr-$NUMBER
+          gh pr create --base $DEFAULT --fill
+          \`\`\`
+          EOF
+          )
+          gh pr comment "$NUMBER" --repo "$REPO" --body "Stack guard: $body"
+          gh issue create --repo "$REPO" --title "$title" --body "$body"
+          echo "::error::#$NUMBER: $title; opened an issue."
+          exit 1
