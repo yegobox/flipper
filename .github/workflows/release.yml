@@ -99,7 +99,7 @@ jobs:
         run: dart run melos run test:ci
 #  # dart run realm install
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: packages/flipper_dashboard/coverage/lcov.info,apps/flipper_web/coverage/lcov.info
