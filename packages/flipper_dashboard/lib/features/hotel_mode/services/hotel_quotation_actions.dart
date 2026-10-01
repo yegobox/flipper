@@ -6,6 +6,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
+import 'package:flipper_models/services/tenant_name_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/widgets.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
@@ -17,6 +18,7 @@ import 'package:supabase_models/brick/models/business.model.dart';
 /// `services/transaction_receipt_actions_service.dart`.
 abstract final class HotelQuotationActions {
   static Future<Uint8List> buildPdf(HotelQuotation quotation) async {
+    await _refreshTenantNames();
     final strategy = ProxyService.getStrategy(Strategy.capella);
 
     Business? business;
@@ -32,7 +34,13 @@ abstract final class HotelQuotationActions {
         : ProxyService.box.getBranchId();
     if (branchId != null && branchId.isNotEmpty) {
       try {
-        branchName = (await strategy.activeBranch(branchId: branchId)).name;
+        // Bounded: this Ditto lookup has been seen hanging (the activeBranch
+        // provider logs 5s timeouts), and a letterhead line is not worth a
+        // PDF that never renders.
+        branchName = (await strategy
+                .activeBranch(branchId: branchId)
+                .timeout(const Duration(seconds: 3)))
+            .name;
       } catch (_) {}
     }
 
@@ -150,7 +158,37 @@ abstract final class HotelQuotationActions {
       'quotation:${quotation.id}:sent:'
       '${quotation.updatedAt?.toUtc().toIso8601String() ?? 'new'}';
 
+  /// Pulls current business/branch names from Supabase into the local copies
+  /// the letterhead reads.
+  ///
+  /// The realtime rename sync lives in the POS `DashboardLayout` and its
+  /// resume catch-up in `FlipperApp`; switching into Hotel Mode with
+  /// `replaceWith` unmounts both, so a desk terminal could print a renamed
+  /// business under its old name indefinitely. A document is a deliberate
+  /// action, so it forces the catch-up rather than trusting the 60s throttle.
+  /// Shared for a few seconds so Send (subject + PDF) costs one round trip.
+  /// Offline or slow: keeps the cached names.
+  static Future<void>? _namesRefresh;
+  static DateTime? _namesRefreshedAt;
+
+  static Future<void> _refreshTenantNames() {
+    final at = _namesRefreshedAt;
+    final pending = _namesRefresh;
+    if (pending != null &&
+        at != null &&
+        DateTime.now().difference(at) < const Duration(seconds: 15)) {
+      return pending;
+    }
+    _namesRefreshedAt = DateTime.now();
+    return _namesRefresh = TenantNameSync.catchUp(force: true)
+        .timeout(const Duration(seconds: 3))
+        .then<void>((_) {}, onError: (Object e) {
+      talker.warning('hotel: quotation names not refreshed: $e');
+    });
+  }
+
   static Future<String?> resolveBusinessName() async {
+    await _refreshTenantNames();
     try {
       final business = await ProxyService.getStrategy(
         Strategy.capella,
