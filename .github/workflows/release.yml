@@ -253,6 +253,12 @@ jobs:
   build_hr_deploy_firebase:
     name: "Build & Deploy Flipper HR"
     runs-on: ubuntu-latest
+    # Same reason as build_web_deploy_firebase: without this, pushes that land
+    # close together (a stack merged PR by PR) deploy HR in whatever order the
+    # builds finish, so an older commit can end up live.
+    concurrency:
+      group: hr-deploy-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

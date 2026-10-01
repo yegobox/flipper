@@ -1,0 +1,160 @@
+# Keeps stacked PRs from merging into a branch that has already landed.
+#
+# A stacked PR targets its parent's branch, not main. If the parent merges
+# first and the child is merged later, the child lands on the dead parent
+# branch: GitHub shows it as merged, nothing conflicts, and main never gets the
+# code. That happened to #659/#664 (rescued by #665) and #680 (rescued by #682).
+#
+# Two jobs, both on a PR being closed:
+#   retarget-children  when a PR merges, moves every open PR based on its branch
+#                      onto its own base, so the children's next merge goes to
+#                      the right place. When a PR is closed without merging,
+#                      warns its children instead: their base is orphaned, and
+#                      whether to carry the parent's commits is a human call.
+#   stranded-check     when a PR merges into a stack that no longer leads to
+#                      main (some branch below it has no open PR), and its
+#                      commit is not on main, says so on the PR and opens an
+#                      issue, instead of us finding out from a build that is
+#                      missing a fix. #659/#664 were this case: their parents
+#                      were open, but #658 below them sat on a landed branch.
+#
+# pull_request_target runs this file from the base branch with a write token
+# and never checks out PR code, so it is safe for any PR.
+name: Stack guard
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  retarget-children:
+    name: Retarget children of the closed PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      MERGED: ${{ github.event.pull_request.merged }}
+      PARENT_NUMBER: ${{ github.event.pull_request.number }}
+      PARENT_HEAD: ${{ github.event.pull_request.head.ref }}
+      PARENT_BASE: ${{ github.event.pull_request.base.ref }}
+    steps:
+      - name: Move open children onto the parent's base
+        run: |
+          set -euo pipefail
+          children=$(gh pr list --repo "$REPO" --state open --base "$PARENT_HEAD" \
+            --json number --jq '.[].number')
+          if [ -z "$children" ]; then
+            echo "No open PRs are based on $PARENT_HEAD."
+            exit 0
+          fi
+          for n in $children; do
+            if [ "$MERGED" != "true" ]; then
+              echo "Warning #$n: parent #$PARENT_NUMBER closed without merging"
+              gh pr comment "$n" --repo "$REPO" --body "$(cat <<EOF
+          Stack guard: the parent PR #$PARENT_NUMBER (\`$PARENT_HEAD\`) was closed without merging, so this PR's base no longer leads to \`main\`. Merging it as it stands would leave its changes off \`main\`.
+
+          Either retarget it to \`$PARENT_BASE\` (its diff will then include #$PARENT_NUMBER's commits), or rebase only this PR's own commits onto \`$PARENT_BASE\` first.
+          EOF
+          )"
+              continue
+            fi
+            echo "Retargeting #$n: $PARENT_HEAD -> $PARENT_BASE"
+            # REST, not `gh pr edit --base`: that trips the Projects-classic
+            # GraphQL deprecation in this repo.
+            gh api -X PATCH "repos/$REPO/pulls/$n" -f base="$PARENT_BASE" >/dev/null
+            gh pr comment "$n" --repo "$REPO" --body "$(cat <<EOF
+          Stack guard: the parent PR #$PARENT_NUMBER (\`$PARENT_HEAD\`) merged, so this PR now targets \`$PARENT_BASE\`. Merging it into \`$PARENT_HEAD\` would have left its changes off \`$PARENT_BASE\`.
+
+          If the parent was squash-merged, the diff may now show the parent's commits as well. Rebase onto \`$PARENT_BASE\` before merging (take \`$PARENT_BASE\`'s side of the \`apps/flipper/pubspec.yaml\` version lines). CI on this PR ran against the old base, so push a commit or re-run it.
+          EOF
+          )"
+          done
+
+  stranded-check:
+    name: Check the merge reached main
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref != github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+      NUMBER: ${{ github.event.pull_request.number }}
+      BASE: ${{ github.event.pull_request.base.ref }}
+      MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      DEFAULT: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Flag a merge into an already-landed branch
+        run: |
+          set -euo pipefail
+
+          # Merging into a parent that is still open is normal stacking, as long
+          # as the chain under it still leads to main. Walk it: each branch must
+          # be the head of an open PR, until a PR's base is main. A branch with
+          # no open PR has landed or been abandoned, so nothing merged into it
+          # will reach main. (Look for open PRs, not merged ones: the README
+          # screenshot bot reuses one branch name, so old merged PRs share it.)
+          branch="$BASE"
+          chain="$BASE"
+          dead=""
+          for _ in $(seq 1 30); do
+            if [ "$branch" = "$DEFAULT" ]; then break; fi
+            next=$(gh pr list --repo "$REPO" --state open --head "$branch" \
+              --json baseRefName --jq '.[0].baseRefName // empty')
+            if [ -z "$next" ]; then dead="$branch"; break; fi
+            branch="$next"
+            chain="$chain -> $next"
+          done
+          if [ -z "$dead" ]; then
+            echo "Chain $chain still leads to $DEFAULT. Nothing to do."
+            exit 0
+          fi
+          landed=$(gh pr list --repo "$REPO" --state all --head "$dead" \
+            --json number,state --jq 'map("#\(.number) (\(.state | ascii_downcase))") | join(", ")')
+          echo "Chain $chain stops at $dead, which has no open PR (${landed:-no PR at all})."
+
+          # Merging a whole stack in one go still puts every commit on main,
+          # with each child briefly showing its parent's branch as the base.
+          # Give main a few minutes to catch up before calling it stranded.
+          for attempt in 1 2 3 4 5 6; do
+            status=$(gh api "repos/$REPO/compare/$MERGE_SHA...$DEFAULT" --jq .status)
+            if [ "$status" = "ahead" ] || [ "$status" = "identical" ]; then
+              echo "#$NUMBER ($MERGE_SHA) is on $DEFAULT."
+              exit 0
+            fi
+            echo "Attempt $attempt: $MERGE_SHA not on $DEFAULT yet (compare status: $status)."
+            sleep 30
+          done
+
+          body=$(cat <<EOF
+          #$NUMBER was merged into \`$BASE\`, but that stack no longer leads to \`$DEFAULT\`: \`$dead\` has no open PR (${landed:-none}). So these changes are **not on \`$DEFAULT\`**.
+
+          Stack at merge time: \`$chain\`
+
+          Re-apply them with a new PR:
+
+          \`\`\`sh
+          git fetch origin
+          git worktree add -b fix/restore-pr-$NUMBER ../restore-$NUMBER origin/$DEFAULT
+          cd ../restore-$NUMBER
+          git cherry-pick -m 1 $MERGE_SHA || git cherry-pick $MERGE_SHA
+          git push -u origin fix/restore-pr-$NUMBER
+          gh pr create --base $DEFAULT --fill
+          \`\`\`
+
+          (\`-m 1\` is for a merge commit; the fallback is for a squash or rebase merge.)
+          EOF
+          )
+          gh pr comment "$NUMBER" --repo "$REPO" --body "Stack guard: $body"
+          gh issue create --repo "$REPO" \
+            --title "#$NUMBER merged into a landed branch and is missing from $DEFAULT" \
+            --body "$body"
+          echo "::error::#$NUMBER is stranded on $BASE; opened an issue."
+          exit 1
