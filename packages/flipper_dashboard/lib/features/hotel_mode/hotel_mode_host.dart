@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
+import 'package:flipper_dashboard/features/hotel_mode/services/hotel_quotation_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_folio_screen.dart';
 import 'package:flipper_dashboard/features/hotel_mode/screens/hotel_calendar_screen.dart';
@@ -40,6 +41,8 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final branchId = ProxyService.box.getBranchId();
+      // Letterhead + stamp ready before anyone taps Download.
+      unawaited(HotelQuotationActions.warmUp());
       await HotelModeSettings.hydrateForActiveBranch();
       HotelModeSettings.startWatchingActiveBranch();
       if (branchId != null) {

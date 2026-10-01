@@ -280,7 +280,10 @@ abstract final class HotelDeskActions {
 
     try {
       final businessName = await HotelQuotationActions.resolveBusinessName();
-      final bytes = await HotelQuotationActions.buildPdf(quotation);
+      final bytes = await HotelQuotationActions.buildPdf(
+        quotation,
+        awaitFreshNames: true,
+      );
 
       // Same connector and bearer token as the payment rails.
       final client = await createBranchNotificationsClient();

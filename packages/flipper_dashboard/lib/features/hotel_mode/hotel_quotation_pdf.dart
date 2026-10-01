@@ -22,22 +22,46 @@ class DocumentStamp {
   /// Decodes [BranchDocumentSettings] into something a PDF can draw, or null
   /// when the branch has no usable stamp — callers then simply pass null.
   static DocumentStamp? fromSettings(BranchDocumentSettings? settings) {
-    if (settings == null || !settings.hasStamp) return null;
+    final bytes = _decode(settings);
+    if (bytes == null) return null;
     try {
-      final bytes = base64Decode(settings.stampImageBase64!);
-      if (bytes.isEmpty) return null;
-      return DocumentStamp(
-        // The upload is a photo; drawn raw it prints as a grey square.
-        bytes: inkifyStamp(bytes),
-        placement: settings.stampPlacement,
-        widthMm: settings.stampWidthMm,
-        aspectRatio: settings.stampAspectRatio,
-      );
+      // The upload is a photo; drawn raw it prints as a grey square.
+      return _withBytes(settings!, inkifyStamp(bytes));
     } catch (_) {
       // A corrupt stamp must not cost the branch its quotation.
       return null;
     }
   }
+
+  /// [fromSettings] with the photo processed off the UI isolate.
+  static Future<DocumentStamp?> resolve(
+    BranchDocumentSettings? settings,
+  ) async {
+    final bytes = _decode(settings);
+    if (bytes == null) return null;
+    return _withBytes(settings!, await inkifyStampInBackground(bytes));
+  }
+
+  static Uint8List? _decode(BranchDocumentSettings? settings) {
+    if (settings == null || !settings.hasStamp) return null;
+    try {
+      final bytes = base64Decode(settings.stampImageBase64!);
+      return bytes.isEmpty ? null : bytes;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static DocumentStamp _withBytes(
+    BranchDocumentSettings settings,
+    Uint8List bytes,
+  ) =>
+      DocumentStamp(
+        bytes: bytes,
+        placement: settings.stampPlacement,
+        widthMm: settings.stampWidthMm,
+        aspectRatio: settings.stampAspectRatio,
+      );
 
   final Uint8List bytes;
   final DocumentStampPlacement placement;
