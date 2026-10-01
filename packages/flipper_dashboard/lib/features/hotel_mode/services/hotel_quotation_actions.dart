@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
@@ -18,7 +19,7 @@ import 'package:supabase_models/brick/models/business.model.dart';
 /// `services/transaction_receipt_actions_service.dart`.
 abstract final class HotelQuotationActions {
   static Future<Uint8List> buildPdf(HotelQuotation quotation) async {
-    await _refreshTenantNames();
+    final fresh = await _freshTenantNames();
     final strategy = ProxyService.getStrategy(Strategy.capella);
 
     Business? business;
@@ -33,6 +34,9 @@ abstract final class HotelQuotationActions {
         ? quotation.branchId
         : ProxyService.box.getBranchId();
     if (branchId != null && branchId.isNotEmpty) {
+      branchName = fresh?.branchNames[branchId];
+    }
+    if (branchName == null && branchId != null && branchId.isNotEmpty) {
       try {
         // Bounded: this Ditto lookup has been seen hanging (the activeBranch
         // provider logs 5s timeouts), and a letterhead line is not worth a
@@ -48,7 +52,7 @@ abstract final class HotelQuotationActions {
       quotation: quotation,
       currency: ProxyService.box.defaultCurrency(),
       issuer: HotelQuotationIssuer(
-        businessName: business?.name,
+        businessName: fresh?.businessName ?? business?.name,
         branchName: branchName,
         tin: business?.tinNumber?.toString(),
         address: business?.adrs,
@@ -158,37 +162,52 @@ abstract final class HotelQuotationActions {
       'quotation:${quotation.id}:sent:'
       '${quotation.updatedAt?.toUtc().toIso8601String() ?? 'new'}';
 
-  /// Pulls current business/branch names from Supabase into the local copies
-  /// the letterhead reads.
+  /// Current business/branch names from Supabase, for the letterhead.
   ///
   /// The realtime rename sync lives in the POS `DashboardLayout` and its
   /// resume catch-up in `FlipperApp`; switching into Hotel Mode with
   /// `replaceWith` unmounts both, so a desk terminal could print a renamed
-  /// business under its old name indefinitely. A document is a deliberate
-  /// action, so it forces the catch-up rather than trusting the 60s throttle.
-  /// Shared for a few seconds so Send (subject + PDF) costs one round trip.
-  /// Offline or slow: keeps the cached names.
-  static Future<void>? _namesRefresh;
-  static DateTime? _namesRefreshedAt;
+  /// business under its old name indefinitely.
+  ///
+  /// Only the network fetch is awaited. Writing the names into Brick, the
+  /// Ditto docs and `user_access` is several sequential Ditto round trips,
+  /// which on a busy store took longer than the document was willing to
+  /// wait — so the document uses the fetched names directly and the local
+  /// copies are patched in the background. Shared for a few seconds so Send
+  /// (subject + PDF) costs one fetch. Offline or slow: null, and callers keep
+  /// the names already on the device.
+  static Future<TenantNames?>? _namesFetch;
+  static DateTime? _namesFetchedAt;
 
-  static Future<void> _refreshTenantNames() {
-    final at = _namesRefreshedAt;
-    final pending = _namesRefresh;
+  static Future<TenantNames?> _freshTenantNames() {
+    final at = _namesFetchedAt;
+    final pending = _namesFetch;
     if (pending != null &&
         at != null &&
         DateTime.now().difference(at) < const Duration(seconds: 15)) {
       return pending;
     }
-    _namesRefreshedAt = DateTime.now();
-    return _namesRefresh = TenantNameSync.catchUp(force: true)
-        .timeout(const Duration(seconds: 3))
-        .then<void>((_) {}, onError: (Object e) {
-      talker.warning('hotel: quotation names not refreshed: $e');
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null || businessId.isEmpty) return Future.value(null);
+
+    _namesFetchedAt = DateTime.now();
+    return _namesFetch = TenantNameSync.fetchNames(businessId: businessId)
+        .timeout(const Duration(seconds: 2))
+        .then<TenantNames?>((names) {
+      unawaited(TenantNameSync.applyNames(names).catchError((Object e) {
+        talker.warning('hotel: local tenant names not patched: $e');
+        return false;
+      }));
+      return names;
+    }, onError: (Object e) {
+      talker.warning('hotel: using cached names for quotation: $e');
+      return null;
     });
   }
 
   static Future<String?> resolveBusinessName() async {
-    await _refreshTenantNames();
+    final fresh = await _freshTenantNames();
+    if (fresh?.businessName != null) return fresh!.businessName;
     try {
       final business = await ProxyService.getStrategy(
         Strategy.capella,
