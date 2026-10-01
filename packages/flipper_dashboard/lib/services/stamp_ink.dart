@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:image/image.dart' as img;
 
 /// Turns a photographed company stamp into ink on a transparent background.
@@ -32,6 +33,34 @@ Uint8List inkifyStamp(Uint8List bytes) {
 
 /// Every quotation re-renders the same stamp; one entry covers the branch.
 ({Uint8List input, Uint8List output})? _last;
+
+/// [inkifyStamp] off the UI isolate, sharing its cache.
+///
+/// Decoding a phone photo with the pure-Dart `image` package takes seconds on
+/// the first document of a session; on the UI isolate that freezes the app,
+/// spinner included. Same fail-soft contract: undecodable input comes back
+/// unchanged.
+Future<Uint8List> inkifyStampInBackground(Uint8List bytes) async {
+  final cached = _last;
+  if (cached != null && _sameBytes(cached.input, bytes)) return cached.output;
+
+  Uint8List output;
+  try {
+    output = await compute(_inkifyOrOriginal, bytes);
+  } catch (_) {
+    output = bytes;
+  }
+  _last = (input: bytes, output: output);
+  return output;
+}
+
+Uint8List _inkifyOrOriginal(Uint8List bytes) {
+  try {
+    return _inkify(bytes) ?? bytes;
+  } catch (_) {
+    return bytes;
+  }
+}
 
 /// Longest side kept. A stamp prints at most 60 mm wide, so this is still
 /// ~500 dpi, and it bounds the per-pixel loop for large phone photos.

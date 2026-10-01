@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
@@ -6,9 +7,10 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
+import 'package:flipper_models/services/tenant_name_sync.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/widgets.dart';
-import 'package:supabase_models/brick/models/business.model.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 /// Build / download / print / email a quotation PDF.
 ///
@@ -16,42 +18,123 @@ import 'package:supabase_models/brick/models/business.model.dart';
 /// modelled on `buildLocalSaleReceiptPdf` in
 /// `services/transaction_receipt_actions_service.dart`.
 abstract final class HotelQuotationActions {
-  static Future<Uint8List> buildPdf(HotelQuotation quotation) async {
-    final strategy = ProxyService.getStrategy(Strategy.capella);
-
-    Business? business;
-    try {
-      business = await strategy.getBusiness(
-        businessId: ProxyService.box.getBusinessId(),
-      );
-    } catch (_) {}
-
-    String? branchName;
+  /// Renders [quotation].
+  ///
+  /// Download and print must be instant and offline: they never wait on the
+  /// network, and draw the letterhead [warmUp] prepared when the desk opened.
+  /// Only when that is missing do they read the local copies, each under
+  /// [_localReadBudget] — the Ditto store on a busy desk has been seen taking
+  /// over 5s for one branch lookup, and a letterhead line is not worth a
+  /// document that never arrives. [awaitFreshNames] is for email, which needs
+  /// the network anyway: it briefly waits for the names Supabase has.
+  static Future<Uint8List> buildPdf(
+    HotelQuotation quotation, {
+    bool awaitFreshNames = false,
+  }) async {
     final branchId = quotation.branchId.isNotEmpty
         ? quotation.branchId
         : ProxyService.box.getBranchId();
-    if (branchId != null && branchId.isNotEmpty) {
-      try {
-        branchName = (await strategy.activeBranch(branchId: branchId)).name;
-      } catch (_) {}
+
+    final HotelQuotationIssuer issuer;
+    if (awaitFreshNames) {
+      issuer = await _resolveIssuer(branchId, await _freshTenantNames());
+    } else {
+      issuer = _cachedIssuer(branchId) ??
+          await _resolveIssuer(branchId, _lastFetchedNames);
+      // Refresh for the next document; this one does not wait for it.
+      unawaited(warmUp());
     }
 
     return HotelQuotationPdf.build(
       quotation: quotation,
       currency: ProxyService.box.defaultCurrency(),
-      issuer: HotelQuotationIssuer(
-        businessName: business?.name,
-        branchName: branchName,
-        tin: business?.tinNumber?.toString(),
-        address: business?.adrs,
-        phone: business?.phoneNumber,
-        email: business?.email,
+      issuer: issuer,
+      // Settings come from the synchronous cache hydrated at login; the photo
+      // is keyed out off the UI isolate and cached (warmUp primes it).
+      stamp: await DocumentStamp.resolve(
+        BranchDocumentSettingsService.current(),
       ),
-      // Read from the synchronous cache: the branch document is hydrated at
-      // login, so a PDF never waits on Ditto to render its own letterhead.
-      stamp: DocumentStamp.fromSettings(BranchDocumentSettingsService.current()),
     );
   }
+
+  /// Prepares the letterhead and stamp so the next document renders at once.
+  ///
+  /// Local copies first, so an offline desk is ready too; then, if Supabase
+  /// answers, the current names (which also patches the local copies in the
+  /// background). Called when Hotel Mode opens and after every document.
+  /// Throttled; never throws.
+  static Future<void> warmUp() async {
+    final now = DateTime.now();
+    final last = _warmedAt;
+    if (last != null && now.difference(last) < _warmUpInterval) return;
+    _warmedAt = now;
+
+    final branchId = ProxyService.box.getBranchId();
+    try {
+      unawaited(
+        DocumentStamp.resolve(BranchDocumentSettingsService.current()),
+      );
+      await _resolveIssuer(branchId, _lastFetchedNames);
+      final fresh = await _freshTenantNames();
+      if (fresh != null) await _resolveIssuer(branchId, fresh);
+    } catch (e) {
+      talker.warning('hotel: quotation letterhead not prepared: $e');
+    }
+  }
+
+  static const Duration _warmUpInterval = Duration(seconds: 60);
+  static const Duration _localReadBudget = Duration(milliseconds: 1500);
+  static DateTime? _warmedAt;
+
+  static HotelQuotationIssuer? _issuer;
+  static String? _issuerKey;
+
+  static String _issuerKeyFor(String? branchId) =>
+      '${ProxyService.box.getBusinessId()}|$branchId';
+
+  static HotelQuotationIssuer? _cachedIssuer(String? branchId) =>
+      _issuerKey == _issuerKeyFor(branchId) ? _issuer : null;
+
+  /// Reads the business and branch from the local copies, in parallel and
+  /// bounded, preferring names in [fresh]. Cached only when the business was
+  /// found, so a timed-out read is retried rather than remembered.
+  static Future<HotelQuotationIssuer> _resolveIssuer(
+    String? branchId,
+    TenantNames? fresh,
+  ) async {
+    final strategy = ProxyService.getStrategy(Strategy.capella);
+    final businessId = ProxyService.box.getBusinessId();
+    final names = fresh != null && fresh.businessId == businessId
+        ? fresh
+        : null;
+    final hasBranch = branchId != null && branchId.isNotEmpty;
+    final freshBranchName = hasBranch ? names?.branchNames[branchId] : null;
+
+    final (business, branch) = await (
+      _bounded(strategy.getBusiness(businessId: businessId)),
+      freshBranchName == null && hasBranch
+          ? _bounded(strategy.activeBranch(branchId: branchId))
+          : Future<Branch?>.value(null),
+    ).wait;
+
+    final issuer = HotelQuotationIssuer(
+      businessName: names?.businessName ?? business?.name,
+      branchName: freshBranchName ?? branch?.name,
+      tin: business?.tinNumber?.toString(),
+      address: business?.adrs,
+      phone: business?.phoneNumber,
+      email: business?.email,
+    );
+    if (business != null) {
+      _issuer = issuer;
+      _issuerKey = _issuerKeyFor(branchId);
+    }
+    return issuer;
+  }
+
+  static Future<T?> _bounded<T>(Future<T?> read) => read
+      .timeout(_localReadBudget)
+      .then<T?>((value) => value, onError: (Object _) => null);
 
   static String fileName(HotelQuotation quotation) =>
       '${quotation.reference}.pdf';
@@ -150,16 +233,61 @@ abstract final class HotelQuotationActions {
       'quotation:${quotation.id}:sent:'
       '${quotation.updatedAt?.toUtc().toIso8601String() ?? 'new'}';
 
-  static Future<String?> resolveBusinessName() async {
-    try {
-      final business = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).getBusiness(businessId: ProxyService.box.getBusinessId());
-      return business?.name;
-    } catch (e) {
-      talker.warning('hotel: could not resolve business name for quotation: $e');
-      return null;
+  /// Current business/branch names from Supabase, for the letterhead.
+  ///
+  /// The realtime rename sync lives in the POS `DashboardLayout` and its
+  /// resume catch-up in `FlipperApp`; switching into Hotel Mode with
+  /// `replaceWith` unmounts both, so a desk terminal could print a renamed
+  /// business under its old name indefinitely.
+  ///
+  /// Only the network fetch is awaited. Writing the names into Brick, the
+  /// Ditto docs and `user_access` is several sequential Ditto round trips,
+  /// which on a busy store took longer than the document was willing to
+  /// wait — so the document uses the fetched names directly and the local
+  /// copies are patched in the background. Shared for a few seconds so Send
+  /// (subject + PDF) costs one fetch. Offline or slow: null, and callers keep
+  /// the names already on the device.
+  static TenantNames? _lastFetchedNames;
+  static Future<TenantNames?>? _namesFetch;
+  static DateTime? _namesFetchedAt;
+
+  static Future<TenantNames?> _freshTenantNames() {
+    final at = _namesFetchedAt;
+    final pending = _namesFetch;
+    if (pending != null &&
+        at != null &&
+        DateTime.now().difference(at) < const Duration(seconds: 15)) {
+      return pending;
     }
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null || businessId.isEmpty) return Future.value(null);
+
+    _namesFetchedAt = DateTime.now();
+    return _namesFetch = TenantNameSync.fetchNames(businessId: businessId)
+        .timeout(const Duration(seconds: 2))
+        .then<TenantNames?>((names) {
+      _lastFetchedNames = names;
+      unawaited(TenantNameSync.applyNames(names).catchError((Object e) {
+        talker.warning('hotel: local tenant names not patched: $e');
+        return false;
+      }));
+      return names;
+    }, onError: (Object e) {
+      talker.warning('hotel: using cached names for quotation: $e');
+      return null;
+    });
+  }
+
+  static Future<String?> resolveBusinessName() async {
+    final fresh = await _freshTenantNames();
+    if (fresh?.businessName != null) return fresh!.businessName;
+    final cached = _cachedIssuer(ProxyService.box.getBranchId())?.businessName;
+    if (cached != null) return cached;
+    final business = await _bounded(
+      ProxyService.getStrategy(Strategy.capella)
+          .getBusiness(businessId: ProxyService.box.getBusinessId()),
+    );
+    return business?.name;
   }
 
   static String _shortDate(DateTime value) {

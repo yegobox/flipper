@@ -70,39 +70,55 @@ class TenantNameSync {
     _lastCatchUpBusinessId = id;
 
     try {
-      final client = Supabase.instance.client;
-      final business = await client
-          .from('businesses')
-          .select('id, name')
-          .eq('id', id)
-          .maybeSingle();
-      final branches = await client
-          .from('branches')
-          .select('id, name')
-          .eq('business_id', id);
-
-      var changed = false;
-      if (business != null) {
-        changed = await applyBusinessName(
-              business['id']?.toString(),
-              business['name'],
-            ) ||
-            changed;
-      }
-      for (final branch in branches) {
-        changed = await applyBranchName(
-              branch['id']?.toString(),
-              branch['name'],
-            ) ||
-            changed;
-      }
-      return changed;
+      return await applyNames(await fetchNames(businessId: id));
     } catch (e) {
       // Offline or Supabase unavailable: keep cached names, retry next time.
       _lastCatchUp = null;
       talker.warning('TenantNameSync.catchUp skipped: $e');
       return false;
     }
+  }
+
+  /// Current names for [businessId] and its branches, straight from
+  /// Supabase. Network only: nothing local is read or written, so a caller
+  /// that needs a name now (a document letterhead) is never held up by a busy
+  /// Ditto store. Throws when offline; callers keep their cached names.
+  static Future<TenantNames> fetchNames({required String businessId}) async {
+    final client = Supabase.instance.client;
+    final (business, branches) = await (
+      client
+          .from('businesses')
+          .select('id, name')
+          .eq('id', businessId)
+          .maybeSingle(),
+      client.from('branches').select('id, name').eq('business_id', businessId),
+    ).wait;
+
+    final branchNames = <String, String>{};
+    for (final branch in branches) {
+      final id = branch['id']?.toString();
+      final name = usableTenantName(branch['name']);
+      if (id != null && id.isNotEmpty && name != null) branchNames[id] = name;
+    }
+    return TenantNames(
+      businessId: businessId,
+      businessName: usableTenantName(business?['name']),
+      branchNames: branchNames,
+    );
+  }
+
+  /// Writes [names] into every local copy. Returns true if any changed.
+  static Future<bool> applyNames(TenantNames names) async {
+    var changed = false;
+    if (names.businessName != null) {
+      changed =
+          await applyBusinessName(names.businessId, names.businessName) ||
+              changed;
+    }
+    for (final entry in names.branchNames.entries) {
+      changed = await applyBranchName(entry.key, entry.value) || changed;
+    }
+    return changed;
   }
 
   static Future<bool> _patchBrickBusiness(String id, String name) async {
@@ -208,4 +224,20 @@ class TenantNameSync {
       return false;
     }
   }
+}
+
+/// Business and branch names as Supabase has them, from
+/// [TenantNameSync.fetchNames].
+class TenantNames {
+  const TenantNames({
+    required this.businessId,
+    required this.businessName,
+    required this.branchNames,
+  });
+
+  final String businessId;
+  final String? businessName;
+
+  /// Branch id → name.
+  final Map<String, String> branchNames;
 }

@@ -10,6 +10,8 @@ import 'package:flipper_models/db_model_export.dart' hide BusinessType;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:http/http.dart' as http;
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 
 mixin BusinessMixin implements BusinessInterface {
   Repository get repository;
@@ -269,12 +271,34 @@ mixin BusinessMixin implements BusinessInterface {
       throw ArgumentError('businessId $businessId not found');
     }
     business.name = name ?? business.name;
+    business.active = active ?? business.active;
     business.isDefault = isDefault ?? business.isDefault;
     business.backupFileId = backupFileId ?? business.backupFileId;
+    // Local only, like updateBranch. Login, startup and every business switch
+    // call this to flip the device's own active/isDefault flags, and the old
+    // optimisticLocal upsert pushed the device's whole Brick row to Supabase
+    // — stale name included — so a business renamed in Supabase reverted the
+    // next time any device logged in.
     await repository.upsert(
       business,
-      policy: OfflineFirstUpsertPolicy.optimisticLocal,
+      policy: OfflineFirstUpsertPolicy.localOnly,
     );
+
+    // Fields that genuinely belong to the server go up one column at a time,
+    // never as a whole row.
+    final remote = <String, dynamic>{
+      if (name != null) 'name': name,
+      if (backupFileId != null) 'backup_file_id': backupFileId,
+    };
+    if (remote.isEmpty) return;
+    try {
+      await Supabase.instance.client
+          .from('businesses')
+          .update(remote)
+          .eq('id', businessId);
+    } catch (e) {
+      talker.warning('updateBusiness: $remote not sent for $businessId: $e');
+    }
   }
 
   @override

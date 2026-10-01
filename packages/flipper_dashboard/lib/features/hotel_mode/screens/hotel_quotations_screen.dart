@@ -457,26 +457,48 @@ class HotelQuotationsScreen extends ConsumerWidget {
     WidgetRef ref,
     HotelQuotation quote,
   ) async {
+    final email = quote.guestEmail;
     final choice = await showMenu<String>(
       context: context,
       position: _menuPosition(context) ?? const RelativeRect.fromLTRB(0, 0, 0, 0),
+      color: HotelTokens.surface,
+      surfaceTintColor: Colors.transparent,
+      // A hairline plus a soft, cool-tinted shadow, like the desk's own
+      // cards; the default Material shadow reads grey and muddy here.
+      elevation: 12,
+      shadowColor: const Color(0x2E0B1A33),
+      menuPadding: const EdgeInsets.all(6),
+      constraints: const BoxConstraints(minWidth: 280, maxWidth: 340),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
+        side: const BorderSide(color: HotelTokens.line),
+      ),
+      popUpAnimationStyle: AnimationStyle(
+        duration: const Duration(milliseconds: 160),
+        reverseDuration: const Duration(milliseconds: 100),
+      ),
       items: [
+        _menuHeader(quote.reference),
         _menuItem(
           value: 'send',
           icon: AdminDashboardSvgs.quoteSend,
-          label: quote.guestEmail == null
-              ? 'Send to guest…'
-              : 'Send to ${quote.guestEmail}',
+          label: email == null ? 'Email to guest' : 'Email PDF to guest',
+          detail: email ?? 'Add an email address first',
+          accent: true,
         ),
+        const PopupMenuDivider(height: 9),
         _menuItem(
           value: 'download',
           icon: AdminDashboardSvgs.quoteDownload,
           label: 'Download PDF',
+          detail: HotelQuotationActions.fileName(quote),
         ),
         _menuItem(
           value: 'print',
           icon: AdminDashboardSvgs.quotePrint,
           label: 'Print',
+          detail: 'Open the print dialog',
         ),
       ],
     );
@@ -495,30 +517,42 @@ class HotelQuotationsScreen extends ConsumerWidget {
     }
   }
 
+  /// Non-selectable caption naming the quotation the actions apply to.
+  PopupMenuItem<String> _menuHeader(String reference) {
+    return PopupMenuItem<String>(
+      enabled: false,
+      height: 30,
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
+      child: Text(
+        'QUOTATION $reference',
+        style: GoogleFonts.outfit(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: HotelTokens.ink3,
+        ),
+      ),
+    );
+  }
+
   PopupMenuItem<String> _menuItem({
     required String value,
     required String icon,
     required String label,
+    required String detail,
+    bool accent = false,
   }) {
+    final ink = accent ? HotelTokens.blue : HotelTokens.ink2;
     return PopupMenuItem<String>(
       value: value,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AdminDashboardSvgs.tinted(icon, color: HotelTokens.ink2, size: 18),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.outfit(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: HotelTokens.ink1,
-              ),
-            ),
-          ),
-        ],
+      height: 56,
+      padding: EdgeInsets.zero,
+      child: _DocumentMenuRow(
+        icon: icon,
+        iconColor: ink,
+        iconTint: accent ? HotelTokens.blueTint : HotelTokens.surface2,
+        label: label,
+        detail: detail,
       ),
     );
   }
@@ -960,5 +994,72 @@ class HotelQuotationsScreen extends ConsumerWidget {
     );
     if (confirmed != true) return;
     await HotelDeskActions.deleteQuotation(id: quote.id);
+  }
+}
+
+/// One Document menu action: a tinted icon tile, a bold label and a muted
+/// line saying exactly what will happen (who it goes to, which file).
+class _DocumentMenuRow extends StatelessWidget {
+  const _DocumentMenuRow({
+    required this.icon,
+    required this.iconColor,
+    required this.iconTint,
+    required this.label,
+    required this.detail,
+  });
+
+  final String icon;
+  final Color iconColor;
+  final Color iconTint;
+  final String label;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: iconTint,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: AdminDashboardSvgs.tinted(icon, color: iconColor, size: 17),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: HotelTokens.ink1,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  detail,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: HotelTokens.ink3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

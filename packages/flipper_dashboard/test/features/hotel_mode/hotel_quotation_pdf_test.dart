@@ -179,4 +179,39 @@ void main() {
       expect(DocumentStamp.fromSettings(settings), isNull);
     });
   });
+
+  group('DocumentStamp.resolve', () {
+    test('matches fromSettings, with the photo keyed out off the UI isolate',
+        () async {
+      final settings = BranchDocumentSettings(
+        branchId: 'b1',
+        stampEnabled: true,
+        stampImageBase64: base64Encode(_pngBytes),
+        stampPlacement: DocumentStampPlacement.bottomLeft,
+        stampWidthMm: 50,
+        stampAspectRatio: 0.5,
+      );
+
+      final background = (await DocumentStamp.resolve(settings))!;
+      final inline = DocumentStamp.fromSettings(settings)!;
+      expect(background.placement, DocumentStampPlacement.bottomLeft);
+      expect(background.widthMm, 50);
+      expect(background.aspectRatio, 0.5);
+      expect(background.bytes, inline.bytes);
+    });
+
+    test('is null without a stamp, and for a corrupt one', () async {
+      expect(await DocumentStamp.resolve(null), isNull);
+      expect(
+        await DocumentStamp.resolve(
+          const BranchDocumentSettings(
+            branchId: 'b1',
+            stampEnabled: true,
+            stampImageBase64: 'not base64 at all !!!',
+          ),
+        ),
+        isNull,
+      );
+    });
+  });
 }
