@@ -27,6 +27,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flipper_dashboard/features/service_mode_switch.dart'
+    show ServiceMode, setDeviceServiceMode;
 import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -103,6 +105,15 @@ void main() {
       mainApp,
       appChoice,
     ]);
+    // The README shows POS. The demo branch has Hotel Mode on, and a branch
+    // service mode takes over the screen after sign-in (the front desk on
+    // desktop, and on the phone pass too: DevicePreview runs in a
+    // desktop-sized window). Pin this device to POS, the same per-device pick a
+    // cashier terminal makes. Storage is ready by now: the first screen only
+    // appears once AppBootstrap has initialised, and the post-sign-in
+    // redirect has not run yet. The phone pass reuses this device's storage,
+    // so it inherits the pick.
+    setDeviceServiceMode(ServiceMode.pos);
     final signedIn =
         mainApp.evaluate().isNotEmpty || appChoice.evaluate().isNotEmpty;
     if (!signedIn) {
