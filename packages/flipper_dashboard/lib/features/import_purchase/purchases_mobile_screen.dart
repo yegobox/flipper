@@ -1,9 +1,9 @@
-import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/import_purchase/assign_variant_modal.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpers.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
+import 'package:flipper_dashboard/features/import_purchase/imports_mobile_view.dart';
 import 'package:flipper_dashboard/features/import_purchase/purchase_approval_mixin.dart';
 import 'package:flipper_dashboard/features/import_purchase/record_purchase_modal.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
@@ -159,8 +159,7 @@ class _PurchasesMobileScreenState extends ConsumerState<PurchasesMobileScreen> {
           const Divider(height: 1, color: _T.line),
           Expanded(
             child: state.isImport
-                // Imports keep the existing review flow (pricing per item).
-                ? const ImportPurchasePage()
+                ? const ImportsMobileView()
                 : _PurchaseList(state: state, onOpen: _openDetail),
           ),
         ],
