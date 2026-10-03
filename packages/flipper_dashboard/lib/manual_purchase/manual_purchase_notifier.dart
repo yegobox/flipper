@@ -76,6 +76,12 @@ class ManualPurchaseState {
   final String invoiceNo;
   final DateTime purchaseDate;
   final String pmtTyCd;
+
+  /// When the supplier expects payment; set for credit types only.
+  final DateTime? dueDate;
+
+  /// Cash/Credit (`03`): the part paid when the goods arrived.
+  final double paidUpfront;
   final List<ManualPurchaseLine> lines;
   final bool isSaving;
   final String? error;
@@ -87,6 +93,8 @@ class ManualPurchaseState {
     this.invoiceNo = '',
     DateTime? purchaseDate,
     this.pmtTyCd = '01',
+    this.dueDate,
+    this.paidUpfront = 0,
     this.lines = const [],
     this.isSaving = false,
     this.error,
@@ -104,12 +112,23 @@ class ManualPurchaseState {
   double get totTaxAmt => lines.fold(0.0, (sum, l) => sum + l.taxAmt);
   double get totAmt => totTaxblAmt;
 
+  /// Some of the purchase is owed to the supplier (`02` Credit, `03` Cash/Credit).
+  bool get isOnCredit => pmtTyCd == '02' || pmtTyCd == '03';
+
+  /// What will be owed once the purchase is approved.
+  double get amountOwed => switch (pmtTyCd) {
+        '02' => totAmt,
+        '03' => (totAmt - paidUpfront).clamp(0, totAmt).toDouble(),
+        _ => 0,
+      };
+
   bool get isValid =>
       supplierName.trim().isNotEmpty &&
       int.tryParse(invoiceNo.trim()) != null &&
       !purchaseDate.isAfter(DateTime.now()) &&
       lines.isNotEmpty &&
-      lines.every((l) => l.name.trim().isNotEmpty && l.qty > 0);
+      lines.every((l) => l.name.trim().isNotEmpty && l.qty > 0) &&
+      (pmtTyCd != '03' || paidUpfront <= totAmt);
 
   ManualPurchaseState copyWith({
     String? supplierName,
@@ -119,6 +138,9 @@ class ManualPurchaseState {
     String? invoiceNo,
     DateTime? purchaseDate,
     String? pmtTyCd,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+    double? paidUpfront,
     List<ManualPurchaseLine>? lines,
     bool? isSaving,
     String? error,
@@ -133,6 +155,8 @@ class ManualPurchaseState {
       invoiceNo: invoiceNo ?? this.invoiceNo,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       pmtTyCd: pmtTyCd ?? this.pmtTyCd,
+      dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
+      paidUpfront: paidUpfront ?? this.paidUpfront,
       lines: lines ?? this.lines,
       isSaving: isSaving ?? this.isSaving,
       error: clearError ? null : (error ?? this.error),
@@ -164,7 +188,26 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
   }
 
   void setPaymentType(String pmtTyCd) {
-    state = state.copyWith(pmtTyCd: pmtTyCd, clearError: true);
+    final onCredit = pmtTyCd == '02' || pmtTyCd == '03';
+    state = state.copyWith(
+      pmtTyCd: pmtTyCd,
+      // Net 30 by default; the owner can pick another date.
+      dueDate: onCredit
+          ? (state.dueDate ??
+              state.purchaseDate.add(const Duration(days: 30)))
+          : null,
+      clearDueDate: !onCredit,
+      paidUpfront: pmtTyCd == '03' ? state.paidUpfront : 0,
+      clearError: true,
+    );
+  }
+
+  void setDueDate(DateTime date) {
+    state = state.copyWith(dueDate: date, clearError: true);
+  }
+
+  void setPaidUpfront(double amount) {
+    state = state.copyWith(paidUpfront: amount < 0 ? 0 : amount, clearError: true);
   }
 
   Future<Supplier?> createSupplier({
@@ -302,9 +345,10 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
     final s = state;
     if (!s.isValid) {
       state = s.copyWith(
-        error:
-            'Supplier, a numeric invoice number and at least one line '
-            'with quantity above zero are required.',
+        error: s.pmtTyCd == '03' && s.paidUpfront > s.totAmt
+            ? 'The amount paid now cannot be more than the purchase total.'
+            : 'Supplier, a numeric invoice number and at least one line '
+                'with quantity above zero are required.',
       );
       return null;
     }

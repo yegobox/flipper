@@ -19,3 +19,4 @@ export 'transaction_to_accounts.dart';
 export 'chart_account_resolver.dart';
 export 'purchase_journal_poster.dart';
 export 'purchase_posting_input.dart';
+export 'bill_payments.dart';

@@ -24,6 +24,10 @@ class SupabaseAccountingDocumentsRepository
     'contactName',
     'sinceLabel',
     'partyId',
+    // Pay-later fields live in Ditto only (no Supabase columns yet).
+    'total',
+    'source',
+    'supplier_id',
   };
 
   static Map<String, dynamic> _forPostgrest(Map<String, dynamic> row) {

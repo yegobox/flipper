@@ -313,6 +313,7 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
         pchsSttsCd: '04',
         successMessage: 'Purchase declined',
         postToLedger: false,
+        declined: true,
       );
       return;
     }
@@ -331,6 +332,7 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     required String pchsSttsCd,
     required String successMessage,
     required bool postToLedger,
+    bool declined = false,
   }) async {
     if (!mounted) return;
     final processing = {...state.processingIds, purchase.id};
@@ -340,10 +342,14 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
         purchase: purchase,
         pchsSttsCd: pchsSttsCd,
       );
-      await PosPurchaseJournalPoster.postPurchase(
-        purchase: purchase,
-        postToLedger: postToLedger,
-      );
+      if (declined) {
+        await PosPurchaseJournalPoster.discardPurchase(purchase: purchase);
+      } else {
+        await PosPurchaseJournalPoster.postPurchase(
+          purchase: purchase,
+          postToLedger: postToLedger,
+        );
+      }
       await loadList();
       talker.info(successMessage);
     } catch (e, s) {

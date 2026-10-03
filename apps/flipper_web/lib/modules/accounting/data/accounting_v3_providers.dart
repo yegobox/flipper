@@ -5,6 +5,7 @@ import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
@@ -422,10 +423,12 @@ final accountingSuppliersProvider = Provider<List<AccountingContact>>((ref) {
 
 DocStatus _effectiveStatus(AccountingDocument doc) {
   if (doc.status == DocStatus.sent) {
+    if (doc.total != null && docBalance(doc) <= 0) return DocStatus.paid;
     try {
       final due = DateFormat('d MMM y').parseLoose(doc.due);
       if (DateTime.now().isAfter(due)) return DocStatus.overdue;
     } catch (_) {}
+    if (doc.amountPaid > 0) return DocStatus.partiallyPaid;
   }
   return doc.status;
 }
