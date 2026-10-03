@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
 import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
@@ -33,13 +34,14 @@ abstract final class HotelQuotationActions {
   }) async {
     final branchId = quotation.branchId.isNotEmpty
         ? quotation.branchId
-        : ProxyService.box.getBranchId();
+        : _currentBranchId;
 
     final HotelQuotationIssuer issuer;
     if (awaitFreshNames) {
       issuer = await _resolveIssuer(branchId, await _freshTenantNames());
     } else {
-      issuer = _cachedIssuer(branchId) ??
+      issuer =
+          _cachedIssuer(branchId) ??
           await _resolveIssuer(branchId, _lastFetchedNames);
       // Refresh for the next document; this one does not wait for it.
       unawaited(warmUp());
@@ -69,11 +71,9 @@ abstract final class HotelQuotationActions {
     if (last != null && now.difference(last) < _warmUpInterval) return;
     _warmedAt = now;
 
-    final branchId = ProxyService.box.getBranchId();
+    final branchId = _currentBranchId;
     try {
-      unawaited(
-        DocumentStamp.resolve(BranchDocumentSettingsService.current()),
-      );
+      unawaited(DocumentStamp.resolve(BranchDocumentSettingsService.current()));
       await _resolveIssuer(branchId, _lastFetchedNames);
       final fresh = await _freshTenantNames();
       if (fresh != null) await _resolveIssuer(branchId, fresh);
@@ -86,11 +86,18 @@ abstract final class HotelQuotationActions {
   static const Duration _localReadBudget = Duration(milliseconds: 1500);
   static DateTime? _warmedAt;
 
+  // The only reads of the global locator in this class: route new ones
+  // through these so the dependencies stay in one place.
+  static String? get _currentBusinessId => ProxyService.box.getBusinessId();
+  static String? get _currentBranchId => ProxyService.box.getBranchId();
+  static DatabaseSyncInterface get _capella =>
+      ProxyService.getStrategy(Strategy.capella);
+
   static HotelQuotationIssuer? _issuer;
   static String? _issuerKey;
 
   static String _issuerKeyFor(String? branchId) =>
-      '${ProxyService.box.getBusinessId()}|$branchId';
+      '$_currentBusinessId|$branchId';
 
   static HotelQuotationIssuer? _cachedIssuer(String? branchId) =>
       _issuerKey == _issuerKeyFor(branchId) ? _issuer : null;
@@ -102,8 +109,8 @@ abstract final class HotelQuotationActions {
     String? branchId,
     TenantNames? fresh,
   ) async {
-    final strategy = ProxyService.getStrategy(Strategy.capella);
-    final businessId = ProxyService.box.getBusinessId();
+    final strategy = _capella;
+    final businessId = _currentBusinessId;
     final names = fresh != null && fresh.businessId == businessId
         ? fresh
         : null;
@@ -189,7 +196,9 @@ abstract final class HotelQuotationActions {
       (businessName ?? '').trim().isEmpty ? 'us' : businessName!.trim(),
     );
     final guest = _escape(quotation.guestName);
-    final nights = quotation.nights == 1 ? '1 night' : '${quotation.nights} nights';
+    final nights = quotation.nights == 1
+        ? '1 night'
+        : '${quotation.nights} nights';
     final validity = quotation.validUntil == null
         ? ''
         : '<p style="margin:0 0 16px;color:#4b5563;font-size:14px;">'
@@ -259,33 +268,37 @@ abstract final class HotelQuotationActions {
         DateTime.now().difference(at) < const Duration(seconds: 15)) {
       return pending;
     }
-    final businessId = ProxyService.box.getBusinessId();
+    final businessId = _currentBusinessId;
     if (businessId == null || businessId.isEmpty) return Future.value(null);
 
     _namesFetchedAt = DateTime.now();
     return _namesFetch = TenantNameSync.fetchNames(businessId: businessId)
         .timeout(const Duration(seconds: 2))
-        .then<TenantNames?>((names) {
-      _lastFetchedNames = names;
-      unawaited(TenantNameSync.applyNames(names).catchError((Object e) {
-        talker.warning('hotel: local tenant names not patched: $e');
-        return false;
-      }));
-      return names;
-    }, onError: (Object e) {
-      talker.warning('hotel: using cached names for quotation: $e');
-      return null;
-    });
+        .then<TenantNames?>(
+          (names) {
+            _lastFetchedNames = names;
+            unawaited(
+              TenantNameSync.applyNames(names).catchError((Object e) {
+                talker.warning('hotel: local tenant names not patched: $e');
+                return false;
+              }),
+            );
+            return names;
+          },
+          onError: (Object e) {
+            talker.warning('hotel: using cached names for quotation: $e');
+            return null;
+          },
+        );
   }
 
   static Future<String?> resolveBusinessName() async {
     final fresh = await _freshTenantNames();
     if (fresh?.businessName != null) return fresh!.businessName;
-    final cached = _cachedIssuer(ProxyService.box.getBranchId())?.businessName;
+    final cached = _cachedIssuer(_currentBranchId)?.businessName;
     if (cached != null) return cached;
     final business = await _bounded(
-      ProxyService.getStrategy(Strategy.capella)
-          .getBusiness(businessId: ProxyService.box.getBusinessId()),
+      _capella.getBusiness(businessId: _currentBusinessId),
     );
     return business?.name;
   }
@@ -293,8 +306,18 @@ abstract final class HotelQuotationActions {
   static String _shortDate(DateTime value) {
     final local = value.toLocal();
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${local.day} ${months[local.month - 1]} ${local.year}';
   }

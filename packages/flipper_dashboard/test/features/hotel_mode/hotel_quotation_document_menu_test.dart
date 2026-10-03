@@ -83,6 +83,12 @@ Future<void> _pump(
   await tester.pump();
 }
 
+/// [text] inside the open Document menu, not elsewhere on the card.
+Finder _inMenu(String text) => find.descendant(
+  of: find.byType(PopupMenuItem<String>),
+  matching: find.text(text),
+);
+
 void main() {
   group('quotation document menu', () {
     // Regression: the menu anchored off the itemBuilder's context, whose
@@ -114,7 +120,9 @@ void main() {
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Send to aline@example.com'), findsOneWidget);
+      // The redesigned menu (#692) puts the address on its own detail line.
+      expect(_inMenu('Email PDF to guest'), findsOneWidget);
+      expect(_inMenu('aline@example.com'), findsOneWidget);
     });
 
     testWidgets('offers to collect an address when there is none', (
@@ -125,7 +133,8 @@ void main() {
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Send to guest…'), findsOneWidget);
+      expect(_inMenu('Email to guest'), findsOneWidget);
+      expect(_inMenu('Add an email address first'), findsOneWidget);
     });
 
     testWidgets('each card opens its own menu, not the first card\'s', (
@@ -156,8 +165,8 @@ void main() {
       await tester.tap(find.text('Document').last);
       await tester.pumpAndSettle();
 
-      expect(find.text('Send to b@example.com'), findsOneWidget);
-      expect(find.text('Send to a@example.com'), findsNothing);
+      expect(_inMenu('b@example.com'), findsOneWidget);
+      expect(_inMenu('a@example.com'), findsNothing);
     });
   });
 
@@ -169,7 +178,7 @@ void main() {
 
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Send to guest…'));
+      await tester.tap(_inMenu('Email to guest'));
       await tester.pumpAndSettle();
 
       expect(find.text('Email this quotation'), findsOneWidget);
@@ -186,7 +195,7 @@ void main() {
 
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Send to guest…'));
+      await tester.tap(_inMenu('Email to guest'));
       await tester.pumpAndSettle();
 
       // A phone number typed into the email box is the mistake to catch.
@@ -204,7 +213,7 @@ void main() {
 
       await tester.tap(find.text('Document'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Send to guest…'));
+      await tester.tap(_inMenu('Email to guest'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();

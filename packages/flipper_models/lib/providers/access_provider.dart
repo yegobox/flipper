@@ -5,8 +5,9 @@ import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-// ignore: unused_import
-import 'package:flutter/foundation.dart' hide Category; // kDebugMode — kept for the commented-out bypass below, see featureAccess
+import 'package:flutter/foundation.dart'
+    hide
+        Category; // visibleForTesting; kDebugMode for the commented-out bypass in featureAccess
 part 'access_provider.g.dart';
 
 @riverpod
@@ -139,6 +140,26 @@ bool featureViewAccess(
   }
 }
 
+/// True when [accesses] holds an active, non-expired row at [accessLevel].
+///
+/// For an admin check, a row whose userType is Admin also counts: the User
+/// Management "Admin" user type is stamped on every access row (including the
+/// `general` row create_agent writes), so it grants admin rights without
+/// needing a module set to the admin level.
+@visibleForTesting
+bool hasAccessLevel(List<Access> accesses, String accessLevel, DateTime now) {
+  final level = accessLevel.toLowerCase();
+  final isAdminCheck = level == AccessLevel.ADMIN;
+  return accesses.any(
+    (access) =>
+        access.status == 'active' &&
+        (access.expiresAt == null || access.expiresAt!.isAfter(now)) &&
+        (access.accessLevel?.toLowerCase() == level ||
+            (isAdminCheck &&
+                access.userType?.toLowerCase() == AccessLevel.ADMIN)),
+  );
+}
+
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
 /// to whatever he is trying to access
@@ -151,13 +172,7 @@ bool featureAccessLevel(
   try {
     final accesses = ref.watch(allAccessesProvider(userId)).value ?? [];
     final now = DateTime.now();
-    final normalizedAccessLevel = accessLevel.toLowerCase();
-    final granted = accesses.any(
-      (access) =>
-          access.accessLevel?.toLowerCase() == normalizedAccessLevel &&
-          access.status == 'active' &&
-          (access.expiresAt == null || access.expiresAt!.isAfter(now)),
-    );
+    final granted = hasAccessLevel(accesses, accessLevel, now);
     final accessLevelCounts = <String, int>{};
     final userTypeCounts = <String, int>{};
 
