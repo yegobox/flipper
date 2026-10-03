@@ -19,9 +19,19 @@ class _MockBox extends Mock implements LocalStorage {
 /// Serves a fixed list; filtering mirrors the real view model's state change
 /// without the RRA / Ditto round trip.
 class _FakeViewModel extends ImportPurchaseViewModel {
-  _FakeViewModel(super.ref, List<Purchase> purchases) {
-    state = state.copyWith(purchases: purchases);
+  _FakeViewModel(
+    super.ref,
+    List<Purchase> purchases, {
+    List<Variant>? imports,
+  }) {
+    state = state.copyWith(
+      purchases: purchases,
+      importItems: imports ?? const [],
+    );
   }
+
+  final approvedImports = <({String id, double? retail, double? supply})>[];
+  int approveAllCalls = 0;
 
   @override
   Future<void> loadList() async {}
@@ -30,7 +40,49 @@ class _FakeViewModel extends ImportPurchaseViewModel {
   void setPurchaseStatusFilter(String filter) {
     state = state.copyWith(purchaseStatusFilter: filter);
   }
+
+  @override
+  void toggleImportPurchase(bool isImport) {
+    state = state.copyWith(isImport: isImport);
+  }
+
+  @override
+  Future<void> approveImport({
+    required Variant variant,
+    String? targetVariantId,
+    double? retailPrice,
+    double? supplyPrice,
+    String? itemNm,
+  }) async {
+    approvedImports.add((
+      id: variant.id,
+      retail: retailPrice,
+      supply: supplyPrice,
+    ));
+  }
+
+  @override
+  Future<void> approveAllImports({
+    required List<Variant> variants,
+    required Map<String, List<Variant>> variantMap,
+  }) async {
+    approveAllCalls++;
+  }
 }
+
+Variant _import(String name, {double? supply, double? retail}) => Variant(
+  name: name,
+  itemNm: name,
+  branchId: 'b1',
+  imptItemSttsCd: '2',
+  qty: 25600,
+  qtyUnitCd: 'BE',
+  hsCd: '69010000000',
+  spplrNm: 'GOODWILL (TANZANIA) CERAMIC CO.,LTD MKURANGA-TANZANIA',
+  orgnNatCd: 'TZ',
+  supplyPrice: supply,
+  retailPrice: retail,
+);
 
 Variant _line(String name, String status, double qty, double price) => Variant(
   name: name,
@@ -105,7 +157,13 @@ final _purchases = [
   ),
 ];
 
-Future<void> _pump(WidgetTester tester, Size size) async {
+late _FakeViewModel _vm;
+
+Future<void> _pump(
+  WidgetTester tester,
+  Size size, {
+  List<Variant> imports = const [],
+}) async {
   tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -113,7 +171,7 @@ Future<void> _pump(WidgetTester tester, Size size) async {
     ProviderScope(
       overrides: [
         importPurchaseViewModelProvider.overrideWith(
-          (ref) => _FakeViewModel(ref, _purchases),
+          (ref) => _vm = _FakeViewModel(ref, _purchases, imports: imports),
         ),
       ],
       child: const MaterialApp(home: PurchasesMobileScreen()),
@@ -172,5 +230,67 @@ void main() {
     expect(find.text('Match to my item'), findsNothing);
     expect(find.text('Accept'), findsOneWidget);
     expect(find.text('Credit'), findsOneWidget);
+  });
+
+  group('imports', () {
+    final items = [
+      _import('PORCELAIN FLOOR TILE'),
+      _import('EAC BROWN SUGAR EX MALAWI', supply: 200, retail: 300),
+    ];
+
+    Future<void> openImports(WidgetTester tester, Size size) async {
+      await _pump(tester, size, imports: items);
+      await tester.tap(find.text('Imports').last);
+      await tester.pumpAndSettle();
+    }
+
+    for (final size in const [Size(320, 640), Size(390, 844)]) {
+      testWidgets('lays out without overflow at ${size.width.toInt()}pt', (
+        tester,
+      ) async {
+        await openImports(tester, size);
+        expect(find.text('PORCELAIN FLOOR TILE'), findsOneWidget);
+        expect(find.text('Set prices before approving'), findsOneWidget);
+        expect(find.text('Approve all 2 waiting'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('approve all refuses items without prices', (tester) async {
+      await openImports(tester, const Size(390, 844));
+      await tester.tap(find.text('Approve all 2 waiting'));
+      await tester.pumpAndSettle();
+      expect(_vm.approveAllCalls, 0);
+      expect(
+        find.textContaining('need a supply and retail price'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('pricing an item in its sheet and approving it', (
+      tester,
+    ) async {
+      await openImports(tester, const Size(390, 844));
+      await tester.tap(find.text('PORCELAIN FLOOR TILE'));
+      await tester.pumpAndSettle();
+
+      // Approve without prices is blocked in the sheet.
+      await tester.tap(find.widgetWithText(FilledButton, 'Approve'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Enter both prices'), findsOneWidget);
+
+      final fields = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(fields.at(1), '250');
+      await tester.enterText(fields.at(2), '500');
+      await tester.tap(find.widgetWithText(FilledButton, 'Approve'));
+      await tester.pumpAndSettle();
+
+      expect(_vm.approvedImports, hasLength(1));
+      expect(_vm.approvedImports.single.supply, 250);
+      expect(_vm.approvedImports.single.retail, 500);
+    });
   });
 }
