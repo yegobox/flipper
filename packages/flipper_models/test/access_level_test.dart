@@ -11,22 +11,21 @@ Access _row({
   String featureName = 'general',
   String status = 'active',
   DateTime? expiresAt,
-}) =>
-    Access(
-      userId: 'u1',
-      featureName: featureName,
-      userType: userType,
-      accessLevel: accessLevel,
-      status: status,
-      expiresAt: expiresAt,
-    );
+}) => Access(
+  userId: 'u1',
+  featureName: featureName,
+  userType: userType,
+  accessLevel: accessLevel,
+  status: status,
+  expiresAt: expiresAt,
+);
 
 /// Rows create_agent writes for a user whose modules are at write, not admin.
 List<Access> _writeOnlyRows(String userType) => [
-      _row(userType: userType, accessLevel: 'read_write'),
-      _row(userType: userType, accessLevel: 'write', featureName: 'Sales'),
-      _row(userType: userType, accessLevel: 'write', featureName: 'Inventory'),
-    ];
+  _row(userType: userType, accessLevel: 'read_write'),
+  _row(userType: userType, accessLevel: 'write', featureName: 'Sales'),
+  _row(userType: userType, accessLevel: 'write', featureName: 'Inventory'),
+];
 
 void main() {
   group('hasAccessLevel', () {
