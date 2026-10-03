@@ -373,28 +373,31 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   // Scope PLU lines to the current SQL page (not the full date-range sale set).
   ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
 
-  return itemStream.map((items) {
-    final snap = ref
-        .read(transactionReportSnapshotProvider(forceRealData: forceRealData))
-        .asData
-        ?.value;
-    if (snap == null || snap.transactions.isEmpty) {
-      return const <TransactionItem>[];
-    }
-    final allowed =
-        snap.transactions.map((t) => t.id.toString()).toSet();
-    final filtered = items
-        .where((i) => transactionReportLineMatchesSale(i, allowed))
-        .toList();
-    talker.debug(
-      'transactionItemList: ${items.length} raw → ${filtered.length} '
-      'page-scoped lines (${allowed.length} sale ids)',
-    );
-    return filtered;
-  }).handleError((Object error, StackTrace stackTrace) {
-    talker.error('Error loading transaction items: $error');
-    throw error;
-  });
+  return itemStream
+      .map((items) {
+        final snap = ref
+            .read(
+              transactionReportSnapshotProvider(forceRealData: forceRealData),
+            )
+            .asData
+            ?.value;
+        if (snap == null || snap.transactions.isEmpty) {
+          return const <TransactionItem>[];
+        }
+        final allowed = snap.transactions.map((t) => t.id.toString()).toSet();
+        final filtered = items
+            .where((i) => transactionReportLineMatchesSale(i, allowed))
+            .toList();
+        talker.debug(
+          'transactionItemList: ${items.length} raw → ${filtered.length} '
+          'page-scoped lines (${allowed.length} sale ids)',
+        );
+        return filtered;
+      })
+      .handleError((Object error, StackTrace stackTrace) {
+        talker.error('Error loading transaction items: $error');
+        throw error;
+      });
 }
 
 // ---------------------------------------------------------------------------
@@ -803,11 +806,8 @@ DateTime dashboardPeriodStart(String period) {
 // every POS cart write, converting every transaction item in the branch to Dart
 // objects on the UI isolate — which is what dragged a 60-line cart down to about
 // one saved row every few seconds after a visit to the dashboard.
-final dashboardGaugeSnapshotProvider =
-    StreamProvider.autoDispose.family<DashboardGaugeSnapshot, String>((
-      ref,
-      period,
-    ) {
+final dashboardGaugeSnapshotProvider = StreamProvider.autoDispose
+    .family<DashboardGaugeSnapshot, String>((ref, period) {
       final start = dashboardPeriodStart(period);
       final end = DateTime.now();
       final branchId = ProxyService.box.branchIdString();
@@ -931,11 +931,8 @@ DateTime dashboardPreviousPeriodStart(String period) {
 
 /// Stream gauge snapshot for the period window before [period].
 // autoDispose for the same reason as [dashboardGaugeSnapshotProvider].
-final dashboardPreviousGaugeSnapshotProvider =
-    StreamProvider.autoDispose.family<DashboardGaugeSnapshot, String>((
-      ref,
-      period,
-    ) {
+final dashboardPreviousGaugeSnapshotProvider = StreamProvider.autoDispose
+    .family<DashboardGaugeSnapshot, String>((ref, period) {
       final prevStart = dashboardPreviousPeriodStart(period);
       final prevEnd = dashboardPeriodStart(period);
       final branchId = ProxyService.box.branchIdString();

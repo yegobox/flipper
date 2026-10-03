@@ -109,3 +109,21 @@ List<String> cashbookCategorySuggestions({
       if (!taken.contains(s.toLowerCase())) s,
   ];
 }
+
+/// The category to record for [selectedId]: the loaded copy when the stream
+/// has it, else [createdHere] — a category just made via "+ New" that the
+/// asynchronously refreshed stream may not carry yet. `null` when nothing is
+/// selected or the selection is gone.
+T? resolveCashbookSelectedCategory<T>({
+  required String? selectedId,
+  required Iterable<T> loaded,
+  required T? createdHere,
+  required String Function(T) id,
+}) {
+  if (selectedId == null) return null;
+  for (final c in loaded) {
+    if (id(c) == selectedId) return c;
+  }
+  if (createdHere != null && id(createdHere) == selectedId) return createdHere;
+  return null;
+}
