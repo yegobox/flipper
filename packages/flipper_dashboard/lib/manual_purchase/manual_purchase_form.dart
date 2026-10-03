@@ -134,6 +134,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
       if (proceed != true) return;
     }
 
+    final terms = ref.read(manualPurchaseProvider);
     final saved = await notifier.save();
     if (saved == null) return;
 
@@ -146,6 +147,9 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
         await PosPurchaseJournalPoster.postPurchase(
           purchase: saved,
           postToLedger: true,
+          supplierId: terms.selectedSupplierId,
+          paidUpfront: terms.pmtTyCd == '03' ? terms.paidUpfront : null,
+          dueDate: terms.dueDate,
         );
         toast('Purchase recorded and approved');
       } catch (e) {
@@ -153,9 +157,13 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
         toast('Purchase saved as waiting. Approval failed: $e');
       }
     } else {
+      // The draft bill carries the credit terms until the purchase is approved.
       await PosPurchaseJournalPoster.postPurchase(
         purchase: saved,
         postToLedger: false,
+        supplierId: terms.selectedSupplierId,
+        paidUpfront: terms.pmtTyCd == '03' ? terms.paidUpfront : null,
+        dueDate: terms.dueDate,
       );
       toast('Purchase saved as waiting');
     }
@@ -424,6 +432,100 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               ),
             ),
           ],
+        ),
+        if (state.isOnCredit) ...[
+          const SizedBox(height: 16),
+          _buildCreditTerms(state, notifier),
+        ],
+      ],
+    );
+  }
+
+  /// Pay-later terms: when the supplier is due, and for Cash/Credit how much
+  /// was paid now. Stored on the purchase's bill so Books and reminders see it.
+  Widget _buildCreditTerms(
+    ManualPurchaseState state,
+    ManualPurchaseNotifier notifier,
+  ) {
+    final formatter = NumberFormat('#,##0.##');
+    final due = state.dueDate ?? state.purchaseDate.add(const Duration(days: 30));
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _fieldLabel('Pay supplier by'),
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: due,
+                    firstDate: state.purchaseDate,
+                    lastDate: state.purchaseDate.add(const Duration(days: 730)),
+                  );
+                  if (picked != null) notifier.setDueDate(picked);
+                },
+                child: InputDecorator(
+                  decoration: _fieldDecoration(
+                    suffixIcon: Icon(
+                      Icons.event_outlined,
+                      size: 18,
+                      color: _hintColor,
+                    ),
+                  ),
+                  child: Text(
+                    DateFormat('dd MMM yyyy').format(due),
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (state.pmtTyCd == '03') ...[
+                _fieldLabel('Paid now'),
+                TextFormField(
+                  initialValue: state.paidUpfront > 0
+                      ? formatter.format(state.paidUpfront)
+                      : null,
+                  decoration: _fieldDecoration(hint: '0'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (v) => notifier.setPaidUpfront(
+                    double.tryParse(v.replaceAll(',', '').trim()) ?? 0,
+                  ),
+                ),
+              ] else
+                _fieldLabel('Paid now', suffix: '(none — full credit)'),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _fieldLabel('You will owe'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  formatter.format(state.amountOwed),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

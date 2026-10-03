@@ -1,3 +1,4 @@
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_poster.dart';
@@ -47,7 +48,10 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       if (businessId.isEmpty) return;
 
       final existing = docs.where((d) => d.id == doc.id).firstOrNull;
-      final toSave = doc.copyWith(uuid: existing?.uuid);
+      final toSave = doc.copyWith(
+        uuid: existing?.uuid,
+        source: existing?.source,
+      );
       await repo.upsertDocument(
         businessId: businessId,
         kind: ui.kind,
@@ -55,7 +59,10 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       );
 
       final currency = ref.read(accountingCurrencyProvider);
-      if (mode == 'send') {
+      // Purchase and cashbook bills were posted by their own poster when they
+      // were recorded; posting again here would book the debt twice.
+      final postedElsewhere = toSave.source != null;
+      if (mode == 'send' && !postedElsewhere) {
         final accounts = ref.read(accountingAccountsProvider);
         final poster = DocumentJournalPoster(
           ref.read(accountingLedgerRepositoryProvider),
@@ -107,6 +114,18 @@ class AccountingBillingPanelHost extends ConsumerWidget {
     Future<void> markPaid(AccountingDocument doc) async {
       final businessId = ref.read(accountingBusinessIdProvider);
       if (businessId.isEmpty) return;
+      // Ditto bills already updated their own paid/balance/status from the
+      // payment record; overwriting the status here would hide a balance
+      // still owed after a part payment.
+      final paymentTracked =
+          !isInvoice &&
+          doc.uuid != null &&
+          ref.read(accountingBackendStrategyProvider) ==
+              AccountingBackendStrategy.ditto;
+      if (paymentTracked) {
+        close();
+        return;
+      }
       await repo.upsertDocument(
         businessId: businessId,
         kind: ui.kind,
@@ -232,20 +251,19 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
       return switch (tab) {
         DocTabFilter.all => true,
         DocTabFilter.draft => d.status == DocStatus.draft,
-        DocTabFilter.sent => d.status == DocStatus.sent,
+        DocTabFilter.sent =>
+          d.status == DocStatus.sent || d.status == DocStatus.partiallyPaid,
         DocTabFilter.overdue => d.status == DocStatus.overdue,
         DocTabFilter.paid => d.status == DocStatus.paid,
       };
     }).toList();
 
     final outstanding = _docs
-        .where(
-          (d) => d.status == DocStatus.sent || d.status == DocStatus.overdue,
-        )
-        .fold<int>(0, (s, d) => s + docTotals(d.lines).total);
+        .where(docIsOpen)
+        .fold<int>(0, (s, d) => s + docBalance(d));
     final overdue = _docs
         .where((d) => d.status == DocStatus.overdue)
-        .fold<int>(0, (s, d) => s + docTotals(d.lines).total);
+        .fold<int>(0, (s, d) => s + docBalance(d));
     final draftCount = _docs.where((d) => d.status == DocStatus.draft).length;
 
     return SingleChildScrollView(
@@ -400,7 +418,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: Text(
-                                    money(docTotals(d.lines).total),
+                                    money(docGrandTotal(d)),
                                     style: AccountingTokens.mono(
                                       fontWeight: FontWeight.w700,
                                     ),

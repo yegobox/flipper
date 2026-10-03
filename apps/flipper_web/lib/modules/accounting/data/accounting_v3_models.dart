@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-enum DocStatus { draft, sent, paid, overdue }
+/// [partiallyPaid] is never stored (Supabase only accepts the other four);
+/// readers derive it from a bill's amounts.
+enum DocStatus { draft, sent, partiallyPaid, paid, overdue }
 
 enum DocKind { invoice, bill }
 
@@ -31,6 +33,10 @@ class AccountingDocument {
     required this.status,
     required this.lines,
     this.uuid,
+    this.total,
+    this.amountPaid = 0,
+    this.source,
+    this.supplierId,
   });
 
   /// Human-readable number (e.g. INV-2210).
@@ -44,6 +50,21 @@ class AccountingDocument {
   /// Backend document UUID when loaded from Ditto / Supabase.
   final String? uuid;
 
+  /// Stored grand total. Purchase bills carry the real (VAT-inclusive)
+  /// purchase total here; older documents leave it null and the total is
+  /// derived from [lines].
+  final int? total;
+
+  /// Paid so far: upfront at purchase plus later payments (cached on the
+  /// document by `BillPaymentPoster`).
+  final int amountPaid;
+
+  /// Where the bill came from: `purchase`, `cashbook`, or null for Books.
+  final String? source;
+
+  /// Canonical `suppliers` row id, when linked.
+  final String? supplierId;
+
   AccountingDocument copyWith({
     String? id,
     String? who,
@@ -52,6 +73,10 @@ class AccountingDocument {
     DocStatus? status,
     List<DocLine>? lines,
     String? uuid,
+    int? total,
+    int? amountPaid,
+    String? source,
+    String? supplierId,
   }) => AccountingDocument(
     id: id ?? this.id,
     who: who ?? this.who,
@@ -60,6 +85,10 @@ class AccountingDocument {
     status: status ?? this.status,
     lines: lines ?? this.lines,
     uuid: uuid ?? this.uuid,
+    total: total ?? this.total,
+    amountPaid: amountPaid ?? this.amountPaid,
+    source: source ?? this.source,
+    supplierId: supplierId ?? this.supplierId,
   );
 }
 

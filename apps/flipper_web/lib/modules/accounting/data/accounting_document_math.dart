@@ -10,9 +10,29 @@ DocTotals docTotals(List<DocLine> lines, {double rate = 0.18}) {
   return DocTotals(subtotal: subtotal, vat: vat, total: subtotal + vat);
 }
 
+/// Grand total of a document: the stored total when present, else derived
+/// from its lines.
+int docGrandTotal(AccountingDocument doc) =>
+    doc.total ?? docTotals(doc.lines).total;
+
+/// Still owed on a document; never negative.
+int docBalance(AccountingDocument doc) {
+  if (doc.status == DocStatus.paid) return 0;
+  final left = docGrandTotal(doc) - doc.amountPaid;
+  return left < 0 ? 0 : left;
+}
+
+/// Sent, part-paid or overdue documents with money still owed.
+bool docIsOpen(AccountingDocument doc) =>
+    (doc.status == DocStatus.sent ||
+        doc.status == DocStatus.partiallyPaid ||
+        doc.status == DocStatus.overdue) &&
+    docBalance(doc) > 0;
+
 String docStatusLabel(DocStatus status) => switch (status) {
       DocStatus.draft => 'Draft',
       DocStatus.sent => 'Sent',
+      DocStatus.partiallyPaid => 'Part paid',
       DocStatus.paid => 'Paid',
       DocStatus.overdue => 'Overdue',
     };

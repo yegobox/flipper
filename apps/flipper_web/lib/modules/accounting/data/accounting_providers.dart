@@ -10,6 +10,8 @@ import 'package:flipper_web/modules/accounting/data/accounting_backend_config.da
 import 'package:flipper_web/modules/accounting/data/accounting_balances.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_v3_providers.dart'
+    show accountingBillsProvider;
 import 'package:flipper_web/modules/accounting/data/mapper/ledger_row_mapper.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart'
     show
@@ -643,9 +645,14 @@ final accountingArAgingProvider = Provider<List<AgingRow>>((ref) {
   return deriveArAging(txns);
 });
 
+/// What the business owes: open bills first (the pay-later record), then any
+/// legacy expense transactions left with a remaining balance.
 final accountingApAgingProvider = Provider<List<AgingRow>>((ref) {
   final txns = ref.watch(rawAllTransactionsStreamProvider).value ?? [];
-  return deriveApAging(txns);
+  return [
+    ...deriveApAgingFromBills(ref.watch(accountingBillsProvider)),
+    ...deriveApAging(txns),
+  ];
 });
 
 final accountingVatProvider = Provider<VatInfo?>((ref) {

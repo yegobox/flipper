@@ -1,4 +1,7 @@
+import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
+import 'package:intl/intl.dart';
 import 'package:flipper_web/modules/accounting/data/mapper/accounting_transaction_semantics.dart';
 
 /// Derive AR aging rows from open loan/credit sales in raw transaction maps.
@@ -65,6 +68,41 @@ List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
   }
 
   return rows;
+}
+
+/// Derive AP aging from open bills (purchases on credit, cashbook credit
+/// expenses, Books bills), bucketed by days past the due date: "current" is
+/// not yet due.
+List<AgingRow> deriveApAgingFromBills(
+  List<AccountingDocument> bills, {
+  DateTime? now,
+}) {
+  final today = now ?? DateTime.now();
+  final rows = <AgingRow>[];
+  for (final b in bills) {
+    if (!docIsOpen(b)) continue;
+    final due = _parseDisplayDate(b.due) ?? _parseDisplayDate(b.date) ?? today;
+    final buckets = _bucketAmount(docBalance(b), today.difference(due).inDays);
+    rows.add(AgingRow(
+      name: b.who.isEmpty ? 'Supplier' : b.who,
+      inv: b.id,
+      partyId: b.supplierId,
+      current: buckets.$1,
+      d30: buckets.$2,
+      d60: buckets.$3,
+      d90: buckets.$4,
+    ));
+  }
+  return rows;
+}
+
+DateTime? _parseDisplayDate(String raw) {
+  if (raw.isEmpty) return null;
+  try {
+    return DateFormat('d MMM y').parseLoose(raw);
+  } catch (_) {
+    return null;
+  }
 }
 
 (int, int, int, int) _bucketAmount(int amount, int days) {
