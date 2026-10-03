@@ -80,7 +80,12 @@ class SupabaseAccountingDocumentsRepository
     required String businessId,
     required DocKind kind,
     required String docNumber,
+    String? docId,
   }) async {
+    if (docId != null) {
+      await _client.from(_docsTable).delete().eq('id', docId);
+      return;
+    }
     await _client
         .from(_docsTable)
         .delete()

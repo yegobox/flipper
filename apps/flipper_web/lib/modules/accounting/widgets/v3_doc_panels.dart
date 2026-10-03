@@ -96,6 +96,15 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
     ];
   }
 
+  /// Recorded by a purchase or the cashbook (old purchase bills have only
+  /// the purchase link): its own poster owns the ledger entry.
+  bool get _postedElsewhere =>
+      widget.doc?.source != null || widget.doc?.purchaseId != null;
+
+  /// A waiting purchase's bill: it is recorded by approving the purchase.
+  bool get _waitingPurchaseDraft =>
+      _postedElsewhere && widget.doc?.status == DocStatus.draft;
+
   AccountingDocument _build(DocStatus status) {
     final filtered = _lines
         .where((l) => l.desc.isNotEmpty || l.price > 0)
@@ -106,8 +115,11 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
     // Purchase and cashbook bills were posted by their own poster: the ledger
     // will not follow an edit here, so their total and status stay as they
     // are (a waiting purchase's draft cannot be recorded from Books either).
-    final postedElsewhere = original?.source != null;
+    final postedElsewhere = _postedElsewhere;
     return AccountingDocument(
+      // Bill numbers repeat (two suppliers' invoice 42): the document id,
+      // not the number, says which bill this is.
+      uuid: original?.uuid,
       id: _id,
       who: _who,
       date: _date,
@@ -323,11 +335,13 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                 )
               else
                 AccountingButton(
-                  label: 'Record bill',
+                  label: _waitingPurchaseDraft
+                      ? 'Approve in Purchases'
+                      : 'Record bill',
                   icon: Icons.check,
                   primary: true,
-                  enabled: _valid,
-                  onPressed: _valid
+                  enabled: _valid && !_waitingPurchaseDraft,
+                  onPressed: _valid && !_waitingPurchaseDraft
                       ? () => widget.onSaved(_build(DocStatus.sent), 'send')
                       : null,
                 ),

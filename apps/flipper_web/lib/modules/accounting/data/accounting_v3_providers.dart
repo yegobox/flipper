@@ -423,6 +423,8 @@ final accountingSuppliersProvider = Provider<List<AccountingContact>>((ref) {
 // ─── Documents with overdue refresh ───────────────────────────────────────────
 
 DocStatus _effectiveStatus(AccountingDocument doc) {
+  // Its stored status says nothing about payment (see isLegacyPurchaseBill).
+  if (doc.isLegacyPurchaseBill) return doc.status;
   if (doc.status == DocStatus.sent) {
     if (doc.total != null && docBalance(doc) <= 0) return DocStatus.paid;
     try {

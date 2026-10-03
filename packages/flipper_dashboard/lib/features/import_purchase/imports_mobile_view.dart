@@ -51,6 +51,28 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
   /// approving creates a new product from the import.
   final Map<String, model.Variant> _links = {};
 
+  /// Name and prices the owner entered, by import item id. Reloads replace
+  /// the items with fresh copies from the server, so these are re-applied
+  /// until the item is approved or rejected.
+  final Map<String, ({String name, double supply, double retail})> _edits = {};
+
+  void _applyEdits(model.Variant item) {
+    final e = _edits[item.id];
+    if (e == null) return;
+    if (e.name.isNotEmpty) item.itemNm = e.name;
+    if (e.supply > 0) item.supplyPrice = e.supply;
+    if (e.retail > 0) {
+      item.retailPrice = e.retail;
+      item.prc = e.retail;
+      item.dftPrc = e.retail;
+    }
+  }
+
+  void _forget(String itemId) {
+    _links.remove(itemId);
+    _edits.remove(itemId);
+  }
+
   void _toast(String message, {bool error = false}) {
     if (mounted) showImportPurchaseToast(context, message, isError: error);
   }
@@ -79,15 +101,16 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
         _links.remove(item.id);
       }
     });
-    // Keep the edits on the item, as the desktop editor does, so a later
-    // Approve all sends them too.
-    if (result.name.isNotEmpty) item.itemNm = result.name;
-    if (result.supplyPrice > 0) item.supplyPrice = result.supplyPrice;
-    if (result.retailPrice > 0) {
-      item.retailPrice = result.retailPrice;
-      item.prc = result.retailPrice;
-      item.dftPrc = result.retailPrice;
-    }
+    // Keep the edits (on the item, as the desktop editor does, and across
+    // reloads) so a later Approve or Approve all sends them.
+    setState(
+      () => _edits[item.id] = (
+        name: result.name,
+        supply: result.supplyPrice,
+        retail: result.retailPrice,
+      ),
+    );
+    _applyEdits(item);
 
     final notifier = ref.read(importPurchaseViewModelProvider.notifier);
     try {
@@ -110,7 +133,7 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
           await notifier.replayRowJob(item.id);
           _toast('Retry succeeded');
       }
-      _links.remove(item.id);
+      if (mounted) setState(() => _forget(item.id));
     } catch (e) {
       _toast('Could not update "${_itemName(item)}": $e', error: true);
     }
@@ -157,7 +180,7 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
       await ref
           .read(importPurchaseViewModelProvider.notifier)
           .approveAllImports(variants: waiting, variantMap: variantMap);
-      setState(() => waiting.forEach((v) => _links.remove(v.id)));
+      if (mounted) setState(() => waiting.map((v) => v.id).forEach(_forget));
       _toast('Approved ${waiting.length} items');
     } catch (e) {
       _toast('Could not approve all: $e', error: true);
@@ -169,6 +192,7 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
     final state = ref.watch(importPurchaseViewModelProvider);
     final notifier = ref.read(importPurchaseViewModelProvider.notifier);
     final filter = state.importStatusFilter;
+    state.importItems.forEach(_applyEdits);
     final items = state.importItems
         .where((v) => ImportPurchaseHelpers.matchesImportFilter(v, filter))
         .toList();
@@ -536,8 +560,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
   late model.Variant? _link = widget.link;
   String? _error;
 
-  static double _num(String raw) =>
-      parseAmount(raw);
+  static double _num(String raw) => parseAmount(raw);
 
   @override
   void dispose() {
@@ -716,17 +739,21 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
               ),
             ],
             const SizedBox(height: 18),
-            if (widget.canRetry)
-              FilledButton.icon(
+            // Retry replays the failed request as it was; Approve sends a new
+            // one with what is on screen now.
+            if (widget.canRetry) ...[
+              OutlinedButton.icon(
                 onPressed: () =>
                     Navigator.of(context).pop(_decision(_ItemAction.retry)),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry last attempt'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
+                label: const Text('Retry with previous values'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(46),
                 ),
-              )
-            else if (waiting) ...[
+              ),
+              const SizedBox(height: 10),
+            ],
+            if (waiting) ...[
               Row(
                 children: [
                   Expanded(
