@@ -23,7 +23,10 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
     required String branchId,
     required HttpClientInterface flipperHttpClient,
   }) async {
-    return ProxyService.legacyStrategy.deleteBranch(branchId: branchId, flipperHttpClient: flipperHttpClient);
+    return ProxyService.legacyStrategy.deleteBranch(
+      branchId: branchId,
+      flipperHttpClient: flipperHttpClient,
+    );
   }
 
   // Implemented Ditto-natively in [CapellaFavoriteMixin]; abstract here so this
@@ -32,7 +35,9 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
   @override
   Future<int> deleteFavoriteByIndex({required String favIndex});
 
-  Future<void> deleteAllTransactionItems({required String transactionId}) async {
+  Future<void> deleteAllTransactionItems({
+    required String transactionId,
+  }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       talker.error('Ditto not initialized for deleteAllTransactionItems');
@@ -71,8 +76,7 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
 
     try {
       final id = transactionItemId.id;
-      const query =
-          "DELETE FROM transaction_items WHERE _id = :id OR id = :id";
+      const query = "DELETE FROM transaction_items WHERE _id = :id OR id = :id";
       await ditto.store.execute(query, arguments: {'id': id});
       talker.info('Deleted transaction item $id from Ditto');
 
@@ -83,7 +87,8 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
       cartLineDocCache.forget(txnId ?? '');
       if (txnId != null) {
         final contrib =
-            transactionItemId.price.toDouble() * transactionItemId.qty.toDouble();
+            transactionItemId.price.toDouble() *
+            transactionItemId.qty.toDouble();
         await _adjustTransactionSubtotalByDelta(ditto, txnId, -contrib);
       }
     } catch (e) {
@@ -105,21 +110,16 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
     );
     if (row.items.isEmpty) return;
 
-    final current = (Map<String, dynamic>.from(row.items.first.value)['subTotal']
-            as num?)
-        ?.toDouble() ??
+    final current =
+        (Map<String, dynamic>.from(row.items.first.value)['subTotal'] as num?)
+            ?.toDouble() ??
         0.0;
     final newSubTotal = current + delta;
 
     final now = DateTime.now().toIso8601String();
     await ditto.store.execute(
       'UPDATE transactions SET subTotal = :subTotal, updatedAt = :ua, lastTouched = :lt WHERE _id = :tid OR id = :tid',
-      arguments: {
-        'subTotal': newSubTotal,
-        'ua': now,
-        'lt': now,
-        'tid': tid,
-      },
+      arguments: {'subTotal': newSubTotal, 'ua': now, 'lt': now, 'tid': tid},
     );
   }
 
@@ -128,7 +128,9 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
   Future<int> deleteTransactionByIndex({
     required String transactionIndex,
   }) async {
-    return ProxyService.legacyStrategy.deleteTransactionByIndex(transactionIndex: transactionIndex);
+    return ProxyService.legacyStrategy.deleteTransactionByIndex(
+      transactionIndex: transactionIndex,
+    );
   }
 
   @override
