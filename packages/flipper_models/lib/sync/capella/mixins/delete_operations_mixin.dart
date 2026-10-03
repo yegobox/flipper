@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/utils/cart_line_doc_cache.dart';
+import 'package:flipper_models/sync/utils/catalog_delete.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/sync/interfaces/delete_operations_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -198,6 +201,103 @@ mixin CapellaDeleteOperationsMixin implements DeleteOperationsInterface {
         return false;
       }
     }
+
+    // 'variant' removes the variant and its stock only: product entry deletes
+    // variant rows of a product it is about to save. 'catalogItem' is the POS
+    // catalog's delete — the tile is the item, so a product left with no
+    // variants goes too instead of lingering invisible but still syncing.
+    if (endPoint == 'variant' || endPoint == 'catalogItem') {
+      try {
+        final removed = await deleteVariantDocs(ditto.store, variantId: id);
+        final docs = [removed];
+        String? emptiedProductId;
+        final productId = removed.productId;
+        if (endPoint == 'catalogItem' &&
+            productId != null &&
+            !await productHasVariants(ditto.store, productId)) {
+          docs.addAll(
+            await deleteProductDocs(ditto.store, productId: productId),
+          );
+          emptiedProductId = productId;
+        }
+        _forgetDeletedCatalogDocs(docs);
+        talker.info('Deleted variant $id from Ditto');
+        unawaited(
+          _deleteCatalogRowsFromSupabase(docs, productId: emptiedProductId),
+        );
+        return true;
+      } catch (e, s) {
+        talker.error('Error deleting variant $id from Ditto: $e\n$s');
+        return false;
+      }
+    }
+
+    if (endPoint == 'product') {
+      try {
+        final docs = await deleteProductDocs(ditto.store, productId: id);
+        _forgetDeletedCatalogDocs(docs);
+        talker.info(
+          'Deleted product $id and ${docs.length} variant(s) from Ditto',
+        );
+        unawaited(_deleteCatalogRowsFromSupabase(docs, productId: id));
+        return true;
+      } catch (e, s) {
+        talker.error('Error deleting product $id from Ditto: $e\n$s');
+        return false;
+      }
+    }
+
+    if (endPoint == 'composite') {
+      // `saveComposite` writes composites to Ditto.
+      try {
+        await ditto.store.execute(
+          'DELETE FROM composites WHERE _id = :id OR id = :id',
+          arguments: {'id': id},
+        );
+        return true;
+      } catch (e) {
+        talker.error('Error deleting composite $id from Ditto: $e');
+        return false;
+      }
+    }
     return false;
+  }
+
+  void _forgetDeletedCatalogDocs(List<DeletedVariantDocs> docs) {
+    deletedCatalogIds.addAll(docs.expand((d) => [d.variantId, d.stockId]));
+  }
+
+  /// Supabase keeps its own copy of the catalog: data-connector only forwards
+  /// Ditto inserts, never deletes, and its imports/purchases approval reloads a
+  /// variant from Supabase by id and writes it back into Ditto. Best effort and
+  /// off the UI's path — the Ditto delete above is what the catalog reads.
+  Future<void> _deleteCatalogRowsFromSupabase(
+    List<DeletedVariantDocs> docs, {
+    String? productId,
+  }) async {
+    try {
+      final client = Supabase.instance.client;
+      final stockIds = [
+        for (final d in docs)
+          if (d.stockId != null) d.stockId!,
+      ];
+      final variantIds = [for (final d in docs) d.variantId];
+      if (stockIds.isNotEmpty) {
+        await client.from('stocks').delete().inFilter('id', stockIds);
+      }
+      if (variantIds.isNotEmpty) {
+        await client.from('variants').delete().inFilter('id', variantIds);
+      }
+      if (productId != null) {
+        await client.from('variants').delete().eq('product_id', productId);
+        await client.from('products').delete().eq('id', productId);
+      }
+      talker.info(
+        'Deleted ${variantIds.length} variant(s)'
+        '${productId != null ? ' and product $productId' : ''} from Supabase',
+      );
+    } catch (e) {
+      talker.warning('Supabase catalog delete skipped or failed: $e');
+    }
   }
 }
