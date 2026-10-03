@@ -327,7 +327,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     DashboardGaugeSnapshot current,
     DashboardGaugeSnapshot? previous,
   ) {
-    if (current.isEmpty) return null;
+    if (!current.hasActivity) return null;
     final currentVal = current.displayValue(profitType);
     final prevVal = previous?.displayValue(profitType) ?? 0;
     if (prevVal == 0) return null;
@@ -360,7 +360,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   deductions: snapshot.deductions,
                   profitType: profitType,
                   periodLabel: transactionPeriod,
-                  isEmpty: snapshot.isEmpty,
+                  isEmpty: !snapshot.hasActivity,
                   deltaPercent: _deltaPercent(snapshot, previous),
                   comparisonLabel:
                       dashboardComparisonPeriodLabel(transactionPeriod),
@@ -717,13 +717,14 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     DashboardGaugeSnapshot snapshot,
     DashboardGaugeSnapshot? previous,
   ) {
-    final isEmpty = snapshot.isEmpty;
-    final revenueDelta = isEmpty
-        ? null
-        : _percentChange(snapshot.revenue, previous?.revenue ?? 0);
-    final expenseDelta = isEmpty
-        ? null
-        : _percentChange(snapshot.deductions, previous?.deductions ?? 0);
+    final hasRevenue = snapshot.hasRevenue;
+    final hasExpenses = snapshot.hasDeductions;
+    final revenueDelta = hasRevenue
+        ? _percentChange(snapshot.revenue, previous?.revenue ?? 0)
+        : null;
+    final expenseDelta = hasExpenses
+        ? _percentChange(snapshot.deductions, previous?.deductions ?? 0)
+        : null;
 
     return Row(
       children: [
@@ -732,8 +733,10 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             icon: DashboardQuickAccessSvgs.revenueSummaryIcon(),
             iconBackground: const Color(0xFFE6F7EF),
             label: 'Revenue',
-            valueText: isEmpty ? '0' : formatNumber(snapshot.revenue),
-            valueColor: isEmpty ? Colors.grey.shade400 : _summaryRevenueStroke,
+            valueText: hasRevenue ? formatNumber(snapshot.revenue) : '0',
+            valueColor: hasRevenue
+                ? _summaryRevenueStroke
+                : Colors.grey.shade400,
             deltaPercent: revenueDelta,
             isUp: revenueDelta != null && revenueDelta >= 0,
           ),
@@ -744,8 +747,10 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             icon: DashboardQuickAccessSvgs.expensesSummaryIcon(),
             iconBackground: const Color(0xFFFDECEC),
             label: 'Expenses',
-            valueText: isEmpty ? '0' : formatNumber(snapshot.deductions),
-            valueColor: isEmpty ? Colors.grey.shade400 : _summaryExpenseStroke,
+            valueText: hasExpenses ? formatNumber(snapshot.deductions) : '0',
+            valueColor: hasExpenses
+                ? _summaryExpenseStroke
+                : Colors.grey.shade400,
             deltaPercent: expenseDelta,
             isUp: expenseDelta != null && expenseDelta >= 0,
           ),

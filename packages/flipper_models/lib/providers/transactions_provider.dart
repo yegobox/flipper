@@ -755,6 +755,14 @@ class DashboardGaugeSnapshot {
 
   bool get isEmpty => transactionCount == 0;
 
+  /// Revenue / Expenses cards key off their own totals: [isEmpty] counts
+  /// sales only, so a day with only cash-outs used to show Expenses as 0.
+  bool get hasRevenue => revenue != 0;
+  bool get hasDeductions => deductions != 0;
+
+  /// Anything to plot on the profit gauge (a cash-out alone moves net profit).
+  bool get hasActivity => transactionCount > 0 || hasDeductions;
+
   /// Profit margin fill for the semicircle gauge (0–1).
   double fillFraction(String profitType) {
     if (revenue <= 0) return 0;

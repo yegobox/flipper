@@ -8,6 +8,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_rules.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -634,8 +635,11 @@ class CapellaSync extends AiStrategyImpl
           transaction.lastPaymentDate = DateTime.now().toUtc();
           transaction.lastPaymentAmount = cashReceived;
         } else {
-          transaction.cashReceived =
-              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.cashReceived = cashMovementCashReceived(
+            previous: transaction.cashReceived?.toDouble(),
+            received: cashReceived,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+          );
           transaction.remainingBalance =
               computedSubTotal - (transaction.cashReceived ?? 0.0);
         }
@@ -645,7 +649,11 @@ class CapellaSync extends AiStrategyImpl
       transaction.categoryId = categoryId;
       transaction.isIncome = isIncome;
       transaction.isExpense = !isIncome;
-      transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
+      transaction.paymentType = resolveCollectPaymentType(
+        requested: paymentType,
+        boxPaymentType: ProxyService.box.paymentType(),
+        isUtilityCashbookMovement: isUtilityCashbookMovement,
+      );
 
       // Attach (match-by-phone or create) the customer to the in-memory
       // transaction BEFORE persisting completed status, so the data-connector
@@ -805,6 +813,20 @@ class CapellaSync extends AiStrategyImpl
     String? note,
     bool skipPersonalGoalAutoSweep = false,
   }) async {
+    // Resolve the variant before minting the pending row: failing after
+    // [manageTransaction] left an orphan PENDING movement that the next one
+    // silently reused.
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
     final pending = await manageTransaction(
       branchId: branchId,
       transactionType: utilityVariantName,
@@ -816,15 +838,16 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
-    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
-      db: this,
-      branchId: branchId,
-      utilityName: utilityVariantName,
-    );
-    if (baseVariant == null) {
-      throw StateError(
-        'completeCashMovement: missing utility variant for $utilityVariantName',
+    // A pending movement left by an interrupted save still carries its line;
+    // the new line would merge into it (same utility variant id) and inflate
+    // the recorded quantity. One movement is exactly one line.
+    final staleLines = await transactionItems(transactionId: pending.id);
+    if (staleLines.isNotEmpty) {
+      talker.warning(
+        'completeCashMovement: clearing ${staleLines.length} stale line(s) '
+        'on reused pending ${pending.id}',
       );
+      await deleteAllTransactionItems(transactionId: pending.id);
     }
 
     final linedVariant = cloneUtilityVariantForCashLine(
