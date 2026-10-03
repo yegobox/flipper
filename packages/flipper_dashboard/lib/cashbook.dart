@@ -4,7 +4,8 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_dashboard/widgets/momo_transaction_form.dart';
+import 'package:flipper_dashboard/cashbook_form_rules.dart';
+import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -15,7 +16,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -48,29 +48,6 @@ abstract final class _CashbookColors {
 
 enum _RecentTxFilter { all, cashIn, cashOut, momo }
 
-enum _PaymentSheetChoice { cash, momo }
-
-/// Which category id should appear selected in the cashbook grid.
-///
-/// When the user taps a tile, [optimisticFocused] is set immediately so the UI
-/// does not wait on persistence; otherwise the focused row from [categories] is used.
-String? resolvedCashbookSelectedCategoryId(
-  List<Category> categories,
-  Category? optimisticFocused,
-) {
-  if (optimisticFocused != null && optimisticFocused.id.isNotEmpty) {
-    return optimisticFocused.id;
-  }
-  try {
-    final focused = categories.firstWhere(
-      (c) => c.focused && (c.active ?? false),
-    );
-    return focused.id;
-  } catch (_) {
-    return null;
-  }
-}
-
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
   final bool isBigScreen;
@@ -84,9 +61,18 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  /// Track if MoMo transaction form is active
-  bool _isMomoMode = false;
-  String _momoTransactionType = TransactionType.cashIn;
+  /// Form-local choices for the entry being recorded. Never written to the
+  /// shared category `focused`/`active` flags.
+  String? _selectedCategoryId;
+
+  /// Category made via "+ New" on this screen. [categoryProvider] is
+  /// refreshed asynchronously, so a quick Save can run before the stream
+  /// carries it; the save lookup falls back to this copy.
+  Category? _createdCategory;
+  String _paymentMethod = cashbookMethodCash;
+
+  /// Seeds [_selectedCategoryId] once categories load for a new entry.
+  bool _categorySeedPending = false;
 
   _RecentTxFilter _recentTxFilter = _RecentTxFilter.all;
 
@@ -129,24 +115,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<List<Category>>>(categoryProvider, (previous, next) {
-      next.whenData((list) {
-        final optimistic = ref.read(optimisticFocusedCategoryProvider);
-        if (optimistic == null) return;
-        Category? focusedDb;
-        try {
-          focusedDb = list.firstWhere(
-            (c) => c.focused && (c.active ?? false),
-          );
-        } catch (_) {
-          focusedDb = null;
-        }
-        if (focusedDb != null && focusedDb.id == optimistic.id) {
-          ref.read(optimisticFocusedCategoryProvider.notifier).clear();
-        }
-      });
-    });
-
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
@@ -166,15 +134,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       },
       builder: (context, model, child) {
         return PopScope(
-          canPop: !_isMomoMode && !model.newTransactionPressed,
+          canPop: !model.newTransactionPressed,
           onPopInvokedWithResult: (didPop, _) {
             if (didPop) return;
-            if (_isMomoMode) {
-              setState(() {
-                _isMomoMode = false;
-              });
-              return;
-            }
             if (model.newTransactionPressed) {
               _cancelTransaction(model);
             }
@@ -252,12 +214,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   void _onCashbookClosePressed(CoreViewModel model) {
-    if (_isMomoMode) {
-      setState(() {
-        _isMomoMode = false;
-      });
-      return;
-    }
     if (model.newTransactionPressed) {
       _cancelTransaction(model);
       return;
@@ -315,29 +271,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget _buildMainContent(CoreViewModel model) {
-    if (_isMomoMode) {
-      return _buildMomoTransactionContent(model);
-    }
     return model.newTransactionPressed
         ? _buildTransactionForm(model)
         : _buildTransactionList(model);
-  }
-
-  Widget _buildMomoTransactionContent(CoreViewModel model) {
-    return MomoTransactionForm(
-      transactionType: _momoTransactionType,
-      coreViewModel: model,
-      onCancel: () {
-        setState(() {
-          _isMomoMode = false;
-        });
-      },
-      onComplete: () {
-        setState(() {
-          _isMomoMode = false;
-        });
-      },
-    );
   }
 
   Widget _buildTransactionList(CoreViewModel model) {
@@ -1001,95 +937,18 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           _buildTransactionButton(
             text: '↑ ${TransactionType.cashIn}',
             color: _CashbookColors.primaryGreen,
-            onPressed: () => unawaited(
-              _showPaymentMethodSelector(model, TransactionType.cashIn),
-            ),
+            onPressed: () =>
+                _startNewTransaction(model, TransactionType.cashIn),
           ),
           _buildTransactionButton(
             text: '↓ ${TransactionType.cashOut}',
             color: const Color(0xFFFF0331),
-            onPressed: () => unawaited(
-              _showPaymentMethodSelector(model, TransactionType.cashOut),
-            ),
+            onPressed: () =>
+                _startNewTransaction(model, TransactionType.cashOut),
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _showPaymentMethodSelector(
-    CoreViewModel model,
-    String transactionType,
-  ) async {
-    final isIncome = transactionType == TransactionType.cashIn;
-    final color = isIncome
-        ? _CashbookColors.primaryGreen
-        : const Color(0xFFFF0331);
-
-    final choice = await showModalBottomSheet<_PaymentSheetChoice>(
-      context: context,
-      useRootNavigator: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select Payment Method',
-                style: Theme.of(
-                  sheetContext,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  child: Icon(Icons.money, color: color),
-                ),
-                title: const Text('Cash'),
-                subtitle: const Text('Regular cash transaction'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_PaymentSheetChoice.cash),
-              ),
-              const Divider(),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: color.withValues(alpha: 0.1),
-                  child: Icon(Icons.phone_android, color: color),
-                ),
-                title: const Text('MoMo/Airtel'),
-                subtitle: const Text('Mobile money transaction'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_PaymentSheetChoice.momo),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (!context.mounted) return;
-    switch (choice) {
-      case _PaymentSheetChoice.cash:
-        _startNewTransaction(model, transactionType);
-      case _PaymentSheetChoice.momo:
-        _startMomoTransaction(transactionType);
-      case null:
-        break;
-    }
-  }
-
-  void _startMomoTransaction(String transactionType) {
-    setState(() {
-      _isMomoMode = true;
-      _momoTransactionType = transactionType;
-    });
-    HapticFeedback.lightImpact();
   }
 
   Widget _buildTransactionButton({
@@ -1120,6 +979,12 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }) {
     _amountController.clear();
     _descriptionController.clear();
+    _paymentMethod = initialCashbookPaymentMethod(
+      ProxyService.box.readString(key: cashbookLastPaymentMethodKey),
+    );
+    _selectedCategoryId = null;
+    _categorySeedPending = true;
+    HapticFeedback.lightImpact();
 
     void resetKeypad() {
       ref.read(keypadProvider.notifier).reset();
@@ -1180,18 +1045,27 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildCashTypeSegment(model),
-                    const SizedBox(height: 18),
+                    _buildEntryTypeHeader(isIncome),
+                    const SizedBox(height: 14),
                     _buildAmountSection(currency),
                     const SizedBox(height: 20),
                     Text(
-                      isIncome ? 'CASH IN FOR' : 'CASH OUT FOR',
+                      isIncome ? 'RECEIVED AS' : 'PAID WITH',
                       style: _captionLabelStyle(context),
                     ),
                     const SizedBox(height: 10),
-                    _buildCategoryGrid(model),
+                    _buildPaymentMethodChips(),
+                    const SizedBox(height: 20),
+                    Text(
+                      isIncome
+                          ? 'CASH IN FOR (OPTIONAL)'
+                          : 'CASH OUT FOR (OPTIONAL)',
+                      style: _captionLabelStyle(context),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildCategoryChips(isIncome),
                     const SizedBox(height: 18),
-                    Text('DESCRIPTION', style: _captionLabelStyle(context)),
+                    Text('NOTE', style: _captionLabelStyle(context)),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _descriptionController,
@@ -1241,33 +1115,38 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     );
   }
 
-  Widget _buildCashTypeSegment(CoreViewModel model) {
-    final selected = <String>{model.newTransactionType};
-    return SegmentedButton<String>(
-      segments: const [
-        ButtonSegment<String>(
-          value: TransactionType.cashIn,
-          label: Text('Cash In'),
-        ),
-        ButtonSegment<String>(
-          value: TransactionType.cashOut,
-          label: Text('Cash Out'),
-        ),
-      ],
-      emptySelectionAllowed: false,
-      selected: selected,
-      onSelectionChanged: (Set<String> next) {
-        if (next.isEmpty) return;
-        model.newTransactionType = next.first;
-        model.notifyListeners();
-      },
-      style: SegmentedButton.styleFrom(
-        selectedForegroundColor: Colors.white,
-        selectedBackgroundColor: _CashbookColors.primaryGreen,
-        foregroundColor: Colors.grey.shade800,
-        backgroundColor: _CashbookColors.beigeInactive,
-        side: BorderSide(color: Colors.grey.shade300),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+  /// The Cash In / Cash Out button already chose the direction; show it
+  /// instead of offering a toggle that could flip it by accident.
+  Widget _buildEntryTypeHeader(bool isIncome) {
+    final color = isIncome
+        ? _CashbookColors.cashInGreen
+        : _CashbookColors.cashOutRed;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isIncome
+            ? _CashbookColors.cashInSurface
+            : _CashbookColors.cashOutSurface,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isIncome ? Icons.south_west_rounded : Icons.north_east_rounded,
+            color: color,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isIncome ? 'Money coming in' : 'Money going out',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1393,203 +1272,153 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     );
   }
 
-  List<Category> _sortedCategoriesForGrid(List<Category> all) {
-    final active = all.where((c) => c.active ?? false).toList();
-    active.sort((a, b) {
-      final af = a.focused ? 0 : 1;
-      final bf = b.focused ? 0 : 1;
-      if (af != bf) return af.compareTo(bf);
-      return (a.name ?? '').compareTo(b.name ?? '');
-    });
-    return active.take(3).toList();
+  Widget _buildPaymentMethodChips() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final m in cashbookPaymentMethods)
+          _choiceChip(
+            label: m.label,
+            icon: m.value == cashbookMethodCash
+                ? Icons.payments_outlined
+                : Icons.phone_android_rounded,
+            selected: _paymentMethod == m.value,
+            onTap: () => setState(() => _paymentMethod = m.value),
+          ),
+      ],
+    );
   }
 
-  String? _resolvedSelectedCategoryId(List<Category> categories) {
-    final optimistic = ref.watch(optimisticFocusedCategoryProvider);
-    return resolvedCashbookSelectedCategoryId(categories, optimistic);
-  }
-
-  IconData _categorySlotIcon(int index) {
-    switch (index) {
-      case 0:
-        return Icons.person_outline_rounded;
-      case 1:
-        return Icons.business_center_outlined;
-      default:
-        return Icons.layers_outlined;
-    }
-  }
-
-  Widget _buildCategoryGrid(CoreViewModel model) {
+  Widget _buildCategoryChips(bool isIncome) {
     final categoriesAsync = ref.watch(categoryProvider);
 
     return categoriesAsync.when(
       data: (list) {
-        final tiles = _sortedCategoriesForGrid(list);
-        final selectedId = _resolvedSelectedCategoryId(list);
+        if (_categorySeedPending) {
+          _categorySeedPending = false;
+          _selectedCategoryId = initialCashbookCategoryId(
+            list.map((c) => c.id),
+            ProxyService.box.readString(
+              key: cashbookLastCategoryKey(isIncome: isIncome),
+            ),
+          );
+        }
+        final ordered = orderCashbookCategories<Category>(
+          list,
+          id: (c) => c.id,
+          name: (c) => c.name ?? '',
+          selectedId: _selectedCategoryId,
+        );
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final spacing = 10.0;
-            final cellWidth = (constraints.maxWidth - spacing) / 2;
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: [
-                ...List.generate(tiles.length, (i) {
-                  final c = tiles[i];
-                  final sel = selectedId != null && selectedId == c.id;
-                  return SizedBox(
-                    width: cellWidth,
-                    child: _categoryChoiceTile(
-                      label: c.name ?? '',
-                      icon: _categorySlotIcon(i),
-                      selected: sel,
-                      onTap: () => _onCategoryTap(model, c),
-                    ),
-                  );
-                }),
-                SizedBox(
-                  width: cellWidth,
-                  child: _addCategoryTile(onTap: _openCategoriesForTransaction),
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final c in ordered)
+              _choiceChip(
+                label: c.name ?? '',
+                selected: c.id == _selectedCategoryId,
+                // Tapping the selected chip clears it: the category is optional.
+                onTap: () => setState(
+                  () => _selectedCategoryId = c.id == _selectedCategoryId
+                      ? null
+                      : c.id,
                 ),
-              ],
-            );
-          },
+              ),
+            ActionChip(
+              avatar: Icon(Icons.add, size: 18, color: Colors.grey.shade700),
+              label: const Text('New'),
+              onPressed: () => _createCategoryInline(list, isIncome),
+              backgroundColor: Colors.white,
+              side: BorderSide(color: Colors.grey.shade400),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ],
         );
       },
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(12),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       error: (e, _) => Text('Categories error: $e'),
     );
   }
 
-  Widget _categoryChoiceTile({
+  Widget _choiceChip({
     required String label,
-    required IconData icon,
     required bool selected,
     required VoidCallback onTap,
+    IconData? icon,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-          decoration: BoxDecoration(
-            color: selected
-                ? _CashbookColors.mintAmountBg
-                : _CashbookColors.beigeInactive,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected
-                  ? _CashbookColors.primaryGreen
-                  : Colors.grey.shade300,
-              width: selected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: selected
-                    ? const Color(0xFF166534)
-                    : Colors.grey.shade700,
-                size: 26,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: selected
-                      ? const Color(0xFF166534)
-                      : Colors.grey.shade800,
-                ),
-              ),
-            ],
-          ),
-        ),
+    final fg = selected ? const Color(0xFF166534) : Colors.grey.shade800;
+    return ChoiceChip(
+      avatar: icon == null ? null : Icon(icon, size: 18, color: fg),
+      label: Text(label),
+      selected: selected,
+      showCheckmark: icon == null,
+      onSelected: (_) {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      labelStyle: TextStyle(fontWeight: FontWeight.w600, color: fg),
+      selectedColor: _CashbookColors.mintAmountBg,
+      backgroundColor: _CashbookColors.beigeInactive,
+      side: BorderSide(
+        color: selected ? _CashbookColors.primaryGreen : Colors.grey.shade300,
+        width: selected ? 1.5 : 1,
       ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
-  Widget _addCategoryTile({required VoidCallback onTap}) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: CustomPaint(
-          painter: _DashedRoundedBorderPainter(
-            color: Colors.grey.shade400,
-            radius: 14,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.add, color: Colors.grey.shade600, size: 26),
-                const SizedBox(height: 8),
-                Text(
-                  'Add new',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+  /// Adds a category without leaving the form and selects it.
+  Future<void> _createCategoryInline(
+    List<Category> existing,
+    bool isIncome,
+  ) async {
+    final selectedId = await showCashbookNewCategorySheet(
+      context: context,
+      isIncome: isIncome,
+      existing: [for (final c in existing) (id: c.id, name: c.name ?? '')],
+      onCreate: _addCategory,
     );
+    if (!mounted || selectedId == null) return;
+    setState(() => _selectedCategoryId = selectedId);
   }
 
-  Future<void> _onCategoryTap(CoreViewModel model, Category category) async {
-    ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
-    if (mounted) setState(() {});
-
-    final ok = await model.updateCategoryCore(category: category);
-    if (!mounted) return;
-    if (!ok) {
-      ref.read(optimisticFocusedCategoryProvider.notifier).clear();
-      setState(() {});
-      return;
+  /// Persists a new category and returns its id. Throws on failure so the
+  /// sheet can show the error in place.
+  Future<String> _addCategory(String name) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) throw StateError('No active branch');
+    final now = DateTime.now().toUtc();
+    final draft = Category(
+      name: name,
+      branchId: branchId,
+      active: true,
+      focused: false,
+    );
+    try {
+      await ProxyService.strategy.addCategory(
+        id: draft.id,
+        name: name,
+        branchId: branchId,
+        active: true,
+        focused: false,
+        lastTouched: now,
+        createdAt: now,
+        deletedAt: null,
+      );
+    } catch (e) {
+      talker.error('Cash book: create category failed: $e');
+      rethrow;
     }
+    _createdCategory = draft;
     ref.invalidate(categoryProvider);
-    final bid = ProxyService.box.getBranchId();
-    if (bid != null) {
-      ref.invalidate(categoriesProvider(branchId: bid));
-    }
-    setState(() {});
-  }
-
-  Future<void> _openCategoriesForTransaction() async {
-    final routerService = locator<RouterService>();
-    await routerService.navigateTo(
-      ListCategoriesRoute(modeOfOperation: 'transaction'),
-    );
-    if (!mounted) return;
-    ref.invalidate(categoryProvider);
-    final bid = ProxyService.box.getBranchId();
-    if (bid != null) {
-      ref.invalidate(categoriesProvider(branchId: bid));
-    }
+    return draft.id;
   }
 
   Widget _buildFormFooter(CoreViewModel model) {
@@ -1668,15 +1497,14 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final transactionType = model.newTransactionType;
 
     final String branchId = ProxyService.box.getBranchId()!;
-    // Pending streams stay on SQLite; recent list uses Capella ([cashbookRecentTransactionsProvider]).
-    final Category? category = await ProxyService.strategy.activeCategory(
-      branchId: branchId,
+    final selectedId = _selectedCategoryId;
+    final category = resolveCashbookSelectedCategory<Category>(
+      selectedId: selectedId,
+      loaded: ref.read(categoryProvider).value ?? const <Category>[],
+      createdHere: _createdCategory,
+      id: (c) => c.id,
     );
-
-    if (category == null) {
-      showWarningNotification(context, 'Please select a category first');
-      return;
-    }
+    final paymentMethod = _paymentMethod;
 
     final String bhfId = (await ProxyService.box.bhfId()) ?? '00';
 
@@ -1697,7 +1525,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         countryCode: countryCode,
         bhfId: bhfId,
         model: model,
-        paymentType: ProxyService.box.paymentType() ?? 'Cash',
+        paymentType: paymentMethod,
         cashReceived: amount,
         discount: 0,
         isIncome: isIncome,
@@ -1711,11 +1539,32 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         return;
       }
 
+      unawaited(
+        ProxyService.box.writeString(
+          key: cashbookLastPaymentMethodKey,
+          value: paymentMethod,
+        ),
+      );
+      if (category != null) {
+        unawaited(
+          ProxyService.box.writeString(
+            key: cashbookLastCategoryKey(isIncome: isIncome),
+            value: category.id,
+          ),
+        );
+      } else {
+        ProxyService.box.remove(
+          key: cashbookLastCategoryKey(isIncome: isIncome),
+        );
+      }
+
       final pgIntentBefore = ref.read(personalGoalCashInIntentProvider);
       var popAfterPersonalGoalCashIn = false;
       if (pgIntentBefore != null && isIncome) {
         try {
-          await ref.read(personalGoalsDataSourceProvider).addToGoalSavedAmount(
+          await ref
+              .read(personalGoalsDataSourceProvider)
+              .addToGoalSavedAmount(
                 goalId: pgIntentBefore.goalId,
                 branchId: branchId,
                 amount: amount,
@@ -1745,12 +1594,14 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           return;
         }
         container.refresh(transactionItemsProvider(transactionId: tid));
-        container.refresh(pendingTransactionStreamProvider(isExpense: !wasIncome));
-        SchedulerBinding.instance.scheduleTask(() {
-          container.invalidate(dashboardTransactionsProvider);
-          container.invalidate(cashbookRecentTransactionsProvider);
-          container.invalidate(transactionsScreenTransactionsProvider);
-        }, Priority.idle);
+        container.refresh(
+          pendingTransactionStreamProvider(isExpense: !wasIncome),
+        );
+        // Re-subscribe the home dashboard so the movement shows at once rather
+        // than whenever its Ditto observer next fires.
+        container.invalidate(dashboardGaugeSnapshotProvider);
+        container.invalidate(cashbookRecentTransactionsProvider);
+        container.invalidate(transactionsScreenTransactionsProvider);
         if (popAfterPersonalGoalCashIn &&
             context.mounted &&
             Navigator.of(context).canPop()) {
@@ -1775,7 +1626,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required String transactionType,
     required String countryCode,
     required String bhfId,
-    required Category category,
+    required Category? category,
     String? note,
     bool skipPersonalGoalAutoSweep = false,
   }) async {
@@ -1803,8 +1654,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         countryCode: countryCode,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
-        transactionTypeForRecord: category.name ?? TransactionType.sale,
-        categoryId: category.id.toString(),
+        // No category: the record is titled by its direction.
+        transactionTypeForRecord: category?.name ?? transactionType,
+        categoryId: category?.id,
         note: note,
         skipPersonalGoalAutoSweep: skipPersonalGoalAutoSweep,
       );
@@ -1819,43 +1671,5 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       talker.error(s);
       rethrow;
     }
-  }
-}
-
-/// Draws a dashed rounded rectangle behind [child] content.
-final class _DashedRoundedBorderPainter extends CustomPainter {
-  _DashedRoundedBorderPainter({required this.color, required this.radius});
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Radius.circular(radius),
-    );
-    final path = Path()..addRRect(rect);
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-
-    const dashLen = 5.0;
-    const gap = 4.0;
-    for (final metric in path.computeMetrics()) {
-      double dist = 0;
-      while (dist < metric.length) {
-        final next = (dist + dashLen).clamp(0.0, metric.length);
-        final extract = metric.extractPath(dist, next);
-        canvas.drawPath(extract, paint);
-        dist = next + gap;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedRoundedBorderPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.radius != radius;
   }
 }

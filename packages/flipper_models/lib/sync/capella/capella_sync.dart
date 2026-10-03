@@ -8,6 +8,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/transaction_payment_records_sync.dart';
 import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_rules.dart';
 import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -153,7 +154,11 @@ class CapellaSync extends AiStrategyImpl
     required String assetName,
     required String subPath,
   }) async {
-    return _legacy.downloadAsset(branchId: branchId, assetName: assetName, subPath: subPath);
+    return _legacy.downloadAsset(
+      branchId: branchId,
+      assetName: assetName,
+      subPath: subPath,
+    );
   }
 
   // TODO(ditto-migration): port `upsertPlan` to Ditto.
@@ -162,7 +167,10 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     required Plan selectedPlan,
   }) async {
-    return _legacy.upsertPlan(businessId: businessId, selectedPlan: selectedPlan);
+    return _legacy.upsertPlan(
+      businessId: businessId,
+      selectedPlan: selectedPlan,
+    );
   }
 
   @override
@@ -292,7 +300,12 @@ class CapellaSync extends AiStrategyImpl
     String? tenantId,
     required bool fetchRemote,
   }) {
-    return _legacy.tenant(businessId: businessId, userId: userId, tenantId: tenantId, fetchRemote: fetchRemote);
+    return _legacy.tenant(
+      businessId: businessId,
+      userId: userId,
+      tenantId: tenantId,
+      fetchRemote: fetchRemote,
+    );
   }
 
   @override
@@ -308,7 +321,11 @@ class CapellaSync extends AiStrategyImpl
     String? featureName,
     required bool fetchRemote,
   }) {
-    return _legacy.access(userId: userId, featureName: featureName, fetchRemote: fetchRemote);
+    return _legacy.access(
+      userId: userId,
+      featureName: featureName,
+      fetchRemote: fetchRemote,
+    );
   }
 
   // TODO(ditto-migration): port `addAccess` to Ditto.
@@ -323,7 +340,16 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     DateTime? createdAt,
   }) {
-    return _legacy.addAccess(userId: userId, featureName: featureName, accessLevel: accessLevel, userType: userType, status: status, branchId: branchId, businessId: businessId, createdAt: createdAt);
+    return _legacy.addAccess(
+      userId: userId,
+      featureName: featureName,
+      accessLevel: accessLevel,
+      userType: userType,
+      status: status,
+      branchId: branchId,
+      businessId: businessId,
+      createdAt: createdAt,
+    );
   }
 
   // TODO(ditto-migration): port `addAsset` to Ditto.
@@ -335,7 +361,13 @@ class CapellaSync extends AiStrategyImpl
     required String businessId,
     String? variantId,
   }) {
-    return _legacy.addAsset(productId: productId, assetName: assetName, branchId: branchId, businessId: businessId, variantId: variantId);
+    return _legacy.addAsset(
+      productId: productId,
+      assetName: assetName,
+      branchId: branchId,
+      businessId: businessId,
+      variantId: variantId,
+    );
   }
 
   // TODO(ditto-migration): port `addBranch` to Ditto.
@@ -356,11 +388,29 @@ class CapellaSync extends AiStrategyImpl
     DateTime? deletedAt,
     int? id,
   }) {
-    return _legacy.addBranch(name: name, businessId: businessId, location: location, userOwnerPhoneNumber: userOwnerPhoneNumber, flipperHttpClient: flipperHttpClient ?? ProxyService.http, serverId: serverId, description: description, longitude: longitude, latitude: latitude, isDefault: isDefault, active: active, lastTouched: lastTouched, deletedAt: deletedAt, id: id);
+    return _legacy.addBranch(
+      name: name,
+      businessId: businessId,
+      location: location,
+      userOwnerPhoneNumber: userOwnerPhoneNumber,
+      flipperHttpClient: flipperHttpClient ?? ProxyService.http,
+      serverId: serverId,
+      description: description,
+      longitude: longitude,
+      latitude: latitude,
+      isDefault: isDefault,
+      active: active,
+      lastTouched: lastTouched,
+      deletedAt: deletedAt,
+      id: id,
+    );
   }
 
   @override
-  FutureOr<void> addColor({required String name, required String branchId}) async {
+  FutureOr<void> addColor({
+    required String name,
+    required String branchId,
+  }) async {
     final color = PColor(name: name, active: false, branchId: branchId);
     final ditto = dittoService.dittoInstance;
     if (ditto != null) {
@@ -538,7 +588,8 @@ class CapellaSync extends AiStrategyImpl
       final userId = ProxyService.box.getUserId();
       transaction.customerTin = customerTin;
 
-      final resolvedSalePhone = _nonEmptyCustomerField(customerPhone) ??
+      final resolvedSalePhone =
+          _nonEmptyCustomerField(customerPhone) ??
           _nonEmptyCustomerField(
             ProxyService.box.currentSaleCustomerPhoneNumber(),
           ) ??
@@ -552,7 +603,8 @@ class CapellaSync extends AiStrategyImpl
       if (resolvedSalePhone != null) {
         transaction.customerPhone = resolvedSalePhone;
       }
-      final resolvedCustomerName = _nonEmptyCustomerField(customerName) ??
+      final resolvedCustomerName =
+          _nonEmptyCustomerField(customerName) ??
           _nonEmptyCustomerField(ProxyService.box.customerName()) ??
           _nonEmptyCustomerField(transaction.customerName);
       if (resolvedCustomerName != null) {
@@ -634,8 +686,11 @@ class CapellaSync extends AiStrategyImpl
           transaction.lastPaymentDate = DateTime.now().toUtc();
           transaction.lastPaymentAmount = cashReceived;
         } else {
-          transaction.cashReceived =
-              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.cashReceived = cashMovementCashReceived(
+            previous: transaction.cashReceived?.toDouble(),
+            received: cashReceived,
+            isUtilityCashbookMovement: isUtilityCashbookMovement,
+          );
           transaction.remainingBalance =
               computedSubTotal - (transaction.cashReceived ?? 0.0);
         }
@@ -645,7 +700,11 @@ class CapellaSync extends AiStrategyImpl
       transaction.categoryId = categoryId;
       transaction.isIncome = isIncome;
       transaction.isExpense = !isIncome;
-      transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
+      transaction.paymentType = resolveCollectPaymentType(
+        requested: paymentType,
+        boxPaymentType: ProxyService.box.paymentType(),
+        isUtilityCashbookMovement: isUtilityCashbookMovement,
+      );
 
       // Attach (match-by-phone or create) the customer to the in-memory
       // transaction BEFORE persisting completed status, so the data-connector
@@ -679,7 +738,9 @@ class CapellaSync extends AiStrategyImpl
       if (skipTransactionPersist && skipCashMutation) {
         try {
           final resolvedCompletionForGoals =
-              financialCompletionStatus ?? completionStatus ?? transaction.status;
+              financialCompletionStatus ??
+              completionStatus ??
+              transaction.status;
           await applyPersonalGoalAutoSweepIfEligible(
             branchId: branchId,
             transactionId: transaction.id,
@@ -722,7 +783,9 @@ class CapellaSync extends AiStrategyImpl
       } else {
         try {
           final resolvedCompletionForGoals =
-              financialCompletionStatus ?? completionStatus ?? transaction.status;
+              financialCompletionStatus ??
+              completionStatus ??
+              transaction.status;
           await applyPersonalGoalAutoSweepIfEligible(
             branchId: branchId,
             transactionId: transaction.id,
@@ -805,6 +868,20 @@ class CapellaSync extends AiStrategyImpl
     String? note,
     bool skipPersonalGoalAutoSweep = false,
   }) async {
+    // Resolve the variant before minting the pending row: failing after
+    // [manageTransaction] left an orphan PENDING movement that the next one
+    // silently reused.
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
     final pending = await manageTransaction(
       branchId: branchId,
       transactionType: utilityVariantName,
@@ -816,15 +893,16 @@ class CapellaSync extends AiStrategyImpl
       );
     }
 
-    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
-      db: this,
-      branchId: branchId,
-      utilityName: utilityVariantName,
-    );
-    if (baseVariant == null) {
-      throw StateError(
-        'completeCashMovement: missing utility variant for $utilityVariantName',
+    // A pending movement left by an interrupted save still carries its line;
+    // the new line would merge into it (same utility variant id) and inflate
+    // the recorded quantity. One movement is exactly one line.
+    final staleLines = await transactionItems(transactionId: pending.id);
+    if (staleLines.isNotEmpty) {
+      talker.warning(
+        'completeCashMovement: clearing ${staleLines.length} stale line(s) '
+        'on reused pending ${pending.id}',
       );
+      await deleteAllTransactionItems(transactionId: pending.id);
     }
 
     final linedVariant = cloneUtilityVariantForCashLine(
@@ -1073,7 +1151,10 @@ class CapellaSync extends AiStrategyImpl
     required Branch branch,
     required bool isOnline,
   }) {
-    return _legacy.createOrUpdateBranchOnCloud(branch: branch, isOnline: isOnline);
+    return _legacy.createOrUpdateBranchOnCloud(
+      branch: branch,
+      isOnline: isOnline,
+    );
   }
 
   // TODO(ditto-migration): port `createVariant` to Ditto.
@@ -1095,7 +1176,23 @@ class CapellaSync extends AiStrategyImpl
     required String name,
     Configurations? taxType,
   }) {
-    return _legacy.createVariant(barCode: barCode, sku: sku, productId: productId, branchId: branchId, retailPrice: retailPrice, supplierPrice: supplierPrice, qty: qty, taxTypes: taxTypes, itemClasses: itemClasses, itemTypes: itemTypes, color: color, tinNumber: tinNumber, itemSeq: itemSeq, name: name, taxType: taxType);
+    return _legacy.createVariant(
+      barCode: barCode,
+      sku: sku,
+      productId: productId,
+      branchId: branchId,
+      retailPrice: retailPrice,
+      supplierPrice: supplierPrice,
+      qty: qty,
+      taxTypes: taxTypes,
+      itemClasses: itemClasses,
+      itemTypes: itemTypes,
+      color: color,
+      tinNumber: tinNumber,
+      itemSeq: itemSeq,
+      name: name,
+      taxType: taxType,
+    );
   }
 
   // TODO(ditto-migration): port `credit` to Ditto.
@@ -1264,7 +1361,9 @@ class CapellaSync extends AiStrategyImpl
           if (controller.isClosed) return;
           controller.add(
             result.items
-                .map((d) => Variant.fromJson(Map<String, dynamic>.from(d.value)))
+                .map(
+                  (d) => Variant.fromJson(Map<String, dynamic>.from(d.value)),
+                )
                 .toList(),
           );
         },
@@ -1300,7 +1399,11 @@ class CapellaSync extends AiStrategyImpl
     String? productId,
     String? variantId,
   }) {
-    return _legacy.getAsset(assetName: assetName, productId: productId, variantId: variantId);
+    return _legacy.getAsset(
+      assetName: assetName,
+      productId: productId,
+      variantId: variantId,
+    );
   }
 
   @override
@@ -1387,7 +1490,12 @@ class CapellaSync extends AiStrategyImpl
     required int tinNumber,
     required String bhFId,
   }) {
-    return _legacy.getCustomVariant(businessId: businessId, branchId: branchId, tinNumber: tinNumber, bhFId: bhFId);
+    return _legacy.getCustomVariant(
+      businessId: businessId,
+      branchId: branchId,
+      tinNumber: tinNumber,
+      bhFId: bhFId,
+    );
   }
 
   @override
@@ -1426,7 +1534,10 @@ class CapellaSync extends AiStrategyImpl
     }
     try {
       // TODO(ditto-migration): Brick fallback for the utility-cash variant.
-      return await ProxyService.legacyStrategy.getUtilityVariant(name: name, branchId: branchId);
+      return await ProxyService.legacyStrategy.getUtilityVariant(
+        name: name,
+        branchId: branchId,
+      );
     } catch (e, st) {
       talker.error('getUtilityVariant fallback failed: $e\n$st');
       return null;
@@ -1469,7 +1580,12 @@ class CapellaSync extends AiStrategyImpl
     Object? body,
     Encoding? encoding,
   }) {
-    return _legacy.getUniversalProducts(url, headers: headers, body: body, encoding: encoding);
+    return _legacy.getUniversalProducts(
+      url,
+      headers: headers,
+      body: body,
+      encoding: encoding,
+    );
   }
 
   // TODO(ditto-migration): port `hasOfflineAssets` to Ditto.
@@ -1628,7 +1744,8 @@ class CapellaSync extends AiStrategyImpl
         final vatEnabled = ebmData['vatEnabled'] as bool?;
         final taxServerUrl = ebmData['taxServerUrl'] as String?;
 
-        final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+        final isMobile =
+            defaultTargetPlatform == TargetPlatform.iOS ||
             defaultTargetPlatform == TargetPlatform.android;
 
         if (isMobile &&
@@ -1658,7 +1775,12 @@ class CapellaSync extends AiStrategyImpl
     String? pk,
     String? sk,
   }) {
-    return _legacy.loadConversations(businessId: businessId, pageSize: pageSize, pk: pk, sk: sk);
+    return _legacy.loadConversations(
+      businessId: businessId,
+      pageSize: pageSize,
+      pk: pk,
+      sk: sk,
+    );
   }
 
   @override
@@ -1810,7 +1932,14 @@ class CapellaSync extends AiStrategyImpl
     String subPath = 'branch',
     String? variantId,
   }) {
-    return _legacy.saveImageLocally(imageFile: imageFile, productId: productId, branchId: branchId, businessId: businessId, subPath: subPath, variantId: variantId);
+    return _legacy.saveImageLocally(
+      imageFile: imageFile,
+      productId: productId,
+      branchId: branchId,
+      businessId: businessId,
+      subPath: subPath,
+      variantId: variantId,
+    );
   }
 
   // TODO(ditto-migration): port `saveLog` to Ditto.
@@ -1836,7 +1965,21 @@ class CapellaSync extends AiStrategyImpl
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   }) {
-    return _legacy.saveOrUpdatePaymentPlan(businessId: businessId, addons: addons, selectedPlan: selectedPlan, planTemplateId: planTemplateId, additionalDevices: additionalDevices, isYearlyPlan: isYearlyPlan, rule: rule, totalPrice: totalPrice, paymentMethod: paymentMethod, customerCode: customerCode, plan: plan, numberOfPayments: numberOfPayments, flipperHttpClient: flipperHttpClient);
+    return _legacy.saveOrUpdatePaymentPlan(
+      businessId: businessId,
+      addons: addons,
+      selectedPlan: selectedPlan,
+      planTemplateId: planTemplateId,
+      additionalDevices: additionalDevices,
+      isYearlyPlan: isYearlyPlan,
+      rule: rule,
+      totalPrice: totalPrice,
+      paymentMethod: paymentMethod,
+      customerCode: customerCode,
+      plan: plan,
+      numberOfPayments: numberOfPayments,
+      flipperHttpClient: flipperHttpClient,
+    );
   }
 
   @override
@@ -1961,7 +2104,10 @@ class CapellaSync extends AiStrategyImpl
     required String currentBranchId,
     required bool status,
   }) {
-    return _legacy.setBranchPaymentStatus(currentBranchId: currentBranchId, status: status);
+    return _legacy.setBranchPaymentStatus(
+      currentBranchId: currentBranchId,
+      status: status,
+    );
   }
 
   // TODO(ditto-migration): port `signup` to Ditto.
@@ -1970,7 +2116,10 @@ class CapellaSync extends AiStrategyImpl
     required Map business,
     required HttpClientInterface flipperHttpClient,
   }) {
-    return _legacy.signup(business: business, flipperHttpClient: flipperHttpClient);
+    return _legacy.signup(
+      business: business,
+      flipperHttpClient: flipperHttpClient,
+    );
   }
 
   // TODO(ditto-migration): port `size` to Ditto.
@@ -2078,7 +2227,13 @@ class CapellaSync extends AiStrategyImpl
     required HttpClientInterface flipperHttpClient,
     required int amount,
   }) {
-    return _legacy.subscribe(businessId: businessId, business: business, agentCode: agentCode, flipperHttpClient: flipperHttpClient, amount: amount);
+    return _legacy.subscribe(
+      businessId: businessId,
+      business: business,
+      agentCode: agentCode,
+      flipperHttpClient: flipperHttpClient,
+      amount: amount,
+    );
   }
 
   // TODO(ditto-migration): port `syncOfflineAssets` to Ditto.
@@ -2130,7 +2285,13 @@ class CapellaSync extends AiStrategyImpl
     String? accessLevel,
     String? userType,
   }) {
-    return _legacy.updateAcess(userId: userId, featureName: featureName, status: status, accessLevel: accessLevel, userType: userType);
+    return _legacy.updateAcess(
+      userId: userId,
+      featureName: featureName,
+      status: status,
+      accessLevel: accessLevel,
+      userType: userType,
+    );
   }
 
   // TODO(ditto-migration): port `updateAsset` to Ditto.
@@ -2170,7 +2331,10 @@ class CapellaSync extends AiStrategyImpl
     required String notificationId,
     bool? completed,
   }) {
-    return _legacy.updateNotification(notificationId: notificationId, completed: completed);
+    return _legacy.updateNotification(
+      notificationId: notificationId,
+      completed: completed,
+    );
   }
 
   // TODO(ditto-migration): port `updatePin` to Ditto.
@@ -2180,7 +2344,11 @@ class CapellaSync extends AiStrategyImpl
     String? phoneNumber,
     String? tokenUid,
   }) {
-    return _legacy.updatePin(userId: userId, phoneNumber: phoneNumber, tokenUid: tokenUid);
+    return _legacy.updatePin(
+      userId: userId,
+      phoneNumber: phoneNumber,
+      tokenUid: tokenUid,
+    );
   }
 
   // TODO(ditto-migration): port `updateReport` to Ditto.
@@ -2214,8 +2382,9 @@ class CapellaSync extends AiStrategyImpl
       return;
     }
 
-    final unit =
-        unitFromDittoDoc(Map<String, dynamic>.from(result.items.first.value));
+    final unit = unitFromDittoDoc(
+      Map<String, dynamic>.from(result.items.first.value),
+    );
     if (name != null) unit.name = name;
     if (active != null) unit.active = active;
     if (branchId != null) unit.branchId = branchId;
@@ -2232,7 +2401,11 @@ class CapellaSync extends AiStrategyImpl
     String fileName, {
     required String transactionId,
   }) {
-    return _legacy.uploadPdfToS3(pdfData, fileName, transactionId: transactionId);
+    return _legacy.uploadPdfToS3(
+      pdfData,
+      fileName,
+      transactionId: transactionId,
+    );
   }
 
   // TODO(ditto-migration): port `upsertPayment` to Ditto.
@@ -2247,7 +2420,10 @@ class CapellaSync extends AiStrategyImpl
     required String name,
     required HttpClientInterface flipperHttpClient,
   }) {
-    return _legacy.userNameAvailable(name: name, flipperHttpClient: flipperHttpClient);
+    return _legacy.userNameAvailable(
+      name: name,
+      flipperHttpClient: flipperHttpClient,
+    );
   }
 
   @override
@@ -2332,7 +2508,11 @@ class CapellaSync extends AiStrategyImpl
     String? phoneNumber,
     required bool alwaysHydrate,
   }) {
-    return _legacy.getPinLocal(userId: userId, phoneNumber: phoneNumber, alwaysHydrate: alwaysHydrate);
+    return _legacy.getPinLocal(
+      userId: userId,
+      phoneNumber: phoneNumber,
+      alwaysHydrate: alwaysHydrate,
+    );
   }
 
   // TODO(ditto-migration): port `updateTenant` to Ditto.
@@ -2350,7 +2530,19 @@ class CapellaSync extends AiStrategyImpl
     bool? sessionActive,
     String? branchId,
   }) {
-    return _legacy.updateTenant(tenantId: tenantId, name: name, phoneNumber: phoneNumber, email: email, userId: userId, businessId: businessId, type: type, id: id, pin: pin, sessionActive: sessionActive, branchId: branchId);
+    return _legacy.updateTenant(
+      tenantId: tenantId,
+      name: name,
+      phoneNumber: phoneNumber,
+      email: email,
+      userId: userId,
+      businessId: businessId,
+      type: type,
+      id: id,
+      pin: pin,
+      sessionActive: sessionActive,
+      branchId: branchId,
+    );
   }
 
   @override
