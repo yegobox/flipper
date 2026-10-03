@@ -1,4 +1,5 @@
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpers.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
@@ -40,8 +41,9 @@ class ManualPurchaseMobileScreen extends ConsumerStatefulWidget {
   /// In-memory catalog used when the full search is unavailable (offline).
   final List<Variant> catalogVariants;
 
-  /// Called after a successful save, before the screen closes.
-  final VoidCallback? onSaved;
+  /// Called after a successful save, before the screen closes, with whether
+  /// the purchase was approved (true) or left waiting (false).
+  final ValueChanged<bool>? onSaved;
 
   @override
   ConsumerState<ManualPurchaseMobileScreen> createState() =>
@@ -71,7 +73,7 @@ class _ManualPurchaseMobileScreenState
         approve: approve,
       );
       if (saved && mounted) {
-        widget.onSaved?.call();
+        widget.onSaved?.call(approve);
         Navigator.of(context).pop();
       }
     } finally {
@@ -203,21 +205,9 @@ class _ManualPurchaseMobileScreenState
 
     return Scaffold(
       backgroundColor: _T.canvas,
-      appBar: AppBar(
-        backgroundColor: _T.surface,
-        surfaceTintColor: _T.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        leading: IconButton(
-          tooltip: 'Close',
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        titleSpacing: 0,
-        title: Text(
-          'Record purchase',
-          style: ImportPurchaseHelpers.text(size: 18, weight: FontWeight.w700),
-        ),
+      appBar: CustomAppBar(
+        title: 'Record purchase',
+        onPop: () => Navigator.of(context).maybePop(),
       ),
       body: Form(
         key: _formKey,

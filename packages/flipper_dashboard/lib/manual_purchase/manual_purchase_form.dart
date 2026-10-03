@@ -109,10 +109,13 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
       ref: ref,
       approve: approve,
     );
-    if (saved && mounted) {
-      _goBackToPurchases();
-      await ref.read(importPurchaseViewModelProvider.notifier).loadList();
-    }
+    if (!saved || !mounted) return;
+    // Read before closing: closing disposes this widget, and its ref with it,
+    // which is why saved purchases used to be missing until a manual reload.
+    final list = ref.read(importPurchaseViewModelProvider.notifier);
+    _goBackToPurchases();
+    // Show the list the new purchase landed in (reloads it).
+    list.setPurchaseStatusFilter(approve ? 'approved' : 'pending');
   }
 
   double get _padX => widget.useImportPurchaseTheme ? 30 : 24;

@@ -18,11 +18,7 @@ import 'package:timeago/timeago.dart' as timeago;
 /// Full-page wrapper around [ImportPurchasePage], shown as a dashboard page
 /// (DashboardPage.purchases). Header + subbar match design_handoff_import_purchase.
 class ImportPurchasePageView extends StatefulHookConsumerWidget {
-  const ImportPurchasePageView({super.key, this.onBack});
-
-  /// Shows a back button in the header when pushed on its own (mobile).
-  /// Null when embedded in the desktop dashboard.
-  final VoidCallback? onBack;
+  const ImportPurchasePageView({super.key});
 
   @override
   ConsumerState<ImportPurchasePageView> createState() =>
@@ -79,32 +75,13 @@ class _ImportPurchasePageViewState
               border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
             ),
             alignment: Alignment.centerLeft,
-            child: Row(
-              children: [
-                if (widget.onBack != null) ...[
-                  IconButton(
-                    onPressed: widget.onBack,
-                    tooltip: 'Back',
-                    icon: const Icon(Icons.arrow_back),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                Expanded(
-                  child: Text(
-                    'Import & Purchase Management',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: ImportPurchaseHelpers.text(
-                      size: width <= ImportPurchaseTokens.mobileBreakpoint
-                          ? 16.5
-                          : 19,
-                      weight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              'Import & Purchase Management',
+              style: ImportPurchaseHelpers.text(
+                size: width <= ImportPurchaseTokens.mobileBreakpoint ? 16.5 : 19,
+                weight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
             ),
           ),
           _buildSubbar(context, state: state, gutter: gutter),
