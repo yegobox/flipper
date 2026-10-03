@@ -1,4 +1,3 @@
-import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpers.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
@@ -6,13 +5,16 @@ import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart'
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_submit.dart';
 import 'package:flipper_dashboard/manual_purchase/new_supplier_modal.dart';
 import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
+import 'package:flipper_dashboard/manual_purchase/purchase_suggestions.dart';
+import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 typedef _T = ImportPurchaseTokens;
 
@@ -54,11 +56,36 @@ class _ManualPurchaseMobileScreenState
     extends ConsumerState<ManualPurchaseMobileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _tinController = TextEditingController();
+  final _invoiceController = TextEditingController();
   bool _submitting = false;
+
+  /// Purchases already loaded on the purchases list (RRA invoices included);
+  /// Ditto only holds the recorded ones.
+  List<model.Purchase> get _loadedPurchases =>
+      ref.read(importPurchaseViewModelProvider).purchases;
+
+  @override
+  void initState() {
+    super.initState();
+    _invoiceController.text = ref.read(manualPurchaseProvider).invoiceNo;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _suggestInvoiceNo());
+  }
+
+  Future<void> _suggestInvoiceNo() async {
+    if (!mounted) return;
+    try {
+      await ref
+          .read(manualPurchaseProvider.notifier)
+          .suggestInvoiceNo(loaded: _loadedPurchases);
+    } catch (_) {
+      // A suggestion is a convenience; the owner can always type the number.
+    }
+  }
 
   @override
   void dispose() {
     _tinController.dispose();
+    _invoiceController.dispose();
     super.dispose();
   }
 
@@ -90,6 +117,7 @@ class _ManualPurchaseMobileScreenState
       backgroundColor: _T.surface,
       builder: (_) => _SupplierPickerSheet(
         initialQuery: ref.read(manualPurchaseProvider).supplierName,
+        purchases: _loadedPurchases,
       ),
     );
     if (picked == null || !mounted) return;
@@ -102,12 +130,18 @@ class _ManualPurchaseMobileScreenState
         useImportPurchaseTheme: true,
       );
       // createSupplier already put the new supplier into the form state.
-      if (created != null) _tinController.text = created.custTin ?? '';
+      if (created != null) {
+        _tinController.text = created.custTin ?? '';
+        await _suggestInvoiceNo();
+      }
       return;
     }
-    final s = picked.supplier!;
-    notifier.setSupplier(name: s.custNm, tin: s.custTin ?? '', id: s.id);
-    _tinController.text = s.custTin ?? '';
+    final s = picked.option!;
+    // Suppliers seen only on an RRA invoice have no saved id; the purchase
+    // saves them.
+    notifier.setSupplier(name: s.name, tin: s.tin, id: s.savedId);
+    _tinController.text = s.tin;
+    await _suggestInvoiceNo();
   }
 
   Future<void> _pickPurchaseDate(DateTime current) async {
@@ -202,6 +236,11 @@ class _ManualPurchaseMobileScreenState
     final state = ref.watch(manualPurchaseProvider);
     final notifier = ref.read(manualPurchaseProvider.notifier);
     final busy = _submitting || state.isSaving;
+    ref.listen(manualPurchaseProvider, (_, next) {
+      if (next.invoiceAutoFilled && _invoiceController.text != next.invoiceNo) {
+        _invoiceController.text = next.invoiceNo;
+      }
+    });
 
     return Scaffold(
       backgroundColor: _T.canvas,
@@ -250,10 +289,14 @@ class _ManualPurchaseMobileScreenState
               children: [
                 _FieldRow(
                   child: TextFormField(
-                    initialValue: state.invoiceNo,
+                    controller: _invoiceController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: _inputDecoration('Invoice number'),
+                    decoration: _inputDecoration('Invoice number').copyWith(
+                      helperText: state.invoiceAutoFilled
+                          ? 'Next number after your last invoice'
+                          : null,
+                    ),
                     validator: (value) =>
                         int.tryParse(value?.trim() ?? '') == null
                         ? 'Enter the invoice number'
@@ -806,17 +849,24 @@ class _SaveBar extends StatelessWidget {
 
 /// Either an existing supplier, or a name to create a new one with.
 class _SupplierChoice {
-  const _SupplierChoice.existing(Supplier this.supplier) : createNamed = null;
-  const _SupplierChoice.create(String this.createNamed) : supplier = null;
+  const _SupplierChoice.existing(SupplierOption this.option)
+    : createNamed = null;
+  const _SupplierChoice.create(String this.createNamed) : option = null;
 
-  final Supplier? supplier;
+  final SupplierOption? option;
   final String? createNamed;
 }
 
 class _SupplierPickerSheet extends StatefulWidget {
-  const _SupplierPickerSheet({required this.initialQuery});
+  const _SupplierPickerSheet({
+    required this.initialQuery,
+    required this.purchases,
+  });
 
   final String initialQuery;
+
+  /// Past invoices; their suppliers are offered even if never saved.
+  final List<model.Purchase> purchases;
 
   @override
   State<_SupplierPickerSheet> createState() => _SupplierPickerSheetState();
@@ -826,7 +876,7 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
   late final TextEditingController _query = TextEditingController(
     text: widget.initialQuery,
   );
-  List<Supplier>? _suppliers;
+  List<SupplierOption>? _suppliers;
 
   @override
   void initState() {
@@ -840,15 +890,20 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
       setState(() => _suppliers = const []);
       return;
     }
-    final rows = await Repository().get<Supplier>(
-      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
-    );
-    rows.sort(
-      (a, b) => (a.custNm ?? '').toLowerCase().compareTo(
-        (b.custNm ?? '').toLowerCase(),
+    // Saved suppliers are Ditto-only; Brick/SQLite never has them.
+    var saved = const <Supplier>[];
+    try {
+      saved = await ManualPurchaseDitto.listSuppliers(branchId);
+    } catch (_) {
+      // Offer the suppliers from past invoices anyway.
+    }
+    if (!mounted) return;
+    setState(
+      () => _suppliers = mergeSupplierOptions(
+        saved: saved,
+        purchases: widget.purchases,
       ),
     );
-    if (mounted) setState(() => _suppliers = rows);
   }
 
   @override
@@ -862,16 +917,16 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
     final q = _query.text.trim().toLowerCase();
     final all = _suppliers;
     final matches = all == null
-        ? const <Supplier>[]
+        ? const <SupplierOption>[]
         : all
               .where(
                 (s) =>
                     q.isEmpty ||
-                    (s.custNm ?? '').toLowerCase().contains(q) ||
-                    (s.custTin ?? '').contains(q),
+                    s.name.toLowerCase().contains(q) ||
+                    s.tin.contains(q),
               )
               .toList();
-    final exact = matches.any((s) => (s.custNm ?? '').toLowerCase() == q);
+    final exact = matches.any((s) => s.name.toLowerCase() == q);
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -935,7 +990,7 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
                           const Divider(height: 1, indent: 72),
                       itemBuilder: (context, i) {
                         final s = matches[i];
-                        final name = s.custNm ?? 'Supplier';
+                        final name = s.name;
                         return ListTile(
                           leading: CircleAvatar(
                             backgroundColor: _T.surface3,
@@ -948,9 +1003,14 @@ class _SupplierPickerSheetState extends State<_SupplierPickerSheet> {
                             ),
                           ),
                           title: Text(name),
-                          subtitle: (s.custTin ?? '').isEmpty
+                          subtitle: s.tin.isEmpty && s.isSaved
                               ? null
-                              : Text('TIN ${s.custTin}'),
+                              : Text(
+                                  [
+                                    if (s.tin.isNotEmpty) 'TIN ${s.tin}',
+                                    if (!s.isSaved) 'From your invoices',
+                                  ].join(' · '),
+                                ),
                           onTap: () => Navigator.of(
                             context,
                           ).pop(_SupplierChoice.existing(s)),
