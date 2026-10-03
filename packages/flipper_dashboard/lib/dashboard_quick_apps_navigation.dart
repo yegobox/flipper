@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/features/stock_recount/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/features/transfers_report/transfers_report_screen.dart';
+import 'package:flipper_dashboard/import_purchase_page_view.dart';
 import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -111,6 +112,21 @@ Future<void> navigateToDashboardAppPage({
       break;
     case 'Orders':
       await routerService.navigateTo(InventoryRequestMobileViewRoute());
+      break;
+    case 'Purchases':
+      // Supplier purchases (RRA + manually recorded, incl. bought on credit).
+      // Desktop reaches this through DashboardPage.purchases.
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (pageContext) => Scaffold(
+            body: SafeArea(
+              child: ImportPurchasePageView(
+                onBack: () => Navigator.of(pageContext).maybePop(),
+              ),
+            ),
+          ),
+        ),
+      );
       break;
     case 'Leads':
       await Navigator.of(context).push(
