@@ -40,7 +40,8 @@ abstract final class HotelQuotationActions {
     if (awaitFreshNames) {
       issuer = await _resolveIssuer(branchId, await _freshTenantNames());
     } else {
-      issuer = _cachedIssuer(branchId) ??
+      issuer =
+          _cachedIssuer(branchId) ??
           await _resolveIssuer(branchId, _lastFetchedNames);
       // Refresh for the next document; this one does not wait for it.
       unawaited(warmUp());
@@ -72,9 +73,7 @@ abstract final class HotelQuotationActions {
 
     final branchId = _currentBranchId;
     try {
-      unawaited(
-        DocumentStamp.resolve(BranchDocumentSettingsService.current()),
-      );
+      unawaited(DocumentStamp.resolve(BranchDocumentSettingsService.current()));
       await _resolveIssuer(branchId, _lastFetchedNames);
       final fresh = await _freshTenantNames();
       if (fresh != null) await _resolveIssuer(branchId, fresh);
@@ -197,7 +196,9 @@ abstract final class HotelQuotationActions {
       (businessName ?? '').trim().isEmpty ? 'us' : businessName!.trim(),
     );
     final guest = _escape(quotation.guestName);
-    final nights = quotation.nights == 1 ? '1 night' : '${quotation.nights} nights';
+    final nights = quotation.nights == 1
+        ? '1 night'
+        : '${quotation.nights} nights';
     final validity = quotation.validUntil == null
         ? ''
         : '<p style="margin:0 0 16px;color:#4b5563;font-size:14px;">'
@@ -273,17 +274,22 @@ abstract final class HotelQuotationActions {
     _namesFetchedAt = DateTime.now();
     return _namesFetch = TenantNameSync.fetchNames(businessId: businessId)
         .timeout(const Duration(seconds: 2))
-        .then<TenantNames?>((names) {
-      _lastFetchedNames = names;
-      unawaited(TenantNameSync.applyNames(names).catchError((Object e) {
-        talker.warning('hotel: local tenant names not patched: $e');
-        return false;
-      }));
-      return names;
-    }, onError: (Object e) {
-      talker.warning('hotel: using cached names for quotation: $e');
-      return null;
-    });
+        .then<TenantNames?>(
+          (names) {
+            _lastFetchedNames = names;
+            unawaited(
+              TenantNameSync.applyNames(names).catchError((Object e) {
+                talker.warning('hotel: local tenant names not patched: $e');
+                return false;
+              }),
+            );
+            return names;
+          },
+          onError: (Object e) {
+            talker.warning('hotel: using cached names for quotation: $e');
+            return null;
+          },
+        );
   }
 
   static Future<String?> resolveBusinessName() async {
@@ -300,8 +306,18 @@ abstract final class HotelQuotationActions {
   static String _shortDate(DateTime value) {
     final local = value.toLocal();
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${local.day} ${months[local.month - 1]} ${local.year}';
   }
