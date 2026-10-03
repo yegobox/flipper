@@ -17,11 +17,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 enum OmDirection { incoming, outgoing }
 
 class IncomingOrdersScreen extends HookConsumerWidget {
-  const IncomingOrdersScreen({Key? key, this.onBack}) : super(key: key);
+  const IncomingOrdersScreen({Key? key, this.showTitle = true})
+    : super(key: key);
 
-  /// Shows a back button in the header when the screen is pushed on its own
-  /// (mobile). Null when embedded in the desktop dashboard.
-  final VoidCallback? onBack;
+  /// False when a [CustomAppBar] above already names the screen (mobile).
+  final bool showTitle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,7 +75,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _OmHeader(
-                              onBack: onBack,
+                              showTitle: showTitle,
                               compact: compact,
                               orderStatus: orderStatus,
                               onStatusChanged: (newStatus) {
@@ -278,17 +278,17 @@ class _OmHeader extends StatelessWidget {
     required this.compact,
     required this.orderStatus,
     required this.onStatusChanged,
-    this.onBack,
+    this.showTitle = true,
   });
 
-  final VoidCallback? onBack;
+  final bool showTitle;
   final bool compact;
   final OrderStatus orderStatus;
   final ValueChanged<OrderStatus> onStatusChanged;
 
   @override
   Widget build(BuildContext context) {
-    final titleText = Text(
+    final title = Text(
       'Orders Management',
       style: OmTokens.text(
         fontSize: compact ? 22 : 28,
@@ -296,21 +296,6 @@ class _OmHeader extends StatelessWidget {
         letterSpacing: -0.02 * (compact ? 22 : 28),
       ),
     );
-    final title = onBack == null
-        ? titleText
-        : Row(
-            children: [
-              IconButton(
-                onPressed: onBack,
-                tooltip: 'Back',
-                icon: const Icon(Icons.arrow_back),
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-              ),
-              const SizedBox(width: 4),
-              Expanded(child: titleText),
-            ],
-          );
     final subtitle = Text(
       'Track and manage incoming and outgoing orders',
       style: OmTokens.text(
@@ -335,6 +320,8 @@ class _OmHeader extends StatelessWidget {
         ),
       ],
     );
+
+    if (!showTitle) return statusSeg;
 
     if (compact) {
       return Column(

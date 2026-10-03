@@ -14,6 +14,17 @@ Future<void> _pumpPhone(WidgetTester tester, Size size) async {
   await tester.pumpAndSettle();
 }
 
+/// Scrolls [finder] to mid-screen, clear of the fixed save bar.
+Future<void> _center(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    120,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await Scrollable.ensureVisible(tester.element(finder), alignment: 0.5);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   for (final size in const [Size(320, 640), Size(390, 844)]) {
     testWidgets('lays out without overflow at ${size.width.toInt()}pt', (
@@ -26,12 +37,15 @@ void main() {
 
       // Credit terms appear only for credit payment types.
       expect(find.text('Pay supplier by'), findsNothing);
+      await _center(tester, find.text('Cash/Credit'));
       await tester.tap(find.text('Cash/Credit'));
       await tester.pumpAndSettle();
+      await _center(tester, find.text('You will owe this supplier'));
       expect(find.text('Pay supplier by'), findsOneWidget);
       expect(find.text('Paid now'), findsOneWidget);
       expect(find.text('You will owe this supplier'), findsOneWidget);
 
+      await _center(tester, find.text('Cash'));
       await tester.tap(find.text('Cash'));
       await tester.pumpAndSettle();
       expect(find.text('Pay supplier by'), findsNothing);
@@ -41,8 +55,7 @@ void main() {
 
   testWidgets('new item sheet adds a line with its total', (tester) async {
     await _pumpPhone(tester, const Size(390, 844));
-    await tester.ensureVisible(find.text('New item'));
-    await tester.pumpAndSettle();
+    await _center(tester, find.text('New item'));
     await tester.tap(find.text('New item'));
     await tester.pumpAndSettle();
 

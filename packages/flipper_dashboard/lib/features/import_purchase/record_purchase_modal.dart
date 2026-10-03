@@ -24,8 +24,10 @@ Future<void> showRecordPurchaseModal(BuildContext context, WidgetRef ref) async 
         fullscreenDialog: true,
         builder: (_) => ManualPurchaseMobileScreen(
           catalogVariants: catalogVariants,
-          onSaved: () =>
-              ref.read(importPurchaseViewModelProvider.notifier).loadList(),
+          // Show the list the new purchase landed in (reloads it).
+          onSaved: (approved) => ref
+              .read(importPurchaseViewModelProvider.notifier)
+              .setPurchaseStatusFilter(approved ? 'approved' : 'pending'),
         ),
       ),
     );
