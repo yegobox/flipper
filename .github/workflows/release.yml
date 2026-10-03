@@ -23,7 +23,22 @@ on:
       - re-design
       - v5
       - fix/*
+      # Feature and refactor branches get the same pipeline as fix/*: unit
+      # tests, Windows debug build, web/HR preview deploys and the Android
+      # Shorebird build uploaded to the Play internal track.
+      - feat/*
+      - feature/*
+      - refactor/*
       - ditto-only-migration
+
+# A newer push to the same branch cancels the older run, so a force-push does
+# not finish a stale ~30 min Android build and upload it to Play. Each main run
+# gets its own group (run_id): a shared group would queue merges and silently
+# drop the middle pending run, and every merge must produce its own build.
+concurrency:
+  group: release-${{ github.ref == 'refs/heads/main' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -241,6 +256,9 @@ jobs:
           # step above.
           channelId: ${{ github.ref == 'refs/heads/main' && 'live' || steps.web_channel.outputs.id }}
           projectId: yegobox-2ee43
+          # Same as HR: feat/refactor/fix branches each get a preview channel,
+          # and the site caps at 50. Ignored for the live channel.
+          expires: 3d
       - name: Echo Flipper Web URL
         # The live-channel deploy above publishes to the default `yegobox-2ee43`
         # Hosting site, which owns BOTH custom domains flipper.yegobox.com AND
@@ -960,7 +978,23 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy ${{ matrix.app }}"
-    if: github.ref != 'refs/heads/main' # Skip this job on main branch
+    # Runs on main too: everything lands on main through PRs, so skipping it
+    # meant the code users actually get was never built for Android.
+    #
+    # Serialise Play uploads. VERSION_CODE is run_number-based, so overlapping
+    # builds can finish out of order and Play rejects the lower one ("does not
+    # allow any existing users to upgrade"). With cancel-in-progress false,
+    # GitHub keeps one running and one pending job per group, and a newer
+    # pending job replaces the older one, so uploads land in run_number order.
+    #
+    # main and branches get separate groups: in one shared group a branch push
+    # would replace a pending main upload, and the merged build would never
+    # reach Play. The residual cost is that a main and a branch build can still
+    # overlap; if main's upload is rejected for a lower code, push an empty
+    # `ci:` commit to main (a re-run keeps the same run_number, so the same code).
+    concurrency:
+      group: play-internal-${{ matrix.app }}-${{ github.ref == 'refs/heads/main' && 'main' || 'branches' }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
@@ -1368,6 +1402,9 @@ jobs:
           name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
           tag_name: v${{ steps.get_version.outputs.version }}_${{ matrix.app }}
           draft: false
+          # Only a main build is what users get; branch builds must not take
+          # the public repo's "Latest" release.
+          make_latest: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
           body: |
             Android AAB from fastlane-deploy (${{ matrix.app }}) on ${{ github.ref_name }}.
             

@@ -8,7 +8,7 @@ introduce any of it.
 
 | Gap | Before |
 |---|---|
-| PR test coverage | `web_ci.yml` tested `flipper_web` and `flipper_hr` only. `melos run test:ci` — which covers `flipper_dashboard` (~216k LOC), `supabase_models`, `flipper_ai_feature`, `flipper_auth` — ran only in `release.yml`, on `push` to a fixed branch list that does **not** include `feat/*`. PRs from those branches ran no tests at all. |
+| PR test coverage | `web_ci.yml` tested `flipper_web` and `flipper_hr` only. `melos run test:ci` — which covers `flipper_dashboard` (~216k LOC), `supabase_models`, `flipper_ai_feature`, `flipper_auth` — ran only in `release.yml`, on `push` to a fixed branch list that did **not** include `feat/*` (it now also covers `feat/*`, `feature/*` and `refactor/*`). PRs from those branches ran no tests at all. |
 | Test results being believed | `melos run test:ci` reported green while 22 `flipper_dashboard` tests failed. See below. |
 | Static analysis | No CI job anywhere ran `dart analyze` or `dart format`. 18 of 35 packages had no `analysis_options.yaml` above them, including the two largest, so they were analyzed with no lint set. |
 | Architecture | `packages/flipper_models` depends on the `flipper_web` and `flipper_personal` **apps**; `flipper_dashboard` pulls in three apps. Nothing stopped that spreading. |
