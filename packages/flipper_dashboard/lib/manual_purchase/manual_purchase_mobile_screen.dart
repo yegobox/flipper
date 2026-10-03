@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpers.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
+import 'package:flipper_dashboard/manual_purchase/amount_input.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_submit.dart';
 import 'package:flipper_dashboard/manual_purchase/new_supplier_modal.dart';
@@ -158,7 +159,7 @@ class _ManualPurchaseMobileScreenState
 
   Future<void> _pickDueDate(ManualPurchaseState state) async {
     final current =
-        state.dueDate ?? state.purchaseDate.add(const Duration(days: 30));
+        state.effectiveDueDate;
     final picked = await showDatePicker(
       context: context,
       initialDate: current,
@@ -350,10 +351,7 @@ class _ManualPurchaseMobileScreenState
                   _TapRow(
                     icon: Icons.event_outlined,
                     label: 'Pay supplier by',
-                    value: _date.format(
-                      state.dueDate ??
-                          state.purchaseDate.add(const Duration(days: 30)),
-                    ),
+                    value: _date.format(state.effectiveDueDate),
                     onTap: () => _pickDueDate(state),
                   ),
                   if (state.pmtTyCd == '03') ...[
@@ -361,14 +359,14 @@ class _ManualPurchaseMobileScreenState
                     _FieldRow(
                       child: TextFormField(
                         initialValue: state.paidUpfront > 0
-                            ? _money.format(state.paidUpfront)
+                            ? formatAmountForEdit(state.paidUpfront)
                             : null,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
                         decoration: _inputDecoration('Paid now'),
                         onChanged: (v) => notifier.setPaidUpfront(
-                          double.tryParse(v.replaceAll(',', '').trim()) ?? 0,
+                          parseAmount(v),
                         ),
                       ),
                     ),
@@ -1184,11 +1182,11 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.line?.name ?? '');
   late final _qty = TextEditingController(
-    text: _money.format(widget.line?.qty ?? 1),
+    text: formatAmountForEdit(widget.line?.qty ?? 1),
   );
   late final _price = TextEditingController(
     text: (widget.line?.unitPrice ?? 0) > 0
-        ? _money.format(widget.line!.unitPrice)
+        ? formatAmountForEdit(widget.line!.unitPrice)
         : '',
   );
   late String _tax = widget.line?.taxTyCd ?? 'B';
@@ -1197,7 +1195,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
   bool get _fromCatalog => widget.line?.catalogVariantId != null;
 
   static double _num(String raw) =>
-      double.tryParse(raw.replaceAll(',', '').trim()) ?? 0;
+      parseAmount(raw);
 
   @override
   void dispose() {

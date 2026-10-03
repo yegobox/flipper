@@ -103,23 +103,34 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
         .toList();
     final lines = filtered.isEmpty ? _lines : filtered;
     final original = widget.doc;
+    // Purchase and cashbook bills were posted by their own poster: the ledger
+    // will not follow an edit here, so their total and status stay as they
+    // are (a waiting purchase's draft cannot be recorded from Books either).
+    final postedElsewhere = original?.source != null;
     return AccountingDocument(
       id: _id,
       who: _who,
       date: _date,
       due: _due,
-      status: status,
+      status: postedElsewhere ? _storedStatus(original!.status) : status,
       lines: lines,
-      // A purchase bill's stored total is VAT-inclusive and differs from the
-      // line-derived one; keep it unless the lines were actually edited.
-      total: original != null && _sameLines(original.lines, lines)
-          ? original.total
+      total: postedElsewhere ||
+              (original != null && _sameLines(original.lines, lines))
+          ? original?.total
           : null,
       amountPaid: original?.amountPaid ?? 0,
       source: original?.source,
       supplierId: original?.supplierId,
+      purchaseId: original?.purchaseId,
+      paidUpfront: original?.paidUpfront ?? 0,
     );
   }
+
+  /// Overdue and part paid are derived on read; the stored status is sent.
+  static DocStatus _storedStatus(DocStatus s) =>
+      s == DocStatus.overdue || s == DocStatus.partiallyPaid
+      ? DocStatus.sent
+      : s;
 
   static bool _sameLines(List<DocLine> a, List<DocLine> b) {
     if (a.length != b.length) return false;
@@ -1071,7 +1082,7 @@ class DocPreviewPanel extends ConsumerWidget {
                 icon: Icons.receipt_long_outlined,
                 onPressed: onEdit,
               ),
-              if (doc.status != DocStatus.paid)
+              if (isInv ? doc.status != DocStatus.paid : billCanBePaid(doc))
                 AccountingButton(
                   label: isInv ? 'Record payment' : 'Pay bill',
                   icon: Icons.account_balance_wallet_outlined,

@@ -82,7 +82,8 @@ class ManualPurchaseState {
   final DateTime purchaseDate;
   final String pmtTyCd;
 
-  /// When the supplier expects payment; set for credit types only.
+  /// Pay-by date the owner picked; null means the default, 30 days after
+  /// [purchaseDate] (see [effectiveDueDate]).
   final DateTime? dueDate;
 
   /// Cash/Credit (`03`): the part paid when the goods arrived.
@@ -120,6 +121,11 @@ class ManualPurchaseState {
 
   /// Some of the purchase is owed to the supplier (`02` Credit, `03` Cash/Credit).
   bool get isOnCredit => pmtTyCd == '02' || pmtTyCd == '03';
+
+  /// When the supplier is due: the picked date, else Net 30 from the
+  /// purchase date (so it follows later purchase-date changes).
+  DateTime get effectiveDueDate =>
+      dueDate ?? purchaseDate.add(const Duration(days: 30));
 
   /// What will be owed once the purchase is approved.
   double get amountOwed => switch (pmtTyCd) {
@@ -216,18 +222,20 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
   }
 
   void setPurchaseDate(DateTime date) {
-    state = state.copyWith(purchaseDate: date, clearError: true);
+    final due = state.dueDate;
+    state = state.copyWith(
+      purchaseDate: date,
+      // A picked pay-by date before the new purchase date no longer makes
+      // sense; fall back to the default.
+      clearDueDate: due != null && due.isBefore(date),
+      clearError: true,
+    );
   }
 
   void setPaymentType(String pmtTyCd) {
     final onCredit = pmtTyCd == '02' || pmtTyCd == '03';
     state = state.copyWith(
       pmtTyCd: pmtTyCd,
-      // Net 30 by default; the owner can pick another date.
-      dueDate: onCredit
-          ? (state.dueDate ??
-              state.purchaseDate.add(const Duration(days: 30)))
-          : null,
       clearDueDate: !onCredit,
       paidUpfront: pmtTyCd == '03' ? state.paidUpfront : 0,
       clearError: true,

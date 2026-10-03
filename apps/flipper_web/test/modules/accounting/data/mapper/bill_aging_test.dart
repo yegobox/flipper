@@ -116,4 +116,63 @@ void main() {
       expect(row['total'], 100000);
     });
   });
+
+  group('legacy purchase bills and payments', () {
+    const legacy = AccountingDocument(
+      id: 'BILL-9',
+      who: 'Old Supplier',
+      date: '1 Jun 2026',
+      due: '1 Jul 2026',
+      status: DocStatus.sent,
+      lines: [DocLine(desc: 'Rice', qty: 2, price: 5900)],
+      purchaseId: 'p-old',
+    );
+
+    test('their total is the VAT-inclusive line sum', () {
+      expect(docGrandTotal(legacy), 11800);
+    });
+
+    test('they stay out of what is owed', () {
+      expect(legacy.isLegacyPurchaseBill, isTrue);
+      expect(docIsOpen(legacy), isFalse);
+      expect(
+        deriveApAgingFromBills([legacy], now: DateTime(2026, 10, 3)),
+        isEmpty,
+      );
+    });
+
+    test('editing one never writes a total that would re-open it', () {
+      final row = DocumentRowMapper.documentToRow(
+        businessId: 'biz',
+        kind: DocKind.bill,
+        doc: legacy,
+      );
+      expect(row.containsKey('total'), isFalse);
+    });
+
+    test('amount paid comes from payment records when the cache lags', () {
+      final bill = _bill('BILL-1', due: '', paid: 400).copyWith(paidUpfront: 0);
+      // Two devices paid 600 and 400 offline; the cache kept only 400.
+      final applied = withPaymentsApplied(bill, 1000);
+      expect(applied.amountPaid, 1000);
+      expect(docBalance(applied), 99000);
+      // A cache ahead of not-yet-synced payments is kept.
+      expect(withPaymentsApplied(bill, 0).amountPaid, 400);
+    });
+
+    test('drafts and settled bills cannot be paid', () {
+      expect(
+        billCanBePaid(_bill('B', due: '', status: DocStatus.draft)),
+        isFalse,
+      );
+      expect(
+        billCanBePaid(_bill('B', due: '', status: DocStatus.paid)),
+        isFalse,
+      );
+      expect(
+        billCanBePaid(_bill('B', due: '', status: DocStatus.overdue)),
+        isTrue,
+      );
+    });
+  });
 }

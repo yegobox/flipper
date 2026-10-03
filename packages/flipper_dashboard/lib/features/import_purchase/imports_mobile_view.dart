@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/import_purchase/import_purchase_helpe
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_dashboard/manual_purchase/amount_input.dart';
 import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -524,19 +525,19 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
   late final _name = TextEditingController(text: _itemName(widget.item));
   late final _supply = TextEditingController(
     text: (widget.item.supplyPrice ?? 0) > 0
-        ? _money.format(widget.item.supplyPrice)
+        ? formatAmountForEdit(widget.item.supplyPrice!)
         : '',
   );
   late final _retail = TextEditingController(
     text: (widget.item.retailPrice ?? 0) > 0
-        ? _money.format(widget.item.retailPrice)
+        ? formatAmountForEdit(widget.item.retailPrice!)
         : '',
   );
   late model.Variant? _link = widget.link;
   String? _error;
 
   static double _num(String raw) =>
-      double.tryParse(raw.replaceAll(',', '').trim()) ?? 0;
+      parseAmount(raw);
 
   @override
   void dispose() {

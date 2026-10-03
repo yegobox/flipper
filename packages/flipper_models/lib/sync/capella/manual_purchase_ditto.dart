@@ -1,6 +1,8 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/imports_purchases_map.dart';
+import 'package:flipper_models/sync/branch_catalog_cloud_sync.dart';
 import 'package:flipper_models/sync/utils/stock_qty_milli.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:uuid/uuid.dart';
@@ -57,6 +59,20 @@ abstract final class ManualPurchaseDitto {
     );
   }
 
+  /// Startup registers these too; screens opened first must not read an
+  /// unsubscribed collection (the result would only hold this device's docs).
+  static Future<void> _ensureSubscribed(dynamic ditto, String branchId) async {
+    try {
+      await ensurePurchaseCloudSubscriptions(
+        ditto: ditto,
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId(),
+      );
+    } catch (_) {
+      // Reading local data still works; replication catches up later.
+    }
+  }
+
   static Future<bool> supplierExistsByName({
     required String custNm,
     required String branchId,
@@ -76,6 +92,7 @@ abstract final class ManualPurchaseDitto {
   static Future<List<Supplier>> listSuppliers(String branchId) async {
     final ditto = _dittoService.dittoInstance;
     if (ditto == null) return [];
+    await _ensureSubscribed(ditto, branchId);
     final result = await ditto.store.execute(
       'SELECT * FROM suppliers WHERE branchId = :branchId',
       arguments: {'branchId': branchId},
@@ -98,6 +115,7 @@ abstract final class ManualPurchaseDitto {
   invoiceHistory(String branchId) async {
     final ditto = _dittoService.dittoInstance;
     if (ditto == null) return [];
+    await _ensureSubscribed(ditto, branchId);
     final result = await ditto.store.execute(
       'SELECT * FROM purchases '
       'WHERE branchId = :branchId AND regTyCd = :regTyCd',

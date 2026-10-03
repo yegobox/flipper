@@ -37,6 +37,8 @@ class AccountingDocument {
     this.amountPaid = 0,
     this.source,
     this.supplierId,
+    this.purchaseId,
+    this.paidUpfront = 0,
   });
 
   /// Human-readable number (e.g. INV-2210).
@@ -65,6 +67,18 @@ class AccountingDocument {
   /// Canonical `suppliers` row id, when linked.
   final String? supplierId;
 
+  /// The POS purchase this bill records, when it came from one.
+  final String? purchaseId;
+
+  /// Part of [total] settled when the purchase was made (Cash/Credit).
+  final int paidUpfront;
+
+  /// A purchase bill written before bills carried a total and a source. Its
+  /// lines hold VAT-inclusive prices and its status says nothing about what
+  /// was paid, so it is left out of what the business owes.
+  bool get isLegacyPurchaseBill =>
+      purchaseId != null && source == null && total == null;
+
   AccountingDocument copyWith({
     String? id,
     String? who,
@@ -77,6 +91,8 @@ class AccountingDocument {
     int? amountPaid,
     String? source,
     String? supplierId,
+    String? purchaseId,
+    int? paidUpfront,
   }) => AccountingDocument(
     id: id ?? this.id,
     who: who ?? this.who,
@@ -89,6 +105,8 @@ class AccountingDocument {
     amountPaid: amountPaid ?? this.amountPaid,
     source: source ?? this.source,
     supplierId: supplierId ?? this.supplierId,
+    purchaseId: purchaseId ?? this.purchaseId,
+    paidUpfront: paidUpfront ?? this.paidUpfront,
   );
 }
 

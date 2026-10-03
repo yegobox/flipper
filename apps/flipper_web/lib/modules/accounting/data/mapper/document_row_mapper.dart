@@ -53,6 +53,8 @@ class DocumentRowMapper {
       amountPaid: num.tryParse('${row['amount_paid']}')?.round() ?? 0,
       source: _optional(row, 'source', 'source'),
       supplierId: _optional(row, 'supplier_id', 'supplierId'),
+      purchaseId: _optional(row, 'purchase_id', 'purchaseId'),
+      paidUpfront: num.tryParse('${row['paid_upfront']}')?.round() ?? 0,
     );
   }
 
@@ -89,7 +91,9 @@ class DocumentRowMapper {
       'lines': linesToJson(doc.lines),
       // amount_paid / balance are owned by BillPaymentPoster and never
       // written here, so editing a bill cannot wipe out recorded payments.
-      'total': doc.total ?? docTotals(doc.lines).total,
+      // A legacy purchase bill stays without a total, so it stays out of
+      // what is owed (see isLegacyPurchaseBill).
+      if (!doc.isLegacyPurchaseBill) 'total': doc.total ?? docGrandTotal(doc),
       if (doc.source != null) 'source': doc.source,
       if (doc.supplierId != null) 'supplier_id': doc.supplierId,
     };

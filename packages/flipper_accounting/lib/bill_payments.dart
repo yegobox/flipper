@@ -219,6 +219,11 @@ class BillPaymentPoster {
     if (bill == null) {
       throw StateError('Bill $billDocId not found');
     }
+    // A draft is a purchase still waiting for approval: nothing is owed yet,
+    // and declining it deletes the bill.
+    if (bill['status'] == 'draft') {
+      throw StateError('Approve the purchase before paying this bill');
+    }
     final ap = ChartAccountResolver(accounts).payable;
     if (ap == null) {
       throw StateError('Chart of accounts has no Accounts Payable account');
@@ -299,11 +304,10 @@ class BillPaymentPoster {
       paidUpfront: num.tryParse('${row['paid_upfront']}')?.round() ?? 0,
       payments: await paymentsFor(billDocId),
     );
-    await _ditto.executeUpdate(
-      'accounting_documents',
-      billDocId,
-      balance.toBillFields(),
-    );
+    final fields = balance.toBillFields();
+    // A payment synced in from another device must not promote a draft.
+    if (row['status'] == 'draft') fields.remove('status');
+    await _ditto.executeUpdate('accounting_documents', billDocId, fields);
     return balance;
   }
 }

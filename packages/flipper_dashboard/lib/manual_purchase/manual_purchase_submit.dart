@@ -60,7 +60,7 @@ Future<bool> submitManualPurchase({
         postToLedger: true,
         supplierId: terms.selectedSupplierId,
         paidUpfront: paidUpfront,
-        dueDate: terms.dueDate,
+        dueDate: terms.isOnCredit ? terms.effectiveDueDate : null,
       );
       toast('Purchase recorded and approved');
     } catch (e) {
@@ -74,7 +74,7 @@ Future<bool> submitManualPurchase({
       postToLedger: false,
       supplierId: terms.selectedSupplierId,
       paidUpfront: paidUpfront,
-      dueDate: terms.dueDate,
+      dueDate: terms.isOnCredit ? terms.effectiveDueDate : null,
     );
     toast('Purchase saved as waiting');
   }

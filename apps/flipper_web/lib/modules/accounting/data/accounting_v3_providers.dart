@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_accounting/audit_trail_recorder.dart';
+import 'package:flipper_accounting/bill_payments.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
@@ -441,8 +442,31 @@ final accountingInvoicesProvider = Provider<List<AccountingDocument>>((ref) {
   return _withOverdue(ref.watch(invoicesStreamProvider).value ?? []);
 });
 
+/// Supplier payments recorded against bills (Ditto backend only).
+final billPaymentsStreamProvider = StreamProvider<List<BillPayment>>((ref) {
+  final businessId = ref.watch(accountingBusinessIdProvider);
+  if (businessId.isEmpty ||
+      ref.watch(accountingBackendStrategyProvider) !=
+          AccountingBackendStrategy.ditto ||
+      !ref.watch(dittoReadyProvider)) {
+    return const Stream.empty();
+  }
+  return BillPaymentPoster(
+    ref.watch(dittoServiceProvider),
+  ).watchPayments(businessId);
+});
+
 final accountingBillsProvider = Provider<List<AccountingDocument>>((ref) {
-  return _withOverdue(ref.watch(billsStreamProvider).value ?? []);
+  final bills = ref.watch(billsStreamProvider).value ?? [];
+  final payments = ref.watch(billPaymentsStreamProvider).value ?? const [];
+  final paidByBill = <String, int>{};
+  for (final p in payments) {
+    paidByBill[p.billDocId] = (paidByBill[p.billDocId] ?? 0) + p.amount;
+  }
+  return _withOverdue([
+    for (final b in bills)
+      b.uuid == null ? b : withPaymentsApplied(b, paidByBill[b.uuid] ?? 0),
+  ]);
 });
 
 // ─── Team (current user + invited) ───────────────────────────────────────────
