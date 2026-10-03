@@ -102,7 +102,18 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               businessId: businessId,
             );
 
+      final deleted = await ProxyService.strategy.flipperDelete(
+        id: variantId,
+        endPoint: 'catalogItem',
+        flipperHttpClient: ProxyService.http,
+      );
+      if (!deleted) {
+        toast('Could not delete this item. Please try again.');
+        return;
+      }
+
       // If the product is composite, delete its composites for this variant.
+      // Only after the variant is gone, so a failed delete leaves them intact.
       if (product?.isComposite ?? false) {
         final composites = await ProxyService.strategy.composites(
           variantId: variantId,
@@ -114,16 +125,6 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             flipperHttpClient: ProxyService.http,
           );
         }
-      }
-
-      final deleted = await ProxyService.strategy.flipperDelete(
-        id: variantId,
-        endPoint: 'catalogItem',
-        flipperHttpClient: ProxyService.http,
-      );
-      if (!deleted) {
-        toast('Could not delete this item. Please try again.');
-        return;
       }
 
       ref
