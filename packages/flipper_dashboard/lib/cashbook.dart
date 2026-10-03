@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
+import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -1323,7 +1324,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             ActionChip(
               avatar: Icon(Icons.add, size: 18, color: Colors.grey.shade700),
               label: const Text('New'),
-              onPressed: () => _createCategoryInline(list),
+              onPressed: () => _createCategoryInline(list, isIncome),
               backgroundColor: Colors.white,
               side: BorderSide(color: Colors.grey.shade400),
               shape: RoundedRectangleBorder(
@@ -1369,50 +1370,30 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   /// Adds a category without leaving the form and selects it.
-  Future<void> _createCategoryInline(List<Category> existing) async {
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
+  Future<void> _createCategoryInline(
+    List<Category> existing,
+    bool isIncome,
+  ) async {
+    final selectedId = await showCashbookNewCategorySheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('New category'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(hintText: 'e.g. Transport, Rent'),
-          onSubmitted: (v) => Navigator.of(dialogContext).pop(v),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+      isIncome: isIncome,
+      existing: [
+        for (final c in existing) (id: c.id, name: c.name ?? ''),
+      ],
+      onCreate: _addCategory,
     );
-    controller.dispose();
-    final trimmed = name?.trim() ?? '';
-    if (!mounted || trimmed.isEmpty) return;
+    if (!mounted || selectedId == null) return;
+    setState(() => _selectedCategoryId = selectedId);
+  }
 
-    final match = findCashbookCategoryByName<Category>(
-      existing,
-      trimmed,
-      name: (c) => c.name ?? '',
-    );
-    if (match != null) {
-      setState(() => _selectedCategoryId = match.id);
-      return;
-    }
-
+  /// Persists a new category and returns its id. Throws on failure so the
+  /// sheet can show the error in place.
+  Future<String> _addCategory(String name) async {
     final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return;
+    if (branchId == null) throw StateError('No active branch');
     final now = DateTime.now().toUtc();
     final draft = Category(
-      name: trimmed,
+      name: name,
       branchId: branchId,
       active: true,
       focused: false,
@@ -1420,7 +1401,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     try {
       await ProxyService.strategy.addCategory(
         id: draft.id,
-        name: trimmed,
+        name: name,
         branchId: branchId,
         active: true,
         focused: false,
@@ -1428,13 +1409,12 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         createdAt: now,
         deletedAt: null,
       );
-      if (!mounted) return;
-      setState(() => _selectedCategoryId = draft.id);
-      ref.invalidate(categoryProvider);
     } catch (e) {
       talker.error('Cash book: create category failed: $e');
-      if (mounted) showErrorNotification(context, 'Could not add category');
+      rethrow;
     }
+    ref.invalidate(categoryProvider);
+    return draft.id;
   }
 
   Widget _buildFormFooter(CoreViewModel model) {

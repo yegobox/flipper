@@ -72,3 +72,40 @@ T? findCashbookCategoryByName<T>(
   }
   return null;
 }
+
+/// Starter names offered in the "New category" sheet, per direction.
+const List<String> cashbookIncomeCategorySuggestions = [
+  'Sales',
+  'Owner deposit',
+  'Loan received',
+  'Debt repayment',
+  'Refund',
+  'Commission',
+];
+
+const List<String> cashbookExpenseCategorySuggestions = [
+  'Transport',
+  'Rent',
+  'Salaries',
+  'Utilities',
+  'Supplies',
+  'Airtime',
+  'Food',
+  'Repairs',
+];
+
+/// Suggestions for the "New category" sheet, minus names the branch already
+/// has (case/space-insensitive) so a quick pick always creates something new.
+List<String> cashbookCategorySuggestions({
+  required bool isIncome,
+  required Iterable<String> existingNames,
+}) {
+  final taken = existingNames.map((n) => n.trim().toLowerCase()).toSet();
+  final source = isIncome
+      ? cashbookIncomeCategorySuggestions
+      : cashbookExpenseCategorySuggestions;
+  return [
+    for (final s in source)
+      if (!taken.contains(s.toLowerCase())) s,
+  ];
+}
