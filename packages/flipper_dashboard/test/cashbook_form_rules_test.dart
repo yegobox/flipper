@@ -80,4 +80,27 @@ void main() {
     expect(findCashbookCategoryByName(cats, 'Rent', name: _name), isNull);
     expect(findCashbookCategoryByName(cats, '   ', name: _name), isNull);
   });
+
+  group('cashbookCategorySuggestions', () {
+    test('offers direction-specific names', () {
+      expect(
+        cashbookCategorySuggestions(isIncome: false, existingNames: const []),
+        contains('Transport'),
+      );
+      expect(
+        cashbookCategorySuggestions(isIncome: true, existingNames: const []),
+        contains('Sales'),
+      );
+    });
+
+    test('hides names the branch already has', () {
+      final out = cashbookCategorySuggestions(
+        isIncome: false,
+        existingNames: const [' transport', 'RENT'],
+      );
+      expect(out, isNot(contains('Transport')));
+      expect(out, isNot(contains('Rent')));
+      expect(out, contains('Salaries'));
+    });
+  });
 }
