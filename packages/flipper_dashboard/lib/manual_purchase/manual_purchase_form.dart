@@ -2,17 +2,14 @@ import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_submit.dart';
+import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
 import 'package:flipper_dashboard/manual_purchase/supplier_search_field.dart';
-import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
-import 'package:flipper_models/SyncStrategy.dart';
-import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
@@ -107,68 +104,12 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
 
   Future<void> _save({required bool approve}) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final notifier = ref.read(manualPurchaseProvider.notifier);
-
-    if (await notifier.invoiceAlreadyExists()) {
-      if (!mounted) return;
-      final proceed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Duplicate invoice'),
-          content: const Text(
-            'A purchase with this invoice number already exists for this '
-            'branch. Save anyway?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Save anyway'),
-            ),
-          ],
-        ),
-      );
-      if (proceed != true) return;
-    }
-
-    final terms = ref.read(manualPurchaseProvider);
-    final saved = await notifier.save();
-    if (saved == null) return;
-
-    if (approve) {
-      try {
-        await ManualPurchaseDitto.setPurchaseStatus(
-          purchase: saved,
-          pchsSttsCd: '02',
-        );
-        await PosPurchaseJournalPoster.postPurchase(
-          purchase: saved,
-          postToLedger: true,
-          supplierId: terms.selectedSupplierId,
-          paidUpfront: terms.pmtTyCd == '03' ? terms.paidUpfront : null,
-          dueDate: terms.dueDate,
-        );
-        toast('Purchase recorded and approved');
-      } catch (e) {
-        // The purchase stays in Waiting; nothing is lost.
-        toast('Purchase saved as waiting. Approval failed: $e');
-      }
-    } else {
-      // The draft bill carries the credit terms until the purchase is approved.
-      await PosPurchaseJournalPoster.postPurchase(
-        purchase: saved,
-        postToLedger: false,
-        supplierId: terms.selectedSupplierId,
-        paidUpfront: terms.pmtTyCd == '03' ? terms.paidUpfront : null,
-        dueDate: terms.dueDate,
-      );
-      toast('Purchase saved as waiting');
-    }
-
-    if (mounted) {
+    final saved = await submitManualPurchase(
+      context: context,
+      ref: ref,
+      approve: approve,
+    );
+    if (saved && mounted) {
       _goBackToPurchases();
       await ref.read(importPurchaseViewModelProvider.notifier).loadList();
     }
@@ -584,32 +525,12 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
     return RawAutocomplete<Variant>(
       textEditingController: _catalogSearchController,
       focusNode: _catalogFocus,
-      optionsBuilder: (textEditingValue) async {
-        final query = textEditingValue.text.trim();
-        if (query.isEmpty) return const Iterable<Variant>.empty();
-        // Search the full system-wide catalog (not just the page-1 snapshot
-        // in widget.catalogVariants). Matches what product lists query.
-        final branchId = ProxyService.box.getBranchId() ?? '';
-        if (branchId.isEmpty) {
-          return widget.catalogVariants
-              .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
-              .take(20);
-        }
-        try {
-          final paged = await ProxyService.getStrategy(Strategy.capella).variants(
-            branchId: branchId,
-            name: query,
-            itemsPerPage: 20,
-          );
-          return paged.variants.cast<Variant>();
-        } catch (e, s) {
-          talker.error('Catalog search failed', e, s);
-          // Fall back to the in-memory snapshot so search still works offline.
-          return widget.catalogVariants
-              .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
-              .take(20);
-        }
-      },
+      // Search the full system-wide catalog (not just the page-1 snapshot
+      // in widget.catalogVariants). Matches what product lists query.
+      optionsBuilder: (textEditingValue) => searchPurchaseCatalog(
+        textEditingValue.text,
+        snapshot: widget.catalogVariants,
+      ),
       displayStringForOption: (v) => v.name,
       onSelected: (variant) {
         notifier.addLineFromVariant(variant);
