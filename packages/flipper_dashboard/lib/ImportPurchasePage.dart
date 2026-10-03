@@ -1,9 +1,8 @@
 // ImportPurchasePage.dart
-import 'package:flipper_dashboard/features/import_purchase/assign_variant_modal.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_import_view.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_purchase_view.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
-import 'package:flipper_dashboard/features/import_purchase/ipm_purchase_line_defaults.dart';
+import 'package:flipper_dashboard/features/import_purchase/purchase_approval_mixin.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -18,14 +17,14 @@ class ImportPurchasePage extends ConsumerStatefulWidget {
   ConsumerState<ImportPurchasePage> createState() => _ImportPurchasePageState();
 }
 
-class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
+class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
+    with PurchaseApprovalMixin {
   model.Variant? _selectedItem;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPriceController = TextEditingController();
   final TextEditingController _retailPriceController = TextEditingController();
   final GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   final Map<String, List<model.Variant>> _variantMap = {};
-  final Map<String, List<model.Variant>> _itemMapper = {};
 
   @override
   void initState() {
@@ -47,6 +46,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
     if (!mounted) return;
     showImportPurchaseToast(context, message, isError: !success);
   }
+
+  @override
+  void notifyPurchase(String message, {bool success = true}) =>
+      _notify(message, success: success);
 
   void _selectItem(model.Variant? item) {
     setState(() {
@@ -96,87 +99,6 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
   model.Variant _variantForApprove(model.Variant item) {
     _applyControllerPricingTo(item);
     return item;
-  }
-
-  bool _isPurchaseLineMapped(model.Variant line) {
-    return _itemMapper.values.any((list) => list.any((v) => v.id == line.id));
-  }
-
-  Future<IpmPurchaseMappingSaveResult> _savePurchaseMapping(
-    model.Variant line,
-    IpmPurchaseMappingResult result,
-  ) async {
-    final name = result.name.trim();
-    if (name.isEmpty) {
-      _notify('Name is required', success: false);
-      return const IpmPurchaseMappingSaveResult(success: false);
-    }
-    if (result.supplyPrice <= 0 || result.retailPrice <= 0) {
-      _notify('Please set both retail and supply prices', success: false);
-      return const IpmPurchaseMappingSaveResult(success: false);
-    }
-    if (result.mode == IpmPurchaseMappingMode.mapExisting &&
-        result.catalogVariant == null) {
-      _notify('Select an existing variant', success: false);
-      return const IpmPurchaseMappingSaveResult(success: false);
-    }
-
-    line.name = name;
-    line.itemNm = name;
-    line.supplyPrice = result.supplyPrice;
-    line.retailPrice = result.retailPrice;
-    line.prc = result.retailPrice;
-    line.dftPrc = result.retailPrice;
-
-    for (final list in _itemMapper.values) {
-      list.removeWhere((v) => v.id == line.id);
-    }
-    _itemMapper.removeWhere((_, list) => list.isEmpty);
-
-    if (result.mode == IpmPurchaseMappingMode.mapExisting) {
-      setState(() {
-        _itemMapper.putIfAbsent(result.catalogVariant!.id, () => []).add(line);
-      });
-      _notify('Mapped to existing variant');
-      return const IpmPurchaseMappingSaveResult(success: true);
-    }
-
-    try {
-      final catalogVariant = await createIpmCatalogVariant(
-        name: name,
-        supplyPrice: result.supplyPrice,
-        retailPrice: result.retailPrice,
-      );
-      if (!mounted) {
-        return const IpmPurchaseMappingSaveResult(success: false);
-      }
-      final branchId = ProxyService.box.getBranchId() ?? '';
-      ref.read(outerVariantsProvider(branchId).notifier).addVariants([
-        catalogVariant,
-      ]);
-      for (final catalog in posStockFilteredCatalogs(branchId)) {
-        if (ref.exists(catalog)) {
-          ref.read(catalog.notifier).addVariants([catalogVariant]);
-        }
-      }
-      setState(() {
-        _itemMapper.putIfAbsent(catalogVariant.id, () => []).add(line);
-      });
-      final itemCd = catalogVariant.itemCd;
-      _notify(
-        itemCd != null && itemCd.isNotEmpty
-            ? 'Created variant · $itemCd'
-            : 'Created variant',
-      );
-      return IpmPurchaseMappingSaveResult(
-        success: true,
-        createdItemCd: itemCd,
-        closeModal: false,
-      );
-    } catch (e) {
-      _notify('Could not create variant: $e', success: false);
-      return const IpmPurchaseMappingSaveResult(success: false);
-    }
   }
 
   @override
@@ -336,7 +258,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
 
     return ImportPurchasePurchaseView(
       purchases: state.purchases,
-      itemMapper: _itemMapper,
+      itemMapper: itemMapper,
       variants: catalogVariants,
       statusFilter: state.purchaseStatusFilter,
       onStatusFilterChanged: notifier.setPurchaseStatusFilter,
@@ -350,7 +272,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
           _notify('Retry failed: $e', success: false);
         }
       },
-      onSavePurchaseMapping: _savePurchaseMapping,
+      onSavePurchaseMapping: savePurchaseMapping,
       acceptPurchases:
           ({
             required List<model.Purchase> purchases,
@@ -358,34 +280,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage> {
             required model.Purchase purchase,
             model.Variant? clickedVariant,
           }) async {
-            final isDecline = pchsSttsCd == '04';
-            if (!isDecline) {
-              final lines = purchase.variants ?? [];
-              final unmapped = lines
-                  .where((line) => !_isPurchaseLineMapped(line))
-                  .length;
-              if (unmapped > 0) {
-                _notify('$unmapped line(s) still need mapping', success: false);
-                return;
-              }
-            }
-            try {
-              if (isDecline) {
-                await notifier.rejectPurchase(purchase: purchase);
-              } else {
-                await notifier.approvePurchase(
-                  purchase: purchase,
-                  itemMapper: _itemMapper,
-                );
-              }
-              _itemMapper.clear();
-              _notify(isDecline ? 'Purchase declined' : 'Purchase accepted');
-            } catch (e) {
-              _notify(
-                'Could not ${isDecline ? 'decline' : 'accept'} purchase: $e',
-                success: false,
-              );
-            }
+            await decidePurchase(purchase, accept: pchsSttsCd != '04');
           },
     );
   }

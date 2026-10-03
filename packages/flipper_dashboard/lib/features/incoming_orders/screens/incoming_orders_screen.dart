@@ -17,7 +17,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 enum OmDirection { incoming, outgoing }
 
 class IncomingOrdersScreen extends HookConsumerWidget {
-  const IncomingOrdersScreen({Key? key}) : super(key: key);
+  const IncomingOrdersScreen({Key? key, this.showTitle = true})
+    : super(key: key);
+
+  /// False when a [CustomAppBar] above already names the screen (mobile).
+  final bool showTitle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,6 +75,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _OmHeader(
+                              showTitle: showTitle,
                               compact: compact,
                               orderStatus: orderStatus,
                               onStatusChanged: (newStatus) {
@@ -273,8 +278,10 @@ class _OmHeader extends StatelessWidget {
     required this.compact,
     required this.orderStatus,
     required this.onStatusChanged,
+    this.showTitle = true,
   });
 
+  final bool showTitle;
   final bool compact;
   final OrderStatus orderStatus;
   final ValueChanged<OrderStatus> onStatusChanged;
@@ -313,6 +320,8 @@ class _OmHeader extends StatelessWidget {
         ),
       ],
     );
+
+    if (!showTitle) return statusSeg;
 
     if (compact) {
       return Column(

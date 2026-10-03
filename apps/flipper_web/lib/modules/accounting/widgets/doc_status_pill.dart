@@ -12,7 +12,10 @@ class DocStatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg) = switch (status) {
       DocStatus.draft => (AccountingTokens.surface2, AccountingTokens.ink3),
-      DocStatus.sent => (AccountingTokens.accentTint, AccountingTokens.accent),
+      DocStatus.sent || DocStatus.partiallyPaid => (
+        AccountingTokens.accentTint,
+        AccountingTokens.accent,
+      ),
       DocStatus.paid => (AccountingTokens.gainTint, AccountingTokens.gainInk),
       DocStatus.overdue => (AccountingTokens.lossTint, AccountingTokens.lossInk),
     };

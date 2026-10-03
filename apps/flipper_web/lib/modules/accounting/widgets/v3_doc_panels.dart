@@ -1,4 +1,6 @@
+import 'package:flipper_accounting/bill_payments.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_poster.dart';
@@ -11,6 +13,7 @@ import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_page_header.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_toast.dart';
 import 'package:flipper_web/modules/accounting/widgets/doc_status_pill.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,19 +96,64 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
     ];
   }
 
+  /// Recorded by a purchase or the cashbook (old purchase bills have only
+  /// the purchase link): its own poster owns the ledger entry.
+  bool get _postedElsewhere =>
+      widget.doc?.source != null || widget.doc?.purchaseId != null;
+
+  /// A waiting purchase's bill: it is recorded by approving the purchase.
+  bool get _waitingPurchaseDraft =>
+      _postedElsewhere && widget.doc?.status == DocStatus.draft;
+
   AccountingDocument _build(DocStatus status) {
     final filtered = _lines
         .where((l) => l.desc.isNotEmpty || l.price > 0)
         .map((l) => DocLine(desc: l.desc, qty: l.qty, price: l.price))
         .toList();
+    final lines = filtered.isEmpty ? _lines : filtered;
+    final original = widget.doc;
+    // Purchase and cashbook bills were posted by their own poster: the ledger
+    // will not follow an edit here, so their total and status stay as they
+    // are (a waiting purchase's draft cannot be recorded from Books either).
+    final postedElsewhere = _postedElsewhere;
     return AccountingDocument(
+      // Bill numbers repeat (two suppliers' invoice 42): the document id,
+      // not the number, says which bill this is.
+      uuid: original?.uuid,
       id: _id,
       who: _who,
       date: _date,
       due: _due,
-      status: status,
-      lines: filtered.isEmpty ? _lines : filtered,
+      status: postedElsewhere ? _storedStatus(original!.status) : status,
+      lines: lines,
+      total: postedElsewhere ||
+              (original != null && _sameLines(original.lines, lines))
+          ? original?.total
+          : null,
+      amountPaid: original?.amountPaid ?? 0,
+      source: original?.source,
+      supplierId: original?.supplierId,
+      purchaseId: original?.purchaseId,
+      paidUpfront: original?.paidUpfront ?? 0,
     );
+  }
+
+  /// Overdue and part paid are derived on read; the stored status is sent.
+  static DocStatus _storedStatus(DocStatus s) =>
+      s == DocStatus.overdue || s == DocStatus.partiallyPaid
+      ? DocStatus.sent
+      : s;
+
+  static bool _sameLines(List<DocLine> a, List<DocLine> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].desc != b[i].desc ||
+          a[i].qty != b[i].qty ||
+          a[i].price != b[i].price) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -287,11 +335,13 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                 )
               else
                 AccountingButton(
-                  label: 'Record bill',
+                  label: _waitingPurchaseDraft
+                      ? 'Approve in Purchases'
+                      : 'Record bill',
                   icon: Icons.check,
                   primary: true,
-                  enabled: _valid,
-                  onPressed: _valid
+                  enabled: _valid && !_waitingPurchaseDraft,
+                  onPressed: _valid && !_waitingPurchaseDraft
                       ? () => widget.onSaved(_build(DocStatus.sent), 'send')
                       : null,
                 ),
@@ -559,22 +609,102 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
   late String _method;
   late int _amount;
   bool _done = false;
+  bool _saving = false;
+
+  /// Bill balance after this payment; null until a bill payment is recorded.
+  BillBalance? _after;
 
   @override
   void initState() {
     super.initState();
     _method = '1020';
-    _amount = docTotals(widget.doc.lines).total;
+    _amount = _isInvoice ? docGrandTotal(widget.doc) : docBalance(widget.doc);
   }
 
   bool get _isInvoice => widget.kind == DocKind.invoice;
+
+  /// Bills in Ditto get real part payments (one `bill_payments` row each).
+  /// Invoices, and bills on the Supabase backend, keep the old one-shot post.
+  bool get _tracksPayments =>
+      !_isInvoice &&
+      widget.doc.uuid != null &&
+      ref.read(accountingBackendStrategyProvider) ==
+          AccountingBackendStrategy.ditto;
+
+  Future<void> _pay(List<Account> accounts, String currency) async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    try {
+      final businessId = ref.read(accountingBusinessIdProvider);
+      if (_tracksPayments) {
+        _after = await BillPaymentPoster(
+          ref.read(dittoServiceProvider),
+        ).recordPayment(
+          businessId: businessId,
+          billDocId: widget.doc.uuid!,
+          amount: _amount,
+          paymentAccount: _method,
+          accounts: accounts,
+          fallbackTotal: docGrandTotal(widget.doc),
+        );
+      } else {
+        final poster = DocumentJournalPoster(
+          ref.read(accountingLedgerRepositoryProvider),
+          accounts,
+        );
+        if (_isInvoice) {
+          await poster.postInvoicePayment(
+            businessId: businessId,
+            doc: widget.doc,
+            paymentAccount: _method,
+            amount: _amount,
+          );
+        } else {
+          await poster.postBillPayment(
+            businessId: businessId,
+            doc: widget.doc,
+            paymentAccount: _method,
+            amount: _amount,
+          );
+        }
+      }
+      appendAuditLog(
+        ref,
+        action: 'recorded',
+        target: widget.doc.id,
+        detail: _isInvoice
+            ? 'Customer payment — ${widget.doc.who} ($currency ${money(_amount)})'
+            : 'Paid ${widget.doc.who} ($currency ${money(_amount)})',
+        iconName: 'ArrowDown',
+      );
+      if (mounted) setState(() => _done = true);
+    } catch (e) {
+      if (mounted) showAccountingToast(context, 'Payment failed', subtitle: '$e');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _doneMessage(String currency) {
+    if (_isInvoice) {
+      return '${widget.doc.who} paid $currency ${money(_amount)}. The invoice is marked paid.';
+    }
+    final after = _after;
+    if (after != null && !after.isSettled) {
+      return 'Paid $currency ${money(_amount)} to ${widget.doc.who}. '
+          '$currency ${money(after.balance)} is still owed.';
+    }
+    return 'Paid $currency ${money(_amount)} to ${widget.doc.who}. The bill is settled.';
+  }
 
   @override
   Widget build(BuildContext context) {
     final accounts = ref.watch(accountingAccountsProvider);
     final accountMap = {for (final a in accounts) a.code: a};
     final currency = ref.watch(accountingCurrencyProvider);
-    final total = docTotals(widget.doc.lines).total;
+    final total = _isInvoice
+        ? docGrandTotal(widget.doc)
+        : docBalance(widget.doc);
 
     final postLines = _isInvoice
         ? [(side: 'dr', ac: _method), (side: 'cr', ac: '1100')]
@@ -622,9 +752,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _isInvoice
-                            ? '${widget.doc.who} paid $currency ${money(_amount)}. The invoice is marked paid.'
-                            : 'Paid $currency ${money(_amount)} to ${widget.doc.who}. The bill is settled.',
+                        _doneMessage(currency),
                         textAlign: TextAlign.center,
                         style: AccountingTokens.sans(
                           fontSize: 13.5,
@@ -722,42 +850,9 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                 label: _isInvoice ? 'Record payment' : 'Pay bill',
                 icon: Icons.check,
                 primary: true,
-                enabled: _amount > 0,
-                onPressed: _amount > 0
-                    ? () async {
-                        final businessId = ref.read(
-                          accountingBusinessIdProvider,
-                        );
-                        final poster = DocumentJournalPoster(
-                          ref.read(accountingLedgerRepositoryProvider),
-                          accounts,
-                        );
-                        if (_isInvoice) {
-                          await poster.postInvoicePayment(
-                            businessId: businessId,
-                            doc: widget.doc,
-                            paymentAccount: _method,
-                            amount: _amount,
-                          );
-                        } else {
-                          await poster.postBillPayment(
-                            businessId: businessId,
-                            doc: widget.doc,
-                            paymentAccount: _method,
-                            amount: _amount,
-                          );
-                        }
-                        appendAuditLog(
-                          ref,
-                          action: 'recorded',
-                          target: widget.doc.id,
-                          detail: _isInvoice
-                              ? 'Customer payment — ${widget.doc.who} ($currency ${money(_amount)})'
-                              : 'Paid ${widget.doc.who} ($currency ${money(_amount)})',
-                          iconName: 'ArrowDown',
-                        );
-                        setState(() => _done = true);
-                      }
+                enabled: _amount > 0 && !_saving,
+                onPressed: _amount > 0 && !_saving
+                    ? () => _pay(accounts, currency)
                     : null,
               ),
             ],
@@ -1001,7 +1096,7 @@ class DocPreviewPanel extends ConsumerWidget {
                 icon: Icons.receipt_long_outlined,
                 onPressed: onEdit,
               ),
-              if (doc.status != DocStatus.paid)
+              if (isInv ? doc.status != DocStatus.paid : billCanBePaid(doc))
                 AccountingButton(
                   label: isInv ? 'Record payment' : 'Pay bill',
                   icon: Icons.account_balance_wallet_outlined,

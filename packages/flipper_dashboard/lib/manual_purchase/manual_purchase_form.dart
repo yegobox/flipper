@@ -1,19 +1,16 @@
-import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_dashboard/manual_purchase/amount_input.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_submit.dart';
+import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
 import 'package:flipper_dashboard/manual_purchase/supplier_search_field.dart';
-import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 
@@ -58,16 +55,30 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   @override
   void initState() {
     super.initState();
+    _invoiceController.text = ref.read(manualPurchaseProvider).invoiceNo;
     _loadSuppliers();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _suggestInvoiceNo());
   }
 
   Future<void> _loadSuppliers() async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
-    final suppliers = await Repository().get<Supplier>(
-      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
-    );
+    // Saved suppliers are Ditto-only; Brick/SQLite never has them.
+    final suppliers = await ManualPurchaseDitto.listSuppliers(branchId);
     if (mounted) setState(() => _suppliers = suppliers);
+  }
+
+  Future<void> _suggestInvoiceNo() async {
+    if (!mounted) return;
+    try {
+      await ref
+          .read(manualPurchaseProvider.notifier)
+          .suggestInvoiceNo(
+            loaded: ref.read(importPurchaseViewModelProvider).purchases,
+          );
+    } catch (_) {
+      // A suggestion is a convenience; the owner can always type the number.
+    }
   }
 
   @override
@@ -107,63 +118,18 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
 
   Future<void> _save({required bool approve}) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final notifier = ref.read(manualPurchaseProvider.notifier);
-
-    if (await notifier.invoiceAlreadyExists()) {
-      if (!mounted) return;
-      final proceed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Duplicate invoice'),
-          content: const Text(
-            'A purchase with this invoice number already exists for this '
-            'branch. Save anyway?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Save anyway'),
-            ),
-          ],
-        ),
-      );
-      if (proceed != true) return;
-    }
-
-    final saved = await notifier.save();
-    if (saved == null) return;
-
-    if (approve) {
-      try {
-        await ManualPurchaseDitto.setPurchaseStatus(
-          purchase: saved,
-          pchsSttsCd: '02',
-        );
-        await PosPurchaseJournalPoster.postPurchase(
-          purchase: saved,
-          postToLedger: true,
-        );
-        toast('Purchase recorded and approved');
-      } catch (e) {
-        // The purchase stays in Waiting; nothing is lost.
-        toast('Purchase saved as waiting. Approval failed: $e');
-      }
-    } else {
-      await PosPurchaseJournalPoster.postPurchase(
-        purchase: saved,
-        postToLedger: false,
-      );
-      toast('Purchase saved as waiting');
-    }
-
-    if (mounted) {
-      _goBackToPurchases();
-      await ref.read(importPurchaseViewModelProvider.notifier).loadList();
-    }
+    final saved = await submitManualPurchase(
+      context: context,
+      ref: ref,
+      approve: approve,
+    );
+    if (!saved || !mounted) return;
+    // Read before closing: closing disposes this widget, and its ref with it,
+    // which is why saved purchases used to be missing until a manual reload.
+    final list = ref.read(importPurchaseViewModelProvider.notifier);
+    _goBackToPurchases();
+    // Show the list the new purchase landed in (reloads it).
+    list.setPurchaseStatusFilter(approve ? 'approved' : 'pending');
   }
 
   double get _padX => widget.useImportPurchaseTheme ? 30 : 24;
@@ -172,6 +138,11 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   Widget build(BuildContext context) {
     final state = ref.watch(manualPurchaseProvider);
     final notifier = ref.read(manualPurchaseProvider.notifier);
+    ref.listen(manualPurchaseProvider, (_, next) {
+      if (next.invoiceAutoFilled && _invoiceController.text != next.invoiceNo) {
+        _invoiceController.text = next.invoiceNo;
+      }
+    });
 
     return Form(
       key: _formKey,
@@ -310,6 +281,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                         id: supplier.id,
                       );
                       _tinController.text = supplier.custTin ?? '';
+                      _suggestInvoiceNo();
                     },
                     onSuppliersChanged: _loadSuppliers,
                   ),
@@ -425,6 +397,100 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             ),
           ],
         ),
+        if (state.isOnCredit) ...[
+          const SizedBox(height: 16),
+          _buildCreditTerms(state, notifier),
+        ],
+      ],
+    );
+  }
+
+  /// Pay-later terms: when the supplier is due, and for Cash/Credit how much
+  /// was paid now. Stored on the purchase's bill so Books and reminders see it.
+  Widget _buildCreditTerms(
+    ManualPurchaseState state,
+    ManualPurchaseNotifier notifier,
+  ) {
+    final formatter = NumberFormat('#,##0.##');
+    final due = state.effectiveDueDate;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _fieldLabel('Pay supplier by'),
+              InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: due,
+                    firstDate: state.purchaseDate,
+                    lastDate: state.purchaseDate.add(const Duration(days: 730)),
+                  );
+                  if (picked != null) notifier.setDueDate(picked);
+                },
+                child: InputDecorator(
+                  decoration: _fieldDecoration(
+                    suffixIcon: Icon(
+                      Icons.event_outlined,
+                      size: 18,
+                      color: _hintColor,
+                    ),
+                  ),
+                  child: Text(
+                    DateFormat('dd MMM yyyy').format(due),
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (state.pmtTyCd == '03') ...[
+                _fieldLabel('Paid now'),
+                TextFormField(
+                  initialValue: state.paidUpfront > 0
+                      ? formatAmountForEdit(state.paidUpfront)
+                      : null,
+                  decoration: _fieldDecoration(hint: '0'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (v) => notifier.setPaidUpfront(
+                    parseAmount(v),
+                  ),
+                ),
+              ] else
+                _fieldLabel('Paid now', suffix: '(none — full credit)'),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _fieldLabel('You will owe'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  formatter.format(state.amountOwed),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -482,32 +548,12 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
     return RawAutocomplete<Variant>(
       textEditingController: _catalogSearchController,
       focusNode: _catalogFocus,
-      optionsBuilder: (textEditingValue) async {
-        final query = textEditingValue.text.trim();
-        if (query.isEmpty) return const Iterable<Variant>.empty();
-        // Search the full system-wide catalog (not just the page-1 snapshot
-        // in widget.catalogVariants). Matches what product lists query.
-        final branchId = ProxyService.box.getBranchId() ?? '';
-        if (branchId.isEmpty) {
-          return widget.catalogVariants
-              .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
-              .take(20);
-        }
-        try {
-          final paged = await ProxyService.getStrategy(Strategy.capella).variants(
-            branchId: branchId,
-            name: query,
-            itemsPerPage: 20,
-          );
-          return paged.variants.cast<Variant>();
-        } catch (e, s) {
-          talker.error('Catalog search failed', e, s);
-          // Fall back to the in-memory snapshot so search still works offline.
-          return widget.catalogVariants
-              .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
-              .take(20);
-        }
-      },
+      // Search the full system-wide catalog (not just the page-1 snapshot
+      // in widget.catalogVariants). Matches what product lists query.
+      optionsBuilder: (textEditingValue) => searchPurchaseCatalog(
+        textEditingValue.text,
+        snapshot: widget.catalogVariants,
+      ),
       displayStringForOption: (v) => v.name,
       onSelected: (variant) {
         notifier.addLineFromVariant(variant);

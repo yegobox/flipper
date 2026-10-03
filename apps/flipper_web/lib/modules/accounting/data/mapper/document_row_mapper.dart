@@ -1,3 +1,4 @@
+import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 
 class DocumentRowMapper {
@@ -14,7 +15,7 @@ class DocumentRowMapper {
   };
 
   static String statusToDb(DocStatus s) => switch (s) {
-    DocStatus.sent => 'sent',
+    DocStatus.sent || DocStatus.partiallyPaid => 'sent',
     DocStatus.paid => 'paid',
     DocStatus.overdue => 'overdue',
     DocStatus.draft => 'draft',
@@ -48,7 +49,22 @@ class DocumentRowMapper {
       due: _str(row, 'due_date', 'dueDate'),
       status: _status(_str(row, 'status', 'status')),
       lines: _linesFromJson(row['lines']),
+      total: num.tryParse('${row['total']}')?.round(),
+      amountPaid: num.tryParse('${row['amount_paid']}')?.round() ?? 0,
+      source: _optional(row, 'source', 'source'),
+      supplierId: _optional(row, 'supplier_id', 'supplierId'),
+      purchaseId: _optional(row, 'purchase_id', 'purchaseId'),
+      paidUpfront: num.tryParse('${row['paid_upfront']}')?.round() ?? 0,
     );
+  }
+
+  static String? _optional(
+    Map<String, dynamic> row,
+    String snake,
+    String camel,
+  ) {
+    final v = _str(row, snake, camel);
+    return v.isEmpty ? null : v;
   }
 
   static Map<String, dynamic> documentToRow({
@@ -73,6 +89,13 @@ class DocumentRowMapper {
       'dueDate': doc.due,
       'status': statusToDb(doc.status),
       'lines': linesToJson(doc.lines),
+      // amount_paid / balance are owned by BillPaymentPoster and never
+      // written here, so editing a bill cannot wipe out recorded payments.
+      // A legacy purchase bill stays without a total, so it stays out of
+      // what is owed (see isLegacyPurchaseBill).
+      if (!doc.isLegacyPurchaseBill) 'total': doc.total ?? docGrandTotal(doc),
+      if (doc.source != null) 'source': doc.source,
+      if (doc.supplierId != null) 'supplier_id': doc.supplierId,
     };
   }
 

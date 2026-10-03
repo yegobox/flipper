@@ -256,6 +256,7 @@ class DashboardQuickAccessSvgs {
       case 'Settings':
       case 'ProductionOutput':
       case 'Orders':
+      case 'Purchases':
       case 'AgentCommission':
         return true;
       default:
@@ -285,6 +286,7 @@ class DashboardQuickAccessSvgs {
         return const Color.fromRGBO(107, 114, 128, 0.10);
       case 'ProductionOutput':
       case 'Orders':
+      case 'Purchases':
         return const Color.fromRGBO(37, 99, 235, 0.10);
       case 'AgentCommission':
         return const Color.fromRGBO(107, 78, 162, 0.12);
@@ -322,6 +324,7 @@ class DashboardQuickAccessSvgs {
       case 'ProductionOutput':
         return _productionIcon();
       case 'Orders':
+      case 'Purchases':
         return _ordersIcon();
       case 'AgentCommission':
         return _agentCommissionIcon();

@@ -46,9 +46,11 @@ class DittoAccountingDocumentsRepository implements AccountingDocumentsRepositor
     required String businessId,
     required DocKind kind,
     required String docNumber,
+    String? docId,
   }) async {
-    final docId = '${businessId}_${DocumentRowMapper.kindToDb(kind)}_$docNumber';
-    await _ditto.deleteAccountingDocument(docId);
+    final id =
+        docId ?? '${businessId}_${DocumentRowMapper.kindToDb(kind)}_$docNumber';
+    await _ditto.deleteAccountingDocument(id);
   }
 
   @override

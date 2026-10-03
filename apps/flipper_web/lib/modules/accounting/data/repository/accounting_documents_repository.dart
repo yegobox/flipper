@@ -12,10 +12,13 @@ abstract class AccountingDocumentsRepository {
     required AccountingDocument doc,
   });
 
+  /// Deletes by [docId] (the loaded document's id) when given: numbers are
+  /// not unique once two suppliers' bills share one.
   Future<void> deleteDocument({
     required String businessId,
     required DocKind kind,
     required String docNumber,
+    String? docId,
   });
 
   Stream<List<AccountingContact>> watchContacts({

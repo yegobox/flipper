@@ -24,6 +24,10 @@ class SupabaseAccountingDocumentsRepository
     'contactName',
     'sinceLabel',
     'partyId',
+    // Pay-later fields live in Ditto only (no Supabase columns yet).
+    'total',
+    'source',
+    'supplier_id',
   };
 
   static Map<String, dynamic> _forPostgrest(Map<String, dynamic> row) {
@@ -76,7 +80,12 @@ class SupabaseAccountingDocumentsRepository
     required String businessId,
     required DocKind kind,
     required String docNumber,
+    String? docId,
   }) async {
+    if (docId != null) {
+      await _client.from(_docsTable).delete().eq('id', docId);
+      return;
+    }
     await _client
         .from(_docsTable)
         .delete()

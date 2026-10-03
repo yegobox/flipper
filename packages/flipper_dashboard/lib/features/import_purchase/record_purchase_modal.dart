@@ -1,3 +1,5 @@
+import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_mobile_screen.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_form.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -13,6 +15,24 @@ Future<void> showRecordPurchaseModal(BuildContext context, WidgetRef ref) async 
   final branchId = ProxyService.box.getBranchId() ?? '';
   final catalogVariants =
       ref.read(outerVariantsProvider(branchId)).value ?? <Variant>[];
+
+  // Phones get a native full-screen form, not the desktop modal as a sheet.
+  if (MediaQuery.sizeOf(context).width <=
+      ImportPurchaseTokens.modalSheetBreakpoint) {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => ManualPurchaseMobileScreen(
+          catalogVariants: catalogVariants,
+          // Show the list the new purchase landed in (reloads it).
+          onSaved: (approved) => ref
+              .read(importPurchaseViewModelProvider.notifier)
+              .setPurchaseStatusFilter(approved ? 'approved' : 'pending'),
+        ),
+      ),
+    );
+    return;
+  }
 
   await showGeneralDialog<void>(
     context: context,

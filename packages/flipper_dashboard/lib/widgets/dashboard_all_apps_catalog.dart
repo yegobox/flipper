@@ -114,10 +114,17 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         feature: 'Orders',
       ),
       DashboardAllAppTile(
-        page: 'Orders',
+        page: 'Purchases',
         label: context.flipperL10n.purchases,
         icon: FluentIcons.vehicle_truck_profile_24_regular,
         color: Color(0xFFF59E0B),
+        feature: 'Orders',
+      ),
+      const DashboardAllAppTile(
+        page: 'Orders',
+        label: 'Branch Orders',
+        icon: FluentIcons.box_multiple_24_regular,
+        color: Color(0xFF2563EB),
         feature: 'Orders',
       ),
       DashboardAllAppTile(

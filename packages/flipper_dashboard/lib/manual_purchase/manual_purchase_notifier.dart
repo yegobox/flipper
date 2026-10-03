@@ -3,6 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/domain/party/party_draft.dart';
 import 'package:flipper_models/domain/party/supplier_factory.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
+import 'package:flipper_dashboard/manual_purchase/purchase_suggestions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
@@ -74,8 +75,19 @@ class ManualPurchaseState {
   final String supplierTin;
   final String? selectedSupplierId;
   final String invoiceNo;
+
+  /// True while [invoiceNo] is our suggestion rather than typed by the owner;
+  /// only then may a new suggestion (e.g. after picking a supplier) replace it.
+  final bool invoiceAutoFilled;
   final DateTime purchaseDate;
   final String pmtTyCd;
+
+  /// Pay-by date the owner picked; null means the default, 30 days after
+  /// [purchaseDate] (see [effectiveDueDate]).
+  final DateTime? dueDate;
+
+  /// Cash/Credit (`03`): the part paid when the goods arrived.
+  final double paidUpfront;
   final List<ManualPurchaseLine> lines;
   final bool isSaving;
   final String? error;
@@ -85,8 +97,11 @@ class ManualPurchaseState {
     this.supplierTin = '',
     this.selectedSupplierId,
     this.invoiceNo = '',
+    this.invoiceAutoFilled = false,
     DateTime? purchaseDate,
     this.pmtTyCd = '01',
+    this.dueDate,
+    this.paidUpfront = 0,
     this.lines = const [],
     this.isSaving = false,
     this.error,
@@ -104,12 +119,28 @@ class ManualPurchaseState {
   double get totTaxAmt => lines.fold(0.0, (sum, l) => sum + l.taxAmt);
   double get totAmt => totTaxblAmt;
 
+  /// Some of the purchase is owed to the supplier (`02` Credit, `03` Cash/Credit).
+  bool get isOnCredit => pmtTyCd == '02' || pmtTyCd == '03';
+
+  /// When the supplier is due: the picked date, else Net 30 from the
+  /// purchase date (so it follows later purchase-date changes).
+  DateTime get effectiveDueDate =>
+      dueDate ?? purchaseDate.add(const Duration(days: 30));
+
+  /// What will be owed once the purchase is approved.
+  double get amountOwed => switch (pmtTyCd) {
+        '02' => totAmt,
+        '03' => (totAmt - paidUpfront).clamp(0, totAmt).toDouble(),
+        _ => 0,
+      };
+
   bool get isValid =>
       supplierName.trim().isNotEmpty &&
       int.tryParse(invoiceNo.trim()) != null &&
       !purchaseDate.isAfter(DateTime.now()) &&
       lines.isNotEmpty &&
-      lines.every((l) => l.name.trim().isNotEmpty && l.qty > 0);
+      lines.every((l) => l.name.trim().isNotEmpty && l.qty > 0) &&
+      (pmtTyCd != '03' || paidUpfront <= totAmt);
 
   ManualPurchaseState copyWith({
     String? supplierName,
@@ -117,8 +148,12 @@ class ManualPurchaseState {
     String? selectedSupplierId,
     bool clearSelectedSupplierId = false,
     String? invoiceNo,
+    bool? invoiceAutoFilled,
     DateTime? purchaseDate,
     String? pmtTyCd,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+    double? paidUpfront,
     List<ManualPurchaseLine>? lines,
     bool? isSaving,
     String? error,
@@ -131,8 +166,11 @@ class ManualPurchaseState {
           ? null
           : (selectedSupplierId ?? this.selectedSupplierId),
       invoiceNo: invoiceNo ?? this.invoiceNo,
+      invoiceAutoFilled: invoiceAutoFilled ?? this.invoiceAutoFilled,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       pmtTyCd: pmtTyCd ?? this.pmtTyCd,
+      dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
+      paidUpfront: paidUpfront ?? this.paidUpfront,
       lines: lines ?? this.lines,
       isSaving: isSaving ?? this.isSaving,
       error: clearError ? null : (error ?? this.error),
@@ -156,15 +194,60 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
   }
 
   void setInvoiceNo(String invoiceNo) {
-    state = state.copyWith(invoiceNo: invoiceNo, clearError: true);
+    state = state.copyWith(
+      invoiceNo: invoiceNo,
+      invoiceAutoFilled: false,
+      clearError: true,
+    );
+  }
+
+  /// Fills in the next invoice number for the chosen supplier, unless the
+  /// owner already typed one. [loaded] adds purchases already on screen (RRA
+  /// invoices are not in Ditto) to the recorded history.
+  Future<void> suggestInvoiceNo({List<Purchase> loaded = const []}) async {
+    if (state.invoiceNo.trim().isNotEmpty && !state.invoiceAutoFilled) return;
+    final branchId = ProxyService.box.getBranchId();
+    final recorded = branchId == null
+        ? const <InvoiceRecord>[]
+        : await ManualPurchaseDitto.invoiceHistory(branchId);
+    if (!mounted) return;
+    // The owner may have typed while the history loaded.
+    if (state.invoiceNo.trim().isNotEmpty && !state.invoiceAutoFilled) return;
+    final next = suggestNextInvoiceNo(
+      [...recorded, ...invoiceRecordsOf(loaded)],
+      supplierName: state.supplierName,
+      supplierTin: state.supplierTin,
+    );
+    state = state.copyWith(invoiceNo: '$next', invoiceAutoFilled: true);
   }
 
   void setPurchaseDate(DateTime date) {
-    state = state.copyWith(purchaseDate: date, clearError: true);
+    final due = state.dueDate;
+    state = state.copyWith(
+      purchaseDate: date,
+      // A picked pay-by date before the new purchase date no longer makes
+      // sense; fall back to the default.
+      clearDueDate: due != null && due.isBefore(date),
+      clearError: true,
+    );
   }
 
   void setPaymentType(String pmtTyCd) {
-    state = state.copyWith(pmtTyCd: pmtTyCd, clearError: true);
+    final onCredit = pmtTyCd == '02' || pmtTyCd == '03';
+    state = state.copyWith(
+      pmtTyCd: pmtTyCd,
+      clearDueDate: !onCredit,
+      paidUpfront: pmtTyCd == '03' ? state.paidUpfront : 0,
+      clearError: true,
+    );
+  }
+
+  void setDueDate(DateTime date) {
+    state = state.copyWith(dueDate: date, clearError: true);
+  }
+
+  void setPaidUpfront(double amount) {
+    state = state.copyWith(paidUpfront: amount < 0 ? 0 : amount, clearError: true);
   }
 
   Future<Supplier?> createSupplier({
@@ -302,9 +385,10 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
     final s = state;
     if (!s.isValid) {
       state = s.copyWith(
-        error:
-            'Supplier, a numeric invoice number and at least one line '
-            'with quantity above zero are required.',
+        error: s.pmtTyCd == '03' && s.paidUpfront > s.totAmt
+            ? 'The amount paid now cannot be more than the purchase total.'
+            : 'Supplier, a numeric invoice number and at least one line '
+                'with quantity above zero are required.',
       );
       return null;
     }
