@@ -23,6 +23,11 @@ on:
       - re-design
       - v5
       - fix/*
+      # Feature and refactor branches build and upload Android (and the other
+      # non-main jobs) exactly like fix/* branches, so they can be tested on a
+      # device before merge.
+      - feat/*
+      - refactor/*
       - ditto-only-migration
 env:
   URL: ${{ secrets.DB_URL }}
