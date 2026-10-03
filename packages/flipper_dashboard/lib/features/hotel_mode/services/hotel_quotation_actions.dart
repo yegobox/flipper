@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
 import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
@@ -33,7 +34,7 @@ abstract final class HotelQuotationActions {
   }) async {
     final branchId = quotation.branchId.isNotEmpty
         ? quotation.branchId
-        : ProxyService.box.getBranchId();
+        : _currentBranchId;
 
     final HotelQuotationIssuer issuer;
     if (awaitFreshNames) {
@@ -69,7 +70,7 @@ abstract final class HotelQuotationActions {
     if (last != null && now.difference(last) < _warmUpInterval) return;
     _warmedAt = now;
 
-    final branchId = ProxyService.box.getBranchId();
+    final branchId = _currentBranchId;
     try {
       unawaited(
         DocumentStamp.resolve(BranchDocumentSettingsService.current()),
@@ -86,11 +87,18 @@ abstract final class HotelQuotationActions {
   static const Duration _localReadBudget = Duration(milliseconds: 1500);
   static DateTime? _warmedAt;
 
+  // The only reads of the global locator in this class: route new ones
+  // through these so the dependencies stay in one place.
+  static String? get _currentBusinessId => ProxyService.box.getBusinessId();
+  static String? get _currentBranchId => ProxyService.box.getBranchId();
+  static DatabaseSyncInterface get _capella =>
+      ProxyService.getStrategy(Strategy.capella);
+
   static HotelQuotationIssuer? _issuer;
   static String? _issuerKey;
 
   static String _issuerKeyFor(String? branchId) =>
-      '${ProxyService.box.getBusinessId()}|$branchId';
+      '$_currentBusinessId|$branchId';
 
   static HotelQuotationIssuer? _cachedIssuer(String? branchId) =>
       _issuerKey == _issuerKeyFor(branchId) ? _issuer : null;
@@ -102,8 +110,8 @@ abstract final class HotelQuotationActions {
     String? branchId,
     TenantNames? fresh,
   ) async {
-    final strategy = ProxyService.getStrategy(Strategy.capella);
-    final businessId = ProxyService.box.getBusinessId();
+    final strategy = _capella;
+    final businessId = _currentBusinessId;
     final names = fresh != null && fresh.businessId == businessId
         ? fresh
         : null;
@@ -259,7 +267,7 @@ abstract final class HotelQuotationActions {
         DateTime.now().difference(at) < const Duration(seconds: 15)) {
       return pending;
     }
-    final businessId = ProxyService.box.getBusinessId();
+    final businessId = _currentBusinessId;
     if (businessId == null || businessId.isEmpty) return Future.value(null);
 
     _namesFetchedAt = DateTime.now();
@@ -281,11 +289,10 @@ abstract final class HotelQuotationActions {
   static Future<String?> resolveBusinessName() async {
     final fresh = await _freshTenantNames();
     if (fresh?.businessName != null) return fresh!.businessName;
-    final cached = _cachedIssuer(ProxyService.box.getBranchId())?.businessName;
+    final cached = _cachedIssuer(_currentBranchId)?.businessName;
     if (cached != null) return cached;
     final business = await _bounded(
-      ProxyService.getStrategy(Strategy.capella)
-          .getBusiness(businessId: ProxyService.box.getBusinessId()),
+      _capella.getBusiness(businessId: _currentBusinessId),
     );
     return business?.name;
   }
