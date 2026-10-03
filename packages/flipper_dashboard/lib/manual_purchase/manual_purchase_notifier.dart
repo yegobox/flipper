@@ -3,6 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/domain/party/party_draft.dart';
 import 'package:flipper_models/domain/party/supplier_factory.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
+import 'package:flipper_dashboard/manual_purchase/purchase_suggestions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:intl/intl.dart';
@@ -74,6 +75,10 @@ class ManualPurchaseState {
   final String supplierTin;
   final String? selectedSupplierId;
   final String invoiceNo;
+
+  /// True while [invoiceNo] is our suggestion rather than typed by the owner;
+  /// only then may a new suggestion (e.g. after picking a supplier) replace it.
+  final bool invoiceAutoFilled;
   final DateTime purchaseDate;
   final String pmtTyCd;
 
@@ -91,6 +96,7 @@ class ManualPurchaseState {
     this.supplierTin = '',
     this.selectedSupplierId,
     this.invoiceNo = '',
+    this.invoiceAutoFilled = false,
     DateTime? purchaseDate,
     this.pmtTyCd = '01',
     this.dueDate,
@@ -136,6 +142,7 @@ class ManualPurchaseState {
     String? selectedSupplierId,
     bool clearSelectedSupplierId = false,
     String? invoiceNo,
+    bool? invoiceAutoFilled,
     DateTime? purchaseDate,
     String? pmtTyCd,
     DateTime? dueDate,
@@ -153,6 +160,7 @@ class ManualPurchaseState {
           ? null
           : (selectedSupplierId ?? this.selectedSupplierId),
       invoiceNo: invoiceNo ?? this.invoiceNo,
+      invoiceAutoFilled: invoiceAutoFilled ?? this.invoiceAutoFilled,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       pmtTyCd: pmtTyCd ?? this.pmtTyCd,
       dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
@@ -180,7 +188,31 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
   }
 
   void setInvoiceNo(String invoiceNo) {
-    state = state.copyWith(invoiceNo: invoiceNo, clearError: true);
+    state = state.copyWith(
+      invoiceNo: invoiceNo,
+      invoiceAutoFilled: false,
+      clearError: true,
+    );
+  }
+
+  /// Fills in the next invoice number for the chosen supplier, unless the
+  /// owner already typed one. [loaded] adds purchases already on screen (RRA
+  /// invoices are not in Ditto) to the recorded history.
+  Future<void> suggestInvoiceNo({List<Purchase> loaded = const []}) async {
+    if (state.invoiceNo.trim().isNotEmpty && !state.invoiceAutoFilled) return;
+    final branchId = ProxyService.box.getBranchId();
+    final recorded = branchId == null
+        ? const <InvoiceRecord>[]
+        : await ManualPurchaseDitto.invoiceHistory(branchId);
+    if (!mounted) return;
+    // The owner may have typed while the history loaded.
+    if (state.invoiceNo.trim().isNotEmpty && !state.invoiceAutoFilled) return;
+    final next = suggestNextInvoiceNo(
+      [...recorded, ...invoiceRecordsOf(loaded)],
+      supplierName: state.supplierName,
+      supplierTin: state.supplierTin,
+    );
+    state = state.copyWith(invoiceNo: '$next', invoiceAutoFilled: true);
   }
 
   void setPurchaseDate(DateTime date) {

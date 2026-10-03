@@ -70,6 +70,51 @@ abstract final class ManualPurchaseDitto {
     return result.items.isNotEmpty;
   }
 
+  /// Suppliers saved for [branchId]. They live in Ditto only (see
+  /// [_upsertSupplier] and `upsertSupplierParty`), so reading them through
+  /// Brick/SQLite finds nothing.
+  static Future<List<Supplier>> listSuppliers(String branchId) async {
+    final ditto = _dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final result = await ditto.store.execute(
+      'SELECT * FROM suppliers WHERE branchId = :branchId',
+      arguments: {'branchId': branchId},
+    );
+    final suppliers = <Supplier>[];
+    for (final item in result.items) {
+      final supplier = await SupplierDittoAdapter.instance.fromDittoDocument(
+        Map<String, dynamic>.from(item.value),
+      );
+      if (supplier != null && (supplier.custNm ?? '').trim().isNotEmpty) {
+        suppliers.add(supplier);
+      }
+    }
+    return suppliers;
+  }
+
+  /// Supplier name, TIN and invoice number of every manual purchase on
+  /// [branchId], used to suggest the next invoice number.
+  static Future<List<({String name, String tin, int invoiceNo, bool recorded})>>
+  invoiceHistory(String branchId) async {
+    final ditto = _dittoService.dittoInstance;
+    if (ditto == null) return [];
+    final result = await ditto.store.execute(
+      'SELECT * FROM purchases '
+      'WHERE branchId = :branchId AND regTyCd = :regTyCd',
+      arguments: {'branchId': branchId, 'regTyCd': 'M'},
+    );
+    return [
+      for (final item in result.items)
+        if (num.tryParse('${item.value['spplrInvcNo']}') case final n?)
+          (
+            name: '${item.value['spplrNm'] ?? ''}',
+            tin: '${item.value['spplrTin'] ?? ''}',
+            invoiceNo: n.toInt(),
+            recorded: true,
+          ),
+    ];
+  }
+
   static Future<bool> invoiceExists({
     required String branchId,
     required String spplrTin,

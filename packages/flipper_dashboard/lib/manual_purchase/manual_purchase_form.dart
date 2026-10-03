@@ -1,16 +1,15 @@
-import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_submit.dart';
 import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
 import 'package:flipper_dashboard/manual_purchase/supplier_search_field.dart';
+import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_tokens.dart';
 
@@ -55,16 +54,30 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   @override
   void initState() {
     super.initState();
+    _invoiceController.text = ref.read(manualPurchaseProvider).invoiceNo;
     _loadSuppliers();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _suggestInvoiceNo());
   }
 
   Future<void> _loadSuppliers() async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
-    final suppliers = await Repository().get<Supplier>(
-      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
-    );
+    // Saved suppliers are Ditto-only; Brick/SQLite never has them.
+    final suppliers = await ManualPurchaseDitto.listSuppliers(branchId);
     if (mounted) setState(() => _suppliers = suppliers);
+  }
+
+  Future<void> _suggestInvoiceNo() async {
+    if (!mounted) return;
+    try {
+      await ref
+          .read(manualPurchaseProvider.notifier)
+          .suggestInvoiceNo(
+            loaded: ref.read(importPurchaseViewModelProvider).purchases,
+          );
+    } catch (_) {
+      // A suggestion is a convenience; the owner can always type the number.
+    }
   }
 
   @override
@@ -124,6 +137,11 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   Widget build(BuildContext context) {
     final state = ref.watch(manualPurchaseProvider);
     final notifier = ref.read(manualPurchaseProvider.notifier);
+    ref.listen(manualPurchaseProvider, (_, next) {
+      if (next.invoiceAutoFilled && _invoiceController.text != next.invoiceNo) {
+        _invoiceController.text = next.invoiceNo;
+      }
+    });
 
     return Form(
       key: _formKey,
@@ -262,6 +280,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                         id: supplier.id,
                       );
                       _tinController.text = supplier.custTin ?? '';
+                      _suggestInvoiceNo();
                     },
                     onSuppliersChanged: _loadSuppliers,
                   ),
