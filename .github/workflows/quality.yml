@@ -6,8 +6,9 @@
 # tests, and it covered `apps/flipper_web` and `apps/flipper_hr` only. The
 # `melos run test:ci` suite -- which covers flipper_dashboard (~216k LOC),
 # supabase_models, flipper_ai_feature and flipper_auth -- ran only inside
-# release.yml, on `push` to a fixed branch list. That list does not include
-# `feat/*`, so PRs from those branches ran no tests at all.
+# release.yml, on `push` to a fixed branch list. That list did not include
+# `feat/*` (it does now, with `feature/*` and `refactor/*`), so PRs from
+# those branches ran no tests at all.
 #
 # No CI job anywhere ran `dart analyze` or `dart format`.
 #
