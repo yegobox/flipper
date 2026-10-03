@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
+import 'package:flipper_services/notifications/utils/notification_utils.dart';
 import 'package:flipper_services/storage/seen_requests_storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -153,14 +154,10 @@ class OutgoingStockRequests extends _$OutgoingStockRequests {
                     status == RequestStatus.pending ||
                     status == RequestStatus.approved) {
                   Future.microtask(() async {
-                    final from =
-                        request.mainBranchId ?? request.branch?.name ?? 'branch';
                     await NotificationHandler().showStockTransferNotification(
                       requestId: request.id,
                       title: 'Stock received',
-                      body:
-                          'Incoming transfer from $from '
-                          '(${request.itemCounts ?? request.transactionItems?.length ?? 0} items)',
+                      body: NotificationUtils.formatStockTransferBody(request),
                     );
                     await SeenRequestsStorage.markAsSeen(request.id);
                   });
