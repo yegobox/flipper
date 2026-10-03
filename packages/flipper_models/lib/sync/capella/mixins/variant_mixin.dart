@@ -12,6 +12,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/capella_brick_mirror.dart';
 import 'package:flipper_models/sync/capella/reference_data_ditto.dart';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/sync/utils/catalog_delete.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_stock_filter.dart';
 import 'package:flipper_models/sync/utils/rra_new_variant_register.dart';
@@ -66,6 +67,11 @@ mixin CapellaVariantMixin implements VariantInterface {
   /// concurrent sale or transfer already deducted. Absolute qty writes must go
   /// through `StockInterface.updateStock`; saving a variant must not move qty.
   Future<void> _syncStockToDittoIfAbsent(Stock stock) async {
+    // Absent because the user deleted it — see [deletedCatalogIds].
+    if (deletedCatalogIds.contains(stock.id)) {
+      talker.warning('Skipped re-creating deleted stock ${stock.id}');
+      return;
+    }
     if (await _stockDocumentExists(stock.id)) {
       // Still safe: a no-op when the counter is already there.
       final ditto = dittoService.dittoInstance;
@@ -117,6 +123,11 @@ mixin CapellaVariantMixin implements VariantInterface {
   Future<void> _syncVariantToDitto(Variant variant) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return;
+    // A stale copy must not upsert a deleted variant back into the catalog.
+    if (deletedCatalogIds.contains(variant.id)) {
+      talker.warning('Skipped re-creating deleted variant ${variant.id}');
+      return;
+    }
     await ditto.store.execute(
       "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE",
       arguments: {'doc': variant.toFlipperJson()},
@@ -1417,6 +1428,12 @@ mixin CapellaVariantMixin implements VariantInterface {
     if (ditto == null) return;
 
     for (var variant in updatables) {
+      // Callers pass objects they read earlier; one deleted since then would
+      // be re-created by the upsert below.
+      if (deletedCatalogIds.contains(variant.id)) {
+        talker.warning('updateVariant: skipped deleted variant ${variant.id}');
+        continue;
+      }
       if (color != null) variant.color = color;
       if (taxTyCd != null) {
         variant.taxTyCd = taxTyCd;

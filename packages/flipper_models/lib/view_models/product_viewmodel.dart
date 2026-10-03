@@ -308,7 +308,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
-      ProxyService.strategy.flipperDelete(
+      await ProxyService.strategy.flipperDelete(
         id: id,
         endPoint: 'variant',
         flipperHttpClient: ProxyService.http,
@@ -476,15 +476,17 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
           ).getVariant(id: id);
 
           if (variation != null && variation.isShared != true) {
-            // If it's a variant, we should also delete the product
-            await deleteProduct(productId: variation.productId!);
-
-            // delete the variant
-            await ProxyService.strategy.flipperDelete(
+            // Deleting the variant also deletes its product once no variant is
+            // left; deleting the product first would take sibling variants too.
+            final ok = await ProxyService.strategy.flipperDelete(
               id: variation.id,
-              endPoint: 'variant',
+              endPoint: 'catalogItem',
               flipperHttpClient: ProxyService.http,
             );
+            if (!ok) {
+              talker.warning('bulkDelete: store did not delete variant $id');
+              continue;
+            }
             deleted.add(id);
 
             // check if it's a favorite and delete that too
@@ -498,8 +500,11 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
             }
           }
         } else if (type == 'product') {
-          await deleteProduct(productId: id);
-          deleted.add(id);
+          if (await deleteProduct(productId: id)) {
+            deleted.add(id);
+          } else {
+            talker.warning('bulkDelete: store did not delete product $id');
+          }
         }
       } catch (e, s) {
         talker.warning('bulkDelete: failed to delete $type $id: $e');
@@ -513,8 +518,9 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     return deleted;
   }
 
-  Future<void> deleteProduct({required String productId}) async {
-    await ProxyService.strategy.flipperDelete(
+  /// Deletes the product with every variant and stock under it.
+  Future<bool> deleteProduct({required String productId}) {
+    return ProxyService.strategy.flipperDelete(
       id: productId,
       endPoint: 'product',
       flipperHttpClient: ProxyService.http,

@@ -72,97 +72,97 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
+  /// Deletes the variant behind a catalog tile, and its product once that was
+  /// the product's last variant.
+  ///
+  /// The tile is only dropped after the store confirms the delete: hiding it
+  /// first made a failed delete look done until the next catalog read brought
+  /// the item back.
   Future<void> deleteFunc(String? variantId, ProductViewModel model) async {
+    if (variantId == null) return;
     try {
-      /// first if there is image attached delete if first
-      final product = await ref.read(productProvider(variantId!).future);
-      Variant? variant = await ProxyService.getStrategy(
+      final Variant? variant = await ProxyService.getStrategy(
         Strategy.capella,
       ).getVariant(id: variantId);
 
-      /// Check if the product and variant are valid and if the variant is owned (not shared)
-      ///
-      bool canDelete = variant?.isShared == false;
-
-      if (canDelete) {
-        if (product == null) {
-          ProxyService.strategy.flipperDelete(
-            id: variantId,
-            endPoint: 'variant',
-          );
-          // Remove the variant from the provider state directly
-          ref
-              .read(
-                outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
-              )
-              .removeVariantById(variantId);
-          for (final catalog in posStockFilteredCatalogs(
-            ProxyService.box.getBranchId()!,
-          )) {
-            if (ref.exists(catalog)) {
-              ref.read(catalog.notifier).removeVariantById(variantId);
-            }
-          }
-          return;
-        }
-        // If the product is  composite, search and delete related composites
-        if ((product.isComposite ?? false)) {
-          List<Composite> composites = await ProxyService.strategy.composites(
-            variantId: variantId,
-          );
-          for (Composite composite in composites) {
-            await ProxyService.strategy.flipperDelete(
-              id: composite.id,
-              endPoint: 'composite',
-              flipperHttpClient: ProxyService.http,
-            );
-          }
-        }
-
-        // If the product has an associated image, attempt to remove it from S3
-        bool imageDeleted =
-            product.imageUrl == null ||
-            await ProxyService.strategy.removeS3File(
-              fileName: product.imageUrl!,
-            );
-
-        if (imageDeleted) {
-          await model.deleteProduct(productId: product.id);
-          // Remove the variant from the provider state directly
-          ref
-              .read(
-                outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
-              )
-              .removeVariantById(variantId);
-          for (final catalog in posStockFilteredCatalogs(
-            ProxyService.box.getBranchId()!,
-          )) {
-            if (ref.exists(catalog)) {
-              ref.read(catalog.notifier).removeVariantById(variantId);
-            }
-          }
-
-          // Delete associated assets
-          if (product.imageUrl != null) {
-            Assets? asset = await ProxyService.strategy.getAsset(
-              assetName: product.imageUrl!,
-            );
-            if (asset != null) {
-              await ProxyService.strategy.flipperDelete(
-                id: asset.id,
-                flipperHttpClient: ProxyService.http,
-              );
-            }
-          }
-        } else {
-          toast("Failed to delete product image. Product deletion aborted.");
-        }
-      } else {
+      // Only owned (not shared) variants can be deleted.
+      if (variant == null || variant.isShared != false) {
         toast("Can't be deleted or has been deleted.");
+        return;
+      }
+
+      final branchId = ProxyService.box.getBranchId()!;
+      final businessId = ProxyService.box.getBusinessId()!;
+      final productId = variant.productId;
+      final Product? product = (productId == null || productId.isEmpty)
+          ? null
+          : await ProxyService.strategy.getProduct(
+              id: productId,
+              branchId: branchId,
+              businessId: businessId,
+            );
+
+      final deleted = await ProxyService.strategy.flipperDelete(
+        id: variantId,
+        endPoint: 'catalogItem',
+        flipperHttpClient: ProxyService.http,
+      );
+      if (!deleted) {
+        toast('Could not delete this item. Please try again.');
+        return;
+      }
+
+      // If the product is composite, delete its composites for this variant.
+      // Only after the variant is gone, so a failed delete leaves them intact.
+      if (product?.isComposite ?? false) {
+        final composites = await ProxyService.strategy.composites(
+          variantId: variantId,
+        );
+        for (final composite in composites) {
+          await ProxyService.strategy.flipperDelete(
+            id: composite.id,
+            endPoint: 'composite',
+            flipperHttpClient: ProxyService.http,
+          );
+        }
+      }
+
+      ref
+          .read(outerVariantsProvider(branchId).notifier)
+          .removeVariantById(variantId);
+      for (final catalog in posStockFilteredCatalogs(branchId)) {
+        if (ref.exists(catalog)) {
+          ref.read(catalog.notifier).removeVariantById(variantId);
+        }
+      }
+
+      // The variant delete also removes a product left with no variants; only
+      // then is the product image no longer in use.
+      final imageUrl = product?.imageUrl;
+      if (product == null || imageUrl == null) return;
+      final stillExists = await ProxyService.strategy.getProduct(
+        id: product.id,
+        branchId: branchId,
+        businessId: businessId,
+      );
+      if (stillExists != null) return;
+      try {
+        await ProxyService.strategy.removeS3File(fileName: imageUrl);
+        final Assets? asset = await ProxyService.strategy.getAsset(
+          assetName: imageUrl,
+        );
+        if (asset != null) {
+          await ProxyService.strategy.flipperDelete(
+            id: asset.id,
+            flipperHttpClient: ProxyService.http,
+          );
+        }
+      } catch (e) {
+        talker.warning('Product image cleanup failed for ${product.id}: $e');
       }
     } catch (e) {
-      // Optionally log error
       talker.error('Error deleting variant: $e');
+      toast('Could not delete this item. Please try again.');
     }
   }
 
