@@ -57,6 +57,17 @@ Future<void> ensureAccountingCloudSubscriptions({
       sql: 'SELECT * FROM accounting_audit_logs WHERE businessId = :businessId',
       args: {'businessId': businessId},
     ),
+    // Invoices and bills, and the supplier payments made against bills.
+    (
+      key: 'accounting_documents|$businessId',
+      sql: 'SELECT * FROM accounting_documents WHERE businessId = :businessId',
+      args: {'businessId': businessId},
+    ),
+    (
+      key: 'bill_payments|$businessId',
+      sql: 'SELECT * FROM bill_payments WHERE businessId = :businessId',
+      args: {'businessId': businessId},
+    ),
     (
       key: 'accounting_recurring_schedules|$businessId',
       sql:

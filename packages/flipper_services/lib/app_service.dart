@@ -475,6 +475,11 @@ class AppService with ListenableServiceMixin {
       branchId: branchId,
     );
     await ensureBranchSarCloudSubscription(ditto: ditto, branchId: branchId);
+    await ensurePurchaseCloudSubscriptions(
+      ditto: ditto,
+      branchId: branchId,
+      businessId: ProxyService.box.getBusinessId(),
+    );
     await ensureBranchDelegationCloudSubscription(
       ditto: ditto,
       branchId: branchId,

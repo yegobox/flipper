@@ -7,15 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/in_memory_accounting_store.dart';
 
 const _biz = 'biz';
-final _billId = PurchaseJournalPoster.billDocId(_biz, 'BILL-42');
+final _billId = PurchaseJournalPoster.billDocId(_biz, 'p1');
 
 PurchasePostingInput _purchase(
   String pmtTyCd, {
   double? paidUpfront,
   DateTime? dueDate,
+  String purchaseId = 'p1',
+  String supplierName = 'Kigali Wholesale',
 }) => PurchasePostingInput(
-  purchaseId: 'p1',
-  supplierName: 'Kigali Wholesale',
+  purchaseId: purchaseId,
+  supplierName: supplierName,
   invoiceNo: 42,
   pmtTyCd: pmtTyCd,
   totAmt: 118000,
@@ -152,13 +154,13 @@ void main() {
       final store = await _record(_purchase('02'), postToLedger: false);
       await PurchaseJournalPoster(
         store,
-      ).discardDraftBill(businessId: _biz, invoiceNo: 42);
+      ).discardDraftBill(businessId: _biz, purchaseId: 'p1', invoiceNo: 42);
       expect(store.doc('accounting_documents', _billId), isNull);
 
       final posted = await _record(_purchase('02'));
       await PurchaseJournalPoster(
         posted,
-      ).discardDraftBill(businessId: _biz, invoiceNo: 42);
+      ).discardDraftBill(businessId: _biz, purchaseId: 'p1', invoiceNo: 42);
       expect(posted.doc('accounting_documents', _billId), isNotNull);
     });
   });
@@ -247,5 +249,90 @@ void main() {
     );
     expect(parseBillDueDate({'due_date': '5 Nov 2026'}), DateTime(2026, 11, 5));
     expect(parseBillDueDate({}), isNull);
+  });
+
+  group('bill identity', () {
+    test(
+      'two suppliers with the same invoice number keep separate bills',
+      () async {
+        final store = await _record(_purchase('02'));
+        await _pay(store, 50000);
+        // Another supplier's invoice 42, saved as waiting.
+        await _record(
+          _purchase('02', purchaseId: 'p2', supplierName: 'Rice Mill'),
+          postToLedger: false,
+          store: store,
+        );
+        final first = store.doc('accounting_documents', _billId)!;
+        final second = store.doc(
+          'accounting_documents',
+          PurchaseJournalPoster.billDocId(_biz, 'p2'),
+        )!;
+        expect(first['status'], 'sent');
+        expect(first['balance'], 68000);
+        expect(first['party_name'], 'Kigali Wholesale');
+        expect(second['status'], 'draft');
+        expect(second['balance'], 118000);
+
+        // Declining the second purchase leaves the first bill alone.
+        await PurchaseJournalPoster(
+          store,
+        ).discardDraftBill(businessId: _biz, purchaseId: 'p2', invoiceNo: 42);
+        expect(store.doc('accounting_documents', _billId), isNotNull);
+      },
+    );
+
+    test(
+      'a bill saved under the old invoice key is reused by its purchase',
+      () async {
+        final store = InMemoryAccountingStore();
+        final legacyId = PurchaseJournalPoster.legacyBillDocId(_biz, 42);
+        await store.upsertAccountingDocument(_biz, {
+          'doc_kind': 'bill',
+          'status': 'draft',
+          'purchase_id': 'p1',
+          'paid_upfront': 18000,
+        }, legacyId);
+
+        await _record(_purchase('03'), store: store);
+        expect(store.doc('accounting_documents', _billId), isNull);
+        final bill = store.doc('accounting_documents', legacyId)!;
+        expect(bill['status'], 'sent');
+        expect(bill['balance'], 100000);
+      },
+    );
+
+    test("another purchase's old-key bill is never touched", () async {
+      final store = InMemoryAccountingStore();
+      final legacyId = PurchaseJournalPoster.legacyBillDocId(_biz, 42);
+      await store.upsertAccountingDocument(_biz, {
+        'doc_kind': 'bill',
+        'status': 'draft',
+        'purchase_id': 'other',
+      }, legacyId);
+
+      await _record(_purchase('02'), store: store);
+      await PurchaseJournalPoster(
+        store,
+      ).discardDraftBill(businessId: _biz, purchaseId: 'p1', invoiceNo: 42);
+      expect(
+        store.doc('accounting_documents', legacyId)!['purchase_id'],
+        'other',
+      );
+      expect(store.doc('accounting_documents', _billId)!['status'], 'sent');
+    });
+
+    test('re-saving as waiting never demotes a posted bill', () async {
+      final store = await _record(_purchase('02'));
+      await _record(_purchase('02'), postToLedger: false, store: store);
+      expect(store.doc('accounting_documents', _billId)!['status'], 'sent');
+    });
+  });
+
+  test('a waiting purchase bill cannot be paid', () async {
+    final store = await _record(_purchase('02'), postToLedger: false);
+    await expectLater(_pay(store, 1000), throwsStateError);
+    expect(store.all(billPaymentsCollection), isEmpty);
+    expect(store.doc('accounting_documents', _billId)!['status'], 'draft');
   });
 }

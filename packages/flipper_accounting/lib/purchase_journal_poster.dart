@@ -11,7 +11,7 @@ import 'package:flipper_accounting/purchase_posting_input.dart';
 /// [DocumentJournalPoster.postBillRecorded], extended for payment type.
 class PurchaseJournalPoster {
   PurchaseJournalPoster(this._ditto, {AuditTrailRecorder? audit})
-      : _audit = audit;
+    : _audit = audit;
 
   final AccountingDittoStore _ditto;
   final AuditTrailRecorder? _audit;
@@ -19,8 +19,16 @@ class PurchaseJournalPoster {
   static String entryId(String businessId, String purchaseId) =>
       'je_${businessId}_${purchaseId}_purchase';
 
-  static String billDocId(String businessId, String billNumber) =>
-      '${businessId}_bill_$billNumber';
+  /// One bill per purchase. Supplier invoice numbers repeat across
+  /// suppliers and branches, so they cannot identify a bill.
+  static String billDocId(String businessId, String purchaseId) =>
+      '${businessId}_bill_$purchaseId';
+
+  /// Id bills had before they were keyed by purchase. Still read so bills
+  /// written then can be approved or discarded, but only by their own
+  /// purchase (`purchase_id`), never by another with the same number.
+  static String legacyBillDocId(String businessId, int invoiceNo) =>
+      '${businessId}_bill_BILL-$invoiceNo';
 
   /// Upserts the purchase's bill document and optionally posts the GL entry.
   ///
@@ -63,15 +71,20 @@ class PurchaseJournalPoster {
     }
 
     final billId = 'BILL-${purchase.invoiceNo}';
-    final docUuid = billDocId(businessId, billId);
-    final existing = await _billRow(docUuid);
+    final (docUuid, existing) = await _findBill(
+      businessId: businessId,
+      purchaseId: purchase.purchaseId,
+      invoiceNo: purchase.invoiceNo,
+    );
 
     final issueDate = purchase.purchaseDate ?? DateTime.now();
     final dateStr = billDateFormat.format(issueDate);
-    final due = purchase.dueDate ??
+    final due =
+        purchase.dueDate ??
         (existing == null ? null : parseBillDueDate(existing)) ??
         issueDate.add(const Duration(days: 30));
-    final plannedUpfront = purchase.paidUpfront ??
+    final plannedUpfront =
+        purchase.paidUpfront ??
         num.tryParse('${existing?['paid_upfront']}')?.toDouble();
     final paidUpfront = purchase.paidAtPurchase(plannedUpfront);
     final owed = purchase.total - paidUpfront;
@@ -102,18 +115,17 @@ class PurchaseJournalPoster {
       'due_at': due.toUtc().toIso8601String(),
       'lines': [
         for (final l in purchase.lines)
-          {
-            'desc': l.description,
-            'qty': l.qty,
-            'price': l.unitPrice,
-          },
+          {'desc': l.description, 'qty': l.qty, 'price': l.unitPrice},
       ],
       'purchase_id': purchase.purchaseId,
       'purchaseId': purchase.purchaseId,
       'source': 'purchase',
       if (purchase.supplierId != null) 'supplier_id': purchase.supplierId,
       ...balance.toBillFields(),
-      if (!postToLedger) 'status': 'draft',
+      // A waiting purchase's bill is a draft, but re-saving never demotes a
+      // bill that is already posted.
+      if (!postToLedger && (existing == null || existing['status'] == 'draft'))
+        'status': 'draft',
     };
 
     await _ditto.upsertAccountingDocument(businessId, docRow, docUuid);
@@ -168,13 +180,34 @@ class PurchaseJournalPoster {
   /// once a purchase is in the ledger it must be reversed, not deleted.
   Future<void> discardDraftBill({
     required String businessId,
+    required String purchaseId,
     required int invoiceNo,
   }) async {
     if (businessId.isEmpty || !_ditto.isReady()) return;
-    final docUuid = billDocId(businessId, 'BILL-$invoiceNo');
-    final row = await _billRow(docUuid);
+    final (docUuid, row) = await _findBill(
+      businessId: businessId,
+      purchaseId: purchaseId,
+      invoiceNo: invoiceNo,
+    );
     if (row == null || row['status'] != 'draft') return;
     await _ditto.deletePartyDoc('accounting_documents', docUuid);
+  }
+
+  /// The purchase's bill: its own id, else a legacy invoice-keyed bill that
+  /// belongs to this purchase. Returns the id to write and the row, if any.
+  Future<(String, Map<String, dynamic>?)> _findBill({
+    required String businessId,
+    required String purchaseId,
+    required int invoiceNo,
+  }) async {
+    final id = billDocId(businessId, purchaseId);
+    final row = await _billRow(id);
+    if (row != null) return (id, row);
+    final legacyId = legacyBillDocId(businessId, invoiceNo);
+    final legacy = await _billRow(legacyId);
+    final owner = (legacy?['purchase_id'] ?? legacy?['purchaseId'])?.toString();
+    if (legacy != null && owner == purchaseId) return (legacyId, legacy);
+    return (id, null);
   }
 
   Future<Map<String, dynamic>?> _billRow(String docUuid) async {

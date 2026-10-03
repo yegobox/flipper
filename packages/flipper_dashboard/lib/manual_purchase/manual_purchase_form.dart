@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_dashboard/manual_purchase/amount_input.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_submit.dart';
 import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
@@ -411,7 +412,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
     ManualPurchaseNotifier notifier,
   ) {
     final formatter = NumberFormat('#,##0.##');
-    final due = state.dueDate ?? state.purchaseDate.add(const Duration(days: 30));
+    final due = state.effectiveDueDate;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -457,13 +458,13 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                 _fieldLabel('Paid now'),
                 TextFormField(
                   initialValue: state.paidUpfront > 0
-                      ? formatter.format(state.paidUpfront)
+                      ? formatAmountForEdit(state.paidUpfront)
                       : null,
                   decoration: _fieldDecoration(hint: '0'),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (v) => notifier.setPaidUpfront(
-                    double.tryParse(v.replaceAll(',', '').trim()) ?? 0,
+                    parseAmount(v),
                   ),
                 ),
               ] else

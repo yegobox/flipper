@@ -100,6 +100,7 @@ class PosPurchaseJournalPoster {
       if (!ditto.isReady()) return;
       await PurchaseJournalPoster(ditto).discardDraftBill(
         businessId: businessId,
+        purchaseId: purchase.id,
         invoiceNo: purchase.spplrInvcNo,
       );
     } catch (e, s) {

@@ -51,6 +51,7 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       final toSave = doc.copyWith(
         uuid: existing?.uuid,
         source: existing?.source,
+        purchaseId: existing?.purchaseId,
       );
       await repo.upsertDocument(
         businessId: businessId,
@@ -61,7 +62,8 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       final currency = ref.read(accountingCurrencyProvider);
       // Purchase and cashbook bills were posted by their own poster when they
       // were recorded; posting again here would book the debt twice.
-      final postedElsewhere = toSave.source != null;
+      final postedElsewhere =
+          toSave.source != null || toSave.purchaseId != null;
       if (mode == 'send' && !postedElsewhere) {
         final accounts = ref.read(accountingAccountsProvider);
         final poster = DocumentJournalPoster(
@@ -438,7 +440,9 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
                                       value: 'edit',
                                       child: Text('Edit'),
                                     ),
-                                    if (d.status != DocStatus.paid)
+                                    if (_isInvoice
+                                        ? d.status != DocStatus.paid
+                                        : billCanBePaid(d))
                                       PopupMenuItem(
                                         value: 'pay',
                                         child: Text(

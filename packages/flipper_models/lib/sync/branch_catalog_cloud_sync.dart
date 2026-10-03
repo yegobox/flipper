@@ -282,3 +282,61 @@ Future<void> ensureDailyReportFilesCloudSubscription({
     );
   }
 }
+
+/// Ditto cloud/P2P pull for supplier purchases and what is owed on them.
+final Set<String> _purchaseSubscriptionKeys = {};
+
+/// Registers the purchase subscriptions once per branch/business:
+/// suppliers and recorded purchases (branch), and the bills and supplier
+/// payments they create (business). Without them a supplier, bill or payment
+/// written on one device never reaches the others.
+Future<void> ensurePurchaseCloudSubscriptions({
+  required Ditto ditto,
+  required String branchId,
+  String? businessId,
+}) async {
+  if (branchId.isEmpty) return;
+
+  final entries = <({String key, String sql, Map<String, dynamic> args})>[
+    (
+      key: 'suppliers|$branchId',
+      sql: 'SELECT * FROM suppliers WHERE branchId = :branchId',
+      args: {'branchId': branchId},
+    ),
+    (
+      key: 'purchases|$branchId',
+      sql: 'SELECT * FROM purchases WHERE branchId = :branchId',
+      args: {'branchId': branchId},
+    ),
+  ];
+  if (businessId != null && businessId.isNotEmpty) {
+    entries.add((
+      key: 'accounting_documents|$businessId',
+      sql: 'SELECT * FROM accounting_documents WHERE businessId = :businessId',
+      args: {'businessId': businessId},
+    ));
+    entries.add((
+      key: 'bill_payments|$businessId',
+      sql: 'SELECT * FROM bill_payments WHERE businessId = :businessId',
+      args: {'businessId': businessId},
+    ));
+  }
+
+  for (final entry in entries) {
+    if (!_purchaseSubscriptionKeys.add(entry.key)) continue;
+    try {
+      final prepared = prepareDqlSyncSubscription(entry.sql, entry.args);
+      await ditto.sync.registerSubscription(
+        prepared.dql,
+        arguments: prepared.arguments,
+      );
+    } catch (e, st) {
+      _purchaseSubscriptionKeys.remove(entry.key);
+      debugPrint(
+        'ensurePurchaseCloudSubscriptions: failed ${entry.key}: $e\n'
+        '${describeDqlSyncSubscriptionAttempt(entry.sql, entry.args)}\n'
+        '$st',
+      );
+    }
+  }
+}
