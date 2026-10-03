@@ -42,9 +42,7 @@ void main() {
     expect(button.onPressed, isNull);
   });
 
-  testWidgets('a duplicate name selects the existing category', (
-    tester,
-  ) async {
+  testWidgets('a duplicate name selects the existing category', (tester) async {
     var created = false;
     final results = await _open(
       tester,

@@ -103,4 +103,54 @@ void main() {
       expect(out, contains('Salaries'));
     });
   });
+
+  group('resolveCashbookSelectedCategory', () {
+    const loaded = <_Cat>[(id: '1', name: 'Rent')];
+    const created = (id: 'new', name: 'Fuel');
+
+    test('uses the loaded category when the stream has it', () {
+      expect(
+        resolveCashbookSelectedCategory<_Cat>(
+          selectedId: '1',
+          loaded: loaded,
+          createdHere: created,
+          id: _id,
+        ),
+        loaded.first,
+      );
+    });
+
+    test('falls back to a just-created category the stream lacks', () {
+      expect(
+        resolveCashbookSelectedCategory<_Cat>(
+          selectedId: 'new',
+          loaded: loaded,
+          createdHere: created,
+          id: _id,
+        ),
+        created,
+      );
+    });
+
+    test('returns null with no selection or a vanished one', () {
+      expect(
+        resolveCashbookSelectedCategory<_Cat>(
+          selectedId: null,
+          loaded: loaded,
+          createdHere: created,
+          id: _id,
+        ),
+        isNull,
+      );
+      expect(
+        resolveCashbookSelectedCategory<_Cat>(
+          selectedId: 'gone',
+          loaded: loaded,
+          createdHere: created,
+          id: _id,
+        ),
+        isNull,
+      );
+    });
+  });
 }

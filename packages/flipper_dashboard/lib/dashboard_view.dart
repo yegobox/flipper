@@ -98,9 +98,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(
-            bottom: BorderSide(color: Color(0xFFE5E7EB)),
-          ),
+          border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +252,9 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             color: selected ? const Color(0xFF111827) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? const Color(0xFF111827) : const Color(0xFFE5E7EB),
+              color: selected
+                  ? const Color(0xFF111827)
+                  : const Color(0xFFE5E7EB),
               width: 1.5,
             ),
           ),
@@ -362,8 +362,9 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   periodLabel: transactionPeriod,
                   isEmpty: !snapshot.hasActivity,
                   deltaPercent: _deltaPercent(snapshot, previous),
-                  comparisonLabel:
-                      dashboardComparisonPeriodLabel(transactionPeriod),
+                  comparisonLabel: dashboardComparisonPeriodLabel(
+                    transactionPeriod,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _buildStockValueSummaryCard(context, ref, snapshot.isEmpty),
@@ -452,10 +453,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFFF8EB),
-                Color(0xFFFFF3D6),
-              ],
+              colors: [Color(0xFFFFF8EB), Color(0xFFFFF3D6)],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFFCE0BE)),
@@ -503,8 +501,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                             text: count == 0
                                 ? 'Log your first sale to start earning'
                                 : remaining == 0
-                                    ? 'Goal reached! '
-                                    : 'Just $remaining more to ',
+                                ? 'Goal reached! '
+                                : 'Just $remaining more to ',
                           ),
                           if (count > 0 && remaining > 0)
                             const TextSpan(
@@ -570,8 +568,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         data: (summary) {
           final stockLevel = summary.productsCount > 0
               ? ((summary.productsCount - summary.needsRestockCount) /
-                      summary.productsCount)
-                  .clamp(0.0, 1.0)
+                        summary.productsCount)
+                    .clamp(0.0, 1.0)
               : 0.0;
           final hasLowStock = summary.needsRestockCount > 0;
 

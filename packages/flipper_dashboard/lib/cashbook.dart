@@ -64,6 +64,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   /// Form-local choices for the entry being recorded. Never written to the
   /// shared category `focused`/`active` flags.
   String? _selectedCategoryId;
+
+  /// Category made via "+ New" on this screen. [categoryProvider] is
+  /// refreshed asynchronously, so a quick Save can run before the stream
+  /// carries it; the save lookup falls back to this copy.
+  Category? _createdCategory;
   String _paymentMethod = cashbookMethodCash;
 
   /// Seeds [_selectedCategoryId] once categories load for a new entry.
@@ -1377,9 +1382,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final selectedId = await showCashbookNewCategorySheet(
       context: context,
       isIncome: isIncome,
-      existing: [
-        for (final c in existing) (id: c.id, name: c.name ?? ''),
-      ],
+      existing: [for (final c in existing) (id: c.id, name: c.name ?? '')],
       onCreate: _addCategory,
     );
     if (!mounted || selectedId == null) return;
@@ -1413,6 +1416,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       talker.error('Cash book: create category failed: $e');
       rethrow;
     }
+    _createdCategory = draft;
     ref.invalidate(categoryProvider);
     return draft.id;
   }
@@ -1494,15 +1498,12 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
     final String branchId = ProxyService.box.getBranchId()!;
     final selectedId = _selectedCategoryId;
-    Category? category;
-    if (selectedId != null) {
-      for (final c in ref.read(categoryProvider).value ?? const <Category>[]) {
-        if (c.id == selectedId) {
-          category = c;
-          break;
-        }
-      }
-    }
+    final category = resolveCashbookSelectedCategory<Category>(
+      selectedId: selectedId,
+      loaded: ref.read(categoryProvider).value ?? const <Category>[],
+      createdHere: _createdCategory,
+      id: (c) => c.id,
+    );
     final paymentMethod = _paymentMethod;
 
     final String bhfId = (await ProxyService.box.bhfId()) ?? '00';
