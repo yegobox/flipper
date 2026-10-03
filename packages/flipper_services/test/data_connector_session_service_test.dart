@@ -98,8 +98,9 @@ class _FakeEnv implements DataConnectorSessionEnv {
   @override
   Future<void> write(String key, String value) async => store[key] = value;
 
+  /// `thisDeviceId`. Null on Android and iOS, where it is never written.
   @override
-  String? get installId => 'install-1';
+  String? installId = 'install-1';
 
   @override
   String? get businessId => 'biz-1';
@@ -170,6 +171,68 @@ void _lifecycleTests() {
       expect(sent?['installId'], 'install-1');
     },
   );
+
+  group('install id', () {
+    Future<Map<String, dynamic>?> enrolAndCapture() async {
+      Map<String, dynamic>? sent;
+      DataConnectorSessionService.testClient = MockClient((req) async {
+        sent = jsonDecode(req.body) as Map<String, dynamic>;
+        return http.Response(tokenResponse('acc-1', 'ref-1'), 200);
+      });
+      await DataConnectorSessionService.ensureAccessToken(
+        baseUrl: 'https://c.invalid/',
+      );
+      return sent;
+    }
+
+    test('a phone with no thisDeviceId still enrols', () async {
+      // The regression: phones never write thisDeviceId, so enrolment was
+      // skipped and every connector call went out bare and got 401.
+      env.installId = null;
+
+      final sent = await enrolAndCapture();
+
+      final installId = sent?['installId'] as String?;
+      expect(installId, isNotNull);
+      expect(
+        installId,
+        matches(
+          RegExp(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+          ),
+        ),
+      );
+      expect(env.store['dataConnectorInstallId'], installId);
+    });
+
+    test('the minted id survives a reset and is reused', () async {
+      // A new id per enrolment would give the server a new device row on
+      // every logout or branch switch.
+      env.installId = null;
+      final first = await enrolAndCapture();
+      await DataConnectorSessionService.reset();
+      final second = await enrolAndCapture();
+
+      expect(second?['installId'], first?['installId']);
+    });
+
+    test('a minted id wins over a thisDeviceId that appears later', () async {
+      env.installId = null;
+      final first = await enrolAndCapture();
+      await DataConnectorSessionService.reset();
+      env.installId = 'desktop-device-row';
+      final second = await enrolAndCapture();
+
+      expect(second?['installId'], first?['installId']);
+    });
+
+    test('desktop keeps using thisDeviceId when nothing was minted', () async {
+      final sent = await enrolAndCapture();
+
+      expect(sent?['installId'], 'install-1');
+      expect(env.store.containsKey('dataConnectorInstallId'), isFalse);
+    });
+  });
 
   test('a cached, still-fresh token is reused without a call', () async {
     var calls = 0;

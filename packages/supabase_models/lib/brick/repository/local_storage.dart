@@ -144,6 +144,7 @@ class SharedPreferenceStorage implements LocalStorage {
     // silently dropped, so a token would never persist and every request
     // would re-enrol.
     'dataConnectorDeviceId',
+    'dataConnectorInstallId',
     'dataConnectorAccessToken',
     'dataConnectorAccessExpiresAt',
     'dataConnectorRefreshToken',

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
@@ -38,6 +39,10 @@ class DataConnectorSessionService {
   static const _accessTokenKey = 'dataConnectorAccessToken';
   static const _accessExpiryKey = 'dataConnectorAccessExpiresAt';
   static const _refreshTokenKey = 'dataConnectorRefreshToken';
+
+  /// Install id minted here when the app has no `thisDeviceId` (every phone).
+  /// Survives logout and [reset], like `thisDeviceId`. See [_installId].
+  static const _installIdKey = 'dataConnectorInstallId';
 
   /// Treat a token as stale this long before it actually expires, so a request
   /// in flight does not expire mid-journey. Matches `SupabaseSessionService`.
@@ -272,7 +277,7 @@ class DataConnectorSessionService {
       return null;
     }
 
-    final installId = _installId();
+    final installId = await _installId();
     if (installId == null) {
       talker.warning('data-connector: no install id, cannot enrol');
       return null;
@@ -323,14 +328,43 @@ class DataConnectorSessionService {
 
   /// Stable per-install id.
   ///
-  /// Always `thisDeviceId`, never the server-assigned device id: the
-  /// connector keys its device row on (installId, userId), so sending the
-  /// device id back after the first enrolment would change the key and
-  /// create a second row every time.
-  static String? _installId() {
+  /// Never the server-assigned device id: the connector keys its device row
+  /// on (installId, userId), so sending the device id back after the first
+  /// enrolment would change the key and create a second row every time.
+  ///
+  /// `thisDeviceId` is only ever written on desktop (it is the id of the
+  /// desktop's `Device` row), so on Android and iOS it is always null.
+  /// Relying on it alone meant phones never enrolled, sent every request
+  /// unauthenticated, and got 401 on every connector feature the moment the
+  /// server started enforcing. When it is missing we mint our own id once and
+  /// keep it.
+  ///
+  /// A minted id wins over a `thisDeviceId` that appears later — a desktop
+  /// that enrolled before its device row was saved — so the key the server
+  /// has does not change under it.
+  static Future<String?> _installId() async {
+    final minted = _nonEmpty(_installIdKey);
+    if (minted != null) return minted;
+
     final existing = env.installId;
     if (existing != null && existing.trim().isNotEmpty) return existing.trim();
-    return null;
+
+    await env.write(_installIdKey, _newInstallId());
+    // Read back rather than trusting the write: the preference box drops
+    // writes to keys missing from its allowlist without saying so, and an id
+    // that does not persist would mint a new device row on every enrolment.
+    return _nonEmpty(_installIdKey);
+  }
+
+  /// A random v4 UUID. Not a secret, just unique per install.
+  static String _newInstallId() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+        '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
   static String _platformLabel() => env.read('defaultApp') ?? 'flipper';
