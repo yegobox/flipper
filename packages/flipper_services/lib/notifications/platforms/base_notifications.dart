@@ -42,17 +42,12 @@ abstract class BaseNotifications implements NotificationInterface {
       'subBranchId': order.subBranchId,
     });
 
-    String requesterInfo = "Unknown";
-    if (order.branch != null && order.branch!.name != null) {
-      requesterInfo = order.branch!.name!;
-    } else if (order.subBranchId != null) {
-      requesterInfo = "Branch ${order.subBranchId}";
-    }
-
     await showNotification(
       id: order.id.hashCode,
       title: 'New Order Request',
-      body: 'You have a new order request from $requesterInfo',
+      body:
+          'You have a new order request from '
+          '${NotificationUtils.branchLabel(order.branch)}',
       payload: payload,
     );
   }
