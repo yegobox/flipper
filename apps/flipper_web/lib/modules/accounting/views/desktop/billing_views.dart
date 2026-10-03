@@ -47,7 +47,26 @@ class AccountingBillingPanelHost extends ConsumerWidget {
       final businessId = ref.read(accountingBusinessIdProvider);
       if (businessId.isEmpty) return;
 
-      final existing = docs.where((d) => d.id == doc.id).firstOrNull;
+      // Edits carry the document id; only a new document is matched by
+      // number, and a number already in use is refused rather than letting
+      // the new bill overwrite (or merge into) another one.
+      final AccountingDocument? existing;
+      if (doc.uuid != null) {
+        existing = docs.where((d) => d.uuid == doc.uuid).firstOrNull;
+      } else {
+        if (docs.any((d) => d.id == doc.id)) {
+          if (context.mounted) {
+            showAccountingToast(
+              context,
+              '${doc.id} already exists',
+              subtitle: 'Use another number',
+              icon: Icons.error_outline,
+            );
+          }
+          return;
+        }
+        existing = null;
+      }
       final toSave = doc.copyWith(
         uuid: existing?.uuid,
         source: existing?.source,
@@ -87,10 +106,20 @@ class AccountingBillingPanelHost extends ConsumerWidget {
         );
       }
 
-      final t = docTotals(doc.lines).total;
+      final t = postedElsewhere
+          ? docGrandTotal(toSave)
+          : docTotals(doc.lines).total;
       close();
       if (!context.mounted) return;
-      if (mode == 'draft') {
+      if (postedElsewhere) {
+        // Its ledger entry belongs to the purchase/cashbook; nothing posted.
+        showAccountingToast(
+          context,
+          'Bill saved',
+          subtitle: '${doc.id} · ${doc.who} · $currency ${money(t)}',
+          icon: Icons.check,
+        );
+      } else if (mode == 'draft') {
         showAccountingToast(
           context,
           'Draft saved',
@@ -264,7 +293,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
         .where(docIsOpen)
         .fold<int>(0, (s, d) => s + docBalance(d));
     final overdue = _docs
-        .where((d) => d.status == DocStatus.overdue)
+        .where((d) => docIsOpen(d) && d.status == DocStatus.overdue)
         .fold<int>(0, (s, d) => s + docBalance(d));
     final draftCount = _docs.where((d) => d.status == DocStatus.draft).length;
 
@@ -510,6 +539,7 @@ class _AccountingDocListViewState extends ConsumerState<AccountingDocListView> {
       businessId: businessId,
       kind: widget.kind,
       docNumber: doc.id,
+      docId: doc.uuid,
     );
     if (!mounted) return;
     showAccountingToast(

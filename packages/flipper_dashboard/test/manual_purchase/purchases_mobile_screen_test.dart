@@ -32,6 +32,15 @@ class _FakeViewModel extends ImportPurchaseViewModel {
 
   final approvedImports = <({String id, double? retail, double? supply})>[];
   int approveAllCalls = 0;
+  final failedRows = <String>{};
+
+  @override
+  bool canRetryRow(String id) => failedRows.contains(id);
+
+  /// What a reload does: fresh item objects from the server.
+  void reloadImports(List<Variant> fresh) {
+    state = state.copyWith(importItems: fresh);
+  }
 
   @override
   Future<void> loadList() async {}
@@ -233,10 +242,13 @@ void main() {
   });
 
   group('imports', () {
-    final items = [
-      _import('PORCELAIN FLOOR TILE'),
-      _import('EAC BROWN SUGAR EX MALAWI', supply: 200, retail: 300),
+    List<Variant> fresh() => [
+      _import('PORCELAIN FLOOR TILE')..id = 'imp-1',
+      _import('EAC BROWN SUGAR EX MALAWI', supply: 200, retail: 300)
+        ..id = 'imp-2',
     ];
+    late List<Variant> items;
+    setUp(() => items = fresh());
 
     Future<void> openImports(WidgetTester tester, Size size) async {
       await _pump(tester, size, imports: items);
@@ -291,6 +303,37 @@ void main() {
       expect(_vm.approvedImports, hasLength(1));
       expect(_vm.approvedImports.single.supply, 250);
       expect(_vm.approvedImports.single.retail, 500);
+    });
+
+    testWidgets('saved prices survive a reload', (tester) async {
+      await openImports(tester, const Size(390, 844));
+      await tester.tap(find.text('PORCELAIN FLOOR TILE'));
+      await tester.pumpAndSettle();
+      final fields = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(fields.at(1), '250');
+      await tester.enterText(fields.at(2), '500');
+      await tester.tap(find.text('Save for later'));
+      await tester.pumpAndSettle();
+
+      _vm.reloadImports(fresh());
+      await tester.pumpAndSettle();
+      expect(find.text('Set prices before approving'), findsNothing);
+      expect(find.text('Cost 250 · sells at 500'), findsOneWidget);
+    });
+
+    testWidgets('a failed item can be retried or approved anew', (
+      tester,
+    ) async {
+      await openImports(tester, const Size(390, 844));
+      _vm.failedRows.add(items.first.id);
+      await tester.tap(find.text('PORCELAIN FLOOR TILE'));
+      await tester.pumpAndSettle();
+      expect(find.text('Retry with previous values'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Approve'), findsOneWidget);
+      expect(find.text('Reject'), findsOneWidget);
     });
   });
 }

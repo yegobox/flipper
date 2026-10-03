@@ -42,8 +42,11 @@ class FakeAccountingDocumentsRepository implements AccountingDocumentsRepository
     required String businessId,
     required DocKind kind,
     required String docNumber,
+    String? docId,
   }) async {
-    _documents.removeWhere((d) => d.id == docNumber);
+    _documents.removeWhere(
+      (d) => docId != null ? d.uuid == docId : d.id == docNumber,
+    );
   }
 
   @override
