@@ -6,6 +6,12 @@ class InventoryRequestMobileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: SafeArea(child: IncomingOrdersScreen()));
+    return Scaffold(
+      body: SafeArea(
+        child: IncomingOrdersScreen(
+          onBack: () => Navigator.of(context).maybePop(),
+        ),
+      ),
+    );
   }
 }
