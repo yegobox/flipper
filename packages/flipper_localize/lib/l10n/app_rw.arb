@@ -1643,13 +1643,13 @@
   "@sortCompactDate": {
     "description": "Compact sort chip label, paired with an arrow"
   },
-  "posStockFilterInStock": "In stock",
-  "posStockFilterOutOfStock": "Out of stock",
-  "posStockFilterAll": "All items",
-  "posStockFilterNoneInStock": "No items in stock",
-  "posStockFilterNoneOutOfStock": "No out-of-stock items",
-  "posStockFilterEmptyHint": "Search to find any item, or change the stock filter.",
-  "posStockFilterShowAll": "Show all items",
+  "posStockFilterInStock": "Biri mu bubiko",
+  "posStockFilterOutOfStock": "Byashize mu bubiko",
+  "posStockFilterAll": "Ibicuruzwa byose",
+  "posStockFilterNoneInStock": "Nta gicuruzwa kiri mu bubiko",
+  "posStockFilterNoneOutOfStock": "Nta gicuruzwa cyashize mu bubiko",
+  "posStockFilterEmptyHint": "Shakisha ubone igicuruzwa icyo ari cyo cyose, cyangwa uhindure akayunguruzo k'ububiko.",
+  "posStockFilterShowAll": "Erekana ibicuruzwa byose",
   "showingRangeOfResults": "Byerekanwe {start}–{end} kuri {total}",
   "@showingRangeOfResults": {
     "description": "Pagination summary above the product grid",
@@ -1894,7 +1894,7 @@
   "@tapSplitToAddMethod": {
     "description": "Compact hint under the payments list"
   },
-  "invoiceNumberValue": "No. {number}",
+  "invoiceNumberValue": "Nimero {number}",
   "tenderedAmount": "Yatanzwe {amount}",
   "@tenderedAmount": {
     "description": "Cash handed over by the customer",

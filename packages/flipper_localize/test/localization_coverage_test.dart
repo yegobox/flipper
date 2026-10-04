@@ -16,48 +16,51 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('framework localizations', () {
     for (final locale in FlipperLocalizationDelegates.supportedLocales) {
-      testWidgets('${locale.languageCode}: Material/Cupertino/Widgets resolve',
-          (tester) async {
-        late BuildContext capturedContext;
+      testWidgets(
+        '${locale.languageCode}: Material/Cupertino/Widgets resolve',
+        (tester) async {
+          late BuildContext capturedContext;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            locale: locale,
-            localizationsDelegates: FlipperLocalizationDelegates.delegates,
-            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
-            home: Builder(
-              builder: (context) {
-                capturedContext = context;
-                return const SizedBox.shrink();
-              },
+          await tester.pumpWidget(
+            MaterialApp(
+              locale: locale,
+              localizationsDelegates: FlipperLocalizationDelegates.delegates,
+              supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+              home: Builder(
+                builder: (context) {
+                  capturedContext = context;
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-        );
+          );
 
-        expect(
-          Localizations.of<MaterialLocalizations>(
-            capturedContext,
-            MaterialLocalizations,
-          ),
-          isNotNull,
-          reason: 'MaterialLocalizations missing for $locale — widgets that '
-              'call debugCheckHasMaterialLocalizations will throw',
-        );
-        expect(
-          Localizations.of<CupertinoLocalizations>(
-            capturedContext,
-            CupertinoLocalizations,
-          ),
-          isNotNull,
-        );
-        expect(
-          Localizations.of<WidgetsLocalizations>(
-            capturedContext,
-            WidgetsLocalizations,
-          ),
-          isNotNull,
-        );
-      });
+          expect(
+            Localizations.of<MaterialLocalizations>(
+              capturedContext,
+              MaterialLocalizations,
+            ),
+            isNotNull,
+            reason:
+                'MaterialLocalizations missing for $locale — widgets that '
+                'call debugCheckHasMaterialLocalizations will throw',
+          );
+          expect(
+            Localizations.of<CupertinoLocalizations>(
+              capturedContext,
+              CupertinoLocalizations,
+            ),
+            isNotNull,
+          );
+          expect(
+            Localizations.of<WidgetsLocalizations>(
+              capturedContext,
+              WidgetsLocalizations,
+            ),
+            isNotNull,
+          );
+        },
+      );
 
       testWidgets('${locale.languageCode}: a Drawer builds', (tester) async {
         // Drawer is the widget that surfaced the Kinyarwanda crash in the real
@@ -102,6 +105,23 @@ void main() {
         );
       });
     }
+  });
+
+  testWidgets('FlipperL10n.current follows the locale the app loads', (
+    tester,
+  ) async {
+    Widget app(Locale locale) => MaterialApp(
+      locale: locale,
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      home: const SizedBox.shrink(),
+    );
+
+    await tester.pumpWidget(app(const Locale('fr')));
+    expect(FlipperL10n.current.localeName, 'fr');
+
+    await tester.pumpWidget(app(const Locale('rw')));
+    expect(FlipperL10n.current.localeName, 'rw');
   });
 }
 

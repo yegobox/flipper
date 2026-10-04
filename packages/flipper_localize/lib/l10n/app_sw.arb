@@ -1643,13 +1643,13 @@
   "@sortCompactDate": {
     "description": "Compact sort chip label, paired with an arrow"
   },
-  "posStockFilterInStock": "In stock",
-  "posStockFilterOutOfStock": "Out of stock",
-  "posStockFilterAll": "All items",
-  "posStockFilterNoneInStock": "No items in stock",
-  "posStockFilterNoneOutOfStock": "No out-of-stock items",
-  "posStockFilterEmptyHint": "Search to find any item, or change the stock filter.",
-  "posStockFilterShowAll": "Show all items",
+  "posStockFilterInStock": "Zilizopo kwenye hisa",
+  "posStockFilterOutOfStock": "Zilizoisha kwenye hisa",
+  "posStockFilterAll": "Bidhaa zote",
+  "posStockFilterNoneInStock": "Hakuna bidhaa kwenye hisa",
+  "posStockFilterNoneOutOfStock": "Hakuna bidhaa zilizoisha",
+  "posStockFilterEmptyHint": "Tafuta ili kupata bidhaa yoyote, au badilisha kichujio cha hisa.",
+  "posStockFilterShowAll": "Onyesha bidhaa zote",
   "showingRangeOfResults": "Inaonyesha {start}–{end} kati ya {total}",
   "@showingRangeOfResults": {
     "description": "Pagination summary above the product grid",

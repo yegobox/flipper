@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_localize: ^1.0.0-dev
 
   # State management
   flutter_riverpod: ^3.0.3
