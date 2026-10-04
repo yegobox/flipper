@@ -26,6 +26,7 @@ import 'package:flipper_models/helperModels/business_type.dart' as helper;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/business_features_loader.dart';
 
 const socialApp = "socials";
 
@@ -220,9 +221,7 @@ class AppService with ListenableServiceMixin {
       });
     }
 
-    if (ProxyService.ditto.isReady()) {
-      loadFeatures();
-    }
+    loadFeatures();
   }
 
   Future<void> setDefaultBranch(
@@ -368,7 +367,8 @@ class AppService with ListenableServiceMixin {
       final existingDeviceId = ProxyService.box.getThisDeviceId();
       String? existingFriendlyName;
       if (existingDeviceId != null) {
-        final branchDevices = await ProxyService.legacyStrategy.getDevicesByBranch(branchId: branchId);
+        final branchDevices = await ProxyService.legacyStrategy
+            .getDevicesByBranch(branchId: branchId);
         existingFriendlyName = branchDevices
             .where((d) => d.id == existingDeviceId)
             .map((d) => d.friendlyName)
@@ -455,10 +455,12 @@ class AppService with ListenableServiceMixin {
     // querying/rendering that same data, spiking memory/CPU right during the
     // branch->home transition. Running them one after another spreads that
     // load out; the end state (all subscriptions registered) is unchanged.
-    unawaited(_registerBranchDittoSubscriptionsSequentially(
-      ditto: ditto,
-      branchId: branchId,
-    ));
+    unawaited(
+      _registerBranchDittoSubscriptionsSequentially(
+        ditto: ditto,
+        branchId: branchId,
+      ),
+    );
   }
 
   Future<void> _registerBranchDittoSubscriptionsSequentially({
@@ -566,7 +568,9 @@ class AppService with ListenableServiceMixin {
     try {
       await box.attachDittoPersistence().timeout(const Duration(seconds: 3));
     } on TimeoutException {
-      print('⚠️ attachDittoPersistence timed out; JSON prefs remain authoritative');
+      print(
+        '⚠️ attachDittoPersistence timed out; JSON prefs remain authoritative',
+      );
     } catch (e) {
       print('⚠️ attachDittoPersistence failed: $e');
     }
@@ -586,8 +590,9 @@ class AppService with ListenableServiceMixin {
       final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
       await Future(() async {
         await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-        await DittoSingleton.instance
-            .ensureAuthenticatedAndSyncing(appId: appID);
+        await DittoSingleton.instance.ensureAuthenticatedAndSyncing(
+          appId: appID,
+        );
         await DittoSyncCoordinator.instance.setDitto(
           DittoSingleton.instance.ditto,
           skipInitialFetch: true,
@@ -640,8 +645,7 @@ class AppService with ListenableServiceMixin {
 
     final cachedBusinessId = ProxyService.box.getBusinessId();
     final cachedBranchId = ProxyService.box.getBranchId();
-    final hasCachedSession =
-        cachedBusinessId != null && cachedBranchId != null;
+    final hasCachedSession = cachedBusinessId != null && cachedBranchId != null;
 
     if (hasCachedSession) {
       print(
@@ -654,11 +658,7 @@ class AppService with ListenableServiceMixin {
         ),
       );
       unawaited(_hydrateSettingsToggles());
-      Future.delayed(Duration.zero, () async {
-        if (ProxyService.ditto.isReady()) {
-          loadFeatures();
-        }
-      });
+      loadFeatures();
       return;
     }
 
@@ -776,11 +776,7 @@ class AppService with ListenableServiceMixin {
 
     await _hydrateSettingsToggles();
 
-    Future.delayed(Duration.zero, () async {
-      if (ProxyService.ditto.isReady()) {
-        loadFeatures();
-      }
-    });
+    loadFeatures();
   }
 
   /// Returns `true` if an open shift exists for [userId] (Ditto). Does not show UI.
@@ -881,35 +877,29 @@ class AppService with ListenableServiceMixin {
   final _features = ReactiveValue<List<String>>([]);
   List<String> get features => _features.value;
 
-  StreamSubscription<BusinessFeature?>? _featuresSubscription;
+  late final BusinessFeaturesLoader<Ditto> _featuresLoader =
+      BusinessFeaturesLoader<Ditto>(
+        addDittoListener: (l) => ProxyService.ditto.addDittoListener(l),
+        removeDittoListener: (l) => ProxyService.ditto.removeDittoListener(l),
+        currentDitto: () => ProxyService.ditto.dittoInstance,
+        businessId: () => ProxyService.box.getBusinessId(),
+        featureStream: (businessId) => ProxyService.ditto
+            .businessFeatureStream(businessId: businessId)
+            .map((feature) => feature?.features),
+        onFeatures: (features) => _features.value = List.of(features),
+        isUsableDitto: (ditto) => !_isLoginDitto(ditto),
+      );
 
-  void loadFeatures() {
-    // 1. Check if Ditto is ready
-    if (!ProxyService.ditto.isReady()) {
-      _features.value = [];
-      return;
+  /// Subscribes to the active business's branch capabilities. Call it any
+  /// time — before Ditto is up is fine: the subscription is (re)made when
+  /// Ditto becomes ready or swaps instance.
+  void loadFeatures() => _featuresLoader.load();
+
+  static bool _isLoginDitto(Ditto ditto) {
+    try {
+      return ditto.deviceName.contains('-login-');
+    } catch (_) {
+      return false;
     }
-
-    final businessId = ProxyService.box.getBusinessId();
-    if (businessId == null) return;
-
-    _featuresSubscription?.cancel();
-    // 2. Add onError handler
-    _featuresSubscription = ProxyService.ditto
-        .businessFeatureStream(businessId: businessId)
-        .listen(
-          (feature) {
-            if (feature != null) {
-              _features.value = feature.features;
-            } else {
-              _features.value = [];
-            }
-          },
-          onError: (error) {
-            print("Error in businessFeatureStream: $error");
-            _features.value = [];
-            _featuresSubscription?.cancel();
-          },
-        );
   }
 }
