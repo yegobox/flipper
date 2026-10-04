@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_localize: ^1.0.0-dev
   flipper_design_system: any
 
   flipper_dashboard: any

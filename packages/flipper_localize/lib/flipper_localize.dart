@@ -9,6 +9,21 @@ extension FlipperLocalizationContext on BuildContext {
   FlipperAppLocalizations get flipperL10n => FlipperAppLocalizations.of(this);
 }
 
+/// Strings for code that has no [BuildContext]: services, view models,
+/// notifications, PDF/Excel builders.
+///
+/// Follows whatever locale [FlipperLocalizationsDelegate] last loaded, so it
+/// tracks the language picked in the app. English until the first load (and in
+/// tests that never pump a localized app). Prefer `context.flipperL10n` in
+/// widgets — it rebuilds on a language switch, this does not.
+abstract final class FlipperL10n {
+  static FlipperAppLocalizations _current = lookupFlipperAppLocalizations(
+    const Locale('en'),
+  );
+
+  static FlipperAppLocalizations get current => _current;
+}
+
 class FlipperLocalizationsDelegate
     extends LocalizationsDelegate<FlipperAppLocalizations> {
   const FlipperLocalizationsDelegate();
@@ -19,7 +34,10 @@ class FlipperLocalizationsDelegate
 
   @override
   Future<FlipperAppLocalizations> load(Locale locale) {
-    return FlipperAppLocalizations.delegate.load(locale);
+    // Stays a SynchronousFuture, so the first frame is never deferred.
+    return FlipperAppLocalizations.delegate
+        .load(locale)
+        .then((l10n) => FlipperL10n._current = l10n);
   }
 
   @override

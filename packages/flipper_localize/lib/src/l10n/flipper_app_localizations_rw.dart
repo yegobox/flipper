@@ -1293,26 +1293,26 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   String get sortCompactDate => 'Itariki';
 
   @override
-  String get posStockFilterInStock => 'In stock';
+  String get posStockFilterInStock => 'Biri mu bubiko';
 
   @override
-  String get posStockFilterOutOfStock => 'Out of stock';
+  String get posStockFilterOutOfStock => 'Byashize mu bubiko';
 
   @override
-  String get posStockFilterAll => 'All items';
+  String get posStockFilterAll => 'Ibicuruzwa byose';
 
   @override
-  String get posStockFilterNoneInStock => 'No items in stock';
+  String get posStockFilterNoneInStock => 'Nta gicuruzwa kiri mu bubiko';
 
   @override
-  String get posStockFilterNoneOutOfStock => 'No out-of-stock items';
+  String get posStockFilterNoneOutOfStock => 'Nta gicuruzwa cyashize mu bubiko';
 
   @override
   String get posStockFilterEmptyHint =>
-      'Search to find any item, or change the stock filter.';
+      'Shakisha ubone igicuruzwa icyo ari cyo cyose, cyangwa uhindure akayunguruzo k\'ububiko.';
 
   @override
-  String get posStockFilterShowAll => 'Show all items';
+  String get posStockFilterShowAll => 'Erekana ibicuruzwa byose';
 
   @override
   String showingRangeOfResults(String start, String end, String total) {
@@ -1482,7 +1482,7 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
 
   @override
   String invoiceNumberValue(String number) {
-    return 'No. $number';
+    return 'Nimero $number';
   }
 
   @override
