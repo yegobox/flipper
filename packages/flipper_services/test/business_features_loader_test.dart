@@ -35,30 +35,39 @@ void main() {
   late _FakeDittoHost host;
   late String? businessId;
   late List<String> features;
+  late List<List<String>> emitted; // every onFeatures call, in order
   late List<(String, String)> subscriptions; // (ditto, businessId)
   late Map<String, StreamController<List<String>?>> docs;
   late BusinessFeaturesLoader<_FakeDitto> loader;
+
+  BusinessFeaturesLoader<_FakeDitto> build(List<Duration> retryDelays) =>
+      BusinessFeaturesLoader<_FakeDitto>(
+        addDittoListener: host.add,
+        removeDittoListener: host.remove,
+        currentDitto: () => host.current,
+        businessId: () => businessId,
+        featureStream: (id) {
+          subscriptions.add((host.current!.name, id));
+          final c = StreamController<List<String>?>();
+          docs['${host.current!.name}/$id'] = c;
+          return c.stream;
+        },
+        onFeatures: (f) {
+          features = f;
+          emitted.add(f);
+        },
+        isUsableDitto: (d) => !d.name.contains('-login-'),
+        retryDelays: retryDelays,
+      );
 
   setUp(() {
     host = _FakeDittoHost();
     businessId = 'biz-1';
     features = ['stale'];
+    emitted = [];
     subscriptions = [];
     docs = {};
-    loader = BusinessFeaturesLoader<_FakeDitto>(
-      addDittoListener: host.add,
-      removeDittoListener: host.remove,
-      currentDitto: () => host.current,
-      businessId: () => businessId,
-      featureStream: (id) {
-        subscriptions.add((host.current!.name, id));
-        final c = StreamController<List<String>?>();
-        docs['${host.current!.name}/$id'] = c;
-        return c.stream;
-      },
-      onFeatures: (f) => features = f,
-      isUsableDitto: (d) => !d.name.contains('-login-'),
-    );
+    loader = build(const [Duration.zero, Duration.zero]);
   });
 
   test('load before Ditto is ready subscribes once Ditto arrives', () async {
@@ -127,15 +136,130 @@ void main() {
     expect(subscriptions, [('main', 'biz-1')]);
   });
 
-  test('stream error clears features and the next load retries', () async {
+  test('switching business clears the old capabilities immediately', () async {
+    host.set(_FakeDitto('main'));
+    loader.load();
+    docs['main/biz-1']!.add(['INVENTORY', 'ORDERING']);
+    await pumpEventQueue();
+    expect(features, ['INVENTORY', 'ORDERING']);
+
+    businessId = 'biz-2';
+    loader.load();
+    expect(features, isEmpty, reason: 'biz-1 apps must not linger');
+    expect(docs['main/biz-1']!.hasListener, isFalse);
+
+    docs['main/biz-2']!.add(['POS']);
+    await pumpEventQueue();
+    expect(features, ['POS']);
+  });
+
+  test('null business cancels the subscription and clears', () async {
+    host.set(_FakeDitto('main'));
+    loader.load();
+    docs['main/biz-1']!.add(['INVENTORY']);
+    await pumpEventQueue();
+
+    businessId = null;
+    loader.load();
+    expect(features, isEmpty);
+    expect(docs['main/biz-1']!.hasListener, isFalse);
+  });
+
+  test(
+    'instance swap for the same business keeps features (no flicker)',
+    () async {
+      host.set(_FakeDitto('a'));
+      loader.load();
+      docs['a/biz-1']!.add(['INVENTORY']);
+      await pumpEventQueue();
+      emitted.clear();
+
+      host.set(_FakeDitto('b'));
+      expect(subscriptions, [('a', 'biz-1'), ('b', 'biz-1')]);
+      expect(emitted, isEmpty, reason: 'same business: nothing cleared');
+      expect(features, ['INVENTORY']);
+    },
+  );
+
+  test('stream error clears features and retries on its own', () async {
+    host.set(_FakeDitto('main'));
+    loader.load();
+    docs['main/biz-1']!.add(['INVENTORY']);
+    await pumpEventQueue();
+
+    docs['main/biz-1']!.addError(StateError('boom'));
+    await pumpEventQueue();
+    expect(subscriptions, [('main', 'biz-1'), ('main', 'biz-1')]);
+
+    docs['main/biz-1']!.add(['INVENTORY']);
+    await pumpEventQueue();
+    expect(features, ['INVENTORY']);
+  });
+
+  test('stream closing on its own (registration failure) retries', () async {
+    host.set(_FakeDitto('main'));
+    loader.load();
+    docs['main/biz-1']!
+      ..add(null)
+      ..close();
+    await pumpEventQueue();
+    expect(subscriptions, hasLength(2));
+    expect(features, isEmpty);
+  });
+
+  test('retries are bounded', () async {
+    host.set(_FakeDitto('main'));
+    loader.load();
+    for (var i = 0; i < 5; i++) {
+      final doc = docs['main/biz-1']!;
+      if (doc.hasListener) await doc.close();
+      await pumpEventQueue();
+    }
+    // 1 initial + 2 retries (two configured delays), then it gives up.
+    expect(subscriptions, hasLength(3));
+  });
+
+  test('data resets the retry budget', () async {
+    host.set(_FakeDitto('main'));
+    loader.load();
+    for (var i = 0; i < 4; i++) {
+      docs['main/biz-1']!.add(['INVENTORY']);
+      await pumpEventQueue();
+      await docs['main/biz-1']!.close();
+      await pumpEventQueue();
+    }
+    // Every failure followed a successful emission, so none hit the cap.
+    expect(subscriptions, hasLength(5));
+  });
+
+  test('a pending retry is cancelled when Ditto goes away', () async {
+    loader = build(const [Duration(milliseconds: 20)]);
     host.set(_FakeDitto('main'));
     loader.load();
     docs['main/biz-1']!.addError(StateError('boom'));
     await pumpEventQueue();
-    expect(features, isEmpty);
 
+    host.set(null); // logout / teardown while the retry is pending
+    // A Ditto comes back without notifying (e.g. before listeners re-attach):
+    // a leaked retry timer would subscribe on it behind our back.
+    host.current = _FakeDitto('main');
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(subscriptions, [('main', 'biz-1')]);
+    expect(features, isEmpty);
+  });
+
+  test('a pending retry is dropped for a business switch', () async {
+    loader = build(const [Duration(milliseconds: 20)]);
+    host.set(_FakeDitto('main'));
     loader.load();
-    expect(subscriptions, [('main', 'biz-1'), ('main', 'biz-1')]);
+    docs['main/biz-1']!.addError(StateError('boom'));
+    await pumpEventQueue();
+
+    businessId = 'biz-2';
+    loader.load();
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(subscriptions, [('main', 'biz-1'), ('main', 'biz-2')]);
+    expect(docs['main/biz-2']!.hasListener, isTrue);
   });
 
   test('missing doc yields no features', () async {

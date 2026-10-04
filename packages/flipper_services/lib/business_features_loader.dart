@@ -23,6 +23,7 @@ class BusinessFeaturesLoader<D extends Object> {
     required this.featureStream,
     required this.onFeatures,
     bool Function(D ditto)? isUsableDitto,
+    this.retryDelays = defaultRetryDelays,
   }) : isUsableDitto = isUsableDitto ?? _always;
 
   /// Registers a listener that is called with the current instance right away
@@ -40,9 +41,31 @@ class BusinessFeaturesLoader<D extends Object> {
   /// which has no permissions on the business's collections).
   final bool Function(D ditto) isUsableDitto;
 
+  /// Backoff before each re-subscribe after the feature stream errors or
+  /// closes on its own (Ditto registration failure closes it). Bounded, so a
+  /// permanently broken stream stops retrying; reset once data arrives.
+  final List<Duration> retryDelays;
+
+  static const defaultRetryDelays = [
+    Duration(seconds: 2),
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+    Duration(seconds: 60),
+  ];
+
+  // The live subscription and the (instance, business) pair it serves.
   StreamSubscription<List<String>?>? _subscription;
   D? _subscribedDitto;
   String? _subscribedBusinessId;
+
+  /// Business whose capabilities [onFeatures] currently reflects.
+  String? _shownBusinessId;
+
+  // Retry budget, scoped to one (instance, business) pair.
+  D? _retryDitto;
+  Timer? _retryTimer;
+  int _retryAttempt = 0;
 
   static bool _always(Object _) => true;
 
@@ -59,14 +82,11 @@ class BusinessFeaturesLoader<D extends Object> {
   void _onDittoChanged(D? ditto) => _subscribe(ditto);
 
   void _subscribe(D? ditto) {
-    if (ditto == null || !isUsableDitto(ditto)) {
-      _cancel();
-      onFeatures(const []);
+    final id = ditto == null || !isUsableDitto(ditto) ? null : businessId();
+    if (ditto == null || id == null) {
+      _reset();
       return;
     }
-
-    final id = businessId();
-    if (id == null) return;
 
     if (_subscription != null &&
         identical(_subscribedDitto, ditto) &&
@@ -74,21 +94,61 @@ class BusinessFeaturesLoader<D extends Object> {
       return;
     }
 
+    // Never let the previous business's capabilities (and the apps they
+    // unlock) linger while the new business's doc loads. A Ditto instance
+    // swap for the same business keeps them, so the menu doesn't flicker.
+    if (id != _shownBusinessId) {
+      _shownBusinessId = id;
+      _retryAttempt = 0;
+      onFeatures(const []);
+    }
+    if (!identical(ditto, _retryDitto)) {
+      _retryDitto = ditto;
+      _retryAttempt = 0;
+    }
+
     _cancel();
     _subscribedDitto = ditto;
     _subscribedBusinessId = id;
     _subscription = featureStream(id).listen(
-      (features) => onFeatures(features ?? const []),
+      (features) {
+        _retryAttempt = 0;
+        onFeatures(features ?? const []);
+      },
       onError: (Object error) {
         print('Error in businessFeatureStream: $error');
-        // Forget the pairing so the next load() or instance change retries.
-        _cancel();
-        onFeatures(const []);
+        _onStreamFailed();
       },
+      onDone: _onStreamFailed,
     );
   }
 
+  void _onStreamFailed() {
+    _cancel();
+    onFeatures(const []);
+    if (_retryAttempt >= retryDelays.length) {
+      print('businessFeatureStream: giving up after $_retryAttempt retries');
+      return;
+    }
+    _retryTimer = Timer(retryDelays[_retryAttempt++], () {
+      _retryTimer = null;
+      _subscribe(currentDitto());
+    });
+  }
+
+  /// No usable Ditto or no active business: drop everything.
+  void _reset() {
+    _cancel();
+    _shownBusinessId = null;
+    _retryDitto = null;
+    _retryAttempt = 0;
+    onFeatures(const []);
+  }
+
+  /// Stops the live subscription and any pending retry.
   void _cancel() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
     _subscription?.cancel();
     _subscription = null;
     _subscribedDitto = null;
