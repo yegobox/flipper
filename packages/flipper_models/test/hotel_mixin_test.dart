@@ -908,6 +908,35 @@ void main() {
       await sync.deleteHotelRoom(id: 'r1', branchId: _branch);
       expect(await sync.hotelRooms(branchId: _branch), isEmpty);
     });
+
+    test('a rename reaches the room\'s live stays, not checked-out ones',
+        () async {
+      await sync.saveHotelRoom(_room());
+      for (final stay in [
+        _stay(id: 'in', status: HotelStayStatus.inHouse),
+        _stay(id: 'res', status: HotelStayStatus.reserved),
+        _stay(id: 'out', status: HotelStayStatus.checkedOut),
+        _stay(id: 'other', roomId: 'r2'),
+      ]) {
+        await ditto.store.execute(
+          'INSERT INTO hotel_stays DOCUMENTS (:doc)',
+          arguments: {'doc': stay.toJson()},
+        );
+      }
+
+      await sync.saveHotelRoom(_room().copyWith(name: 'Garden Suite'));
+
+      final names = {
+        for (final doc in ditto.store.docs('hotel_stays'))
+          doc['id']: doc['roomName'],
+      };
+      expect(names, {
+        'in': 'Garden Suite',
+        'res': 'Garden Suite',
+        'out': '101',
+        'other': '101',
+      });
+    });
   });
 
   group('branch settings', () {

@@ -17,7 +17,6 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widge
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -47,10 +46,12 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
       await HotelModeSettings.hydrateForActiveBranch();
       HotelModeSettings.startWatchingActiveBranch();
       if (branchId != null) {
-        await ProxyService.getStrategy(
-          Strategy.capella,
-        ).seedDefaultRooms(branchId: branchId);
-
+        // No room seeding here: this runs on every device that opens the
+        // desk, usually before Ditto has synced the branch's rooms, and the
+        // seed's fixed ids would bring back deleted rooms and reset renamed
+        // ones everywhere. Rooms are seeded once, when the branch enables
+        // Hotel Mode, or from the room plan editor.
+        //
         // Seeded rooms are written straight to Ditto with no RRA item, so
         // without this the first guest in one pays for the registration at
         // the counter. Unawaited: it is fifteen round trips on a fresh

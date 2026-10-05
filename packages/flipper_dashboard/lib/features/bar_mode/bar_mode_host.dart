@@ -11,8 +11,6 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_manager_pin_moda
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_toast.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
-import 'package:flipper_models/SyncStrategy.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Root Bar Mode screen machine (lock → floor → pos → settle).
@@ -28,14 +26,13 @@ class _BarModeHostState extends ConsumerState<BarModeHost> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final branchId = ProxyService.box.getBranchId();
       await BarModeSettings.hydrateForActiveBranch();
       BarModeSettings.startWatchingActiveBranch();
-      if (branchId != null) {
-        await ProxyService.getStrategy(
-          Strategy.capella,
-        ).seedDefaultFloorPlan(branchId: branchId);
-      }
+      // No floor-plan seeding here: this runs on every device that opens the
+      // bar, usually before Ditto has synced the branch's tables, and the
+      // seed's fixed ids would bring back deleted tables and reset renamed
+      // ones everywhere. The plan is seeded once, when the branch enables
+      // Bar Mode, or from the editor's "Load default floor plan".
       // Opening the bar floor on this terminal is what makes it the bar
       // terminal: the startup redirect and the sales pane both read the device
       // pick, so the screen it was left on is the screen it comes back to.
