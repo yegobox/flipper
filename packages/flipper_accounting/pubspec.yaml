@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_localize: ^1.0.0-dev
   stacked: ^3.5.0
   flipper_models: any
   flipper_services: any

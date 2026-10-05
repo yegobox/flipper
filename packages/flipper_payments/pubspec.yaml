@@ -16,6 +16,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_localize: ^1.0.0-dev
   http: ^1.2.2
   supabase_flutter: ^2.12.0
   flutter_riverpod: ^3.0.3

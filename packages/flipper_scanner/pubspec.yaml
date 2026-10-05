@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flipper_localize: ^1.0.0-dev
   hooks_riverpod: ^3.0.3
    # Check latest version
   overlay_support: ^2.1.0 # Check latest version

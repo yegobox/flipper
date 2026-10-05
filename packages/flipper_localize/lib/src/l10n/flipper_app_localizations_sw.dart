@@ -1286,26 +1286,26 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get sortCompactDate => 'Tarehe';
 
   @override
-  String get posStockFilterInStock => 'In stock';
+  String get posStockFilterInStock => 'Zilizopo kwenye hisa';
 
   @override
-  String get posStockFilterOutOfStock => 'Out of stock';
+  String get posStockFilterOutOfStock => 'Zilizoisha kwenye hisa';
 
   @override
-  String get posStockFilterAll => 'All items';
+  String get posStockFilterAll => 'Bidhaa zote';
 
   @override
-  String get posStockFilterNoneInStock => 'No items in stock';
+  String get posStockFilterNoneInStock => 'Hakuna bidhaa kwenye hisa';
 
   @override
-  String get posStockFilterNoneOutOfStock => 'No out-of-stock items';
+  String get posStockFilterNoneOutOfStock => 'Hakuna bidhaa zilizoisha';
 
   @override
   String get posStockFilterEmptyHint =>
-      'Search to find any item, or change the stock filter.';
+      'Tafuta ili kupata bidhaa yoyote, au badilisha kichujio cha hisa.';
 
   @override
-  String get posStockFilterShowAll => 'Show all items';
+  String get posStockFilterShowAll => 'Onyesha bidhaa zote';
 
   @override
   String showingRangeOfResults(String start, String end, String total) {
