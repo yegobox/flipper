@@ -1,10 +1,9 @@
 import 'package:flipper_accounting/accounting_transaction_semantics.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flipper_models/sync/shift_operations.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
 /// What an approved purchase paid on the spot, by RRA payment code: the whole
@@ -55,6 +54,7 @@ abstract final class PurchaseExpenseRecorder {
   /// Never throws: the purchase is approved either way.
   static Future<void> record({
     required Purchase purchase,
+    required PurchaseApprovalDeps deps,
     double paidUpfront = 0,
   }) async {
     try {
@@ -64,8 +64,8 @@ abstract final class PurchaseExpenseRecorder {
         paidUpfront: paidUpfront,
       );
       if (amount <= 0) return;
-      final branchId = purchase.branchId ?? ProxyService.box.getBranchId();
-      final userId = ProxyService.box.getUserId();
+      final branchId = purchase.branchId ?? deps.branchId;
+      final userId = deps.userId;
       final ditto = DittoService.instance.dittoInstance;
       if (branchId == null || ditto == null) return;
 
@@ -102,9 +102,7 @@ abstract final class PurchaseExpenseRecorder {
         updatedAt: now,
         lastTouched: now,
       );
-      await ProxyService.getStrategy(
-        Strategy.capella,
-      ).addTransaction(transaction: transaction);
+      await deps.capella.addTransaction(transaction: transaction);
 
       if (purchasePaidInCash(purchase.pmtTyCd) && userId != null) {
         await _takeFromShiftCash(userId: userId, amount: amount);

@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart'
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
 import 'package:flipper_models/services/purchase_expense_recorder.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
+import 'package:flipper_models/services/purchase_approval_deps.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -53,7 +54,8 @@ Future<bool> submitManualPurchase({
   if (approve) {
     try {
       // Stock first: each line goes onto its product (created for new items).
-      final stock = await stockInManualPurchase(saved);
+      final deps = PurchaseApprovalDeps.fromProxy();
+      final stock = await stockInManualPurchase(saved, deps);
       await PosPurchaseJournalPoster.postPurchase(
         purchase: saved,
         postToLedger: true,
@@ -64,6 +66,7 @@ Future<bool> submitManualPurchase({
       // What was paid now shows with the other expenses (like a cash-out).
       await PurchaseExpenseRecorder.record(
         purchase: saved,
+        deps: deps,
         paidUpfront: paidUpfront ?? 0,
       );
       toast(stock.rraMessage ?? 'Purchase recorded and approved');
