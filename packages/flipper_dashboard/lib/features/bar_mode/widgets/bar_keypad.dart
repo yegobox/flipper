@@ -110,10 +110,10 @@ class _BarKeypadState extends State<BarKeypad>
   }
 
   void _clear() => setState(() {
-        _digits.clear();
-        _error = false;
-        _inlineError = null;
-      });
+    _digits.clear();
+    _error = false;
+    _inlineError = null;
+  });
 
   void _backspace() {
     if (_digits.isEmpty) return;
@@ -159,7 +159,10 @@ class _BarKeypadState extends State<BarKeypad>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _avatar(widget.avatarLabel!, widget.avatarColor ?? BarTokens.blue),
+              _avatar(
+                widget.avatarLabel!,
+                widget.avatarColor ?? BarTokens.blue,
+              ),
               const SizedBox(width: 11),
               Text(
                 widget.title,
@@ -266,10 +269,7 @@ class _BarKeypadState extends State<BarKeypad>
         return FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: constraints.maxWidth,
-            child: content,
-          ),
+          child: SizedBox(width: constraints.maxWidth, child: content),
         );
       },
     );
@@ -279,15 +279,20 @@ class _BarKeypadState extends State<BarKeypad>
     final keyHeight = widget.mobile ? BarTokens.mobileKeySize : null;
     return Material(
       color: util ? BarTokens.surface2 : BarTokens.surface,
-      borderRadius: BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+      borderRadius: BorderRadius.circular(
+        widget.mobile ? 16 : BarTokens.radiusMd,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+        borderRadius: BorderRadius.circular(
+          widget.mobile ? 16 : BarTokens.radiusMd,
+        ),
         child: Container(
           height: keyHeight,
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+            borderRadius: BorderRadius.circular(
+              widget.mobile ? 16 : BarTokens.radiusMd,
+            ),
             border: Border.all(
               color: util && widget.mobile
                   ? Colors.transparent
@@ -299,16 +304,16 @@ class _BarKeypadState extends State<BarKeypad>
           child: Text(
             label,
             style: (util
-                    ? GoogleFonts.outfit(
-                        fontSize: widget.mobile ? 15 : 13,
-                        fontWeight: FontWeight.w700,
-                        color: BarTokens.ink2,
-                      )
-                    : GoogleFonts.jetBrainsMono(
-                        fontSize: widget.mobile ? 26 : 22,
-                        fontWeight: FontWeight.w700,
-                        color: BarTokens.ink1,
-                      )),
+                ? GoogleFonts.outfit(
+                    fontSize: widget.mobile ? 15 : 13,
+                    fontWeight: FontWeight.w700,
+                    color: BarTokens.ink2,
+                  )
+                : GoogleFonts.jetBrainsMono(
+                    fontSize: widget.mobile ? 26 : 22,
+                    fontWeight: FontWeight.w700,
+                    color: BarTokens.ink1,
+                  )),
           ),
         ),
       ),

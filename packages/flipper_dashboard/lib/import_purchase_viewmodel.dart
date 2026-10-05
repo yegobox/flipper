@@ -17,25 +17,23 @@ import 'package:http/http.dart' as http;
 import 'package:overlay_support/overlay_support.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 
-final importsPurchasesClientProvider =
-    FutureProvider<ImportsPurchasesClient>((ref) async {
-      final branchId = ProxyService.box.getBranchId();
-      final ebm = branchId == null
-          ? null
-          : await ProxyService.strategy.ebm(branchId: branchId);
-      return createImportsPurchasesClient(
-        dataConnectorUrl: ebm?.dataConnectorUrl,
-      );
-    });
+final importsPurchasesClientProvider = FutureProvider<ImportsPurchasesClient>((
+  ref,
+) async {
+  final branchId = ProxyService.box.getBranchId();
+  final ebm = branchId == null
+      ? null
+      : await ProxyService.strategy.ebm(branchId: branchId);
+  return createImportsPurchasesClient(dataConnectorUrl: ebm?.dataConnectorUrl);
+});
 
 final importPurchaseViewModelProvider =
     StateNotifierProvider<ImportPurchaseViewModel, ImportPurchaseState>(
-  (ref) => ImportPurchaseViewModel(ref),
-);
+      (ref) => ImportPurchaseViewModel(ref),
+    );
 
 class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
-  ImportPurchaseViewModel(this._ref)
-    : super(ImportPurchaseState.initial());
+  ImportPurchaseViewModel(this._ref) : super(ImportPurchaseState.initial());
 
   final Ref _ref;
 
@@ -102,11 +100,7 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
       final client = await _client();
       if (!mounted) return;
       if (isImport) {
-        final items = await _listImports(
-          client,
-          branchId,
-          importStatusFilter,
-        );
+        final items = await _listImports(client, branchId, importStatusFilter);
         _patchState((s) => s.copyWith(importItems: items, isLoading: false));
       } else {
         final purchases = await _listPurchases(
@@ -236,7 +230,9 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
   Future<void> replayRowJob(String rowId) async {
     final jobId = state.rowJobIds[rowId];
     if (jobId == null || jobId.isEmpty) {
-      throw Exception('No job id recorded for this row — approve/sync again first');
+      throw Exception(
+        'No job id recorded for this row — approve/sync again first',
+      );
     }
     await _runRowJob(
       rowId: rowId,
@@ -492,10 +488,7 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
       final reportItems = merged
           .where((p) => p.variants?.isNotEmpty ?? false)
           .map(
-            (p) => PurchaseReportItem(
-              purchase: p,
-              variant: p.variants!.first,
-            ),
+            (p) => PurchaseReportItem(purchase: p, variant: p.variants!.first),
           )
           .toList();
       if (reportItems.isNotEmpty) {

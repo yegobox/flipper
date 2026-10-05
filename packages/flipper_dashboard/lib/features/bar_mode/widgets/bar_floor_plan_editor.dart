@@ -28,8 +28,7 @@ class BarFloorPlanEditor extends ConsumerStatefulWidget {
   const BarFloorPlanEditor({super.key});
 
   @override
-  ConsumerState<BarFloorPlanEditor> createState() =>
-      _BarFloorPlanEditorState();
+  ConsumerState<BarFloorPlanEditor> createState() => _BarFloorPlanEditorState();
 }
 
 class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
@@ -55,8 +54,9 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
       );
     }).toList();
     zones.sort(
-      (a, b) => (a.tables.firstOrNull?.ordinal ?? 0)
-          .compareTo(b.tables.firstOrNull?.ordinal ?? 0),
+      (a, b) => (a.tables.firstOrNull?.ordinal ?? 0).compareTo(
+        b.tables.firstOrNull?.ordinal ?? 0,
+      ),
     );
     return zones;
   }
@@ -148,8 +148,9 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     // upsert below silently overwrites that table (e.g. B6 renamed to
     // "Patio" would be reset to "B6" by the next Add table).
     final takenIds = allTables.map((t) => t.id).toSet();
-    final takenNames =
-        zone.tables.map((t) => t.name.trim().toLowerCase()).toSet();
+    final takenNames = zone.tables
+        .map((t) => t.name.trim().toLowerCase())
+        .toSet();
     var num = _nextTableNumber(zone, prefix);
     String idFor(int n) => '${branchId}_${zone.zoneId}_$prefix$n';
     while (takenIds.contains(idFor(num)) ||
@@ -178,10 +179,15 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     final name = await _promptZoneName(context);
     if (name == null || name.trim().isEmpty) return;
     final trimmed = name.trim();
-    final zoneId =
-        trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
-    final zone = _ZoneGroup(zoneId: zoneId, zoneName: trimmed, tables: const []);
-    await _runBusy(() => _addTable(zone, ref.read(barTablesProvider).value ?? []));
+    final zoneId = trimmed.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    final zone = _ZoneGroup(
+      zoneId: zoneId,
+      zoneName: trimmed,
+      tables: const [],
+    );
+    await _runBusy(
+      () => _addTable(zone, ref.read(barTablesProvider).value ?? []),
+    );
   }
 
   Future<void> _deleteTable(
@@ -222,12 +228,11 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     _ZoneGroup zone, {
     required Set<String> openTableIds,
   }) async {
-    final openInZone =
-        zone.tables.where((t) => openTableIds.contains(t.id)).toList();
+    final openInZone = zone.tables
+        .where((t) => openTableIds.contains(t.id))
+        .toList();
     if (openInZone.isNotEmpty) {
-      _snack(
-        'Close open tabs in ${zone.zoneName} before deleting the zone.',
-      );
+      _snack('Close open tabs in ${zone.zoneName} before deleting the zone.');
       return;
     }
     final ok = await showDialog<bool>(
@@ -259,9 +264,9 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
 
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -316,8 +321,7 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
                 onDeleteZone: () => _deleteZone(zone, openTableIds: openIds),
                 onAddTable: () => _addTable(zone, tables),
                 onSaveTable: _saveTable,
-                onDeleteTable: (t) =>
-                    _deleteTable(t, openTableIds: openIds),
+                onDeleteTable: (t) => _deleteTable(t, openTableIds: openIds),
               ),
               const SizedBox(height: 14),
             ],
@@ -614,67 +618,70 @@ class _TableRowState extends State<_TableRow> {
                     color: BarTokens.blue,
                     child: SizedBox(width: 4),
                   ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextField(
-                    controller: _nameController,
-                    focusNode: _nameFocus,
-                    enabled: widget.enabled,
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: BarTokens.ink1,
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: TextField(
+                      controller: _nameController,
+                      focusNode: _nameFocus,
+                      enabled: widget.enabled,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: BarTokens.ink1,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: BarTokens.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: BarTokens.line),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: BarTokens.line),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: BarTokens.blue),
+                        ),
+                      ),
+                      // Enter unfocuses, and the focus listener commits.
+                      onSubmitted: (_) => _nameFocus.unfocus(),
                     ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: true,
-                      fillColor: BarTokens.surface,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: BarTokens.line),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: BarTokens.line),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: BarTokens.blue),
-                      ),
-                    ),
-                    // Enter unfocuses, and the focus listener commits.
-                    onSubmitted: (_) => _nameFocus.unfocus(),
                   ),
                 ),
-              ),
-              _SeatStepper(
-                seats: widget.table.seats,
-                enabled: widget.enabled,
-                onChanged: _setSeats,
-              ),
-              if (widget.isOpen)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Icon(
-                    Icons.shield_outlined,
-                    size: 16,
-                    color: BarTokens.blue,
+                _SeatStepper(
+                  seats: widget.table.seats,
+                  enabled: widget.enabled,
+                  onChanged: _setSeats,
+                ),
+                if (widget.isOpen)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Icon(
+                      Icons.shield_outlined,
+                      size: 16,
+                      color: BarTokens.blue,
+                    ),
+                  ),
+                IconButton(
+                  tooltip: 'Delete table',
+                  onPressed: widget.enabled ? widget.onDelete : null,
+                  icon: Icon(Icons.close, size: 18, color: BarTokens.ink3),
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
                   ),
                 ),
-              IconButton(
-                tooltip: 'Delete table',
-                onPressed: widget.enabled ? widget.onDelete : null,
-                icon: Icon(Icons.close, size: 18, color: BarTokens.ink3),
-                padding: const EdgeInsets.all(8),
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-            ],
+              ],
             ),
           ),
         ),
