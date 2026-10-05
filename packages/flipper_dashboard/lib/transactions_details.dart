@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/services/transaction_receipt_actions_service.dart';
 import 'package:flipper_dashboard/services/transaction_refund_helpers.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
@@ -146,8 +147,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
               children: [
                 _TxDetailHeader(
                   title: _direction == _TxDirection.expense
-                      ? 'Expense'
-                      : 'Income',
+                      ? context.flipperL10n.txDetailExpense
+                      : context.flipperL10n.txDetailIncome,
                   onBack: () => locator<RouterService>().back(),
                   onMore: _openMoreActions,
                 ),
@@ -163,7 +164,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                       _TxExpandableSection(
                         iconSvg: TransactionDetailSvgs.cart(),
                         iconTone: _SectionIconTone.blue,
-                        title: 'Products',
+                        title: context.flipperL10n.txDetailProducts,
                         subtitle: _itemCountLabel(items.length),
                         isOpen: _openProducts,
                         reduceMotion: _reduceMotion,
@@ -174,9 +175,10 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
                       _TxExpandableSection(
                         iconSvg: TransactionDetailSvgs.clock(),
                         iconTone: _SectionIconTone.green,
-                        title: 'Transaction Timeline',
-                        subtitle:
-                            '${_buildTimeline(_transaction).length} events',
+                        title: context.flipperL10n.txDetailTimeline,
+                        subtitle: context.flipperL10n.txDetailEventCount(
+                          _buildTimeline(_transaction).length,
+                        ),
                         isOpen: _openTimeline,
                         reduceMotion: _reduceMotion,
                         onToggle: () =>
@@ -243,23 +245,23 @@ class _TxPalette {
 
 _TxPalette _paletteFor(_TxDirection direction) {
   if (direction == _TxDirection.expense) {
-    return const _TxPalette(
+    return _TxPalette(
       primary: _TxDetailColors.loss,
       ink: _TxDetailColors.lossInk,
       tint: _TxDetailColors.lossTint,
       soft: _TxDetailColors.lossSoft,
       sign: '−',
-      directionLabel: 'Expense recorded',
+      directionLabel: FlipperL10n.current.txDetailExpenseRecorded,
       heroGradientEnd: _TxDetailColors.lossSoft,
     );
   }
-  return const _TxPalette(
+  return _TxPalette(
     primary: _TxDetailColors.gain,
     ink: _TxDetailColors.gainInk,
     tint: _TxDetailColors.gainTint,
     soft: _TxDetailColors.gainSoft,
     sign: '+',
-    directionLabel: 'Income received',
+    directionLabel: FlipperL10n.current.txDetailIncomeReceived,
     heroGradientEnd: _TxDetailColors.gainSoft,
   );
 }
@@ -350,7 +352,7 @@ class _TxDetailFooter extends StatelessWidget {
               child: _FooterButton(
                 ghost: true,
                 icon: TransactionDetailSvgs.more(),
-                label: 'More Actions',
+                label: context.flipperL10n.txDetailMoreActions,
               ),
             ),
           ),
@@ -362,7 +364,7 @@ class _TxDetailFooter extends StatelessWidget {
               child: _FooterButton(
                 ghost: false,
                 icon: TransactionDetailSvgs.receipt(),
-                label: 'Invoice',
+                label: context.flipperL10n.invoice,
               ),
             ),
           ),
@@ -660,7 +662,9 @@ class _TxHeroCard extends StatelessWidget {
                         color: _TxDetailColors.ink3,
                       ),
                       children: [
-                        const TextSpan(text: 'Created '),
+                        TextSpan(
+                          text: context.flipperL10n.txDetailCreatedPrefix,
+                        ),
                         TextSpan(
                           text: instant != null
                               ? DateFormat('MMM dd, yyyy').format(instant)
@@ -718,7 +722,9 @@ class _RefundBanner extends StatelessWidget {
     final currency = ProxyService.box.defaultCurrency();
     final amt = transaction.refundedAmount ?? transaction.subTotal ?? 0;
     final partial = isPartialRefund(amt, transaction.subTotal ?? 0);
-    final method = transaction.refundMethod == 'momo' ? 'MoMo' : 'Cash';
+    final method = transaction.refundMethod == 'momo'
+        ? 'MoMo'
+        : FlipperL10n.current.cash;
     final reason = transaction.refundReason ?? '—';
     final when = _transactionInstant(transaction);
 
@@ -755,8 +761,10 @@ class _RefundBanner extends StatelessWidget {
               children: [
                 Text(
                   partial
-                      ? '$currency ${NumberFormat('#,###').format(amt.round())} refunded'
-                      : 'Fully refunded to customer',
+                      ? FlipperL10n.current.txDetailAmountRefunded(
+                          '$currency ${NumberFormat('#,###').format(amt.round())}',
+                        )
+                      : FlipperL10n.current.txDetailFullyRefunded,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
@@ -766,7 +774,7 @@ class _RefundBanner extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '$reason · via $method${when != null ? ' · ${DateFormat('MMM dd').format(when)}' : ''}',
+                  '${FlipperL10n.current.txDetailRefundVia(reason, method)}${when != null ? ' · ${DateFormat('MMM dd').format(when)}' : ''}',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
@@ -857,12 +865,16 @@ class _MetaStrip extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: _MetaCell(label: 'Method', value: method, mono: false),
+              child: _MetaCell(
+                label: FlipperL10n.current.txDetailMethod,
+                value: method,
+                mono: false,
+              ),
             ),
             Container(width: 1, height: 52, color: _TxDetailColors.line),
             Expanded(
               child: _MetaCell(
-                label: 'Reference',
+                label: FlipperL10n.current.txDetailReference,
                 value: reference,
                 mono: true,
               ),
@@ -895,13 +907,18 @@ class _CashMovementInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _infoRow(
-            label: 'Category',
+            label: FlipperL10n.current.txDetailCategory,
             value: cashbookCategoryLabel(transaction.transactionType),
             icon: CashbookSvgs.tag(),
           ),
           if (note != null && note.isNotEmpty) ...[
             const SizedBox(height: 10),
-            _infoRow(label: 'Note', value: note, icon: null, maxLines: 4),
+            _infoRow(
+              label: FlipperL10n.current.txDetailNote,
+              value: note,
+              icon: null,
+              maxLines: 4,
+            ),
           ],
         ],
       ),
@@ -1181,7 +1198,7 @@ class _ProductsSectionBody extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Text(
-          'No line items for this transaction.',
+          FlipperL10n.current.txDetailNoLineItems,
           style: GoogleFonts.outfit(fontSize: 13, color: _TxDetailColors.ink3),
         ),
       );
@@ -1205,7 +1222,7 @@ class _ProductsSectionBody extends StatelessWidget {
           child: Row(
             children: [
               Text(
-                'Subtotal',
+                FlipperL10n.current.subtotal,
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1311,7 +1328,7 @@ class _TimelineSectionBody extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Text(
-          'No timeline events yet.',
+          FlipperL10n.current.txDetailNoTimelineEvents,
           style: GoogleFonts.outfit(fontSize: 13, color: _TxDetailColors.ink3),
         ),
       );
@@ -1520,15 +1537,15 @@ _StatusPresentation _statusPresentation(
         normalized == 'partially_refunded' ||
         (refundedAmount != null && isPartialRefund(refundedAmount, subTotal));
     if (partial) {
-      return const _StatusPresentation(
-        label: 'PARTIALLY REFUNDED',
+      return _StatusPresentation(
+        label: FlipperL10n.current.txDetailStatusPartiallyRefunded,
         background: _TxDetailColors.pendingTint,
         foreground: _TxDetailColors.pendingInk,
         dot: _TxDetailColors.pendingDot,
       );
     }
-    return const _StatusPresentation(
-      label: 'REFUNDED',
+    return _StatusPresentation(
+      label: FlipperL10n.current.txDetailStatusRefunded,
       background: _TxDetailColors.lossTint,
       foreground: _TxDetailColors.lossInk,
       dot: _TxDetailColors.loss,
@@ -1538,23 +1555,23 @@ _StatusPresentation _statusPresentation(
     case 'pending':
     case 'waiting':
     case 'waitingmomocomplete':
-      return const _StatusPresentation(
-        label: 'PENDING',
+      return _StatusPresentation(
+        label: FlipperL10n.current.txDetailStatusPending,
         background: _TxDetailColors.pendingTint,
         foreground: _TxDetailColors.pendingInk,
         dot: _TxDetailColors.pendingDot,
       );
     case 'completed':
     case 'complete':
-      return const _StatusPresentation(
-        label: 'COMPLETED',
+      return _StatusPresentation(
+        label: FlipperL10n.current.txDetailStatusCompleted,
         background: _TxDetailColors.gainTint,
         foreground: _TxDetailColors.gainInk,
         dot: _TxDetailColors.gain,
       );
     case 'parked':
-      return const _StatusPresentation(
-        label: 'PARKED',
+      return _StatusPresentation(
+        label: FlipperL10n.current.txDetailStatusParked,
         background: _TxDetailColors.blueTint,
         foreground: _TxDetailColors.blue,
         dot: _TxDetailColors.blue,
@@ -1570,8 +1587,7 @@ _StatusPresentation _statusPresentation(
 }
 
 String _itemCountLabel(int count) {
-  if (count == 1) return '1 item';
-  return '$count items';
+  return FlipperL10n.current.cartItemCount(count);
 }
 
 String _formatPaymentMethod(String? paymentType) {
@@ -1581,8 +1597,8 @@ String _formatPaymentMethod(String? paymentType) {
   final upper = paymentType.toUpperCase();
   if (upper.contains('AIRTEL')) return 'Airtel Money';
   if (upper.contains('MOMO') || upper.contains('MOBILE')) return 'MoMo';
-  if (upper.contains('CARD')) return 'Card';
-  if (upper.contains('CASH')) return 'Cash';
+  if (upper.contains('CARD')) return FlipperL10n.current.paymentsTypeCard;
+  if (upper.contains('CASH')) return FlipperL10n.current.cash;
   return paymentType;
 }
 
@@ -1627,9 +1643,11 @@ List<_TimelineEvent> _buildTimeline(ITransaction transaction) {
     final partial = isPartialRefund(refundedAmt, transaction.subTotal ?? 0);
     events.add(
       _TimelineEvent(
-        title: partial ? 'Partially refunded' : 'Refunded',
+        title: partial
+            ? FlipperL10n.current.txDetailPartiallyRefunded
+            : FlipperL10n.current.refunded,
         detail:
-            '$currency ${NumberFormat('#,###').format(refundedAmt.round())} · ${transaction.refundReason ?? 'Refund'}',
+            '$currency ${NumberFormat('#,###').format(refundedAmt.round())} · ${transaction.refundReason ?? FlipperL10n.current.txDetailRefund}',
         time: transaction.updatedAt ?? transaction.lastTouched,
         done: true,
         isRefund: true,
@@ -1640,7 +1658,7 @@ List<_TimelineEvent> _buildTimeline(ITransaction transaction) {
   if (isComplete) {
     events.add(
       _TimelineEvent(
-        title: 'Payment received',
+        title: FlipperL10n.current.txDetailPaymentReceived,
         detail:
             '$currency $amount · ${_formatPaymentMethod(transaction.paymentType)}',
         time:
@@ -1653,7 +1671,7 @@ List<_TimelineEvent> _buildTimeline(ITransaction transaction) {
   } else if (status == PENDING || status == WAITING) {
     events.add(
       _TimelineEvent(
-        title: 'Payment pending',
+        title: FlipperL10n.current.txDetailPaymentPending,
         detail: _formatPaymentMethod(transaction.paymentType),
         time: transaction.updatedAt ?? transaction.createdAt,
         done: false,
@@ -1664,9 +1682,11 @@ List<_TimelineEvent> _buildTimeline(ITransaction transaction) {
   if (transaction.createdAt != null) {
     events.add(
       _TimelineEvent(
-        title: 'Sale created',
+        title: FlipperL10n.current.txDetailSaleCreated,
         detail: transaction.paymentType != null
-            ? 'Payment: ${transaction.paymentType}'
+            ? FlipperL10n.current.txDetailPaymentLine(
+                _formatPaymentMethod(transaction.paymentType),
+              )
             : '',
         time: transaction.createdAt,
         done: isComplete,

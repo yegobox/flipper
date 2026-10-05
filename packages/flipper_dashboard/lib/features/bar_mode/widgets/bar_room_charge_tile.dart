@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class BarRoomChargeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ink = selected ? BarTokens.violet : BarTokens.ink3;
     final chosen = stay;
+    final l10n = context.flipperL10n;
 
     return Material(
       color: selected ? BarTokens.violetTint : BarTokens.surface,
@@ -53,7 +55,7 @@ class BarRoomChargeTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Charge to room',
+                      l10n.barChargeToRoom,
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
@@ -63,7 +65,7 @@ class BarRoomChargeTile extends StatelessWidget {
                     const SizedBox(height: 1),
                     Text(
                       chosen == null
-                          ? 'Bill a guest staying with us'
+                          ? l10n.barRoomChargeTileSubtitle
                           : hotelRoomChargeTarget(chosen),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -77,7 +79,7 @@ class BarRoomChargeTile extends StatelessWidget {
                 ),
               ),
               Text(
-                chosen == null ? 'Choose' : 'Change',
+                chosen == null ? l10n.barChoose : l10n.barChange,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   fontSize: 12.5,

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -25,7 +26,9 @@ class ListUnits extends StatelessWidget {
             title: Text(
               unit.name!,
               style: const TextStyle(
-                  color: Colors.black, fontWeight: FontWeight.w600),
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             trailing: Radio<String>(
               value: unit.id.toString(),
@@ -40,7 +43,10 @@ class ListUnits extends StatelessWidget {
 
   void _onUnitTapped(ProductViewModel model, IUnit unit) {
     model.saveFocusedUnit(
-        newUnit: unit, id: model.product?.id.toString(), type: type);
+      newUnit: unit,
+      id: model.product?.id.toString(),
+      type: type,
+    );
   }
 
   @override
@@ -50,17 +56,17 @@ class ListUnits extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              _routerService.navigateTo(AddProductViewRoute(
-                productId: model.product!.id,
-              ));
+              _routerService.navigateTo(
+                AddProductViewRoute(productId: model.product!.id),
+              );
             },
-            title: 'Unit Type',
+            title: context.flipperL10n.unitsUnitType,
             showActionButton: false,
             disableButton: false,
             onActionButtonClicked: () {
-              _routerService.navigateTo(AddProductViewRoute(
-                productId: model.product!.id,
-              ));
+              _routerService.navigateTo(
+                AddProductViewRoute(productId: model.product!.id),
+              );
             },
             icon: Icons.close,
             multi: 1,
@@ -71,13 +77,11 @@ class ListUnits extends StatelessWidget {
             child: model.units.isEmpty
                 ? Center(
                     child: Text(
-                      'No units available',
+                      context.flipperL10n.unitsNoneAvailable,
                       style: Theme.of(context).textTheme.labelMedium,
                     ),
                   )
-                : ListView(
-                    children: _getUnitsWidgets(model),
-                  ),
+                : ListView(children: _getUnitsWidgets(model)),
           ),
         );
       },

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
@@ -42,8 +43,8 @@ class OrderingViewModel extends ProductViewModel
     if (supplier == null) {
       _dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
-        description: 'Please select a supplier first.',
+        title: FlipperL10n.current.error,
+        description: FlipperL10n.current.orderingSelectSupplierFirst,
         data: {'status': InfoDialogStatus.error},
       );
       return;
@@ -53,9 +54,8 @@ class OrderingViewModel extends ProductViewModel
     if (supplier.serverId == null) {
       _dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
-        description:
-            'Selected supplier has invalid ID. Please select a different supplier.',
+        title: FlipperL10n.current.error,
+        description: FlipperL10n.current.orderingSupplierInvalidId,
         data: {'status': InfoDialogStatus.error},
       );
       return;
@@ -64,8 +64,8 @@ class OrderingViewModel extends ProductViewModel
     if (supplier.serverId == ProxyService.box.getBranchId()) {
       _dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
-        description: 'You can not order from yourself.',
+        title: FlipperL10n.current.error,
+        description: FlipperL10n.current.orderingCannotOrderFromYourself,
         data: {'status': InfoDialogStatus.error},
       );
       return;
@@ -76,7 +76,7 @@ class OrderingViewModel extends ProductViewModel
         ref.read(previewingCart.notifier).state = true;
       }
     } else {
-      showCustomSnackBar(context, "The cart is empty");
+      showCustomSnackBar(context, FlipperL10n.current.orderingCartIsEmpty);
     }
   }
 
@@ -91,6 +91,7 @@ class OrderingViewModel extends ProductViewModel
     WidgetRef ref,
     ITransaction transaction,
     bool isOrdering,
+
     /// Null when the business has no finance provider configured.
     /// `createStockRequest` takes `financingId` as optional, so the order is
     /// still valid — it simply carries no financing.
@@ -118,16 +119,20 @@ class OrderingViewModel extends ProductViewModel
         (sum, item) => sum + (item.qty * item.price),
       );
 
-      final orderDetails =
-          'New order with $itemCount items, total: \$${totalAmount.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}';
+      final orderDetails = FlipperL10n.current.orderingSmsNewOrder(
+        itemCount,
+        totalAmount.toCurrencyFormatted(
+          symbol: ProxyService.box.defaultCurrency(),
+        ),
+      );
 
       final supplier = ref.read(selectedSupplierProvider);
       if (supplier == null || supplier.serverId == null) {
         setLoading(false);
         _dialogService.showCustomDialog(
           variant: DialogType.info,
-          title: 'Error',
-          description: 'Please select a supplier first.',
+          title: FlipperL10n.current.error,
+          description: FlipperL10n.current.orderingSelectSupplierFirst,
           data: {'status': InfoDialogStatus.error},
         );
         return false;
@@ -159,8 +164,8 @@ class OrderingViewModel extends ProductViewModel
       if (showSuccessDialog) {
         await _dialogService.showCustomDialog(
           variant: DialogType.info,
-          title: 'Order Placed Successfully',
-          description: 'Your order has been processed and confirmed.',
+          title: FlipperL10n.current.orderingPlacedTitle,
+          description: FlipperL10n.current.orderingPlacedDescription,
           data: {'status': InfoDialogStatus.success},
         );
       }
@@ -173,14 +178,14 @@ class OrderingViewModel extends ProductViewModel
       setLoading(false);
 
       if (showSuccessDialog) {
-        showCustomSnackBar(context, 'Order Placed successfully');
+        showCustomSnackBar(context, FlipperL10n.current.orderingPlacedSnack);
       }
       return true;
     } catch (e) {
       setLoading(false);
       _dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
+        title: FlipperL10n.current.error,
         description: e.toString(),
         data: {'status': InfoDialogStatus.error},
       );
@@ -216,12 +221,12 @@ class OrderingViewModel extends ProductViewModel
       if (items.isEmpty) {
         // Returning quietly here let the caller go on to "Order Placed
         // Successfully" over an order that was never created.
-        throw Exception('The cart is empty — add a product before ordering.');
+        throw Exception(FlipperL10n.current.orderingCartEmptyAddProduct);
       }
 
       final supplier = ref.read(selectedSupplierProvider);
       if (supplier == null || supplier.serverId == null) {
-        throw Exception('Please select a supplier first.');
+        throw Exception(FlipperL10n.current.orderingSelectSupplierFirst);
       }
 
       // ignore: unused_local_variable
@@ -247,17 +252,18 @@ class OrderingViewModel extends ProductViewModel
   FutureOr<void> _changeTransactionStatus({
     required ITransaction transaction,
   }) async {
-    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-      transaction: transaction,
-      status: ORDERING,
-    );
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transaction: transaction, status: ORDERING);
   }
 
   Future<void> _markItemsAsDone(
     List<TransactionItem> items,
     dynamic pendingTransaction,
   ) async {
-    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,

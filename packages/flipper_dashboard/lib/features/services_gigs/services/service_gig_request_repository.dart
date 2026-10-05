@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_chat_message.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -30,13 +31,15 @@ class ServiceGigRequestRepository {
   }) async {
     final customerId = ProxyService.box.getUserId();
     if (customerId == null || customerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to request a service.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToRequest,
+      );
     }
     if (customerId == providerUserId) {
-      throw ServiceGigRequestException('You cannot request a service from yourself.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrRequestSelf);
     }
     if (paymentAmountRwf < 100) {
-      throw ServiceGigRequestException('Enter an amount of at least 100 RWF.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrMinAmount);
     }
 
     final payload = <String, dynamic>{
@@ -60,11 +63,13 @@ class ServiceGigRequestRepository {
       return ServiceGigRequest.fromJson(Map<String, dynamic>.from(row));
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not send your request.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrSendRequest,
       );
     } catch (e) {
       throw ServiceGigRequestException(
-        'Could not send your request. Check your connection and try again.',
+        FlipperL10n.current.gigsErrSendRequestConnection,
       );
     }
   }
@@ -75,17 +80,18 @@ class ServiceGigRequestRepository {
     if (customerId == null || customerId.isEmpty) return [];
 
     try {
-      final response = await Supabase.instance.client
-          .from(_table)
-          .select()
-          .eq('customer_user_id', customerId)
-          .order('created_at', ascending: false) as List<dynamic>;
+      final response =
+          await Supabase.instance.client
+                  .from(_table)
+                  .select()
+                  .eq('customer_user_id', customerId)
+                  .order('created_at', ascending: false)
+              as List<dynamic>;
 
       return response
           .map(
-            (e) => ServiceGigRequest.fromJson(
-              Map<String, dynamic>.from(e as Map),
-            ),
+            (e) =>
+                ServiceGigRequest.fromJson(Map<String, dynamic>.from(e as Map)),
           )
           .toList();
     } catch (_) {
@@ -104,10 +110,10 @@ class ServiceGigRequestRepository {
   }) async {
     final customerId = ProxyService.box.getUserId();
     if (customerId == null || customerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to complete payment.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrSignInToPay);
     }
     if (paymentAmountRwf < 1) {
-      throw ServiceGigRequestException('Enter a valid amount.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrValidAmount);
     }
 
     final existing = await Supabase.instance.client
@@ -118,7 +124,9 @@ class ServiceGigRequestRepository {
         .maybeSingle();
 
     if (existing == null) {
-      throw ServiceGigRequestException('Request not found.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrRequestNotFound,
+      );
     }
 
     final current = ServiceGigRequest.fromJson(
@@ -126,20 +134,21 @@ class ServiceGigRequestRepository {
     );
     if (current.status != 'pending_payment') {
       throw ServiceGigRequestException(
-        'This request is not waiting for payment.',
+        FlipperL10n.current.gigsErrNotAwaitingPayment,
       );
     }
     // Block stale pay attempts without MoMo proof. If MTN already succeeded, still record payment
     // even when the UI deadline passed (clock skew / slow polling / user paid at the last minute).
     if (current.paymentDeadlineAt != null &&
         DateTime.now().toUtc().isAfter(current.paymentDeadlineAt!)) {
-      final hasMtnProof = (mtnFinancialTransactionId != null &&
+      final hasMtnProof =
+          (mtnFinancialTransactionId != null &&
               mtnFinancialTransactionId.trim().isNotEmpty) ||
           (mtnPaymentReference != null &&
               mtnPaymentReference.trim().isNotEmpty);
       if (!hasMtnProof) {
         throw ServiceGigRequestException(
-          'The payment window has ended. Contact the provider to send a new request.',
+          FlipperL10n.current.gigsErrPaymentWindowEnded,
         );
       }
     }
@@ -164,18 +173,19 @@ class ServiceGigRequestRepository {
     }
 
     try {
-      final rows = await Supabase.instance.client
-              .from(_table)
-              .update(updatePayload)
-              .eq('id', requestId)
-              .eq('customer_user_id', customerId)
-              .eq('status', 'pending_payment')
-              .select()
-          as List<dynamic>;
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .update(updatePayload)
+                  .eq('id', requestId)
+                  .eq('customer_user_id', customerId)
+                  .eq('status', 'pending_payment')
+                  .select()
+              as List<dynamic>;
 
       if (rows.isEmpty) {
         throw ServiceGigRequestException(
-          'Could not confirm payment. It may have already been recorded.',
+          FlipperL10n.current.gigsErrConfirmPayment,
         );
       }
       return ServiceGigRequest.fromJson(
@@ -185,11 +195,13 @@ class ServiceGigRequestRepository {
       rethrow;
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not save payment.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrSavePayment,
       );
     } catch (_) {
       throw ServiceGigRequestException(
-        'Could not save payment. Check your connection.',
+        FlipperL10n.current.gigsErrSavePaymentConnection,
       );
     }
   }
@@ -200,17 +212,18 @@ class ServiceGigRequestRepository {
     if (providerId == null || providerId.isEmpty) return [];
 
     try {
-      final response = await Supabase.instance.client
-          .from(_table)
-          .select()
-          .eq('provider_user_id', providerId)
-          .order('created_at', ascending: false) as List<dynamic>;
+      final response =
+          await Supabase.instance.client
+                  .from(_table)
+                  .select()
+                  .eq('provider_user_id', providerId)
+                  .order('created_at', ascending: false)
+              as List<dynamic>;
 
       return response
           .map(
-            (e) => ServiceGigRequest.fromJson(
-              Map<String, dynamic>.from(e as Map),
-            ),
+            (e) =>
+                ServiceGigRequest.fromJson(Map<String, dynamic>.from(e as Map)),
           )
           .toList();
     } catch (_) {
@@ -222,30 +235,33 @@ class ServiceGigRequestRepository {
   Future<ServiceGigRequest> acceptRequest(String requestId) async {
     final providerId = ProxyService.box.getUserId();
     if (providerId == null || providerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to respond to requests.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToRespond,
+      );
     }
 
     final now = DateTime.now().toUtc();
     final paymentDeadline = now.add(const Duration(minutes: 5));
 
     try {
-      final rows = await Supabase.instance.client
-              .from(_table)
-              .update({
-                'status': 'pending_payment',
-                'accepted_at': now.toIso8601String(),
-                'payment_deadline_at': paymentDeadline.toIso8601String(),
-                'updated_at': now.toIso8601String(),
-              })
-              .eq('id', requestId)
-              .eq('provider_user_id', providerId)
-              .eq('status', 'requested')
-              .select()
-          as List<dynamic>;
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .update({
+                    'status': 'pending_payment',
+                    'accepted_at': now.toIso8601String(),
+                    'payment_deadline_at': paymentDeadline.toIso8601String(),
+                    'updated_at': now.toIso8601String(),
+                  })
+                  .eq('id', requestId)
+                  .eq('provider_user_id', providerId)
+                  .eq('status', 'requested')
+                  .select()
+              as List<dynamic>;
 
       if (rows.isEmpty) {
         throw ServiceGigRequestException(
-          'This request can no longer be accepted. It may have expired or already been handled.',
+          FlipperL10n.current.gigsErrCannotAccept,
         );
       }
       return ServiceGigRequest.fromJson(
@@ -255,11 +271,11 @@ class ServiceGigRequestRepository {
       rethrow;
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not accept the request.',
+        e.message.isNotEmpty ? e.message : FlipperL10n.current.gigsErrAccept,
       );
     } catch (_) {
       throw ServiceGigRequestException(
-        'Could not accept the request. Check your connection and try again.',
+        FlipperL10n.current.gigsErrAcceptConnection,
       );
     }
   }
@@ -294,10 +310,12 @@ class ServiceGigRequestRepository {
       );
     }
     try {
-      final response = await Supabase.instance.client
-              .from(_table)
-              .select('status,payment_amount_rwf')
-              .eq('provider_user_id', providerUserId) as List<dynamic>;
+      final response =
+          await Supabase.instance.client
+                  .from(_table)
+                  .select('status,payment_amount_rwf')
+                  .eq('provider_user_id', providerUserId)
+              as List<dynamic>;
 
       const active = {'paid', 'in_progress', 'completed'};
       var count = 0;
@@ -307,9 +325,7 @@ class ServiceGigRequestRepository {
         final st = map['status']?.toString() ?? '';
         if (!active.contains(st)) continue;
         final amt = map['payment_amount_rwf'];
-        final n = amt is int
-            ? amt
-            : int.tryParse(amt?.toString() ?? '') ?? 0;
+        final n = amt is int ? amt : int.tryParse(amt?.toString() ?? '') ?? 0;
         if (n > 0) {
           count++;
           sum += n;
@@ -331,11 +347,13 @@ class ServiceGigRequestRepository {
     final r = await getRequestForParticipant(requestId);
     if (r == null) return [];
     try {
-      final response = await Supabase.instance.client
-              .from(_messagesTable)
-              .select()
-              .eq('request_id', requestId)
-              .order('created_at', ascending: true) as List<dynamic>;
+      final response =
+          await Supabase.instance.client
+                  .from(_messagesTable)
+                  .select()
+                  .eq('request_id', requestId)
+                  .order('created_at', ascending: true)
+              as List<dynamic>;
 
       return response
           .map(
@@ -354,19 +372,24 @@ class ServiceGigRequestRepository {
     int limit = 200,
   }) async {
     try {
-      final response = await Supabase.instance.client
-          .from(_table)
-          .select()
-          .inFilter('status', const ['paid', 'in_progress', 'completed'])
-          .eq('provider_payout_status', _payoutPending)
-          .order('created_at', ascending: false)
-          .limit(limit) as List<dynamic>;
+      final response =
+          await Supabase.instance.client
+                  .from(_table)
+                  .select()
+                  .inFilter('status', const [
+                    'paid',
+                    'in_progress',
+                    'completed',
+                  ])
+                  .eq('provider_payout_status', _payoutPending)
+                  .order('created_at', ascending: false)
+                  .limit(limit)
+              as List<dynamic>;
 
       return response
           .map(
-            (e) => ServiceGigRequest.fromJson(
-              Map<String, dynamic>.from(e as Map),
-            ),
+            (e) =>
+                ServiceGigRequest.fromJson(Map<String, dynamic>.from(e as Map)),
           )
           .toList();
     } catch (_) {
@@ -381,38 +404,49 @@ class ServiceGigRequestRepository {
   }) async {
     final adminId = ProxyService.box.getUserId();
     if (adminId == null || adminId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to dispatch payouts.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToDispatch,
+      );
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final trimmedRef = reference.trim();
     if (trimmedRef.isEmpty) {
-      throw ServiceGigRequestException('Enter a payout reference.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrPayoutReference,
+      );
     }
     try {
-      await Supabase.instance.client.from(_table).update({
-        'provider_payout_status': _payoutDispatched,
-        'provider_payout_dispatched_at': now,
-        'provider_payout_dispatched_by': adminId,
-        'provider_payout_reference': trimmedRef,
-        'updated_at': now,
-      }).eq('id', requestId);
+      await Supabase.instance.client
+          .from(_table)
+          .update({
+            'provider_payout_status': _payoutDispatched,
+            'provider_payout_dispatched_at': now,
+            'provider_payout_dispatched_by': adminId,
+            'provider_payout_reference': trimmedRef,
+            'updated_at': now,
+          })
+          .eq('id', requestId);
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not update payout status.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrUpdatePayout,
       );
     } catch (_) {
-      throw ServiceGigRequestException('Could not update payout status.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrUpdatePayout);
     }
   }
 
   /// Admin metrics (computed client-side from a light-weight query).
   Future<ServiceGigAdminMetrics> adminMetrics({int limit = 2000}) async {
     try {
-      final rows = await Supabase.instance.client
-          .from(_table)
-          .select('status, provider_payout_status, payment_amount_rwf')
-          .order('created_at', ascending: false)
-          .limit(limit) as List<dynamic>;
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .select('status, provider_payout_status, payment_amount_rwf')
+                  .order('created_at', ascending: false)
+                  .limit(limit)
+              as List<dynamic>;
 
       final countsByStatus = <String, int>{};
       var payoutPending = 0;
@@ -425,7 +459,8 @@ class ServiceGigRequestRepository {
         if (st.isNotEmpty) {
           countsByStatus[st] = (countsByStatus[st] ?? 0) + 1;
         }
-        final payout = map['provider_payout_status']?.toString() ?? _payoutPending;
+        final payout =
+            map['provider_payout_status']?.toString() ?? _payoutPending;
         if (payout == _payoutPending) {
           payoutPending++;
           final amt = map['payment_amount_rwf'];
@@ -458,19 +493,25 @@ class ServiceGigRequestRepository {
   }) async {
     final uid = ProxyService.box.getUserId();
     if (uid == null || uid.isEmpty) {
-      throw ServiceGigRequestException('Sign in to send a message.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToMessage,
+      );
     }
     final trimmed = body.trim();
     if (trimmed.isEmpty) {
-      throw ServiceGigRequestException('Message cannot be empty.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrEmptyMessage);
     }
     final r = await getRequestForParticipant(requestId);
     if (r == null) {
-      throw ServiceGigRequestException('Request not found.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrRequestNotFound,
+      );
     }
     const blocked = {'declined', 'expired', 'cancelled'};
     if (blocked.contains(r.status)) {
-      throw ServiceGigRequestException('This request is closed.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrRequestClosed,
+      );
     }
     try {
       final row = await Supabase.instance.client
@@ -482,41 +523,44 @@ class ServiceGigRequestRepository {
           })
           .select()
           .single();
-      return ServiceGigChatMessage.fromJson(
-        Map<String, dynamic>.from(row),
-      );
+      return ServiceGigChatMessage.fromJson(Map<String, dynamic>.from(row));
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not send message.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrSendMessage,
       );
     } catch (_) {
-      throw ServiceGigRequestException('Could not send message.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrSendMessage);
     }
   }
 
   Future<ServiceGigRequest> providerStartJob(String requestId) async {
     final providerId = ProxyService.box.getUserId();
     if (providerId == null || providerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to update this request.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToUpdate,
+      );
     }
     final now = DateTime.now().toUtc().toIso8601String();
     try {
-      final rows = await Supabase.instance.client
-              .from(_table)
-              .update({
-                'status': 'in_progress',
-                'provider_started_at': now,
-                'updated_at': now,
-              })
-              .eq('id', requestId)
-              .eq('provider_user_id', providerId)
-              .eq('status', 'paid')
-              .select()
-          as List<dynamic>;
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .update({
+                    'status': 'in_progress',
+                    'provider_started_at': now,
+                    'updated_at': now,
+                  })
+                  .eq('id', requestId)
+                  .eq('provider_user_id', providerId)
+                  .eq('status', 'paid')
+                  .select()
+              as List<dynamic>;
 
       if (rows.isEmpty) {
         throw ServiceGigRequestException(
-          'Only paid requests that have not started can be moved to in progress.',
+          FlipperL10n.current.gigsErrOnlyPaidToStart,
         );
       }
       return ServiceGigRequest.fromJson(
@@ -526,36 +570,41 @@ class ServiceGigRequestRepository {
       rethrow;
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not update status.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrUpdateStatus,
       );
     } catch (_) {
-      throw ServiceGigRequestException('Could not update status.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrUpdateStatus);
     }
   }
 
   Future<ServiceGigRequest> providerCompleteJob(String requestId) async {
     final providerId = ProxyService.box.getUserId();
     if (providerId == null || providerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to update this request.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToUpdate,
+      );
     }
     final now = DateTime.now().toUtc().toIso8601String();
     try {
-      final rows = await Supabase.instance.client
-              .from(_table)
-              .update({
-                'status': 'completed',
-                'provider_completed_at': now,
-                'updated_at': now,
-              })
-              .eq('id', requestId)
-              .eq('provider_user_id', providerId)
-              .inFilter('status', ['paid', 'in_progress'])
-              .select()
-          as List<dynamic>;
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .update({
+                    'status': 'completed',
+                    'provider_completed_at': now,
+                    'updated_at': now,
+                  })
+                  .eq('id', requestId)
+                  .eq('provider_user_id', providerId)
+                  .inFilter('status', ['paid', 'in_progress'])
+                  .select()
+              as List<dynamic>;
 
       if (rows.isEmpty) {
         throw ServiceGigRequestException(
-          'Could not mark complete. It may already be finished.',
+          FlipperL10n.current.gigsErrMarkComplete,
         );
       }
       return ServiceGigRequest.fromJson(
@@ -565,10 +614,12 @@ class ServiceGigRequestRepository {
       rethrow;
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not update status.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrUpdateStatus,
       );
     } catch (_) {
-      throw ServiceGigRequestException('Could not update status.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrUpdateStatus);
     }
   }
 
@@ -579,82 +630,53 @@ class ServiceGigRequestRepository {
   }) async {
     final customerId = ProxyService.box.getUserId();
     if (customerId == null || customerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to leave a review.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToReview,
+      );
     }
     if (rating < 1 || rating > 5) {
-      throw ServiceGigRequestException('Pick a rating from 1 to 5.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrPickRating);
     }
     final c = comment.trim();
     if (c.length < 4) {
-      throw ServiceGigRequestException('Please add a short comment.');
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrShortComment);
     }
     final before = await getRequestForParticipant(requestId);
     if (before == null || before.customerUserId != customerId) {
-      throw ServiceGigRequestException('Request not found.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrRequestNotFound,
+      );
     }
     if (before.status != 'completed') {
-      throw ServiceGigRequestException('Only completed jobs can be reviewed.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrOnlyCompletedReview,
+      );
     }
     if (before.customerRating != null) {
-      throw ServiceGigRequestException('You already left a review.');
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrAlreadyReviewed,
+      );
     }
     final now = DateTime.now().toUtc().toIso8601String();
     try {
-      final rows = await Supabase.instance.client
-              .from(_table)
-              .update({
-                'customer_rating': rating,
-                'customer_review': c,
-                'review_submitted_at': now,
-                'updated_at': now,
-              })
-              .eq('id', requestId)
-              .eq('customer_user_id', customerId)
-              .eq('status', 'completed')
-              .select()
-          as List<dynamic>;
-
-      if (rows.isEmpty) {
-        throw ServiceGigRequestException('Could not save review. Try again.');
-      }
-      return ServiceGigRequest.fromJson(
-        Map<String, dynamic>.from(rows.first as Map),
-      );
-    } on ServiceGigRequestException {
-      rethrow;
-    } on PostgrestException catch (e) {
-      throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not save review.',
-      );
-    } catch (_) {
-      throw ServiceGigRequestException('Could not save review.');
-    }
-  }
-
-  Future<ServiceGigRequest> declineRequest(String requestId) async {
-    final providerId = ProxyService.box.getUserId();
-    if (providerId == null || providerId.isEmpty) {
-      throw ServiceGigRequestException('Sign in to respond to requests.');
-    }
-
-    final now = DateTime.now().toUtc();
-
-    try {
-      final rows = await Supabase.instance.client
-              .from(_table)
-              .update({
-                'status': 'declined',
-                'updated_at': now.toIso8601String(),
-              })
-              .eq('id', requestId)
-              .eq('provider_user_id', providerId)
-              .eq('status', 'requested')
-              .select()
-          as List<dynamic>;
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .update({
+                    'customer_rating': rating,
+                    'customer_review': c,
+                    'review_submitted_at': now,
+                    'updated_at': now,
+                  })
+                  .eq('id', requestId)
+                  .eq('customer_user_id', customerId)
+                  .eq('status', 'completed')
+                  .select()
+              as List<dynamic>;
 
       if (rows.isEmpty) {
         throw ServiceGigRequestException(
-          'This request can no longer be declined. It may have expired or already been handled.',
+          FlipperL10n.current.gigsErrSaveReviewRetry,
         );
       }
       return ServiceGigRequest.fromJson(
@@ -664,11 +686,56 @@ class ServiceGigRequestRepository {
       rethrow;
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
-        e.message.isNotEmpty ? e.message : 'Could not decline the request.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.gigsErrSaveReview,
+      );
+    } catch (_) {
+      throw ServiceGigRequestException(FlipperL10n.current.gigsErrSaveReview);
+    }
+  }
+
+  Future<ServiceGigRequest> declineRequest(String requestId) async {
+    final providerId = ProxyService.box.getUserId();
+    if (providerId == null || providerId.isEmpty) {
+      throw ServiceGigRequestException(
+        FlipperL10n.current.gigsErrSignInToRespond,
+      );
+    }
+
+    final now = DateTime.now().toUtc();
+
+    try {
+      final rows =
+          await Supabase.instance.client
+                  .from(_table)
+                  .update({
+                    'status': 'declined',
+                    'updated_at': now.toIso8601String(),
+                  })
+                  .eq('id', requestId)
+                  .eq('provider_user_id', providerId)
+                  .eq('status', 'requested')
+                  .select()
+              as List<dynamic>;
+
+      if (rows.isEmpty) {
+        throw ServiceGigRequestException(
+          FlipperL10n.current.gigsErrCannotDecline,
+        );
+      }
+      return ServiceGigRequest.fromJson(
+        Map<String, dynamic>.from(rows.first as Map),
+      );
+    } on ServiceGigRequestException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw ServiceGigRequestException(
+        e.message.isNotEmpty ? e.message : FlipperL10n.current.gigsErrDecline,
       );
     } catch (_) {
       throw ServiceGigRequestException(
-        'Could not decline the request. Check your connection and try again.',
+        FlipperL10n.current.gigsErrDeclineConnection,
       );
     }
   }

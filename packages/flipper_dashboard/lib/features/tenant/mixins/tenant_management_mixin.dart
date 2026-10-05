@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
@@ -29,6 +30,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String selectedUserType = 'Cashier';
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
+
   /// Captured when opening a tenant for edit; used to send only changed accesses to `create_agent`.
   Map<String, String> _tenantPermissionsBaseline = {};
   Map<String, bool> _tenantActiveBaseline = {};
@@ -38,6 +40,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String _tenantListSearchQuery = '';
   String? selectedTenantUserId;
   String? _selectedTenantBranchIdForEdit;
+
   /// When [selectedUserType] is Agent: false = commission-only login (default).
   bool allowBusinessLoginForAgent = false;
   bool _agentBranchNameManuallyEdited = false;
@@ -63,8 +66,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     if (editMode || selectedUserType != 'Agent') return;
     final name = nameController.text.trim();
     final branch = agentBranchNameController.text.trim();
-    _agentBranchNameManuallyEdited =
-        branch.isNotEmpty && branch != name;
+    _agentBranchNameManuallyEdited = branch.isNotEmpty && branch != name;
   }
 
   void _syncAgentBranchNameFromFullName() {
@@ -80,7 +82,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     _syncAgentBranchNameFromFullName();
   }
 
-  Future<void> selectTenantForEdit(Tenant tenant, FlipperBaseModel model) async {
+  Future<void> selectTenantForEdit(
+    Tenant tenant,
+    FlipperBaseModel model,
+  ) async {
     final uid = tenant.userId;
     final tid = tenant.id;
     if (uid == null || uid.isEmpty) return;
@@ -121,17 +126,19 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       final list = <Access>[];
       for (final item in rows as List<dynamic>) {
         final e = Map<String, dynamic>.from(item as Map);
-        list.add(Access(
-          id: e['id'] as String?,
-          userId: e['user_id'] as String?,
-          tenantId: e['tenant_id'] as String?,
-          businessId: e['business_id'] as String?,
-          branchId: e['branch_id'] as String?,
-          featureName: e['feature_name'] as String?,
-          userType: e['user_type'] as String?,
-          accessLevel: e['access_level'] as String?,
-          status: e['status'] as String?,
-        ));
+        list.add(
+          Access(
+            id: e['id'] as String?,
+            userId: e['user_id'] as String?,
+            tenantId: e['tenant_id'] as String?,
+            businessId: e['business_id'] as String?,
+            branchId: e['branch_id'] as String?,
+            featureName: e['feature_name'] as String?,
+            userType: e['user_type'] as String?,
+            accessLevel: e['access_level'] as String?,
+            status: e['status'] as String?,
+          ),
+        );
       }
       // Preserve the branch id used by existing accesses so edits upsert in-place
       // (unique key includes branch_id). Only consider accesses of the current
@@ -179,14 +186,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       selectedUserType = 'Cashier';
       tenantAllowedFeatures
         ..clear()
-        ..addEntries(
-          features.map((f) => MapEntry(f, 'No Access')),
-        );
+        ..addEntries(features.map((f) => MapEntry(f, 'No Access')));
       activeFeatures
         ..clear()
-        ..addEntries(
-          features.map((f) => MapEntry(f, false)),
-        );
+        ..addEntries(features.map((f) => MapEntry(f, false)));
       editMode = false;
       userId = null;
       editedTenant = null;
@@ -237,7 +240,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _kUserMgmtAccent, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -257,28 +263,27 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           }
         });
       },
-      items: <String>[
-        'Agent',
-        'Cashier',
-        'Admin',
-        'Driver',
-        // Convenience labels only — actual gating is via the per-feature
-        // Access matrix below (AppFeature.TicketReview / StockHandover).
-        'Reviewer',
-        'Stock Manager',
-      ]
-          .map<DropdownMenuItem<String>>((String value) {
+      items:
+          <String>[
+            'Agent',
+            'Cashier',
+            'Admin',
+            'Driver',
+            // Convenience labels only — actual gating is via the per-feature
+            // Access matrix below (AppFeature.TicketReview / StockHandover).
+            'Reviewer',
+            'Stock Manager',
+          ].map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(
-                value,
+                TenantUIMixin.roleLabel(context.flipperL10n, value),
                 style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
               ),
             );
-          })
-          .toList(),
+          }).toList(),
       decoration: InputDecoration(
-        labelText: 'USER TYPE',
+        labelText: context.flipperL10n.tenantMgmtUserTypeCaps,
         labelStyle: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.w700,
@@ -286,7 +291,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           color: Colors.grey[600],
         ),
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        prefixIcon: Icon(Icons.person_outline, color: Colors.grey[700], size: 22),
+        prefixIcon: Icon(
+          Icons.person_outline,
+          color: Colors.grey[700],
+          size: 22,
+        ),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -301,7 +310,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _kUserMgmtAccent, width: 1.2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -331,14 +343,12 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         ref: ref,
         tenantAllowedFeatures: tenantAllowedFeatures,
         activeFeatures: activeFeatures,
-        permissionsBaseline:
-            editMode && _hasTenantPermissionBaseline
-                ? _tenantPermissionsBaseline
-                : null,
-        activeFeaturesBaseline:
-            editMode && _hasTenantPermissionBaseline
-                ? _tenantActiveBaseline
-                : null,
+        permissionsBaseline: editMode && _hasTenantPermissionBaseline
+            ? _tenantPermissionsBaseline
+            : null,
+        activeFeaturesBaseline: editMode && _hasTenantPermissionBaseline
+            ? _tenantActiveBaseline
+            : null,
         allowBusinessLogin: selectedUserType == 'Agent'
             ? allowBusinessLoginForAgent
             : true,
@@ -394,7 +404,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     );
     // Editing an existing user does not create a new branch.
     agentBranchNameController.text = '';
-    _tenantPermissionsBaseline = Map<String, String>.from(tenantAllowedFeatures);
+    _tenantPermissionsBaseline = Map<String, String>.from(
+      tenantAllowedFeatures,
+    );
     _tenantActiveBaseline = Map<String, bool>.from(activeFeatures);
     _hasTenantPermissionBaseline = true;
   }
@@ -468,8 +480,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 4),
-          )
-        ]
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -479,7 +491,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                editMode ? "Edit User" : "Add New User",
+                editMode
+                    ? context.flipperL10n.tenantMgmtEditUser
+                    : context.flipperL10n.tenantMgmtAddNewUser,
                 style: GoogleFonts.outfit(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -491,12 +505,12 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               const SizedBox(height: 28),
               buildTextFormField(
                 controller: nameController,
-                labelText: "FULL NAME",
+                labelText: context.flipperL10n.tenantMgmtFullNameCaps,
                 icon: Icons.person_outline,
                 keyboardType: TextInputType.name,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
+                    return context.flipperL10n.tenantMgmtEnterName;
                   }
                   return null;
                 },
@@ -504,7 +518,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               SizedBox(height: 16),
               buildTextFormField(
                 controller: phoneController,
-                labelText: "PHONE / EMAIL",
+                labelText: context.flipperL10n.tenantMgmtPhoneEmailCaps,
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: TenantFormMixin.validatePhoneOrEmailStatic,
@@ -515,14 +529,18 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               if (!editMode && selectedUserType == 'Agent')
                 buildTextFormField(
                   controller: agentBranchNameController,
-                  labelText: "BRANCH NAME (AGENT)",
+                  labelText: context.flipperL10n.tenantMgmtAgentBranchNameCaps,
                   icon: Icons.storefront_outlined,
                   keyboardType: TextInputType.text,
                   validator: (value) {
                     if (selectedUserType != 'Agent') return null;
                     final v = (value ?? '').trim();
-                    if (v.isEmpty) return 'Please enter a branch name';
-                    if (v.length < 2) return 'Branch name is too short';
+                    if (v.isEmpty) {
+                      return context.flipperL10n.tenantMgmtEnterBranchName;
+                    }
+                    if (v.length < 2) {
+                      return context.flipperL10n.tenantMgmtBranchNameTooShort;
+                    }
                     return null;
                   },
                 )
@@ -578,7 +596,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                                     }
                                   }
                                 },
-                          text: "Update User",
+                          text: context.flipperL10n.tenantMgmtUpdateUser,
                         ),
                       ),
                     ),
@@ -592,7 +610,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                           height: 52,
                           borderRadius: BorderRadius.circular(12),
                           onPressed: isAddingUser ? null : () => resetForm(),
-                          text: 'Cancel',
+                          text: context.flipperL10n.cancel,
                           textColor: _kUserMgmtAccent,
                           color: const Color(0xFFF3F4F6),
                         ),
@@ -635,7 +653,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                               }
                             }
                           },
-                    text: "+ Add User",
+                    text: context.flipperL10n.tenantMgmtAddUser,
                   ),
                 ),
             ],
@@ -655,7 +673,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(
-        'Allow login on this business',
+        context.flipperL10n.tenantMgmtAllowBusinessLogin,
         style: GoogleFonts.outfit(
           fontWeight: FontWeight.w600,
           fontSize: 15,
@@ -663,8 +681,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         ),
       ),
       subtitle: Text(
-        'Off by default: agent receives a PIN but only sees commission for this business. '
-        'Turn on to grant full dashboard access per module permissions below.',
+        context.flipperL10n.tenantMgmtAllowBusinessLoginHint,
         style: GoogleFonts.outfit(fontSize: 13, color: Colors.grey[600]),
       ),
       value: allowBusinessLoginForAgent,
@@ -687,8 +704,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: Text(
-        'Module permissions are not used in commission-only mode. '
-        'The agent will sign in with their PIN and only see their commission for this business.',
+        context.flipperL10n.tenantMgmtCommissionOnlyHint,
         style: GoogleFonts.outfit(
           fontSize: 14,
           height: 1.4,

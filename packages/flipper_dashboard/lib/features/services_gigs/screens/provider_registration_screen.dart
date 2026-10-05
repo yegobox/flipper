@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
@@ -92,7 +93,7 @@ class _ProviderRegistrationScreenState
       if (mounted) {
         showErrorNotification(
           context,
-          'You need to be signed in to register as a provider.',
+          context.flipperL10n.gigsErrSignInToRegister,
         );
       }
       return;
@@ -100,10 +101,7 @@ class _ProviderRegistrationScreenState
 
     final services = _parseServiceLines();
     if (services.isEmpty) {
-      showWarningNotification(
-        context,
-        'Add at least one service you can provide.',
-      );
+      showWarningNotification(context, context.flipperL10n.gigsErrAddService);
       return;
     }
 
@@ -131,18 +129,17 @@ class _ProviderRegistrationScreenState
     if (!mounted) return;
     setState(() => _submitting = false);
     if (outcome.synced) {
-      showSuccessNotification(context, 'Provider profile saved.');
+      showSuccessNotification(context, context.flipperL10n.gigsProfileSaved);
     } else if (outcome.serverErrorMessage != null &&
         outcome.serverErrorMessage!.isNotEmpty) {
       showErrorNotification(
         context,
-        'Could not save online: ${outcome.serverErrorMessage}',
+        context.flipperL10n.gigsSaveOnlineFailed(
+          '${outcome.serverErrorMessage}',
+        ),
       );
     } else {
-      showInfoNotification(
-        context,
-        'Saved on this device. Will sync when the server is available.',
-      );
+      showInfoNotification(context, context.flipperL10n.gigsSavedOnDevice);
     }
     Navigator.of(context).pop(true);
   }
@@ -150,8 +147,8 @@ class _ProviderRegistrationScreenState
   @override
   Widget build(BuildContext context) {
     final title = _hasExistingProfile
-        ? 'Your provider profile'
-        : 'Become a provider';
+        ? context.flipperL10n.gigsYourProviderProfile
+        : context.flipperL10n.gigsBecomeProvider;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -180,7 +177,7 @@ class _ProviderRegistrationScreenState
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Tell customers what you offer. You can update this anytime.',
+                      context.flipperL10n.gigsRegistrationIntro,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         height: 1.45,
@@ -191,12 +188,12 @@ class _ProviderRegistrationScreenState
                     TextFormField(
                       controller: _displayNameController,
                       textCapitalization: TextCapitalization.words,
-                      decoration: _decoration('Display name'),
+                      decoration: _decoration(context.flipperL10n.displayName),
                       style: GoogleFonts.outfit(fontSize: 15),
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length < 2) {
-                          return 'Enter a name (at least 2 characters).';
+                          return context.flipperL10n.gigsErrNameMin;
                         }
                         return null;
                       },
@@ -205,12 +202,14 @@ class _ProviderRegistrationScreenState
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: _decoration('Contact phone'),
+                      decoration: _decoration(
+                        context.flipperL10n.gigsContactPhone,
+                      ),
                       style: GoogleFonts.outfit(fontSize: 15),
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.isEmpty) {
-                          return 'Phone helps customers reach you.';
+                          return context.flipperL10n.gigsErrPhoneHelps;
                         }
                         return null;
                       },
@@ -219,19 +218,19 @@ class _ProviderRegistrationScreenState
                     TextFormField(
                       controller: _bioController,
                       maxLines: 4,
-                      decoration: _decoration('About you'),
+                      decoration: _decoration(context.flipperL10n.gigsAboutYou),
                       style: GoogleFonts.outfit(fontSize: 15),
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length < 12) {
-                          return 'Add a short bio (at least 12 characters).';
+                          return context.flipperL10n.gigsErrBioMin;
                         }
                         return null;
                       },
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Services you provide',
+                      context.flipperL10n.gigsServicesYouProvide,
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -240,7 +239,7 @@ class _ProviderRegistrationScreenState
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'One per line (e.g. plumbing, home cleaning, delivery).',
+                      context.flipperL10n.gigsServicesHint,
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -250,7 +249,7 @@ class _ProviderRegistrationScreenState
                     TextFormField(
                       controller: _servicesController,
                       maxLines: 6,
-                      decoration: _decoration('Services'),
+                      decoration: _decoration(context.flipperL10n.gigsServices),
                       style: GoogleFonts.outfit(fontSize: 15),
                     ),
                     const SizedBox(height: 16),
@@ -258,14 +257,14 @@ class _ProviderRegistrationScreenState
                       controller: _areaController,
                       textCapitalization: TextCapitalization.sentences,
                       decoration: _decoration(
-                        'Service area (optional)',
-                        hint: 'Neighborhood, city, or radius',
+                        context.flipperL10n.gigsServiceAreaOptional,
+                        hint: context.flipperL10n.gigsServiceAreaHint,
                       ),
                       style: GoogleFonts.outfit(fontSize: 15),
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Categories (optional)',
+                      context.flipperL10n.gigsCategoriesOptional,
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -274,7 +273,7 @@ class _ProviderRegistrationScreenState
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Helps customers filter the directory.',
+                      context.flipperL10n.gigsCategoriesHint,
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -288,7 +287,7 @@ class _ProviderRegistrationScreenState
                         final selected = _categoryIds.contains(c.id);
                         return FilterChip(
                           label: Text(
-                            c.name,
+                            c.localizedName(context.flipperL10n),
                             style: GoogleFonts.outfit(fontSize: 12),
                           ),
                           selected: selected,
@@ -326,8 +325,8 @@ class _ProviderRegistrationScreenState
                             )
                           : Text(
                               _hasExistingProfile
-                                  ? 'Save changes'
-                                  : 'Submit registration',
+                                  ? context.flipperL10n.gigsSaveChanges
+                                  : context.flipperL10n.gigsSubmitRegistration,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,

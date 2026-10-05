@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_people_strip.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -13,10 +14,7 @@ import 'package:supabase_models/brick/models/tenant.model.dart';
 
 /// Result of a successful staff + PIN selection in [PosSwitchUserDialog].
 class PosSwitchUserSelection {
-  const PosSwitchUserSelection({
-    required this.tenant,
-    required this.pin,
-  });
+  const PosSwitchUserSelection({required this.tenant, required this.pin});
 
   final Tenant tenant;
   final String pin;
@@ -53,17 +51,17 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
   void _complete(String pin) {
     final selected = _selected;
     if (selected == null) return;
-    Navigator.of(context).pop(
-      PosSwitchUserSelection(tenant: selected, pin: pin),
-    );
+    Navigator.of(
+      context,
+    ).pop(PosSwitchUserSelection(tenant: selected, pin: pin));
   }
 
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(barStaffProvider);
     final width = MediaQuery.sizeOf(context).width;
-    final isMobile = width < PosLayoutBreakpoints.mobileLayoutMaxWidth ||
-        width < 720;
+    final isMobile =
+        width < PosLayoutBreakpoints.mobileLayoutMaxWidth || width < 720;
 
     return Dialog(
       insetPadding: EdgeInsets.symmetric(
@@ -90,28 +88,28 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
                 child: staffAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const Center(
+                  error: (_, __) => Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text('Could not load staff'),
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        context.flipperL10n.posSwitchCouldNotLoadStaff,
+                      ),
                     ),
                   ),
                   data: (allStaff) {
                     final staff = _filterStaff(allStaff);
                     if (staff.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(24),
                           child: Text(
-                            'No other staff members available to switch to.',
+                            context.flipperL10n.posSwitchNoOtherStaff,
                             textAlign: TextAlign.center,
                           ),
                         ),
                       );
                     }
-                    return isMobile
-                        ? _mobileBody(staff)
-                        : _desktopBody(staff);
+                    return isMobile ? _mobileBody(staff) : _desktopBody(staff);
                   },
                 ),
               ),
@@ -132,7 +130,7 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Switch User',
+                  context.flipperL10n.posSwitchUserTitle,
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -142,7 +140,7 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Select a staff member and enter their PIN',
+                  context.flipperL10n.posSwitchUserSubtitle,
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -195,8 +193,8 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
                         enabled: _selected != null,
                         title: _selected?.name ?? '—',
                         hint: _selected == null
-                            ? 'Tap a name on the left, then enter their PIN'
-                            : 'Enter the 6-digit PIN to switch',
+                            ? context.flipperL10n.posSwitchTapNameLeft
+                            : context.flipperL10n.posSwitchEnterPin,
                         avatarLabel: _selected == null
                             ? null
                             : barTenantInitials(_selected!.name),
@@ -237,8 +235,8 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
             enabled: _selected != null,
             title: _selected?.name ?? '—',
             hint: _selected == null
-                ? 'Tap a name above, then enter their PIN'
-                : 'Enter the 6-digit PIN to switch',
+                ? context.flipperL10n.posSwitchTapNameAbove
+                : context.flipperL10n.posSwitchEnterPin,
             avatarLabel: _selected == null
                 ? null
                 : barTenantInitials(_selected!.name),
@@ -262,7 +260,7 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'WHO\'S NEXT?',
+          context.flipperL10n.posSwitchWhosNext.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -272,7 +270,7 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
         ),
         const SizedBox(height: 4),
         Text(
-          'Select staff',
+          context.flipperL10n.posSwitchSelectStaff,
           style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.w800,
@@ -331,7 +329,8 @@ class _PosSwitchUserDialogState extends ConsumerState<PosSwitchUserDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                person.name ?? 'Staff',
+                                person.name ??
+                                    context.flipperL10n.posSwitchStaff,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,

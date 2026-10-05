@@ -3,6 +3,8 @@ import 'package:flipper_dashboard/features/hotel_mode/hotel_desk_actions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_check_in_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_housekeeping_sheet.dart';
+import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -42,7 +44,12 @@ Future<void> hotelHandleRoomTap({
   if (!hotelRoomAcceptsCheckIn(state)) {
     ref
         .read(hotelModeProvider.notifier)
-        .showToast('Room ${room.name} is ${hotelRoomStateLabel(state).toLowerCase()}');
+        .showToast(
+          context.flipperL10n.hotelRoomIsState(
+            room.name,
+            hotelRoomStateText(context.flipperL10n, state).toLowerCase(),
+          ),
+        );
     return;
   }
 
@@ -94,22 +101,21 @@ Future<bool> _confirmArrival(BuildContext context, HotelStay stay) async {
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(
-        'Check in ${stay.guestName}?',
+        dialogContext.flipperL10n.hotelCheckInGuestQuestion(stay.guestName),
         style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
       ),
       content: Text(
-        'Room ${stay.roomName} is reserved for them. Checking in opens the '
-        'folio and posts the room charge.',
+        dialogContext.flipperL10n.hotelReservedArrivalBody(stay.roomName),
         style: GoogleFonts.outfit(),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Not yet'),
+          child: Text(dialogContext.flipperL10n.hotelNotYet),
         ),
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Check in'),
+          child: Text(dialogContext.flipperL10n.hotelCheckIn),
         ),
       ],
     ),

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 Future<void> pumpSupportSection(WidgetTester tester) async {
   await tester.pumpWidget(
     MaterialApp(
-      home: Scaffold(
-        body: SupportSection(),
-      ),
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      home: Scaffold(body: SupportSection()),
     ),
   );
 }
@@ -23,7 +24,9 @@ void main() {
     testWidgets('displays description correctly', (tester) async {
       await pumpSupportSection(tester);
       expect(
-          find.text('Contact support to add EBM to Flipper'), findsOneWidget);
+        find.text('Contact support to add EBM to Flipper'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('displays contact support button', (tester) async {
@@ -36,8 +39,10 @@ void main() {
       await pumpSupportSection(tester);
       expect(find.byType(Card), findsOneWidget);
       expect(find.byType(Column), findsOneWidget);
-      expect(find.byWidgetPredicate((widget) => widget is ElevatedButton),
-          findsOneWidget);
+      expect(
+        find.byWidgetPredicate((widget) => widget is ElevatedButton),
+        findsOneWidget,
+      );
     });
 
     testWidgets('card has correct styling', (tester) async {
@@ -51,8 +56,9 @@ void main() {
 
     testWidgets('button has correct styling', (tester) async {
       await pumpSupportSection(tester);
-      final buttonFinder =
-          find.byWidgetPredicate((widget) => widget is ElevatedButton);
+      final buttonFinder = find.byWidgetPredicate(
+        (widget) => widget is ElevatedButton,
+      );
       if (buttonFinder.evaluate().isNotEmpty) {
         final button = tester.widget<ElevatedButton>(buttonFinder);
         expect(button.style?.backgroundColor?.resolve({}), Colors.green);
@@ -69,13 +75,16 @@ void main() {
       await pumpSupportSection(tester);
       expect(find.text('Need Help?'), findsOneWidget);
       expect(
-          find.text('Contact support to add EBM to Flipper'), findsOneWidget);
+        find.text('Contact support to add EBM to Flipper'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('button is tappable', (tester) async {
       await pumpSupportSection(tester);
-      final button =
-          find.byWidgetPredicate((widget) => widget is ElevatedButton);
+      final button = find.byWidgetPredicate(
+        (widget) => widget is ElevatedButton,
+      );
       expect(button, findsOneWidget);
 
       // Skip tapping as it requires ProxyService setup
@@ -83,8 +92,9 @@ void main() {
 
     testWidgets('has icon and text in button', (tester) async {
       await pumpSupportSection(tester);
-      final button =
-          find.byWidgetPredicate((widget) => widget is ElevatedButton);
+      final button = find.byWidgetPredicate(
+        (widget) => widget is ElevatedButton,
+      );
       expect(button, findsOneWidget);
 
       // Check that it's an ElevatedButton.icon

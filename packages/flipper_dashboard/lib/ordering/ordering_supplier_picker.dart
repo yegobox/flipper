@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/ordering/ordering_state.dart';
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
 import 'package:flipper_dashboard/ordering/ordering_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -47,7 +48,11 @@ class OrderingSupplierPicker extends HookConsumerWidget {
     final remoteQuery = useState('');
     final debounce = useRef<Timer?>(null);
 
-    useEffect(() => () => debounce.value?.cancel(), const []);
+    useEffect(
+      () =>
+          () => debounce.value?.cancel(),
+      const [],
+    );
 
     void onQueryChanged(String value) {
       typed.value = value;
@@ -63,7 +68,8 @@ class OrderingSupplierPicker extends HookConsumerWidget {
 
     // Only consulted while searching, and only once the query is worth a
     // round-trip.
-    final remote = searching && remoteQuery.value.trim().length >= _kRemoteSearchMinChars
+    final remote =
+        searching && remoteQuery.value.trim().length >= _kRemoteSearchMinChars
         ? ref.watch(orderingSupplierSearchProvider(remoteQuery.value))
         : const AsyncValue<List<Branch>>.data([]);
 
@@ -85,21 +91,19 @@ class OrderingSupplierPicker extends HookConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Which supplier are you ordering from?',
+                    Text(
+                      context.flipperL10n.orderingPickerTitle,
                       style: OrderingTokens.pickerTitle,
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Pick a branch you buy from. Their catalogue, your last '
-                      'cost and their stock on hand load straight into the '
-                      'order.',
+                    Text(
+                      context.flipperL10n.orderingPickerBody,
                       style: OrderingTokens.pickerBody,
                     ),
                     const SizedBox(height: 20),
                     OrderingSearchField(
                       controller: controller,
-                      hintText: 'Search suppliers by name…',
+                      hintText: context.flipperL10n.orderingSearchSuppliersHint,
                       fontSize: 15,
                       iconSize: 19,
                       verticalPadding: 15,
@@ -133,8 +137,8 @@ class OrderingSupplierPicker extends HookConsumerWidget {
               sliver: SliverToBoxAdapter(
                 child: Row(
                   children: [
-                    const Text(
-                      'Not on the list?',
+                    Text(
+                      context.flipperL10n.orderingNotOnList,
                       style: OrderingTokens.body,
                     ),
                     const SizedBox(width: 10),
@@ -155,11 +159,12 @@ class OrderingSupplierPicker extends HookConsumerWidget {
     required String needle,
     required String rawQuery,
   }) {
+    final l10n = FlipperL10n.current;
     if (options.hasError) {
       return [
         _message(
           icon: Icons.cloud_off_outlined,
-          title: 'Could not load suppliers',
+          title: l10n.orderingCouldNotLoadSuppliers,
           hint: '${options.error}',
         ),
       ];
@@ -173,22 +178,22 @@ class OrderingSupplierPicker extends HookConsumerWidget {
         return [
           _message(
             icon: Icons.storefront_outlined,
-            title: 'No other branch to order from',
-            hint: 'Add a branch, or search for a supplier by name.',
+            title: l10n.orderingNoOtherBranch,
+            hint: l10n.orderingNoOtherBranchHint,
           ),
         ];
       }
       return [
         if (data.frequent.isNotEmpty)
           ..._section(
-            label: 'Suppliers you order from most',
+            label: l10n.orderingFrequentSuppliers,
             suppliers: data.frequent,
           ),
         if (data.others.isNotEmpty)
           ..._section(
             label: data.frequent.isEmpty
-                ? 'Branches you can order from'
-                : 'Other branches you can order from',
+                ? l10n.orderingBranchesYouCanOrderFrom
+                : l10n.orderingOtherBranchesYouCanOrderFrom,
             suppliers: data.others,
             // Long rosters are the norm, so the heading carries the size —
             // it is what tells the operator to type rather than scroll.
@@ -213,8 +218,8 @@ class OrderingSupplierPicker extends HookConsumerWidget {
       return [
         _message(
           icon: Icons.storefront_outlined,
-          title: 'No supplier matches “$rawQuery”',
-          hint: 'Check the spelling, or add them as a new branch.',
+          title: l10n.orderingNoSupplierMatches(rawQuery),
+          hint: l10n.orderingNoSupplierMatchesHint,
         ),
       ];
     }
@@ -222,13 +227,13 @@ class OrderingSupplierPicker extends HookConsumerWidget {
     return [
       if (local.isNotEmpty)
         ..._section(
-          label: 'On this device',
+          label: l10n.orderingOnThisDevice,
           suppliers: local,
           showCount: true,
         ),
       if (extra.isNotEmpty)
         ..._section(
-          label: 'Found by name search',
+          label: l10n.orderingFoundByNameSearch,
           suppliers: extra,
           showCount: true,
         ),
@@ -370,7 +375,8 @@ class _SupplierCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      supplier.name ?? 'Unnamed branch',
+                      supplier.name ??
+                          context.flipperL10n.orderingUnnamedBranch,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       softWrap: false,
@@ -448,14 +454,12 @@ class _AddSupplierLink extends StatelessWidget {
             ),
             const SizedBox(width: 7),
             Text(
-              'Add a new supplier',
+              context.flipperL10n.orderingAddNewSupplier,
               style: TextStyle(
                 fontFamily: OrderingTokens.sans,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
-                color: hovered
-                    ? OrderingTokens.blueHover
-                    : OrderingTokens.blue,
+                color: hovered ? OrderingTokens.blueHover : OrderingTokens.blue,
                 height: 1.2,
               ),
             ),

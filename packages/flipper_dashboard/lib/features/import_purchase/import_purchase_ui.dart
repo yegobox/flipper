@@ -1,10 +1,14 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 import 'import_purchase_helpers.dart';
 import 'import_purchase_tokens.dart';
 
-void showImportPurchaseToast(BuildContext context, String message,
-    {bool isError = false}) {
+void showImportPurchaseToast(
+  BuildContext context,
+  String message, {
+  bool isError = false,
+}) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   if (messenger == null) return;
   messenger.clearSnackBars();
@@ -52,10 +56,7 @@ class IpmScreenBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: ImportPurchaseTokens.canvas,
-      child: child,
-    );
+    return ColoredBox(color: ImportPurchaseTokens.canvas, child: child);
   }
 }
 
@@ -108,11 +109,12 @@ class IpmStatusBadge extends StatelessWidget {
         ImportPurchaseTokens.red,
       ),
     };
+    final l10n = context.flipperL10n;
     final label = switch (statusKey) {
-      'waiting' => 'Pending',
-      'wait' => 'Pending',
-      'processing' => 'Processing',
-      _ => ImportPurchaseHelpers.importStatusLabel(statusKey),
+      'waiting' => l10n.importPurchaseStatusPending,
+      'wait' => l10n.importPurchaseStatusPending,
+      'processing' => l10n.importPurchaseStatusProcessing,
+      _ => ImportPurchaseHelpers.importStatusLabel(l10n, statusKey),
     };
 
     return Container(
@@ -146,20 +148,22 @@ class IpmStatusBadge extends StatelessWidget {
 
 class IpmMappingBadge extends StatelessWidget {
   const IpmMappingBadge.unmapped({super.key})
-      : label = 'Map variant',
-        showWarning = true,
-        accent = true;
+    : label = null,
+      showWarning = true,
+      accent = true;
 
   const IpmMappingBadge.newVariant({super.key})
-      : label = 'New variant',
-        showWarning = false,
-        accent = true;
+    : label = null,
+      showWarning = false,
+      accent = true;
 
-  const IpmMappingBadge.mapped(this.label, {super.key})
-      : showWarning = false,
-        accent = false;
+  const IpmMappingBadge.mapped(String this.label, {super.key})
+    : showWarning = false,
+      accent = false;
 
-  final String label;
+  /// Mapped item code / name; null for the unmapped and new-variant badges,
+  /// whose text comes from the current locale.
+  final String? label;
   final bool showWarning;
   final bool accent;
 
@@ -172,14 +176,19 @@ class IpmMappingBadge extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
-          showWarning ? Icons.warning_amber_rounded : Icons.local_offer_outlined,
+          showWarning
+              ? Icons.warning_amber_rounded
+              : Icons.local_offer_outlined,
           size: 14,
           color: showWarning ? ImportPurchaseTokens.amber : fg,
         ),
         const SizedBox(width: 4),
         Flexible(
           child: Text(
-            label,
+            label ??
+                (showWarning
+                    ? context.flipperL10n.importPurchaseMapVariant
+                    : context.flipperL10n.importPurchaseNewVariant),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: ImportPurchaseHelpers.text(
@@ -213,11 +222,15 @@ class IpmChoiceOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? ImportPurchaseTokens.accentWash : ImportPurchaseTokens.surface,
+      color: selected
+          ? ImportPurchaseTokens.accentWash
+          : ImportPurchaseTokens.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ImportPurchaseTokens.radius),
         side: BorderSide(
-          color: selected ? ImportPurchaseTokens.accent : ImportPurchaseTokens.line2,
+          color: selected
+              ? ImportPurchaseTokens.accent
+              : ImportPurchaseTokens.line2,
           width: 1.5,
         ),
       ),
@@ -360,7 +373,14 @@ class IpmEmptyState extends StatelessWidget {
   }
 }
 
-enum IpmButtonVariant { primary, green, ghost, greenSoft, dangerSoft, amberSoft }
+enum IpmButtonVariant {
+  primary,
+  green,
+  ghost,
+  greenSoft,
+  dangerSoft,
+  amberSoft,
+}
 
 class IpmButton extends StatelessWidget {
   const IpmButton({
@@ -419,8 +439,9 @@ class IpmButton extends StatelessWidget {
     final height = compact ? 38.0 : ImportPurchaseTokens.fieldH;
     final child = Row(
       mainAxisSize: block ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment:
-          block ? MainAxisAlignment.center : MainAxisAlignment.start,
+      mainAxisAlignment: block
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
       children: [
         if (icon != null) ...[
           Icon(icon, size: 18, color: enabled ? fg : fg.withValues(alpha: 0.5)),
@@ -483,10 +504,7 @@ class IpmIconActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch ((retry, accept)) {
-      (true, _) => (
-        ImportPurchaseTokens.amberWash,
-        ImportPurchaseTokens.amber,
-      ),
+      (true, _) => (ImportPurchaseTokens.amberWash, ImportPurchaseTokens.amber),
       (false, true) => (
         ImportPurchaseTokens.greenWash,
         ImportPurchaseTokens.green,
@@ -511,10 +529,7 @@ class IpmIconActionButton extends StatelessWidget {
                 ? SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: fg,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: fg),
                   )
                 : Icon(icon, size: 20, color: fg),
           ),
@@ -539,7 +554,9 @@ class IpmFieldLabel extends StatelessWidget {
         style: ImportPurchaseHelpers.text(
           size: uppercase ? 11 : 12,
           weight: FontWeight.w700,
-          color: uppercase ? ImportPurchaseTokens.muted : ImportPurchaseTokens.ink2,
+          color: uppercase
+              ? ImportPurchaseTokens.muted
+              : ImportPurchaseTokens.ink2,
           letterSpacing: uppercase ? 0.55 : 0.1,
         ),
       ),
@@ -570,7 +587,9 @@ class IpmCopyableValue extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
-            border: Border.all(color: ImportPurchaseTokens.accent.withValues(alpha: 0.35)),
+            border: Border.all(
+              color: ImportPurchaseTokens.accent.withValues(alpha: 0.35),
+            ),
           ),
           child: Row(
             children: [
@@ -637,7 +656,9 @@ class IpmTextField extends StatelessWidget {
         filled: true,
         fillColor: ImportPurchaseTokens.surface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 13),
-        constraints: const BoxConstraints(minHeight: ImportPurchaseTokens.fieldH),
+        constraints: const BoxConstraints(
+          minHeight: ImportPurchaseTokens.fieldH,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
           borderSide: const BorderSide(color: ImportPurchaseTokens.line2),
@@ -661,43 +682,56 @@ class IpmStatusFilter extends StatelessWidget {
     required this.value,
     required this.options,
     required this.onChanged,
-    this.label = 'Filter by Status',
+    this.label,
   });
 
   final String value;
   final List<MapEntry<String, String>> options;
   final ValueChanged<String> onChanged;
-  final String label;
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IpmFieldLabel(label, uppercase: true),
+        IpmFieldLabel(
+          label ?? context.flipperL10n.importPurchaseFilterByStatus,
+          uppercase: true,
+        ),
         DropdownButtonFormField<String>(
           value: value,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: ImportPurchaseTokens.muted),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: ImportPurchaseTokens.muted,
+          ),
           decoration: InputDecoration(
             filled: true,
             fillColor: ImportPurchaseTokens.surface,
             contentPadding: const EdgeInsets.symmetric(horizontal: 13),
-            constraints: const BoxConstraints(minHeight: ImportPurchaseTokens.fieldH),
+            constraints: const BoxConstraints(
+              minHeight: ImportPurchaseTokens.fieldH,
+            ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              borderRadius: BorderRadius.circular(
+                ImportPurchaseTokens.radiusSm,
+              ),
               borderSide: const BorderSide(color: ImportPurchaseTokens.line2),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              borderRadius: BorderRadius.circular(
+                ImportPurchaseTokens.radiusSm,
+              ),
               borderSide: const BorderSide(color: ImportPurchaseTokens.accent),
             ),
           ),
-          style: ImportPurchaseHelpers.text(size: 14.5, weight: FontWeight.w600),
+          style: ImportPurchaseHelpers.text(
+            size: 14.5,
+            weight: FontWeight.w600,
+          ),
           items: options
-              .map(
-                (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
-              )
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
               .toList(),
           onChanged: (v) {
             if (v != null) onChanged(v);
@@ -728,7 +762,8 @@ class _IpmSegmentedControlState extends State<IpmSegmentedControl> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final bounded = constraints.maxWidth.isFinite;
-        final stretch = bounded &&
+        final stretch =
+            bounded &&
             constraints.maxWidth <= ImportPurchaseTokens.mobileBreakpoint;
 
         Widget control = _buildTrack(stretch: stretch);
@@ -786,7 +821,7 @@ class _IpmSegmentedControlState extends State<IpmSegmentedControl> {
                   child: _segTab(
                     selected: widget.isImport,
                     icon: Icons.download_outlined,
-                    label: 'Import',
+                    label: context.flipperL10n.importPurchaseTabImport,
                     onTap: () => widget.onChanged(true),
                   ),
                 ),
@@ -794,7 +829,7 @@ class _IpmSegmentedControlState extends State<IpmSegmentedControl> {
                   child: _segTab(
                     selected: !widget.isImport,
                     icon: Icons.shopping_cart_outlined,
-                    label: 'Purchase',
+                    label: context.flipperL10n.importPurchasePurchase,
                     onTap: () => widget.onChanged(false),
                   ),
                 ),
@@ -883,9 +918,7 @@ class IpmModalShell extends StatelessWidget {
             GestureDetector(
               onTap: onClose,
               behavior: HitTestBehavior.opaque,
-              child: Container(
-                color: const Color(0x80141C2E),
-              ),
+              child: Container(color: const Color(0x80141C2E)),
             ),
           if (isSheet)
             Align(
@@ -934,7 +967,11 @@ class IpmModalShell extends StatelessWidget {
                     color: ImportPurchaseTokens.accentWash,
                     borderRadius: BorderRadius.circular(11),
                   ),
-                  child: Icon(icon, size: 20, color: ImportPurchaseTokens.accentStrong),
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: ImportPurchaseTokens.accentStrong,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -976,7 +1013,9 @@ class IpmModalShell extends StatelessWidget {
             Container(
               padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
               decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: ImportPurchaseTokens.line)),
+                border: Border(
+                  top: BorderSide(color: ImportPurchaseTokens.line),
+                ),
               ),
               child: footer,
             ),

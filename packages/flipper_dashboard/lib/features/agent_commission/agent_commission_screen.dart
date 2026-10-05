@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/agent_commission/models/agent_commiss
 import 'package:flipper_dashboard/features/agent_commission/models/agent_commission_sale.dart';
 import 'package:flipper_dashboard/providers/agent_commission_access_provider.dart';
 import 'package:flipper_dashboard/utils/sale_agent_commission.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helpers/agent_session_helper.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -173,8 +174,9 @@ class _CommissionDashboard extends StatelessWidget {
                     if (payoutsUnavailable) ...[
                       const SizedBox(height: 12),
                       _WarningNotice(
-                        message:
-                            'Payout history could not be loaded. Earned commission from sales is still shown. Run Supabase migration agent_commission_payouts if payouts fail to save.',
+                        message: context
+                            .flipperL10n
+                            .agentCommissionPayoutsUnavailable,
                       ),
                     ],
                     const SizedBox(height: 36),
@@ -357,10 +359,10 @@ class _DashboardHeader extends StatelessWidget {
         final title = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Eyebrow('TEAM  ·  COMMISSIONS'),
+            _Eyebrow(context.flipperL10n.agentCommissionEyebrow),
             const SizedBox(height: 10),
             Text(
-              'Agent commissions',
+              context.flipperL10n.agentCommissionTitle,
               style: GoogleFonts.outfit(
                 fontSize: stack ? 34 : 42,
                 height: 1,
@@ -370,7 +372,7 @@ class _DashboardHeader extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Track what each sales agent has earned, what you’ve paid, and what’s still owed.',
+              context.flipperL10n.agentCommissionSubtitle,
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 height: 1.25,
@@ -383,7 +385,7 @@ class _DashboardHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'Refresh',
+              tooltip: context.flipperL10n.refresh,
               onPressed: onRefresh,
               icon: const Icon(Icons.refresh, color: _kMuted),
             ),
@@ -391,7 +393,7 @@ class _DashboardHeader extends StatelessWidget {
               TextButton(
                 onPressed: onSignOut,
                 child: Text(
-                  'Sign out',
+                  context.flipperL10n.agentCommissionSignOut,
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w700,
                     color: _kAccent,
@@ -408,10 +410,9 @@ class _DashboardHeader extends StatelessWidget {
             selectedUserId: selectedAgentId!,
             onSelected: onAgentSelected ?? (_) {},
           );
-        } else if (summary.agentName != null ||
-            summary.businessName != null) {
+        } else if (summary.agentName != null || summary.businessName != null) {
           trailing = _AgentIdentityCard(
-            name: summary.agentName ?? 'Agent',
+            name: summary.agentName ?? context.flipperL10n.agentCommissionAgent,
             subtitle: summary.businessName,
           );
         }
@@ -522,7 +523,7 @@ class _EarnedCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _Eyebrow('COMMISSION EARNED'),
+                    _Eyebrow(context.flipperL10n.agentCommissionEarnedEyebrow),
                     const SizedBox(height: 18),
                     Wrap(
                       crossAxisAlignment: WrapCrossAlignment.end,
@@ -581,11 +582,15 @@ class _EarnedCard extends StatelessWidget {
             children: [
               _LegendDot(
                 color: const Color(0xFF575851),
-                label: 'Paid out · ${(paidPct * 100).round()} %',
+                label: context.flipperL10n.agentCommissionPaidOutPct(
+                  '${(paidPct * 100).round()}',
+                ),
               ),
               _LegendDot(
                 color: _kAccent,
-                label: 'Balance due · ${(duePct * 100).round()} %',
+                label: context.flipperL10n.agentCommissionBalanceDuePct(
+                  '${(duePct * 100).round()}',
+                ),
               ),
             ],
           ),
@@ -613,7 +618,10 @@ class _PayoutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _IconEyebrow(icon: Icons.check, label: 'PAID OUT'),
+          _IconEyebrow(
+            icon: Icons.check,
+            label: context.flipperL10n.agentCommissionPaidOutEyebrow,
+          ),
           const SizedBox(height: 18),
           Text(
             _formatRwf(balance.paid),
@@ -626,9 +634,9 @@ class _PayoutCard extends StatelessWidget {
           const SizedBox(height: 26),
           const Divider(color: _kLine, height: 1),
           const SizedBox(height: 26),
-          const _IconEyebrow(
+          _IconEyebrow(
             icon: Icons.account_balance_wallet_outlined,
-            label: 'BALANCE DUE',
+            label: context.flipperL10n.agentCommissionBalanceDueEyebrow,
           ),
           const SizedBox(height: 18),
           Text(
@@ -664,7 +672,9 @@ class _PayoutCard extends StatelessWidget {
                   size: 20,
                 ),
                 label: Text(
-                  settled ? 'All settled' : 'Record payout',
+                  settled
+                      ? context.flipperL10n.agentCommissionAllSettled
+                      : context.flipperL10n.agentCommissionRecordPayout,
                   style: GoogleFonts.outfit(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
@@ -707,7 +717,11 @@ class _AttributedSalesSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Flexible(child: _Eyebrow('ATTRIBUTED SALES')),
+                  Flexible(
+                    child: _Eyebrow(
+                      context.flipperL10n.agentCommissionAttributedSales,
+                    ),
+                  ),
                   if (summary.saleCount > 0) ...[
                     const SizedBox(width: 10),
                     _CountBubble(summary.saleCount.toString()),
@@ -721,7 +735,12 @@ class _AttributedSalesSection extends StatelessWidget {
                   runSpacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    _LegendDot(color: _kAccent, label: '$pendingCount pending'),
+                    _LegendDot(
+                      color: _kAccent,
+                      label: context.flipperL10n.agentCommissionPendingCount(
+                        pendingCount,
+                      ),
+                    ),
                     OutlinedButton.icon(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
@@ -738,7 +757,7 @@ class _AttributedSalesSection extends StatelessWidget {
                       ),
                       icon: const Icon(Icons.print_outlined, size: 19),
                       label: Text(
-                        'Export',
+                        context.flipperL10n.agentCommissionExport,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -753,14 +772,19 @@ class _AttributedSalesSection extends StatelessWidget {
         else
           Row(
             children: [
-              const _Eyebrow('ATTRIBUTED SALES'),
+              _Eyebrow(context.flipperL10n.agentCommissionAttributedSales),
               if (summary.saleCount > 0) ...[
                 const SizedBox(width: 10),
                 _CountBubble(summary.saleCount.toString()),
               ],
               const Spacer(),
               if (summary.saleCount > 0) ...[
-                _LegendDot(color: _kAccent, label: '$pendingCount pending'),
+                _LegendDot(
+                  color: _kAccent,
+                  label: context.flipperL10n.agentCommissionPendingCount(
+                    pendingCount,
+                  ),
+                ),
                 const SizedBox(width: 18),
                 OutlinedButton.icon(
                   onPressed: () {},
@@ -778,7 +802,7 @@ class _AttributedSalesSection extends StatelessWidget {
                   ),
                   icon: const Icon(Icons.print_outlined, size: 19),
                   label: Text(
-                    'Export',
+                    context.flipperL10n.agentCommissionExport,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
@@ -851,20 +875,29 @@ class _SalesTable extends StatelessWidget {
 class _TableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: _kLine)),
       ),
       child: Row(
-        children: const [
-          _TableHeadCell('DATE', flex: 12),
-          _TableHeadCell('RECEIPT', flex: 23),
-          _TableHeadCell('CASHIER', flex: 22),
-          _TableHeadCell('SALE TOTAL', flex: 15, alignEnd: true),
-          _TableHeadCell('RATE', flex: 10, alignEnd: true),
-          _TableHeadCell('COMMISSION', flex: 18, alignEnd: true),
-          _TableHeadCell('STATUS', flex: 14),
+        children: [
+          _TableHeadCell(l10n.agentCommissionColDate, flex: 12),
+          _TableHeadCell(l10n.agentCommissionColReceipt, flex: 23),
+          _TableHeadCell(l10n.agentCommissionColCashier, flex: 22),
+          _TableHeadCell(
+            l10n.agentCommissionColSaleTotal,
+            flex: 15,
+            alignEnd: true,
+          ),
+          _TableHeadCell(l10n.agentCommissionColRate, flex: 10, alignEnd: true),
+          _TableHeadCell(
+            l10n.agentCommissionColCommission,
+            flex: 18,
+            alignEnd: true,
+          ),
+          _TableHeadCell(l10n.agentCommissionColStatus, flex: 14),
         ],
       ),
     );
@@ -912,7 +945,7 @@ class _SaleTableRow extends StatelessWidget {
         : sale.id.toUpperCase();
     final customer = sale.customerName?.trim().isNotEmpty == true
         ? sale.customerName!.trim()
-        : 'Walk-in';
+        : context.flipperL10n.agentCommissionWalkIn;
     final rate = _commissionRateLabel(sale);
 
     return Container(
@@ -984,7 +1017,7 @@ class _RecentPayoutsSection extends StatelessWidget {
           onTap: onToggle,
           child: Row(
             children: [
-              const _Eyebrow('RECENT PAYOUTS'),
+              _Eyebrow(context.flipperL10n.agentCommissionRecentPayouts),
               const Spacer(),
               if (onToggle != null)
                 Icon(
@@ -1223,7 +1256,7 @@ class _CashierCell extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Cashier',
+          context.flipperL10n.agentCommissionCashier,
           style: GoogleFonts.outfit(
             fontSize: 16,
             color: const Color(0xFF56554F),
@@ -1296,7 +1329,9 @@ class _StatusPill extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            paid ? 'Paid' : 'Pending',
+            paid
+                ? context.flipperL10n.agentCommissionPaid
+                : context.flipperL10n.agentCommissionPending,
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -1394,11 +1429,11 @@ String _periodContextLabel(AgentCommissionPeriod period) {
     case AgentCommissionPeriod.today:
       return DateFormat('MMM d, yyyy').format(now);
     case AgentCommissionPeriod.week:
-      return 'Last 7 days';
+      return FlipperL10n.current.agentCommissionLast7Days;
     case AgentCommissionPeriod.month:
       return DateFormat('MMMM yyyy').format(now);
     case AgentCommissionPeriod.all:
-      return 'All time';
+      return FlipperL10n.current.agentCommissionAllTime;
   }
 }
 
@@ -1467,7 +1502,7 @@ class _AgentCommissionShell extends ConsumerWidget {
         body: summaryAsync.when(
           loading: () => _CommissionLoadingView(period: period),
           error: (e, _) => _ErrorBody(
-            message: 'Could not load commission data.',
+            message: context.flipperL10n.agentCommissionLoadFailed,
             onRetry: () => ref.invalidate(agentCommissionSummaryProvider),
           ),
           data: (summary) => RefreshIndicator(
@@ -1537,8 +1572,8 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
         backgroundColor: _kPageBg,
         body: agentsAsync.when(
           loading: () => _CommissionLoadingView(period: period),
-          error: (_, __) => const _ErrorBody(
-            message: 'Could not load agents.',
+          error: (_, __) => _ErrorBody(
+            message: context.flipperL10n.agentCommissionAgentsLoadFailed,
             onRetry: null,
           ),
           data: (agents) {
@@ -1547,7 +1582,7 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    'No agents found. Add agents in User Management first.',
+                    context.flipperL10n.agentCommissionNoAgents,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(color: Colors.grey[700]),
                   ),
@@ -1564,15 +1599,15 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
                     agents.first.userId,
               ),
               error: (e, _) => _ErrorBody(
-                message: 'Could not load commission data.',
+                message: context.flipperL10n.agentCommissionLoadFailed,
                 onRetry: () =>
                     ref.invalidate(agentCommissionAdminSummaryProvider),
               ),
               data: (admin) {
                 if (admin == null) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'You do not have permission to manage payouts.',
+                      context.flipperL10n.agentCommissionNoPermission,
                     ),
                   );
                 }
@@ -1658,7 +1693,7 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          'Record payout',
+          ctx.flipperL10n.agentCommissionRecordPayout,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         content: Form(
@@ -1668,7 +1703,7 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                admin.summary.agentName ?? 'Agent',
+                admin.summary.agentName ?? ctx.flipperL10n.agentCommissionAgent,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   color: _kAgentPurple,
@@ -1676,7 +1711,9 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Balance due: ${_formatRwf(admin.balance.balance)}',
+                ctx.flipperL10n.agentCommissionBalanceDueAmount(
+                  _formatRwf(admin.balance.balance),
+                ),
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   color: Colors.grey[600],
@@ -1687,15 +1724,19 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
                 controller: amountController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Amount (RWF)',
+                decoration: InputDecoration(
+                  labelText: ctx.flipperL10n.agentCommissionAmountRwf,
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
                   final n = num.tryParse(v?.trim() ?? '');
-                  if (n == null || n <= 0) return 'Enter a valid amount';
+                  if (n == null || n <= 0) {
+                    return ctx.flipperL10n.agentCommissionEnterValidAmount;
+                  }
                   if (n > admin.balance.balance) {
-                    return 'Cannot exceed balance (${admin.balance.balance.round()} RWF)';
+                    return ctx.flipperL10n.agentCommissionCannotExceedBalance(
+                      '${admin.balance.balance.round()} RWF',
+                    );
                   }
                   return null;
                 },
@@ -1704,8 +1745,8 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
               TextFormField(
                 controller: noteController,
                 maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Note (optional)',
+                decoration: InputDecoration(
+                  labelText: ctx.flipperL10n.agentCommissionNoteOptional,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -1715,7 +1756,7 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(ctx.flipperL10n.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -1724,7 +1765,7 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
               }
             },
             style: FilledButton.styleFrom(backgroundColor: _kAccent),
-            child: const Text('Confirm'),
+            child: Text(ctx.flipperL10n.confirm),
           ),
         ],
       ),
@@ -1744,7 +1785,13 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
       ref.invalidate(agentCommissionAdminSummaryProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payout of ${_formatRwf(amount)} recorded.')),
+          SnackBar(
+            content: Text(
+              context.flipperL10n.agentCommissionPayoutRecorded(
+                _formatRwf(amount),
+              ),
+            ),
+          ),
         );
       }
     } on AgentCommissionPayoutException catch (e) {
@@ -1756,8 +1803,8 @@ class _AdminCommissionShellState extends ConsumerState<_AdminCommissionShell> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not record payout. Check your connection.'),
+          SnackBar(
+            content: Text(context.flipperL10n.agentCommissionPayoutFailed),
           ),
         );
       }
@@ -1827,7 +1874,9 @@ class _AgentPicker extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        phone.isEmpty ? 'Commission agent' : phone,
+                        phone.isEmpty
+                            ? context.flipperL10n.agentCommissionCommissionAgent
+                            : phone,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(fontSize: 14, color: _kMuted),
@@ -1909,7 +1958,7 @@ class _PayoutHistoryTile extends StatelessWidget {
               ),
             ),
             Text(
-              'by Owner',
+              context.flipperL10n.agentCommissionByOwner,
               style: GoogleFonts.outfit(fontSize: 15, color: _kMuted),
             ),
             const SizedBox(width: 28),
@@ -1978,13 +2027,13 @@ class _PeriodSelector extends StatelessWidget {
   static String _periodLabel(AgentCommissionPeriod p) {
     switch (p) {
       case AgentCommissionPeriod.today:
-        return 'Today';
+        return FlipperL10n.current.agentCommissionToday;
       case AgentCommissionPeriod.week:
-        return 'This week';
+        return FlipperL10n.current.agentCommissionThisWeek;
       case AgentCommissionPeriod.month:
-        return 'This month';
+        return FlipperL10n.current.agentCommissionThisMonth;
       case AgentCommissionPeriod.all:
-        return 'All time';
+        return FlipperL10n.current.agentCommissionAllTime;
     }
   }
 }
@@ -2003,7 +2052,7 @@ class _SaleCommissionTile extends StatelessWidget {
         : '—';
     final customer = (sale.customerName?.trim().isNotEmpty == true)
         ? sale.customerName!
-        : 'Walk-in';
+        : context.flipperL10n.agentCommissionWalkIn;
     final ref = sale.reference?.trim();
     final commissionLabel = formatSaleAgentCommissionLabel(
       commissionType: sale.commissionType,
@@ -2080,7 +2129,9 @@ class _SaleCommissionTile extends StatelessWidget {
               _StatusPill(paid: paid),
               if (sale.subTotal != null && sale.subTotal! > 0)
                 Text(
-                  'Sale ${_formatRwf(sale.subTotal!)}',
+                  context.flipperL10n.agentCommissionSaleAmount(
+                    _formatRwf(sale.subTotal!),
+                  ),
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     color: Colors.grey[600],
@@ -2114,7 +2165,7 @@ class _EmptySalesCard extends StatelessWidget {
           Icon(Icons.receipt_long_outlined, size: 40, color: Colors.grey[400]),
           const SizedBox(height: 12),
           Text(
-            'No attributed sales yet',
+            context.flipperL10n.agentCommissionNoSalesYet,
             style: GoogleFonts.outfit(
               fontWeight: FontWeight.w600,
               fontSize: 16,
@@ -2122,8 +2173,9 @@ class _EmptySalesCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'When cashiers assign an agent on a completed sale in Quick Selling, '
-            'commission will appear here for ${_PeriodSelector._periodLabel(period).toLowerCase()}.',
+            context.flipperL10n.agentCommissionNoSalesHint(
+              _PeriodSelector._periodLabel(period).toLowerCase(),
+            ),
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: 14,
@@ -2157,7 +2209,7 @@ class _ErrorBody extends StatelessWidget {
               FilledButton(
                 onPressed: onRetry,
                 style: FilledButton.styleFrom(backgroundColor: _kAccent),
-                child: const Text('Retry'),
+                child: Text(context.flipperL10n.retry),
               ),
             ],
           ],

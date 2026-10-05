@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_host.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
@@ -278,7 +279,11 @@ class _CartFab extends ConsumerWidget {
               icon,
               const SizedBox(width: 10),
               Text(
-                count > 0 ? 'Cart ($count)' : 'Cart',
+                count > 0
+                    ? context.flipperL10n.inventoryCartWithCount(
+                        count.toString(),
+                      )
+                    : context.flipperL10n.inventoryCart,
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

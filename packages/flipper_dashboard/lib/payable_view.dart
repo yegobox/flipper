@@ -326,7 +326,7 @@ class PayableView extends HookConsumerWidget {
                 ),
               )
             : Text(
-                'Send to Till →',
+                context.flipperL10n.payableSendToTill,
                 style: primaryTextStyle.copyWith(
                   fontWeight: FontWeight.w700,
                   fontSize: 15,

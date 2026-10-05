@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
 import 'package:flipper_dashboard/features/services_gigs/widgets/request_service_sheet.dart';
@@ -9,7 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 class ProviderDetailScreen extends StatefulWidget {
   final ServiceGigProvider provider;
 
-  const ProviderDetailScreen({Key? key, required this.provider}) : super(key: key);
+  const ProviderDetailScreen({Key? key, required this.provider})
+    : super(key: key);
 
   @override
   State<ProviderDetailScreen> createState() => _ProviderDetailScreenState();
@@ -49,7 +51,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
     if (sent == true && mounted) {
       showSuccessNotification(
         context,
-        'Request sent. Track it under My requests.',
+        context.flipperL10n.gigsRequestSentTrack,
       );
     }
   }
@@ -127,10 +129,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                         const SizedBox(height: 12),
                         Text(
                           p.bio,
-                          style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            height: 1.45,
-                          ),
+                          style: GoogleFonts.outfit(fontSize: 14, height: 1.45),
                         ),
                         const SizedBox(height: 16),
                         _StatsRow(provider: p),
@@ -139,7 +138,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                             p.servicePricing.isNotEmpty) ...[
                           const SizedBox(height: 20),
                           Text(
-                            'Pricing',
+                            context.flipperL10n.gigsPricing,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
@@ -148,7 +147,9 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           const SizedBox(height: 8),
                           if (p.basePriceRwf != null)
                             Text(
-                              'From ${p.formattedBasePrice}',
+                              context.flipperL10n.gigsFromPrice(
+                                p.formattedBasePrice,
+                              ),
                               style: GoogleFonts.outfit(fontSize: 14),
                             ),
                           if (p.pricingNotes != null &&
@@ -173,7 +174,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                             p.availabilitySchedule!.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           Text(
-                            'Availability',
+                            context.flipperL10n.gigsAvailability,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
@@ -188,7 +189,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                         if (p.portfolio.isNotEmpty) ...[
                           const SizedBox(height: 20),
                           Text(
-                            'Portfolio',
+                            context.flipperL10n.gigsPortfolio,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
@@ -213,7 +214,9 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                                             item.imageUrl,
                                             fit: BoxFit.cover,
                                             errorBuilder: (_, __, ___) =>
-                                                _portfolioPlaceholder(item.title),
+                                                _portfolioPlaceholder(
+                                                  item.title,
+                                                ),
                                           )
                                         : _portfolioPlaceholder(item.title),
                                   ),
@@ -226,7 +229,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                             p.recentReviews!.isNotEmpty) ...[
                           const SizedBox(height: 20),
                           Text(
-                            'Reviews',
+                            context.flipperL10n.gigsReviews,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
@@ -287,7 +290,9 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
             onPressed: p.isAvailable ? _book : null,
             icon: const Icon(Icons.send_outlined),
             label: Text(
-              p.isAvailable ? 'Request this provider' : 'Unavailable right now',
+              p.isAvailable
+                  ? context.flipperL10n.gigsRequestThisProvider
+                  : context.flipperL10n.gigsUnavailableNow,
               style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
             style: FilledButton.styleFrom(
@@ -323,27 +328,44 @@ class _VerificationRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final chips = <Widget>[];
     if (provider.isVerified) {
-      chips.add(_chip(Icons.verified, 'Verified', Colors.blue.shade700));
+      chips.add(
+        _chip(
+          Icons.verified,
+          context.flipperL10n.gigsVerified,
+          Colors.blue.shade700,
+        ),
+      );
     }
     if (provider.isBackgroundChecked) {
-      chips.add(_chip(Icons.gpp_good_outlined, 'Background checked', Colors.teal.shade800));
+      chips.add(
+        _chip(
+          Icons.gpp_good_outlined,
+          context.flipperL10n.gigsBackgroundChecked,
+          Colors.teal.shade800,
+        ),
+      );
     }
     if (provider.verificationBadge != null &&
         provider.verificationBadge!.isNotEmpty) {
-      chips.add(_chip(Icons.military_tech_outlined, provider.verificationBadge!, Colors.purple.shade800));
+      chips.add(
+        _chip(
+          Icons.military_tech_outlined,
+          provider.verificationBadge!,
+          Colors.purple.shade800,
+        ),
+      );
     }
     for (final b in provider.badges) {
       if (b.isNotEmpty) {
-        chips.add(_chip(Icons.workspace_premium_outlined, b, Colors.amber.shade900));
+        chips.add(
+          _chip(Icons.workspace_premium_outlined, b, Colors.amber.shade900),
+        );
       }
     }
     if (chips.isEmpty) {
       return Text(
-        'Standard provider profile',
-        style: GoogleFonts.outfit(
-          fontSize: 12,
-          color: Colors.grey.shade600,
-        ),
+        context.flipperL10n.gigsStandardProfile,
+        style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey.shade600),
       );
     }
     return Wrap(spacing: 8, runSpacing: 8, children: chips);
@@ -370,9 +392,15 @@ class _StatsRow extends StatelessWidget {
       children: [
         _stat(Icons.star, '${provider.averageRating.toStringAsFixed(1)} ★'),
         const SizedBox(width: 16),
-        _stat(Icons.reviews_outlined, '${provider.totalReviews} reviews'),
+        _stat(
+          Icons.reviews_outlined,
+          context.flipperL10n.gigsReviewsCount(provider.totalReviews),
+        ),
         const SizedBox(width: 16),
-        _stat(Icons.task_alt, '${provider.completedJobs} jobs'),
+        _stat(
+          Icons.task_alt,
+          context.flipperL10n.gigsJobsCount(provider.completedJobs),
+        ),
       ],
     );
   }

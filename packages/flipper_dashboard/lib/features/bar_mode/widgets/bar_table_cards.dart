@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
@@ -74,14 +75,16 @@ class _BarEmptyTableCardState extends State<BarEmptyTableCard> {
     final idColor = _hovered || _pressed ? BarTokens.blue : BarTokens.ink3;
     final seatColor = _hovered || _pressed ? BarTokens.blue : BarTokens.ink4;
     final idSize = widget.compact ? 24.0 : 26.0;
-    final minHeight =
-        widget.compact ? BarTokens.mobileTableCardMinHeight : 138.0;
+    final minHeight = widget.compact
+        ? BarTokens.mobileTableCardMinHeight
+        : 138.0;
     final radius = widget.compact ? 18.0 : BarTokens.radiusMd;
 
     Widget card = BarDashedCard(
       borderColor: _hovered || _pressed ? BarTokens.blue : BarTokens.lineStrong,
-      backgroundColor:
-          _hovered || _pressed ? BarTokens.blueTint : BarTokens.surface,
+      backgroundColor: _hovered || _pressed
+          ? BarTokens.blueTint
+          : BarTokens.surface,
       child: SizedBox(
         height: minHeight,
         width: double.infinity,
@@ -131,7 +134,7 @@ class _BarEmptyTableCardState extends State<BarEmptyTableCard> {
                   Icon(Icons.add, size: 16, color: accent),
                   const SizedBox(width: 7),
                   Text(
-                    'Open tab',
+                    context.flipperL10n.barOpenTab,
                     style: GoogleFonts.outfit(
                       fontSize: widget.compact ? 13 : 13,
                       fontWeight: FontWeight.w700,
@@ -231,8 +234,9 @@ class _BarOpenTableCardState extends ConsumerState<BarOpenTableCard> {
     }
 
     final idSize = widget.compact ? 24.0 : 26.0;
-    final minHeight =
-        widget.compact ? BarTokens.mobileTableCardMinHeight : 138.0;
+    final minHeight = widget.compact
+        ? BarTokens.mobileTableCardMinHeight
+        : 138.0;
     final radius = widget.compact ? 18.0 : BarTokens.radiusMd;
     final priceSize = widget.compact ? 19.0 : 22.0;
 
@@ -307,7 +311,7 @@ class _BarOpenTableCardState extends ConsumerState<BarOpenTableCard> {
                         if (count > 0) ...[
                           SizedBox(width: initials.isEmpty ? 0 : 8),
                           Text(
-                            '$count items',
+                            context.flipperL10n.barItemsCount(count),
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: widget.compact ? 10.5 : 11.5,
                               fontWeight: FontWeight.w600,

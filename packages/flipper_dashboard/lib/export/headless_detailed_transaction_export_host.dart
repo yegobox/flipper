@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/export/transaction_report_full_export_loader.d
 import 'package:flipper_dashboard/export/utils/plu_detailed_report_row.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
@@ -78,9 +79,7 @@ buildPluManualExportRows(List<TransactionItem> items) async {
     final taxPercentage = (fromItem != null && fromItem > 0)
         ? fromItem
         : (taxRateByType[taxType] ?? 18.0);
-    preparedData.add(
-      pluDetailedReportRow(item, taxRatePercent: taxPercentage),
-    );
+    preparedData.add(pluDetailedReportRow(item, taxRatePercent: taxPercentage));
   }
   return (manualData: preparedData, columnNames: kPluDetailedExportColumnNames);
 }
@@ -109,12 +108,10 @@ class DetailedTransactionReportExportHostState
       GlobalKey<SfDataGridState>();
 
   /// Detailed line-item report for the current [dateRangeProvider] range.
-  Future<void> exportDetailedReport({String headerTitle = 'Report'}) async {
+  Future<void> exportDetailedReport({String? headerTitle}) async {
+    final l10n = FlipperL10n.current;
     if (ProxyService.box.exportAsPdf()) {
-      throw UnsupportedError(
-        'PDF export needs the full report screen with a data grid. '
-        'Disable PDF export in settings to export Excel from here, or use Reports on desktop.',
-      );
+      throw UnsupportedError(l10n.reportPdfExportNeedsGrid);
     }
 
     final dateRange = ref.read(dateRangeProvider);
@@ -190,9 +187,9 @@ class DetailedTransactionReportExportHostState
       workBookKey: _dummyWorkBookKey,
       isStockRecount: false,
       config: config,
-      headerTitle: headerTitle,
+      headerTitle: headerTitle ?? l10n.reportTitleReport,
       expenses: expenses,
-      bottomEndOfRowTitle: 'Total Gross Profit',
+      bottomEndOfRowTitle: l10n.reportTotalGrossProfit,
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,

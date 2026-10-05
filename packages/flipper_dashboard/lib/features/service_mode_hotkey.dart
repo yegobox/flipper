@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -94,7 +95,7 @@ Future<void> cycleServiceMode() async {
     );
     if (!allowed) {
       _toast(
-        'Only an admin can switch this device\'s service mode.',
+        FlipperL10n.current.serviceModeAdminOnly,
         type: NotificationType.error,
       );
       return;
@@ -105,20 +106,24 @@ Future<void> cycleServiceMode() async {
       // The switch rolled itself back, so the device is still on the old
       // surface — navigating there would strand it on a mode it is not in.
       _toast(
-        'Could not switch to ${target.label}: the branch settings did not '
-        'save. Check your connection and try again.',
+        FlipperL10n.current.serviceModeSwitchNotSaved(target.label),
         type: NotificationType.error,
       );
       return;
     }
     _navigateTo(target);
     _toast(
-      'This device switched to ${target.label} · '
-      '$serviceModeHotkeyLabel to cycle',
+      FlipperL10n.current.serviceModeSwitched(
+        target.label,
+        serviceModeHotkeyLabel,
+      ),
     );
   } catch (e, s) {
     talker.error('Service mode hotkey switch failed', e, s);
-    _toast('Could not switch service mode.', type: NotificationType.error);
+    _toast(
+      FlipperL10n.current.serviceModeSwitchFailed,
+      type: NotificationType.error,
+    );
   } finally {
     _ServiceModeHotkeyScopeState._switching = false;
   }

@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_dashboard/utils/customer_pay_gate.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -90,8 +91,7 @@ class _TicketWorkflowCompleteHostState
       }
 
       // Capture park time before resume bumps lastTouched.
-      final parkedAt =
-          ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
+      final parkedAt = ticket.lastTouched ?? ticket.createdAt ?? DateTime.now();
 
       await ResumeTransactionService.resume(
         ticket: ticket,
@@ -112,16 +112,16 @@ class _TicketWorkflowCompleteHostState
 
       final seedItems = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-        transactionId: ticket.id,
-        branchId: branchId,
-        active: true,
-      );
+            transactionId: ticket.id,
+            branchId: branchId,
+            active: true,
+          );
 
       ticket.status = PENDING;
       ref.read(settlingTillTicketProvider.notifier).state = SettlingTillTicket(
         transactionId: ticket.id,
         displayRef: _ticketDisplayRef(ticket),
-        creatorName: 'Staff',
+        creatorName: FlipperL10n.current.posSwitchStaff,
         createdAt: parkedAt,
         branchId: branchId,
         ticketName: ticket.ticketName,
@@ -157,8 +157,10 @@ class _TicketWorkflowCompleteHostState
       Customer? attachedCustomerHint;
       final customerId = ticket.customerId;
       if (customerId != null && customerId.isNotEmpty) {
-        attachedCustomerHint =
-            ref.read(attachedCustomerProvider(customerId)).asData?.value;
+        attachedCustomerHint = ref
+            .read(attachedCustomerProvider(customerId))
+            .asData
+            ?.value;
       }
 
       final customerError = missingCustomerDetailsForPay(
@@ -166,9 +168,10 @@ class _TicketWorkflowCompleteHostState
         attachedCustomer: attachedCustomerHint,
         typedName: ref.read(customerNameControllerProvider).text,
         typedPhone: customerPhoneNumberController.text,
-        pleaseEnterCustomerName: 'Please enter a customer name before completing.',
+        pleaseEnterCustomerName:
+            FlipperL10n.current.ticketCompleteEnterCustomerName,
         phoneRequiredWhenTinMissing:
-            'A customer phone number is required when no TIN is on file.',
+            FlipperL10n.current.ticketCompletePhoneRequiredNoTin,
       );
       if (customerError != null) {
         throw Exception(customerError);
@@ -176,8 +179,8 @@ class _TicketWorkflowCompleteHostState
 
       final transactionItemsHint =
           ref.read(optimisticCartProvider.notifier).hasPendingFor(ticket.id)
-              ? null
-              : seedItems;
+          ? null
+          : seedItems;
 
       final controller = CheckoutController(ref: ref, context: context);
       await controller.handleCompleteTransaction(
@@ -196,7 +199,7 @@ class _TicketWorkflowCompleteHostState
       ref.invalidate(ticketsStreamProvider);
       showCustomSnackBarUtil(
         context,
-        'Ticket completed',
+        FlipperL10n.current.ticketCompleteDone,
         backgroundColor: Colors.green,
       );
       Navigator.of(context).pop();
@@ -206,7 +209,7 @@ class _TicketWorkflowCompleteHostState
         final message = e.toString().replaceFirst(RegExp(r'^Exception: '), '');
         showCustomSnackBarUtil(
           context,
-          message.isEmpty ? 'Failed to complete ticket' : message,
+          message.isEmpty ? FlipperL10n.current.ticketCompleteFailed : message,
           backgroundColor: Colors.red,
         );
         Navigator.of(context).pop();
@@ -258,8 +261,9 @@ class _TicketWorkflowCompleteHostState
     // here, and clearing that would leave the header falling back to the stale
     // stream row.
     final isExpense = ProxyService.box.isOrdering() ?? false;
-    final cachedPending =
-        ref.read(cachedPendingCartTransactionProvider(isExpense));
+    final cachedPending = ref.read(
+      cachedPendingCartTransactionProvider(isExpense),
+    );
     if (cachedPending != null && cachedPending.id == transaction.id) {
       clearCachedPendingCartTransactionWidget(ref, isExpense: isExpense);
     }
@@ -296,16 +300,19 @@ class _TicketWorkflowCompleteHostState
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  SizedBox(
+                children: [
+                  const SizedBox(
                     width: 36,
                     height: 36,
                     child: CircularProgressIndicator(strokeWidth: 3),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Completing ticket…',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    context.flipperL10n.ticketCompleteInProgress,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

@@ -2,8 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+/// Localized room-state label. [hotelRoomStateLabel] in flipper_models stays
+/// the English source of truth for logic and tests; this is what is shown.
+String hotelRoomStateText(FlipperAppLocalizations l10n, HotelRoomState state) {
+  switch (state) {
+    case HotelRoomState.vacant:
+      return l10n.hotelStateVacant;
+    case HotelRoomState.occupied:
+      return l10n.hotelStateOccupied;
+    case HotelRoomState.reserved:
+      return l10n.hotelStateReserved;
+    case HotelRoomState.dirty:
+      return l10n.hotelStateCleaning;
+    case HotelRoomState.outOfOrder:
+      return l10n.hotelOutOfOrder;
+  }
+}
+
+/// Localized "2 nights · 2 adults · 1 child" line (see [hotelStaySummary]).
+String hotelStaySummaryText(FlipperAppLocalizations l10n, HotelStay stay) {
+  final kids = stay.children > 0
+      ? ' · ${l10n.hotelChildrenCount(stay.children)}'
+      : '';
+  return '${l10n.hotelNightsCount(stay.nights)} · '
+      '${l10n.hotelAdultsCount(stay.adults)}$kids';
+}
 
 /// Same mark + wordmark as the POS shell and Bar Mode header.
 class HotelDeskBrand extends StatelessWidget {
@@ -71,7 +99,7 @@ class HotelStatePill extends StatelessWidget {
           ),
           SizedBox(width: compact ? 5 : 6),
           Text(
-            hotelRoomStateLabel(state),
+            hotelRoomStateText(context.flipperL10n, state),
             style: GoogleFonts.outfit(
               fontSize: compact ? 10.5 : 11.5,
               fontWeight: FontWeight.w700,
@@ -225,7 +253,10 @@ class HotelFloorTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = <(String?, String)>[(null, 'All floors'), ...floors];
+    final entries = <(String?, String)>[
+      (null, context.flipperL10n.hotelAllFloors),
+      ...floors,
+    ];
 
     return SizedBox(
       height: 48,

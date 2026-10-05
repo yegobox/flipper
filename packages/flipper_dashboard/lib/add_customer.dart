@@ -2,6 +2,7 @@
 
 library flipper_login;
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -29,9 +30,9 @@ class AddCustomer extends StatefulHookConsumerWidget {
     bool panelMode = false,
     this.onCompleted,
     this.onDismissed,
-  })  : _showSheetHandle = showSheetHandle,
-        _panelMode = panelMode,
-        super(key: key);
+  }) : _showSheetHandle = showSheetHandle,
+       _panelMode = panelMode,
+       super(key: key);
 
   final String transactionId;
   final String? searchedKey;
@@ -134,13 +135,15 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
   String get _previewTitle {
     final name = _nameController.text.trim();
     if (name.isNotEmpty) return name;
-    return _isBusiness ? 'New business' : 'New customer';
+    return _isBusiness
+        ? context.flipperL10n.customerFormNewBusiness
+        : context.flipperL10n.customerFormNewCustomer;
   }
 
   String get _previewSubtitle {
     final phone = _phoneController.text.trim();
     if (phone.isNotEmpty) return phone;
-    return 'No phone yet';
+    return context.flipperL10n.customerFormNoPhone;
   }
 
   String get _previewInitials {
@@ -195,7 +198,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                 children: [
                   Expanded(
                     child: Text(
-                      isEditing ? 'Edit customer' : 'New customer',
+                      isEditing
+                          ? context.flipperL10n.editCustomer
+                          : context.flipperL10n.customerFormNewCustomer,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -230,24 +235,27 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                   color: mposColorForName(_previewTitle),
                 ),
                 const SizedBox(height: 18),
-                const _FieldLabel('Customer type'),
+                _FieldLabel(context.flipperL10n.customerFormType),
                 const SizedBox(height: 8),
                 _CustomerTypeToggle(
                   isBusiness: _isBusiness,
                   onChanged: (business) {
                     setState(() {
-                      selectedCustomerTypeValue =
-                          business ? 'Business' : 'Individual';
+                      selectedCustomerTypeValue = business
+                          ? 'Business'
+                          : 'Individual';
                     });
                   },
                 ),
                 const SizedBox(height: 16),
                 _CustomerFormField(
-                  label: _isBusiness ? 'Business name' : 'Full name',
+                  label: _isBusiness
+                      ? context.flipperL10n.customerFormBusinessName
+                      : context.flipperL10n.customerFormFullName,
                   controller: _nameController,
                   hint: _isBusiness
-                      ? 'e.g. Kigali Traders Ltd'
-                      : 'e.g. Jean Mukamana',
+                      ? context.flipperL10n.customerFormBusinessNameHint
+                      : context.flipperL10n.customerFormFullNameHint,
                   icon: _isBusiness
                       ? Icons.storefront_outlined
                       : Icons.person_outline_rounded,
@@ -256,7 +264,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                 ),
                 const SizedBox(height: 14),
                 _CustomerFormField(
-                  label: 'Phone number',
+                  label: context.flipperL10n.phoneNumber,
                   controller: _phoneController,
                   hint: '07XX XXX XXX',
                   icon: Icons.smartphone_outlined,
@@ -265,7 +273,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                 ),
                 const SizedBox(height: 14),
                 _CustomerFormField(
-                  label: 'Email address',
+                  label: context.flipperL10n.customerFormEmail,
                   optional: true,
                   controller: _emailController,
                   hint: 'name@email.com',
@@ -275,10 +283,10 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                 ),
                 const SizedBox(height: 14),
                 _CustomerFormField(
-                  label: 'TIN number',
+                  label: context.flipperL10n.tinNumber,
                   optional: true,
                   controller: _tinNumberController,
-                  hint: 'Tax ID for invoices',
+                  hint: context.flipperL10n.customerFormTinHint,
                   icon: Icons.tag_outlined,
                   keyboardType: TextInputType.number,
                   validator: validatePartyTin,
@@ -323,8 +331,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                           if (!context.mounted) return;
                           _complete(
                             isEditing
-                                ? 'Customer updated successfully!'
-                                : 'Customer added and attached',
+                                ? context.flipperL10n.customerFormUpdated
+                                : context.flipperL10n.customerFormAddedAttached,
                           );
                         } catch (e) {
                           if (mounted) {
@@ -332,7 +340,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                               context,
                               e.toString().isNotEmpty
                                   ? e.toString()
-                                  : 'Failed to add customer',
+                                  : context.flipperL10n.customerFormAddFailed,
                               backgroundColor: Colors.red,
                             );
                           }
@@ -357,8 +365,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : Row(
@@ -368,8 +377,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                           const SizedBox(width: 8),
                           Text(
                             isEditing
-                                ? 'Save changes'
-                                : 'Add & attach customer',
+                                ? context.flipperL10n.customerFormSaveChanges
+                                : context.flipperL10n.customerFormAddAttach,
                             style: const TextStyle(
                               fontSize: 15.5,
                               fontWeight: FontWeight.w700,
@@ -473,10 +482,7 @@ class _PreviewCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    color: PosTokens.ink3,
-                  ),
+                  style: const TextStyle(fontSize: 12.5, color: PosTokens.ink3),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -509,9 +515,9 @@ class _FieldLabel extends StatelessWidget {
             ),
           ),
           if (optional)
-            const TextSpan(
-              text: ' · optional',
-              style: TextStyle(
+            TextSpan(
+              text: ' · ${context.flipperL10n.customerFormOptional}',
+              style: const TextStyle(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w500,
                 color: PosTokens.ink3,
@@ -538,7 +544,7 @@ class _CustomerTypeToggle extends StatelessWidget {
       children: [
         Expanded(
           child: _TypeOption(
-            label: 'Individual',
+            label: context.flipperL10n.customerFormIndividual,
             icon: Icons.person_outline_rounded,
             selected: !isBusiness,
             onTap: () => onChanged(false),
@@ -547,7 +553,7 @@ class _CustomerTypeToggle extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _TypeOption(
-            label: 'Business',
+            label: context.flipperL10n.business,
             icon: Icons.apartment_outlined,
             selected: isBusiness,
             onTap: () => onChanged(true),
@@ -586,26 +592,26 @@ class _TypeOption extends StatelessWidget {
             width: selected ? 1.5 : 1,
           ),
         ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: selected ? PosTokens.blue : PosTokens.ink3,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected ? PosTokens.blue : PosTokens.ink3,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: selected ? PosTokens.blue : PosTokens.ink2,
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? PosTokens.blue : PosTokens.ink2,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

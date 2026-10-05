@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_header.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: _header(
                 request,
@@ -110,8 +113,9 @@ void main() {
       expect(find.byIcon(Icons.copy), findsNothing);
     });
 
-    testWidgets('displays approved/requested count for incoming',
-        (tester) async {
+    testWidgets('displays approved/requested count for incoming', (
+      tester,
+    ) async {
       await pumpHeader(tester, mockRequest);
 
       // 5+8 approved / 10+8 requested
@@ -130,10 +134,7 @@ void main() {
 
       expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
       final materials = tester.widgetList<Material>(find.byType(Material));
-      expect(
-        materials.any((m) => m.color == OmTokens.accentWash),
-        isTrue,
-      );
+      expect(materials.any((m) => m.color == OmTokens.accentWash), isTrue);
     });
 
     testWidgets('handles null branch name', (tester) async {
@@ -161,11 +162,10 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
-              body: _header(
-                mockRequest,
-                onToggle: () => toggled = true,
-              ),
+              body: _header(mockRequest, onToggle: () => toggled = true),
             ),
           ),
         ),

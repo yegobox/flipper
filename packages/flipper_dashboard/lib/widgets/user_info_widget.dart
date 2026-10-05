@@ -29,7 +29,7 @@ class UserInfoWidget extends StatefulHookConsumerWidget {
 
 class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
     with BranchSelectionMixin {
-  String _userName = 'Loading...';
+  String _userName = FlipperL10n.current.userInfoLoading;
 
   @override
   void initState() {
@@ -71,7 +71,7 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
       return phone;
     }
 
-    return 'User';
+    return FlipperL10n.current.userInfoFallbackName;
   }
 
   String _getInitials(String name) {
@@ -301,7 +301,7 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
     final logoutLabel = context.flipperL10n.logOut;
 
     return PopupMenuButton<String>(
-      tooltip: 'Account',
+      tooltip: context.flipperL10n.account,
       offset: const Offset(0, 52),
       elevation: 10,
       shadowColor: const Color(0x33103240),
@@ -325,9 +325,9 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
           value: 'switchBranch',
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          child: const _AccountMenuRow(
+          child: _AccountMenuRow(
             icon: Icons.storefront_outlined,
-            label: 'Switch Branch',
+            label: context.flipperL10n.userInfoSwitchBranch,
             iconColor: PosTokens.blue,
             iconBackground: PosTokens.blueTint,
           ),
@@ -337,9 +337,9 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget>
             value: 'switchUser',
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: const _AccountMenuRow(
+            child: _AccountMenuRow(
               icon: Icons.switch_account_outlined,
-              label: 'Switch User',
+              label: context.flipperL10n.userInfoSwitchUser,
               iconColor: PosTokens.blue,
               iconBackground: PosTokens.blueTint,
             ),

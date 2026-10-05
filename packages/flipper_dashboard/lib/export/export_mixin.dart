@@ -6,6 +6,7 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 
@@ -33,8 +34,9 @@ mixin ExportMixin on ConsumerState {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
       String filePath;
-      final business = await ProxyService.getStrategy(Strategy.capella)
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final business = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
       if (ProxyService.box.exportAsPdf()) {
         // Export to PDF using the SfDataGrid's built-in functionality
@@ -139,13 +141,14 @@ mixin ExportMixin on ConsumerState {
     }
 
     // Define column names
+    final l10n = FlipperL10n.current;
     final List<String> columnNames = [
-      'Date',
-      'Transaction ID',
-      'Customer',
-      'Total',
-      'Payment Method',
-      'Status',
+      l10n.reportDate,
+      l10n.transactionId,
+      l10n.customer,
+      l10n.failedPaymentTotal,
+      l10n.reportPaymentMethod,
+      l10n.reportStatus,
     ];
 
     // Add header row with column names
@@ -174,7 +177,7 @@ mixin ExportMixin on ConsumerState {
       print("Added transaction ID: ${transaction.id} at row $rowIndex");
 
       // Customer
-      String customerName = 'Walk-in Customer';
+      String customerName = l10n.reportWalkInCustomer;
       if (transaction.customerName != null &&
           transaction.customerName!.isNotEmpty) {
         customerName = transaction.customerName!;
@@ -191,7 +194,7 @@ mixin ExportMixin on ConsumerState {
       }
 
       // Payment Method - using paymentType instead of paymentMethodName
-      String paymentMethod = 'Cash';
+      String paymentMethod = l10n.cash;
       if (transaction.paymentType != null &&
           transaction.paymentType!.isNotEmpty) {
         paymentMethod = transaction.paymentType!;
@@ -199,9 +202,9 @@ mixin ExportMixin on ConsumerState {
       sheet.getRangeByIndex(rowIndex, 5).setText(paymentMethod);
 
       // Status
-      String status = 'Completed';
+      String status = l10n.reportStatusCompleted;
       if (transaction.status != null) {
-        status = transaction.status ?? 'Unknown';
+        status = transaction.status ?? l10n.reportStatusUnknown;
       }
       sheet.getRangeByIndex(rowIndex, 6).setText(status);
     }

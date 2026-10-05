@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -59,7 +60,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         _selectedVariant = Variant(
           id: widget.initialVariantId!,
           name: widget.initialVariantName!,
-          sku: 'Loading...',
+          sku: FlipperL10n.current.productionOutputLoadingSku,
           productId: 'temp',
           supplyPrice: 0,
           retailPrice: 0,
@@ -104,6 +105,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     final isEdit = widget.workOrderId != null;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: EdgeInsets.all(isMobile ? 0 : 24),
@@ -127,7 +129,9 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
                 decoration: BoxDecoration(
                   color: StockRecountTokens.accentTint,
-                  borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+                  borderRadius: BorderRadius.circular(
+                    StockRecountTokens.radiusMd,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -136,7 +140,9 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                       decoration: BoxDecoration(
                         color: StockRecountTokens.surface,
                         border: Border.all(color: StockRecountTokens.line),
-                        borderRadius: BorderRadius.circular(StockRecountTokens.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          StockRecountTokens.radiusSm,
+                        ),
                       ),
                       child: Icon(
                         isEdit ? Icons.edit_outlined : Icons.add_circle_outline,
@@ -150,7 +156,9 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEdit ? 'Edit Work Order' : 'Create Work Order',
+                            isEdit
+                                ? l10n.productionOutputEditWorkOrder
+                                : l10n.productionOutputCreateWorkOrder,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -159,7 +167,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Plan production output for your products',
+                            l10n.productionOutputFormSubtitle,
                             style: TextStyle(
                               fontSize: 14,
                               color: StockRecountTokens.ink2,
@@ -233,7 +241,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                           vertical: 16,
                         ),
                       ),
-                      child: const Text('Cancel'),
+                      child: Text(l10n.cancel),
                     ),
                   if (!isMobile) const SizedBox(width: 12),
                   Expanded(
@@ -249,7 +257,9 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                         elevation: 0,
                         shadowColor: StockRecountTokens.accentRing,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            StockRecountTokens.radiusSm,
+                          ),
                         ),
                       ),
                       child: _isSubmitting
@@ -274,8 +284,8 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
                                 SizedBox(width: 8),
                                 Text(
                                   isEdit
-                                      ? 'Update Work Order'
-                                      : 'Create Work Order',
+                                      ? l10n.productionOutputUpdateWorkOrder
+                                      : l10n.productionOutputCreateWorkOrder,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -295,6 +305,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Widget _buildProductField() {
+    final l10n = context.flipperL10n;
     return TypeAheadField<Variant>(
       constraints: const BoxConstraints(maxHeight: 260),
       suggestionsCallback: (search) async {
@@ -343,7 +354,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
             subtitle: Text(
-              'SKU: ${variant.sku ?? 'N/A'}',
+              l10n.skuLabel(variant.sku ?? l10n.productionOutputNotAvailable),
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             dense: true,
@@ -365,7 +376,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             },
             child: InputDecorator(
               decoration: InputDecoration(
-                labelText: 'Product/Material *',
+                labelText: l10n.productionOutputProductMaterialRequired,
                 labelStyle: TextStyle(
                   color: Colors.blue[700],
                   fontWeight: FontWeight.w500,
@@ -427,8 +438,8 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
           },
           style: TextStyle(fontSize: 16),
           decoration: InputDecoration(
-            labelText: 'Product/Material *',
-            hintText: 'Search product',
+            labelText: l10n.productionOutputProductMaterialRequired,
+            hintText: l10n.productionOutputSearchProduct,
             hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: Icon(
               Icons.inventory_2_outlined,
@@ -452,7 +463,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
           ),
           validator: (value) {
             if (_selectedVariantId == null) {
-              return 'Please select a product';
+              return l10n.productionOutputSelectProduct;
             }
             return null;
           },
@@ -484,7 +495,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             ),
             const SizedBox(height: 10),
             Text(
-              'No products found',
+              l10n.productionOutputNoProductsFound,
               style: StockRecountHelpers.text(
                 size: 15,
                 weight: FontWeight.w700,
@@ -492,7 +503,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Try a different product name or SKU',
+              l10n.productionOutputNoProductsHint,
               textAlign: TextAlign.center,
               style: StockRecountHelpers.text(
                 size: 13,
@@ -506,16 +517,17 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Widget _buildQuantityField() {
+    final l10n = context.flipperL10n;
     return TextFormField(
       controller: _plannedQtyController,
       keyboardType: TextInputType.number,
       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
-        labelText: 'Planned Quantity *',
+        labelText: l10n.productionOutputPlannedQuantityRequired,
         labelStyle: TextStyle(color: Colors.grey[700]),
         hintText: '0',
         hintStyle: TextStyle(color: Colors.grey[400]),
-        suffixText: 'units',
+        suffixText: l10n.productionOutputUnits,
         suffixStyle: TextStyle(
           color: Colors.grey[600],
           fontWeight: FontWeight.w500,
@@ -543,10 +555,10 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Required';
+          return l10n.productionOutputRequired;
         }
         if (double.tryParse(value) == null || double.parse(value) <= 0) {
-          return 'Invalid quantity';
+          return l10n.invalidQuantity;
         }
         return null;
       },
@@ -558,7 +570,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
       onTap: () => _selectDate(context),
       child: InputDecorator(
         decoration: InputDecoration(
-          labelText: 'Target Date *',
+          labelText: context.flipperL10n.productionOutputTargetDateRequired,
           labelStyle: TextStyle(color: Colors.grey[700]),
           prefixIcon: Icon(Icons.calendar_today, color: Colors.blue[700]),
           border: OutlineInputBorder(
@@ -586,10 +598,11 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Widget _buildShiftField() {
+    final l10n = context.flipperL10n;
     return DropdownButtonFormField<String>(
       initialValue: _selectedShift,
       decoration: InputDecoration(
-        labelText: 'Shift (Optional)',
+        labelText: l10n.productionOutputShiftOptional,
         labelStyle: TextStyle(color: Colors.grey[700]),
         prefixIcon: Icon(Icons.access_time, color: Colors.blue[700]),
         border: OutlineInputBorder(
@@ -608,10 +621,19 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         fillColor: Colors.grey[50],
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      items: const [
-        DropdownMenuItem(value: 'morning', child: Text('Morning')),
-        DropdownMenuItem(value: 'afternoon', child: Text('Afternoon')),
-        DropdownMenuItem(value: 'night', child: Text('Night')),
+      items: [
+        DropdownMenuItem(
+          value: 'morning',
+          child: Text(l10n.productionOutputShiftMorning),
+        ),
+        DropdownMenuItem(
+          value: 'afternoon',
+          child: Text(l10n.productionOutputShiftAfternoon),
+        ),
+        DropdownMenuItem(
+          value: 'night',
+          child: Text(l10n.productionOutputShiftNight),
+        ),
       ],
       onChanged: (value) {
         setState(() {
@@ -622,14 +644,15 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Widget _buildNotesField() {
+    final l10n = context.flipperL10n;
     return TextFormField(
       controller: _notesController,
       maxLines: 3,
       style: TextStyle(fontSize: 16),
       decoration: InputDecoration(
-        labelText: 'Notes',
+        labelText: l10n.productionOutputNotes,
         labelStyle: TextStyle(color: Colors.grey[700]),
-        hintText: 'Additional instructions or comments...',
+        hintText: l10n.productionOutputNotesHint,
         hintStyle: TextStyle(color: Colors.grey[400]),
         prefixIcon: Padding(
           padding: EdgeInsets.only(bottom: 48),
@@ -670,6 +693,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate() && _selectedVariantId != null) {
+      final saveFailedMessage = context.flipperL10n.productionOutputSaveFailed;
       setState(() {
         _isSubmitting = true;
       });
@@ -696,7 +720,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         if (mounted) {
           showCustomSnackBarUtil(
             context,
-            'Could not save the work order. Please try again.',
+            saveFailedMessage,
             type: NotificationType.error,
           );
         }

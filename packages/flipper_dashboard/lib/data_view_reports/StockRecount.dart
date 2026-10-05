@@ -1,6 +1,7 @@
 // a model that take stock id and how input field to enter the new count give me statless widget for that see Refund for example
 
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class StockRecount extends StatelessWidget {
@@ -8,14 +9,18 @@ class StockRecount extends StatelessWidget {
   final Function(String) onRecount;
   final String itemName;
 
-  StockRecount(
-      {required this.stockId, required this.onRecount, required this.itemName});
+  StockRecount({
+    required this.stockId,
+    required this.onRecount,
+    required this.itemName,
+  });
 
   final formKey = GlobalKey<FormState>();
   final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       width: 300,
       padding: EdgeInsets.all(16),
@@ -26,7 +31,7 @@ class StockRecount extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Stock Recount #${itemName}',
+              l10n.reportStockRecountFor(itemName),
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -34,7 +39,7 @@ class StockRecount extends StatelessWidget {
             TextFormField(
               controller: _controller,
               decoration: InputDecoration(
-                labelText: 'New Count',
+                labelText: l10n.reportNewCount,
                 prefixIcon: Icon(Icons.inventory),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -45,10 +50,10 @@ class StockRecount extends StatelessWidget {
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a number';
+                  return l10n.reportPleaseEnterNumber;
                 }
                 if (int.tryParse(value) == null) {
-                  return 'Please enter a valid number';
+                  return l10n.pleaseEnterValidNumber;
                 }
                 return null;
               },
@@ -66,14 +71,14 @@ class StockRecount extends StatelessWidget {
                         Navigator.pop(context);
                       }
                     },
-                    text: 'Submit',
+                    text: l10n.submit,
                   ),
                 ),
                 SizedBox(width: 16),
                 Expanded(
                   child: FlipperButton(
                     onPressed: () => Navigator.pop(context),
-                    text: 'Cancel',
+                    text: l10n.cancel,
                     textColor: Colors.blue,
                     color: Colors.white,
                   ),

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -23,8 +24,9 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _showNotifications(context));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _showNotifications(context),
+    );
 
     // Check for empty notifications in the build method
     if (widget.notifications.isEmpty) {
@@ -101,7 +103,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                 const Icon(Icons.notifications, color: Colors.blue),
                 const SizedBox(width: 12),
                 Text(
-                  '$notificationCount ${notificationCount == 1 ? 'Notification' : 'Notifications'}',
+                  context.flipperL10n.notificationsCount(notificationCount),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -140,7 +142,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           final notification = widget.notifications[index];
           return ListTile(
             title: Text(
-              notification.message ?? 'New Notification',
+              notification.message ?? context.flipperL10n.notificationsNew,
               style: const TextStyle(fontSize: 14),
             ),
             trailing: IconButton(
@@ -157,8 +159,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   void _handleClearAll() async {
     for (var notification in widget.notifications) {
-      await ProxyService.strategy
-          .updateNotification(notificationId: notification.id, completed: true);
+      await ProxyService.strategy.updateNotification(
+        notificationId: notification.id,
+        completed: true,
+      );
     }
 
     setState(() {

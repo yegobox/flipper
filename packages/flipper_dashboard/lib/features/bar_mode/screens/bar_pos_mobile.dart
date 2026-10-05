@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_tab_bar.d
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_pos_catalog_pane.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_tab_bottom_sheet.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -37,8 +38,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
     final total = barTabTotal(lines);
     final isManager = barTenantIsManager(cashier);
     final canChargeRoom = BarRoomCharge.isAvailable(ref);
-    final myLines =
-        lines.where((l) => l.loggedByTenantId == cashier.id).length;
+    final myLines = lines.where((l) => l.loggedByTenantId == cashier.id).length;
     final lineCount = barTabItemCount(lines);
     final serverCount = barTabServerIds(lines).length;
 
@@ -103,13 +103,17 @@ class BarPosMobileScreen extends HookConsumerWidget {
             serverCount: serverCount,
             myLines: myLines,
             onClose: () => showSheet.value = false,
-            onQtyDelta: (line, d) =>
-                BarPosActions.changeQty(ref: ref, tab: tab, line: line, delta: d),
+            onQtyDelta: (line, d) => BarPosActions.changeQty(
+              ref: ref,
+              tab: tab,
+              line: line,
+              delta: d,
+            ),
             onSaveToTab: () {
               showSheet.value = false;
-              ref.read(barModeProvider.notifier).saveToTab(
-                    autoLogout: BarModeSettings.autoLogout,
-                  );
+              ref
+                  .read(barModeProvider.notifier)
+                  .saveToTab(autoLogout: BarModeSettings.autoLogout);
             },
             onBackToTables: () {
               showSheet.value = false;
@@ -150,10 +154,18 @@ class BarPosMobileScreen extends HookConsumerWidget {
     required String opener,
   }) {
     final elapsed = barFormatDuration(DateTime.now().difference(openedAt));
-    final time = MaterialLocalizations.of(context).formatTimeOfDay(
-      TimeOfDay.fromDateTime(openedAt),
-    );
-    final openerBit = opener.isEmpty ? '' : ' by ${opener.split(' ').first}';
+    final time = MaterialLocalizations.of(
+      context,
+    ).formatTimeOfDay(TimeOfDay.fromDateTime(openedAt));
+    final l10n = context.flipperL10n;
+    final meta = opener.isEmpty
+        ? l10n.barTableMetaOpened('${table.seats}', time, elapsed)
+        : l10n.barTableMetaOpenedBy(
+            '${table.seats}',
+            time,
+            opener.split(' ').first,
+            elapsed,
+          );
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
@@ -167,8 +179,9 @@ class BarPosMobileScreen extends HookConsumerWidget {
             color: BarTokens.surface,
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
-              onTap: () =>
-                  ref.read(barModeProvider.notifier).setScreen(BarScreen.tables),
+              onTap: () => ref
+                  .read(barModeProvider.notifier)
+                  .setScreen(BarScreen.tables),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: 40,
@@ -221,7 +234,7 @@ class BarPosMobileScreen extends HookConsumerWidget {
                   ],
                 ),
                 Text(
-                  '${table.seats} seats · opened $time$openerBit · $elapsed',
+                  meta,
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     color: BarTokens.ink3,

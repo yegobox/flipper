@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/maestro_semantics.dart';
@@ -75,11 +76,15 @@ class _MposItemLineState extends State<MposItemLine> {
     final lineSemanticId =
         widget.semanticId ??
         '${MaestroIds.mposItemLinePrefix}.${widget.name.hashCode}';
+    final l10n = context.flipperL10n;
 
     return MaestroSemantics(
       id: lineSemanticId,
       label: widget.name,
-      value: '${widget.qty} at RWF ${mposMoneyLabel(widget.unitPrice)}',
+      value: l10n.mposItemQtyAtPrice(
+        '${widget.qty}',
+        mposMoneyLabel(widget.unitPrice),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         child: Column(
@@ -122,7 +127,10 @@ class _MposItemLineState extends State<MposItemLine> {
                       Row(
                         children: [
                           Text(
-                            'RWF ${mposMoneyLabel(widget.unitPrice)} each',
+                            l10n.pricePerUnitEach(
+                              'RWF',
+                              mposMoneyLabel(widget.unitPrice),
+                            ),
                             style: mposMonoStyle(
                               theme,
                               fontSize: 12,
@@ -131,11 +139,11 @@ class _MposItemLineState extends State<MposItemLine> {
                             ),
                           ),
                           if (_isCustomPrice)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 6),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 6),
                               child: Text(
-                                'edited',
-                                style: TextStyle(
+                                l10n.mposPriceEdited,
+                                style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: PosTokens.blue,
@@ -170,7 +178,9 @@ class _MposItemLineState extends State<MposItemLine> {
                     if (widget.canEdit)
                       MaestroSemantics(
                         id: '$lineSemanticId.price.toggle',
-                        label: _priceOpen ? 'Done editing price' : 'Edit price',
+                        label: _priceOpen
+                            ? l10n.mposDoneEditingPrice
+                            : l10n.mposEditPrice,
                         button: true,
                         enabled: true,
                         child: TextButton.icon(
@@ -182,7 +192,9 @@ class _MposItemLineState extends State<MposItemLine> {
                                 : Icons.sell_outlined,
                             size: 15,
                           ),
-                          label: Text(_priceOpen ? 'Done' : 'Price'),
+                          label: Text(
+                            _priceOpen ? l10n.done : l10n.retailPrice,
+                          ),
                           style: TextButton.styleFrom(
                             foregroundColor: PosTokens.blue,
                             padding: const EdgeInsets.symmetric(
@@ -194,7 +206,7 @@ class _MposItemLineState extends State<MposItemLine> {
                       ),
                     MaestroSemantics(
                       id: '$lineSemanticId.delete',
-                      label: 'Delete ${widget.name}',
+                      label: l10n.mposDeleteItem(widget.name),
                       button: true,
                       enabled: widget.canEdit,
                       child: IconButton(
@@ -224,7 +236,11 @@ class _MposItemLineState extends State<MposItemLine> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Unit price${_isCustomPrice ? ' · default RWF ${mposMoneyLabel(widget.baseUnitPrice)}' : ''}',
+                      _isCustomPrice
+                          ? l10n.mposUnitPriceWithDefault(
+                              mposMoneyLabel(widget.baseUnitPrice),
+                            )
+                          : l10n.mposUnitPrice,
                       style: const TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
@@ -262,7 +278,7 @@ class _MposItemLineState extends State<MposItemLine> {
                           Expanded(
                             child: MaestroSemantics(
                               id: '$lineSemanticId.price.field',
-                              label: 'Unit price for ${widget.name}',
+                              label: l10n.mposUnitPriceFor(widget.name),
                               textField: true,
                               enabled: true,
                               child: TextField(
@@ -296,7 +312,7 @@ class _MposItemLineState extends State<MposItemLine> {
                           if (_isCustomPrice)
                             MaestroSemantics(
                               id: '$lineSemanticId.price.reset',
-                              label: 'Reset price for ${widget.name}',
+                              label: l10n.mposResetPriceFor(widget.name),
                               button: true,
                               enabled: true,
                               child: IconButton(
@@ -361,7 +377,7 @@ class _Stepper extends StatelessWidget {
         children: [
           _StepBtn(
             semanticId: '$semanticId.decrement',
-            label: 'Decrease quantity',
+            label: context.flipperL10n.mposDecreaseQuantity,
             icon: Icons.remove_rounded,
             onTap: enabled && qty > 1 ? onDecrement : null,
           ),
@@ -380,7 +396,7 @@ class _Stepper extends StatelessWidget {
           ),
           _StepBtn(
             semanticId: '$semanticId.increment',
-            label: 'Increase quantity',
+            label: context.flipperL10n.mposIncreaseQuantity,
             icon: Icons.add_rounded,
             onTap: enabled ? onIncrement : null,
           ),

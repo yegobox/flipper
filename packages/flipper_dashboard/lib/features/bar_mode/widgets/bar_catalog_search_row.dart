@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/sync/utils/pos_catalog_search.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -12,11 +13,13 @@ class BarCatalogSearchRow extends ConsumerStatefulWidget {
   const BarCatalogSearchRow({
     super.key,
     required this.controller,
-    this.hintText = 'Search products…',
+    this.hintText,
   });
 
   final TextEditingController controller;
-  final String hintText;
+
+  /// Defaults to the localized "Search products…".
+  final String? hintText;
 
   @override
   ConsumerState<BarCatalogSearchRow> createState() =>
@@ -111,7 +114,7 @@ class _BarCatalogSearchRowState extends ConsumerState<BarCatalogSearchRow> {
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
-                hintText: widget.hintText,
+                hintText: widget.hintText ?? context.flipperL10n.searchProducts,
                 hintStyle: const TextStyle(
                   color: PosTokens.ink4,
                   fontWeight: FontWeight.w400,

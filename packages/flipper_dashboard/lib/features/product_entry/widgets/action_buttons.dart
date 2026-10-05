@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class ActionButtons extends StatelessWidget {
@@ -21,11 +22,9 @@ class ActionButtons extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
         side: BorderSide(color: Colors.grey.shade300),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: const Text('Close'),
+      child: Text(context.flipperL10n.close),
     );
 
     final saveButton = ElevatedButton(
@@ -33,12 +32,8 @@ class ActionButtons extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF006AF6),
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        disabledBackgroundColor: const Color(
-          0xFF006AF6,
-        ).withValues(alpha: 0.6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        disabledBackgroundColor: const Color(0xFF006AF6).withValues(alpha: 0.6),
       ),
       child: isSaving
           ? const SizedBox(
@@ -49,7 +44,10 @@ class ActionButtons extends StatelessWidget {
                 strokeWidth: 2,
               ),
             )
-          : const Text('Save', style: TextStyle(color: Colors.white)),
+          : Text(
+              context.flipperL10n.save,
+              style: const TextStyle(color: Colors.white),
+            ),
     );
 
     return Column(

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class EmptyProductView extends StatelessWidget {
@@ -18,7 +19,9 @@ class EmptyProductView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -31,7 +34,7 @@ class EmptyProductView extends StatelessWidget {
 
             // Title
             Text(
-              'No supplier selected',
+              context.flipperL10n.orderingNoSupplierSelected,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurface,
@@ -42,7 +45,7 @@ class EmptyProductView extends StatelessWidget {
 
             // Subtitle
             Text(
-              'Select a supplier from the search above\nto view available products',
+              context.flipperL10n.orderingSelectSupplierHint,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 height: 1.5,

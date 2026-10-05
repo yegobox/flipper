@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
 /// Pure helpers for refund stock restoration (testable without I/O).
@@ -50,9 +51,7 @@ List<int> stockRestoreQtysForLines({
   }
 
   final targetRestore = (totalUnits * ratio).round().clamp(0, totalUnits);
-  final exact = <double>[
-    for (final q in lineQtys) (q > 0 ? q : 0) * ratio,
-  ];
+  final exact = <double>[for (final q in lineQtys) (q > 0 ? q : 0) * ratio];
   final floors = <int>[for (final e in exact) e.floor()];
   for (var i = 0; i < floors.length; i++) {
     if (floors[i] > lineQtys[i]) floors[i] = lineQtys[i];
@@ -160,17 +159,18 @@ bool hasOutstandingCreditOrBalance(ITransaction transaction) {
 
 /// Human-readable reason the sale cannot be refunded, or null if allowed.
 String? refundBlockReason(ITransaction transaction) {
+  final l10n = FlipperL10n.current;
   if (isTransactionRefunded(transaction)) {
-    return 'This transaction is already refunded';
+    return l10n.refundTransactionAlreadyRefunded;
   }
   if (transaction.receiptType == 'PS') {
-    return 'Cannot refund a proforma receipt';
+    return l10n.refundCannotRefundProforma;
   }
   if (!isTransactionCompletedForRefund(transaction)) {
-    return 'Only completed transactions can be refunded';
+    return l10n.refundOnlyCompleted;
   }
   if (hasOutstandingCreditOrBalance(transaction)) {
-    return 'Credit or partially paid sales cannot be refunded until fully paid';
+    return l10n.refundCreditNotFullyPaid;
   }
   return null;
 }

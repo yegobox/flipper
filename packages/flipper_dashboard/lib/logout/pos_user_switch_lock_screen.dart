@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.d
 import 'package:flipper_dashboard/logout/pos_switch_user_dialog.dart';
 import 'package:flipper_dashboard/logout/pos_user_switch.dart';
 import 'package:flipper_dashboard/logout/pos_user_switch_lock_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
@@ -73,11 +74,8 @@ class _PosUserSwitchLockScreenState
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Could not load staff',
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              color: BarTokens.ink3,
-            ),
+            context.flipperL10n.posSwitchCouldNotLoadStaff,
+            style: GoogleFonts.outfit(fontSize: 14, color: BarTokens.ink3),
           ),
           const SizedBox(height: 12),
           TextButton.icon(
@@ -90,7 +88,7 @@ class _PosUserSwitchLockScreenState
                   )
                 : const Icon(Icons.refresh, size: 18),
             label: Text(
-              'Retry',
+              context.flipperL10n.retry,
               style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
           ),
@@ -101,7 +99,7 @@ class _PosUserSwitchLockScreenState
 
   Widget _refreshIconButton({Color? color}) {
     return IconButton(
-      tooltip: 'Refresh staff list',
+      tooltip: context.flipperL10n.posSwitchRefreshStaff,
       onPressed: (_busy || _refreshing) ? null : _refreshStaff,
       icon: _refreshing
           ? SizedBox(
@@ -137,7 +135,7 @@ class _PosUserSwitchLockScreenState
             children: [
               const BarFlipperBrand(),
               Text(
-                'POS · Shared register',
+                context.flipperL10n.posSwitchSharedRegister,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   color: BarTokens.ink3,
@@ -155,8 +153,7 @@ class _PosUserSwitchLockScreenState
                     Container(
                       decoration: BoxDecoration(
                         color: BarTokens.surface,
-                        borderRadius:
-                            BorderRadius.circular(BarTokens.radiusXl),
+                        borderRadius: BorderRadius.circular(BarTokens.radiusXl),
                         border: Border.all(color: BarTokens.line),
                         boxShadow: BarTokens.shadow3,
                       ),
@@ -167,8 +164,12 @@ class _PosUserSwitchLockScreenState
                             width: 320,
                             child: Container(
                               color: BarTokens.surface2,
-                              padding:
-                                  const EdgeInsets.fromLTRB(22, 26, 22, 26),
+                              padding: const EdgeInsets.fromLTRB(
+                                22,
+                                26,
+                                22,
+                                26,
+                              ),
                               child: staffAsync.when(
                                 skipLoadingOnReload: true,
                                 loading: () => const Center(
@@ -183,10 +184,12 @@ class _PosUserSwitchLockScreenState
                                           alignment: Alignment.centerRight,
                                           child: _refreshIconButton(),
                                         ),
-                                        const Expanded(
+                                        Expanded(
                                           child: Center(
                                             child: Text(
-                                              'No staff members available.',
+                                              context
+                                                  .flipperL10n
+                                                  .posSwitchNoStaffAvailable,
                                             ),
                                           ),
                                         ),
@@ -207,8 +210,12 @@ class _PosUserSwitchLockScreenState
                                   enabled: _selected != null && !_busy,
                                   title: _selected?.name ?? '—',
                                   hint: _selected == null
-                                      ? 'Tap your name on the left, then enter your PIN'
-                                      : 'Enter your 6-digit PIN to open POS',
+                                      ? context
+                                            .flipperL10n
+                                            .posSwitchTapYourNameLeft
+                                      : context
+                                            .flipperL10n
+                                            .posSwitchEnterYourPin,
                                   avatarLabel: _selected == null
                                       ? null
                                       : barTenantInitials(_selected!.name),
@@ -233,9 +240,7 @@ class _PosUserSwitchLockScreenState
                     ),
                     if (_busy)
                       Positioned.fill(
-                        child: _BusyOverlay(
-                          name: _selected?.name,
-                        ),
+                        child: _BusyOverlay(name: _selected?.name),
                       ),
                   ],
                 ),
@@ -257,8 +262,7 @@ class _PosUserSwitchLockScreenState
           children: [
             staffAsync.when(
               skipLoadingOnReload: true,
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => _staffLoadError(),
               data: (staff) => RefreshIndicator(
                 color: BarTokens.blue,
@@ -279,7 +283,8 @@ class _PosUserSwitchLockScreenState
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          'POS · SHARED REGISTER',
+                          context.flipperL10n.posSwitchSharedRegister
+                              .toUpperCase(),
                           style: GoogleFonts.outfit(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w800,
@@ -289,7 +294,7 @@ class _PosUserSwitchLockScreenState
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          "Who's serving?",
+                          context.flipperL10n.posSwitchWhosServing,
                           style: GoogleFonts.outfit(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
@@ -298,9 +303,11 @@ class _PosUserSwitchLockScreenState
                         ),
                         const SizedBox(height: 18),
                         if (staff.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Text('No staff members available.'),
+                          Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              context.flipperL10n.posSwitchNoStaffAvailable,
+                            ),
                           )
                         else ...[
                           BarMobilePeopleStrip(
@@ -314,8 +321,8 @@ class _PosUserSwitchLockScreenState
                             enabled: _selected != null && !_busy,
                             title: _selected?.name ?? '—',
                             hint: _selected == null
-                                ? 'Tap your name above, then enter your PIN'
-                                : 'Enter your 6-digit PIN to open POS',
+                                ? context.flipperL10n.posSwitchTapYourNameAbove
+                                : context.flipperL10n.posSwitchEnterYourPin,
                             avatarLabel: _selected == null
                                 ? null
                                 : barTenantInitials(_selected!.name),
@@ -337,9 +344,7 @@ class _PosUserSwitchLockScreenState
               ),
             ),
             if (_busy)
-              Positioned.fill(
-                child: _BusyOverlay(name: _selected?.name),
-              ),
+              Positioned.fill(child: _BusyOverlay(name: _selected?.name)),
           ],
         ),
       ),
@@ -358,7 +363,7 @@ class _PosUserSwitchLockScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'WHO\'S ON THE REGISTER?',
+                    context.flipperL10n.posSwitchWhosOnRegister.toUpperCase(),
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -368,7 +373,7 @@ class _PosUserSwitchLockScreenState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Who\'s on the register?',
+                    context.flipperL10n.posSwitchWhosOnRegister,
                     style: GoogleFonts.outfit(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -391,91 +396,92 @@ class _PosUserSwitchLockScreenState
               itemCount: staff.length,
               separatorBuilder: (_, __) => const SizedBox(height: 9),
               itemBuilder: (context, i) {
-              final person = staff[i];
-              final selected = _selected?.id == person.id;
-              final color = barColorForTenant(person.id, staff);
-              return Material(
-                color: selected ? BarTokens.blueTint : BarTokens.surface,
-                borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-                child: InkWell(
-                  onTap: _busy
-                      ? null
-                      : () => setState(() => _selected = person),
+                final person = staff[i];
+                final selected = _selected?.id == person.id;
+                final color = barColorForTenant(person.id, staff);
+                return Material(
+                  color: selected ? BarTokens.blueTint : BarTokens.surface,
                   borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 11,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(BarTokens.radiusMd),
-                      border: Border.all(
-                        color: selected ? BarTokens.blue : BarTokens.line,
-                        width: 1.5,
+                  child: InkWell(
+                    onTap: _busy
+                        ? null
+                        : () => setState(() => _selected = person),
+                    borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 11,
                       ),
-                      boxShadow: selected
-                          ? [
-                              BoxShadow(
-                                color: BarTokens.blue.withValues(alpha: 0.1),
-                                spreadRadius: 3,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(BarTokens.radiusMd),
+                        border: Border.all(
+                          color: selected ? BarTokens.blue : BarTokens.line,
+                          width: 1.5,
+                        ),
+                        boxShadow: selected
+                            ? [
+                                BoxShadow(
+                                  color: BarTokens.blue.withValues(alpha: 0.1),
+                                  spreadRadius: 3,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(13),
+                            ),
+                            child: Text(
+                              barTenantInitials(person.name),
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
                               ),
-                            ]
-                          : null,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: color,
-                            borderRadius: BorderRadius.circular(13),
-                          ),
-                          child: Text(
-                            barTenantInitials(person.name),
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 13),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                person.name ?? 'Staff',
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    BarStaffRow.roleLabel(person),
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12,
-                                      color: BarTokens.ink3,
-                                    ),
+                          const SizedBox(width: 13),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  person.name ??
+                                      context.flipperL10n.posSwitchStaff,
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
                                   ),
-                                  if (barTenantIsManager(person)) ...[
-                                    const SizedBox(width: 5),
-                                    const BarManagerTag(),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      BarStaffRow.roleLabel(person),
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        color: BarTokens.ink3,
+                                      ),
+                                    ),
+                                    if (barTenantIsManager(person)) ...[
+                                      const SizedBox(width: 5),
+                                      const BarManagerTag(),
+                                    ],
                                   ],
-                                ],
-                              ),
-                            ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
             ),
           ),
         ),
@@ -493,8 +499,8 @@ class _BusyOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = (name != null && name!.trim().isNotEmpty)
-        ? 'Opening POS for ${name!.trim()}…'
-        : 'Opening POS…';
+        ? context.flipperL10n.posSwitchOpeningPosFor(name!.trim())
+        : context.flipperL10n.posSwitchOpeningPos;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(BarTokens.radiusXl),

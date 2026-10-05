@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -92,7 +93,7 @@ class FileUtils {
     final resolvedFileName = fileName ?? '${formattedDate}-Report.pdf';
 
     final savedPath = await FilePicker.platform.saveFile(
-      dialogTitle: 'Save PDF file',
+      dialogTitle: FlipperL10n.current.reportSavePdfFile,
       fileName: resolvedFileName,
       type: FileType.custom,
       allowedExtensions: ['pdf'],
@@ -148,11 +149,11 @@ class FileUtils {
       final mimeType = lookupMimeType(filePath);
       await Share.shareXFiles([
         XFile.fromData(bytes, mimeType: mimeType, name: fileName),
-      ], subject: 'Report Download - $formattedDate');
+      ], subject: FlipperL10n.current.reportDownloadSubject(formattedDate));
     } else {
       await Share.shareXFiles([
         XFile(filePath),
-      ], subject: 'Report Download - $formattedDate');
+      ], subject: FlipperL10n.current.reportDownloadSubject(formattedDate));
     }
   }
 

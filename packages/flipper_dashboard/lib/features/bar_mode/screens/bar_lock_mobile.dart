@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_people_strip.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -24,12 +25,13 @@ class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(barStaffProvider);
+    final l10n = context.flipperL10n;
 
     return BarMobileShell(
       backgroundColor: BarTokens.bg,
       body: staffAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Could not load staff')),
+        error: (_, __) => Center(child: Text(l10n.barCouldNotLoadStaff)),
         data: (staff) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           child: Column(
@@ -38,7 +40,7 @@ class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
               const BarFlipperBrand(),
               const SizedBox(height: 14),
               Text(
-                'BAR MODE · SHARED REGISTER',
+                l10n.barModeSharedRegister.toUpperCase(),
                 style: GoogleFonts.outfit(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
@@ -48,7 +50,7 @@ class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
               ),
               const SizedBox(height: 3),
               Text(
-                "Who's serving?",
+                l10n.barWhosServing,
                 style: GoogleFonts.outfit(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -67,8 +69,8 @@ class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
                 enabled: _selected != null,
                 title: _selected?.name ?? '—',
                 hint: _selected == null
-                    ? 'Tap your name above, then enter your PIN'
-                    : 'Enter your 6-digit PIN to log orders',
+                    ? l10n.barLockHintTapAbove
+                    : l10n.barLockHintEnterPin,
                 avatarLabel: _selected == null
                     ? null
                     : barTenantInitials(_selected!.name),
@@ -90,11 +92,15 @@ class _BarLockMobileScreenState extends ConsumerState<BarLockMobileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.settings_outlined, size: 13, color: BarTokens.ink4),
+                  Icon(
+                    Icons.settings_outlined,
+                    size: 13,
+                    color: BarTokens.ink4,
+                  ),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      'Bar mode configured by admin on the main terminal',
+                      l10n.barConfiguredByAdmin,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
                         fontSize: 11.5,

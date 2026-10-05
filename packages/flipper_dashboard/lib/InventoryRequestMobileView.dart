@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,7 @@ class InventoryRequestMobileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Branch Orders',
+        title: context.flipperL10n.branchOrders,
         icon: Icons.arrow_back,
         onPop: () => Navigator.of(context).maybePop(),
       ),

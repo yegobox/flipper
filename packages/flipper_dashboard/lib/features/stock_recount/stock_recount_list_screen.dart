@@ -1,4 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
@@ -81,7 +82,10 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
     } catch (e, st) {
       talker.error('StockRecountList: start session failed', e, st);
       if (mounted) {
-        showStockRecountToast(context, 'Could not start recount: $e');
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountStartFailed(e.toString()),
+        );
       }
     }
   }
@@ -90,15 +94,19 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete recount?'),
-        content: const Text(
-          'Delete this draft recount? This cannot be undone.',
-        ),
+        title: Text(ctx.flipperL10n.stockRecountDeleteTitle),
+        content: Text(ctx.flipperL10n.stockRecountDeleteMessage),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ctx.flipperL10n.cancel),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete', style: TextStyle(color: StockRecountTokens.neg)),
+            child: Text(
+              ctx.flipperL10n.delete,
+              style: const TextStyle(color: StockRecountTokens.neg),
+            ),
           ),
         ],
       ),
@@ -106,10 +114,17 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
     if (confirm != true) return;
     try {
       await _service.deleteRecount(id);
-      if (mounted) showStockRecountToast(context, 'Recount deleted');
+      if (mounted) {
+        showStockRecountToast(context, context.flipperL10n.stockRecountDeleted);
+      }
     } catch (e, st) {
       talker.error('StockRecountList: delete failed', e, st);
-      if (mounted) showStockRecountToast(context, 'Delete failed: $e');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountDeleteFailed(e.toString()),
+        );
+      }
     }
   }
 
@@ -122,17 +137,23 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
       final tenant = await ProxyService.strategy.getTenant(
         userId: ProxyService.box.getUserId() ?? '',
       );
-      final branchName =
-          await StockRecountExportContext.resolveBranchName(recount.branchId);
+      final branchName = await StockRecountExportContext.resolveBranchName(
+        recount.branchId,
+      );
       await StockRecountPdfExport.previewAndShare(
         recount: recount,
         items: items,
-        businessName: tenant?.name ?? 'Business',
+        businessName: tenant?.name ?? FlipperL10n.current.business,
         branchName: branchName,
       );
     } catch (e, st) {
       talker.error('StockRecountList: PDF export failed', e, st);
-      if (mounted) showStockRecountToast(context, 'Export failed: $e');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountExportFailed(e.toString()),
+        );
+      }
     } finally {
       if (mounted) setState(() => _exportingRecountId = null);
     }
@@ -142,14 +163,11 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
     final q = _searchQuery.trim().toLowerCase();
     if (q.isEmpty) return recounts;
     return recounts.where((r) {
-      final base =
-          '${r.deviceName} ${r.notes} ${r.status}'.toLowerCase();
+      final base = '${r.deviceName} ${r.notes} ${r.status}'.toLowerCase();
       if (base.contains(q)) return true;
       final items = _itemsCache[r.id];
       if (items == null) return false;
-      return items.any(
-        (i) => i.productName.toLowerCase().contains(q),
-      );
+      return items.any((i) => i.productName.toLowerCase().contains(q));
     }).toList();
   }
 
@@ -166,8 +184,8 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const Scaffold(
-        body: Center(child: Text('No branch selected')),
+      return Scaffold(
+        body: Center(child: Text(context.flipperL10n.noBranchSelected)),
       );
     }
 
@@ -177,99 +195,117 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
         body: Stack(
           children: [
             StreamBuilder<List<StockRecount>>(
-        stream: _stream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final all = snapshot.data ?? [];
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _refreshItemStats(all);
-          });
-          final counts = _statusCounts(all);
-          final statusFiltered = _filterStatus == 'all'
-              ? all
-              : all.where((r) => r.status == _filterStatus).toList();
-          final filtered = _filterRecounts(statusFiltered);
-          final hasFilter = _filterStatus != 'all' || _searchQuery.isNotEmpty;
-
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final pad = StockRecountHelpers.horizontalPadding(constraints.maxWidth);
-              return Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: StockRecountTokens.maxContentWidth,
-                  ),
-                  child: ListView(
-                    padding: EdgeInsets.fromLTRB(pad, 20, pad, 140),
-                    children: [
-                      StockRecountSearchField(
-                        controller: _searchController,
-                        hint: 'Search device, note, or product…',
-                        onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                        onClear: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
+              stream: _stream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      context.flipperL10n.errorMessage(
+                        snapshot.error.toString(),
                       ),
-                      const SizedBox(height: 14),
-                      _FilterChipsRow(
-                        selected: _filterStatus,
-                        counts: counts,
-                        onSelected: (s) => setState(() => _filterStatus = s),
-                      ),
-                      if (filtered.isEmpty)
-                        _EmptyState(
-                          hasSessions: all.isNotEmpty,
-                          filtered: hasFilter,
-                          onPrimary: hasFilter
-                              ? () => setState(() {
-                                  _filterStatus = 'all';
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                })
-                              : _startNewRecount,
-                          primaryLabel: hasFilter ? 'Clear filters' : 'Start new recount',
-                          ghost: hasFilter,
-                        )
-                      else
-                        ...filtered.map((recount) {
-                          final stats = _statsCache[recount.id];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _RecountListCard(
-                              recount: recount,
-                              stats: stats,
-                              exporting: _exportingRecountId == recount.id,
-                              onOpen: () => Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => StockRecountActiveScreen(
-                                    recountId: recount.id,
-                                  ),
-                                ),
+                    ),
+                  );
+                }
+
+                final all = snapshot.data ?? [];
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _refreshItemStats(all);
+                });
+                final counts = _statusCounts(all);
+                final statusFiltered = _filterStatus == 'all'
+                    ? all
+                    : all.where((r) => r.status == _filterStatus).toList();
+                final filtered = _filterRecounts(statusFiltered);
+                final hasFilter =
+                    _filterStatus != 'all' || _searchQuery.isNotEmpty;
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final pad = StockRecountHelpers.horizontalPadding(
+                      constraints.maxWidth,
+                    );
+                    return Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: StockRecountTokens.maxContentWidth,
+                        ),
+                        child: ListView(
+                          padding: EdgeInsets.fromLTRB(pad, 20, pad, 140),
+                          children: [
+                            StockRecountSearchField(
+                              controller: _searchController,
+                              hint: context.flipperL10n.stockRecountSearchHint,
+                              onChanged: (v) => setState(
+                                () => _searchQuery = v.toLowerCase(),
                               ),
-                              onExport: () => _exportPdf(recount),
-                              onDelete: recount.status == 'draft'
-                                  ? () => _deleteRecount(recount.id)
-                                  : null,
+                              onClear: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
                             ),
-                          );
-                        }),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                            const SizedBox(height: 14),
+                            _FilterChipsRow(
+                              selected: _filterStatus,
+                              counts: counts,
+                              onSelected: (s) =>
+                                  setState(() => _filterStatus = s),
+                            ),
+                            if (filtered.isEmpty)
+                              _EmptyState(
+                                hasSessions: all.isNotEmpty,
+                                filtered: hasFilter,
+                                onPrimary: hasFilter
+                                    ? () => setState(() {
+                                        _filterStatus = 'all';
+                                        _searchController.clear();
+                                        _searchQuery = '';
+                                      })
+                                    : _startNewRecount,
+                                primaryLabel: hasFilter
+                                    ? context
+                                          .flipperL10n
+                                          .stockRecountClearFilters
+                                    : context.flipperL10n.stockRecountStartNew,
+                                ghost: hasFilter,
+                              )
+                            else
+                              ...filtered.map((recount) {
+                                final stats = _statsCache[recount.id];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 14),
+                                  child: _RecountListCard(
+                                    recount: recount,
+                                    stats: stats,
+                                    exporting:
+                                        _exportingRecountId == recount.id,
+                                    onOpen: () => Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) =>
+                                            StockRecountActiveScreen(
+                                              recountId: recount.id,
+                                            ),
+                                      ),
+                                    ),
+                                    onExport: () => _exportPdf(recount),
+                                    onDelete: recount.status == 'draft'
+                                        ? () => _deleteRecount(recount.id)
+                                        : null,
+                                  ),
+                                );
+                              }),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
             Align(
               alignment: Alignment.bottomRight,
               child: StockRecountFab(onPressed: _startNewRecount),
@@ -294,11 +330,10 @@ class _FilterChipsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const labels = {
-      'all': 'All',
-      'draft': 'Draft',
-      'submitted': 'Submitted',
-      'synced': 'Synced',
+    final l10n = context.flipperL10n;
+    final labels = {
+      for (final status in const ['all', 'draft', 'submitted', 'synced'])
+        status: StockRecountHelpers.statusLabel(l10n, status),
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -307,7 +342,7 @@ class _FilterChipsRow extends StatelessWidget {
           StockRecountIcons.filter(size: 15, color: StockRecountTokens.ink3),
           const SizedBox(width: 6),
           Text(
-            'Filter',
+            l10n.stockRecountFilter,
             style: StockRecountHelpers.text(
               size: 13.5,
               weight: FontWeight.w600,
@@ -326,7 +361,9 @@ class _FilterChipsRow extends StatelessWidget {
                     padding: const EdgeInsets.only(right: 8),
                     child: InkWell(
                       onTap: () => onSelected(e.key),
-                      borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
+                      borderRadius: BorderRadius.circular(
+                        StockRecountTokens.radiusPill,
+                      ),
                       child: Container(
                         height: 36,
                         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -334,7 +371,9 @@ class _FilterChipsRow extends StatelessWidget {
                           color: active
                               ? StockRecountTokens.accent
                               : StockRecountTokens.surface,
-                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
+                          borderRadius: BorderRadius.circular(
+                            StockRecountTokens.radiusPill,
+                          ),
                           border: Border.all(
                             color: active
                                 ? StockRecountTokens.accent
@@ -352,7 +391,9 @@ class _FilterChipsRow extends StatelessWidget {
                               style: StockRecountHelpers.text(
                                 size: 13.5,
                                 weight: FontWeight.w600,
-                                color: active ? Colors.white : StockRecountTokens.ink2,
+                                color: active
+                                    ? Colors.white
+                                    : StockRecountTokens.ink2,
                               ),
                             ),
                             const SizedBox(width: 7),
@@ -372,7 +413,9 @@ class _FilterChipsRow extends StatelessWidget {
                                 style: StockRecountHelpers.text(
                                   size: 11.5,
                                   weight: FontWeight.w700,
-                                  color: active ? Colors.white : StockRecountTokens.ink3,
+                                  color: active
+                                      ? Colors.white
+                                      : StockRecountTokens.ink3,
                                 ),
                               ),
                             ),
@@ -408,6 +451,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 56),
       child: Column(
@@ -424,18 +468,23 @@ class _EmptyState extends StatelessWidget {
                 ],
               ),
             ),
-            child: StockRecountIcons.archive(size: 40, color: StockRecountTokens.accent),
+            child: StockRecountIcons.archive(
+              size: 40,
+              color: StockRecountTokens.accent,
+            ),
           ),
           const SizedBox(height: 22),
           Text(
-            hasSessions ? 'Nothing matches' : 'No recounts yet',
+            hasSessions
+                ? l10n.stockRecountNothingMatches
+                : l10n.stockRecountNoRecountsYet,
             style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
             hasSessions
-                ? 'Try a different search term or filter to find the recount you’re after.'
-                : 'Start a new recount session to count physical stock against your system records.',
+                ? l10n.stockRecountNothingMatchesHint
+                : l10n.stockRecountEmptyHint,
             textAlign: TextAlign.center,
             style: StockRecountHelpers.text(
               size: 14.5,
@@ -476,8 +525,9 @@ class _RecountListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final isDraft = recount.status == 'draft';
-    final name = recount.deviceName ?? 'Unknown device';
+    final name = recount.deviceName ?? l10n.stockRecountUnknownDevice;
     return stockRecountCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -515,10 +565,15 @@ class _RecountListCard extends StatelessWidget {
                         const SizedBox(height: 3),
                         Row(
                           children: [
-                            StockRecountIcons.clock(size: 13, color: StockRecountTokens.ink3),
+                            StockRecountIcons.clock(
+                              size: 13,
+                              color: StockRecountTokens.ink3,
+                            ),
                             const SizedBox(width: 6),
                             Text(
-                              StockRecountHelpers.formatDateTime(recount.createdAt),
+                              StockRecountHelpers.formatDateTime(
+                                recount.createdAt,
+                              ),
                               style: StockRecountHelpers.text(
                                 size: 12.5,
                                 color: StockRecountTokens.ink3,
@@ -526,7 +581,8 @@ class _RecountListCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (recount.notes != null && recount.notes!.trim().isNotEmpty)
+                        if (recount.notes != null &&
+                            recount.notes!.trim().isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 5),
                             child: Text(
@@ -543,7 +599,10 @@ class _RecountListCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  StockRecountIcons.chevronRight(size: 20, color: StockRecountTokens.ink4),
+                  StockRecountIcons.chevronRight(
+                    size: 20,
+                    color: StockRecountTokens.ink4,
+                  ),
                 ],
               ),
             ),
@@ -552,7 +611,9 @@ class _RecountListCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(18, 11, 18, 11),
             decoration: const BoxDecoration(
               color: StockRecountTokens.surface2,
-              border: Border(top: BorderSide(color: StockRecountTokens.lineSoft)),
+              border: Border(
+                top: BorderSide(color: StockRecountTokens.lineSoft),
+              ),
             ),
             child: Row(
               children: [
@@ -563,14 +624,22 @@ class _RecountListCard extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _iconPill(
-                        StockRecountIcons.stack(size: 13, color: StockRecountTokens.ink2),
-                        '${stats?.count ?? recount.totalItemsCounted} ${(stats?.count ?? recount.totalItemsCounted) == 1 ? 'item' : 'items'}',
+                        StockRecountIcons.stack(
+                          size: 13,
+                          color: StockRecountTokens.ink2,
+                        ),
+                        l10n.stockRecountItemCount(
+                          stats?.count ?? recount.totalItemsCounted,
+                        ),
                       ),
                       if (stats != null) StockRecountNetPill(net: stats!.net),
                       if (stats != null && stats!.short > 0)
                         _iconPill(
-                          StockRecountIcons.arrowDown(size: 13, color: StockRecountTokens.negText),
-                          '${stats!.short} short',
+                          StockRecountIcons.arrowDown(
+                            size: 13,
+                            color: StockRecountTokens.negText,
+                          ),
+                          l10n.stockRecountShortCount('${stats!.short}'),
                           bg: StockRecountTokens.negTint,
                           border: StockRecountTokens.negBorder,
                           fg: StockRecountTokens.negText,
@@ -578,14 +647,11 @@ class _RecountListCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                StockRecountExportLink(
-                  onPressed: onExport,
-                  loading: exporting,
-                ),
+                StockRecountExportLink(onPressed: onExport, loading: exporting),
                 if (onDelete != null)
                   StockRecountDeleteButton(
                     onPressed: onDelete!,
-                    tooltip: 'Delete draft',
+                    tooltip: l10n.stockRecountDeleteDraft,
                   ),
               ],
             ),

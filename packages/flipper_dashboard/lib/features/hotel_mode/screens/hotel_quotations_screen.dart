@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_provi
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_quotation_sheet.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
@@ -45,11 +46,12 @@ class HotelQuotationsScreen extends ConsumerWidget {
                       const Center(child: CircularProgressIndicator()),
                   error: (e, _) => Center(child: Text('$e')),
                   data: (_) => quotes.isEmpty
-                      ? _empty()
+                      ? _empty(context)
                       : ListView.separated(
                           padding: EdgeInsets.fromLTRB(pad, pad, pad, pad + 12),
                           itemCount: quotes.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, i) => _quoteCard(
                             context,
                             ref,
@@ -77,6 +79,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
     bool compact,
   ) {
     final live = quotes.where(hotelQuotationCanConvert).length;
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -100,10 +103,11 @@ class HotelQuotationsScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
                 ),
                 child: TextButton.icon(
-                  onPressed: () => _newQuote(context, ref, rooms, stays, compact),
+                  onPressed: () =>
+                      _newQuote(context, ref, rooms, stays, compact),
                   icon: const Icon(Icons.add, size: 18, color: Colors.white),
                   label: Text(
-                    compact ? 'New' : 'New quotation',
+                    compact ? l10n.hotelQuoteNew : l10n.hotelNewQuotation,
                     style: GoogleFonts.outfit(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w800,
@@ -116,7 +120,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Quotations',
+            l10n.hotelQuotations,
             style: GoogleFonts.outfit(
               fontSize: compact ? 16 : 19,
               fontWeight: FontWeight.w800,
@@ -125,7 +129,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
             ),
           ),
           Text(
-            '$live open · a quotation holds no room until it is accepted',
+            l10n.hotelQuotationsOpenSummary(live),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
@@ -139,13 +143,12 @@ class HotelQuotationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _empty() {
+  Widget _empty(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(30),
         child: Text(
-          'No quotations yet.\nCreate one to price a stay for a guest before '
-          'they commit.',
+          context.flipperL10n.hotelNoQuotationsYet,
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 14,
@@ -174,6 +177,16 @@ class HotelQuotationsScreen extends ConsumerWidget {
       'Declined' => (HotelTokens.lossInk, HotelTokens.dirtyTint),
       'Accepted' => (HotelTokens.reservedInk, HotelTokens.reservedTint),
       _ => (HotelTokens.occupiedInk, HotelTokens.occupiedTint),
+    };
+    final l10n = context.flipperL10n;
+    final statusText = switch (label) {
+      'Booked' => l10n.hotelQuoteStatusBooked,
+      'Expired' => l10n.hotelQuoteStatusExpired,
+      'Declined' => l10n.hotelQuoteStatusDeclined,
+      'Accepted' => l10n.hotelQuoteStatusAccepted,
+      'Sent' => l10n.hotelQuoteStatusSent,
+      'Draft' => l10n.hotelQuoteStatusDraft,
+      _ => label,
     };
     final statusIcon = switch (label) {
       'Booked' || 'Accepted' => AdminDashboardSvgs.quoteCheckCircle,
@@ -228,7 +241,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
             children: [
               _metaChip(
                 AdminDashboardSvgs.quoteBed,
-                'Room ${quote.roomName} · ${quote.roomType}',
+                l10n.hotelRoomWithType(quote.roomName, quote.roomType),
               ),
               _metaChip(
                 AdminDashboardSvgs.quoteCalendar,
@@ -237,7 +250,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
               ),
               _metaChip(
                 AdminDashboardSvgs.quoteMoon,
-                '${quote.nights} night${quote.nights == 1 ? '' : 's'}',
+                l10n.hotelNightsCount(quote.nights),
               ),
             ],
           ),
@@ -245,8 +258,10 @@ class HotelQuotationsScreen extends ConsumerWidget {
             const SizedBox(height: 6),
             _metaChip(
               AdminDashboardSvgs.quoteSend,
-              'Emailed ${DateFormat('d MMM, HH:mm').format(quote.sentAt!.toLocal())}'
-              '${quote.guestEmail == null ? '' : ' · ${quote.guestEmail}'}',
+              l10n.hotelQuoteEmailedAt(
+                    DateFormat('d MMM, HH:mm').format(quote.sentAt!.toLocal()),
+                  ) +
+                  (quote.guestEmail == null ? '' : ' · ${quote.guestEmail}'),
               color: HotelTokens.vacantInk,
             ),
           ],
@@ -267,15 +282,21 @@ class HotelQuotationsScreen extends ConsumerWidget {
               if (quote.validUntil != null && canConvert)
                 _metaChip(
                   AdminDashboardSvgs.quoteClock,
-                  'valid to '
-                  '${DateFormat('d MMM').format(quote.validUntil!.toLocal())}',
+                  l10n.hotelQuoteValidTo(
+                    DateFormat('d MMM').format(quote.validUntil!.toLocal()),
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              _statusPill(icon: statusIcon, label: label, ink: ink, tint: tint),
+              _statusPill(
+                icon: statusIcon,
+                label: statusText,
+                ink: ink,
+                tint: tint,
+              ),
               const SizedBox(width: 8),
               // Actions stay right-aligned; the Wrap inside the Expanded lets a
               // narrow terminal drop them onto a second line rather than
@@ -291,7 +312,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                     if (canConvert) ...[
                       _iconTextButton(
                         icon: AdminDashboardSvgs.quoteEdit,
-                        label: 'Edit',
+                        label: l10n.edit,
                         color: HotelTokens.ink2,
                         onPressed: () => _editQuote(
                           context,
@@ -306,7 +327,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                     ] else
                       _iconTextButton(
                         icon: AdminDashboardSvgs.quoteTrash,
-                        label: 'Remove',
+                        label: l10n.remove,
                         color: HotelTokens.lossInk,
                         onPressed: () => _confirmDelete(context, ref, quote),
                       ),
@@ -406,7 +427,6 @@ class HotelQuotationsScreen extends ConsumerWidget {
     );
   }
 
-
   /// Send / Download / Print.
   ///
   /// Deliberately `showMenu` rather than [PopupMenuButton]: that widget always
@@ -424,7 +444,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
     return Builder(
       builder: (buttonContext) => _iconTextButton(
         icon: AdminDashboardSvgs.quoteDocument,
-        label: 'Document',
+        label: context.flipperL10n.hotelQuoteDocument,
         color: HotelTokens.ink2,
         trailingIcon: AdminDashboardSvgs.quoteChevronDown,
         onPressed: () => _showDocumentMenu(buttonContext, ref, quote),
@@ -458,9 +478,11 @@ class HotelQuotationsScreen extends ConsumerWidget {
     HotelQuotation quote,
   ) async {
     final email = quote.guestEmail;
+    final l10n = context.flipperL10n;
     final choice = await showMenu<String>(
       context: context,
-      position: _menuPosition(context) ?? const RelativeRect.fromLTRB(0, 0, 0, 0),
+      position:
+          _menuPosition(context) ?? const RelativeRect.fromLTRB(0, 0, 0, 0),
       color: HotelTokens.surface,
       surfaceTintColor: Colors.transparent,
       // A hairline plus a soft, cool-tinted shadow, like the desk's own
@@ -483,22 +505,24 @@ class HotelQuotationsScreen extends ConsumerWidget {
         _menuItem(
           value: 'send',
           icon: AdminDashboardSvgs.quoteSend,
-          label: email == null ? 'Email to guest' : 'Email PDF to guest',
-          detail: email ?? 'Add an email address first',
+          label: email == null
+              ? l10n.hotelQuoteEmailToGuest
+              : l10n.hotelQuoteEmailPdfToGuest,
+          detail: email ?? l10n.hotelQuoteAddEmailFirst,
           accent: true,
         ),
         const PopupMenuDivider(height: 9),
         _menuItem(
           value: 'download',
           icon: AdminDashboardSvgs.quoteDownload,
-          label: 'Download PDF',
+          label: l10n.hotelQuoteDownloadPdf,
           detail: HotelQuotationActions.fileName(quote),
         ),
         _menuItem(
           value: 'print',
           icon: AdminDashboardSvgs.quotePrint,
-          label: 'Print',
-          detail: 'Open the print dialog',
+          label: l10n.hotelQuotePrint,
+          detail: l10n.hotelQuoteOpenPrintDialog,
         ),
       ],
     );
@@ -524,7 +548,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
       height: 30,
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 2),
       child: Text(
-        'QUOTATION $reference',
+        FlipperL10n.current.hotelQuotationHeader(reference),
         style: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.w700,
@@ -595,15 +619,14 @@ class HotelQuotationsScreen extends ConsumerWidget {
         context: context,
         barrierColor: Colors.black.withValues(alpha: 0.42),
         builder: (dialogContext) {
+          final l10n = dialogContext.flipperL10n;
           String? error;
           return StatefulBuilder(
             builder: (builderContext, setLocalState) {
               void submit() {
                 final value = hotelNormalizeEmail(controller.text);
                 if (value == null || !hotelIsPlausibleEmail(value)) {
-                  setLocalState(
-                    () => error = 'That email does not look right',
-                  );
+                  setLocalState(() => error = l10n.hotelEmailLooksWrong);
                   return;
                 }
                 Navigator.of(dialogContext).pop(value);
@@ -652,7 +675,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Email this quotation',
+                                    l10n.hotelEmailThisQuotation,
                                     style: GoogleFonts.outfit(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w800,
@@ -662,7 +685,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'The PDF goes out as an attachment.',
+                                    l10n.hotelPdfGoesAsAttachment,
                                     style: GoogleFonts.outfit(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w500,
@@ -709,9 +732,8 @@ class HotelQuotationsScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Room ${quote.roomName} · '
-                                    '${quote.nights} night'
-                                    '${quote.nights == 1 ? '' : 's'}',
+                                    '${l10n.hotelRoomNamed(quote.roomName)} · '
+                                    '${l10n.hotelNightsCount(quote.nights)}',
                                     style: GoogleFonts.outfit(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
@@ -752,7 +774,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: HotelSheetField(
-                          label: 'Guest email',
+                          label: l10n.hotelGuestEmail,
                           controller: controller,
                           hint: 'name@example.com',
                           errorText: error,
@@ -768,8 +790,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Text(
-                          'Saved to the quotation, so the next send needs no '
-                          'retyping.',
+                          l10n.hotelEmailSavedToQuotation,
                           style: GoogleFonts.outfit(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w500,
@@ -784,7 +805,8 @@ class HotelQuotationsScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
-                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(),
                               style: TextButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -792,7 +814,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                                 ),
                               ),
                               child: Text(
-                                'Cancel',
+                                l10n.cancel,
                                 style: GoogleFonts.outfit(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w700,
@@ -827,7 +849,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Send quotation',
+                                      l10n.hotelSendQuotation,
                                       style: GoogleFonts.outfit(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w800,
@@ -882,7 +904,7 @@ class HotelQuotationsScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 7),
             Text(
-              'Accept & hold',
+              context.flipperL10n.hotelAcceptAndHold,
               style: GoogleFonts.outfit(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w800,
@@ -950,7 +972,9 @@ class HotelQuotationsScreen extends ConsumerWidget {
     if (room == null) {
       ref
           .read(hotelModeProvider.notifier)
-          .showToast('Room ${quote.roomName} no longer exists on this branch');
+          .showToast(
+            context.flipperL10n.hotelRoomNoLongerOnBranch(quote.roomName),
+          );
       return;
     }
 
@@ -971,23 +995,22 @@ class HotelQuotationsScreen extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(
-          'Remove ${quote.reference}?',
+          dialogContext.flipperL10n.hotelRemoveQuotationTitle(quote.reference),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'This deletes the quotation for ${quote.guestName}. Any reservation '
-          'it already created is untouched.',
+          dialogContext.flipperL10n.hotelRemoveQuotationBody(quote.guestName),
           style: GoogleFonts.outfit(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(dialogContext.flipperL10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Remove'),
+            child: Text(dialogContext.flipperL10n.remove),
           ),
         ],
       ),

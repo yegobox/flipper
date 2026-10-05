@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
@@ -17,7 +18,7 @@ class TenantFormMixin {
 
   static String? validatePhoneOrEmailStatic(String? value) {
     if (value == null || value.isEmpty) {
-      return "Enter valid number or email address";
+      return FlipperL10n.current.tenantMgmtEnterPhoneOrEmail;
     }
 
     if (EmailValidator.validate(value.trim())) {
@@ -26,21 +27,21 @@ class TenantFormMixin {
 
     // If not an email, check if it's a valid phone number
     if (!value.startsWith("+")) {
-      return "Phone number should contain country code with + sign";
+      return FlipperL10n.current.tenantMgmtPhoneNeedsCountryCode;
     }
 
     try {
       final phone = PhoneNumber.parse(value);
       if (!phone.isValid(type: PhoneNumberType.mobile)) {
-        return "Invalid Phone";
+        return FlipperL10n.current.tenantMgmtInvalidPhone;
       }
 
       final phoneExp = RegExp(r'^\+\d{1,3}\d{7,15}$');
       if (!phoneExp.hasMatch(value)) {
-        return "Invalid phone number";
+        return FlipperL10n.current.tenantMgmtInvalidPhone;
       }
     } catch (e) {
-      return "Invalid phone number format";
+      return FlipperL10n.current.tenantMgmtInvalidPhoneFormat;
     }
 
     return null;

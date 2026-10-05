@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,43 +8,45 @@ import 'package:intl/intl.dart';
 class RequestStatusTimeline extends StatelessWidget {
   final ServiceGigRequest request;
 
-  const RequestStatusTimeline({Key? key, required this.request}) : super(key: key);
+  const RequestStatusTimeline({Key? key, required this.request})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final df = DateFormat.yMMMd().add_jm();
     final steps = <_Step>[
       _Step(
-        label: 'Request sent',
+        label: context.flipperL10n.gigsTimelineRequestSent,
         time: request.createdAt,
         done: true,
       ),
       _Step(
-        label: 'Provider accepted',
+        label: context.flipperL10n.gigsTimelineProviderAccepted,
         time: request.acceptedAt,
-        done: request.acceptedAt != null ||
+        done:
+            request.acceptedAt != null ||
             _statusPast(request.status, 'pending_payment'),
       ),
       _Step(
-        label: 'Payment received',
+        label: context.flipperL10n.gigsTimelinePaymentReceived,
         time: request.paidAt,
-        done: request.paidAt != null ||
-            _statusPast(request.status, 'paid'),
+        done: request.paidAt != null || _statusPast(request.status, 'paid'),
       ),
       _Step(
-        label: 'Work in progress',
+        label: context.flipperL10n.gigsTimelineWorkInProgress,
         time: request.providerStartedAt,
-        done: request.providerStartedAt != null ||
+        done:
+            request.providerStartedAt != null ||
             _statusPast(request.status, 'in_progress'),
       ),
       _Step(
-        label: 'Completed',
+        label: context.flipperL10n.gigsStatusCompleted,
         time: request.providerCompletedAt,
         done: request.status == 'completed',
       ),
       if (request.customerRating != null)
         _Step(
-          label: 'Review submitted',
+          label: context.flipperL10n.gigsTimelineReviewSubmitted,
           time: request.reviewSubmittedAt,
           done: true,
         ),
@@ -53,21 +56,14 @@ class RequestStatusTimeline extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Order timeline',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
+          context.flipperL10n.gigsOrderTimeline,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 15),
         ),
         const SizedBox(height: 12),
         ...List.generate(steps.length, (i) {
           final s = steps[i];
           final last = i == steps.length - 1;
-          return _TimelineRow(
-            step: s,
-            showLine: !last,
-            dateFormat: df,
-          );
+          return _TimelineRow(step: s, showLine: !last, dateFormat: df);
         }),
       ],
     );
@@ -93,11 +89,7 @@ class _Step {
   final DateTime? time;
   final bool done;
 
-  _Step({
-    required this.label,
-    required this.time,
-    required this.done,
-  });
+  _Step({required this.label, required this.time, required this.done});
 }
 
 class _TimelineRow extends StatelessWidget {
@@ -144,10 +136,7 @@ class _TimelineRow extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(
-                left: 8,
-                bottom: showLine ? 16 : 0,
-              ),
+              padding: EdgeInsets.only(left: 8, bottom: showLine ? 16 : 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

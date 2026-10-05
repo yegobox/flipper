@@ -4,6 +4,7 @@ import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 HotelStay _stay({
   required String id,
@@ -34,7 +35,11 @@ Future<void> _pump(
         hotelChargeableStaysProvider.overrideWithValue(stays),
         hotelStaysLoadingProvider.overrideWithValue(loading),
       ],
-      child: const MaterialApp(home: Scaffold(body: HotelStayPicker())),
+      child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(body: HotelStayPicker()),
+      ),
     ),
   );
   await tester.pump();

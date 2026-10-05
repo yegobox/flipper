@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:convert';
 
 import 'package:flipper_models/helperModels/talker.dart';
@@ -67,9 +68,7 @@ class TenantOperationsMixin {
 
       if (userType == 'Agent' && !allowBusinessLogin) {
         throw _CreateAgentMigrationRequired(
-          'Commission-only agents need a database update. '
-          'Apply migration supabase/migrations/20260518120000_agent_allow_business_login.sql '
-          '(e.g. supabase db push), or turn on "Allow login on this business" and try again.',
+          FlipperL10n.current.tenantMgmtCommissionAgentMigrationRequired,
         );
       }
 
@@ -184,18 +183,20 @@ class TenantOperationsMixin {
     Map<String, bool>? activeFeaturesBaseline,
     bool allowBusinessLogin = false,
   }) async {
+    // Static helper that crosses async gaps: resolve strings without context.
+    final l10n = FlipperL10n.current;
     try {
       Branch? branch;
       final currentBusinessId = ProxyService.box.getBusinessId();
       if (currentBusinessId == null || currentBusinessId.isEmpty) {
-        _fail(context, 'business_id can not be null');
+        _fail(context, l10n.tenantMgmtNoBusinessSelected);
       }
 
       // Agent: create a dedicated branch for this agent (remote) using the provided name.
       if (!editMode && userType == 'Agent') {
         final bn = (agentBranchName ?? '').trim();
         if (bn.isEmpty) {
-          _fail(context, 'Please enter a branch name for Agent');
+          _fail(context, l10n.tenantMgmtAgentBranchNameRequired);
         }
         branch = await ProxyService.strategy.addBranch(
           businessId: currentBusinessId,
@@ -207,11 +208,14 @@ class TenantOperationsMixin {
         );
       } else {
         // Non-agent (or edit): use existing branch (override when editing to upsert correctly).
-        final currentBranchId = branchIdOverride ?? ProxyService.box.getBranchId();
+        final currentBranchId =
+            branchIdOverride ?? ProxyService.box.getBranchId();
         if (currentBranchId == null || currentBranchId.isEmpty) {
-          _fail(context, 'branch_id can not be null');
+          _fail(context, l10n.noBranchSelected);
         }
-        branch = await ProxyService.strategy.activeBranch(branchId: currentBranchId);
+        branch = await ProxyService.strategy.activeBranch(
+          branchId: currentBranchId,
+        );
       }
 
       final businessIdFromBox = currentBusinessId;
@@ -250,10 +254,7 @@ class TenantOperationsMixin {
           if (branchBusinessId != null &&
               branchBusinessId.isNotEmpty &&
               branchBusinessId != businessIdFromBox) {
-            _fail(
-              context,
-              'Selected branch does not belong to current business. Please switch business/branch and try again.',
-            );
+            _fail(context, l10n.tenantMgmtBranchNotInBusiness);
           }
         }
       } catch (e) {
@@ -282,10 +283,7 @@ class TenantOperationsMixin {
         );
 
         if (userResponse.statusCode != 200) {
-          _fail(
-            context,
-            "Failed to find user with provided phone/email: ${userResponse.body}",
-          );
+          _fail(context, l10n.tenantMgmtUserLookupFailed(userResponse.body));
         }
 
         final userJson = jsonDecode(userResponse.body);
@@ -318,8 +316,7 @@ class TenantOperationsMixin {
       // Call the create_agent RPC function
       dynamic data;
       try {
-        final allowLogin =
-            userType == 'Agent' ? allowBusinessLogin : true;
+        final allowLogin = userType == 'Agent' ? allowBusinessLogin : true;
         data = await _invokeCreateAgent(
           supabaseClient,
           userId: userIdFromApi,
@@ -335,19 +332,13 @@ class TenantOperationsMixin {
         talker.error(s);
         final base = e.message.isNotEmpty
             ? e.message
-            : 'Failed to save permissions (Supabase error).';
-        _fail(
-          context,
-          '$base '
-          'The login account may already exist without a tenant for this business — '
-          'open User Management and add this user again to finish setup.',
-          e,
-        );
+            : l10n.tenantMgmtSavePermissionsSupabaseError;
+        _fail(context, l10n.tenantMgmtSavePermissionsOrphanHint(base), e);
       } on _CreateAgentMigrationRequired catch (e) {
         _fail(context, e.message, e);
       } catch (e, s) {
         talker.error(s);
-        _fail(context, 'Failed to save permissions: $e', e);
+        _fail(context, l10n.tenantMgmtSavePermissionsFailed(e.toString()), e);
       }
 
       // Get the tenant ID returned by the RPC function (PostgREST can return
@@ -375,10 +366,7 @@ class TenantOperationsMixin {
       );
 
       if (pinResponse.statusCode != 200 && pinResponse.statusCode != 201) {
-        _fail(
-          context,
-          "Failed to generate pin for the new tenant: ${pinResponse.body}",
-        );
+        _fail(context, l10n.tenantMgmtPinGenerationFailed(pinResponse.body));
       }
 
       final linkedTenant = await Supabase.instance.client
@@ -388,26 +376,18 @@ class TenantOperationsMixin {
           .eq('business_id', businessIdFromBox)
           .maybeSingle();
       if (linkedTenant == null) {
-        _fail(
-          context,
-          'User was created but has no tenant for this business. '
-          'Re-open User Management and save again, or run supabase migration '
-          '20260519150000_repair_orphan_users_with_pins.sql.',
-        );
+        _fail(context, l10n.tenantMgmtOrphanUser);
       }
 
       await model.loadTenants();
 
       String successMessage;
       if (!editMode) {
-        successMessage = 'Tenant Created Successfully';
+        successMessage = l10n.tenantMgmtCreated;
       } else {
-        successMessage =
-            'Permissions saved. Online users refresh Ditto user_access automatically; offline users pick up changes on next sign-in.';
+        successMessage = l10n.tenantMgmtPermissionsSaved;
         final selfId = ProxyService.box.getUserId();
-        if (selfId != null &&
-            selfId == userIdFromApi &&
-            context.mounted) {
+        if (selfId != null && selfId == userIdFromApi && context.mounted) {
           final loginKey = ProxyService.box.getUserPhone() ?? phone;
           try {
             await ProxyService.strategy.sendLoginRequest(
@@ -422,12 +402,9 @@ class TenantOperationsMixin {
           }
           ref.invalidate(allAccessesProvider(userIdFromApi));
           for (final f in features) {
-            ref.invalidate(
-              userAccessesProvider(userIdFromApi, featureName: f),
-            );
+            ref.invalidate(userAccessesProvider(userIdFromApi, featureName: f));
           }
-          successMessage =
-              'Permissions saved. Your menus have been refreshed.';
+          successMessage = l10n.tenantMgmtPermissionsSavedSelf;
         }
       }
 
@@ -446,7 +423,7 @@ class TenantOperationsMixin {
       talker.error(s);
       showCustomSnackBarUtil(
         context,
-        "An unexpected error occurred: ${e.toString()}",
+        l10n.tenantMgmtUnexpectedError(e.toString()),
         backgroundColor: Colors.red[600],
       );
       rethrow; // Re-throw to allow the calling widget to handle the error as well
@@ -459,7 +436,7 @@ class TenantOperationsMixin {
     BuildContext context,
   ) async {
     if ((tenant.type ?? '').trim().toLowerCase() == 'admin') {
-      _showError(context, 'Admin users cannot be deleted.');
+      _showError(context, context.flipperL10n.tenantMgmtAdminCannotDelete);
       return;
     }
     try {
@@ -470,13 +447,13 @@ class TenantOperationsMixin {
 
       // Check if context is still valid before showing snackbar
       if (context.mounted) {
-        showCustomSnackBarUtil(context, 'Tenant deleted successfully');
+        showCustomSnackBarUtil(context, context.flipperL10n.tenantMgmtDeleted);
       }
     } catch (e) {
       talker.error("Error deleting tenant: $e"); // Log the error
       // Check if context is still valid before showing error
       if (context.mounted) {
-        _showError(context, 'Error deleting tenant. Please try again.');
+        _showError(context, context.flipperL10n.tenantMgmtDeleteFailed);
       }
     }
   }
@@ -491,19 +468,19 @@ class TenantOperationsMixin {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Delete Tenant"),
-          content: const Text("Are you sure you want to delete this tenant?"),
+          title: Text(context.flipperL10n.tenantMgmtDeleteTitle),
+          content: Text(context.flipperL10n.tenantMgmtDeleteConfirm),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
+              child: Text(context.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await onDelete(tenant, model, context); // Await the deletion
               },
-              child: const Text("Delete"),
+              child: Text(context.flipperL10n.delete),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ],

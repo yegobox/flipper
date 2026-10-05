@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -19,9 +20,11 @@ class BulkActionBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final isEbmEnabled = ref.watch(ebmVatEnabledProvider).value ?? false;
     final displayCount = model.uploadedProductCountForUi ?? model.rowCount;
-    final isPrimaryParsing = model.selectedFile != null &&
+    final isPrimaryParsing =
+        model.selectedFile != null &&
         model.excelData == null &&
         model.isLoading &&
         !model.isLoadingFullParse;
@@ -37,22 +40,18 @@ class BulkActionBar extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8, right: 12),
                 child: Chip(
-                  label: Text(
-                    '$displayCount product${displayCount == 1 ? '' : 's'}',
-                  ),
+                  label: Text(l10n.bulkProductProductCount(displayCount)),
                 ),
               ),
             if (isEbmEnabled)
               Expanded(
                 child: SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Register via server (RRA first)'),
-                  subtitle: const Text(
-                    'Catalog is created in Ditto only after RRA succeeds. '
-                    'Turn off to use the previous on-device flow.',
-                  ),
+                  title: Text(l10n.bulkProductRegisterViaServer),
+                  subtitle: Text(l10n.bulkProductRegisterViaServerHint),
                   value: model.useServerBulkRra,
-                  onChanged: model.isSaving ||
+                  onChanged:
+                      model.isSaving ||
                           model.isLoading ||
                           model.isLoadingFullParse
                       ? null
@@ -65,10 +64,11 @@ class BulkActionBar extends ConsumerWidget {
             FlipperButton(
               textColor: Colors.white,
               color: Colors.blue,
-              onPressed: model.canSave && !isPrimaryParsing && !isSecondaryParsing
+              onPressed:
+                  model.canSave && !isPrimaryParsing && !isSecondaryParsing
                   ? onSave
                   : null,
-              text: 'Save All',
+              text: l10n.bulkProductSaveAll,
             ),
           ],
         ),
@@ -78,8 +78,8 @@ class BulkActionBar extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             isSecondaryParsing
-                ? 'Loading all rows from spreadsheet (save disabled until done)…'
-                : 'Parsing spreadsheet…',
+                ? l10n.bulkProductLoadingAllRows
+                : l10n.bulkProductParsingSpreadsheet,
             style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
           ),
         ],
@@ -98,13 +98,17 @@ class BulkActionBar extends ConsumerWidget {
                   const SizedBox(height: 4),
                   if (total > 0)
                     Text(
-                      '${ProgressData.formatPercent(current, total)} · $current of $total',
+                      l10n.bulkProductProgressCount(
+                        ProgressData.formatPercent(current, total),
+                        '$current',
+                        '$total',
+                      ),
                       style: TextStyle(fontSize: 11, color: Colors.grey[700]),
                     ),
                   Text(
                     progress.progress.isNotEmpty
                         ? progress.progress
-                        : 'Saving…',
+                        : l10n.bulkProductSaving,
                     style: const TextStyle(fontSize: 12),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -117,28 +121,25 @@ class BulkActionBar extends ConsumerWidget {
             model.importValidation!.hasIssues) ...[
           const SizedBox(height: 8),
           Text(
-            _validationText(model.importValidation!),
+            _validationText(l10n, model.importValidation!),
             style: TextStyle(fontSize: 12, color: Colors.orange.shade900),
           ),
         ],
         if (errorMessage != null) ...[
           const SizedBox(height: 8),
-          Text(
-            errorMessage!,
-            style: const TextStyle(color: Colors.red),
-          ),
+          Text(errorMessage!, style: const TextStyle(color: Colors.red)),
         ],
       ],
     );
   }
 
-  String _validationText(BulkImportValidation v) {
+  String _validationText(FlipperAppLocalizations l10n, BulkImportValidation v) {
     final parts = <String>[];
     if (v.missingNameCount > 0) {
-      parts.add('${v.missingNameCount} row(s) missing name');
+      parts.add(l10n.bulkProductRowsMissingName(v.missingNameCount));
     }
     if (v.duplicateBarCodeCount > 0) {
-      parts.add('${v.duplicateBarCodeCount} duplicate barcode(s)');
+      parts.add(l10n.bulkProductDuplicateBarcodes(v.duplicateBarCodeCount));
     }
     return parts.join(' · ');
   }

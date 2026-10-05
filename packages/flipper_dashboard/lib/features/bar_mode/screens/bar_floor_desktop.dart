@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/bar_pos_actions.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_table_cards.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -31,7 +32,13 @@ class BarFloorDesktopScreen extends ConsumerWidget {
       color: BarTokens.posBg,
       child: Column(
         children: [
-          _header(bar, openCount, ref, staffAsync.value ?? []),
+          _header(
+            context.flipperL10n,
+            bar,
+            openCount,
+            ref,
+            staffAsync.value ?? [],
+          ),
           Expanded(
             child: tablesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -51,6 +58,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
   }
 
   Widget _header(
+    FlipperAppLocalizations l10n,
     BarModeState bar,
     int openCount,
     WidgetRef ref,
@@ -73,7 +81,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tables',
+                l10n.barTables,
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -82,7 +90,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
                 ),
               ),
               Text(
-                '$openCount open · tap a table to log its order',
+                l10n.barFloorOpenTapTableToLog('$openCount'),
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   color: BarTokens.ink3,
@@ -92,25 +100,25 @@ class BarFloorDesktopScreen extends ConsumerWidget {
             ],
           ),
           const Spacer(),
-          _legend('Open tab', open: true),
+          _legend(l10n.barOpenTab, open: true),
           const SizedBox(width: 16),
-          _legend('Free', open: false),
+          _legend(l10n.barTableFree, open: false),
           const SizedBox(width: 4),
           if (cashier != null) ...[
             const SizedBox(width: 18),
             BarCashierChip(
               name: cashier.name ?? '',
-              role: '${cashier.type ?? 'Server'} · logging',
+              role: l10n.barCashierLogging(cashier.type ?? l10n.barRoleServer),
               initials: barTenantInitials(cashier.name),
               color: barColorForTenant(cashier.id, staff),
             ),
           ],
           if (cashier != null && _isAdminOrOwner(cashier)) ...[
             const SizedBox(width: 12),
-            _settingsButton(),
+            _settingsButton(l10n),
           ],
           const SizedBox(width: 12),
-          _dangerLogout(ref),
+          _dangerLogout(l10n, ref),
         ],
       ),
     );
@@ -148,13 +156,12 @@ class BarFloorDesktopScreen extends ConsumerWidget {
     return type.contains('admin') || type.contains('owner');
   }
 
-  Widget _settingsButton() {
+  Widget _settingsButton(FlipperAppLocalizations l10n) {
     return Material(
       color: BarTokens.surface,
       borderRadius: BorderRadius.circular(BarTokens.radiusMd),
       child: InkWell(
-        onTap: () =>
-            locator<RouterService>().navigateTo(AdminControlRoute()),
+        onTap: () => locator<RouterService>().navigateTo(AdminControlRoute()),
         borderRadius: BorderRadius.circular(BarTokens.radiusMd),
         child: Container(
           height: 46,
@@ -169,7 +176,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
               Icon(Icons.settings_outlined, size: 18, color: BarTokens.ink2),
               const SizedBox(width: 9),
               Text(
-                'Settings',
+                l10n.settings,
                 style: GoogleFonts.outfit(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
@@ -183,7 +190,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
     );
   }
 
-  Widget _dangerLogout(WidgetRef ref) {
+  Widget _dangerLogout(FlipperAppLocalizations l10n, WidgetRef ref) {
     return Material(
       color: BarTokens.surface,
       borderRadius: BorderRadius.circular(BarTokens.radiusMd),
@@ -203,7 +210,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
               Icon(Icons.logout, size: 18, color: BarTokens.lossInk),
               const SizedBox(width: 9),
               Text(
-                'Logout',
+                l10n.logOut,
                 style: GoogleFonts.outfit(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
@@ -243,7 +250,12 @@ class BarFloorDesktopScreen extends ConsumerWidget {
           for (final zone in byZone.entries) ...[
             SliverToBoxAdapter(
               key: ValueKey('bar-zone-header-${zone.key}'),
-              child: _zoneHeader(zone.key, zone.value, tabs),
+              child: _zoneHeader(
+                context.flipperL10n,
+                zone.key,
+                zone.value,
+                tabs,
+              ),
             ),
             SliverPadding(
               padding: const EdgeInsets.only(bottom: 30),
@@ -268,12 +280,14 @@ class BarFloorDesktopScreen extends ConsumerWidget {
   }
 
   Widget _zoneHeader(
+    FlipperAppLocalizations l10n,
     String zoneName,
     List<BarTable> zoneTables,
     List<ITransaction> tabs,
   ) {
-    final openInZone =
-        zoneTables.where((t) => barTabForTable(t, tabs) != null).length;
+    final openInZone = zoneTables
+        .where((t) => barTabForTable(t, tabs) != null)
+        .length;
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: Row(
@@ -290,7 +304,7 @@ class BarFloorDesktopScreen extends ConsumerWidget {
           Expanded(child: Container(height: 1, color: BarTokens.line)),
           const SizedBox(width: 12),
           Text(
-            '$openInZone/${zoneTables.length} open',
+            l10n.barZoneOpenCount('$openInZone', '${zoneTables.length}'),
             style: GoogleFonts.jetBrainsMono(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,

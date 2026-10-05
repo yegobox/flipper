@@ -72,9 +72,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               leading: const Icon(Icons.language),
               onPressed: (context) {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => const LanguagesScreen(),
-                ));
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LanguagesScreen()),
+                );
               },
             ),
             SettingsTile(
@@ -112,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 //   );
                 // });
               },
-            )
+            ),
           ],
         ),
       ],
@@ -127,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
           child: Container(
-            child: const Text("settings"),
+            child: Text(context.flipperL10n.settings),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(

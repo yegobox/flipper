@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.da
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 import 'package:flipper_dashboard/manual_purchase/amount_input.dart';
 import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -14,11 +15,11 @@ typedef _T = ImportPurchaseTokens;
 
 final _money = NumberFormat('#,##0.##');
 
-const _filters = [
-  (key: 'pending', label: 'Waiting'),
-  (key: 'approved', label: 'Approved'),
-  (key: 'rejected', label: 'Rejected'),
-  (key: 'all', label: 'All'),
+List<({String key, String label})> _filters(FlipperAppLocalizations l10n) => [
+  (key: 'pending', label: l10n.importPurchaseStatusWaiting),
+  (key: 'approved', label: l10n.approved),
+  (key: 'rejected', label: l10n.importPurchaseStatusRejected),
+  (key: 'all', label: l10n.importPurchaseFilterAll),
 ];
 
 String _itemName(model.Variant v) =>
@@ -113,6 +114,7 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
     _applyEdits(item);
 
     final notifier = ref.read(importPurchaseViewModelProvider.notifier);
+    final l10n = context.flipperL10n;
     try {
       switch (result.action) {
         case _ItemAction.save:
@@ -125,47 +127,45 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
             supplyPrice: item.supplyPrice,
             itemNm: _itemName(item),
           );
-          _toast('Approved "${_itemName(item)}"');
+          _toast(l10n.importPurchaseApprovedItem(_itemName(item)));
         case _ItemAction.reject:
           await notifier.rejectImport(variant: item);
-          _toast('Rejected "${_itemName(item)}"');
+          _toast(l10n.importPurchaseRejectedItem(_itemName(item)));
         case _ItemAction.retry:
           await notifier.replayRowJob(item.id);
-          _toast('Retry succeeded');
+          _toast(l10n.importPurchaseRetrySucceeded);
       }
       if (mounted) setState(() => _forget(item.id));
     } catch (e) {
-      _toast('Could not update "${_itemName(item)}": $e', error: true);
+      _toast(
+        l10n.importPurchaseCouldNotUpdateItem(_itemName(item), '$e'),
+        error: true,
+      );
     }
   }
 
   Future<void> _approveAll(List<model.Variant> waiting) async {
+    final l10n = context.flipperL10n;
     final unready = waiting
         .where((v) => !_links.containsKey(v.id) && !_hasPrices(v))
         .length;
     if (unready > 0) {
-      _toast(
-        '$unready item${unready == 1 ? '' : 's'} need a supply and retail '
-        'price, or a link to one of your products',
-        error: true,
-      );
+      _toast(l10n.importPurchaseItemsNeedPrices(unready), error: true);
       return;
     }
     final sure = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Approve ${waiting.length} items?'),
-        content: const Text(
-          'Their quantities are added to your stock and reported to RRA.',
-        ),
+        title: Text(l10n.importPurchaseApproveItemsTitle(waiting.length)),
+        content: Text(l10n.importPurchaseApproveAllBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Approve all'),
+            child: Text(l10n.importPurchaseApproveAll),
           ),
         ],
       ),
@@ -181,9 +181,9 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
           .read(importPurchaseViewModelProvider.notifier)
           .approveAllImports(variants: waiting, variantMap: variantMap);
       if (mounted) setState(() => waiting.map((v) => v.id).forEach(_forget));
-      _toast('Approved ${waiting.length} items');
+      _toast(l10n.importPurchaseApprovedItems(waiting.length));
     } catch (e) {
-      _toast('Could not approve all: $e', error: true);
+      _toast(l10n.importPurchaseCouldNotApproveAll('$e'), error: true);
     }
   }
 
@@ -198,6 +198,7 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
         .toList();
     final waiting = items.where(_isWaiting).toList();
     final anyBusy = waiting.any((v) => notifier.isProcessing(v.id));
+    final l10n = context.flipperL10n;
 
     final chips = SizedBox(
       height: 52,
@@ -205,7 +206,7 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
         children: [
-          for (final f in _filters)
+          for (final f in _filters(l10n))
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
@@ -232,14 +233,16 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
     } else if (state.error != null && items.isEmpty) {
       body = _Message(
         icon: Icons.cloud_off_outlined,
-        title: 'Could not load imports',
+        title: l10n.importPurchaseCouldNotLoadImports,
         subtitle: state.error!,
       );
     } else if (items.isEmpty) {
       body = _Message(
         icon: Icons.inventory_2_outlined,
-        title: filter == 'pending' ? 'No imports waiting' : 'No imports here',
-        subtitle: 'Tap ⟳ to fetch your customs declarations from RRA.',
+        title: filter == 'pending'
+            ? l10n.importPurchaseNoImportsWaiting
+            : l10n.importPurchaseNoImportsHere,
+        subtitle: l10n.importPurchaseFetchCustomsHint,
       );
     } else {
       body = ListView.separated(
@@ -287,7 +290,9 @@ class _ImportsMobileViewState extends ConsumerState<ImportsMobileView> {
                 child: FilledButton.icon(
                   onPressed: anyBusy ? null : () => _approveAll(waiting),
                   icon: const Icon(Icons.done_all),
-                  label: Text('Approve all ${waiting.length} waiting'),
+                  label: Text(
+                    l10n.importPurchaseApproveAllWaiting(waiting.length),
+                  ),
                   style: FilledButton.styleFrom(
                     backgroundColor: _T.green,
                     minimumSize: const Size.fromHeight(50),
@@ -377,15 +382,19 @@ class _Pill extends StatelessWidget {
   }
 }
 
-_Pill _statusPill(model.Variant v) =>
+_Pill _statusPill(FlipperAppLocalizations l10n, model.Variant v) =>
     switch (ImportPurchaseHelpers.importStatusKey(v)) {
-      'pending' => const _Pill('Waiting', fg: _T.amber, bg: _T.amberWash),
-      'approved' => const _Pill(
-        'Approved',
-        fg: _T.greenStrong,
-        bg: _T.greenWash,
+      'pending' => _Pill(
+        l10n.importPurchaseStatusWaiting,
+        fg: _T.amber,
+        bg: _T.amberWash,
       ),
-      _ => const _Pill('Rejected', fg: _T.redStrong, bg: _T.redWash),
+      'approved' => _Pill(l10n.approved, fg: _T.greenStrong, bg: _T.greenWash),
+      _ => _Pill(
+        l10n.importPurchaseStatusRejected,
+        fg: _T.redStrong,
+        bg: _T.redWash,
+      ),
     };
 
 class _ImportCard extends StatelessWidget {
@@ -405,11 +414,12 @@ class _ImportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final supplier = (item.spplrNm ?? '').trim();
     final origin = (item.orgnNatCd ?? '').trim();
     final meta = [
       if (supplier.isNotEmpty) supplier,
-      if (origin.isNotEmpty) 'from $origin',
+      if (origin.isNotEmpty) l10n.importPurchaseFromOrigin(origin),
       if (item.lastTouched != null) timeago.format(item.lastTouched!),
     ].join(' · ');
     final priced = _hasPrices(item);
@@ -466,9 +476,11 @@ class _ImportCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 priced
-                    ? 'Cost ${_money.format(item.supplyPrice)} · '
-                          'sells at ${_money.format(item.retailPrice)}'
-                    : 'Set prices before approving',
+                    ? l10n.importPurchaseCostSellsAt(
+                        _money.format(item.supplyPrice),
+                        _money.format(item.retailPrice),
+                      )
+                    : l10n.importPurchaseSetPricesBeforeApproving,
                 style: ImportPurchaseHelpers.text(
                   size: 13,
                   weight: FontWeight.w600,
@@ -481,23 +493,31 @@ class _ImportCard extends StatelessWidget {
                 runSpacing: 6,
                 children: [
                   if (busy)
-                    const _Pill('Working…', fg: _T.ink2, bg: _T.surface3)
+                    _Pill(
+                      l10n.importPurchaseWorking,
+                      fg: _T.ink2,
+                      bg: _T.surface3,
+                    )
                   else if (failed)
-                    const _Pill(
-                      'Failed · tap to retry',
+                    _Pill(
+                      l10n.importPurchaseFailedTapToRetry,
                       fg: _T.redStrong,
                       bg: _T.redWash,
                     )
                   else
-                    _statusPill(item),
+                    _statusPill(l10n, item),
                   if (link != null)
                     _Pill(
-                      'Adds to ${link!.name}',
+                      l10n.importPurchaseAddsTo(link!.name),
                       fg: _T.accentStrong,
                       bg: _T.accentWash,
                     )
                   else if (_isWaiting(item))
-                    const _Pill('New product', fg: _T.ink2, bg: _T.surface3),
+                    _Pill(
+                      l10n.importPurchaseNewProduct,
+                      fg: _T.ink2,
+                      bg: _T.surface3,
+                    ),
                   if ((item.hsCd ?? '').isNotEmpty)
                     _Pill('HS ${item.hsCd}', fg: _T.ink2, bg: _T.surface3),
                 ],
@@ -582,7 +602,9 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
     // Same rule as desktop: a linked item takes the product's prices,
     // otherwise both prices are needed to create the product.
     if (_link == null && (_num(_supply.text) <= 0 || _num(_retail.text) <= 0)) {
-      setState(() => _error = 'Enter both prices, or link a product you sell');
+      setState(
+        () => _error = context.flipperL10n.importPurchaseEnterBothPrices,
+      );
       return;
     }
     Navigator.of(context).pop(_decision(_ItemAction.approve));
@@ -602,14 +624,18 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final item = widget.item;
     final waiting = _isWaiting(item);
     final details = [
-      ('Quantity', _qtyLabel(item)),
-      if ((item.spplrNm ?? '').isNotEmpty) ('Supplier', item.spplrNm!),
-      if ((item.orgnNatCd ?? '').isNotEmpty) ('Origin', item.orgnNatCd!),
-      if ((item.hsCd ?? '').isNotEmpty) ('HS code', item.hsCd!),
-      if ((item.dclNo ?? '').isNotEmpty) ('Declaration', item.dclNo!),
+      (l10n.quantity, _qtyLabel(item)),
+      if ((item.spplrNm ?? '').isNotEmpty)
+        (l10n.importPurchaseSupplier, item.spplrNm!),
+      if ((item.orgnNatCd ?? '').isNotEmpty)
+        (l10n.importPurchaseOrigin, item.orgnNatCd!),
+      if ((item.hsCd ?? '').isNotEmpty) (l10n.importPurchaseHsCode, item.hsCd!),
+      if ((item.dclNo ?? '').isNotEmpty)
+        (l10n.importPurchaseDeclaration, item.dclNo!),
     ];
 
     InputDecoration field(String label) => InputDecoration(
@@ -637,7 +663,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                     ),
                   ),
                 ),
-                _statusPill(item),
+                _statusPill(l10n, item),
               ],
             ),
             const SizedBox(height: 10),
@@ -673,7 +699,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
             const SizedBox(height: 16),
             TextField(
               controller: _name,
-              decoration: field('Name in your shop'),
+              decoration: field(l10n.importPurchaseNameInYourShop),
             ),
             const SizedBox(height: 12),
             Row(
@@ -684,7 +710,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: field('Supply price'),
+                    decoration: field(l10n.importPurchaseSupplyPrice),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -694,7 +720,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: field('Retail price'),
+                    decoration: field(l10n.importPurchaseRetailPrice),
                   ),
                 ),
               ],
@@ -711,17 +737,19 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                   color: _T.accentStrong,
                 ),
                 title: Text(
-                  _link == null ? 'Create as a new product' : _link!.name,
+                  _link == null
+                      ? l10n.importPurchaseCreateAsNewProduct
+                      : _link!.name,
                 ),
                 subtitle: Text(
                   _link == null
-                      ? 'Or tap to add this stock to a product you sell'
-                      : 'Stock will be added to this product',
+                      ? l10n.importPurchaseLinkProductHint
+                      : l10n.importPurchaseStockAddedToProduct,
                 ),
                 trailing: _link == null
                     ? const Icon(Icons.chevron_right)
                     : IconButton(
-                        tooltip: 'Unlink',
+                        tooltip: l10n.importPurchaseUnlink,
                         icon: const Icon(Icons.close),
                         onPressed: () => setState(() => _link = null),
                       ),
@@ -746,7 +774,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                 onPressed: () =>
                     Navigator.of(context).pop(_decision(_ItemAction.retry)),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Retry with previous values'),
+                label: Text(l10n.importPurchaseRetryWithPrevious),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(46),
                 ),
@@ -765,7 +793,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                         foregroundColor: _T.redStrong,
                         minimumSize: const Size.fromHeight(50),
                       ),
-                      child: const Text('Reject'),
+                      child: Text(l10n.importPurchaseReject),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -776,7 +804,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
                         backgroundColor: _T.green,
                         minimumSize: const Size.fromHeight(50),
                       ),
-                      child: const Text('Approve'),
+                      child: Text(l10n.importPurchaseApprove),
                     ),
                   ),
                 ],
@@ -784,7 +812,7 @@ class _ImportItemSheetState extends State<_ImportItemSheet> {
               TextButton(
                 onPressed: () =>
                     Navigator.of(context).pop(_decision(_ItemAction.save)),
-                child: const Text('Save for later'),
+                child: Text(l10n.importPurchaseSaveForLater),
               ),
             ],
           ],
@@ -821,6 +849,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SizedBox(
@@ -834,7 +863,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                 autofocus: true,
                 onChanged: _search,
                 decoration: InputDecoration(
-                  hintText: 'Search your products',
+                  hintText: l10n.importPurchaseSearchYourProducts,
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: _T.surface2,
@@ -850,8 +879,8 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                   ? Center(
                       child: Text(
                         _query.text.trim().isEmpty
-                            ? 'Type a product name'
-                            : 'No product matches',
+                            ? l10n.importPurchaseTypeProductName
+                            : l10n.importPurchaseNoProductMatches,
                         style: ImportPurchaseHelpers.text(
                           weight: FontWeight.w500,
                           color: _T.muted,
@@ -870,7 +899,9 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             [
                               if ((v.itemCd ?? '').isNotEmpty) v.itemCd!,
                               if (v.retailPrice != null)
-                                'Sells at ${_money.format(v.retailPrice)}',
+                                l10n.importPurchaseSellsAt(
+                                  _money.format(v.retailPrice),
+                                ),
                             ].join(' · '),
                           ),
                           onTap: () => Navigator.of(context).pop(v),

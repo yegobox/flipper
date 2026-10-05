@@ -1,4 +1,5 @@
 import 'package:flipper_models/umusada_service.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -113,7 +114,7 @@ class UmusadaHelper {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Business Financing',
+                          context.flipperL10n.umusadaBusinessFinancing,
                           style: GoogleFonts.outfit(
                             fontSize: 13,
                             color: _kTextTertiary,
@@ -161,7 +162,7 @@ class UmusadaHelper {
                             ),
                             const SizedBox(height: 14),
                             Text(
-                              'Unlock Business Loans',
+                              context.flipperL10n.umusadaUnlockLoans,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w700,
@@ -172,7 +173,7 @@ class UmusadaHelper {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Get financing based on your order history',
+                              context.flipperL10n.umusadaFinancingHint,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
@@ -188,7 +189,7 @@ class UmusadaHelper {
 
                       // ─── Benefits ───
                       Text(
-                        'How it works',
+                        context.flipperL10n.umusadaHowItWorks,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
@@ -200,25 +201,22 @@ class UmusadaHelper {
                       _BenefitTile(
                         icon: Icons.sync_rounded,
                         color: const Color(0xFF4CAF50),
-                        title: 'Auto Sync',
-                        subtitle:
-                            'Your order data syncs securely to build your profile.',
+                        title: context.flipperL10n.umusadaAutoSync,
+                        subtitle: context.flipperL10n.umusadaAutoSyncDesc,
                       ),
                       const SizedBox(height: 10),
                       _BenefitTile(
                         icon: Icons.assessment_rounded,
                         color: const Color(0xFFF57C00),
-                        title: 'Credit Score',
-                        subtitle:
-                            'Umusada evaluates your history to set a loan limit.',
+                        title: context.flipperL10n.umusadaCreditScore,
+                        subtitle: context.flipperL10n.umusadaCreditScoreDesc,
                       ),
                       const SizedBox(height: 10),
                       _BenefitTile(
                         icon: Icons.bolt_rounded,
                         color: const Color(0xFF7C4DFF),
-                        title: 'Instant Loans',
-                        subtitle:
-                            'Access funds quickly when you need them most.',
+                        title: context.flipperL10n.umusadaInstantLoans,
+                        subtitle: context.flipperL10n.umusadaInstantLoansDesc,
                       ),
 
                       // Bottom spacing for sticky bar
@@ -272,7 +270,7 @@ class UmusadaHelper {
                           ),
                         ),
                         child: Text(
-                          'Join Umusada',
+                          context.flipperL10n.umusadaJoin,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
@@ -297,7 +295,7 @@ class UmusadaHelper {
                           ),
                         ),
                         child: Text(
-                          'Maybe later',
+                          context.flipperL10n.umusadaMaybeLater,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
@@ -356,7 +354,7 @@ class UmusadaHelper {
               ),
               const SizedBox(height: 16),
               Text(
-                'Connecting…',
+                context.flipperL10n.umusadaConnecting,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -475,7 +473,7 @@ class UmusadaHelper {
             ),
             const SizedBox(width: 12),
             Text(
-              'Connection Failed',
+              context.flipperL10n.umusadaConnectionFailed,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 17,
@@ -485,7 +483,7 @@ class UmusadaHelper {
           ],
         ),
         content: Text(
-          'Could not connect to Umusada. Please try again later.',
+          context.flipperL10n.umusadaCouldNotConnect,
           style: GoogleFonts.outfit(
             fontSize: 14,
             color: _kTextSecondary,
@@ -505,7 +503,7 @@ class UmusadaHelper {
               ),
             ),
             child: Text(
-              'Close',
+              context.flipperL10n.close,
               style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
           ),

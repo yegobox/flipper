@@ -226,8 +226,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     if (phone != null && phone.isNotEmpty) {
       if (!_isValidPhoneNumber(phone)) {
         setState(() {
-          phoneError =
-              'Please enter a valid phone number with country code (e.g., +250783054874)';
+          phoneError = context.flipperL10n.adminPhoneWithCountryCode;
         });
         return;
       }
@@ -264,7 +263,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     } catch (e) {
       print('Error updating SMS config: $e');
       setState(() {
-        phoneError = 'Failed to update SMS configuration';
+        phoneError = context.flipperL10n.adminSmsConfigFailed;
       });
     }
   }
@@ -291,7 +290,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
           builder: (ctx, setDialogState) {
             return AlertDialog(
               title: Text(
-                'WhatsApp channel',
+                context.flipperL10n.adminWhatsappChannel,
                 style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
               ),
               content: Column(
@@ -299,7 +298,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Choose how digital receipts and order notifications are sent.',
+                    context.flipperL10n.adminWhatsappChannelHint,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       color: const Color(0xFF6B7280),
@@ -314,7 +313,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                       style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Local / self-hosted WhatsApp session (channel 1)',
+                      context.flipperL10n.adminOpenWaSubtitle,
                       style: GoogleFonts.outfit(fontSize: 12),
                     ),
                     value: WhatsAppChannel.openwa,
@@ -331,8 +330,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                       style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Official Meta WhatsApp (channel 2). Customers may need '
-                      'to scan a QR to opt in before receipts can send.',
+                      context.flipperL10n.adminMetaSubtitle,
                       style: GoogleFonts.outfit(fontSize: 12),
                     ),
                     value: WhatsAppChannel.meta,
@@ -347,11 +345,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(context.flipperL10n.cancel),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(ctx).pop(selected),
-                  child: const Text('Save'),
+                  child: Text(context.flipperL10n.save),
                 ),
               ],
             );
@@ -534,7 +532,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         return local.replaceAll('.', ' ').replaceAll('_', ' ');
       }
     }
-    return 'User';
+    return context.flipperL10n.adminUserFallback;
   }
 
   bool _looksLikeUuid(String value) {
@@ -783,19 +781,19 @@ class _AdminControlState extends ConsumerState<AdminControl> {
   Future<void> _saveInlineName() async {
     final name = _profileNameEditController.text.trim();
     if (name.isEmpty) {
-      showErrorNotification(context, 'Enter a display name.');
+      showErrorNotification(context, context.flipperL10n.adminEnterDisplayName);
       return;
     }
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) {
-      showErrorNotification(context, 'Not signed in.');
+      showErrorNotification(context, context.flipperL10n.adminNotSignedIn);
       return;
     }
     final loginKey =
         ProxyService.box.getUserPhone()?.trim() ??
         _profileEmailFromUser(_profileUser)?.trim();
     if (loginKey == null || loginKey.isEmpty) {
-      showErrorNotification(context, 'Missing account login key.');
+      showErrorNotification(context, context.flipperL10n.adminMissingLoginKey);
       return;
     }
     setState(() => _savingProfileName = true);
@@ -818,7 +816,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       await _verifyProfileNameSaved(name);
       await _refreshDittoUserAccessAfterProfileChange();
       if (mounted) {
-        showSuccessNotification(context, 'Name updated.');
+        showSuccessNotification(context, context.flipperL10n.adminNameUpdated);
       }
     } catch (e) {
       try {
@@ -833,7 +831,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         await _verifyProfileNameSaved(name);
         await _refreshDittoUserAccessAfterProfileChange();
         if (mounted) {
-          showSuccessNotification(context, 'Name updated.');
+          showSuccessNotification(
+            context,
+            context.flipperL10n.adminNameUpdated,
+          );
         }
         return;
       } catch (_) {
@@ -841,7 +842,10 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       }
       if (!mounted) return;
       setState(() => _savingProfileName = false);
-      showErrorNotification(context, 'Could not save name: $e');
+      showErrorNotification(
+        context,
+        context.flipperL10n.adminSaveNameFailed('$e'),
+      );
     }
   }
 
@@ -850,21 +854,18 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     if (!_isValidPhoneNumber(raw)) {
       showErrorNotification(
         context,
-        'Enter a valid phone number with country code (e.g. +250783054874).',
+        context.flipperL10n.adminPhoneWithCountryCode,
       );
       return;
     }
     raw = _formatPhoneNumber(raw);
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) {
-      showErrorNotification(context, 'Not signed in.');
+      showErrorNotification(context, context.flipperL10n.adminNotSignedIn);
       return;
     }
     if (_serverHasPhone) {
-      showErrorNotification(
-        context,
-        'Phone number can only be set once. Contact support to change it.',
-      );
+      showErrorNotification(context, context.flipperL10n.adminPhoneSetOnce);
       return;
     }
     setState(() => _savingProfilePhone = true);
@@ -879,31 +880,31 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       await _loadProfileUserFromSupabase();
       await _refreshDittoUserAccessAfterProfileChange();
       if (mounted) {
-        showSuccessNotification(context, 'Phone number saved.');
+        showSuccessNotification(context, context.flipperL10n.adminPhoneSaved);
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _savingProfilePhone = false);
-      showErrorNotification(context, 'Could not save phone: $e');
+      showErrorNotification(
+        context,
+        context.flipperL10n.adminSavePhoneFailed('$e'),
+      );
     }
   }
 
   Future<void> _saveInlineEmail() async {
     if (_serverHasEmail) {
-      showErrorNotification(
-        context,
-        'Email is already set and cannot be changed here.',
-      );
+      showErrorNotification(context, context.flipperL10n.adminEmailAlreadySet);
       return;
     }
     final email = _profileEmailEditController.text.trim();
     if (!_isValidProfileEmail(email)) {
-      showErrorNotification(context, 'Please enter a valid email address.');
+      showErrorNotification(context, context.flipperL10n.adminInvalidEmail);
       return;
     }
     final userId = ProxyService.box.getUserId()?.trim();
     if (userId == null || userId.isEmpty) {
-      showErrorNotification(context, 'Not signed in.');
+      showErrorNotification(context, context.flipperL10n.adminNotSignedIn);
       return;
     }
     setState(() => _savingProfileEmail = true);
@@ -916,7 +917,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       if (!syncedSettings) {
         showWarningNotification(
           context,
-          'Email saved on your account. Business settings could not be updated.',
+          context.flipperL10n.adminEmailSavedBusinessFailed,
         );
       }
       setState(() {
@@ -927,12 +928,15 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       await _loadProfileUserFromSupabase();
       await _refreshDittoUserAccessAfterProfileChange();
       if (mounted) {
-        showSuccessNotification(context, 'Email updated.');
+        showSuccessNotification(context, context.flipperL10n.adminEmailUpdated);
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _savingProfileEmail = false);
-      showErrorNotification(context, 'Could not save email: $e');
+      showErrorNotification(
+        context,
+        context.flipperL10n.adminSaveEmailFailed('$e'),
+      );
     }
   }
 
@@ -998,13 +1002,16 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         isUpdatingReceiptLogo = false;
       });
 
-      showSuccessNotification(context, 'Receipt logo updated.');
+      showSuccessNotification(context, context.flipperL10n.adminLogoUpdated);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         isUpdatingReceiptLogo = false;
       });
-      showErrorNotification(context, 'Failed to update logo: $e');
+      showErrorNotification(
+        context,
+        context.flipperL10n.adminLogoUpdateFailed('$e'),
+      );
     }
   }
 
@@ -1023,16 +1030,16 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         isRemovingReceiptLogo = false;
       });
 
-      showSuccessNotification(
-        context,
-        'Receipt logo removed. Default logo will be used.',
-      );
+      showSuccessNotification(context, context.flipperL10n.adminLogoRemoved);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         isRemovingReceiptLogo = false;
       });
-      showErrorNotification(context, 'Failed to remove logo: $e');
+      showErrorNotification(
+        context,
+        context.flipperL10n.adminLogoRemoveFailed('$e'),
+      );
     }
   }
 
@@ -1196,7 +1203,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               tooltip: context.flipperL10n.close,
             ),
             title: Text(
-              'Management Dashboard',
+              context.flipperL10n.managementDashboard,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w700,
                 fontSize: titleFontSize,
@@ -1330,7 +1337,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               ),
             )
           : Text(
-              'Save',
+              context.flipperL10n.save,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
@@ -1347,7 +1354,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
-        'Cancel',
+        context.flipperL10n.cancel,
         style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
       ),
     );
@@ -1429,7 +1436,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               ),
             )
           : Text(
-              'Save',
+              context.flipperL10n.save,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
@@ -1446,7 +1453,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
-        'Cancel',
+        context.flipperL10n.cancel,
         style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
       ),
     );
@@ -1485,7 +1492,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
       autofocus: true,
       keyboardType: TextInputType.phone,
       decoration: InputDecoration(
-        hintText: 'e.g. +250783054874',
+        hintText: context.flipperL10n.adminPhoneExampleHint,
         hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
@@ -1528,7 +1535,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               ),
             )
           : Text(
-              'Save',
+              context.flipperL10n.save,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
@@ -1545,7 +1552,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
-        'Cancel',
+        context.flipperL10n.cancel,
         style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
       ),
     );
@@ -1662,7 +1669,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
               Icon(Icons.shield_outlined, size: 14, color: _kAdminBarBlue),
               const SizedBox(width: 4),
               Text(
-                'ADMIN',
+                context.flipperL10n.adminBadge,
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -1687,7 +1694,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                       child: Text(
                         hasPhoneOnAccount
                             ? _formatPhoneSpaces(phoneOnAccount)
-                            : 'No phone on account',
+                            : context.flipperL10n.adminNoPhoneOnAccount,
                         style: GoogleFonts.outfit(
                           fontSize: 14,
                           color: hasPhoneOnAccount
@@ -1704,7 +1711,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                         onPressed: () => _startInlinePhoneEdit(),
                         icon: Icon(Icons.add, size: 18, color: _kAdminBarTeal),
                         label: Text(
-                          'Add phone',
+                          context.flipperL10n.adminAddPhone,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
@@ -1727,7 +1734,9 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                   children: [
                     Expanded(
                       child: Text(
-                        hasEmail ? emailRaw : 'No email set',
+                        hasEmail
+                            ? emailRaw
+                            : context.flipperL10n.adminNoEmailSet,
                         style: GoogleFonts.outfit(
                           fontSize: 14,
                           color: hasEmail
@@ -1744,7 +1753,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                         onPressed: () => _startInlineEmailEdit(),
                         icon: Icon(Icons.add, size: 18, color: _kAdminBarBlue),
                         label: Text(
-                          'Add email',
+                          context.flipperL10n.adminAddEmail,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
@@ -2021,7 +2030,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'SMS Phone Number',
+                            context.flipperL10n.adminSmsPhoneNumber,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -2030,7 +2039,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Phone number with country code (e.g. +250783054874)',
+                            context.flipperL10n.adminSmsPhoneHint,
                             style: GoogleFonts.outfit(
                               fontSize: 13,
                               color: _kAdminSubtitleText,
@@ -2137,7 +2146,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Default WhatsApp channel',
+                        context.flipperL10n.adminDefaultWhatsappChannel,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
@@ -2195,7 +2204,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     final l10n = context.flipperL10n;
     return [
       _SettingsGroup(
-        title: 'Sales & pricing',
+        title: l10n.adminGroupSalesPricing,
         color: const Color(0xFF16A34A),
         items: [
           _SettingItem(
@@ -2225,14 +2234,12 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         ],
       ),
       _SettingsGroup(
-        title: 'Workflow',
+        title: l10n.adminGroupWorkflow,
         color: _kAdminBarPurple,
         items: [
           _SettingItem(
             title: l10n.ticketReviewAndHandover,
-            subtitle:
-                'Require reviewer sign-off and stock-manager handover before a '
-                'paid ticket is fully completed',
+            subtitle: l10n.adminTicketReviewSubtitle,
             svg: AdminDashboardSvgs.leadsCheckmark,
             tint: _kAdminBarPurple,
             value: settingsService.enableTicketReviewWorkflow,
@@ -2241,7 +2248,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         ],
       ),
       _SettingsGroup(
-        title: 'Tax & compliance',
+        title: l10n.adminGroupTaxCompliance,
         color: _kAdminBarTeal,
         items: [
           _SettingItem(
@@ -2263,7 +2270,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         ],
       ),
       _SettingsGroup(
-        title: 'Data & sync',
+        title: l10n.adminGroupDataSync,
         color: _kAdminBarBlue,
         items: [
           _SettingItem(
@@ -2285,7 +2292,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         ],
       ),
       _SettingsGroup(
-        title: 'Diagnostics',
+        title: l10n.adminGroupDiagnostics,
         color: _kAdminBarOrange,
         items: [
           _SettingItem(
@@ -2326,7 +2333,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'Cross-device features', _kAdminBarPurple),
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.adminCrossDeviceFeatures,
+          _kAdminBarPurple,
+        ),
         const TransactionDelegationSettings(),
       ],
     );
@@ -2338,7 +2349,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(context, 'Receipt branding', _kAdminBarReceipt),
+        _adminSectionHeader(
+          context,
+          context.flipperL10n.adminReceiptBranding,
+          _kAdminBarReceipt,
+        ),
         Container(
           decoration: _adminCardDecoration(),
           padding: const EdgeInsets.all(18),
@@ -2346,7 +2361,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Receipt Logo',
+                context.flipperL10n.adminReceiptLogo,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -2390,7 +2405,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                     const SizedBox(width: 18),
                     Expanded(
                       child: Text(
-                        'Upload a transparent PNG or JPG under 200KB. The logo appears at the center of printed receipts and falls back to the default if none is provided.',
+                        context.flipperL10n.adminReceiptLogoHint,
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           color: _kAdminSubtitleText,
@@ -2441,8 +2456,8 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                               const SizedBox(width: 8),
                               Text(
                                 isUpdatingReceiptLogo
-                                    ? 'Uploading...'
-                                    : 'Upload Logo',
+                                    ? context.flipperL10n.adminUploading
+                                    : context.flipperL10n.adminUploadLogo,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
@@ -2466,7 +2481,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                                   ),
                                 )
                               : Text(
-                                  'Remove logo',
+                                  context.flipperL10n.adminRemoveLogo,
                                   style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     color: _kAdminSubtitleText,
@@ -2492,7 +2507,11 @@ class _AdminControlState extends ConsumerState<AdminControl> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _adminSectionHeader(context, 'Security', _kAdminBarRed),
+            _adminSectionHeader(
+              context,
+              context.flipperL10n.security,
+              _kAdminBarRed,
+            ),
             Container(
               decoration: _adminCardDecoration(),
               child: Column(
@@ -2501,8 +2520,7 @@ class _AdminControlState extends ConsumerState<AdminControl> {
                     padding: const EdgeInsets.all(16),
                     child: _AdminSwitchRow(
                       title: context.flipperL10n.administratorPin,
-                      subtitle:
-                          'Secure sensitive actions like deleting or editing products',
+                      subtitle: context.flipperL10n.adminPinSubtitle,
                       leading: _adminLeadingSvg(
                         AdminDashboardSvgs.administratorPin,
                         _kAdminBarBlue.withValues(alpha: 0.1),
@@ -2918,7 +2936,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                 width: double.infinity,
                 child: _SettingsSearchField(
                   controller: _searchController,
-                  hintText: '$total settings',
+                  hintText: context.flipperL10n.adminSearchSettings(total),
                   expand: true,
                   onChanged: (value) =>
                       setState(() => _query = value.trim().toLowerCase()),
@@ -2937,7 +2955,7 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                   ),
                   _SettingsSearchField(
                     controller: _searchController,
-                    hintText: '$total settings',
+                    hintText: context.flipperL10n.adminSearchSettings(total),
                     onChanged: (value) =>
                         setState(() => _query = value.trim().toLowerCase()),
                   ),
@@ -2952,7 +2970,9 @@ class _SystemSettingsPanelState extends State<_SystemSettingsPanel> {
                 padding: const EdgeInsets.symmetric(vertical: 28),
                 alignment: Alignment.center,
                 child: Text(
-                  'No setting matches "${_searchController.text.trim()}"',
+                  context.flipperL10n.adminNoSettingMatches(
+                    _searchController.text.trim(),
+                  ),
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     color: _kAdminSubtitleText,
@@ -3020,7 +3040,7 @@ class _SettingsSearchField extends StatelessWidget {
           isDense: true,
           filled: true,
           fillColor: Colors.white,
-          hintText: 'Search $hintText',
+          hintText: hintText,
           hintStyle: GoogleFonts.outfit(
             fontSize: 13,
             color: _kAdminSubtitleText,

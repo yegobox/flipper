@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
 import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
 import 'package:flipper_dashboard/utils/frame_sync.dart';
 import 'package:flipper_models/helpers/sale_completion_trace.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/utils/ebm_receipt_gate.dart';
 import 'package:flipper_dashboard/utils/sale_completion_budget.dart';
 import 'package:flipper_models/helperModels/sale_cart_qty_rows.dart';
@@ -291,23 +292,21 @@ const double _tenderEpsilon = 0.0001;
 List<PaymentLineForSaleCompletion> paymentLinesForSaleCompletion(
   List<Payment> paymentMethods,
 ) {
-  return paymentMethods
-      .map((p) {
-        var amt = p.amount;
-        if (amt <= _tenderEpsilon) {
-          amt = double.tryParse(p.controller.text.trim()) ?? 0.0;
-        }
-        return PaymentLineForSaleCompletion(
-          amount: amt,
-          method: p.method,
-          // Only tenders that offer the field can carry a payer; a name left
-          // behind by an earlier method choice must not follow to e.g. CASH.
-          payerName: paymentMethodSupportsPayerName(p.method)
-              ? normalizedPayerName(p.payerName)
-              : null,
-        );
-      })
-      .toList();
+  return paymentMethods.map((p) {
+    var amt = p.amount;
+    if (amt <= _tenderEpsilon) {
+      amt = double.tryParse(p.controller.text.trim()) ?? 0.0;
+    }
+    return PaymentLineForSaleCompletion(
+      amount: amt,
+      method: p.method,
+      // Only tenders that offer the field can carry a payer; a name left
+      // behind by an earlier method choice must not follow to e.g. CASH.
+      payerName: paymentMethodSupportsPayerName(p.method)
+          ? normalizedPayerName(p.payerName)
+          : null,
+    );
+  }).toList();
 }
 
 /// The CREDIT slice of the tender — what the customer is taking on account.
@@ -319,8 +318,9 @@ double sumCreditTenderFromPaymentMethods(List<Payment> paymentMethods) {
 }
 
 double sumTenderFromPaymentMethods(List<Payment> paymentMethods) {
-  final sum = paymentLinesForSaleCompletion(paymentMethods)
-      .fold<double>(0, (s, p) => s + p.amount);
+  final sum = paymentLinesForSaleCompletion(
+    paymentMethods,
+  ).fold<double>(0, (s, p) => s + p.amount);
   return sum > _tenderEpsilon ? sum : 0.0;
 }
 
@@ -453,7 +453,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final supplier = ref.read(selectedSupplierProvider);
       if (supplier == null || supplier.serverId == null) {
-        throw Exception('Please select a supplier first.');
+        throw Exception(FlipperL10n.current.orderingSelectSupplierFirst);
       }
 
       // ignore: unused_local_variable
@@ -603,9 +603,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           'userId=${ProxyService.box.getUserId()} | '
           '(see prior "POS till role decision" log for full breakdown)',
         );
-        throw Exception(
-          'Payments are collected at the till. Send this order to a manager.',
-        );
+        throw Exception(FlipperL10n.current.cartPaymentsAtTillSendToManager);
       }
 
       // Settling a queued till ticket: complete THAT ticket, not the collector's
@@ -621,8 +619,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           '${settlingTicket.transactionId}',
         );
         transactionId = settlingTicket.transactionId;
-        transactionHint =
-            ref.read(transactionByIdProvider(settlingTicket.transactionId)).value;
+        transactionHint = ref
+            .read(transactionByIdProvider(settlingTicket.transactionId))
+            .value;
       }
 
       String branchIdInt = ProxyService.box.getBranchId()!;
@@ -648,7 +647,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       );
 
       if (resolved == null) {
-        throw Exception("Transaction not found for completion.");
+        throw Exception(FlipperL10n.current.cartTransactionNotFound);
       }
       final transaction = resolved;
 
@@ -707,24 +706,22 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (missingIndices.isNotEmpty ||
             invalidIndices.isNotEmpty ||
             zeroAmountIndices.isNotEmpty) {
+          final l10n = FlipperL10n.current;
           final parts = <String>[];
           if (missingIndices.isNotEmpty) {
-            parts.add(
-              'enter an amount for payment ${missingIndices.join(', ')}',
-            );
+            parts.add(l10n.cartSplitEnterAmountFor(missingIndices.join(', ')));
           }
           if (invalidIndices.isNotEmpty) {
             parts.add(
-              'fix invalid amount for payment ${invalidIndices.join(', ')}',
+              l10n.cartSplitFixInvalidAmountFor(invalidIndices.join(', ')),
             );
           }
           if (zeroAmountIndices.isNotEmpty) {
             parts.add(
-              'each method needs an amount above zero (payment ${zeroAmountIndices.join(', ')})',
+              l10n.cartSplitAmountAboveZeroFor(zeroAmountIndices.join(', ')),
             );
           }
-          final message =
-              'Multiple payment methods are in use: ${parts.join('; ')}.';
+          final message = l10n.cartSplitMultipleMethodsInUse(parts.join('; '));
           if (mounted && context.mounted) {
             showCustomSnackBarUtil(
               context,
@@ -754,7 +751,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           if (mounted && context.mounted) {
             showCustomSnackBarUtil(
               context,
-              "A customer name or phone is required for credit/loan payments.",
+              FlipperL10n.current.cartCreditNeedsCustomer,
               backgroundColor: Colors.red,
               showCloseButton: true,
             );
@@ -783,11 +780,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         // collect time) so the fetch resolves the same rows shown on screen.
         final settlingBranchId =
             (settling.branchId != null && settling.branchId!.isNotEmpty)
-                ? settling.branchId!
-                : (transaction.branchId != null &&
-                        transaction.branchId!.isNotEmpty
-                    ? transaction.branchId!
-                    : ProxyService.box.getBranchId()!);
+            ? settling.branchId!
+            : (transaction.branchId != null && transaction.branchId!.isNotEmpty
+                  ? transaction.branchId!
+                  : ProxyService.box.getBranchId()!);
         final items = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(
               branchId: settlingBranchId,
@@ -820,18 +816,17 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           'displayCount=${ref.read(posCartDisplayItemsProvider).length}',
         );
         if (mounted && context.mounted) {
-          final subject = names.isEmpty
-              ? 'One item'
+          final l10n = FlipperL10n.current;
+          final message = names.isEmpty
+              ? l10n.cartUnsavedOneItem
               : names.length == 1
-                  ? names.first
-                  : names.length == 2
-                      ? '${names[0]} and ${names[1]}'
-                      : '${names[0]}, ${names[1]} and ${names.length - 2} more';
-          final plural = names.length == 1 || names.isEmpty ? 'it' : 'them';
+              ? l10n.cartUnsavedNamed(names.first)
+              : names.length == 2
+              ? l10n.cartUnsavedTwo(names[0], names[1])
+              : l10n.cartUnsavedMany(names[0], names[1], '${names.length - 2}');
           showCustomSnackBarUtil(
             context,
-            '$subject could not be saved to this sale. '
-            'Remove $plural from the cart and add $plural again.',
+            message,
             backgroundColor: Colors.orange,
             showCloseButton: true,
           );
@@ -846,7 +841,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (mounted && context.mounted) {
           showCustomSnackBarUtil(
             context,
-            'Add items to the cart before sending for review.',
+            FlipperL10n.current.cartAddItemsBeforeReview,
             backgroundColor: Colors.orange,
             showCloseButton: true,
           );
@@ -890,7 +885,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (mounted && context.mounted) {
           showCustomSnackBarUtil(
             context,
-            'Add items to the cart before sending for review.',
+            FlipperL10n.current.cartAddItemsBeforeReview,
             backgroundColor: Colors.orange,
             showCloseButton: true,
           );
@@ -905,13 +900,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final stockCheckSw = Stopwatch()..start();
       final saleSettingsSvc = locator<SettingsService>();
-      allowSellingBelowStock =
-          await saleSettingsSvc.isAllowSellingBelowStock();
+      allowSellingBelowStock = await saleSettingsSvc.isAllowSellingBelowStock();
 
       if (!allowSellingBelowStock) {
-        final outOfStockItems = await validateStockQuantity(
-          itemsToValidate,
-        );
+        final outOfStockItems = await validateStockQuantity(itemsToValidate);
         if (outOfStockItems.isNotEmpty) {
           if (mounted) {
             await showOutOfStockDialog(context, outOfStockItems);
@@ -923,7 +915,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       logSaleCompletionStage(
         'stock_validation',
         stockCheckSw.elapsedMilliseconds,
-        extra: 'lines=${itemsToValidate.length} '
+        extra:
+            'lines=${itemsToValidate.length} '
             'allow_below_stock=$allowSellingBelowStock',
       );
 
@@ -1007,10 +1000,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final digitalFlagSw = Stopwatch()..start();
       final isDigitalPaymentEnabled = await ProxyService.getStrategy(
         Strategy.capella,
-      ).isBranchEnableForPayment(
-            currentBranchId: branchId,
-            fetchRemote: false,
-          );
+      ).isBranchEnableForPayment(currentBranchId: branchId, fetchRemote: false);
       logSaleCompletionStage(
         'digital_payment_flag',
         digitalFlagSw.elapsedMilliseconds,
@@ -1153,10 +1143,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               showCustomSnackBarUtil(
                 context,
                 mark.wasLoan
-                    ? "Payment recorded. Transaction parked as loan."
+                    ? FlipperL10n.current.cartPaymentParkedAsLoan
                     : mark.isPendingReview
-                    ? "Sent for review"
-                    : "Payment Successful",
+                    ? FlipperL10n.current.cartSentForReview
+                    : FlipperL10n.current.cartPaymentSuccessful,
                 backgroundColor: mark.wasLoan
                     ? Colors.orange
                     : mark.isPendingReview
@@ -1358,8 +1348,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final storedReceiptType = (transaction.receiptType ?? '').trim();
     if (storedReceiptType.isEmpty ||
         pendingSaleReceiptTypes.contains(storedReceiptType)) {
-      transaction.receiptType =
-          getFilterType(transactionType: storedReceiptType).name;
+      transaction.receiptType = getFilterType(
+        transactionType: storedReceiptType,
+      ).name;
     }
 
     final markSw = Stopwatch()..start();
@@ -1486,8 +1477,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final customerId = transaction.customerId;
     if (customerId == null || customerId.isEmpty) return null;
 
-    final cached =
-        ref.read(attachedCustomerProvider(customerId)).asData?.value;
+    final cached = ref.read(attachedCustomerProvider(customerId)).asData?.value;
     if (cached != null) return cached;
 
     if (!fetchIfMissing) return null;
@@ -1534,12 +1524,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         phoneNumber = customer!.telNo!.replaceAll("+", "");
       } else {
         // Get country code dynamically from business country
-        final branch = await ProxyService.getStrategy(Strategy.capella).activeBranch(
-          branchId: ProxyService.box.getBranchId()!,
-        );
-        final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
-          businessId: branch.businessId!,
-        );
+        final branch = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).activeBranch(branchId: ProxyService.box.getBranchId()!);
+        final business = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getBusiness(businessId: branch.businessId!);
         final countryCode = _getCountryCallingCode(business?.country);
 
         String localPhone =
@@ -1652,8 +1642,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           ref.read(payButtonStateProvider.notifier).stopLoading();
         }
 
-        const timeoutMessage =
-            'Payment confirmation timeout. Please try again.';
+        final timeoutMessage =
+            FlipperL10n.current.cartPaymentConfirmationTimeout;
         onPaymentFailed?.call(timeoutMessage);
         // Hosts that pass no [onPaymentFailed] would otherwise show nothing at
         // all — the till just sat on a dead spinner.
@@ -1816,9 +1806,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 // Await cart clear so taps cannot land on the paid ticket while
                 // the old lines are still visible (same race as cash path).
                 try {
-                  await _invokeCompleteTransactionCallback(
-                    completeTransaction,
-                  );
+                  await _invokeCompleteTransactionCallback(completeTransaction);
                 } catch (e) {
                   talker.error("Error in completeTransaction callback: $e");
                 }
@@ -1891,9 +1879,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       if (transaction.customerId != null &&
           transaction.customerId!.isNotEmpty) {
         try {
-          final fetched = (await ProxyService.getStrategy(Strategy.capella)
-                  .customers(id: transaction.customerId))
-              .firstOrNull;
+          final fetched = (await ProxyService.getStrategy(
+            Strategy.capella,
+          ).customers(id: transaction.customerId)).firstOrNull;
           if (fetched != null) liveCustomer = fetched;
         } catch (_) {}
       }
@@ -2094,7 +2082,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   ),
                   backgroundColor: Colors.grey[100],
                   title: Text(
-                    'Digital Receipt',
+                    dialogContext.flipperL10n.digitalReceipt,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.blue[800],
@@ -2141,7 +2129,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: <Widget>[
                               Text(
-                                'Do you need a digital receipt?',
+                                dialogContext.flipperL10n.needDigitalReceipt,
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey[800],
@@ -2153,7 +2141,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                                 textFieldBloc: formBloc.purchaseCode,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
-                                  labelText: 'Purchase Code',
+                                  labelText:
+                                      dialogContext.flipperL10n.purchaseCode,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -2201,12 +2190,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                             TextButton(
                               onPressed: () =>
                                   Navigator.of(dialogContext).pop(false),
-                              child: Text('Cancel'),
+                              child: Text(dialogContext.flipperL10n.cancel),
                             ),
                             SizedBox(width: 8),
                             FlipperButton(
                               busy: state is FormBlocSubmitting,
-                              text: 'Submit',
+                              text: dialogContext.flipperL10n.submit,
                               textColor: Colors.black,
                               onPressed: () => formBloc.submit(),
                             ),
@@ -2268,4 +2257,3 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     });
   }
 }
-

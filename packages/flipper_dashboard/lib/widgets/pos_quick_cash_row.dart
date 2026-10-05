@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +23,7 @@ class PosQuickCashRow extends StatelessWidget {
       children: [
         Expanded(
           child: _QuickCashButton(
-            label: 'Exact',
+            label: context.flipperL10n.exact,
             onPressed: enabled && exactAmount > 0
                 ? () => onSelect(exactAmount)
                 : null,

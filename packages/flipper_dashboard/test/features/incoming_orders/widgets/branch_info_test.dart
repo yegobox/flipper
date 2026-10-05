@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/branch_info.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_by_id_provider.dart';
@@ -68,15 +69,17 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            branchByIdProvider(branchId: request.subBranchId).overrideWith(
-              (ref) => Stream.value(fromBranch ?? request.branch),
-            ),
+            branchByIdProvider(
+              branchId: request.subBranchId,
+            ).overrideWith((ref) => Stream.value(fromBranch ?? request.branch)),
             if (request.mainBranchId != null)
-              branchByIdProvider(branchId: request.mainBranchId).overrideWith(
-                (ref) => Stream.value(toBranch ?? mockMainBranch),
-              ),
+              branchByIdProvider(
+                branchId: request.mainBranchId,
+              ).overrideWith((ref) => Stream.value(toBranch ?? mockMainBranch)),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: BranchInfo(
                 request: request,

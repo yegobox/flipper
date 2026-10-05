@@ -2,6 +2,7 @@ import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -67,10 +68,11 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: const SizedBox.shrink(),
-        title: const Text('Kitchen Display'),
+        title: Text(context.flipperL10n.kitchenDisplayTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: context.flipperL10n.refresh,
             onPressed: () {
               ref.invalidate(kitchenOrdersStreamProvider);
             },
@@ -134,7 +136,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Text(
-            'Error loading orders: $error',
+            context.flipperL10n.kitchenErrorLoadingOrders(error.toString()),
             style: const TextStyle(color: Colors.red),
           ),
         ),
@@ -167,7 +169,11 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       );
       if (to == KitchenStage.served && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(servedMessage(view.ticket?.status))),
+          SnackBar(
+            content: Text(
+              servedMessage(view.ticket?.status, context.flipperL10n),
+            ),
+          ),
         );
       }
 
@@ -203,9 +209,13 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       );
       if (!mounted) return;
       overridesNotifier.remove(id);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update order: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.flipperL10n.kitchenFailedToUpdateOrder(e.toString()),
+          ),
+        ),
+      );
     }
   }
 
@@ -219,9 +229,13 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     } catch (e, s) {
       talker.error('Kitchen Display: set due date failed: $e', s);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to set due date: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.flipperL10n.kitchenFailedToSetDueDate(e.toString()),
+          ),
+        ),
+      );
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_services/proxy.dart';
@@ -35,7 +36,7 @@ class BusinessReportRecipientException implements Exception {
 
 class BusinessReportRecipientRepository {
   BusinessReportRecipientRepository({SupabaseClient? client})
-      : _client = client ?? Supabase.instance.client;
+    : _client = client ?? Supabase.instance.client;
 
   final SupabaseClient _client;
 
@@ -75,9 +76,11 @@ class BusinessReportRecipientRepository {
           .eq('business_id', businessUuid)
           .order('created_at');
       return rows
-          .map((r) => BusinessReportRecipient.fromSupabaseRow(
-                Map<String, dynamic>.from(r as Map),
-              ))
+          .map(
+            (r) => BusinessReportRecipient.fromSupabaseRow(
+              Map<String, dynamic>.from(r as Map),
+            ),
+          )
           .where((r) => r.email.isNotEmpty)
           .toList();
     } on PostgrestException catch (e, st) {
@@ -99,12 +102,16 @@ class BusinessReportRecipientRepository {
   }) async {
     final trimmed = email.trim();
     if (!isPlausibleEmail(trimmed)) {
-      throw BusinessReportRecipientException('Enter a valid email address.');
+      throw BusinessReportRecipientException(
+        FlipperL10n.current.dailyReportRecipientsInvalidEmail,
+      );
     }
 
     final businessUuid = await _resolveBusinessUuid();
     if (businessUuid == null || businessUuid.isEmpty) {
-      throw BusinessReportRecipientException('No business selected.');
+      throw BusinessReportRecipientException(
+        FlipperL10n.current.dailyReportRecipientsNoBusiness,
+      );
     }
 
     final payload = <String, dynamic>{
@@ -125,18 +132,19 @@ class BusinessReportRecipientRepository {
     } on PostgrestException catch (e) {
       if (_isMissingTableError(e)) {
         throw BusinessReportRecipientException(
-          'Daily report recipients are not set up yet. Ask your admin to run '
-          'the latest Supabase migration (business_report_recipients).',
+          FlipperL10n.current.dailyReportRecipientsNotSetUpRunMigration,
         );
       }
       final msg = e.message.toLowerCase();
       if (msg.contains('duplicate') || msg.contains('unique')) {
         throw BusinessReportRecipientException(
-          'That email is already on the daily report list.',
+          FlipperL10n.current.dailyReportRecipientsDuplicate,
         );
       }
       throw BusinessReportRecipientException(
-        e.message.isNotEmpty ? e.message : 'Could not add recipient.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.dailyReportRecipientsCouldNotAdd,
       );
     }
   }
@@ -148,11 +156,13 @@ class BusinessReportRecipientRepository {
     } on PostgrestException catch (e) {
       if (_isMissingTableError(e)) {
         throw BusinessReportRecipientException(
-          'Daily report recipients are not set up yet.',
+          FlipperL10n.current.dailyReportRecipientsNotSetUp,
         );
       }
       throw BusinessReportRecipientException(
-        e.message.isNotEmpty ? e.message : 'Could not remove recipient.',
+        e.message.isNotEmpty
+            ? e.message
+            : FlipperL10n.current.dailyReportRecipientsCouldNotRemove,
       );
     }
   }

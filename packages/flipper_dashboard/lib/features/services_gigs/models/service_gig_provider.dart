@@ -1,3 +1,5 @@
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// Local + remote shape for a Services hub provider profile.
 class ServiceGigProvider {
   final String userId;
@@ -6,6 +8,7 @@ class ServiceGigProvider {
   final String displayName;
   final String bio;
   final List<String> services;
+
   /// Catalog ids (e.g. home_services) for browse filters.
   final List<String> serviceCategories;
   final String? serviceArea;
@@ -13,44 +16,44 @@ class ServiceGigProvider {
   final String? email;
   final String? profileImageUrl;
   final String? coverImageUrl;
-  
+
   /// Pricing information
   final int? basePriceRwf;
   final String? pricingNotes;
   final List<ServicePricing> servicePricing;
-  
+
   /// Availability
   final String? availabilitySchedule;
   final bool isAvailable;
   final DateTime? nextAvailableDate;
-  
+
   /// Ratings and reviews
   final double averageRating;
   final int totalReviews;
   final List<ProviderReview>? recentReviews;
-  
+
   /// Verification and badges
   final bool isVerified;
   final bool isBackgroundChecked;
   final List<String> badges;
   final String? verificationBadge;
-  
+
   /// Statistics
   final int totalJobs;
   final int completedJobs;
   final double completionRate;
   final String? responseTime;
   final DateTime? lastActiveAt;
-  
+
   /// Portfolio
   final List<PortfolioItem> portfolio;
-  
+
   /// Social links
   final String? websiteUrl;
   final String? facebookUrl;
   final String? instagramUrl;
   final String? twitterUrl;
-  
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -95,44 +98,44 @@ class ServiceGigProvider {
   });
 
   Map<String, dynamic> toJson() => {
-        'user_id': userId,
-        'business_id': businessId,
-        'branch_id': branchId,
-        'display_name': displayName,
-        'bio': bio,
-        'services': services,
-        'service_categories': serviceCategories,
-        'service_area': serviceArea,
-        'phone': phone,
-        'email': email,
-        'profile_image_url': profileImageUrl,
-        'cover_image_url': coverImageUrl,
-        'base_price_rwf': basePriceRwf,
-        'pricing_notes': pricingNotes,
-        'service_pricing': servicePricing.map((p) => p.toJson()).toList(),
-        'availability_schedule': availabilitySchedule,
-        'is_available': isAvailable,
-        'next_available_date': nextAvailableDate?.toIso8601String(),
-        'average_rating': averageRating,
-        'total_reviews': totalReviews,
-        'recent_reviews': recentReviews?.map((r) => r.toJson()).toList(),
-        'is_verified': isVerified,
-        'is_background_checked': isBackgroundChecked,
-        'badges': badges,
-        'verification_badge': verificationBadge,
-        'total_jobs': totalJobs,
-        'completed_jobs': completedJobs,
-        'completion_rate': completionRate,
-        'response_time': responseTime,
-        'last_active_at': lastActiveAt?.toIso8601String(),
-        'portfolio': portfolio.map((p) => p.toJson()).toList(),
-        'website_url': websiteUrl,
-        'facebook_url': facebookUrl,
-        'instagram_url': instagramUrl,
-        'twitter_url': twitterUrl,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-        if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
-      };
+    'user_id': userId,
+    'business_id': businessId,
+    'branch_id': branchId,
+    'display_name': displayName,
+    'bio': bio,
+    'services': services,
+    'service_categories': serviceCategories,
+    'service_area': serviceArea,
+    'phone': phone,
+    'email': email,
+    'profile_image_url': profileImageUrl,
+    'cover_image_url': coverImageUrl,
+    'base_price_rwf': basePriceRwf,
+    'pricing_notes': pricingNotes,
+    'service_pricing': servicePricing.map((p) => p.toJson()).toList(),
+    'availability_schedule': availabilitySchedule,
+    'is_available': isAvailable,
+    'next_available_date': nextAvailableDate?.toIso8601String(),
+    'average_rating': averageRating,
+    'total_reviews': totalReviews,
+    'recent_reviews': recentReviews?.map((r) => r.toJson()).toList(),
+    'is_verified': isVerified,
+    'is_background_checked': isBackgroundChecked,
+    'badges': badges,
+    'verification_badge': verificationBadge,
+    'total_jobs': totalJobs,
+    'completed_jobs': completedJobs,
+    'completion_rate': completionRate,
+    'response_time': responseTime,
+    'last_active_at': lastActiveAt?.toIso8601String(),
+    'portfolio': portfolio.map((p) => p.toJson()).toList(),
+    'website_url': websiteUrl,
+    'facebook_url': facebookUrl,
+    'instagram_url': instagramUrl,
+    'twitter_url': twitterUrl,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+    if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
+  };
 
   factory ServiceGigProvider.fromJson(Map<String, dynamic> json) {
     List<String> parseServices(dynamic v) {
@@ -348,7 +351,7 @@ class ServiceGigProvider {
 
   /// Get formatted base price
   String get formattedBasePrice {
-    if (basePriceRwf == null) return 'Negotiable';
+    if (basePriceRwf == null) return FlipperL10n.current.gigsNegotiable;
     return '${basePriceRwf!.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} RWF';
   }
 
@@ -373,11 +376,11 @@ class ServicePricing {
   });
 
   Map<String, dynamic> toJson() => {
-        'service_name': serviceName,
-        'price_rwf': priceRwf,
-        'unit': unit,
-        'description': description,
-      };
+    'service_name': serviceName,
+    'price_rwf': priceRwf,
+    'unit': unit,
+    'description': description,
+  };
 
   factory ServicePricing.fromJson(Map<String, dynamic> json) {
     return ServicePricing(
@@ -422,17 +425,17 @@ class ProviderReview {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'reviewer_user_id': reviewerUserId,
-        'reviewer_display_name': reviewerDisplayName,
-        'reviewer_profile_image_url': reviewerProfileImageUrl,
-        'rating': rating,
-        'comment': comment,
-        'service_provided': serviceProvided,
-        'review_date': reviewDate.toIso8601String(),
-        'provider_response': providerResponse,
-        'provider_response_date': providerResponseDate?.toIso8601String(),
-      };
+    'id': id,
+    'reviewer_user_id': reviewerUserId,
+    'reviewer_display_name': reviewerDisplayName,
+    'reviewer_profile_image_url': reviewerProfileImageUrl,
+    'rating': rating,
+    'comment': comment,
+    'service_provided': serviceProvided,
+    'review_date': reviewDate.toIso8601String(),
+    'provider_response': providerResponse,
+    'provider_response_date': providerResponseDate?.toIso8601String(),
+  };
 
   factory ProviderReview.fromJson(Map<String, dynamic> json) {
     DateTime parseTs(dynamic v) {
@@ -480,14 +483,14 @@ class PortfolioItem {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'image_url': imageUrl,
-        'thumbnail_url': thumbnailUrl,
-        'category': category,
-        'completed_date': completedDate?.toIso8601String(),
-      };
+    'id': id,
+    'title': title,
+    'description': description,
+    'image_url': imageUrl,
+    'thumbnail_url': thumbnailUrl,
+    'category': category,
+    'completed_date': completedDate?.toIso8601String(),
+  };
 
   factory PortfolioItem.fromJson(Map<String, dynamic> json) {
     return PortfolioItem(

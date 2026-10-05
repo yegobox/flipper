@@ -1,5 +1,6 @@
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_dashboard/export/export_report_transactions.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helpers/transaction_report_plu_filters.dart';
@@ -36,9 +37,9 @@ class EndOfShiftSummary {
     required this.itemsSold,
   });
 
-  static const empty = EndOfShiftSummary(
-    agentLabel: 'Agent',
-    branchName: 'Branch',
+  static EndOfShiftSummary get empty => EndOfShiftSummary(
+    agentLabel: FlipperL10n.current.endOfShiftAgent,
+    branchName: FlipperL10n.current.endOfShiftBranch,
     hasOpenShift: false,
     shiftDuration: Duration.zero,
     totalCollected: 0,
@@ -51,9 +52,13 @@ class EndOfShiftSummary {
 
 String formatAgentShortName(String? fullName) {
   final trimmed = fullName?.trim();
-  if (trimmed == null || trimmed.isEmpty) return 'Agent';
-  final parts =
-      trimmed.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (trimmed == null || trimmed.isEmpty) {
+    return FlipperL10n.current.endOfShiftAgent;
+  }
+  final parts = trimmed
+      .split(RegExp(r'\s+'))
+      .where((p) => p.isNotEmpty)
+      .toList();
   if (parts.length == 1) return parts.first;
   final first = parts.first;
   final lastInitial = parts.last[0].toUpperCase();
@@ -112,9 +117,7 @@ Future<List<ITransaction>> _loadShiftSales({
     policy: OfflineFirstGetPolicy.localOnly,
   );
 
-  return transactions
-      .where((tx) => _isCompletedShiftSale(tx, shift))
-      .toList();
+  return transactions.where((tx) => _isCompletedShiftSale(tx, shift)).toList();
 }
 
 Future<int> _countItemsSold(List<ITransaction> sales) async {
@@ -133,7 +136,9 @@ Future<int> _countItemsSold(List<ITransaction> sales) async {
       var total = 0;
       for (var i = 0; i < ids.length; i += chunk) {
         final end = (i + chunk < ids.length) ? i + chunk : ids.length;
-        final grouped = await capella.transactionItemsForIds(ids.sublist(i, end));
+        final grouped = await capella.transactionItemsForIds(
+          ids.sublist(i, end),
+        );
         for (final item in grouped.values.expand((e) => e)) {
           if (item.isRefunded == true) continue;
           if (transactionReportCashMovementPluLine(item)) continue;
@@ -236,8 +241,11 @@ Future<({double cash, double mobile, double total})> _loadPaymentBreakdown({
 }) async {
   final opening = shift.openingBalance.toDouble();
   final shiftSales = (shift.cashSales ?? 0).toDouble();
-  final totalFromShift = ((shift.expectedCash ?? (opening + shiftSales)) - opening)
-      .clamp(0.0, double.infinity);
+  final totalFromShift =
+      ((shift.expectedCash ?? (opening + shiftSales)) - opening).clamp(
+        0.0,
+        double.infinity,
+      );
 
   final mobileMoney = await _sumMobilePayments(
     sales: sales,
@@ -252,16 +260,14 @@ Future<({double cash, double mobile, double total})> _loadPaymentBreakdown({
   );
 }
 
-Future<EndOfShiftSummary> loadEndOfShiftSummary({
-  String? branchName,
-}) async {
+Future<EndOfShiftSummary> loadEndOfShiftSummary({String? branchName}) async {
   final userId = ProxyService.box.getUserId();
   final branchId = ProxyService.box.getBranchId();
   final agentLabel = formatAgentShortName(ProxyService.box.getUserName());
   final resolvedBranch = branchName?.trim();
   final branchLabel = (resolvedBranch != null && resolvedBranch.isNotEmpty)
       ? resolvedBranch
-      : 'Branch';
+      : FlipperL10n.current.endOfShiftBranch;
 
   if (userId == null || branchId == null) {
     return EndOfShiftSummary.empty.copyWith(
@@ -312,10 +318,7 @@ Future<EndOfShiftSummary> loadEndOfShiftSummary({
 }
 
 extension on EndOfShiftSummary {
-  EndOfShiftSummary copyWith({
-    String? agentLabel,
-    String? branchName,
-  }) {
+  EndOfShiftSummary copyWith({String? agentLabel, String? branchName}) {
     return EndOfShiftSummary(
       agentLabel: agentLabel ?? this.agentLabel,
       branchName: branchName ?? this.branchName,

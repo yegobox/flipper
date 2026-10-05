@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +13,14 @@ class IpmVariantCombo extends ConsumerStatefulWidget {
     super.key,
     this.selectedVariantId,
     required this.onSelected,
-    this.placeholder = 'Select Variant',
+    this.placeholder,
   });
 
   final String? selectedVariantId;
   final ValueChanged<Variant?> onSelected;
-  final String placeholder;
+
+  /// Shown when nothing is selected; defaults to the localized "Select Variant".
+  final String? placeholder;
 
   @override
   ConsumerState<IpmVariantCombo> createState() => _IpmVariantComboState();
@@ -69,7 +72,9 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
                 constraints: const BoxConstraints(maxHeight: 300),
                 decoration: BoxDecoration(
                   color: ImportPurchaseTokens.surface,
-                  borderRadius: BorderRadius.circular(ImportPurchaseTokens.radius),
+                  borderRadius: BorderRadius.circular(
+                    ImportPurchaseTokens.radius,
+                  ),
                   border: Border.all(color: ImportPurchaseTokens.line),
                 ),
                 child: Column(
@@ -82,7 +87,8 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
                         autofocus: true,
                         onChanged: (v) => setState(() => _query = v),
                         decoration: InputDecoration(
-                          hintText: 'Search variants…',
+                          hintText:
+                              context.flipperL10n.importPurchaseSearchVariants,
                           prefixIcon: const Icon(Icons.search, size: 18),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -99,9 +105,9 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
                       child: ListView(
                         shrinkWrap: true,
                         padding: const EdgeInsets.all(6),
-                        children: _filtered(variants)
-                            .map((v) => _optionTile(v))
-                            .toList(),
+                        children: _filtered(
+                          variants,
+                        ).map((v) => _optionTile(v)).toList(),
                       ),
                     ),
                   ],
@@ -118,9 +124,7 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
   List<Variant> _filtered(List<Variant> variants) {
     final q = _query.toLowerCase();
     if (q.isEmpty) return variants;
-    return variants
-        .where((v) => v.name.toLowerCase().contains(q))
-        .toList();
+    return variants.where((v) => v.name.toLowerCase().contains(q)).toList();
   }
 
   Widget _optionTile(Variant variant) {
@@ -167,7 +171,7 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const Text('No branch selected');
+      return Text(context.flipperL10n.noBranchSelected);
     }
 
     final variantsAsync = ref.watch(outerVariantsProvider(branchId));
@@ -176,10 +180,10 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
         height: ImportPurchaseTokens.fieldH,
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
-      error: (_, __) => const Text('Failed to load variants'),
+      error: (_, __) =>
+          Text(context.flipperL10n.importPurchaseFailedToLoadVariants),
       data: (variants) {
-        final filtered =
-            variants.where((v) => v.itemTyCd != '3').toList();
+        final filtered = variants.where((v) => v.itemTyCd != '3').toList();
         Variant? selected;
         if (widget.selectedVariantId != null) {
           for (final v in filtered) {
@@ -200,12 +204,16 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
                 filled: true,
                 fillColor: ImportPurchaseTokens.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 13),
-                constraints:
-                    const BoxConstraints(minHeight: ImportPurchaseTokens.fieldH),
+                constraints: const BoxConstraints(
+                  minHeight: ImportPurchaseTokens.fieldH,
+                ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(ImportPurchaseTokens.radiusSm),
-                  borderSide: const BorderSide(color: ImportPurchaseTokens.line2),
+                  borderRadius: BorderRadius.circular(
+                    ImportPurchaseTokens.radiusSm,
+                  ),
+                  borderSide: const BorderSide(
+                    color: ImportPurchaseTokens.line2,
+                  ),
                 ),
                 suffixIcon: const Icon(
                   Icons.keyboard_arrow_down,
@@ -213,7 +221,9 @@ class _IpmVariantComboState extends ConsumerState<IpmVariantCombo> {
                 ),
               ),
               child: Text(
-                selected?.name ?? widget.placeholder,
+                selected?.name ??
+                    widget.placeholder ??
+                    context.flipperL10n.importPurchaseSelectVariant,
                 style: ImportPurchaseHelpers.text(
                   size: 14.5,
                   weight: selected != null ? FontWeight.w600 : FontWeight.w400,

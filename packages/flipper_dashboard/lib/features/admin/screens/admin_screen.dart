@@ -259,20 +259,22 @@ class _AdminScreenContent extends StatelessWidget {
                     final channel = await showDialog<int>(
                       context: context,
                       builder: (ctx) {
-                        var selected = controller.whatsappProvider ==
-                                WhatsAppChannel.meta
+                        var selected =
+                            controller.whatsappProvider == WhatsAppChannel.meta
                             ? WhatsAppChannel.meta
                             : WhatsAppChannel.openwa;
                         return StatefulBuilder(
                           builder: (ctx, setDialogState) {
                             return AlertDialog(
-                              title: const Text('WhatsApp channel'),
+                              title: Text(ctx.flipperL10n.adminWhatsappChannel),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   RadioListTile<int>(
                                     title: const Text('OpenWA'),
-                                    subtitle: const Text('Channel 1'),
+                                    subtitle: Text(
+                                      ctx.flipperL10n.adminChannelNumber('1'),
+                                    ),
                                     value: WhatsAppChannel.openwa,
                                     groupValue: selected,
                                     onChanged: (v) {
@@ -282,7 +284,9 @@ class _AdminScreenContent extends StatelessWidget {
                                   ),
                                   RadioListTile<int>(
                                     title: const Text('Meta Cloud API'),
-                                    subtitle: const Text('Channel 2'),
+                                    subtitle: Text(
+                                      ctx.flipperL10n.adminChannelNumber('2'),
+                                    ),
                                     value: WhatsAppChannel.meta,
                                     groupValue: selected,
                                     onChanged: (v) {
@@ -295,12 +299,12 @@ class _AdminScreenContent extends StatelessWidget {
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(ctx).pop(),
-                                  child: const Text('Cancel'),
+                                  child: Text(ctx.flipperL10n.cancel),
                                 ),
                                 FilledButton(
                                   onPressed: () =>
                                       Navigator.of(ctx).pop(selected),
-                                  child: const Text('Save'),
+                                  child: Text(ctx.flipperL10n.save),
                                 ),
                               ],
                             );

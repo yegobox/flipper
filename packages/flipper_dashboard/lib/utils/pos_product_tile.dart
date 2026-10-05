@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 
@@ -115,10 +116,10 @@ Color posStockTextColor(PosStockVisual visual) {
 String posStockLabel(PosStockVisual visual, num currentStock) {
   switch (visual) {
     case PosStockVisual.out:
-      return 'Out of stock';
+      return FlipperL10n.current.posStockFilterOutOfStock;
     case PosStockVisual.low:
     case PosStockVisual.ok:
       final n = currentStock is int ? currentStock : currentStock.floor();
-      return '$n in stock';
+      return FlipperL10n.current.inStockCount('$n');
   }
 }

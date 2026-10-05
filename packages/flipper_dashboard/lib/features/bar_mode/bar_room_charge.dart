@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_stay_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -40,7 +41,7 @@ abstract final class BarRoomCharge {
     return HotelStayPicker.show(
       context,
       mobile: mobile,
-      subtitle: 'The tab moves onto the guest folio and is paid at check-out.',
+      subtitle: context.flipperL10n.barRoomChargePickerSubtitle,
     );
   }
 
@@ -57,6 +58,7 @@ abstract final class BarRoomCharge {
     required HotelStay stay,
   }) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.flipperL10n;
     try {
       final moved = await ProxyService.getStrategy(Strategy.capella)
           .transferCartToFolio(
@@ -68,9 +70,7 @@ abstract final class BarRoomCharge {
 
       if (moved == 0) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Add something to the tab before charging a room.'),
-          ),
+          SnackBar(content: Text(l10n.barRoomChargeEmptyTab)),
         );
         return false;
       }
@@ -80,9 +80,11 @@ abstract final class BarRoomCharge {
           .read(barModeProvider.notifier)
           .afterSettle(
             tableName: table.name,
-            message:
-                '${table.name} → ${hotelRoomChargeTarget(stay)} · '
-                '$moved item${moved == 1 ? '' : 's'} on the folio',
+            message: l10n.barRoomChargeMoved(
+              table.name,
+              hotelRoomChargeTarget(stay),
+              moved,
+            ),
           );
       return true;
     } catch (e) {

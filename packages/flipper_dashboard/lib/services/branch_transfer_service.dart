@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_dashboard/utils/branch_transfer_stock.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -26,12 +27,12 @@ class BranchTransferService with StockRequestApprovalLogic {
     required String destinationBranchId,
     String? destinationBranchName,
   }) async {
+    final l10n = FlipperL10n.current;
     if (items.isEmpty) {
-      throw StateError('Add items before transferring');
+      throw StateError(l10n.addItemsBeforeTransferring);
     }
-    if (destinationBranchId.isEmpty ||
-        destinationBranchId == sourceBranchId) {
-      throw StateError('Select a different destination branch');
+    if (destinationBranchId.isEmpty || destinationBranchId == sourceBranchId) {
+      throw StateError(l10n.branchTransferSelectDifferentBranch);
     }
 
     final variantIds = items
@@ -39,13 +40,12 @@ class BranchTransferService with StockRequestApprovalLogic {
         .whereType<String>()
         .where((id) => id.trim().isNotEmpty)
         .toList();
-    final onHandByVariant =
-        await resolveCapellaOnHandByVariantIds(variantIds);
+    final onHandByVariant = await resolveCapellaOnHandByVariantIds(variantIds);
 
     final clamped = <TransactionItem>[];
     for (final item in items) {
       if (item.variantId == null || item.variantId!.isEmpty) {
-        throw Exception('Item ${item.name} is missing a product variant');
+        throw Exception(l10n.branchTransferItemMissingVariant(item.name));
       }
       final resolved = onHandByVariant[item.variantId!];
       final onHand = resolved?.onHand ?? 0;
@@ -94,18 +94,18 @@ class BranchTransferService with StockRequestApprovalLogic {
       );
     }
 
-    final requestId =
-        await ProxyService.getStrategy(Strategy.capella).createStockRequest(
+    final requestId = await ProxyService.getStrategy(Strategy.capella)
+        .createStockRequest(
           clamped,
           mainBranchId: sourceBranchId,
           subBranchId: destinationBranchId,
         );
 
-    final requests = await ProxyService.getStrategy(Strategy.capella).requests(
-      requestId: requestId,
-    );
+    final requests = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).requests(requestId: requestId);
     if (requests.isEmpty) {
-      throw Exception('Transfer was created but could not be loaded');
+      throw Exception(l10n.branchTransferCreatedNotLoaded);
     }
 
     final request = requests.first;
@@ -129,9 +129,9 @@ class BranchTransferService with StockRequestApprovalLogic {
 
     // Approval path expects [request.branch] (= destination / requester).
     if (request.branch == null && request.subBranchId != null) {
-      request.branch = await ProxyService.getStrategy(Strategy.capella).branch(
-        serverId: request.subBranchId,
-      );
+      request.branch = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).branch(serverId: request.subBranchId);
     }
 
     final approved = await approveRequest(
@@ -142,10 +142,7 @@ class BranchTransferService with StockRequestApprovalLogic {
     );
     if (!approved) {
       // Request stays pending; do not notify or signal cart finalization.
-      throw Exception(
-        'Transfer was created but approval did not complete; '
-        'it remains pending for review',
-      );
+      throw Exception(l10n.branchTransferApprovalIncomplete);
     }
 
     await _notifyTransferCompleted(
@@ -170,17 +167,16 @@ class BranchTransferService with StockRequestApprovalLogic {
     required String sourceBranchId,
     required String destinationBranchId,
   }) async {
-    final itemLabel = '$itemCount item${itemCount == 1 ? '' : 's'}';
+    final l10n = FlipperL10n.current;
 
     try {
-      final sourceConfig =
-          await SmsNotificationService.getBranchSmsConfig(sourceBranchId);
+      final sourceConfig = await SmsNotificationService.getBranchSmsConfig(
+        sourceBranchId,
+      );
       final sourcePhone = sourceConfig?.smsPhoneNumber ?? '';
       await SmsNotificationService.sendOrderRequestNotification(
         receiverBranchId: destinationBranchId,
-        orderDetails:
-            'Stock transfer: $itemLabel received from another branch '
-            '(#$requestId).',
+        orderDetails: l10n.branchTransferSmsReceived(itemCount, requestId),
         requesterPhone: sourcePhone,
       );
     } catch (e, s) {
@@ -194,15 +190,16 @@ class BranchTransferService with StockRequestApprovalLogic {
     required ITransaction transaction,
     required List<TransactionItem> items,
   }) async {
-    await ProxyService.getStrategy(Strategy.capella).markItemAsDoneWithTransaction(
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       ignoreForReport: false,
       pendingTransaction: transaction,
     );
-    await ProxyService.getStrategy(Strategy.capella).updateTransaction(
-      transaction: transaction,
-      status: ORDERING,
-    );
+    await ProxyService.getStrategy(
+      Strategy.capella,
+    ).updateTransaction(transaction: transaction, status: ORDERING);
   }
 }

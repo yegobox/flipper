@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_entry/widgets/basic_info_section.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -16,6 +17,8 @@ void main() {
 
   Widget buildTestWidget() {
     return MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         body: BasicInfoSection(
           productNameController: nameController,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 class OrderView extends StatefulWidget {
   OrderView({Key? key}) : super(key: key);
@@ -11,9 +12,7 @@ class _OrderViewState extends State<OrderView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Text('Order'),
-      ),
+      body: Center(child: Text(context.flipperL10n.orderViewTitle)),
     );
   }
 }

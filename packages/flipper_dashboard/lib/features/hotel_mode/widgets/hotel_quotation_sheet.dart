@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_reservation_sheet.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -182,21 +183,22 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
   }
 
   void _submit() {
+    final l10n = context.flipperL10n;
     final name = _nameController.text.trim();
     final room = _room;
 
     if (name.isEmpty) {
-      setState(() => _error = 'Guest name is required');
+      setState(() => _error = l10n.hotelGuestNameRequired);
       return;
     }
     if (room == null) {
-      setState(() => _error = 'Pick a room to quote');
+      setState(() => _error = l10n.hotelPickRoomToQuote);
       return;
     }
 
     final email = hotelNormalizeEmail(_emailController.text);
     if (email != null && !hotelIsPlausibleEmail(email)) {
-      setState(() => _emailError = 'That email does not look right');
+      setState(() => _emailError = l10n.hotelEmailInvalid);
       return;
     }
 
@@ -244,6 +246,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
       decoration: const BoxDecoration(
@@ -258,7 +261,9 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.existing == null ? 'New quotation' : 'Edit quotation',
+              widget.existing == null
+                  ? l10n.hotelNewQuotation
+                  : l10n.hotelEditQuotation,
               style: GoogleFonts.outfit(
                 fontSize: 19,
                 fontWeight: FontWeight.w800,
@@ -268,7 +273,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
             ),
             const SizedBox(height: 3),
             Text(
-              'A priced offer. It holds no room until the guest accepts it.',
+              l10n.hotelQuotationIntro,
               style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
@@ -277,9 +282,9 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
             ),
             const SizedBox(height: 18),
             HotelSheetField(
-              label: 'Guest name',
+              label: l10n.hotelGuestName,
               controller: _nameController,
-              hint: 'e.g. Aline Uwase',
+              hint: l10n.hotelGuestNameHint,
               errorText: _error,
               onChanged: (_) {
                 if (_error != null) setState(() => _error = null);
@@ -287,16 +292,16 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
             ),
             const SizedBox(height: 12),
             HotelSheetField(
-              label: 'Phone (optional)',
+              label: l10n.hotelPhoneOptional,
               controller: _phoneController,
               hint: '07…',
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 12),
             HotelSheetField(
-              label: 'Email (optional)',
+              label: l10n.hotelEmailOptional,
               controller: _emailController,
-              hint: 'Where the quotation PDF is sent',
+              hint: l10n.hotelQuotationEmailHint,
               keyboardType: TextInputType.emailAddress,
               errorText: _emailError,
               onChanged: (_) {
@@ -310,7 +315,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
               children: [
                 Expanded(
                   child: HotelSheetStepper(
-                    label: 'Nights',
+                    label: l10n.hotelNights,
                     value: _nights,
                     min: 1,
                     max: 60,
@@ -323,7 +328,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HotelSheetStepper(
-                    label: 'Adults',
+                    label: l10n.hotelAdults,
                     value: _adults,
                     min: 1,
                     max: 10,
@@ -336,7 +341,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HotelSheetStepper(
-                    label: 'Children',
+                    label: l10n.hotelChildren,
                     value: _children,
                     min: 0,
                     max: 10,
@@ -355,7 +360,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
               children: [
                 Expanded(
                   child: HotelSheetField(
-                    label: 'Rate / night',
+                    label: l10n.hotelRatePerNightShort,
                     controller: _rateController,
                     hint: '0',
                     keyboardType: TextInputType.number,
@@ -366,7 +371,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HotelSheetField(
-                    label: 'Extras',
+                    label: l10n.hotelExtras,
                     controller: _extrasController,
                     hint: '0',
                     keyboardType: TextInputType.number,
@@ -377,7 +382,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: HotelSheetField(
-                    label: 'Discount',
+                    label: l10n.discount,
                     controller: _discountController,
                     hint: '0',
                     keyboardType: TextInputType.number,
@@ -389,7 +394,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
             ),
             const SizedBox(height: 12),
             HotelSheetStepper(
-              label: 'Valid for (days)',
+              label: l10n.hotelValidForDays,
               value: _validForDays,
               min: 1,
               max: 90,
@@ -418,7 +423,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                       ),
                     ),
                     child: Text(
-                      'Cancel',
+                      l10n.cancel,
                       style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -444,8 +449,8 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
                       ),
                       child: Text(
                         widget.existing == null
-                            ? 'Save quotation'
-                            : 'Update quotation',
+                            ? l10n.hotelSaveQuotation
+                            : l10n.hotelUpdateQuotation,
                         style: GoogleFonts.outfit(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w800,
@@ -468,7 +473,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Arrival',
+          context.flipperL10n.hotelArrival,
           style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -520,12 +525,13 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
 
   Widget _roomPicker() {
     final rooms = _sellableRooms;
+    final l10n = context.flipperL10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Room · ${rooms.length} available for these dates',
+          l10n.hotelRoomsAvailableForDates('${rooms.length}'),
           style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -541,7 +547,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
               borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
             ),
             child: Text(
-              'Nothing sleeping ${_adults + _children} is free for those dates.',
+              l10n.hotelNoRoomFree('${_adults + _children}'),
               style: GoogleFonts.outfit(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
@@ -621,7 +627,7 @@ class _HotelQuotationSheetState extends State<HotelQuotationSheet> {
       child: Row(
         children: [
           Text(
-            '$_nights night${_nights == 1 ? '' : 's'} quoted',
+            context.flipperL10n.hotelNightsQuoted(_nights),
             style: GoogleFonts.outfit(
               fontSize: 13,
               fontWeight: FontWeight.w600,

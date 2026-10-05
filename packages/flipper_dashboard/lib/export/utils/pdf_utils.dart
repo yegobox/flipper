@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../models/export_config.dart';
@@ -12,19 +13,22 @@ class CustomPdfHeaderFooterDetails {
   final PdfDocumentTemplate pdfDocumentTemplate;
 
   CustomPdfHeaderFooterDetails(this.pdfDocument, this.pdfPage)
-      : pdfDocumentTemplate = PdfDocumentTemplate();
+    : pdfDocumentTemplate = PdfDocumentTemplate();
 }
 
 /// Utility class for PDF-related operations
 class PdfUtils {
   /// Exports data to PDF with header
   static Future<void> exportToPdf(
-      dynamic headerFooterExport, Business business, ExportConfig config,
-      {required String headerTitle}) async {
+    dynamic headerFooterExport,
+    Business business,
+    ExportConfig config, {
+    required String headerTitle,
+  }) async {
     final double width =
         headerFooterExport is DataGridPdfHeaderFooterExportDetails
-            ? headerFooterExport.pdfPage.getClientSize().width
-            : headerFooterExport.pdfPage.getClientSize().width;
+        ? headerFooterExport.pdfPage.getClientSize().width
+        : headerFooterExport.pdfPage.getClientSize().width;
 
     // Adjust the header size to only fit the necessary content
     final PdfPageTemplateElement header = PdfPageTemplateElement(
@@ -32,17 +36,29 @@ class PdfUtils {
     );
 
     // Create fonts
-    final PdfStandardFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
-    final PdfStandardFont headerFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11);
-    final PdfStandardFont headerBoldFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
+    final PdfStandardFont titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      20,
+      style: PdfFontStyle.bold,
+    );
+    final PdfStandardFont headerFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      11,
+    );
+    final PdfStandardFont headerBoldFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      11,
+      style: PdfFontStyle.bold,
+    );
 
     header.graphics.drawRectangle(
       brush: PdfSolidBrush(PdfColor(68, 114, 196)), // Blue background
       bounds: Rect.fromLTWH(
-          0, 0, width, 40), // Increased height for better visibility
+        0,
+        0,
+        width,
+        40,
+      ), // Increased height for better visibility
     );
 
     header.graphics.drawString(
@@ -65,11 +81,12 @@ class PdfUtils {
     // Draw the first row of information
     final tinString =
         (await effectiveTin(business: business))?.toString() ?? '';
+    final l10n = FlipperL10n.current;
     _drawLabelValuePair(
       header,
       headerBoldFont,
       headerFont,
-      'TIN Number:',
+      l10n.reportLabelWithColon(l10n.tinNumber),
       tinString,
       0,
       currentY,
@@ -80,7 +97,7 @@ class PdfUtils {
       header,
       headerBoldFont,
       headerFont,
-      'Start Date:',
+      l10n.reportLabelWithColon(l10n.reportStartDate),
       config.startDate?.toIso8601String().substring(0, 10) ?? '',
       width * 0.5,
       currentY,
@@ -106,7 +123,7 @@ class PdfUtils {
       header,
       headerBoldFont,
       headerFont,
-      'End Date:',
+      l10n.reportLabelWithColon(l10n.reportEndDate),
       config.endDate?.toIso8601String().substring(0, 10) ?? '',
       width * 0.5,
       currentY,
@@ -116,8 +133,8 @@ class PdfUtils {
     // Set the adjusted header to the PDF document template
     final PdfDocumentTemplate template =
         headerFooterExport is DataGridPdfHeaderFooterExportDetails
-            ? headerFooterExport.pdfDocumentTemplate
-            : headerFooterExport.pdfDocumentTemplate;
+        ? headerFooterExport.pdfDocumentTemplate
+        : headerFooterExport.pdfDocumentTemplate;
     template.top = header;
   }
 
@@ -129,8 +146,8 @@ class PdfUtils {
     // Handle both DataGridPdfHeaderFooterExportDetails and CustomPdfHeaderFooterDetails
     final PdfPage pdfPage =
         headerFooterExport is DataGridPdfHeaderFooterExportDetails
-            ? headerFooterExport.pdfPage
-            : headerFooterExport.pdfPage;
+        ? headerFooterExport.pdfPage
+        : headerFooterExport.pdfPage;
 
     final double width = pdfPage.getClientSize().width;
 
@@ -154,7 +171,9 @@ class PdfUtils {
     footerRow.height = 30; // Adjust row height if needed
 
     // Add data to the cells
-    footerRow.cells[0].value = 'Total:';
+    footerRow.cells[0].value = FlipperL10n.current.reportLabelWithColon(
+      FlipperL10n.current.failedPaymentTotal,
+    );
     footerRow.cells[0].style = PdfGridCellStyle(
       borders: PdfBorders(
         left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
@@ -162,8 +181,11 @@ class PdfUtils {
         top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
         bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
       ),
-      font: PdfStandardFont(PdfFontFamily.helvetica, 12,
-          style: PdfFontStyle.bold),
+      font: PdfStandardFont(
+        PdfFontFamily.helvetica,
+        12,
+        style: PdfFontStyle.bold,
+      ),
     );
 
     // Leave the second cell empty
@@ -202,8 +224,11 @@ class PdfUtils {
         top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
         bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
       ),
-      font: PdfStandardFont(PdfFontFamily.helvetica, 12,
-          style: PdfFontStyle.bold),
+      font: PdfStandardFont(
+        PdfFontFamily.helvetica,
+        12,
+        style: PdfFontStyle.bold,
+      ),
     );
 
     // Draw the grid in the footer
@@ -215,8 +240,8 @@ class PdfUtils {
     // Set the footer for the PDF document
     final PdfDocumentTemplate template =
         headerFooterExport is DataGridPdfHeaderFooterExportDetails
-            ? headerFooterExport.pdfDocumentTemplate
-            : headerFooterExport.pdfDocumentTemplate;
+        ? headerFooterExport.pdfDocumentTemplate
+        : headerFooterExport.pdfDocumentTemplate;
     template.bottom = footer;
   }
 
@@ -248,7 +273,8 @@ class PdfUtils {
 
   /// Creates a custom header/footer details object for PDF export
   static CustomPdfHeaderFooterDetails createHeaderFooterDetails(
-      PdfDocument document) {
+    PdfDocument document,
+  ) {
     // Create a new page in the document
     final page = document.pages.add();
 

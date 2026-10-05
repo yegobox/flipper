@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery.dart';
 import 'package:flipper_dashboard/widgets/checkout_error_recovery_screen.dart';
 import 'package:flutter/material.dart';
@@ -26,9 +27,7 @@ void main() {
 
     test('diagnostic code for no branch', () {
       expect(
-        checkoutErrorDiagnosticCode(
-          StateError('No default branch selected'),
-        ),
+        checkoutErrorDiagnosticCode(StateError('No default branch selected')),
         'no_default_branch',
       );
     });
@@ -40,6 +39,8 @@ void main() {
     Widget buildScreen({required Object error}) {
       return ProviderScope(
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: CheckoutErrorRecoveryScreen(
             error: error,
             onRecovered: noopRecovered,
@@ -68,9 +69,7 @@ void main() {
     });
 
     testWidgets('shows generic headline for other errors', (tester) async {
-      await tester.pumpWidget(
-        buildScreen(error: Exception('Ditto timeout')),
-      );
+      await tester.pumpWidget(buildScreen(error: Exception('Ditto timeout')));
       await tester.pump();
 
       expect(find.text('Couldn\'t load checkout'), findsOneWidget);
@@ -91,7 +90,10 @@ void main() {
 
       expect(find.text('Where is this sale taking place?'), findsOneWidget);
       expect(find.text('Choose a branch'), findsOneWidget);
-      expect(find.text('Set as default branch for this device'), findsOneWidget);
+      expect(
+        find.text('Set as default branch for this device'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('invokes onRecovered when Try again is tapped', (tester) async {
@@ -99,6 +101,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: CheckoutErrorRecoveryScreen(
               error: StateError('No default branch selected'),
               onRecovered: () async {
@@ -128,10 +132,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(
-        find.textContaining('Still no branch selected'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Still no branch selected'), findsOneWidget);
     });
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:supabase_models/brick/models/ProgressData.dart';
 
@@ -26,6 +27,7 @@ class BulkSaveOverlay extends StatelessWidget {
               final current = progressData.currentItem;
               final ratio = total > 0 ? current / total : 0.0;
               final pctLabel = ProgressData.formatPercent(current, total);
+              final l10n = context.flipperL10n;
 
               return Material(
                 borderRadius: BorderRadius.circular(16),
@@ -36,9 +38,9 @@ class BulkSaveOverlay extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Saving products',
-                        style: TextStyle(
+                      Text(
+                        l10n.bulkProductSavingProducts,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -54,7 +56,7 @@ class BulkSaveOverlay extends StatelessWidget {
                       const SizedBox(height: 10),
                       if (total > 0)
                         Text(
-                          '$current of $total',
+                          l10n.bulkProductCurrentOfTotal('$current', '$total'),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -73,7 +75,7 @@ class BulkSaveOverlay extends StatelessWidget {
                       Text(
                         progressData.progress.isNotEmpty
                             ? progressData.progress
-                            : 'Please wait…',
+                            : l10n.bulkProductPleaseWait,
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 13),
                         maxLines: 3,
@@ -82,18 +84,15 @@ class BulkSaveOverlay extends StatelessWidget {
                       const SizedBox(height: 16),
                       TextButton(
                         onPressed: () => model.dismissBlockingSaveOverlay(),
-                        child: const Text(
-                          'Hide · save continues',
-                          style: TextStyle(fontSize: 13),
+                        child: Text(
+                          l10n.bulkProductHideSaveContinues,
+                          style: const TextStyle(fontSize: 13),
                         ),
                       ),
                       Text(
-                        'Progress stays on the bar above the grid.',
+                        l10n.bulkProductProgressStaysOnBar,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       ),
                     ],
                   ),

@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:developer';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
@@ -116,12 +117,11 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = (await ProxyService.getStrategy(
-          Strategy.capella,
-        ).customers(
-          id: widget.transaction.customerId ?? "",
-          branchId: ProxyService.box.getBranchId()!,
-        )).firstOrNull;
+        Customer? customer =
+            (await ProxyService.getStrategy(Strategy.capella).customers(
+              id: widget.transaction.customerId ?? "",
+              branchId: ProxyService.box.getBranchId()!,
+            )).firstOrNull;
         if (customer == null) {
           /// there is no customer attached to this transaction then enable extra field.
           showCustomerField = true;
@@ -141,11 +141,11 @@ class PaymentsState extends ConsumerState<Payments> {
         ref.refresh(pendingTransactionStreamProvider(isExpense: false));
         _routerService.back();
       },
-      rightActionButtonName: 'Split payment',
+      rightActionButtonName: context.flipperL10n.paymentsSplitPayment,
       icon: Icons.close,
       multi: 3,
       bottomSpacer: 52,
-      title: 'Confirm Payment',
+      title: context.flipperL10n.paymentsConfirmPayment,
     );
   }
 
@@ -181,7 +181,9 @@ class PaymentsState extends ConsumerState<Payments> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  showDiscountField ? "Hide Discount" : "Add Discount",
+                  showDiscountField
+                      ? context.flipperL10n.paymentsHideDiscount
+                      : context.flipperL10n.paymentsAddDiscount,
                   style: GoogleFonts.outfit(fontSize: 14, color: Colors.black),
                 ),
               ),
@@ -215,7 +217,7 @@ class PaymentsState extends ConsumerState<Payments> {
           _routerService.clearStackAndShow(CountryPickerRoute());
         },
         child: Text(
-          "Send Invoice",
+          context.flipperL10n.paymentsSendInvoice,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w400,
             fontSize: 20,
@@ -235,10 +237,10 @@ class PaymentsState extends ConsumerState<Payments> {
           controller: _discount,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter discount amount';
+              return context.flipperL10n.paymentsEnterDiscountAmount;
             }
             if (double.parse(value) > widget.transaction.subTotal!) {
-              return "Discount cannot exceed the total amount";
+              return context.flipperL10n.paymentsDiscountExceedsTotal;
             }
             return null;
           },
@@ -257,7 +259,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 width: 0.5,
               ),
             ),
-            hintText: 'Discount',
+            hintText: context.flipperL10n.discount,
           ),
         ),
       ),
@@ -291,13 +293,13 @@ class PaymentsState extends ConsumerState<Payments> {
                   controller: _customer,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter Phone number without 0 e.g 783054874';
+                      return context.flipperL10n.paymentsPhoneWithoutZero;
                     }
                     if (value.length > 9) {
-                      return 'Please enter Phone number without 0 e.g 783054874';
+                      return context.flipperL10n.paymentsPhoneWithoutZero;
                     }
                     if (value.length < 9) {
-                      return 'Please enter Phone number without 0 e.g 783054874';
+                      return context.flipperL10n.paymentsPhoneWithoutZero;
                     }
                     return null;
                   },
@@ -328,7 +330,7 @@ class PaymentsState extends ConsumerState<Payments> {
                         width: 0.5,
                       ),
                     ),
-                    hintText: 'Customer Phone Number',
+                    hintText: context.flipperL10n.customerPhoneNumber,
                   ),
                 ),
               ),
@@ -349,14 +351,14 @@ class PaymentsState extends ConsumerState<Payments> {
           controller: _cash,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter Cash Received';
+              return context.flipperL10n.paymentsEnterCashReceived;
             }
             final amountReceived = double.parse(value);
             final discount = _discount.text.isEmpty
                 ? 0.0
                 : double.parse(_discount.text);
             if (amountReceived < (totalTransactionAmount - discount)) {
-              return "Amount is less than amount payable";
+              return context.flipperL10n.paymentsAmountLessThanPayable;
             }
             return null;
           },
@@ -375,7 +377,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 width: 0.5,
               ),
             ),
-            hintText: 'Amount Received',
+            hintText: context.flipperL10n.receivedAmount,
           ),
         ),
       ),
@@ -468,13 +470,34 @@ class PaymentsState extends ConsumerState<Payments> {
               child: Icon(icon, color: Colors.black),
             ),
             Text(
-              type,
+              _paymentTypeLabel(type),
               style: GoogleFonts.outfit(fontSize: 14, color: textColor),
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// Display label for a payment button; [type] stays the stored value.
+  String _paymentTypeLabel(String type) {
+    final l10n = context.flipperL10n;
+    switch (type) {
+      case 'Cash':
+        return l10n.cash;
+      case 'Card':
+        return l10n.paymentsTypeCard;
+      case 'Mobile':
+        return l10n.paymentsTypeMobile;
+      case 'Bank':
+        return l10n.paymentsTypeBank;
+      case 'Cheque':
+        return l10n.paymentsTypeCheque;
+      case 'CREDIT':
+        return l10n.credit;
+      default:
+        return type;
+    }
   }
 
   Widget _buildConfirmButton(CoreViewModel model, bool isIncome) {
@@ -499,7 +522,7 @@ class PaymentsState extends ConsumerState<Payments> {
               } else {
                 if (paymentType == null) {
                   showSimpleNotification(
-                    const Text("You need to choose a payment method"),
+                    Text(context.flipperL10n.paymentsChooseMethod),
                     background: Colors.red,
                     position: NotificationPosition.bottom,
                   );
@@ -514,7 +537,7 @@ class PaymentsState extends ConsumerState<Payments> {
               }
             }
           },
-          title: "Confirm Payment",
+          title: context.flipperL10n.paymentsConfirmPayment,
         ),
       ),
     );
@@ -600,7 +623,7 @@ class PaymentsState extends ConsumerState<Payments> {
               height * 0.8; // Adjust the height to 80% of the screen height
 
           return AlertDialog(
-            title: Text('Digital Receipt'),
+            title: Text(context.flipperL10n.digitalReceipt),
             content: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: adjustedHeight),
               child: Form(
@@ -608,14 +631,16 @@ class PaymentsState extends ConsumerState<Payments> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Text('Do you need a digital receipt?'),
+                    Text(context.flipperL10n.needDigitalReceipt),
                     TextFormField(
                       controller: _controller,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Purchase Code'),
+                      decoration: InputDecoration(
+                        labelText: context.flipperL10n.purchaseCode,
+                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a purchase code';
+                          return context.flipperL10n.pleaseEnterPurchaseCode;
                         }
                         return null;
                       },
@@ -629,7 +654,7 @@ class PaymentsState extends ConsumerState<Payments> {
             ),
             actions: <Widget>[
               BoxButton(
-                title: 'Submit',
+                title: context.flipperL10n.submit,
                 busy: _busy,
                 onTap: () async {
                   if (_formKey.currentState?.validate() ?? false) {
@@ -663,7 +688,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 },
               ),
               TextButton(
-                child: Text('Cancel'),
+                child: Text(context.flipperL10n.cancel),
                 onPressed: () async {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt

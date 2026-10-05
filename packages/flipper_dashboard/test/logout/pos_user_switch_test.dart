@@ -41,11 +41,7 @@ void main() {
 
   group('PosSwitchUserSelection', () {
     test('holds tenant and pin', () {
-      final tenant = Tenant(
-        id: 't1',
-        name: 'Alice',
-        userId: 'user-b',
-      );
+      final tenant = Tenant(id: 't1', name: 'Alice', userId: 'user-b');
       const pin = '123456';
       final selection = PosSwitchUserSelection(tenant: tenant, pin: pin);
       expect(selection.tenant.id, 't1');
@@ -69,11 +65,9 @@ void main() {
             ),
           ],
           child: const MaterialApp(
-            home: Scaffold(
-              body: PosUserSwitchGate(
-                child: Text('POS_VISIBLE'),
-              ),
-            ),
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: PosUserSwitchGate(child: Text('POS_VISIBLE'))),
           ),
         ),
       );
@@ -88,15 +82,11 @@ void main() {
     testWidgets('shows POS child when lock is off', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            posUserSwitchLockProvider.overrideWith((ref) => false),
-          ],
+          overrides: [posUserSwitchLockProvider.overrideWith((ref) => false)],
           child: const MaterialApp(
-            home: Scaffold(
-              body: PosUserSwitchGate(
-                child: Text('POS_VISIBLE'),
-              ),
-            ),
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: PosUserSwitchGate(child: Text('POS_VISIBLE'))),
           ),
         ),
       );
@@ -120,13 +110,11 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            barStaffProvider.overrideWith((ref) async => staff),
-          ],
+          overrides: [barStaffProvider.overrideWith((ref) async => staff)],
           child: const MaterialApp(
-            home: Scaffold(
-              body: PosSwitchUserDialog(),
-            ),
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: PosSwitchUserDialog()),
           ),
         ),
       );
@@ -149,9 +137,9 @@ void main() {
             ),
           ],
           child: const MaterialApp(
-            home: Scaffold(
-              body: PosSwitchUserDialog(),
-            ),
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: Scaffold(body: PosSwitchUserDialog()),
           ),
         ),
       );
@@ -165,8 +153,9 @@ void main() {
   });
 
   group('UserInfoWidget menu', () {
-    testWidgets('includes Switch User alongside Switch Branch and Log out',
-        (tester) async {
+    testWidgets('includes Switch User alongside Switch Branch and Log out', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(1440, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -183,9 +172,7 @@ void main() {
             posUserSwitchLockProvider.overrideWith((ref) => false),
           ],
           child: MaterialApp(
-            localizationsDelegates: [
-              ...FlipperLocalizationDelegates.delegates,
-            ],
+            localizationsDelegates: [...FlipperLocalizationDelegates.delegates],
             supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: const Scaffold(
               body: Align(

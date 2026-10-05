@@ -1,3 +1,5 @@
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// SAP Fiori-inspired color semantics for production output variance
 class VarianceColors {
   /// Positive variance (actual >= planned) - Green
@@ -23,8 +25,55 @@ enum VarianceReasonCategory {
   other('Other', 'Other reasons');
 
   const VarianceReasonCategory(this.label, this.description);
+
+  /// English label; for display use [localizedLabel].
   final String label;
+
+  /// English description; for display use [localizedDescription].
   final String description;
+
+  /// Looks up a category by its stored wire value (the enum [name]).
+  static VarianceReasonCategory? tryParse(String? value) {
+    final v = value?.toLowerCase();
+    for (final c in values) {
+      if (c.name == v) return c;
+    }
+    return null;
+  }
+
+  String localizedLabel(FlipperAppLocalizations l10n) {
+    switch (this) {
+      case VarianceReasonCategory.machine:
+        return l10n.productionOutputReasonMachine;
+      case VarianceReasonCategory.material:
+        return l10n.productionOutputReasonMaterial;
+      case VarianceReasonCategory.labor:
+        return l10n.productionOutputReasonLabor;
+      case VarianceReasonCategory.quality:
+        return l10n.productionOutputReasonQuality;
+      case VarianceReasonCategory.planning:
+        return l10n.productionOutputReasonPlanning;
+      case VarianceReasonCategory.other:
+        return l10n.productionOutputReasonOther;
+    }
+  }
+
+  String localizedDescription(FlipperAppLocalizations l10n) {
+    switch (this) {
+      case VarianceReasonCategory.machine:
+        return l10n.productionOutputReasonMachineDesc;
+      case VarianceReasonCategory.material:
+        return l10n.productionOutputReasonMaterialDesc;
+      case VarianceReasonCategory.labor:
+        return l10n.productionOutputReasonLaborDesc;
+      case VarianceReasonCategory.quality:
+        return l10n.productionOutputReasonQualityDesc;
+      case VarianceReasonCategory.planning:
+        return l10n.productionOutputReasonPlanningDesc;
+      case VarianceReasonCategory.other:
+        return l10n.productionOutputReasonOtherDesc;
+    }
+  }
 }
 
 /// Work order status for display
@@ -35,8 +84,23 @@ enum WorkOrderStatus {
   cancelled('Cancelled', 0xFF797775);
 
   const WorkOrderStatus(this.label, this.color);
+
+  /// English label; for display use [localizedLabel].
   final String label;
   final int color;
+
+  String localizedLabel(FlipperAppLocalizations l10n) {
+    switch (this) {
+      case WorkOrderStatus.planned:
+        return l10n.productionOutputStatusPlanned;
+      case WorkOrderStatus.inProgress:
+        return l10n.productionOutputStatusInProgress;
+      case WorkOrderStatus.completed:
+        return l10n.productionOutputStatusCompleted;
+      case WorkOrderStatus.cancelled:
+        return l10n.productionOutputStatusCancelled;
+    }
+  }
 
   static WorkOrderStatus fromString(String status) {
     switch (status.toLowerCase()) {
@@ -117,6 +181,14 @@ class ProductionSummary {
     if (efficiency >= 90) return 'Good';
     if (efficiency >= 75) return 'Fair';
     return 'Poor';
+  }
+
+  /// Display text for [efficiencyRating].
+  String localizedEfficiencyRating(FlipperAppLocalizations l10n) {
+    if (efficiency >= 100) return l10n.productionOutputRatingExcellent;
+    if (efficiency >= 90) return l10n.productionOutputRatingGood;
+    if (efficiency >= 75) return l10n.productionOutputRatingFair;
+    return l10n.productionOutputRatingPoor;
   }
 }
 

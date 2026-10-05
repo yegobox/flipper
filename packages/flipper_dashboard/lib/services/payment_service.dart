@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/momo/momo_client.dart';
 import 'package:flipper_services/momo/momo_collection.dart';
@@ -152,7 +153,7 @@ class PaymentService {
         backgroundColor: Colors.red,
         content: Text(message),
         action: SnackBarAction(
-          label: 'Close',
+          label: context.flipperL10n.close,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },

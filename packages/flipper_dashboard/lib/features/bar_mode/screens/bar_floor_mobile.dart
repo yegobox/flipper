@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dar
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_table_cards.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_zone_tab_bar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/bar_table.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -51,6 +52,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
     List<Tenant> staff,
   ) {
     final cashier = bar.activeCashier;
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -67,7 +69,9 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
               if (cashier != null)
                 BarCashierChip(
                   name: cashier.name ?? '',
-                  role: '${cashier.type ?? 'Server'} · logging',
+                  role: l10n.barCashierLogging(
+                    cashier.type ?? l10n.barRoleServer,
+                  ),
                   initials: barTenantInitials(cashier.name),
                   color: barColorForTenant(cashier.id, staff),
                 ),
@@ -89,7 +93,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tables',
+                l10n.barTables,
                 style: GoogleFonts.outfit(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -97,7 +101,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
                 ),
               ),
               Text(
-                '$openCount open · tap to log an order',
+                l10n.barFloorOpenTapToLog('$openCount'),
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   color: BarTokens.ink3,
@@ -123,7 +127,7 @@ class _BarFloorMobileScreenState extends ConsumerState<BarFloorMobileScreen> {
     }
     final zones = byZone.keys.toList();
     if (zones.isEmpty) {
-      return const Center(child: Text('No tables configured'));
+      return Center(child: Text(context.flipperL10n.barNoTablesConfigured));
     }
 
     final selected = _selectedZone ?? zones.first;

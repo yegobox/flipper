@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 HotelRoom _room(int i) => HotelRoom(
   id: 'r$i',
@@ -78,6 +79,9 @@ Future<void> _pump(
         ),
       ],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: MediaQuery(
             data: MediaQueryData(size: Size(width, 1000)),

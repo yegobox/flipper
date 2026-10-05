@@ -696,7 +696,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         final inkColor = isRemaining ? PosTokens.lossInk : PosTokens.gainInk;
         final accentColor = isRemaining ? PosTokens.loss : PosTokens.gain;
         final bgColor = isRemaining ? PosTokens.lossTint : PosTokens.blueTint;
-        final headline = isRemaining ? 'BALANCE DUE' : 'CHANGE';
+        final headline = isRemaining
+            ? context.flipperL10n.posBalanceDue.toUpperCase()
+            : context.flipperL10n.posChange.toUpperCase();
         final amount = isRemaining ? remaining : change;
 
         return Padding(
@@ -1374,7 +1376,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       await service.finalizeCartAfterTransfer(transaction: txn, items: items);
 
       if (!mounted) return;
-      final destName = dest.name ?? 'branch';
+      final destName = dest.name ?? context.flipperL10n.branch;
       showSuccessNotification(
         context,
         context.flipperL10n.transferredItemsToBranch(items.length, destName),
@@ -3994,8 +3996,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       await ref
           .read(parkTransactionProvider.notifier)
           .park(
-            ticketName: 'Till · $displayRef',
-            ticketNote: 'Sent to till for payment',
+            ticketName: FlipperL10n.current.posTillTicketName(displayRef),
+            ticketNote: FlipperL10n.current.posSentToTillNote,
             transaction: transaction,
             customerId: transaction.customerId,
           );
@@ -4054,7 +4056,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       settling.ticketSnapshot?.customerName ?? txn.customerName,
                   reference: settling.displayRef,
                 ),
-                ticketNote: settling.ticketNote ?? 'Sent to till for payment',
+                ticketNote:
+                    settling.ticketNote ??
+                    FlipperL10n.current.posSentToTillNote,
                 transaction: txn,
                 customerId: txn.customerId,
               );
@@ -4064,7 +4068,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (mounted) {
           showErrorNotification(
             context,
-            'Could not return this ticket to the till. Please try again.',
+            context.flipperL10n.posReturnToTillFailed,
           );
         }
         // Keep settling set — clearing here orphans a PENDING till ticket.

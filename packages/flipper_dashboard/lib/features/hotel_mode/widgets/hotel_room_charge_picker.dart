@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/utils/rra_line_utils.dart';
 import 'package:flipper_services/proxy.dart';
@@ -42,6 +43,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
   List<Variant> _results = const [];
   bool _loading = true;
   String? _error;
+  bool _noBranch = false;
 
   @override
   void initState() {
@@ -60,7 +62,9 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
     if (branchId == null) {
       setState(() {
         _loading = false;
-        _error = 'No active branch';
+        // Resolved in build: this first runs from initState, where an
+        // inherited lookup (localizations) is not allowed yet.
+        _noBranch = true;
       });
       return;
     }
@@ -68,6 +72,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
     setState(() {
       _loading = true;
       _error = null;
+      _noBranch = false;
     });
 
     try {
@@ -96,6 +101,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: const BoxDecoration(
@@ -109,7 +115,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Room charge product',
+            l10n.hotelRoomChargeProduct,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -118,8 +124,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
           ),
           const SizedBox(height: 3),
           Text(
-            'The nightly rate is billed against this product, so it must be '
-            'registered with RRA.',
+            l10n.hotelRoomChargeIntro,
             style: GoogleFonts.outfit(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
@@ -136,7 +141,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
             },
             style: GoogleFonts.outfit(fontSize: 14.5),
             decoration: InputDecoration(
-              hintText: 'Search products…',
+              hintText: l10n.searchProducts,
               isDense: true,
               prefixIcon: const Icon(Icons.search, size: 19),
               contentPadding: const EdgeInsets.symmetric(vertical: 13),
@@ -166,11 +171,11 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (_error != null) {
+    if (_noBranch || _error != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 30),
         child: Text(
-          _error!,
+          _noBranch ? context.flipperL10n.hotelNoActiveBranch : _error!,
           style: GoogleFonts.outfit(fontSize: 13, color: HotelTokens.lossInk),
         ),
       );
@@ -179,7 +184,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 30),
         child: Text(
-          'No products found.',
+          context.flipperL10n.hotelNoProductsFound,
           style: GoogleFonts.outfit(fontSize: 13, color: HotelTokens.ink3),
         ),
       );
@@ -212,8 +217,8 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
           subtitle: Text(
             billable
                 ? 'RWF ${NumberFormat('#,###').format(variant.retailPrice ?? 0)}'
-                  '${variant.itemCd == null ? '' : ' · ${variant.itemCd}'}'
-                : 'Not registered with RRA — register it first',
+                      '${variant.itemCd == null ? '' : ' · ${variant.itemCd}'}'
+                : context.flipperL10n.hotelNotRegisteredWithRra,
             style: GoogleFonts.outfit(
               fontSize: 11.5,
               fontWeight: FontWeight.w500,
@@ -223,9 +228,7 @@ class _HotelRoomChargePickerState extends State<HotelRoomChargePicker> {
           trailing: selected
               ? const Icon(Icons.check_circle, color: HotelTokens.vacantInk)
               : null,
-          onTap: billable
-              ? () => Navigator.of(context).pop(variant)
-              : null,
+          onTap: billable ? () => Navigator.of(context).pop(variant) : null,
         );
       },
     );

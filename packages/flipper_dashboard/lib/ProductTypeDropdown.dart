@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class ProductTypeDropdown extends StatefulWidget {
@@ -17,14 +18,15 @@ class ProductTypeDropdown extends StatefulWidget {
 }
 
 class _ProductTypeDropdownState extends State<ProductTypeDropdown> {
-  final List<Map<String, String>> options = [
-    {"name": "Raw Material", "value": "1"},
-    {"name": "Finished Product", "value": "2"},
-    {"name": "Service without stock", "value": "3"},
+  List<Map<String, String>> _options(FlipperAppLocalizations l10n) => [
+    {"name": l10n.productTypeRawMaterial, "value": "1"},
+    {"name": l10n.productTypeFinishedProduct, "value": "2"},
+    {"name": l10n.productTypeServiceWithoutStock, "value": "3"},
   ];
 
   @override
   Widget build(BuildContext context) {
+    final options = _options(context.flipperL10n);
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Container(
@@ -44,7 +46,7 @@ class _ProductTypeDropdownState extends State<ProductTypeDropdown> {
           }).toList(),
           isExpanded: true,
           underline: const SizedBox(), // Remove the default underline
-          hint: const Text("Select Product Type"), // Placeholder text
+          hint: Text(context.flipperL10n.productTypeSelect), // Placeholder text
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_colors.dart';
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -87,7 +88,7 @@ class _ProductEditorColorPickerState extends State<ProductEditorColorPicker> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Select color shade',
+          context.flipperL10n.productEditorColorSelectShade,
           style: GoogleFonts.outfit(
             fontSize: 12.5,
             fontWeight: FontWeight.w700,
@@ -127,7 +128,7 @@ class _ProductEditorColorPickerState extends State<ProductEditorColorPicker> {
         ),
         const SizedBox(height: 16),
         Text(
-          'SHADES',
+          context.flipperL10n.productEditorColorShades,
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -149,7 +150,9 @@ class _ProductEditorColorPickerState extends State<ProductEditorColorPicker> {
                     _removeOverlay();
                   },
                   child: Container(
-                    margin: EdgeInsets.only(right: i < shades.length - 1 ? 6 : 0),
+                    margin: EdgeInsets.only(
+                      right: i < shades.length - 1 ? 6 : 0,
+                    ),
                     height: 24,
                     decoration: BoxDecoration(
                       color: shades[i],
@@ -204,7 +207,10 @@ class _ProductEditorColorPickerState extends State<ProductEditorColorPicker> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$_hueName · shade ${_shadeIdx + 1}',
+                context.flipperL10n.productEditorColorHueShade(
+                  productEditorHueLabel(context.flipperL10n, _hueName),
+                  _shadeIdx + 1,
+                ),
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -212,7 +218,7 @@ class _ProductEditorColorPickerState extends State<ProductEditorColorPicker> {
                 ),
               ),
               Text(
-                "Used as the product's swatch across POS & reports",
+                context.flipperL10n.productEditorColorSwatchHint,
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   color: ProductEditorTokens.ink3,
@@ -236,10 +242,14 @@ class _ProductEditorColorPickerState extends State<ProductEditorColorPicker> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.palette, size: 16, color: ProductEditorTokens.blue),
+                    const Icon(
+                      Icons.palette,
+                      size: 16,
+                      color: ProductEditorTokens.blue,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      'Choose color',
+                      context.flipperL10n.productEditorColorChoose,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,

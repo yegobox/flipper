@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class FieldcompositeactivatedState
     final branchId = ProxyService.box.getBranchId();
 
     if (branchId == null) {
-      return Center(child: Text('Branch ID is null'));
+      return Center(child: Text(context.flipperL10n.noBranchSelected));
     }
 
     return Padding(
@@ -42,7 +43,7 @@ class FieldcompositeactivatedState
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "SKU is required";
+                    return context.flipperL10n.compositeSkuRequired;
                   }
                   return null;
                 },
@@ -53,13 +54,15 @@ class FieldcompositeactivatedState
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).colorScheme.error),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).colorScheme.error),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               ),
@@ -71,24 +74,26 @@ class FieldcompositeactivatedState
                 controller: widget.barCodeController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Bar code is required";
+                    return context.flipperL10n.compositeBarcodeRequired;
                   }
                   return null;
                 },
                 decoration: InputDecoration(
-                  labelText: 'Bar Code',
+                  labelText: context.flipperL10n.compositeBarcode,
                   labelStyle: const TextStyle(color: Colors.black),
                   border: OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                   errorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).colorScheme.error),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).colorScheme.error),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
               ),
@@ -105,16 +110,13 @@ class FieldcompositeactivatedState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
-        ref.listenManual(
-          skuProvider(branchId),
-          (previous, next) {
-            next.whenData((sku) {
-              if (sku != null && mounted) {
-                widget.skuController.text = sku.sku.toString();
-              }
-            });
-          },
-        );
+        ref.listenManual(skuProvider(branchId), (previous, next) {
+          next.whenData((sku) {
+            if (sku != null && mounted) {
+              widget.skuController.text = sku.sku.toString();
+            }
+          });
+        });
       }
     });
   }

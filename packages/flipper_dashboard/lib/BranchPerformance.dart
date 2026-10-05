@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -55,12 +56,12 @@ class _Line {
     required this.movement,
     required this.windowDays,
     required this.movementKnown,
-  })  : name = _displayName(variant),
-        current = (variant.stock?.currentStock ?? 0).toDouble(),
-        low = (variant.stock?.lowStock ?? 0).toDouble(),
-        unitPrice = _effectiveUnitPrice(variant),
-        expiry = variant.expirationDate,
-        updatedAt = variant.stock?.lastTouched ?? variant.lastTouched;
+  }) : name = _displayName(variant),
+       current = (variant.stock?.currentStock ?? 0).toDouble(),
+       low = (variant.stock?.lowStock ?? 0).toDouble(),
+       unitPrice = _effectiveUnitPrice(variant),
+       expiry = variant.expirationDate,
+       updatedAt = variant.stock?.lastTouched ?? variant.lastTouched;
 
   final Variant variant;
   final VariantMovement movement;
@@ -81,11 +82,11 @@ class _Line {
 
   String get category => (variant.categoryName?.trim().isNotEmpty ?? false)
       ? variant.categoryName!.trim()
-      : 'Uncategorised';
+      : FlipperL10n.current.perfUncategorised;
 
   String get unit => (variant.unit?.trim().isNotEmpty ?? false)
       ? variant.unit!.trim()
-      : 'units';
+      : FlipperL10n.current.perfUnits;
 
   /// Units sold in the window, measured from completed sale lines.
   double get sold => movement.unitsSold;
@@ -159,7 +160,9 @@ class _Line {
   static String _displayName(Variant v) {
     final product = v.productName?.trim();
     if (product != null && product.isNotEmpty) return product;
-    return v.name.trim().isEmpty ? 'Unnamed item' : v.name.trim();
+    return v.name.trim().isEmpty
+        ? FlipperL10n.current.perfUnnamedItem
+        : v.name.trim();
   }
 
   static double _effectiveUnitPrice(Variant v) {
@@ -224,18 +227,18 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance> {
                     ref.invalidate(variantsProvider((branchId: branchId))),
               ),
               data: (data) => data.isEmpty
-                  ? const _EmptyState(
+                  ? _EmptyState(
                       icon: Icons.inventory_2_outlined,
-                      title: 'No items in this branch yet',
-                      message:
-                          'Add products or record a purchase and stock will show up here.',
+                      title: context.flipperL10n.perfNoItemsTitle,
+                      message: context.flipperL10n.perfNoItemsMessage,
                     )
                   : _Body(
                       lines: [
                         for (final v in data)
                           _Line(
                             variant: v,
-                            movement: movementData?.forVariant(v.id) ??
+                            movement:
+                                movementData?.forVariant(v.id) ??
                                 VariantMovement.empty,
                             windowDays: _window.days,
                             movementKnown: movementKnown,
@@ -269,10 +272,7 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({
-    required this.itemCount,
-    required this.onRefresh,
-  });
+  const _Header({required this.itemCount, required this.onRefresh});
 
   final int? itemCount;
   final VoidCallback onRefresh;
@@ -280,8 +280,8 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitle = itemCount == null
-        ? 'Live stock joined to selling pace'
-        : '$itemCount items tracked';
+        ? context.flipperL10n.perfHeaderSubtitle
+        : context.flipperL10n.perfItemsTracked(itemCount!);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 18, 16, 14),
@@ -307,7 +307,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Inventory Dashboard',
+                  context.flipperL10n.perfTitle,
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -331,14 +331,14 @@ class _Header extends StatelessWidget {
           const BranchDropdown(),
           const SizedBox(width: 6),
           _HeaderIconButton(
-            tooltip: 'Refresh stock and sales figures',
+            tooltip: context.flipperL10n.perfRefreshTooltip,
             icon: Icons.refresh_rounded,
             onPressed: onRefresh,
           ),
           if (Navigator.of(context).canPop()) ...[
             const SizedBox(width: 2),
             _HeaderIconButton(
-              tooltip: 'Close',
+              tooltip: context.flipperL10n.close,
               icon: Icons.close_rounded,
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -484,13 +484,16 @@ class _Body extends StatelessWidget {
     final revenue = lines.fold<double>(0, (s, l) => s + l.revenue);
     final profit = lines.fold<double>(0, (s, l) => s + l.profit);
     final shrinkUnits = lines.fold<double>(0, (s, l) => s + l.shrink);
-    final shrinkValue =
-        lines.fold<double>(0, (s, l) => s + l.shrink * l.unitPrice);
+    final shrinkValue = lines.fold<double>(
+      0,
+      (s, l) => s + l.shrink * l.unitPrice,
+    );
     final outCount = lines.where((l) => l.status == _StockStatus.out).length;
     final lowCount = lines.where((l) => l.status == _StockStatus.low).length;
     final reorderCount = lines.where((l) => l.needsReorder).length;
-    final expiringCount =
-        lines.where((l) => l.isExpiringSoon || l.isExpired).length;
+    final expiringCount = lines
+        .where((l) => l.isExpiringSoon || l.isExpired)
+        .length;
     final deadStock = lines.where((l) => l.isDeadStock).toList();
     final deadValue = deadStock.fold<double>(0, (s, l) => s + l.value);
     final shrinkCount = lines.where((l) => l.shrink > 0).length;
@@ -499,7 +502,9 @@ class _Body extends StatelessWidget {
         .map((l) => l.updatedAt)
         .whereType<DateTime>()
         .fold<DateTime?>(
-            null, (acc, d) => acc == null || d.isAfter(acc) ? d : acc);
+          null,
+          (acc, d) => acc == null || d.isAfter(acc) ? d : acc,
+        );
 
     return CustomScrollView(
       slivers: [
@@ -590,29 +595,26 @@ class _Body extends StatelessWidget {
           ),
         ),
         if (visible.isEmpty)
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: _EmptyState(
               icon: Icons.search_off,
-              title: 'Nothing matches these filters',
-              message: 'Clear the search or pick a different filter.',
+              title: context.flipperL10n.perfNoMatchesTitle,
+              message: context.flipperL10n.perfNoMatchesMessage,
             ),
           )
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final line = visible[index];
-                  return _ItemRow(
-                    line: line,
-                    isSelected: line.id == selectedItemId,
-                    onTap: () =>
-                        onSelect(line.id == selectedItemId ? null : line.id),
-                  );
-                },
-                childCount: visible.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final line = visible[index];
+                return _ItemRow(
+                  line: line,
+                  isSelected: line.id == selectedItemId,
+                  onTap: () =>
+                      onSelect(line.id == selectedItemId ? null : line.id),
+                );
+              }, childCount: visible.length),
             ),
           ),
       ],
@@ -627,18 +629,19 @@ class _Body extends StatelessWidget {
         ..sort((a, b) => a.daysOfCover!.compareTo(b.daysOfCover!));
       return withCover.take(_kMaxBars).toList();
     }
-    final ranked = [...visible]..sort((a, b) {
-      switch (metric) {
-        case _ChartMetric.stock:
-          return b.current.compareTo(a.current);
-        case _ChartMetric.sold:
-          return b.sold.compareTo(a.sold);
-        case _ChartMetric.revenue:
-          return b.revenue.compareTo(a.revenue);
-        case _ChartMetric.cover:
-          return 0;
-      }
-    });
+    final ranked = [...visible]
+      ..sort((a, b) {
+        switch (metric) {
+          case _ChartMetric.stock:
+            return b.current.compareTo(a.current);
+          case _ChartMetric.sold:
+            return b.sold.compareTo(a.sold);
+          case _ChartMetric.revenue:
+            return b.revenue.compareTo(a.revenue);
+          case _ChartMetric.cover:
+            return 0;
+        }
+      });
     return ranked.take(_kMaxBars).toList();
   }
 }
@@ -664,14 +667,16 @@ class _WindowBar extends StatelessWidget {
     final String status;
     final Color statusColor;
     if (loading) {
-      status = 'Reading sales…';
+      status = context.flipperL10n.perfReadingSales;
       statusColor = Colors.black45;
     } else if (unavailable) {
-      status = 'Sales movement unavailable — stock figures only';
+      status = context.flipperL10n.perfMovementUnavailable;
       statusColor = _kRed;
     } else {
-      status = '$salesCount completed ${salesCount == 1 ? 'sale' : 'sales'} '
-          'in ${window.longLabel}';
+      status = context.flipperL10n.perfCompletedSalesIn(
+        salesCount,
+        _windowLong(context.flipperL10n, window),
+      );
       statusColor = Colors.black45;
     }
 
@@ -710,7 +715,7 @@ class _WindowBar extends StatelessWidget {
             for (final w in InventoryWindow.values) ...[
               if (w != InventoryWindow.values.first) const SizedBox(width: 6),
               _MetricChip(
-                label: w.shortLabel,
+                label: _windowShort(context.flipperL10n, w),
                 isActive: w == window,
                 onTap: () => onChanged(w),
               ),
@@ -753,51 +758,57 @@ class _KpiRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final tiles = <Widget>[
       _StatTile(
         icon: Icons.account_balance_wallet_outlined,
         color: _kBlue,
-        label: 'STOCK VALUE',
+        label: l10n.reportsStockValue.toUpperCase(),
         value: 'RWF ${formatNumber(totalValue)}',
-        caption: '${_qty(unitsOnHand)} units · $skuCount items',
+        caption: l10n.perfUnitsAndItems(_qty(unitsOnHand), skuCount),
       ),
       _StatTile(
         icon: Icons.trending_up,
         color: _kGreen,
-        label: 'SOLD · ${window.shortLabel.toUpperCase()}',
+        label: l10n.perfSoldInWindow(_windowShort(l10n, window)).toUpperCase(),
         value: movementKnown ? _qty(unitsSold) : '—',
         caption: movementKnown
-            ? 'RWF ${formatNumber(revenue)} in · '
-                'RWF ${formatNumber(profit)} profit'
-            : 'waiting for sales data',
+            ? l10n.perfRevenueAndProfit(
+                'RWF ${formatNumber(revenue)}',
+                'RWF ${formatNumber(profit)}',
+              )
+            : l10n.perfWaitingForSalesData,
       ),
       _StatTile(
         icon: Icons.remove_shopping_cart_outlined,
         color: _kRed,
-        label: 'OUT OF STOCK',
+        label: l10n.posStockFilterOutOfStock.toUpperCase(),
         value: '$outCount',
-        caption: outCount == 0 ? 'nothing to restock' : 'tap to see them',
+        caption: outCount == 0
+            ? l10n.perfNothingToRestock
+            : l10n.perfTapToSeeThem,
         onTap: outCount == 0
             ? null
             : () => onFilter(
-                activeFilter == _Filter.out ? _Filter.all : _Filter.out),
+                activeFilter == _Filter.out ? _Filter.all : _Filter.out,
+              ),
         isActive: activeFilter == _Filter.out,
       ),
       _StatTile(
         icon: Icons.local_shipping_outlined,
         color: _kAmber,
-        label: 'REORDER NOW',
+        label: l10n.perfReorderNow.toUpperCase(),
         value: movementKnown ? '$reorderCount' : '—',
         caption: !movementKnown
-            ? 'waiting for selling pace'
+            ? l10n.perfWaitingForSellingPace
             : reorderCount == 0
-                ? 'every item has runway'
-                : 'under $_kReorderDays days of stock left',
+            ? l10n.perfEveryItemHasRunway
+            : l10n.perfUnderDaysLeft(_kReorderDays),
         onTap: reorderCount == 0
             ? null
-            : () => onFilter(activeFilter == _Filter.reorder
-                ? _Filter.all
-                : _Filter.reorder),
+            : () => onFilter(
+                activeFilter == _Filter.reorder ? _Filter.all : _Filter.reorder,
+              ),
         isActive: activeFilter == _Filter.reorder,
       ),
     ];
@@ -827,26 +838,27 @@ class _Grid extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i += columns) {
-      final slice =
-          children.sublist(i, math.min(i + columns, children.length));
+      final slice = children.sublist(i, math.min(i + columns, children.length));
       // IntrinsicHeight is required: this grid sits in a SliverList (unbounded
       // height). CrossAxisAlignment.stretch on a Row needs a finite max
       // height; without IntrinsicHeight the row children never get a size
       // (`hasSize` / LayoutBuilder re-entry), which then sticks MouseTracker
       // (`!_debugDuringDeviceUpdate`) for the rest of the session.
-      rows.add(IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var j = 0; j < columns; j++) ...[
-              if (j > 0) SizedBox(width: spacing),
-              Expanded(
-                child: j < slice.length ? slice[j] : const SizedBox.shrink(),
-              ),
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var j = 0; j < columns; j++) ...[
+                if (j > 0) SizedBox(width: spacing),
+                Expanded(
+                  child: j < slice.length ? slice[j] : const SizedBox.shrink(),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
-      ));
+      );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -967,22 +979,27 @@ class _InsightRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasSales = topMover.sold > 0;
+    final l10n = context.flipperL10n;
     final tiles = <Widget>[
       _InsightTile(
         icon: Icons.star_rounded,
         color: _kAmber,
         title: !movementKnown
-            ? 'Reading sales…'
+            ? l10n.perfReadingSales
             : hasSales
-                ? topMover.name
-                : 'No sales in this period',
-        label: 'BEST SELLER · ${window.shortLabel.toUpperCase()}',
+            ? topMover.name
+            : l10n.perfNoSalesInPeriod,
+        label: l10n
+            .perfBestSellerInWindow(_windowShort(l10n, window))
+            .toUpperCase(),
         caption: !movementKnown
-            ? 'Measured from completed sales'
+            ? l10n.perfMeasuredFromSales
             : hasSales
-                ? '${_qty(topMover.sold)} ${topMover.unit} sold · '
-                    'RWF ${formatNumber(topMover.revenue)} in'
-                : 'Pick a longer period or check the till',
+            ? l10n.perfSoldAndRevenue(
+                '${_qty(topMover.sold)} ${topMover.unit}',
+                'RWF ${formatNumber(topMover.revenue)}',
+              )
+            : l10n.perfPickLongerPeriod,
         onTap: movementKnown && hasSales ? () => onSelect(topMover.id) : null,
       ),
       _InsightTile(
@@ -991,19 +1008,19 @@ class _InsightRow extends StatelessWidget {
         title: !movementKnown
             ? '—'
             : deadItemCount == 0
-                ? 'Everything is moving'
-                : 'RWF ${formatNumber(deadValue)} tied up',
-        label: 'NOT SELLING',
+            ? l10n.perfEverythingMoving
+            : l10n.perfTiedUp('RWF ${formatNumber(deadValue)}'),
+        label: l10n.perfNotSelling.toUpperCase(),
         caption: !movementKnown
-            ? 'Waiting for sales data'
+            ? l10n.perfWaitingForSalesData
             : deadItemCount == 0
-                ? 'Every item sold at least once in ${window.longLabel}'
-                : '$deadItemCount items with stock and no sales '
-                    'in ${window.longLabel}',
+            ? l10n.perfEveryItemSold(_windowLong(l10n, window))
+            : l10n.perfDeadItems(deadItemCount, _windowLong(l10n, window)),
         onTap: deadItemCount == 0
             ? null
             : () => onFilter(
-                activeFilter == _Filter.dead ? _Filter.all : _Filter.dead),
+                activeFilter == _Filter.dead ? _Filter.all : _Filter.dead,
+              ),
         isActive: activeFilter == _Filter.dead,
       ),
       _InsightTile(
@@ -1012,35 +1029,38 @@ class _InsightRow extends StatelessWidget {
         title: !movementKnown
             ? '—'
             : shrinkCount == 0
-                ? 'Counts match'
-                : 'RWF ${formatNumber(shrinkValue)} lost',
-        label: 'STOCK LOSS',
+            ? l10n.perfCountsMatch
+            : l10n.perfLost('RWF ${formatNumber(shrinkValue)}'),
+        label: l10n.perfStockLoss.toUpperCase(),
         caption: !movementKnown
-            ? 'From stock recounts in this period'
+            ? l10n.perfFromRecounts
             : shrinkCount == 0
-                ? 'No shortfall found in recounts'
-                : '${_qty(shrinkUnits)} units missing across $shrinkCount items',
+            ? l10n.perfNoShortfall
+            : l10n.perfUnitsMissing(_qty(shrinkUnits), shrinkCount),
         onTap: shrinkCount == 0
             ? null
             : () => onFilter(
-                activeFilter == _Filter.shrink ? _Filter.all : _Filter.shrink),
+                activeFilter == _Filter.shrink ? _Filter.all : _Filter.shrink,
+              ),
         isActive: activeFilter == _Filter.shrink,
       ),
       _InsightTile(
         icon: Icons.event_busy_outlined,
         color: expiringCount == 0 ? _kGreen : _kRed,
         title: expiringCount == 0
-            ? 'No expiry risk'
-            : '$expiringCount items at risk',
-        label: 'EXPIRY WATCH',
+            ? l10n.perfNoExpiryRisk
+            : l10n.perfItemsAtRisk(expiringCount),
+        label: l10n.perfExpiryWatch.toUpperCase(),
         caption: expiringCount == 0
-            ? 'Nothing expiring in the next $_kExpirySoonDays days'
-            : 'Expired or expiring within $_kExpirySoonDays days',
+            ? l10n.perfNothingExpiring(_kExpirySoonDays)
+            : l10n.perfExpiringWithin(_kExpirySoonDays),
         onTap: expiringCount == 0
             ? null
-            : () => onFilter(activeFilter == _Filter.expiring
-                ? _Filter.all
-                : _Filter.expiring),
+            : () => onFilter(
+                activeFilter == _Filter.expiring
+                    ? _Filter.all
+                    : _Filter.expiring,
+              ),
         isActive: activeFilter == _Filter.expiring,
       ),
     ];
@@ -1050,8 +1070,8 @@ class _InsightRow extends StatelessWidget {
         columns: c.maxWidth < 720
             ? 1
             : c.maxWidth < 1040
-                ? 2
-                : 4,
+            ? 2
+            : 4,
         spacing: 12,
         children: tiles,
       ),
@@ -1169,22 +1189,19 @@ class _ChartCard extends StatelessWidget {
   final ValueChanged<_ChartMetric> onMetricChanged;
   final ValueChanged<String?> onSelect;
 
-  String get _title => switch (metric) {
-        _ChartMetric.stock => 'Stock on hand',
-        _ChartMetric.sold => 'Units sold · ${window.shortLabel}',
-        _ChartMetric.revenue => 'Revenue · ${window.shortLabel}',
-        _ChartMetric.cover => 'Days of stock left',
-      };
+  String _title(FlipperAppLocalizations l10n) => switch (metric) {
+    _ChartMetric.stock => l10n.perfChartStockOnHand,
+    _ChartMetric.sold => l10n.perfChartUnitsSold(_windowShort(l10n, window)),
+    _ChartMetric.revenue => l10n.perfChartRevenue(_windowShort(l10n, window)),
+    _ChartMetric.cover => l10n.perfChartDaysLeft,
+  };
 
-  String get _subtitle => switch (metric) {
-        _ChartMetric.stock => 'Tap a bar to select the item.',
-        _ChartMetric.sold =>
-          'Measured from completed sales. Tap a bar to select.',
-        _ChartMetric.revenue =>
-          'Selling value of what actually left the shelf.',
-        _ChartMetric.cover =>
-          'At the current selling pace — shortest runway first.',
-      };
+  String _subtitle(FlipperAppLocalizations l10n) => switch (metric) {
+    _ChartMetric.stock => l10n.perfChartStockHint,
+    _ChartMetric.sold => l10n.perfChartSoldHint,
+    _ChartMetric.revenue => l10n.perfChartRevenueHint,
+    _ChartMetric.cover => l10n.perfChartCoverHint,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -1210,7 +1227,7 @@ class _ChartCard extends StatelessWidget {
                   const Icon(Icons.bar_chart_rounded, size: 20, color: _kBlue),
                   const SizedBox(width: 8),
                   Text(
-                    _title,
+                    _title(context.flipperL10n),
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -1219,8 +1236,8 @@ class _ChartCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     totalCount > lines.length
-                        ? '· top ${lines.length} of $totalCount'
-                        : '· $totalCount items',
+                        ? '· ${context.flipperL10n.perfTopOf(lines.length, totalCount)}'
+                        : '· ${context.flipperL10n.perfItemsCount(totalCount)}',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       color: Colors.black45,
@@ -1232,25 +1249,25 @@ class _ChartCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _MetricChip(
-                    label: 'Sold',
+                    label: context.flipperL10n.perfSold,
                     isActive: metric == _ChartMetric.sold,
                     onTap: () => onMetricChanged(_ChartMetric.sold),
                   ),
                   const SizedBox(width: 6),
                   _MetricChip(
-                    label: 'Revenue',
+                    label: context.flipperL10n.perfRevenue,
                     isActive: metric == _ChartMetric.revenue,
                     onTap: () => onMetricChanged(_ChartMetric.revenue),
                   ),
                   const SizedBox(width: 6),
                   _MetricChip(
-                    label: 'Stock',
+                    label: context.flipperL10n.perfStock,
                     isActive: metric == _ChartMetric.stock,
                     onTap: () => onMetricChanged(_ChartMetric.stock),
                   ),
                   const SizedBox(width: 6),
                   _MetricChip(
-                    label: 'Days left',
+                    label: context.flipperL10n.perfDaysLeft,
                     isActive: metric == _ChartMetric.cover,
                     onTap: () => onMetricChanged(_ChartMetric.cover),
                   ),
@@ -1260,7 +1277,7 @@ class _ChartCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            _subtitle,
+            _subtitle(context.flipperL10n),
             style: GoogleFonts.outfit(fontSize: 11, color: Colors.black38),
           ),
           const SizedBox(height: 12),
@@ -1332,12 +1349,12 @@ class _StockBarChart extends StatelessWidget {
   final ValueChanged<String?> onSelect;
 
   double _metricOf(_Line line) => switch (metric) {
-        _ChartMetric.stock => line.current,
-        _ChartMetric.sold => line.sold,
-        _ChartMetric.revenue => line.revenue,
-        // Cap the runway so one slow-moving item does not flatten the rest.
-        _ChartMetric.cover => math.min(line.daysOfCover ?? 0, 90),
-      };
+    _ChartMetric.stock => line.current,
+    _ChartMetric.sold => line.sold,
+    _ChartMetric.revenue => line.revenue,
+    // Cap the runway so one slow-moving item does not flatten the rest.
+    _ChartMetric.cover => math.min(line.daysOfCover ?? 0, 90),
+  };
 
   Color _colorOf(_Line line) {
     if (line.id == selectedItemId) return _kBlue;
@@ -1360,8 +1377,8 @@ class _StockBarChart extends StatelessWidget {
       return Center(
         child: Text(
           metric == _ChartMetric.cover
-              ? 'No selling pace yet — nothing sold in this period'
-              : 'Nothing to chart',
+              ? context.flipperL10n.perfNoSellingPace
+              : context.flipperL10n.perfNothingToChart,
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(fontSize: 13, color: Colors.black38),
         ),
@@ -1407,10 +1424,8 @@ class _StockBarChart extends StatelessWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: maxY / 4,
-          getDrawingHorizontalLine: (_) => const FlLine(
-            color: Color(0x11000000),
-            strokeWidth: 1,
-          ),
+          getDrawingHorizontalLine: (_) =>
+              const FlLine(color: Color(0x11000000), strokeWidth: 1),
         ),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
@@ -1517,6 +1532,7 @@ class _SelectedLineCard extends StatelessWidget {
     final days = line.daysToExpiry;
     final cover = line.daysOfCover;
     final restocked = line.restocked;
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -1544,7 +1560,7 @@ class _SelectedLineCard extends StatelessWidget {
               _StatusPill(line: line),
               IconButton(
                 onPressed: onClear,
-                tooltip: 'Clear selection',
+                tooltip: l10n.clearSelection,
                 icon: const Icon(Icons.close, size: 16),
                 visualDensity: VisualDensity.compact,
               ),
@@ -1552,7 +1568,7 @@ class _SelectedLineCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Movement measured over ${window.longLabel}',
+            l10n.perfMovementMeasuredOver(_windowLong(l10n, window)),
             style: GoogleFonts.outfit(fontSize: 11, color: Colors.black45),
           ),
           const SizedBox(height: 10),
@@ -1561,88 +1577,90 @@ class _SelectedLineCard extends StatelessWidget {
             runSpacing: 10,
             children: [
               _MiniMetric(
-                label: 'In stock',
+                label: l10n.posStockFilterInStock,
                 value: '${_qty(line.current)} ${line.unit}',
               ),
               _MiniMetric(
-                label: 'Sold',
+                label: l10n.perfSold,
                 value: line.movementKnown ? _qty(line.sold) : '—',
               ),
               _MiniMetric(
-                label: 'Revenue',
+                label: l10n.perfRevenue,
                 value: line.movementKnown
                     ? 'RWF ${formatNumber(line.revenue)}'
                     : '—',
               ),
               _MiniMetric(
-                label: 'Profit',
+                label: l10n.reportsProfit,
                 value: line.movementKnown
                     ? 'RWF ${formatNumber(line.profit)} '
-                        '(${(line.margin * 100).toStringAsFixed(0)}%)'
+                          '(${(line.margin * 100).toStringAsFixed(0)}%)'
                     : '—',
               ),
               _MiniMetric(
-                label: 'Selling pace',
+                label: l10n.perfSellingPace,
                 value: line.movementKnown
-                    ? '${_qty(line.velocity)} ${line.unit}/day'
+                    ? l10n.perfPerDay('${_qty(line.velocity)} ${line.unit}')
                     : '—',
               ),
               _MiniMetric(
-                label: 'Stock left',
+                label: l10n.perfStockLeft,
                 value: !line.movementKnown
                     ? '—'
                     : cover == null
-                        ? 'no sales'
-                        : _coverLabel(cover),
+                    ? l10n.perfNoSales
+                    : _coverLabel(cover),
                 color: cover != null && cover < _kReorderDays ? _kRed : null,
               ),
               _MiniMetric(
-                label: 'Sell-through',
+                label: l10n.perfSellThrough,
                 value: line.movementKnown
                     ? '${(line.sellThrough * 100).toStringAsFixed(0)}%'
                     : '—',
               ),
               if (restocked != null && restocked > 0)
                 _MiniMetric(
-                  label: 'Received (est.)',
+                  label: l10n.perfReceivedEst,
                   value: '${_qty(restocked)} ${line.unit}',
                 ),
               if (line.adjustment != 0)
                 _MiniMetric(
-                  label: line.adjustment < 0 ? 'Missing at count' : 'Found at count',
+                  label: line.adjustment < 0
+                      ? l10n.perfMissingAtCount
+                      : l10n.perfFoundAtCount,
                   value: _qty(line.adjustment.abs()),
                   color: line.adjustment < 0 ? _kRed : _kGreen,
                 ),
               _MiniMetric(
-                label: 'Unit price',
+                label: l10n.unitPrice,
                 value: 'RWF ${formatNumber(line.unitPrice)}',
               ),
               _MiniMetric(
-                label: 'Stock value',
+                label: l10n.reportsStockValue,
                 value: 'RWF ${formatNumber(line.value)}',
               ),
               _MiniMetric(
-                label: 'Alert level',
-                value: line.low > 0 ? _qty(line.low) : 'not set',
+                label: l10n.perfAlertLevel,
+                value: line.low > 0 ? _qty(line.low) : l10n.perfNotSet,
               ),
               if (line.movement.lastSoldAt != null)
                 _MiniMetric(
-                  label: 'Last sold',
+                  label: l10n.perfLastSold,
                   value: timeago.format(line.movement.lastSoldAt!),
                 ),
               if (days != null)
                 _MiniMetric(
-                  label: 'Expiry',
+                  label: l10n.perfExpiry,
                   value: days < 0
-                      ? 'expired'
+                      ? l10n.perfExpiredLower
                       : days == 0
-                          ? 'today'
-                          : 'in $days days',
+                      ? l10n.perfWindowTodayLower
+                      : l10n.perfInDays(days),
                   color: days <= _kExpirySoonDays ? _kRed : null,
                 ),
               if (line.updatedAt != null)
                 _MiniMetric(
-                  label: 'Stock updated',
+                  label: l10n.perfStockUpdated,
                   value: timeago.format(line.updatedAt!),
                 ),
             ],
@@ -1719,13 +1737,13 @@ class _ListToolbar extends StatelessWidget {
   final ValueChanged<_Filter> onFilterChanged;
   final ValueChanged<_SortBy> onSortChanged;
 
-  static const _sortLabels = {
-    _SortBy.coverAsc: 'Runs out soonest',
-    _SortBy.stockAsc: 'Lowest stock first',
-    _SortBy.soldDesc: 'Best selling first',
-    _SortBy.valueDesc: 'Highest value first',
-    _SortBy.stockDesc: 'Highest stock first',
-    _SortBy.nameAsc: 'Name A–Z',
+  static Map<_SortBy, String> _sortLabels(FlipperAppLocalizations l10n) => {
+    _SortBy.coverAsc: l10n.perfSortRunsOutSoonest,
+    _SortBy.stockAsc: l10n.perfSortLowestStock,
+    _SortBy.soldDesc: l10n.perfSortBestSelling,
+    _SortBy.valueDesc: l10n.perfSortHighestValue,
+    _SortBy.stockDesc: l10n.perfSortHighestStock,
+    _SortBy.nameAsc: l10n.perfSortNameAz,
   };
 
   @override
@@ -1743,7 +1761,7 @@ class _ListToolbar extends StatelessWidget {
                 style: GoogleFonts.outfit(fontSize: 14),
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: 'Search item, category, SKU or barcode',
+                  hintText: context.flipperL10n.perfSearchHint,
                   hintStyle: GoogleFonts.outfit(
                     fontSize: 13,
                     color: Colors.black38,
@@ -1773,7 +1791,7 @@ class _ListToolbar extends StatelessWidget {
             );
             final sort = _SortDropdown(
               sortBy: sortBy,
-              labels: _sortLabels,
+              labels: _sortLabels(context.flipperL10n),
               onChanged: onSortChanged,
             );
             if (c.maxWidth < 560) {
@@ -1797,42 +1815,43 @@ class _ListToolbar extends StatelessWidget {
           runSpacing: 8,
           children: [
             _FilterChip(
-              label: 'All items',
+              label: context.flipperL10n.posStockFilterAll,
               isActive: filter == _Filter.all,
               onTap: () => onFilterChanged(_Filter.all),
             ),
             _FilterChip(
-              label: 'Reorder now ($reorderCount)',
+              label: '${context.flipperL10n.perfReorderNow} ($reorderCount)',
               color: _kAmber,
               isActive: filter == _Filter.reorder,
               onTap: () => onFilterChanged(_Filter.reorder),
             ),
             _FilterChip(
-              label: 'Out of stock ($outCount)',
+              label:
+                  '${context.flipperL10n.posStockFilterOutOfStock} ($outCount)',
               color: _kRed,
               isActive: filter == _Filter.out,
               onTap: () => onFilterChanged(_Filter.out),
             ),
             _FilterChip(
-              label: 'Running low ($lowCount)',
+              label: '${context.flipperL10n.perfRunningLow} ($lowCount)',
               color: _kAmber,
               isActive: filter == _Filter.low,
               onTap: () => onFilterChanged(_Filter.low),
             ),
             _FilterChip(
-              label: 'Not selling ($deadCount)',
+              label: '${context.flipperL10n.perfNotSelling} ($deadCount)',
               color: _kPurple,
               isActive: filter == _Filter.dead,
               onTap: () => onFilterChanged(_Filter.dead),
             ),
             _FilterChip(
-              label: 'Stock loss ($shrinkCount)',
+              label: '${context.flipperL10n.perfStockLoss} ($shrinkCount)',
               color: _kRed,
               isActive: filter == _Filter.shrink,
               onTap: () => onFilterChanged(_Filter.shrink),
             ),
             _FilterChip(
-              label: 'Expiry risk ($expiringCount)',
+              label: '${context.flipperL10n.perfExpiryRisk} ($expiringCount)',
               color: _kPurple,
               isActive: filter == _Filter.expiring,
               onTap: () => onFilterChanged(_Filter.expiring),
@@ -1944,13 +1963,17 @@ class _ResultSummary extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Showing $shown of $total items · RWF ${formatNumber(value)} in view',
+            context.flipperL10n.perfShowingSummary(
+              shown,
+              total,
+              'RWF ${formatNumber(value)}',
+            ),
             style: GoogleFonts.outfit(fontSize: 12, color: Colors.black54),
           ),
         ),
         if (lastUpdated != null)
           Text(
-            'Stock updated ${timeago.format(lastUpdated!)}',
+            '${context.flipperL10n.perfStockUpdated} ${timeago.format(lastUpdated!)}',
             style: GoogleFonts.outfit(fontSize: 12, color: Colors.black38),
           ),
       ],
@@ -2012,9 +2035,10 @@ class _ItemRow extends StatelessWidget {
                             if (line.shrink > 0) ...[
                               const SizedBox(width: 6),
                               Tooltip(
-                                message:
-                                    '${_qty(line.shrink)} ${line.unit} missing '
-                                    'at the last stock count',
+                                message: context.flipperL10n
+                                    .perfMissingAtLastCount(
+                                      '${_qty(line.shrink)} ${line.unit}',
+                                    ),
                                 child: const Icon(
                                   Icons.report_gmailerrorred,
                                   size: 14,
@@ -2026,8 +2050,10 @@ class _ItemRow extends StatelessWidget {
                               const SizedBox(width: 6),
                               Tooltip(
                                 message: line.isExpired
-                                    ? 'Expired'
-                                    : 'Expires in ${line.daysToExpiry} days',
+                                    ? context.flipperL10n.perfExpired
+                                    : context.flipperL10n.perfExpiresInDays(
+                                        line.daysToExpiry ?? 0,
+                                      ),
                                 child: Icon(
                                   Icons.event_busy_outlined,
                                   size: 14,
@@ -2058,7 +2084,7 @@ class _ItemRow extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: _ColumnFigure(
-                      label: 'In stock',
+                      label: context.flipperL10n.posStockFilterInStock,
                       value: '${_qty(line.current)} ${line.unit}',
                       color: switch (line.status) {
                         _StockStatus.out => _kRed,
@@ -2071,28 +2097,22 @@ class _ItemRow extends StatelessWidget {
                     Expanded(
                       flex: 2,
                       child: _ColumnFigure(
-                        label: 'Sold',
+                        label: context.flipperL10n.perfSold,
                         value: line.movementKnown ? _qty(line.sold) : '—',
                         color: Colors.black87,
                       ),
                     ),
-                    Expanded(
-                      flex: 2,
-                      child: _CoverFigure(line: line),
-                    ),
+                    Expanded(flex: 2, child: _CoverFigure(line: line)),
                     if (wide)
                       Expanded(
                         flex: 2,
                         child: _ColumnFigure(
-                          label: 'Value',
+                          label: context.flipperL10n.perfValue,
                           value: 'RWF ${formatNumber(line.value)}',
                           color: _kGreen,
                         ),
                       ),
-                    Expanded(
-                      flex: 3,
-                      child: _SellThroughBar(line: line),
-                    ),
+                    Expanded(flex: 3, child: _SellThroughBar(line: line)),
                     const SizedBox(width: 12),
                   ],
                   _StatusPill(line: line),
@@ -2162,10 +2182,10 @@ class _CoverFigure extends StatelessWidget {
     if (!line.movementKnown) {
       value = '—';
     } else if (line.status == _StockStatus.out) {
-      value = 'empty';
+      value = context.flipperL10n.perfEmpty;
       color = _kRed;
     } else if (cover == null) {
-      value = 'no sales';
+      value = context.flipperL10n.perfNoSales;
       color = Colors.black38;
     } else {
       value = _coverLabel(cover);
@@ -2178,10 +2198,16 @@ class _CoverFigure extends StatelessWidget {
 
     return Tooltip(
       message: cover == null
-          ? 'Needs sales in this period to work out a selling pace'
-          : 'Selling ${_qty(line.velocity)} ${line.unit}/day — '
-              '${_qty(line.current)} left',
-      child: _ColumnFigure(label: 'Stock left', value: value, color: color),
+          ? context.flipperL10n.perfNeedsSalesForPace
+          : context.flipperL10n.perfSellingPaceTooltip(
+              '${_qty(line.velocity)} ${line.unit}',
+              _qty(line.current),
+            ),
+      child: _ColumnFigure(
+        label: context.flipperL10n.perfStockLeft,
+        value: value,
+        color: color,
+      ),
     );
   }
 }
@@ -2197,15 +2223,19 @@ class _SellThroughBar extends StatelessWidget {
     final available = line.movement.availableInWindow(line.current);
     return Tooltip(
       message: available == null
-          ? '${_qty(line.sold)} sold against ${_qty(line.current)} still on '
-              'the shelf'
-          : '${_qty(line.sold)} of ${_qty(available)} ${line.unit} available '
-              'in the period have sold',
+          ? context.flipperL10n.perfSoldAgainstShelf(
+              _qty(line.sold),
+              _qty(line.current),
+            )
+          : context.flipperL10n.perfSoldOfAvailable(
+              _qty(line.sold),
+              '${_qty(available)} ${line.unit}',
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'SELL-THROUGH',
+            context.flipperL10n.perfSellThrough.toUpperCase(),
             style: GoogleFonts.outfit(
               fontSize: 9,
               fontWeight: FontWeight.w700,
@@ -2231,9 +2261,7 @@ class _SellThroughBar extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                line.movementKnown
-                    ? '${(pct * 100).toStringAsFixed(0)}%'
-                    : '—',
+                line.movementKnown ? '${(pct * 100).toStringAsFixed(0)}%' : '—',
                 style: FlipperFonts.mono(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -2256,11 +2284,12 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (line.status) {
-      _StockStatus.out => ('Out of stock', _kRed),
-      _StockStatus.low => ('Low', _kAmber),
-      _StockStatus.healthy => line.needsReorder
-          ? ('Reorder', _kAmber)
-          : ('In stock', _kGreen),
+      _StockStatus.out => (context.flipperL10n.posStockFilterOutOfStock, _kRed),
+      _StockStatus.low => (context.flipperL10n.stockLow, _kAmber),
+      _StockStatus.healthy =>
+        line.needsReorder
+            ? (context.flipperL10n.perfReorder, _kAmber)
+            : (context.flipperL10n.posStockFilterInStock, _kGreen),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -2303,8 +2332,10 @@ class _EmptyState extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style:
-                GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -2335,9 +2366,11 @@ class _ErrorState extends StatelessWidget {
             const Icon(Icons.error_outline, size: 40, color: _kRed),
             const SizedBox(height: 12),
             Text(
-              'Could not load stock',
-              style:
-                  GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700),
+              context.flipperL10n.perfCouldNotLoadStock,
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
@@ -2351,7 +2384,10 @@ class _ErrorState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh, size: 18),
-              label: Text('Try again', style: GoogleFonts.outfit()),
+              label: Text(
+                context.flipperL10n.retry,
+                style: GoogleFonts.outfit(),
+              ),
             ),
           ],
         ),
@@ -2370,8 +2406,23 @@ String _qty(double value) {
 
 /// Days of stock left, phrased the way an owner would say it.
 String _coverLabel(double days) {
-  if (days < 1) return 'under a day';
-  if (days < 60) return '${days.round()} days';
-  if (days < 365) return '${(days / 30).round()} months';
-  return 'over a year';
+  final l10n = FlipperL10n.current;
+  if (days < 1) return l10n.perfCoverUnderADay;
+  if (days < 60) return l10n.perfCoverDays(days.round());
+  if (days < 365) return l10n.perfCoverMonths((days / 30).round());
+  return l10n.perfCoverOverAYear;
 }
+
+/// Localized short name for a reporting window ("Today", "7 days", …).
+String _windowShort(FlipperAppLocalizations l10n, InventoryWindow window) =>
+    switch (window) {
+      InventoryWindow.today => l10n.perfWindowToday,
+      _ => l10n.perfWindowDays(window.days),
+    };
+
+/// Localized phrase for a reporting window inside a sentence ("the last 7 days").
+String _windowLong(FlipperAppLocalizations l10n, InventoryWindow window) =>
+    switch (window) {
+      InventoryWindow.today => l10n.perfWindowTodayLower,
+      _ => l10n.perfWindowLastDays(window.days),
+    };

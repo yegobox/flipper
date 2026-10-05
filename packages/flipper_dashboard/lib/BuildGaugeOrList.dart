@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:riverpod/riverpod.dart';
@@ -92,7 +93,10 @@ Widget BuildGaugeOrList({
             );
 
           default:
-            return _buildErrorState(context, 'Incorrect widget type');
+            return _buildErrorState(
+              context,
+              context.flipperL10n.gaugeIncorrectWidgetType,
+            );
         }
       }
     },
@@ -145,7 +149,7 @@ Widget _buildModernGauge({
             ),
             const SizedBox(width: 12),
             Text(
-              'Financial Overview',
+              FlipperL10n.current.gaugeFinancialOverview,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -200,7 +204,7 @@ Widget _buildEmptyState(BuildContext context) {
         ),
         const SizedBox(height: 24),
         Text(
-          'Ready to start tracking!',
+          context.flipperL10n.gaugeReadyToTrack,
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -209,7 +213,7 @@ Widget _buildEmptyState(BuildContext context) {
         ),
         const SizedBox(height: 12),
         Text(
-          'Your transactions will appear here once you start adding them.',
+          context.flipperL10n.gaugeTransactionsWillAppear,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 16,
@@ -254,7 +258,9 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         ),
         const SizedBox(height: 20),
         Text(
-          'No records for ${period.toLowerCase()}',
+          context.flipperL10n.gaugeNoRecordsFor(
+            transactionPeriodLabel(context.flipperL10n, period).toLowerCase(),
+          ),
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -263,7 +269,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         ),
         const SizedBox(height: 8),
         Text(
-          'Try selecting a different time period or add some transactions.',
+          context.flipperL10n.gaugeTryDifferentPeriod,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 14,
@@ -335,9 +341,9 @@ Widget _buildModernTransactionList({
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Recent Transactions',
-                      style: TextStyle(
+                    Text(
+                      context.flipperL10n.gaugeRecentTransactions,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF1F1F1F),
@@ -346,7 +352,7 @@ Widget _buildModernTransactionList({
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Last 30 days',
+                      context.flipperL10n.gaugeLast30Days,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
@@ -510,7 +516,7 @@ Widget _buildModernTransactionItem({
                               border: Border.all(color: Colors.orange.shade200),
                             ),
                             child: Text(
-                              'WAITING MOMO',
+                              FlipperL10n.current.gaugeWaitingMomo,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -622,7 +628,7 @@ Widget _buildLoadingState(BuildContext context) {
         ),
         const SizedBox(height: 24),
         Text(
-          'Loading transactions...',
+          context.flipperL10n.gaugeLoadingTransactions,
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -656,7 +662,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         ),
         const SizedBox(height: 20),
         Text(
-          'Something went wrong',
+          context.flipperL10n.gaugeSomethingWentWrong,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -676,6 +682,22 @@ Widget _buildErrorState(BuildContext context, String error) {
       ],
     ),
   );
+}
+
+/// Display text for a period value used by [filterTransactionsByPeriod].
+String transactionPeriodLabel(FlipperAppLocalizations l10n, String period) {
+  switch (period) {
+    case 'Today':
+      return l10n.gaugePeriodToday;
+    case 'This Week':
+      return l10n.gaugePeriodThisWeek;
+    case 'This Month':
+      return l10n.gaugePeriodThisMonth;
+    case 'This Year':
+      return l10n.gaugePeriodThisYear;
+    default:
+      return period;
+  }
 }
 
 List<ITransaction> filterTransactionsByPeriod({

@@ -3,6 +3,7 @@
 library customappbar;
 
 import 'package:flutter/cupertino.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -88,8 +89,8 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.disableButton,
     this.onActionButtonClicked,
     this.onPop,
-    this.rightActionButtonName = "Save",
-    this.leftActionButtonName = "Save",
+    this.rightActionButtonName,
+    this.leftActionButtonName,
     this.closeButton = CLOSEBUTTON.ICON,
     this.useTransparentButton = false,
     this.multi,
@@ -228,7 +229,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     }
 
     final disabled = widget.disableButton ?? false;
-    final label = widget.rightActionButtonName ?? "Save";
+    final label = widget.rightActionButtonName ?? context.flipperL10n.save;
     final onPressed = disabled ? null : (widget.onActionButtonClicked ?? () {});
 
     if (cupertino) {
@@ -291,7 +292,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
         );
       case CLOSEBUTTON.BUTTON:
         final disabled = widget.disableButton ?? false;
-        final label = widget.leftActionButtonName ?? '';
+        final label = widget.leftActionButtonName ?? context.flipperL10n.save;
         final onPressed = disabled ? null : (widget.onPop ?? () {});
 
         if (cupertino) {

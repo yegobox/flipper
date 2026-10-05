@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -59,9 +60,10 @@ class BarFlipperBrand extends StatelessWidget {
 
 /// `.bar-status.open` pill with pip.
 class BarOpenStatusPill extends StatelessWidget {
-  const BarOpenStatusPill({super.key, this.label = 'Open', this.compact = false});
+  const BarOpenStatusPill({super.key, this.label, this.compact = false});
 
-  final String label;
+  /// Defaults to the localized "Open".
+  final String? label;
   final bool compact;
 
   @override
@@ -87,7 +89,7 @@ class BarOpenStatusPill extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            label,
+            label ?? context.flipperL10n.barOpenStatus,
             style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w800,
@@ -171,10 +173,11 @@ class BarTableHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = MaterialLocalizations.of(context).formatTimeOfDay(
-      TimeOfDay.fromDateTime(openedAt),
-    );
-    final elapsed = durationLabel ?? barFormatDuration(DateTime.now().difference(openedAt));
+    final time = MaterialLocalizations.of(
+      context,
+    ).formatTimeOfDay(TimeOfDay.fromDateTime(openedAt));
+    final elapsed =
+        durationLabel ?? barFormatDuration(DateTime.now().difference(openedAt));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
@@ -217,7 +220,10 @@ class BarTableHead extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const BarOpenStatusPill(label: 'Open tab', compact: true),
+                    BarOpenStatusPill(
+                      label: context.flipperL10n.barOpenTab,
+                      compact: true,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
@@ -229,10 +235,14 @@ class BarTableHead extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.person_outline, size: 12, color: BarTokens.ink3),
+                        Icon(
+                          Icons.person_outline,
+                          size: 12,
+                          color: BarTokens.ink3,
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          '$seats seats',
+                          context.flipperL10n.barSeatsCount(seats),
                           style: GoogleFonts.jetBrainsMono(
                             fontSize: 12,
                             color: BarTokens.ink3,
@@ -243,7 +253,9 @@ class BarTableHead extends StatelessWidget {
                     ),
                     _dotSep(),
                     Text(
-                      openedBy != null ? 'Opened $time by $openedBy' : 'Opened $time',
+                      openedBy != null
+                          ? context.flipperL10n.barOpenedAtBy(time, openedBy!)
+                          : context.flipperL10n.barOpenedAt(time),
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: BarTokens.ink3,
@@ -252,7 +264,7 @@ class BarTableHead extends StatelessWidget {
                     ),
                     _dotSep(),
                     Text(
-                      '$elapsed open',
+                      context.flipperL10n.barElapsedOpen(elapsed),
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: BarTokens.ink3,
@@ -270,16 +282,16 @@ class BarTableHead extends StatelessWidget {
   }
 
   Widget _dotSep() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Container(
-          width: 3,
-          height: 3,
-          decoration: const BoxDecoration(
-            color: BarTokens.ink4,
-            shape: BoxShape.circle,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    child: Container(
+      width: 3,
+      height: 3,
+      decoration: const BoxDecoration(
+        color: BarTokens.ink4,
+        shape: BoxShape.circle,
+      ),
+    ),
+  );
 }
 
 /// Server badge on a line (`.bar-line-server`).

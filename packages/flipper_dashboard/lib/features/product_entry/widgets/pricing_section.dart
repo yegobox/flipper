@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/ScannViewModel.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -32,7 +33,7 @@ class PricingSection extends HookConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Pricing",
+              context.flipperL10n.pricing,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -46,15 +47,15 @@ class PricingSection extends HookConsumerWidget {
                   onChanged: (value) => model.setRetailPrice(price: value),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Price is required';
+                      return context.flipperL10n.productEntryPriceRequired;
                     }
                     if (double.tryParse(value) == null) {
-                      return 'Invalid price';
+                      return context.flipperL10n.invalidPrice;
                     }
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: 'Retail price',
+                    labelText: context.flipperL10n.productEntryRetailPrice,
                     prefixText: '', // Currency symbol could go here
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
@@ -71,13 +72,14 @@ class PricingSection extends HookConsumerWidget {
                   readOnly: isComposite,
                   onChanged: (value) => model.setSupplyPrice(price: value),
                   decoration: InputDecoration(
-                    labelText: 'Supply price',
+                    labelText: context.flipperL10n.productEntrySupplyPrice,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     filled: true,
-                    fillColor:
-                        isComposite ? Colors.grey.shade200 : Colors.grey.shade50,
+                    fillColor: isComposite
+                        ? Colors.grey.shade200
+                        : Colors.grey.shade50,
                     suffixIcon: isComposite
                         ? const Icon(Icons.lock, color: Colors.grey)
                         : null,

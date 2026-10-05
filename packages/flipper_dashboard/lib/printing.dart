@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ class _PrintingState extends State<Printing> {
             onPop: () async {
               _routerService.pop();
             },
-            title: 'Printing Configuration',
+            title: context.flipperL10n.printingConfiguration,
             disableButton: false,
             showActionButton: false,
           ),
@@ -55,11 +56,12 @@ class _PrintingState extends State<Printing> {
                 ),
               ),
               SwitchListTile.adaptive(
-                  title: const Text('Enable Auto Print'),
-                  value: model.isAutoPrintEnabled,
-                  onChanged: (value) {
-                    model.isAutoPrintEnabled = !model.isAutoPrintEnabled;
-                  }),
+                title: Text(context.flipperL10n.printingEnableAutoPrint),
+                value: model.isAutoPrintEnabled,
+                onChanged: (value) {
+                  model.isAutoPrintEnabled = !model.isAutoPrintEnabled;
+                },
+              ),
             ],
           ),
         );

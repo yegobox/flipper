@@ -1,12 +1,15 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 import 'custom_widgets.dart';
 
-ListTile menuListRowButton(String title,
-    {Function? onPressed,
-    IconData? icon,
-    bool isEnable = true,
-    required BuildContext context}) {
+ListTile menuListRowButton(
+  String title, {
+  Function? onPressed,
+  IconData? icon,
+  bool isEnable = true,
+  required BuildContext context,
+}) {
   return ListTile(
     onTap: () {
       if (onPressed != null) {
@@ -18,7 +21,7 @@ ListTile menuListRowButton(String title,
             children: [
               IconButton(
                 icon: Icon(icon ?? Icons.settings),
-                tooltip: 'Chat',
+                tooltip: context.flipperL10n.menuChat,
                 onPressed: () {
                   onPressed!();
                 },
@@ -35,19 +38,16 @@ ListTile menuListRowButton(String title,
                   child: Center(
                     child: Text(
                       '0',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           )
         : IconButton(
             icon: Icon(icon ?? Icons.settings),
-            tooltip: 'Settings',
+            tooltip: context.flipperL10n.settings,
             onPressed: () {
               onPressed!();
             },
@@ -59,9 +59,9 @@ ListTile menuListRowButton(String title,
         fontSize: 20,
         color: isEnable
             ? Theme.of(context).copyWith(canvasColor: Colors.black).canvasColor
-            : Theme.of(context)
-                .copyWith(canvasColor: const Color(0xffe2e8ea))
-                .canvasColor,
+            : Theme.of(
+                context,
+              ).copyWith(canvasColor: const Color(0xffe2e8ea)).canvasColor,
       ),
       context: context,
     ),

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
@@ -7,9 +8,7 @@ import 'package:flutter/material.dart';
 class PurchaseCodeFormBloc extends FormBloc<String, String>
     with TransactionMixinOld {
   final TextFieldBloc purchaseCode = TextFieldBloc(
-    validators: [
-      FieldBlocValidators.required,
-    ],
+    validators: [FieldBlocValidators.required],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
 
@@ -50,8 +49,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   @override
   void onSubmitting() async {
     try {
-      final sendDigitalReceipt =
-          await sendDigitalReceiptFuture ?? false;
+      final sendDigitalReceipt = await sendDigitalReceiptFuture ?? false;
       final response = await finalizePayment(
         onComplete: onComplete,
         formKey: formKey,
@@ -80,12 +78,15 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
     } catch (e) {
       // Extract only the specific part of the error message
       // Remove "Exception:" from the beginning of the error message if it exists
-      final errorMessage =
-          e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      final errorMessage = e.toString().replaceFirst(
+        RegExp(r'^Exception:\s*'),
+        '',
+      );
 
       // Continue with your existing logic
-      final regex =
-          RegExp(r"size must be between 6 and 6\. rejected value: '(\d+)'");
+      final regex = RegExp(
+        r"size must be between 6 and 6\. rejected value: '(\d+)'",
+      );
       final match = regex.firstMatch(errorMessage);
 
       if (match != null) {
@@ -98,7 +99,9 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
         purchaseCode.addFieldError("$errorMessage");
       }
 
-      emitFailure(failureResponse: 'An error occurred. Please try again.');
+      emitFailure(
+        failureResponse: FlipperL10n.current.purchaseCodeErrorTryAgain,
+      );
     }
   }
 }

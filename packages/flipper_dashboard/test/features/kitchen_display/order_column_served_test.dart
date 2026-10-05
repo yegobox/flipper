@@ -5,6 +5,7 @@ import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 void main() {
   // Regression: Served sat in the card's tag row, which overflowed the 300px
@@ -20,6 +21,9 @@ void main() {
           kitchenTicketItemsProvider.overrideWith((ref, key) async => []),
         ],
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: OrderColumn(
               stage: KitchenStage.ready,

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_entry/widgets/action_buttons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,6 +10,8 @@ void main() {
     bool isSaving = false,
   }) {
     return MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         body: ActionButtons(
           onSave: onSave,

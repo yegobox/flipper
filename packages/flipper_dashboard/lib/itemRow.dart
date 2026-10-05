@@ -40,25 +40,6 @@ import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
 
-Map<int, String> positionString = {
-  0: 'first',
-  1: 'second',
-  2: 'third',
-  3: 'fourth',
-  4: 'fifth',
-  5: 'sixth',
-  6: 'seventh',
-  7: 'eighth',
-  8: 'ninth',
-  9: 'tenth',
-  10: 'eleventh',
-  11: 'twelfth',
-  12: 'thirteenth',
-  13: 'fourteenth',
-  14: 'fifteenth',
-  15: 'sixteenth',
-};
-
 typedef void DeleteProductFunction(String? id, String type);
 typedef void DeleteVariantFunction(String? id, String type);
 
@@ -293,7 +274,9 @@ class _RowItemState extends ConsumerState<RowItem>
     final currency = ProxyService.box.defaultCurrency();
 
     final bcd = widget.variant?.bcd;
-    final bcdLabel = bcd != null && bcd.isNotEmpty ? 'BCD: $bcd' : null;
+    final bcdLabel = bcd != null && bcd.isNotEmpty
+        ? context.flipperL10n.bcdLabel(bcd)
+        : null;
 
     final hasImage = widget.imageUrl?.isNotEmpty == true;
 
@@ -305,7 +288,7 @@ class _RowItemState extends ConsumerState<RowItem>
         key: Key('pos-catalog-tap-${variantId ?? itemId ?? ''}'),
         productName: widget.productName.isNotEmpty
             ? widget.productName
-            : 'Unnamed Product',
+            : context.flipperL10n.itemRowUnnamedProduct,
         bcdLabel: bcdLabel,
         currencySymbol: currency,
         priceAmount: price,
@@ -548,12 +531,16 @@ class _RowItemState extends ConsumerState<RowItem>
   Widget _buildCompactProductInfo(TextTheme textTheme) {
     // Get appropriate display names with safe fallbacks
     final String displayProductName = _truncateString(
-      widget.productName.isNotEmpty ? widget.productName : "Unnamed Product",
+      widget.productName.isNotEmpty
+          ? widget.productName
+          : context.flipperL10n.itemRowUnnamedProduct,
       20,
     );
 
     final String displayVariantName = _truncateString(
-      widget.variantName.isNotEmpty ? widget.variantName : "Default Variant",
+      widget.variantName.isNotEmpty
+          ? widget.variantName
+          : context.flipperL10n.itemRowDefaultVariant,
       20,
     );
 
@@ -588,7 +575,7 @@ class _RowItemState extends ConsumerState<RowItem>
         // Barcode display
         if (widget.variant?.bcd != null && widget.variant!.bcd!.isNotEmpty)
           Text(
-            'BCD: ${widget.variant!.bcd}',
+            context.flipperL10n.bcdLabel(widget.variant!.bcd!),
             style: textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
               fontSize: 11, // Increased from 9
@@ -691,7 +678,7 @@ class _RowItemState extends ConsumerState<RowItem>
                       _truncateString(
                         widget.productName.isNotEmpty
                             ? widget.productName
-                            : "Unnamed Product",
+                            : context.flipperL10n.itemRowUnnamedProduct,
                         20,
                       ),
                       style: textTheme.titleMedium?.copyWith(
@@ -723,7 +710,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     if (widget.variant?.bcd != null &&
                         widget.variant!.bcd!.isNotEmpty) ...[
                       Text(
-                        'BCD: ${widget.variant!.bcd}',
+                        context.flipperL10n.bcdLabel(widget.variant!.bcd!),
                         style: textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                           fontSize: 10,
@@ -926,7 +913,9 @@ class _RowItemState extends ConsumerState<RowItem>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  primaryLine.isNotEmpty ? primaryLine : 'Unnamed',
+                  primaryLine.isNotEmpty
+                      ? primaryLine
+                      : context.flipperL10n.itemRowUnnamed,
                   style: TextStyle(
                     fontSize: _isMposCatalogRow ? 15 : 14,
                     fontWeight: FontWeight.w700,
@@ -999,8 +988,8 @@ class _RowItemState extends ConsumerState<RowItem>
                               : PosTokens.gain.withValues(alpha: 0.14));
                     final Color fg = posStockTextColor(visual);
                     final label = visual == PosStockVisual.out
-                        ? 'Out of stock'
-                        : '$stockValue left';
+                        ? context.flipperL10n.posStockFilterOutOfStock
+                        : context.flipperL10n.itemRowStockLeft('$stockValue');
 
                     return Container(
                       padding: const EdgeInsets.symmetric(
@@ -1176,7 +1165,7 @@ class _RowItemState extends ConsumerState<RowItem>
               color: decrementEnabled
                   ? colorScheme.onSurface
                   : colorScheme.onSurface.withValues(alpha: 0.35),
-              tooltip: 'Decrease quantity',
+              tooltip: context.flipperL10n.itemRowDecreaseQuantity,
             ),
           ),
           Padding(
@@ -1197,7 +1186,7 @@ class _RowItemState extends ConsumerState<RowItem>
               onPressed: onIncrement,
               icon: const Icon(Icons.add, size: 18),
               color: colorScheme.onSurface,
-              tooltip: 'Increase quantity',
+              tooltip: context.flipperL10n.itemRowIncreaseQuantity,
             ),
           ),
         ],
@@ -1484,7 +1473,7 @@ class _RowItemState extends ConsumerState<RowItem>
           ),
           const SizedBox(height: 2),
           Text(
-            'No Image',
+            context.flipperL10n.itemRowNoImage,
             style: TextStyle(color: Colors.grey[600], fontSize: 10),
           ),
         ],
@@ -1614,25 +1603,28 @@ class _RowItemState extends ConsumerState<RowItem>
 
   Future<void> onRowClick(BuildContext context) async {
     if (widget.addFavoriteMode == true) {
-      String? position = positionString[int.parse(widget.favIndex!)];
+      final position = '${int.parse(widget.favIndex!) + 1}';
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Confirm Favorite'),
+            title: Text(context.flipperL10n.itemRowConfirmFavorite),
             content: Text(
-              'You are about to add ${widget.productName} to your $position favorite position.\n\nDo you approve?',
+              context.flipperL10n.itemRowConfirmFavoriteBody(
+                widget.productName,
+                position,
+              ),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
             ),
             actions: <Widget>[
               TextButton(
-                child: const Text('No'),
+                child: Text(context.flipperL10n.dashNo),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               ElevatedButton(
-                child: const Text('Yes'),
+                child: Text(context.flipperL10n.dashYes),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -1674,7 +1666,7 @@ class _RowItemState extends ConsumerState<RowItem>
               color: colorScheme.error,
               size: 20,
             ),
-            tooltip: 'Delete',
+            tooltip: context.flipperL10n.delete,
             onPressed: () async {
               if (widget.variant != null) {
                 final strategy = ProxyService.getStrategy(Strategy.capella);
@@ -1699,8 +1691,9 @@ class _RowItemState extends ConsumerState<RowItem>
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
-                    title: 'Error',
-                    description: 'Cannot delete a variant with stock.',
+                    title: context.flipperL10n.error,
+                    description:
+                        context.flipperL10n.itemRowCannotDeleteWithStock,
                     data: {'status': InfoDialogStatus.error},
                   );
                   return;
@@ -1731,7 +1724,7 @@ class _RowItemState extends ConsumerState<RowItem>
               color: colorScheme.primary,
               size: 20,
             ),
-            tooltip: 'Edit',
+            tooltip: context.flipperL10n.edit,
             onPressed: () async {
               // PIN Verification
               final settingsService = locator<SettingsService>();

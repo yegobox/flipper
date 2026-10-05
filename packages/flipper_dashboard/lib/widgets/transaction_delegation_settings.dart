@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,27 +27,28 @@ bool _isDesktopDeviceRecord(Device device) {
 String _emptyTargetDevicesMessage({
   required List<Device> devices,
   required String? thisDeviceId,
+  required FlipperAppLocalizations l10n,
 }) {
   final active = devices.where((d) => d.deletedAt == null).toList();
   if (active.isEmpty) {
-    return 'No devices loaded for this branch yet. Check that other desktops '
-        'are logged in and online, then reopen this screen.';
+    return l10n.printDelegationNoDevicesLoaded;
   }
 
-  final otherActive =
-      active.where((device) => device.id != thisDeviceId).toList();
+  final otherActive = active
+      .where((device) => device.id != thisDeviceId)
+      .toList();
   if (otherActive.isEmpty) {
-    return 'Only this desktop is registered in this branch. Log in on another '
-        'Windows, macOS, or Linux POS to delegate printing to it.';
+    return l10n.printDelegationOnlyThisDesktop;
   }
 
-  final nonDesktop = otherActive.where((d) => !_isDesktopDeviceRecord(d)).length;
+  final nonDesktop = otherActive
+      .where((d) => !_isDesktopDeviceRecord(d))
+      .length;
   if (nonDesktop == otherActive.length) {
-    return 'Other devices exist in this branch but none are desktops '
-        '(device_name must be windows, macos, or linux).';
+    return l10n.printDelegationNoDesktops;
   }
 
-  return 'No other desktop devices found in this branch';
+  return l10n.printDelegationNoOtherDesktops;
 }
 
 /// Widget to manage Print Delegation settings
@@ -105,9 +107,12 @@ class _TransactionDelegationSettingsState
     if (branchId == null || thisDeviceId == null) return;
 
     try {
-      final devices = await ProxyService.legacyStrategy.getDevicesByBranch(branchId: branchId);
-      final current =
-          devices.where((device) => device.id == thisDeviceId).firstOrNull;
+      final devices = await ProxyService.legacyStrategy.getDevicesByBranch(
+        branchId: branchId,
+      );
+      final current = devices
+          .where((device) => device.id == thisDeviceId)
+          .firstOrNull;
       if (!mounted) return;
       _friendlyNameController.text = current?.friendlyName ?? '';
       setState(() => _friendlyNameLoaded = true);
@@ -141,8 +146,11 @@ class _TransactionDelegationSettingsState
 
     setState(() => _isSavingFriendlyName = true);
     try {
-      final branchDevices = await ProxyService.legacyStrategy.getDevicesByBranch(branchId: branchId);
-      final existing = branchDevices.where((d) => d.id == thisDeviceId).firstOrNull;
+      final branchDevices = await ProxyService.legacyStrategy
+          .getDevicesByBranch(branchId: branchId);
+      final existing = branchDevices
+          .where((d) => d.id == thisDeviceId)
+          .firstOrNull;
       if (existing == null) {
         throw StateError('This device is not registered yet');
       }
@@ -169,7 +177,7 @@ class _TransactionDelegationSettingsState
       if (mounted) {
         showSuccessNotification(
           context,
-          'Device name saved',
+          context.flipperL10n.printDelegationDeviceNameSaved,
           duration: const Duration(seconds: 2),
         );
       }
@@ -177,7 +185,7 @@ class _TransactionDelegationSettingsState
       if (mounted) {
         showErrorNotification(
           context,
-          'Could not save device name: $e',
+          context.flipperL10n.printDelegationDeviceNameSaveFailed(e.toString()),
         );
       }
     } finally {
@@ -201,7 +209,7 @@ class _TransactionDelegationSettingsState
       if (mounted) {
         showSuccessNotification(
           context,
-          'Delegation device selected',
+          context.flipperL10n.printDelegationDeviceSelected,
           duration: const Duration(seconds: 2),
         );
       }
@@ -209,7 +217,7 @@ class _TransactionDelegationSettingsState
       if (mounted) {
         showErrorNotification(
           context,
-          'Error selecting device: ${e.toString()}',
+          context.flipperL10n.printDelegationSelectDeviceError(e.toString()),
         );
       }
     }
@@ -235,7 +243,9 @@ class _TransactionDelegationSettingsState
       if (mounted) {
         showSuccessNotification(
           context,
-          value ? 'Print Delegation enabled' : 'Print Delegation disabled',
+          value
+              ? context.flipperL10n.printDelegationEnabled
+              : context.flipperL10n.printDelegationDisabled,
           duration: const Duration(seconds: 2),
         );
       }
@@ -245,7 +255,10 @@ class _TransactionDelegationSettingsState
       });
 
       if (mounted) {
-        showErrorNotification(context, 'Error: ${e.toString()}');
+        showErrorNotification(
+          context,
+          context.flipperL10n.errorMessage(e.toString()),
+        );
       }
     }
   }
@@ -355,7 +368,7 @@ class _TransactionDelegationSettingsState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Print Delegation',
+                      context.flipperL10n.printDelegationTitle,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -402,12 +415,13 @@ class _TransactionDelegationSettingsState
   }
 
   String _getPlatformDescription() {
+    final l10n = context.flipperL10n;
     if (_isMobilePlatform()) {
-      return 'Delegate receipt printing to desktop when EBM server is unavailable';
+      return l10n.printDelegationMobileDescription;
     } else if (_isDesktopPlatform()) {
-      return 'Process receipts delegated from mobile devices, or delegate printing to another desktop';
+      return l10n.printDelegationDesktopDescription;
     }
-    return 'Cross-device transaction processing';
+    return l10n.printDelegationGenericDescription;
   }
 
   Widget _buildThisDeviceSection(BuildContext context) {
@@ -447,7 +461,7 @@ class _TransactionDelegationSettingsState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'This device (receives delegations here)',
+                    context.flipperL10n.printDelegationThisDevice,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -459,9 +473,7 @@ class _TransactionDelegationSettingsState
             ),
             const SizedBox(height: 10),
             Text(
-              'Other POS devices must target this ID in their delegation '
-              'settings. This machine does not appear in the list below '
-              'because you cannot delegate printing to yourself.',
+              context.flipperL10n.printDelegationThisDeviceHint,
               style: const TextStyle(
                 fontSize: 12,
                 color: Color(0xFF4B5563),
@@ -471,7 +483,7 @@ class _TransactionDelegationSettingsState
             const SizedBox(height: 12),
             if (thisDeviceId == null)
               Text(
-                'Device ID not registered yet — restart the app or log in again.',
+                context.flipperL10n.printDelegationDeviceIdMissing,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.orange[800],
@@ -481,7 +493,7 @@ class _TransactionDelegationSettingsState
             else ...[
               if (dittoName != null) ...[
                 Text(
-                  'Device name: $dittoName',
+                  context.flipperL10n.printDelegationDeviceName(dittoName),
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6B7280),
@@ -490,7 +502,7 @@ class _TransactionDelegationSettingsState
                 const SizedBox(height: 6),
               ],
               Text(
-                'Friendly name (visible to other devices)',
+                context.flipperL10n.printDelegationFriendlyName,
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -502,7 +514,7 @@ class _TransactionDelegationSettingsState
                 controller: _friendlyNameController,
                 autoFocus: false,
                 readOnly: !_friendlyNameLoaded || _isSavingFriendlyName,
-                hintText: 'e.g. Front counter printer',
+                hintText: context.flipperL10n.printDelegationFriendlyNameHint,
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _saveFriendlyName(),
@@ -533,7 +545,7 @@ class _TransactionDelegationSettingsState
               Align(
                 alignment: Alignment.centerRight,
                 child: FlipperButton(
-                  text: 'Save',
+                  text: context.flipperL10n.save,
                   width: 108,
                   height: 40,
                   radius: 10,
@@ -559,9 +571,7 @@ class _TransactionDelegationSettingsState
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'Select the printer desktop below. On that desktop, open '
-          'Management → Print Delegation and copy the full '
-          '"This device" ID — it must match your selection here.',
+          context.flipperL10n.printDelegationMobileTargetHint,
           style: const TextStyle(
             fontSize: 13,
             color: Color(0xFF4B5563),
@@ -589,138 +599,151 @@ class _TransactionDelegationSettingsState
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.devices_rounded,
+                    color: Color(0xFF0078D4),
+                    size: 22,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.devices_rounded,
-                  color: Color(0xFF0078D4),
-                  size: 22,
+                const SizedBox(width: 12),
+                Text(
+                  context.flipperL10n.printDelegationDelegateToDesktop,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Delegate printing to another desktop',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          devicesAsync.when(
-            data: (devices) {
-              final thisDeviceId = ProxyService.box.getThisDeviceId();
-              final targetDevices = devices
-                  .where(
-                    (device) =>
-                        device.deletedAt == null &&
-                        device.id != thisDeviceId &&
-                        _isDesktopDeviceRecord(device),
-                  )
-                  .toList();
+              ],
+            ),
+            const SizedBox(height: 12),
+            devicesAsync.when(
+              data: (devices) {
+                final thisDeviceId = ProxyService.box.getThisDeviceId();
+                final targetDevices = devices
+                    .where(
+                      (device) =>
+                          device.deletedAt == null &&
+                          device.id != thisDeviceId &&
+                          _isDesktopDeviceRecord(device),
+                    )
+                    .toList();
 
-              talker.info(
-                '[delegation-settings] branch devices=${devices.length} '
-                'targetDesktops=${targetDevices.length} thisDeviceId=$thisDeviceId',
-              );
+                talker.info(
+                  '[delegation-settings] branch devices=${devices.length} '
+                  'targetDesktops=${targetDevices.length} thisDeviceId=$thisDeviceId',
+                );
 
-              if (targetDevices.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    _emptyTargetDevicesMessage(
-                      devices: devices,
-                      thisDeviceId: thisDeviceId,
+                if (targetDevices.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      _emptyTargetDevicesMessage(
+                        devices: devices,
+                        thisDeviceId: thisDeviceId,
+                        l10n: context.flipperL10n,
+                      ),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
-                    ),
+                  );
+                }
+
+                return RadioGroup<String>(
+                  groupValue: _selectedDeviceId,
+                  onChanged: (value) {
+                    if (value != null) {
+                      _selectDevice(value);
+                    }
+                  },
+                  child: Column(
+                    children: targetDevices.map((device) {
+                      return RadioListTile<String>(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                device.displayLabel,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (_showDebugDeviceActions())
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 32,
+                                  minHeight: 32,
+                                ),
+                                tooltip: 'Delete device (debug)',
+                                icon: Icon(
+                                  Icons.delete_outline,
+                                  size: 18,
+                                  color: Colors.red[700],
+                                ),
+                                onPressed: () => _deleteDevice(device),
+                              ),
+                          ],
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (device.friendlyName != null &&
+                                device.friendlyName!.trim().isNotEmpty)
+                              Text(
+                                context.flipperL10n.printDelegationPlatform(
+                                  device.deviceName ?? '—',
+                                ),
+                              ),
+                            if (device.phone != null)
+                              Text(
+                                context.flipperL10n.printDelegationPhone(
+                                  '${device.phone}',
+                                ),
+                              ),
+                            _DeviceIdRow(deviceId: device.id, compact: true),
+                          ],
+                        ),
+                        value: device.id,
+                        activeColor: const Color(0xFF0078D4),
+                      );
+                    }).toList(),
                   ),
                 );
-              }
-
-              return RadioGroup<String>(
-                groupValue: _selectedDeviceId,
-                onChanged: (value) {
-                  if (value != null) {
-                    _selectDevice(value);
-                  }
-                },
-                child: Column(
-                  children: targetDevices.map((device) {
-                    return RadioListTile<String>(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              device.displayLabel,
-                              style: const TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                          if (_showDebugDeviceActions())
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                              tooltip: 'Delete device (debug)',
-                              icon: Icon(
-                                Icons.delete_outline,
-                                size: 18,
-                                color: Colors.red[700],
-                              ),
-                              onPressed: () => _deleteDevice(device),
-                            ),
-                        ],
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (device.friendlyName != null &&
-                              device.friendlyName!.trim().isNotEmpty)
-                            Text('Platform: ${device.deviceName ?? '—'}'),
-                          if (device.phone != null)
-                            Text('Phone: ${device.phone}'),
-                          _DeviceIdRow(
-                            deviceId: device.id,
-                            compact: true,
-                          ),
-                        ],
-                      ),
-                      value: device.id,
-                      activeColor: const Color(0xFF0078D4),
-                    );
-                  }).toList(),
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
                 ),
-              );
-            },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  context.flipperL10n.printDelegationLoadDevicesError(
+                    error.toString(),
+                  ),
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             ),
-            error: (error, stack) => Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Error loading devices: ${error.toString()}',
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -730,6 +753,7 @@ class _TransactionDelegationSettingsState
     const infoBlue = Color(0xFF2563EB);
     const infoBg = Color(0xFFEFF6FF);
     const infoBorder = Color(0xFFBFDBFE);
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -750,7 +774,7 @@ class _TransactionDelegationSettingsState
               ),
               const SizedBox(width: 8),
               Text(
-                'How it works',
+                l10n.printDelegationHowItWorks,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
@@ -761,34 +785,16 @@ class _TransactionDelegationSettingsState
           ),
           const SizedBox(height: 8),
           if (_isMobilePlatform()) ...[
-            _buildInfoItem(
-              '• Mobile completes transaction but delegates receipt generation',
-            ),
-            _buildInfoItem(
-              '• Desktop picks up the transaction via sync',
-            ),
-            _buildInfoItem(
-              '• Desktop generates receipt and communicates with EBM server',
-            ),
-            _buildInfoItem(
-              '• Mobile is notified when processing is complete',
-            ),
+            _buildInfoItem('• ${l10n.printDelegationMobileStep1}'),
+            _buildInfoItem('• ${l10n.printDelegationMobileStep2}'),
+            _buildInfoItem('• ${l10n.printDelegationMobileStep3}'),
+            _buildInfoItem('• ${l10n.printDelegationMobileStep4}'),
           ] else if (_isDesktopPlatform()) ...[
-            _buildInfoItem(
-              '• Desktop monitors for delegated transactions in real-time',
-            ),
-            _buildInfoItem(
-              '• Automatically processes receipts from mobile devices',
-            ),
-            _buildInfoItem(
-              '• Optionally pick another desktop below to delegate this device\'s own printing to',
-            ),
-            _buildInfoItem(
-              '• Handles EBM server communication',
-            ),
-            _buildInfoItem(
-              '• Syncs results back to mobile via sync',
-            ),
+            _buildInfoItem('• ${l10n.printDelegationDesktopStep1}'),
+            _buildInfoItem('• ${l10n.printDelegationDesktopStep2}'),
+            _buildInfoItem('• ${l10n.printDelegationDesktopStep3}'),
+            _buildInfoItem('• ${l10n.printDelegationDesktopStep4}'),
+            _buildInfoItem('• ${l10n.printDelegationDesktopStep5}'),
           ],
         ],
       ),
@@ -814,17 +820,14 @@ class _DeviceIdRow extends StatelessWidget {
   final String deviceId;
   final bool compact;
 
-  const _DeviceIdRow({
-    required this.deviceId,
-    this.compact = false,
-  });
+  const _DeviceIdRow({required this.deviceId, this.compact = false});
 
   Future<void> _copy(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: deviceId));
     if (!context.mounted) return;
     showSuccessNotification(
       context,
-      'Copied device ID: $deviceId',
+      context.flipperL10n.printDelegationCopiedDeviceId(deviceId),
       duration: const Duration(seconds: 2),
     );
   }
@@ -839,18 +842,17 @@ class _DeviceIdRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: SelectableText(
-            deviceId,
-            style: idStyle,
-          ),
-        ),
+        Expanded(child: SelectableText(deviceId, style: idStyle)),
         IconButton(
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          tooltip: 'Copy device ID',
-          icon: Icon(Icons.copy, size: compact ? 16 : 18, color: Colors.grey[700]),
+          tooltip: context.flipperL10n.printDelegationCopyDeviceId,
+          icon: Icon(
+            Icons.copy,
+            size: compact ? 16 : 18,
+            color: Colors.grey[700],
+          ),
           onPressed: () => _copy(context),
         ),
       ],

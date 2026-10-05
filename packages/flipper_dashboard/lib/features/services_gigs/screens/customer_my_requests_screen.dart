@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/gig_request_detail_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
@@ -72,28 +73,35 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
     final name = _providerNames[r.providerUserId];
     if (name != null && name.isNotEmpty) return name;
     final id = r.providerUserId;
-    if (id.length > 10) return 'Provider · …${id.substring(id.length - 6)}';
-    return 'Provider';
+    if (id.length > 10) {
+      return context.flipperL10n.gigsProviderShortId(
+        id.substring(id.length - 6),
+      );
+    }
+    return context.flipperL10n.gigsProvider;
   }
 
-  static String _statusLabel(ServiceGigRequest r) {
+  static String _statusLabel(
+    FlipperAppLocalizations l10n,
+    ServiceGigRequest r,
+  ) {
     switch (r.status) {
       case 'requested':
-        return 'Waiting for provider';
+        return l10n.gigsWaitingForProvider;
       case 'pending_payment':
-        return r.canCustomerPay ? 'Pay now' : 'Payment window ended';
+        return r.canCustomerPay ? l10n.gigsPayNow : l10n.gigsPaymentWindowEnded;
       case 'paid':
-        return 'Paid';
+        return l10n.gigsStatusPaid;
       case 'declined':
-        return 'Declined by provider';
+        return l10n.gigsStatusDeclinedByProvider;
       case 'expired':
-        return 'Expired';
+        return l10n.gigsStatusExpired;
       case 'cancelled':
-        return 'Cancelled';
+        return l10n.gigsStatusCancelled;
       case 'in_progress':
-        return 'In progress';
+        return l10n.gigsStatusInProgress;
       case 'completed':
-        return 'Completed';
+        return l10n.gigsStatusCompleted;
       default:
         return r.status;
     }
@@ -119,15 +127,13 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
-      builder: (ctx) => GigPaymentSheet(
-        request: r,
-        providerLabel: _providerLabel(r),
-      ),
+      builder: (ctx) =>
+          GigPaymentSheet(request: r, providerLabel: _providerLabel(r)),
     );
     if (done == true && mounted) {
       showSuccessNotification(
         context,
-        'Payment recorded. The provider can start the job.',
+        context.flipperL10n.gigsPaymentRecordedCanStart,
       );
       await _load();
     }
@@ -141,7 +147,7 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: Text(
-          'My requests',
+          context.flipperL10n.gigsMyRequests,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -166,55 +172,55 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
                 ],
               )
             : _items.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      const SizedBox(height: 32),
-                      Icon(
-                        Icons.send_outlined,
-                        size: 48,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'No requests yet',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade900,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'When you ask someone for a service from Find providers, it will appear here. After they accept, you can pay with MTN within the time shown.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          height: 1.45,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  )
-                : ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                    itemCount: _items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) {
-                      final r = _items[i];
-                      return _OutgoingRequestCard(
-                        request: r,
-                        providerLabel: _providerLabel(r),
-                        statusLabel: _statusLabel(r),
-                        dateFormat: df,
-                        onOpenDetail: () => _openDetail(r),
-                        onOpenPay: () => _openPay(r),
-                      );
-                    },
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                children: [
+                  const SizedBox(height: 32),
+                  Icon(
+                    Icons.send_outlined,
+                    size: 48,
+                    color: Colors.grey.shade400,
                   ),
+                  const SizedBox(height: 20),
+                  Text(
+                    context.flipperL10n.gigsNoRequestsYet,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    context.flipperL10n.gigsMyRequestsEmptyHint,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      height: 1.45,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              )
+            : ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                itemCount: _items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, i) {
+                  final r = _items[i];
+                  return _OutgoingRequestCard(
+                    request: r,
+                    providerLabel: _providerLabel(r),
+                    statusLabel: _statusLabel(context.flipperL10n, r),
+                    dateFormat: df,
+                    onOpenDetail: () => _openDetail(r),
+                    onOpenPay: () => _openPay(r),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -293,7 +299,8 @@ class _OutgoingRequestCard extends StatelessWidget {
         ? providerLabel.characters.first.toUpperCase()
         : '?';
 
-    final showAmount = request.paymentAmountRwf != null &&
+    final showAmount =
+        request.paymentAmountRwf != null &&
         request.paymentAmountRwf! >= 100 &&
         (request.status == 'requested' || request.isAwaitingPayment);
 
@@ -323,8 +330,9 @@ class _OutgoingRequestCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 22,
-                    backgroundColor:
-                        const Color(0xFF0D9488).withValues(alpha: 0.12),
+                    backgroundColor: const Color(
+                      0xFF0D9488,
+                    ).withValues(alpha: 0.12),
                     child: Text(
                       initial,
                       style: GoogleFonts.outfit(
@@ -408,12 +416,12 @@ class _OutgoingRequestCard extends StatelessWidget {
               const SizedBox(height: 10),
               if (showAmount)
                 _MetaLine(
-                  label: 'Agreed amount',
+                  label: context.flipperL10n.gigsAgreedAmount,
                   value: '${request.paymentAmountRwf} RWF',
                 ),
               _MetaLine(
                 icon: Icons.schedule_outlined,
-                label: 'Sent',
+                label: context.flipperL10n.gigsSent,
                 value: dateFormat.format(request.createdAt.toLocal()),
                 dense: true,
               ),
@@ -439,8 +447,16 @@ class _OutgoingRequestCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         request.canCustomerPay
-                            ? 'Pay by ${dateFormat.format(request.paymentDeadlineAt!.toLocal())}'
-                            : 'You did not pay before ${dateFormat.format(request.paymentDeadlineAt!.toLocal())}',
+                            ? context.flipperL10n.gigsPayBy(
+                                dateFormat.format(
+                                  request.paymentDeadlineAt!.toLocal(),
+                                ),
+                              )
+                            : context.flipperL10n.gigsDidNotPayBefore(
+                                dateFormat.format(
+                                  request.paymentDeadlineAt!.toLocal(),
+                                ),
+                              ),
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -471,8 +487,13 @@ class _OutgoingRequestCard extends StatelessWidget {
                         request.mtnSettledAmountRwf != null &&
                                 request.mtnSettledAmountRwf !=
                                     request.paymentAmountRwf
-                            ? 'Paid ${request.paymentAmountRwf} RWF · MTN settled ${request.mtnSettledAmountRwf} RWF'
-                            : 'Paid ${request.paymentAmountRwf} RWF',
+                            ? context.flipperL10n.gigsPaidAmountSettled(
+                                '${request.paymentAmountRwf}',
+                                '${request.mtnSettledAmountRwf}',
+                              )
+                            : context.flipperL10n.gigsPaidAmount(
+                                '${request.paymentAmountRwf}',
+                              ),
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -491,7 +512,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onOpenPay,
                     icon: const Icon(Icons.phone_android, size: 20),
-                    label: const Text('Pay with MTN'),
+                    label: Text(context.flipperL10n.gigsPayWithMtn),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF0D9488),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -544,9 +565,7 @@ class _MetaLine extends StatelessWidget {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text('$label · ', style: caption),
-            Expanded(
-              child: Text(value!, style: valueStyle),
-            ),
+            Expanded(child: Text(value!, style: valueStyle)),
           ],
         ),
       );

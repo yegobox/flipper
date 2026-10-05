@@ -86,7 +86,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       final button = PosTopToolButton(
         key: const Key('ribbon_umusada_sales'),
         iconName: 'cart',
-        tooltip: 'Ordering',
+        tooltip: context.flipperL10n.ribbonOrdering,
         onPressed: _openOrdering,
       );
       if (count <= 0) return button;
@@ -126,11 +126,11 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
             key: const Key('import_purchase_ribbon'),
             iconName: 'arrow-up-right',
             iconSize: 18,
-            tooltip: 'Import & Purchase',
+            tooltip: context.flipperL10n.ribbonImportPurchase,
             onPressed: () => unawaited(_handleImportPurchaseTap(context)),
           ),
         PopupMenuButton<String>(
-          tooltip: 'More',
+          tooltip: context.flipperL10n.more,
           offset: const Offset(0, 40),
           elevation: 6,
           shadowColor: const Color(0x26103240),
@@ -163,8 +163,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               child: _MoreMenuRow(
                 icon: Icons.storefront_outlined,
-                label: 'Locations',
-                caption: 'Inventory by branch',
+                label: context.flipperL10n.ribbonLocations,
+                caption: context.flipperL10n.ribbonLocationsCaption,
               ),
             ),
             PopupMenuItem(
@@ -173,8 +173,8 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               child: _MoreMenuRow(
                 icon: Icons.inventory_2_outlined,
-                label: 'Items',
-                caption: 'Browse and manage catalog',
+                label: context.flipperL10n.items,
+                caption: context.flipperL10n.ribbonItemsCaption,
               ),
             ),
             const PopupMenuDivider(height: 8),
@@ -186,7 +186,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
               child: _MoreMenuRow(
                 icon: Icons.receipt_long_outlined,
                 label: context.flipperL10n.taxSettings,
-                caption: 'EBM / RRA server and VAT',
+                caption: context.flipperL10n.ribbonTaxSettingsCaption,
               ),
             ),
           ],

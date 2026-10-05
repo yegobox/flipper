@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/gig_request_detail_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
@@ -50,8 +51,12 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
     final n = _customerNames[r.customerUserId];
     if (n != null && n.isNotEmpty) return n;
     final id = r.customerUserId;
-    if (id.length > 10) return 'Customer · …${id.substring(id.length - 6)}';
-    return 'Customer';
+    if (id.length > 10) {
+      return context.flipperL10n.gigsCustomerShortId(
+        id.substring(id.length - 6),
+      );
+    }
+    return context.flipperL10n.customer;
   }
 
   Future<void> _openDetail(ServiceGigRequest r) async {
@@ -59,7 +64,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
       MaterialPageRoute(
         builder: (context) => GigRequestDetailScreen(
           requestId: r.id,
-          headline: 'Request from ${_customerLabel(r)}',
+          headline: context.flipperL10n.gigsRequestFrom(_customerLabel(r)),
         ),
       ),
     );
@@ -86,14 +91,14 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
       if (!mounted) return;
       showSuccessNotification(
         context,
-        'Accepted. The customer can pay under Services hub → My requests (5 min).',
+        context.flipperL10n.gigsAcceptedCustomerCanPay,
       );
       await _load();
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
     } catch (_) {
       if (mounted) {
-        showErrorNotification(context, 'Could not accept. Try again.');
+        showErrorNotification(context, context.flipperL10n.gigsErrAcceptRetry);
       }
     } finally {
       if (mounted) setState(() => _actingOnId = null);
@@ -104,20 +109,29 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Decline request?', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+        title: Text(
+          context.flipperL10n.gigsDeclineRequestTitle,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+        ),
         content: Text(
-          'The customer will see that you declined this request.',
+          context.flipperL10n.gigsDeclineRequestBody,
           style: GoogleFonts.outfit(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: GoogleFonts.outfit()),
+            child: Text(
+              context.flipperL10n.cancel,
+              style: GoogleFonts.outfit(),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
-            child: Text('Decline', style: GoogleFonts.outfit()),
+            child: Text(
+              context.flipperL10n.gigsDecline,
+              style: GoogleFonts.outfit(),
+            ),
           ),
         ],
       ),
@@ -128,41 +142,27 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
     try {
       await _repo.declineRequest(r.id);
       if (!mounted) return;
-      showInfoNotification(context, 'Request declined.');
+      showInfoNotification(context, context.flipperL10n.gigsRequestDeclined);
       await _load();
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
     } catch (_) {
       if (mounted) {
-        showErrorNotification(context, 'Could not decline. Try again.');
+        showErrorNotification(context, context.flipperL10n.gigsErrDeclineRetry);
       }
     } finally {
       if (mounted) setState(() => _actingOnId = null);
     }
   }
 
-  static String _statusLabel(String status) {
+  static String _statusLabel(FlipperAppLocalizations l10n, String status) {
     switch (status) {
       case 'requested':
-        return 'Awaiting your response';
+        return l10n.gigsAwaitingYourResponse;
       case 'pending_payment':
-        return 'Waiting for customer payment';
-      case 'declined':
-        return 'Declined';
-      case 'expired':
-        return 'Expired';
-      case 'cancelled':
-        return 'Cancelled';
-      case 'paid':
-        return 'Paid';
-      case 'in_progress':
-        return 'In progress';
-      case 'completed':
-        return 'Completed';
-      case 'accepted':
-        return 'Accepted';
+        return l10n.gigsWaitingForCustomerPayment;
       default:
-        return status;
+        return gigStatusShortLabel(l10n, status);
     }
   }
 
@@ -174,7 +174,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Incoming requests',
+          context.flipperL10n.gigsIncomingRequests,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -199,219 +199,236 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                 ],
               )
             : _items.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      Icon(Icons.inbox_outlined, size: 56, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No requests yet',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'When someone asks you for a service through Services hub, their request will show up here. You will have a limited time to accept or decline.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          height: 1.4,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  )
-                : ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                    itemCount: _items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, i) {
-                      final r = _items[i];
-                      final acting = _actingOnId == r.id;
-                      final showActions = r.canProviderRespond;
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: 56,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    context.flipperL10n.gigsNoRequestsYet,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.flipperL10n.gigsInboxEmptyHint,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      height: 1.4,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              )
+            : ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                itemCount: _items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, i) {
+                  final r = _items[i];
+                  final acting = _actingOnId == r.id;
+                  final showActions = r.canProviderRespond;
 
-                      return Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        child: InkWell(
-                          onTap: () => _openDetail(r),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                  return Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: InkWell(
+                      onTap: () => _openDetail(r),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _customerLabel(r),
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _statusLabel(context.flipperL10n, r.status),
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                      color: const Color(0xFF0F766E),
+                                    ),
+                                  ),
+                                ),
+                                if (r.status == 'requested' &&
+                                    !r.canProviderRespond)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      context
+                                          .flipperL10n
+                                          .gigsAcceptDeadlinePassed,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            if (r.requestedService != null &&
+                                r.requestedService!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
                               Text(
-                                _customerLabel(r),
+                                r.requestedService!,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _statusLabel(r.status),
-                                      style: GoogleFonts.outfit(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                        color: const Color(0xFF0F766E),
-                                      ),
-                                    ),
-                                  ),
-                                  if (r.status == 'requested' && !r.canProviderRespond)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        'Accept deadline passed',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                            ],
+                            const SizedBox(height: 8),
+                            Text(
+                              r.customerMessage,
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                height: 1.4,
+                                color: Colors.grey.shade800,
                               ),
-                              if (r.requestedService != null &&
-                                  r.requestedService!.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  r.requestedService!,
-                                  style: GoogleFonts.outfit(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
+                            ),
+                            if (r.paymentAmountRwf != null &&
+                                r.paymentAmountRwf! >= 100) ...[
                               const SizedBox(height: 8),
                               Text(
-                                r.customerMessage,
+                                context.flipperL10n.gigsCustomerBudget(
+                                  '${r.paymentAmountRwf}',
+                                ),
                                 style: GoogleFonts.outfit(
-                                  fontSize: 14,
-                                  height: 1.4,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                   color: Colors.grey.shade800,
                                 ),
                               ),
-                              if (r.paymentAmountRwf != null &&
-                                  r.paymentAmountRwf! >= 100) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Customer budget: ${r.paymentAmountRwf} RWF',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade800,
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 10),
+                            ],
+                            const SizedBox(height: 10),
+                            Text(
+                              context.flipperL10n.gigsReceivedAt(
+                                df.format(r.createdAt.toLocal()),
+                              ),
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            if (r.status == 'requested' &&
+                                r.canProviderRespond) ...[
+                              const SizedBox(height: 4),
                               Text(
-                                'Received ${df.format(r.createdAt.toLocal())}',
+                                context.flipperL10n.gigsRespondBy(
+                                  df.format(r.acceptDeadlineAt.toLocal()),
+                                ),
                                 style: GoogleFonts.outfit(
                                   fontSize: 12,
-                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.amber.shade900,
                                 ),
                               ),
-                              if (r.status == 'requested' && r.canProviderRespond) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Respond by ${df.format(r.acceptDeadlineAt.toLocal())}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.amber.shade900,
-                                  ),
-                                ),
-                              ],
-                              if (r.isAwaitingPayment &&
-                                  r.paymentDeadlineAt != null) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Payment due by ${df.format(r.paymentDeadlineAt!.toLocal())}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                              ],
-                              if (showActions) ...[
-                                const SizedBox(height: 16),
-                                if (acting)
-                                  const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 8),
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                                else
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: OutlinedButton(
-                                          onPressed: () => _decline(r),
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.red.shade700,
-                                            side: BorderSide(
-                                              color: Colors.red.shade300,
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Decline',
-                                            style: GoogleFonts.outfit(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: FilledButton(
-                                          onPressed: () => _accept(r),
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xFF0D9488),
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            'Accept',
-                                            style: GoogleFonts.outfit(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
                             ],
-                          ),
+                            if (r.isAwaitingPayment &&
+                                r.paymentDeadlineAt != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                context.flipperL10n.gigsPaymentDueBy(
+                                  df.format(r.paymentDeadlineAt!.toLocal()),
+                                ),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ],
+                            if (showActions) ...[
+                              const SizedBox(height: 16),
+                              if (acting)
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: () => _decline(r),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.red.shade700,
+                                          side: BorderSide(
+                                            color: Colors.red.shade300,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          context.flipperL10n.gigsDecline,
+                                          style: GoogleFonts.outfit(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: FilledButton(
+                                        onPressed: () => _accept(r),
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFF0D9488,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          context.flipperL10n.gigsAccept,
+                                          style: GoogleFonts.outfit(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ],
                         ),
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

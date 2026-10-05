@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/ordering/ordering_catalog.dart';
 import 'package:flipper_dashboard/ordering/ordering_state.dart';
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
 import 'package:flipper_dashboard/ordering/ordering_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
@@ -37,8 +38,8 @@ class OrderingCatalogTable extends ConsumerWidget {
         searchController: searchController,
         searchFocusNode: searchFocusNode,
         onSubmitted: onSubmitted,
-        showMarginColumn: constraints.maxWidth >=
-            OrderingTokens.marginColumnMinPaneWidth,
+        showMarginColumn:
+            constraints.maxWidth >= OrderingTokens.marginColumnMinPaneWidth,
       ),
     );
   }
@@ -141,7 +142,7 @@ class _SearchHeader extends StatelessWidget {
               controller: controller,
               focusNode: focusNode,
               filled: true,
-              hintText: 'Search products, SKU or barcode…',
+              hintText: context.flipperL10n.orderingSearchProductsHint,
               onChanged: onChanged,
               onClear: hasQuery ? onClear : null,
               onSubmitted: (_) => onSubmitted(),
@@ -181,19 +182,31 @@ class _ColumnHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
       child: Row(
         children: [
-          const Expanded(
-            child: Text('PRODUCT', style: OrderingTokens.columnHeader),
+          Expanded(
+            child: Text(
+              context.flipperL10n.orderingColProduct.toUpperCase(),
+              style: OrderingTokens.columnHeader,
+            ),
           ),
           const SizedBox(width: 14),
-          cell('Their stock', OrderingTokens.colStock),
+          cell(
+            context.flipperL10n.orderingColTheirStock,
+            OrderingTokens.colStock,
+          ),
           if (showMargin) ...[
             const SizedBox(width: 14),
-            cell('Retail · margin', OrderingTokens.colMargin),
+            cell(
+              context.flipperL10n.orderingColRetailMargin,
+              OrderingTokens.colMargin,
+            ),
           ],
           const SizedBox(width: 14),
-          cell('Unit cost', OrderingTokens.colCost),
+          cell(
+            context.flipperL10n.manualPurchaseUnitCost,
+            OrderingTokens.colCost,
+          ),
           const SizedBox(width: 14),
-          cell('Order qty', OrderingTokens.colQty),
+          cell(context.flipperL10n.orderingColOrderQty, OrderingTokens.colQty),
         ],
       ),
     );
@@ -266,7 +279,10 @@ class _GroupHeader extends StatelessWidget {
       padding: const EdgeInsets.only(left: 20, right: 20, top: 11, bottom: 7),
       child: Row(
         children: [
-          Text(label.toUpperCase(), style: OrderingTokens.groupHeader),
+          Text(
+            orderingCategoryLabel(label).toUpperCase(),
+            style: OrderingTokens.groupHeader,
+          ),
           const SizedBox(width: 10),
           const Expanded(
             child: Divider(
@@ -277,7 +293,7 @@ class _GroupHeader extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            '$count ${count == 1 ? 'item' : 'items'}',
+            context.flipperL10n.cartItemCount(count),
             style: OrderingTokens.monoStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w500,
@@ -360,10 +376,8 @@ class _ProductRow extends ConsumerWidget {
                         qty: qty,
                         onDecrement: () =>
                             actions.decrementOne(variant: variant),
-                        onIncrement: () => actions.addOne(
-                          context: context,
-                          variant: variant,
-                        ),
+                        onIncrement: () =>
+                            actions.addOne(context: context, variant: variant),
                         onSet: (value) => actions.setQty(
                           context: context,
                           variant: variant,
@@ -371,12 +385,10 @@ class _ProductRow extends ConsumerWidget {
                         ),
                       )
                     : OrderingSecondaryButton(
-                        label: 'Add',
+                        label: context.flipperL10n.add,
                         icon: Icons.add,
-                        onPressed: () => actions.addOne(
-                          context: context,
-                          variant: variant,
-                        ),
+                        onPressed: () =>
+                            actions.addOne(context: context, variant: variant),
                       ),
               ),
             ),
@@ -490,11 +502,7 @@ class _NameCell extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 9),
-            Container(
-              width: 1,
-              height: 10,
-              color: OrderingTokens.lineStrong,
-            ),
+            Container(width: 1, height: 10, color: OrderingTokens.lineStrong),
             const SizedBox(width: 9),
             // Flexible as well as the SKU: on the narrowest pane the name
             // column can be under 50px, and a rigid unit would overflow it.
@@ -525,7 +533,7 @@ class _StockCell extends StatelessWidget {
     // back with the catalogue.
     final (label, color) = switch (stock) {
       null => ('—', OrderingTokens.ink6),
-      <= 0 => ('none', OrderingTokens.danger),
+      <= 0 => (context.flipperL10n.orderingStockNone, OrderingTokens.danger),
       final value when value < 50 => (
         orderingCount(value),
         OrderingTokens.warn,
@@ -667,7 +675,7 @@ class _QtyStepperState extends State<_QtyStepper> {
             hoverBackground: OrderingTokens.blueTint2,
             foreground: OrderingTokens.blue,
             hoverForeground: OrderingTokens.blue,
-            tooltip: 'Order one less',
+            tooltip: context.flipperL10n.orderingOneLess,
             onPressed: widget.onDecrement,
           ),
           SizedBox(
@@ -702,7 +710,7 @@ class _QtyStepperState extends State<_QtyStepper> {
             hoverBackground: OrderingTokens.blueHover,
             foreground: Colors.white,
             hoverForeground: Colors.white,
-            tooltip: 'Order one more',
+            tooltip: context.flipperL10n.orderingOneMore,
             onPressed: widget.onIncrement,
           ),
         ],
@@ -720,18 +728,18 @@ class _NoResults extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (total == 0) {
-      return const OrderingEmptyState(
+      return OrderingEmptyState(
         icon: Icons.inventory_2_outlined,
-        title: 'This supplier has no products to order',
-        hint: 'Nothing in their catalogue is shared with your branch yet.',
+        title: context.flipperL10n.orderingSupplierNoProducts,
+        hint: context.flipperL10n.orderingSupplierNoProductsHint,
       );
     }
     return OrderingEmptyState(
       icon: Icons.search_off,
       title: query.isEmpty
-          ? 'Nothing matches these filters'
-          : 'Nothing matches “$query”',
-      hint: 'Try a shorter word, or clear the in-stock filter.',
+          ? context.flipperL10n.orderingNothingMatchesFilters
+          : context.flipperL10n.orderingNothingMatchesQuery(query),
+      hint: context.flipperL10n.orderingNothingMatchesHint,
     );
   }
 }
@@ -751,13 +759,13 @@ class _CatalogError extends ConsumerWidget {
           children: [
             OrderingEmptyState(
               icon: Icons.cloud_off_outlined,
-              title: 'Could not load this catalogue',
+              title: context.flipperL10n.orderingCouldNotLoadCatalogue,
               hint: '$error',
               padding: EdgeInsets.zero,
             ),
             const SizedBox(height: 20),
             OrderingSecondaryButton(
-              label: 'Retry',
+              label: context.flipperL10n.retry,
               icon: Icons.refresh,
               onPressed: () => ref.invalidate(productFromSupplierWrapper),
             ),

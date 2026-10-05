@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -39,8 +40,32 @@ class TransfersReportFilters {
   }
 }
 
-final transfersReportFiltersProvider =
-    StateProvider<TransfersReportFilters>((ref) {
+/// Display label for a stock-request status (the raw value stays the filter
+/// / wire value). Unknown statuses fall back to the raw string.
+String transfersReportStatusLabel(FlipperAppLocalizations l10n, String status) {
+  switch (status) {
+    case RequestStatus.pending:
+      return l10n.transfersReportStatusPending;
+    case RequestStatus.processing:
+      return l10n.transfersReportStatusProcessing;
+    case RequestStatus.approved:
+      return l10n.approved;
+    case RequestStatus.partiallyApproved:
+      return l10n.transfersReportStatusPartiallyApproved;
+    case RequestStatus.rejected:
+      return l10n.transfersReportStatusRejected;
+    case RequestStatus.fulfilled:
+      return l10n.transfersReportStatusFulfilled;
+    case RequestStatus.voided:
+      return l10n.transfersReportStatusVoided;
+    default:
+      return status;
+  }
+}
+
+final transfersReportFiltersProvider = StateProvider<TransfersReportFilters>((
+  ref,
+) {
   final now = DateTime.now();
   final startOfMonth = DateTime(now.year, now.month, 1);
   return TransfersReportFilters(
@@ -54,34 +79,35 @@ final transfersReportFiltersProvider =
 /// Capella fetch of stock requests / transfers to the selected destination.
 final transfersToBranchProvider =
     FutureProvider.autoDispose<List<InventoryRequest>>((ref) async {
-  final filters = ref.watch(transfersReportFiltersProvider);
-  final destId = filters.destinationBranchId;
-  if (destId == null || destId.isEmpty) return [];
+      final filters = ref.watch(transfersReportFiltersProvider);
+      final destId = filters.destinationBranchId;
+      if (destId == null || destId.isEmpty) return [];
 
-  final raw = await ProxyService.getStrategy(Strategy.capella)
-      .stockRequestsToBranch(
-    destinationBranchId: destId,
-    start: filters.start,
-    end: filters.end,
-    status: filters.status,
-  );
+      final raw = await ProxyService.getStrategy(Strategy.capella)
+          .stockRequestsToBranch(
+            destinationBranchId: destId,
+            start: filters.start,
+            end: filters.end,
+            status: filters.status,
+          );
 
-  // Hydrate embedded lines when the stock_requests doc omitted them.
-  final out = <InventoryRequest>[];
-  for (final request in raw) {
-    if (request.transactionItems != null &&
-        request.transactionItems!.isNotEmpty) {
-      out.add(request);
-      continue;
-    }
-    try {
-      final lines = await ProxyService.getStrategy(Strategy.capella)
-          .transactionItems(requestId: request.id);
-      if (lines.isNotEmpty) {
-        request.transactionItems = lines;
+      // Hydrate embedded lines when the stock_requests doc omitted them.
+      final out = <InventoryRequest>[];
+      for (final request in raw) {
+        if (request.transactionItems != null &&
+            request.transactionItems!.isNotEmpty) {
+          out.add(request);
+          continue;
+        }
+        try {
+          final lines = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).transactionItems(requestId: request.id);
+          if (lines.isNotEmpty) {
+            request.transactionItems = lines;
+          }
+        } catch (_) {}
+        out.add(request);
       }
-    } catch (_) {}
-    out.add(request);
-  }
-  return out;
-});
+      return out;
+    });

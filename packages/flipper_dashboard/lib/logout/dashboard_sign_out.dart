@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/logout/shift_before_logout.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flutter/material.dart';
@@ -13,23 +14,23 @@ void _presentSigningOutLoader(BuildContext context) {
     context: context,
     barrierDismissible: false,
     useRootNavigator: true,
-    builder: (_) => Dialog(
+    builder: (dialogContext) => Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: const Padding(
-        padding: EdgeInsets.all(24),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 48,
               height: 48,
               child: CircularProgressIndicator(strokeWidth: 3),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
-              'Signing you out…',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              dialogContext.flipperL10n.signOutSigningYouOut,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ],
         ),

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_dashboard/export/transaction_report_full_export_loader.dart';
 import 'package:flipper_dashboard/export/utils/report_theme.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,10 +18,13 @@ class SaleReport {
   static final PdfColor borderGray = ReportTheme.borderGray;
   static final PdfColor lightGray = ReportTheme.lightGray;
 
-  Future<void> generateSaleReport(
-      {required DateTime startDate, required DateTime endDate}) async {
-    final business = await ProxyService.getStrategy(Strategy.capella)
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+  Future<void> generateSaleReport({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
     final transactionsWithItems = await loadTransactionsWithItemsForReport(
       startDate: startDate,
       endDate: endDate,
@@ -55,56 +59,72 @@ class SaleReport {
     // Branded footer (logo, "Powered by Flipper", timestamp, page numbers).
     document.template.bottom = await ReportTheme.buildFooter(pageSize);
 
-    final ebm = await ProxyService.getStrategy(Strategy.capella).ebm(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    final ebm = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).ebm(branchId: ProxyService.box.getBranchId()!);
 
     final DateFormat periodFmt = DateFormat('MMMM dd, yyyy');
+    final l10n = FlipperL10n.current;
     double contentHeight = ReportTheme.drawHeader(
       page,
       pageSize,
-      reportTitle: 'Sales Report',
+      reportTitle: l10n.reportSalesReport,
       business: business,
       ebm: ebm,
-      periodText:
-          'Report Period: ${periodFmt.format(startDate)} - ${periodFmt.format(endDate)}',
+      periodText: l10n.reportPeriodRange(
+        periodFmt.format(startDate),
+        periodFmt.format(endDate),
+      ),
     );
 
-    contentHeight = ReportTheme.drawSummaryCards(page, pageSize, contentHeight, [
-      ReportKpiCard(
-        value: ReportTheme.formatRwf(totalAmount, trimZeros: true),
-        label: 'Total Revenue',
-        color: ReportTheme.primaryBlue,
-      ),
-      ReportKpiCard(
-        value: ReportTheme.formatRwf(totalVatAmount, trimZeros: true),
-        label: 'Total VAT',
-        color: ReportTheme.accentGreen,
-      ),
-      ReportKpiCard(
-        value: totalTransactions.toString(),
-        label: 'Total Transactions',
-        color: ReportTheme.accentPurple,
-      ),
-      ReportKpiCard(
-        value: ReportTheme.formatRwf(averageTransactionValue, trimZeros: true),
-        label: 'Avg. Transaction',
-        color: ReportTheme.accentOrange,
-      ),
-    ]);
+    contentHeight =
+        ReportTheme.drawSummaryCards(page, pageSize, contentHeight, [
+          ReportKpiCard(
+            value: ReportTheme.formatRwf(totalAmount, trimZeros: true),
+            label: l10n.reportTotalRevenue,
+            color: ReportTheme.primaryBlue,
+          ),
+          ReportKpiCard(
+            value: ReportTheme.formatRwf(totalVatAmount, trimZeros: true),
+            label: l10n.reportTotalVat,
+            color: ReportTheme.accentGreen,
+          ),
+          ReportKpiCard(
+            value: totalTransactions.toString(),
+            label: l10n.reportTotalTransactions,
+            color: ReportTheme.accentPurple,
+          ),
+          ReportKpiCard(
+            value: ReportTheme.formatRwf(
+              averageTransactionValue,
+              trimZeros: true,
+            ),
+            label: l10n.reportAvgTransaction,
+            color: ReportTheme.accentOrange,
+          ),
+        ]);
 
     await _drawEnhancedContentAsync(
-        page, pageSize, transactionsWithItems, contentHeight);
+      page,
+      pageSize,
+      transactionsWithItems,
+      contentHeight,
+    );
 
     final List<int> bytes = await document.save();
-    final String formattedDate =
-        DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
+    final String formattedDate = DateFormat(
+      'yyyy-MM-dd_HH-mm',
+    ).format(DateTime.now());
     document.dispose();
     await _saveAndLaunchFile(bytes, 'Sale_report_$formattedDate.pdf');
   }
 
-  Future<void> _drawEnhancedContentAsync(PdfPage page, Size pageSize,
-      List<TransactionWithItems> transactionsWithItems, double startY) async {
+  Future<void> _drawEnhancedContentAsync(
+    PdfPage page,
+    Size pageSize,
+    List<TransactionWithItems> transactionsWithItems,
+    double startY,
+  ) async {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 9);
 
@@ -124,15 +144,16 @@ class SaleReport {
     // Header row + brand styling (shared theme).
     grid.headers.add(1);
     final PdfGridRow header = grid.headers[0];
+    final l10n = FlipperL10n.current;
     header.cells[0].value = '#';
-    header.cells[1].value = 'Buyer TIN';
-    header.cells[2].value = 'Buyer Name';
-    header.cells[3].value = 'Receipt #';
-    header.cells[4].value = 'Date';
-    header.cells[5].value = 'Items Details';
-    header.cells[6].value = 'Amount';
+    header.cells[1].value = l10n.reportBuyerTin;
+    header.cells[2].value = l10n.reportBuyerName;
+    header.cells[3].value = l10n.reportReceiptNumberShort;
+    header.cells[4].value = l10n.reportDate;
+    header.cells[5].value = l10n.reportItemsDetails;
+    header.cells[6].value = l10n.amount;
     header.cells[7].value = 'VAT';
-    header.cells[8].value = 'Type';
+    header.cells[8].value = l10n.reportType;
     ReportTheme.styleTableHeader(header);
 
     // Enhanced data rows
@@ -149,7 +170,7 @@ class SaleReport {
       row.height = 40; // Increased row height for better readability
 
       row.cells[0].value = index.toString();
-      row.cells[1].value = t.customerTin ?? 'Individual';
+      row.cells[1].value = t.customerTin ?? l10n.reportIndividual;
       row.cells[2].value = t.customerName ?? '-';
       row.cells[3].value = t.receiptNumber?.toString() ?? '-';
       row.cells[4].value = t.createdAt != null
@@ -160,9 +181,16 @@ class SaleReport {
       if (items.isNotEmpty) {
         // get transaction item found on this transaction
 
-        final itemsText = items.map((item) {
-          return '${item.name}\n  Qty: ${item.qty} × ${item.price.toStringAsFixed(0)}\n  Total: ${item.totAmt?.toStringAsFixed(0) ?? '0'}';
-        }).join('\n\n');
+        final itemsText = items
+            .map((item) {
+              return l10n.reportSaleItemLine(
+                item.name,
+                '${item.qty}',
+                item.price.toStringAsFixed(0),
+                item.totAmt?.toStringAsFixed(0) ?? '0',
+              );
+            })
+            .join('\n\n');
         row.cells[5].value = itemsText;
       } else {
         row.cells[5].value = '-';
@@ -171,18 +199,21 @@ class SaleReport {
       row.cells[6].value = (t.subTotal ?? 0).toStringAsFixed(2);
 
       // Calculate VAT from item-level taxAmt for consistency with header totals
-      double taxAmount =
-          items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
+      double taxAmount = items.fold<double>(
+        0.0,
+        (sum, item) => sum + (item.taxAmt ?? 0.0),
+      );
       row.cells[7].value = taxAmount.toStringAsFixed(2);
-      row.cells[8].value = t.receiptType ?? 'Standard';
+      row.cells[8].value = t.receiptType ?? l10n.reportStandard;
 
       // Style individual cells
       for (int i = 0; i < row.cells.count; i++) {
         row.cells[i].style.borders = PdfBorders(
-            left: borderPen,
-            right: borderPen,
-            top: borderPen,
-            bottom: borderPen);
+          left: borderPen,
+          right: borderPen,
+          top: borderPen,
+          bottom: borderPen,
+        );
         row.cells[i].style.font = i == 5 ? itemFont : dataFont;
         row.cells[i].style.stringFormat = PdfStringFormat(
           alignment: i == 0 || i == 3 || i == 6 || i == 7
@@ -214,7 +245,11 @@ class SaleReport {
     grid.draw(
       page: page,
       bounds: Rect.fromLTWH(
-          40, startY, pageSize.width - 80, pageSize.height - startY - 80),
+        40,
+        startY,
+        pageSize.width - 80,
+        pageSize.height - startY - 80,
+      ),
     );
   }
 

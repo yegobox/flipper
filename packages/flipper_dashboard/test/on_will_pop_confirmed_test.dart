@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/functions.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,29 +21,32 @@ void main() {
       // The No branch reads willPopProvider off the element tree.
       ProviderScope(
         child: MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => TextButton(
-              onPressed: () {
-                onExitAttempt();
-                onWillPop(
-                  context: context,
-                  navigationPurpose: NavigationPurpose.home,
-                  message: 'Done shopping?',
-                  onConfirmed: onConfirmed,
-                );
-              },
-              child: const Text('leave'),
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () {
+                  onExitAttempt();
+                  onWillPop(
+                    context: context,
+                    navigationPurpose: NavigationPurpose.home,
+                    message: 'Done shopping?',
+                    onConfirmed: onConfirmed,
+                  );
+                },
+                child: const Text('leave'),
+              ),
             ),
-          ),
           ),
         ),
       ),
     );
   }
 
-  testWidgets('with onConfirmed, Yes closes the dialog and hands back over',
-      (tester) async {
+  testWidgets('with onConfirmed, Yes closes the dialog and hands back over', (
+    tester,
+  ) async {
     var confirmed = 0;
     var attempts = 0;
 

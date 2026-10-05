@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/inventory_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -85,7 +86,7 @@ class InventoryService {
   /// Converts a Variant to an InventoryItem for dashboard display
   Future<InventoryItem> _variantToInventoryItem(Variant variant) async {
     // Try to get the branch name if branchId is available
-    String location = 'Unknown';
+    String location = FlipperL10n.current.inventoryDashboardUnknownLocation;
     if (variant.branchId != null) {
       print('Fetching branch name for branchId: ${variant.branchId}');
       try {
@@ -119,15 +120,21 @@ class InventoryService {
             print(
               'No matching branch found with name for ID: ${variant.branchId}',
             );
-            location = 'Branch ${variant.branchId}';
+            location = FlipperL10n.current.inventoryDashboardBranchFallback(
+              variant.branchId.toString(),
+            );
           }
         } else {
           print('Could not get active branch or business ID');
-          location = 'Branch ${variant.branchId}';
+          location = FlipperL10n.current.inventoryDashboardBranchFallback(
+            variant.branchId.toString(),
+          );
         }
       } catch (e) {
         print('Error fetching branch: $e');
-        location = 'Branch ${variant.branchId}';
+        location = FlipperL10n.current.inventoryDashboardBranchFallback(
+          variant.branchId.toString(),
+        );
       }
     } else {
       print('No branchId available for variant: ${variant.id}');
@@ -137,7 +144,9 @@ class InventoryService {
     return InventoryItem(
       id: variant.id,
       name: variant.name,
-      category: variant.categoryName ?? 'Uncategorized',
+      category:
+          variant.categoryName ??
+          FlipperL10n.current.inventoryDashboardUncategorized,
       quantity: variant.stock?.currentStock?.toInt() ?? 0,
       expiryDate: variant.expirationDate ?? DateTime.now().toUtc(),
       location: location,

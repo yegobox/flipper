@@ -3,33 +3,34 @@ import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
-HotelRoom _room({
-  HotelHousekeeping housekeeping = HotelHousekeeping.clean,
-}) => HotelRoom(
-  id: 'r1',
-  branchId: 'b1',
-  floorId: 'ground',
-  floorName: 'Ground Floor',
-  name: '101',
-  roomType: 'Double',
-  capacity: 2,
-  nightlyRate: 50000,
-  housekeeping: housekeeping,
-);
+HotelRoom _room({HotelHousekeeping housekeeping = HotelHousekeeping.clean}) =>
+    HotelRoom(
+      id: 'r1',
+      branchId: 'b1',
+      floorId: 'ground',
+      floorName: 'Ground Floor',
+      name: '101',
+      roomType: 'Double',
+      capacity: 2,
+      nightlyRate: 50000,
+      housekeeping: housekeeping,
+    );
 
-HotelStay _stay({HotelStayStatus status = HotelStayStatus.inHouse}) => HotelStay(
-  id: 's1',
-  branchId: 'b1',
-  roomId: 'r1',
-  roomName: '101',
-  transactionId: 't1',
-  guestName: 'Aline Uwase',
-  checkInAt: DateTime.utc(2026, 1, 10, 14),
-  expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
-  nightlyRate: 50000,
-  status: status,
-);
+HotelStay _stay({HotelStayStatus status = HotelStayStatus.inHouse}) =>
+    HotelStay(
+      id: 's1',
+      branchId: 'b1',
+      roomId: 'r1',
+      roomName: '101',
+      transactionId: 't1',
+      guestName: 'Aline Uwase',
+      checkInAt: DateTime.utc(2026, 1, 10, 14),
+      expectedCheckOutAt: DateTime.utc(2026, 1, 12, 11),
+      nightlyRate: 50000,
+      status: status,
+    );
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -38,6 +39,9 @@ Future<void> _pump(
 }) async {
   await tester.pumpWidget(
     MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
       home: Scaffold(
         body: HotelHousekeepingSheet(room: room, stay: stay),
       ),
@@ -54,8 +58,9 @@ InkWell _rowFor(WidgetTester tester, String label) {
 
 void main() {
   group('housekeeping sheet', () {
-    testWidgets('offers every state with what it means for the desk',
-        (tester) async {
+    testWidgets('offers every state with what it means for the desk', (
+      tester,
+    ) async {
       await _pump(tester, room: _room());
 
       expect(find.text('Clean'), findsOneWidget);
@@ -84,6 +89,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: Builder(
               builder: (context) => ElevatedButton(
@@ -131,8 +139,9 @@ void main() {
         );
       });
 
-      testWidgets('a checked-out stay no longer blocks anything',
-          (tester) async {
+      testWidgets('a checked-out stay no longer blocks anything', (
+        tester,
+      ) async {
         await _pump(
           tester,
           room: _room(),

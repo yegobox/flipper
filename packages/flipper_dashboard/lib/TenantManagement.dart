@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/tenant/mixins/tenant_management_mixin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -57,11 +58,9 @@ class UserManagement extends ConsumerState<TenantManagement>
 }
 
 /// App bar aligned with User Management mock: circular outline close, title, overflow menu.
-class _UserManagementAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _UserManagementAppBar({
-    required this.onClose,
-    required this.onRefresh,
-  });
+class _UserManagementAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  const _UserManagementAppBar({required this.onClose, required this.onRefresh});
 
   final VoidCallback onClose;
   final Future<void> Function() onRefresh;
@@ -91,7 +90,7 @@ class _UserManagementAppBar extends StatelessWidget implements PreferredSizeWidg
                   ),
                   Expanded(
                     child: Text(
-                      'User Management',
+                      context.flipperL10n.userManagement,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -114,7 +113,7 @@ class _UserManagementAppBar extends StatelessWidget implements PreferredSizeWidg
                       PopupMenuItem<String>(
                         value: 'refresh',
                         child: Text(
-                          'Refresh user list',
+                          context.flipperL10n.tenantRefreshUserList,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w500,
                             fontSize: 15,
@@ -152,10 +151,7 @@ class _UserManagementAppBar extends StatelessWidget implements PreferredSizeWidg
 }
 
 class _CircleOutlineIconButton extends StatelessWidget {
-  const _CircleOutlineIconButton({
-    required this.icon,
-    required this.onPressed,
-  });
+  const _CircleOutlineIconButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback onPressed;
@@ -175,11 +171,7 @@ class _CircleOutlineIconButton extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: _UserManagementAppBar._outline),
           ),
-          child: Icon(
-            icon,
-            size: 22,
-            color: _UserManagementAppBar._iconColor,
-          ),
+          child: Icon(icon, size: 22, color: _UserManagementAppBar._iconColor),
         ),
       ),
     );

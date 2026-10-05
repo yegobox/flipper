@@ -1,11 +1,10 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ChartsSection extends StatelessWidget {
-  const ChartsSection({
-    Key? key,
-    required this.inventoryByCategory,
-  }) : super(key: key);
+  const ChartsSection({Key? key, required this.inventoryByCategory})
+    : super(key: key);
 
   final Map<String, int> inventoryByCategory;
 
@@ -22,9 +21,9 @@ class ChartsSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Inventory by Category',
-                    style: TextStyle(
+                  Text(
+                    context.flipperL10n.inventoryDashboardByCategory,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -67,9 +66,9 @@ class ChartsSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Stock Levels Trend',
-                    style: TextStyle(
+                  Text(
+                    context.flipperL10n.inventoryDashboardStockLevelsTrend,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -97,7 +96,7 @@ class ChartsSection extends StatelessWidget {
                                   'Mar',
                                   'Apr',
                                   'May',
-                                  'Jun'
+                                  'Jun',
                                 ];
                                 final int index = value.toInt();
                                 if (index >= 0 && index < titles.length) {
@@ -181,11 +180,7 @@ class ChartsSection extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          color: color,
-        ),
+        Container(width: 12, height: 12, color: color),
         const SizedBox(width: 4),
         Text(
           title,

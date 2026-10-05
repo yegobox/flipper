@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/daily_report_download_client.dart';
 import 'package:flipper_models/models/daily_report_file.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -30,34 +31,47 @@ const Color _kGreenSoft = Color(0xFFECFDF5);
 const Color _kSurfaceAlt = Color(0xFFF3F4F6);
 
 enum _DateRangeFilter {
-  allTime('All time'),
-  last7Days('Last 7 days'),
-  last30Days('Last 30 days'),
-  last90Days('Last 90 days'),
-  thisMonth('This month'),
-  lastMonth('Last month');
+  allTime,
+  last7Days,
+  last30Days,
+  last90Days,
+  thisMonth,
+  lastMonth;
 
-  const _DateRangeFilter(this.label);
-  final String label;
+  String label(FlipperAppLocalizations l10n) => switch (this) {
+    allTime => l10n.dailyReportFilesRangeAllTime,
+    last7Days => l10n.dailyReportFilesRangeLast7Days,
+    last30Days => l10n.dailyReportFilesRangeLast30Days,
+    last90Days => l10n.dailyReportFilesRangeLast90Days,
+    thisMonth => l10n.dailyReportFilesRangeThisMonth,
+    lastMonth => l10n.dailyReportFilesRangeLastMonth,
+  };
 }
 
 enum _SortOrder {
-  newestFirst('Newest first'),
-  oldestFirst('Oldest first'),
-  nameAsc('Name A–Z'),
-  nameDesc('Name Z–A');
+  newestFirst,
+  oldestFirst,
+  nameAsc,
+  nameDesc;
 
-  const _SortOrder(this.label);
-  final String label;
+  String label(FlipperAppLocalizations l10n) => switch (this) {
+    newestFirst => l10n.dailyReportFilesSortNewest,
+    oldestFirst => l10n.dailyReportFilesSortOldest,
+    nameAsc => l10n.dailyReportFilesSortNameAsc,
+    nameDesc => l10n.dailyReportFilesSortNameDesc,
+  };
 }
 
 enum _TypeFilter {
-  all('All'),
-  transactions('Transactions'),
-  merged('Merged');
+  all,
+  transactions,
+  merged;
 
-  const _TypeFilter(this.label);
-  final String label;
+  String label(FlipperAppLocalizations l10n) => switch (this) {
+    all => l10n.dailyReportFilesTypeAll,
+    transactions => l10n.dailyReportFilesTypeTransactions,
+    merged => l10n.dailyReportFilesTypeMerged,
+  };
 }
 
 class _FocusSearchIntent extends Intent {
@@ -318,7 +332,7 @@ class _DailyReportFilesScreenState
     if (kIsWeb) {
       showCustomSnackBarUtil(
         context,
-        'Sharing is not supported in the browser.',
+        context.flipperL10n.dailyReportFilesShareUnsupportedWeb,
         type: NotificationType.error,
       );
       return;
@@ -327,7 +341,9 @@ class _DailyReportFilesScreenState
     try {
       final path = await _download(file, openAfterSave: false);
       if (path != null) {
-        await Share.shareXFiles([XFile(path)], subject: 'Daily report');
+        await Share.shareXFiles([
+          XFile(path),
+        ], subject: context.flipperL10n.dailyReportFilesShareSubjectOne);
       }
     } on DailyReportDownloadException catch (e) {
       if (mounted) {
@@ -354,7 +370,7 @@ class _DailyReportFilesScreenState
     final picked = await _showToolbarMenu<_DateRangeFilter>(
       anchorContext: anchorContext,
       options: _DateRangeFilter.values,
-      label: (option) => option.label,
+      label: (option) => option.label(context.flipperL10n),
       selected: _dateRange,
     );
     if (!mounted || picked == null || picked == _dateRange) return;
@@ -365,7 +381,7 @@ class _DailyReportFilesScreenState
     final picked = await _showToolbarMenu<_SortOrder>(
       anchorContext: anchorContext,
       options: _SortOrder.values,
-      label: (option) => option.label,
+      label: (option) => option.label(context.flipperL10n),
       selected: _sortOrder,
     );
     if (!mounted || picked == null || picked == _sortOrder) return;
@@ -376,7 +392,7 @@ class _DailyReportFilesScreenState
     final picked = await _showToolbarMenu<_TypeFilter>(
       anchorContext: anchorContext,
       options: _TypeFilter.values,
-      label: (option) => option.label,
+      label: (option) => option.label(context.flipperL10n),
       selected: _typeFilter,
     );
     if (!mounted || picked == null || picked == _typeFilter) return;
@@ -391,7 +407,7 @@ class _DailyReportFilesScreenState
     if (branchId == null || branchId.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        'No active branch.',
+        context.flipperL10n.dailyReportFilesNoActiveBranch,
         type: NotificationType.error,
       );
       return null;
@@ -400,7 +416,7 @@ class _DailyReportFilesScreenState
     if (key == null || key.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        'This file has no storage key yet.',
+        context.flipperL10n.dailyReportFilesNoStorageKey,
         type: NotificationType.error,
       );
       return null;
@@ -426,7 +442,9 @@ class _DailyReportFilesScreenState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Saved ${file.fileName ?? "report"}',
+          context.flipperL10n.dailyReportFilesSaved(
+            file.fileName ?? context.flipperL10n.dailyReportFilesReportFallback,
+          ),
           type: NotificationType.success,
         );
       }
@@ -454,11 +472,15 @@ class _DailyReportFilesScreenState
   Future<DailyReportPreviewResponse> _loadPreview(DailyReportFile file) async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null || branchId.isEmpty) {
-      throw DailyReportDownloadException('No active branch.');
+      throw DailyReportDownloadException(
+        FlipperL10n.current.dailyReportFilesNoActiveBranch,
+      );
     }
     final key = file.s3ObjectKey?.trim();
     if (key == null || key.isEmpty) {
-      throw DailyReportDownloadException('This file has no storage key yet.');
+      throw DailyReportDownloadException(
+        FlipperL10n.current.dailyReportFilesNoStorageKey,
+      );
     }
     final ebm = await ProxyService.strategy.ebm(
       branchId: branchId,
@@ -503,7 +525,7 @@ class _DailyReportFilesScreenState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Downloaded ${selected.length} file(s)',
+          context.flipperL10n.dailyReportFilesDownloaded(selected.length),
           type: NotificationType.success,
         );
       }
@@ -538,7 +560,7 @@ class _DailyReportFilesScreenState
     if (kIsWeb) {
       showCustomSnackBarUtil(
         context,
-        'Sharing is not supported in the browser.',
+        context.flipperL10n.dailyReportFilesShareUnsupportedWeb,
         type: NotificationType.error,
       );
       return;
@@ -563,11 +585,14 @@ class _DailyReportFilesScreenState
       }
       if (xFiles.isEmpty) return;
 
-      await Share.shareXFiles(xFiles, subject: 'Daily reports');
+      await Share.shareXFiles(
+        xFiles,
+        subject: context.flipperL10n.dailyReports,
+      );
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Shared ${xFiles.length} file(s)',
+          context.flipperL10n.dailyReportFilesShared(xFiles.length),
           type: NotificationType.success,
         );
       }
@@ -614,7 +639,7 @@ class _DailyReportFilesScreenState
     if (pending.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        'Selected files are already archived.',
+        context.flipperL10n.dailyReportFilesAlreadyArchived,
         type: NotificationType.error,
       );
       return;
@@ -627,7 +652,7 @@ class _DailyReportFilesScreenState
     if (archivable.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        'Selected files have no storage key yet.',
+        context.flipperL10n.dailyReportFilesSelectedNoStorageKey,
         type: NotificationType.error,
       );
       return;
@@ -637,7 +662,7 @@ class _DailyReportFilesScreenState
     if (branchId == null || branchId.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        'No active branch.',
+        context.flipperL10n.dailyReportFilesNoActiveBranch,
         type: NotificationType.error,
       );
       return;
@@ -650,27 +675,23 @@ class _DailyReportFilesScreenState
     try {
       final count = await ProxyService.getStrategy(
         Strategy.capella,
-      ).archiveDailyReportFiles(
-        branchId: branchId,
-        files: pending,
-      );
+      ).archiveDailyReportFiles(branchId: branchId, files: pending);
       if (!mounted) return;
       if (count == 0) {
         showCustomSnackBarUtil(
           context,
-          'No files could be archived.',
+          context.flipperL10n.dailyReportFilesNoneArchived,
           type: NotificationType.error,
         );
       } else {
-        final base = count == 1 ? 'Archived 1 file' : 'Archived $count files';
+        final base = context.flipperL10n.dailyReportFilesArchived(count);
         final detail = skipped > 0
-            ? '$base ($skipped skipped — no storage key yet)'
+            ? context.flipperL10n.dailyReportFilesArchivedSkipped(
+                base,
+                '$skipped',
+              )
             : base;
-        showCustomSnackBarUtil(
-          context,
-          detail,
-          type: NotificationType.success,
-        );
+        showCustomSnackBarUtil(context, detail, type: NotificationType.success);
         if (clearSelectionOnSuccess) {
           setState(() => _selectedKeys.clear());
         }
@@ -706,7 +727,7 @@ class _DailyReportFilesScreenState
     if (objectKeys.length != selected.length) {
       showCustomSnackBarUtil(
         context,
-        'Every selected report must have a storage key before merging.',
+        context.flipperL10n.dailyReportFilesMergeNeedsKeys,
         type: NotificationType.error,
       );
       return;
@@ -716,7 +737,7 @@ class _DailyReportFilesScreenState
     if (branchId == null || branchId.isEmpty) {
       showCustomSnackBarUtil(
         context,
-        'No active branch.',
+        context.flipperL10n.dailyReportFilesNoActiveBranch,
         type: NotificationType.error,
       );
       return;
@@ -740,7 +761,7 @@ class _DailyReportFilesScreenState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Merged ${selected.length} reports. New workbook added to the list.',
+          context.flipperL10n.dailyReportFilesMerged(selected.length),
           type: NotificationType.success,
         );
       }
@@ -776,15 +797,20 @@ class _DailyReportFilesScreenState
     return activeBranch.maybeWhen(
       data: (branch) {
         final name = (branch.name ?? '').trim();
-        return name.isEmpty ? 'Current Branch' : name;
+        return name.isEmpty
+            ? context.flipperL10n.dailyReportFilesCurrentBranch
+            : name;
       },
-      orElse: () => branchId.isEmpty ? 'No Branch' : 'Current Branch',
+      orElse: () => branchId.isEmpty
+          ? context.flipperL10n.dailyReportFilesNoBranch
+          : context.flipperL10n.dailyReportFilesCurrentBranch,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final branchId = ProxyService.box.getBranchId() ?? '';
+    final l10n = context.flipperL10n;
     final branchName = _branchName(branchId);
     final filesAsync = ref.watch(dailyReportFilesProvider(branchId));
 
@@ -817,9 +843,9 @@ class _DailyReportFilesScreenState
                     batchAction: _batchAction,
                     search: _search,
                     searchFocus: _searchFocus,
-                    dateRangeLabel: _dateRange.label,
-                    sortLabel: _sortOrder.label,
-                    typeLabel: _typeFilter.label,
+                    dateRangeLabel: _dateRange.label(l10n),
+                    sortLabel: _sortOrder.label(l10n),
+                    typeLabel: _typeFilter.label(l10n),
                     groupByDay: _groupByDay,
                     onSearchChanged: (_) => setState(() {}),
                     onDateRangeTap: _pickDateRange,
@@ -836,10 +862,9 @@ class _DailyReportFilesScreenState
                     onArchiveSelected: null,
                     onShareSelected: null,
                     child: _EmptyState(
-                      title: 'No branch selected',
-                      message:
-                          'Select a branch to see the daily Excel exports.',
-                      primaryLabel: 'Refresh',
+                      title: l10n.noBranchSelected,
+                      message: l10n.dailyReportFilesNoBranchSelectedBody,
+                      primaryLabel: l10n.refresh,
                       onPrimary: _onRefresh,
                     ),
                   )
@@ -853,9 +878,9 @@ class _DailyReportFilesScreenState
                       batchAction: _batchAction,
                       search: _search,
                       searchFocus: _searchFocus,
-                      dateRangeLabel: _dateRange.label,
-                      sortLabel: _sortOrder.label,
-                      typeLabel: _typeFilter.label,
+                      dateRangeLabel: _dateRange.label(l10n),
+                      sortLabel: _sortOrder.label(l10n),
+                      typeLabel: _typeFilter.label(l10n),
                       groupByDay: _groupByDay,
                       onSearchChanged: (_) => setState(() {}),
                       onDateRangeTap: _pickDateRange,
@@ -882,9 +907,9 @@ class _DailyReportFilesScreenState
                       batchAction: _batchAction,
                       search: _search,
                       searchFocus: _searchFocus,
-                      dateRangeLabel: _dateRange.label,
-                      sortLabel: _sortOrder.label,
-                      typeLabel: _typeFilter.label,
+                      dateRangeLabel: _dateRange.label(l10n),
+                      sortLabel: _sortOrder.label(l10n),
+                      typeLabel: _typeFilter.label(l10n),
                       groupByDay: _groupByDay,
                       onSearchChanged: (_) => setState(() {}),
                       onDateRangeTap: _pickDateRange,
@@ -901,9 +926,9 @@ class _DailyReportFilesScreenState
                       onArchiveSelected: null,
                       onShareSelected: null,
                       child: _EmptyState(
-                        title: 'Could not load reports',
-                        message: 'Check your connection and try again.',
-                        primaryLabel: 'Retry',
+                        title: l10n.dailyReportFilesLoadFailed,
+                        message: l10n.dailyReportFilesCheckConnection,
+                        primaryLabel: l10n.retry,
                         onPrimary: _onRefresh,
                       ),
                     ),
@@ -922,9 +947,9 @@ class _DailyReportFilesScreenState
                         batchAction: _batchAction,
                         search: _search,
                         searchFocus: _searchFocus,
-                        dateRangeLabel: _dateRange.label,
-                        sortLabel: _sortOrder.label,
-                        typeLabel: _typeFilter.label,
+                        dateRangeLabel: _dateRange.label(l10n),
+                        sortLabel: _sortOrder.label(l10n),
+                        typeLabel: _typeFilter.label(l10n),
                         groupByDay: _groupByDay,
                         onSearchChanged: (_) => setState(() {}),
                         onDateRangeTap: _pickDateRange,
@@ -970,16 +995,16 @@ class _DailyReportFilesScreenState
                                           .36,
                                       child: _EmptyState(
                                         title: files.isEmpty
-                                            ? 'No daily reports yet'
-                                            : 'No matches',
+                                            ? l10n.dailyReportFilesEmptyTitle
+                                            : l10n.dailyReportFilesNoMatches,
                                         message: files.isEmpty
-                                            ? 'When reports are generated for this branch, they will appear here for download.'
+                                            ? l10n.dailyReportFilesEmptyBody
                                             : hasActiveFilters
-                                            ? 'Try a different search, date range, or type filter.'
-                                            : 'Try a different report name, date, or ID.',
+                                            ? l10n.dailyReportFilesNoMatchesFiltered
+                                            : l10n.dailyReportFilesNoMatchesSearch,
                                         primaryLabel: files.isEmpty
-                                            ? 'Refresh'
-                                            : 'Clear filters',
+                                            ? l10n.refresh
+                                            : l10n.dailyReportFilesClearFilters,
                                         onPrimary: files.isEmpty
                                             ? _onRefresh
                                             : _clearListFilters,
@@ -1179,6 +1204,8 @@ class _HeroHeader extends StatelessWidget {
   final String dateRangeLabel;
   final void Function(BuildContext context) onDateRangeTap;
 
+  static const _branchMarker = '\u0000';
+
   @override
   Widget build(BuildContext context) {
     final compact = MediaQuery.sizeOf(context).width < 860;
@@ -1186,7 +1213,7 @@ class _HeroHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Daily Reports',
+          context.flipperL10n.dailyReports,
           style: GoogleFonts.outfit(
             color: _kTextPrimary,
             fontSize: 34,
@@ -1199,15 +1226,20 @@ class _HeroHeader extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 620),
           child: Text.rich(
             TextSpan(
-              text: 'Excel exports generated for ',
               children: [
-                TextSpan(
-                  text: branchName,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                const TextSpan(
-                  text: '. Select multiple files to download together.',
-                ),
+                // Bold the branch name wherever the locale places it.
+                for (final (i, part)
+                    in context.flipperL10n
+                        .dailyReportFilesSubtitle(_branchMarker)
+                        .split(_branchMarker)
+                        .indexed) ...[
+                  if (i > 0)
+                    TextSpan(
+                      text: branchName,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  if (part.isNotEmpty) TextSpan(text: part),
+                ],
               ],
             ),
             style: GoogleFonts.outfit(
@@ -1332,6 +1364,7 @@ class _KpiStrip extends StatelessWidget {
     final ready = files
         .where((f) => (f.s3ObjectKey ?? '').trim().isNotEmpty)
         .length;
+    final l10n = context.flipperL10n;
 
     return Container(
       height: 140,
@@ -1351,33 +1384,37 @@ class _KpiStrip extends StatelessWidget {
         children: [
           Expanded(
             child: _KpiCell(
-              label: 'FILES',
+              label: l10n.dailyReportFilesKpiFiles.toUpperCase(),
               value: NumberFormat.decimalPattern().format(files.length),
-              caption: files.isEmpty ? 'none yet' : 'available',
+              caption: files.isEmpty
+                  ? l10n.dailyReportFilesKpiNoneYet
+                  : l10n.dailyReportFilesKpiAvailable,
             ),
           ),
           const _VerticalRule(),
           Expanded(
             child: _KpiCell(
-              label: 'REPORT DAYS',
+              label: l10n.dailyReportFilesKpiReportDays.toUpperCase(),
               value: NumberFormat.decimalPattern().format(days),
-              caption: days == 1 ? 'day grouped' : 'days grouped',
+              caption: l10n.dailyReportFilesKpiDaysGrouped(days),
             ),
           ),
           const _VerticalRule(),
           Expanded(
             child: _KpiCell(
-              label: 'READY FILES',
+              label: l10n.dailyReportFilesKpiReadyFiles.toUpperCase(),
               value: NumberFormat.decimalPattern().format(ready),
-              caption: 'with storage keys',
+              caption: l10n.dailyReportFilesKpiWithStorageKeys,
             ),
           ),
           const _VerticalRule(),
           Expanded(
             child: _KpiCell(
-              label: 'LAST GENERATED',
+              label: l10n.dailyReportFilesKpiLastGenerated.toUpperCase(),
               value: latest == null ? '--' : _time.format(latest.toLocal()),
-              caption: latest == null ? 'No exports' : _relativeDay(latest),
+              caption: latest == null
+                  ? l10n.dailyReportFilesKpiNoExports
+                  : _relativeDay(l10n, latest),
             ),
           ),
         ],
@@ -1385,14 +1422,14 @@ class _KpiStrip extends StatelessWidget {
     );
   }
 
-  static String _relativeDay(DateTime date) {
+  static String _relativeDay(FlipperAppLocalizations l10n, DateTime date) {
     final local = date.toLocal();
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(local.year, local.month, local.day);
     final diff = today.difference(day).inDays;
-    if (diff == 0) return 'Today';
-    if (diff == 1) return 'Yesterday';
+    if (diff == 0) return l10n.dailyReportFilesToday;
+    if (diff == 1) return l10n.dailyReportFilesYesterday;
     return DateFormat.MMMd().format(local);
   }
 }
@@ -1551,8 +1588,12 @@ class _ListFrame extends StatelessWidget {
                   const SizedBox(width: 14),
                   Text(
                     selectedCount > 0
-                        ? '$selectedCount selected'
-                        : '${allFiles.length} files',
+                        ? context.flipperL10n.dailyReportFilesSelectedCount(
+                            '$selectedCount',
+                          )
+                        : context.flipperL10n.dailyReportFilesFileCount(
+                            allFiles.length,
+                          ),
                     style: GoogleFonts.outfit(
                       color: _kTextPrimary,
                       fontSize: 15,
@@ -1570,7 +1611,7 @@ class _ListFrame extends StatelessWidget {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        'Clear selection',
+                        context.flipperL10n.clearSelection,
                         style: GoogleFonts.outfit(
                           decoration: TextDecoration.underline,
                           decorationColor: _kTextMuted,
@@ -1587,7 +1628,7 @@ class _ListFrame extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Auto-syncs every 5 min',
+                    context.flipperL10n.dailyReportFilesAutoSync,
                     style: GoogleFonts.outfit(
                       color: _kTextMuted,
                       fontSize: 14,
@@ -1617,7 +1658,8 @@ class _ListFrame extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Search by report name, date, or ID...',
+                        hintText:
+                            context.flipperL10n.dailyReportFilesSearchHint,
                         hintStyle: GoogleFonts.outfit(
                           color: _kTextMuted,
                           fontSize: 15,
@@ -1632,7 +1674,8 @@ class _ListFrame extends StatelessWidget {
                           ),
                         ),
                         suffixIcon: Tooltip(
-                          message: 'Focus search (⌘K)',
+                          message:
+                              context.flipperL10n.dailyReportFilesFocusSearch,
                           child: GestureDetector(
                             onTap: () => searchFocus.requestFocus(),
                             child: Container(
@@ -1677,14 +1720,16 @@ class _ListFrame extends StatelessWidget {
                         children: [
                           _ToolChip(
                             icon: DashboardQuickAccessSvgs.filter,
-                            label: 'Type:',
+                            label:
+                                context.flipperL10n.dailyReportFilesTypeLabel,
                             value: typeLabel,
                             onTap: onTypeTap,
                           ),
                           const SizedBox(width: 8),
                           _ToolChip(
                             icon: DashboardQuickAccessSvgs.sortDesc,
-                            label: 'Sort:',
+                            label:
+                                context.flipperL10n.dailyReportFilesSortLabel,
                             value: sortLabel,
                             onTap: onSortTap,
                           ),
@@ -1692,13 +1737,15 @@ class _ListFrame extends StatelessWidget {
                           _ToolChip(
                             icon: DashboardQuickAccessSvgs.group,
                             label: '',
-                            value: groupByDay ? 'Group by day' : 'Flat list',
+                            value: groupByDay
+                                ? context.flipperL10n.dailyReportFilesGroupByDay
+                                : context.flipperL10n.dailyReportFilesFlatList,
                             filled: groupByDay,
                             onTap: (_) => onGroupByDayTap(),
                           ),
                           const SizedBox(width: 4),
                           IconButton(
-                            tooltip: 'Refresh',
+                            tooltip: context.flipperL10n.refresh,
                             onPressed: refreshing ? null : onRefresh,
                             icon: refreshing
                                 ? const SizedBox(
@@ -1856,6 +1903,9 @@ class _GroupedFileList extends StatelessWidget {
     );
   }
 
+  // Group key for files with neither a report day nor a created date.
+  static const _unknownDateKey = '~unknown';
+
   static final _dfHeader = DateFormat('MMM dd, yyyy');
 
   String _groupKey(DailyReportFile f) {
@@ -1866,10 +1916,13 @@ class _GroupedFileList extends StatelessWidget {
       final d = created.toLocal();
       return '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
     }
-    return 'Unknown date';
+    return _unknownDateKey;
   }
 
-  String _prettyGroupLabel(String key) {
+  String _prettyGroupLabel(FlipperAppLocalizations l10n, String key) {
+    if (key == _unknownDateKey) {
+      return l10n.dailyReportFilesUnknownDate.toUpperCase();
+    }
     final dt = DateTime.tryParse(key);
     if (dt != null) return _dfHeader.format(dt).toUpperCase();
     return key.toUpperCase();
@@ -1899,7 +1952,7 @@ class _GroupedFileList extends StatelessWidget {
       children: [
         for (final key in orderedKeys) ...[
           _GroupHeader(
-            title: _prettyGroupLabel(key),
+            title: _prettyGroupLabel(context.flipperL10n, key),
             count: groups[key]!.length,
             isToday: key == todayKey,
           ),
@@ -1953,7 +2006,7 @@ class _GroupHeader extends StatelessWidget {
                 border: Border.all(color: _kBorder),
               ),
               child: Text(
-                'Today',
+                context.flipperL10n.dailyReportFilesToday,
                 style: GoogleFonts.outfit(
                   color: _kTextMuted,
                   fontSize: 13,
@@ -1964,7 +2017,7 @@ class _GroupHeader extends StatelessWidget {
           ],
           const Spacer(),
           Text(
-            '$count ${count == 1 ? 'file' : 'files'}',
+            context.flipperL10n.dailyReportFilesFileCount(count),
             style: GoogleFonts.outfit(
               color: _kTextMuted,
               fontSize: 14,
@@ -2092,7 +2145,8 @@ class _FileRow extends StatelessWidget {
                         _Dot(),
                         const SizedBox(width: 10),
                         Text(
-                          file.day ?? 'No report day',
+                          file.day ??
+                              context.flipperL10n.dailyReportFilesNoReportDay,
                           style: _metaStyle(context),
                         ),
                         if (category != null) ...[
@@ -2117,7 +2171,7 @@ class _FileRow extends StatelessWidget {
               _StatusPill(ready: (file.s3ObjectKey ?? '').trim().isNotEmpty),
               const SizedBox(width: 18),
               IconButton(
-                tooltip: 'Preview',
+                tooltip: context.flipperL10n.dailyReportFilesPreview,
                 onPressed: busy ? null : onPreview,
                 icon: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.eye,
@@ -2126,7 +2180,7 @@ class _FileRow extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Download',
+                tooltip: context.flipperL10n.dailyReportFilesDownload,
                 onPressed: busy ? null : onDownload,
                 icon: busy
                     ? const SizedBox(
@@ -2141,7 +2195,7 @@ class _FileRow extends StatelessWidget {
                       ),
               ),
               PopupMenuButton<String>(
-                tooltip: 'More actions',
+                tooltip: context.flipperL10n.dailyReportFilesMoreActions,
                 enabled: !busy,
                 onSelected: (action) {
                   switch (action) {
@@ -2154,12 +2208,18 @@ class _FileRow extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'download',
-                    child: Text('Download'),
+                    child: Text(context.flipperL10n.dailyReportFilesDownload),
                   ),
-                  const PopupMenuItem(value: 'share', child: Text('Share')),
-                  const PopupMenuItem(value: 'archive', child: Text('Archive')),
+                  PopupMenuItem(
+                    value: 'share',
+                    child: Text(context.flipperL10n.dailyReportFilesShare),
+                  ),
+                  PopupMenuItem(
+                    value: 'archive',
+                    child: Text(context.flipperL10n.dailyReportFilesArchive),
+                  ),
                 ],
                 icon: DashboardQuickAccessSvgs.assetIcon(
                   DashboardQuickAccessSvgs.more,
@@ -2176,7 +2236,8 @@ class _FileRow extends StatelessWidget {
 
   static String _displayName(DailyReportFile file) {
     final raw = (file.fileName ?? file.type).trim();
-    if (raw.isEmpty) return 'Daily Transactions';
+    if (raw.isEmpty)
+      return FlipperL10n.current.dailyReportFilesNameDailyTransactions;
     final lower = raw.toLowerCase();
     if (lower.contains('merged')) {
       return _mergedDisplayName(raw);
@@ -2184,17 +2245,17 @@ class _FileRow extends StatelessWidget {
     if (lower.contains('daily_transactions') ||
         lower.contains('daily transactions') ||
         file.type.toLowerCase().contains('transaction')) {
-      return 'Daily Transactions';
+      return FlipperL10n.current.dailyReportFilesNameDailyTransactions;
     }
     if (lower.contains('sales_summary') || lower.contains('sales summary')) {
-      return 'Sales Summary';
+      return FlipperL10n.current.dailyReportFilesNameSalesSummary;
     }
     if (lower.contains('payments_breakdown') ||
         lower.contains('payments breakdown')) {
-      return 'Payments Breakdown';
+      return FlipperL10n.current.dailyReportFilesNamePaymentsBreakdown;
     }
     if (lower.contains('stock_movement') || lower.contains('stock movement')) {
-      return 'Stock Movement';
+      return FlipperL10n.current.dailyReportFilesNameStockMovement;
     }
     final withoutExtension = raw.replaceAll(
       RegExp(r'\.xlsx$', caseSensitive: false),
@@ -2212,7 +2273,8 @@ class _FileRow extends StatelessWidget {
         .replaceAll(RegExp(r'[_-]+'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
-    if (cleaned.isEmpty) return 'Daily Transactions';
+    if (cleaned.isEmpty)
+      return FlipperL10n.current.dailyReportFilesNameDailyTransactions;
     return cleaned
         .split(' ')
         .map(
@@ -2232,10 +2294,13 @@ class _FileRow extends StatelessWidget {
       r'\d{4}-\d{2}-\d{2}',
     ).allMatches(withoutExtension).map((m) => m.group(0)!).toList();
     if (dates.length >= 2) {
-      return '${dates.first} - ${dates.last} (merged)';
+      return FlipperL10n.current.dailyReportFilesMergedRange(
+        dates.first,
+        dates.last,
+      );
     }
     if (dates.length == 1) {
-      return '${dates.first} (merged)';
+      return FlipperL10n.current.dailyReportFilesMergedDay(dates.first);
     }
     return withoutExtension
         .replaceAll(
@@ -2249,13 +2314,14 @@ class _FileRow extends StatelessWidget {
 
   static String _shortId(DailyReportFile file) {
     final source = (file.runId ?? file.id).replaceAll('-', '').trim();
-    if (source.isEmpty) return 'report';
+    if (source.isEmpty)
+      return FlipperL10n.current.dailyReportFilesReportFallback;
     return source.length <= 8 ? source : source.substring(0, 8);
   }
 
   static String? _categoryLabel(DailyReportFile file) {
     if ((file.fileName ?? '').toLowerCase().contains('merged')) {
-      return 'Merged workbook';
+      return FlipperL10n.current.dailyReportFilesMergedWorkbook;
     }
     return null;
   }
@@ -2305,7 +2371,7 @@ class _NewPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(compact ? 4 : 16),
       ),
       child: Text(
-        'NEW',
+        context.flipperL10n.dailyReportFilesNew.toUpperCase(),
         style: GoogleFonts.outfit(
           color: Colors.white,
           fontSize: compact ? 11 : 12,
@@ -2342,7 +2408,9 @@ class _StatusPill extends StatelessWidget {
           ),
           const SizedBox(width: 7),
           Text(
-            ready ? 'Ready' : 'Pending',
+            ready
+                ? context.flipperL10n.dailyReportFilesReady
+                : context.flipperL10n.dailyReportFilesPending,
             style: GoogleFonts.outfit(
               color: color,
               fontSize: 14,
@@ -2426,7 +2494,7 @@ class _PreviewPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final created = file.createdAt?.toLocal();
     final meta = created == null
-        ? 'REPORT FILE'
+        ? context.flipperL10n.dailyReportFilesReportFile.toUpperCase()
         : '${_day.format(created).toUpperCase()} · ${_time.format(created)}';
 
     return Material(
@@ -2442,7 +2510,7 @@ class _PreviewPanel extends StatelessWidget {
             child: Row(
               children: [
                 IconButton(
-                  tooltip: 'Close preview',
+                  tooltip: context.flipperL10n.dailyReportFilesClosePreview,
                   onPressed: onClose,
                   icon: DashboardQuickAccessSvgs.assetIcon(
                     DashboardQuickAccessSvgs.x,
@@ -2484,7 +2552,7 @@ class _PreviewPanel extends StatelessWidget {
                 ),
                 _PreviewIconButton(
                   icon: DashboardQuickAccessSvgs.share,
-                  tooltip: 'Share',
+                  tooltip: context.flipperL10n.dailyReportFilesShare,
                   onTap: onShare,
                 ),
                 const SizedBox(width: 10),
@@ -2503,7 +2571,7 @@ class _PreviewPanel extends StatelessWidget {
                   return _PreviewError(
                     message:
                         snapshot.error?.toString() ??
-                        'Could not load workbook preview.',
+                        context.flipperL10n.dailyReportFilesPreviewLoadFailed,
                   );
                 }
                 return _PreviewBody(file: file, preview: snapshot.data!);
@@ -2593,7 +2661,7 @@ class _PreviewDownloadButton extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                'Download',
+                context.flipperL10n.dailyReportFilesDownload,
                 style: GoogleFonts.outfit(
                   color: Colors.white,
                   fontSize: 18,
@@ -2628,7 +2696,7 @@ class _PreviewBody extends StatelessWidget {
           Row(
             children: [
               Text(
-                'PREVIEW',
+                context.flipperL10n.dailyReportFilesPreview.toUpperCase(),
                 style: GoogleFonts.outfit(
                   color: _kTextMuted,
                   fontSize: 13,
@@ -2638,7 +2706,12 @@ class _PreviewBody extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                'FIRST $firstRows OF ${NumberFormat.decimalPattern().format(preview.rows)} ROWS',
+                context.flipperL10n
+                    .dailyReportFilesFirstRows(
+                      '$firstRows',
+                      NumberFormat.decimalPattern().format(preview.rows),
+                    )
+                    .toUpperCase(),
                 style: GoogleFonts.outfit(
                   color: _kTextMuted,
                   fontSize: 13,
@@ -2652,7 +2725,7 @@ class _PreviewBody extends StatelessWidget {
           _SpreadsheetPreview(preview: preview),
           const SizedBox(height: 28),
           Text(
-            'RAW FILENAME',
+            context.flipperL10n.dailyReportFilesRawFilename.toUpperCase(),
             style: GoogleFonts.outfit(
               color: _kTextMuted,
               fontSize: 13,
@@ -2696,16 +2769,28 @@ class _PreviewStatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final cells = [
       (
-        'FILE ID',
+        l10n.dailyReportFilesStatFileId.toUpperCase(),
         preview.fileId.isEmpty ? _FileRow._shortId(file) : preview.fileId,
       ),
-      ('ROWS', NumberFormat.decimalPattern().format(preview.rows)),
-      ('SIZE', _formatBytes(preview.sizeBytes)),
-      ('STATUS', _FileRow._isNew(file) ? 'New' : 'Ready'),
-      ('SHEET', preview.sheetName),
-      ('FORMAT', preview.format),
+      (
+        l10n.dailyReportFilesStatRows.toUpperCase(),
+        NumberFormat.decimalPattern().format(preview.rows),
+      ),
+      (
+        l10n.dailyReportFilesStatSize.toUpperCase(),
+        _formatBytes(preview.sizeBytes),
+      ),
+      (
+        l10n.dailyReportFilesStatStatus.toUpperCase(),
+        _FileRow._isNew(file)
+            ? l10n.dailyReportFilesNew
+            : l10n.dailyReportFilesReady,
+      ),
+      (l10n.dailyReportFilesStatSheet.toUpperCase(), preview.sheetName),
+      (l10n.dailyReportFilesStatFormat.toUpperCase(), preview.format),
     ];
 
     return Container(
@@ -2782,14 +2867,14 @@ class _SpreadsheetPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = preview.previewRows.isEmpty
         ? <List<String>>[
-            const [
-              'Time',
-              'Receipt #',
-              'Cashier',
-              'Items',
-              'Subtotal',
-              'Tax',
-              'Total',
+            [
+              context.flipperL10n.dailyReportFilesColTime,
+              context.flipperL10n.dailyReportFilesColReceipt,
+              context.flipperL10n.dailyReportFilesColCashier,
+              context.flipperL10n.items,
+              context.flipperL10n.subtotal,
+              context.flipperL10n.dailyReportFilesColTax,
+              context.flipperL10n.dailyReportFilesColTotal,
             ],
           ]
         : preview.previewRows;
@@ -3012,8 +3097,9 @@ class _SelectionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final canMerge = selectedCount > 1 && onMerge != null;
     final barWidth = MediaQuery.sizeOf(context).width - 32;
-    final mergeLabel =
-        barWidth < 880 ? 'Merge' : 'Merge into one workbook';
+    final mergeLabel = barWidth < 880
+        ? context.flipperL10n.dailyReportFilesMerge
+        : context.flipperL10n.dailyReportFilesMergeIntoOne;
 
     return Positioned(
       left: 16,
@@ -3056,9 +3142,9 @@ class _SelectionBar extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            selectedCount == 1
-                                ? 'file selected'
-                                : 'files selected',
+                            context.flipperL10n.dailyReportFilesFilesSelected(
+                              selectedCount,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.outfit(
@@ -3095,22 +3181,27 @@ class _SelectionBar extends StatelessWidget {
                                   children: [
                                     _SelectionBarButton(
                                       icon: DashboardQuickAccessSvgs.archive,
-                                      label: 'Archive',
+                                      label: context
+                                          .flipperL10n
+                                          .dailyReportFilesArchive,
                                       busy: busy && busyAction == 'archive',
                                       onPressed: busy ? null : onArchive,
                                     ),
                                     const SizedBox(width: 8),
                                     _SelectionBarButton(
                                       icon: DashboardQuickAccessSvgs.share,
-                                      label: 'Share',
+                                      label: context
+                                          .flipperL10n
+                                          .dailyReportFilesShare,
                                       busy: busy && busyAction == 'share',
                                       onPressed: busy ? null : onShare,
                                     ),
                                     const SizedBox(width: 8),
                                     _SelectionBarButton(
-                                      icon:
-                                          DashboardQuickAccessSvgs.download,
-                                      label: 'Download',
+                                      icon: DashboardQuickAccessSvgs.download,
+                                      label: context
+                                          .flipperL10n
+                                          .dailyReportFilesDownload,
                                       busy: busy && busyAction == 'download',
                                       onPressed: busy ? null : onDownload,
                                     ),
@@ -3132,7 +3223,7 @@ class _SelectionBar extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Close',
+                        tooltip: context.flipperL10n.close,
                         onPressed: busy ? null : onClose,
                         icon: DashboardQuickAccessSvgs.assetIcon(
                           DashboardQuickAccessSvgs.x,
@@ -3193,11 +3284,7 @@ class _SelectionBarButton extends StatelessWidget {
 
     final child = Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        iconWidget,
-        const SizedBox(width: 8),
-        Text(label),
-      ],
+      children: [iconWidget, const SizedBox(width: 8), Text(label)],
     );
 
     if (filled) {

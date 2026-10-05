@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dar
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_card.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_interactions.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -41,6 +42,7 @@ class _RoomsHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final counts = ref.watch(hotelOccupancyProvider);
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
@@ -53,7 +55,9 @@ class _RoomsHeader extends ConsumerWidget {
               const HotelDeskBrand(logoSize: 24, wordmarkSize: 15),
               const Spacer(),
               Text(
-                '${counts.occupied}/${counts.total} occupied',
+                l10n.hotelOccupiedFraction(
+                  '${counts.occupied}/${counts.total}',
+                ),
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -61,7 +65,7 @@ class _RoomsHeader extends ConsumerWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Hand over the desk',
+                tooltip: l10n.hotelHandOverDesk,
                 onPressed: () => ref.read(hotelModeProvider.notifier).logout(),
                 icon: const Icon(
                   Icons.logout,
@@ -79,21 +83,21 @@ class _RoomsHeader extends ConsumerWidget {
             child: Row(
               children: [
                 HotelStatChip(
-                  label: 'Vacant',
+                  label: l10n.hotelStateVacant,
                   value: counts.vacant,
                   ink: HotelTokens.vacantInk,
                   tint: HotelTokens.vacantTint,
                 ),
                 const SizedBox(width: 8),
                 HotelStatChip(
-                  label: 'Occupied',
+                  label: l10n.hotelStateOccupied,
                   value: counts.occupied,
                   ink: HotelTokens.occupiedInk,
                   tint: HotelTokens.occupiedTint,
                 ),
                 const SizedBox(width: 8),
                 HotelStatChip(
-                  label: 'Cleaning',
+                  label: l10n.hotelStateCleaning,
                   value: counts.dirty,
                   ink: HotelTokens.dirtyInk,
                   tint: HotelTokens.dirtyTint,
@@ -177,7 +181,7 @@ class _RoomGrid extends ConsumerWidget {
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Text(
-        'Could not load the board.\n$error',
+        FlipperL10n.current.hotelCouldNotLoadBoard('$error'),
         textAlign: TextAlign.center,
         style: GoogleFonts.outfit(
           fontSize: 13,
@@ -197,7 +201,7 @@ class _RoomGrid extends ConsumerWidget {
     if (grouped.isEmpty) {
       return Center(
         child: Text(
-          'No rooms on this branch yet.',
+          context.flipperL10n.hotelNoRoomsYet,
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w600,

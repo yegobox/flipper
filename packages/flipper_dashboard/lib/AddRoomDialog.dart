@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -73,7 +74,10 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     final borderColor = enabledBorderColor ?? _RoomModalPalette.border;
     final baseBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: borderColor, width: enabledBorderColor != null ? 1.5 : 1),
+      borderSide: BorderSide(
+        color: borderColor,
+        width: enabledBorderColor != null ? 1.5 : 1,
+      ),
     );
     return InputDecoration(
       hintText: hint,
@@ -149,15 +153,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        flex: 2,
-                        child: _buildRoomNumberField(),
-                      ),
+                      Expanded(flex: 2, child: _buildRoomNumberField()),
                       const SizedBox(width: 12),
-                      Expanded(
-                        flex: 3,
-                        child: _buildRoomTypeDropdown(),
-                      ),
+                      Expanded(flex: 3, child: _buildRoomTypeDropdown()),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -229,20 +227,20 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Add Room',
+                context.flipperL10n.roomAdd,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _RoomModalPalette.title,
-                      letterSpacing: -0.2,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: _RoomModalPalette.title,
+                  letterSpacing: -0.2,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Hotel & accommodation',
+                context.flipperL10n.addProductRoomsSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: _RoomModalPalette.muted,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: _RoomModalPalette.muted,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -254,13 +252,15 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
   Widget _buildRoomNumberField() {
     return TextFormField(
       controller: _roomNumberController,
-      validator: (value) => (value?.isEmpty ?? true) ? 'Required' : null,
+      validator: (value) => (value?.isEmpty ?? true)
+          ? context.flipperL10n.taxSettingsRequired
+          : null,
       style: const TextStyle(
         color: _RoomModalPalette.title,
         fontWeight: FontWeight.w600,
       ),
       decoration: _fieldDecoration(
-        label: 'Room No.',
+        label: context.flipperL10n.roomNumber,
         hint: '101',
         enabledBorderColor: _RoomModalPalette.teal,
       ),
@@ -271,24 +271,31 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     return DropdownButtonFormField<String>(
       // ignore: deprecated_member_use
       value: _selectedRoomType,
-      decoration: _fieldDecoration(label: 'Room Type'),
-      hint: const Text(
-        'Select',
-        style: TextStyle(
+      decoration: _fieldDecoration(label: context.flipperL10n.roomType),
+      hint: Text(
+        context.flipperL10n.roomSelect,
+        style: const TextStyle(
           color: _RoomModalPalette.muted,
           fontWeight: FontWeight.w500,
         ),
       ),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _RoomModalPalette.muted),
+      icon: const Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: _RoomModalPalette.muted,
+      ),
       items: _roomTypes.keys.map((String roomType) {
-        return DropdownMenuItem<String>(value: roomType, child: Text(roomType));
+        return DropdownMenuItem<String>(
+          value: roomType,
+          child: Text(_roomTypeLabel(roomType)),
+        );
       }).toList(),
       onChanged: (String? newValue) {
         setState(() {
           _selectedRoomType = newValue;
         });
       },
-      validator: (value) => value == null ? 'Please select a room type' : null,
+      validator: (value) =>
+          value == null ? context.flipperL10n.roomSelectTypeError : null,
     );
   }
 
@@ -296,37 +303,43 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     return TextFormField(
       controller: _priceController,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      validator: (value) => (value?.isEmpty ?? true) ? 'Required' : null,
+      validator: (value) => (value?.isEmpty ?? true)
+          ? context.flipperL10n.taxSettingsRequired
+          : null,
       style: const TextStyle(
         color: _RoomModalPalette.title,
         fontWeight: FontWeight.w600,
       ),
-      decoration: _fieldDecoration(
-        label: 'Price Per Night',
-        hint: 'RWF 0.00',
-      ).copyWith(
-        suffixIcon: Padding(
-          padding: const EdgeInsets.only(right: 10),
-          child: Center(
-            widthFactor: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _RoomModalPalette.rwfBadgeBg,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'RWF',
-                style: TextStyle(
-                  color: _RoomModalPalette.muted,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
+      decoration:
+          _fieldDecoration(
+            label: context.flipperL10n.roomPricePerNight,
+            hint: 'RWF 0.00',
+          ).copyWith(
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Center(
+                widthFactor: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _RoomModalPalette.rwfBadgeBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'RWF',
+                    style: TextStyle(
+                      color: _RoomModalPalette.muted,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 
@@ -337,8 +350,11 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     return DropdownButtonFormField<String>(
       // ignore: deprecated_member_use
       value: effective,
-      decoration: _fieldDecoration(label: 'Tax Code'),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _RoomModalPalette.muted),
+      decoration: _fieldDecoration(label: context.flipperL10n.roomTaxCode),
+      icon: const Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: _RoomModalPalette.muted,
+      ),
       items: taxCodes.map((String code) {
         final label = _taxCodeLabel(code);
         return DropdownMenuItem<String>(value: code, child: Text(label));
@@ -349,20 +365,37 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
           _isExempted = (newValue == 'A');
         });
       },
-      validator: (value) => value == null ? 'Please select a tax code' : null,
+      validator: (value) =>
+          value == null ? context.flipperL10n.roomSelectTaxCodeError : null,
     );
+  }
+
+  String _roomTypeLabel(String roomType) {
+    final l10n = context.flipperL10n;
+    switch (roomType) {
+      case 'Single':
+        return l10n.roomTypeSingle;
+      case 'Double':
+        return l10n.roomTypeDouble;
+      case 'Suite':
+        return l10n.roomTypeSuite;
+      case 'Deluxe':
+        return l10n.roomTypeDeluxe;
+      default:
+        return roomType;
+    }
   }
 
   String _taxCodeLabel(String code) {
     switch (code) {
       case 'A':
-        return 'A – Exempt';
+        return 'A – ${context.flipperL10n.roomTaxExemptShort}';
       case 'B':
-        return 'B – Standard Rate';
+        return 'B – ${context.flipperL10n.roomTaxStandardRate}';
       case 'C':
-        return 'C – Reduced Rate';
+        return 'C – ${context.flipperL10n.roomTaxReducedRate}';
       case 'D':
-        return 'D – Non-VAT';
+        return 'D – ${context.flipperL10n.roomTaxNonVat}';
       default:
         return code;
     }
@@ -383,19 +416,19 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tax Exempt',
+                  context.flipperL10n.roomTaxExempt,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: _RoomModalPalette.title,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: _RoomModalPalette.title,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Exempt this room from VAT',
+                  context.flipperL10n.roomTaxExemptHint,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: _RoomModalPalette.muted,
-                        height: 1.35,
-                      ),
+                    color: _RoomModalPalette.muted,
+                    height: 1.35,
+                  ),
                 ),
               ],
             ),
@@ -430,15 +463,14 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
         style: FilledButton.styleFrom(
           backgroundColor: _RoomModalPalette.teal,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: _RoomModalPalette.teal.withValues(alpha: 0.5),
+          disabledBackgroundColor: _RoomModalPalette.teal.withValues(
+            alpha: 0.5,
+          ),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         child: isLoading.isLoading
             ? const SizedBox(
@@ -449,7 +481,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
                   color: Colors.white,
                 ),
               )
-            : const Text('Add Room'),
+            : Text(context.flipperL10n.roomAdd),
       ),
     );
   }
@@ -465,11 +497,11 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
         child: Text(
-          'Cancel',
+          context.flipperL10n.cancel,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: _RoomModalPalette.muted,
-                fontWeight: FontWeight.bold,
-              ),
+            color: _RoomModalPalette.muted,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -480,10 +512,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
       try {
         ref.read(loadingProvider.notifier).startLoading();
 
-        final vatEnabled = ref.read(ebmVatEnabledProvider).maybeWhen(
-              data: (v) => v,
-              orElse: () => false,
-            );
+        final vatEnabled = ref
+            .read(ebmVatEnabledProvider)
+            .maybeWhen(data: (v) => v, orElse: () => false);
         final taxCode = _effectiveTaxCode(vatEnabled);
 
         // RRA rejects saveItems with 603 <ttCatCd> unless the branch is
@@ -520,8 +551,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             retailPrice: double.tryParse(_priceController.text) ?? 0.0,
             supplyPrice: double.tryParse(_priceController.text) ?? 0.0,
             propertyTyCd: tourismTax ? "01" : null,
-            roomTypeCd:
-                tourismTax ? (_roomTypes[_selectedRoomType] ?? "03") : null,
+            roomTypeCd: tourismTax
+                ? (_roomTypes[_selectedRoomType] ?? "03")
+                : null,
             ttCatCd: tourismTax ? "TT" : null,
             itemTyCd: "3",
             taxTyCd: taxCode,
@@ -546,8 +578,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             selectedProductType: "3",
             packagingUnit: "NT",
             categoryId: null,
-            roomTypeCd:
-                tourismTax ? (_roomTypes[_selectedRoomType] ?? "03") : null,
+            roomTypeCd: tourismTax
+                ? (_roomTypes[_selectedRoomType] ?? "03")
+                : null,
             propertyTyCd: tourismTax ? "01" : null,
             ttCatCd: tourismTax ? "TT" : null,
             onCompleteCallback: (List<Variant> variants) async {},
@@ -566,7 +599,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
 
         ref.read(loadingProvider.notifier).stopLoading();
         Navigator.of(context).pop();
-        toast('Room added successfully');
+        toast(FlipperL10n.current.roomAddedSuccess);
 
         final roomData = {
           'roomNumber': _roomNumberController.text,
@@ -576,7 +609,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
         widget.onRoomAdded(roomData);
       } catch (e) {
         ref.read(loadingProvider.notifier).stopLoading();
-        toast('Error adding room: ${e.toString()}');
+        toast(FlipperL10n.current.roomAddError(e.toString()));
       }
     }
   }

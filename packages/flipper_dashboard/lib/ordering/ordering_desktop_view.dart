@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/ordering/ordering_supplier_picker.dart';
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
 import 'package:flipper_dashboard/ordering/ordering_top_bar.dart';
 import 'package:flipper_dashboard/view_models/ordering_view_model.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
@@ -97,8 +98,7 @@ class OrderingDesktopView extends HookConsumerWidget {
   /// search would filter against names that are no longer there.
   void _resetCatalogFilters(WidgetRef ref) {
     ref.read(orderingQueryProvider.notifier).state = '';
-    ref.read(orderingCategoryProvider.notifier).state =
-        kOrderingAllCategories;
+    ref.read(orderingCategoryProvider.notifier).state = kOrderingAllCategories;
     ref.read(supplierCatalogSearchProvider.notifier).state = '';
   }
 }
@@ -139,7 +139,7 @@ class _OrderingWorkspace extends HookConsumerWidget {
       if (ref.read(orderingFinanceChoicePendingProvider)) {
         showErrorNotification(
           context,
-          'Choose how you are paying before sending the order.',
+          context.flipperL10n.orderingChoosePaymentBeforeSending,
         );
         return;
       }
@@ -159,7 +159,7 @@ class _OrderingWorkspace extends HookConsumerWidget {
       // Read from the summary captured before placement: the cart is emptied
       // as part of sending, so afterwards there is nothing left to count.
       ref.read(orderingPlacedProvider.notifier).state = PlacedOrder(
-        supplierName: supplier.name ?? 'the supplier',
+        supplierName: supplier.name ?? context.flipperL10n.orderingTheSupplier,
         lineCount: summary.activeLineCount,
         unitCount: summary.unitQtyTotal,
         total: summary.lineSubtotal + summary.lineTax,
@@ -228,7 +228,9 @@ class _OrderingWorkspace extends HookConsumerWidget {
                 SizedBox(
                   width: cartWidth,
                   child: OrderingCartPanel(
-                    supplierName: supplier.name ?? 'the supplier',
+                    supplierName:
+                        supplier.name ??
+                        context.flipperL10n.orderingTheSupplier,
                     noteController: model.deliveryNoteCotroller,
                     isPlacing: model.isLoading,
                     onPlaceOrder: placeOrder,

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_services/utils.dart';
@@ -88,14 +89,14 @@ class StockValueRestockBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '$count items need restocking attention',
+              context.flipperL10n.stockValueItemsNeedRestock(count),
               style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
           ),
           TextButton(
             onPressed: onViewAll,
             child: Text(
-              'View all →',
+              context.flipperL10n.stockValueViewAllArrow,
               style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
             ),
           ),
@@ -209,7 +210,9 @@ class StockValueLowCriticalList extends StatelessWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          isCritical ? 'Critical' : 'Low',
+                          isCritical
+                              ? context.flipperL10n.stockValueStatusCritical
+                              : context.flipperL10n.stockValueStatusLow,
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -225,7 +228,9 @@ class StockValueLowCriticalList extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${item.currentStock.toStringAsFixed(0)} units',
+                      context.flipperL10n.stockValueUnitsValue(
+                        item.currentStock.toStringAsFixed(0),
+                      ),
                       style: FlipperFonts.mono(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -236,7 +241,9 @@ class StockValueLowCriticalList extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'min: ${item.minStock.toStringAsFixed(0)}',
+                      context.flipperL10n.stockValueMinValue(
+                        item.minStock.toStringAsFixed(0),
+                      ),
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: Colors.black54,
@@ -297,7 +304,9 @@ class StockValueCategoryBreakdownList extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${c.productsCount} items',
+                            context.flipperL10n.stockValueItemsCount(
+                              c.productsCount,
+                            ),
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               color: Colors.black54,

@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/product_editor/widgets/product_editor
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,10 +42,10 @@ void main() {
 
   Widget harness(ValueNotifier<String?> selection) {
     return ProviderScope(
-      overrides: [
-        categoryProvider.overrideWith((ref) => Stream.value(cats)),
-      ],
+      overrides: [categoryProvider.overrideWith((ref) => Stream.value(cats))],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: ValueListenableBuilder<String?>(
             valueListenable: selection,
@@ -79,10 +80,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Click into the field with a mouse — the list opens.
-      await tester.tap(
-        find.byType(TextField),
-        kind: PointerDeviceKind.mouse,
-      );
+      await tester.tap(find.byType(TextField), kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
       expect(find.text('Drinks'), findsOneWidget);
 
@@ -134,17 +132,18 @@ void main() {
     expect(inPicker, findsNothing);
   });
 
-  testWidgets('the search field does not move when the selection changes',
-      (tester) async {
+  testWidgets('the search field does not move when the selection changes', (
+    tester,
+  ) async {
     final selection = ValueNotifier<String?>(null);
     addTearDown(selection.dispose);
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          categoryProvider.overrideWith((ref) => Stream.value(cats)),
-        ],
+        overrides: [categoryProvider.overrideWith((ref) => Stream.value(cats))],
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ValueListenableBuilder<String?>(
               valueListenable: selection,
@@ -176,7 +175,8 @@ void main() {
     expect(
       fieldTopLeft(),
       equals(unselected),
-      reason: 'Selecting a category moved the Floater target — anything that '
+      reason:
+          'Selecting a category moved the Floater target — anything that '
           'appears on selection must render BELOW the search field.',
     );
 

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 
@@ -38,7 +39,7 @@ class CustomSupplierDropdown extends StatelessWidget {
           iconSize: 24,
           elevation: 16,
           style: TextStyle(color: Colors.black87, fontSize: 16),
-          hint: Text('Select Supplier'),
+          hint: Text(context.flipperL10n.supplierSelect),
           isExpanded: true,
           onChanged: onChanged,
           items: suppliers.map<DropdownMenuItem<Branch>>((Branch supplier) {

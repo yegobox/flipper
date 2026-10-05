@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/features/config/system_config_tokens.dart';
 import 'package:flipper_dashboard/features/config/tax_config_logic.dart';
 import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
@@ -240,11 +241,11 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
 
   String? _validateUrl(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a valid URL';
+      return context.flipperL10n.configEnterValidUrl;
     }
     final uri = Uri.tryParse(value.trim());
     if (uri == null || !uri.hasScheme) {
-      return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
+      return context.flipperL10n.configEnterUrlWithScheme;
     }
     return null;
   }
@@ -253,19 +254,23 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
     if (value == null || value.trim().isEmpty) return null;
     final uri = Uri.tryParse(value.trim());
     if (uri == null || !uri.hasScheme) {
-      return 'Please enter a valid URL with a scheme (e.g., http:// or https://)';
+      return context.flipperL10n.configEnterUrlWithScheme;
     }
     return null;
   }
 
   String? _validateBhfid(String? value) {
-    if (value == null || value.isEmpty) return 'Branch ID is required';
+    if (value == null || value.isEmpty) {
+      return context.flipperL10n.configBranchIdRequired;
+    }
     return null;
   }
 
   String? _validateMrc(String? value) {
-    if (value == null || value.isEmpty) return 'MRC is required';
-    if (value.length != 11) return 'MRC must be exactly 11 characters';
+    if (value == null || value.isEmpty) {
+      return context.flipperL10n.configMrcRequired;
+    }
+    if (value.length != 11) return context.flipperL10n.configMrcLength;
     return null;
   }
 
@@ -281,7 +286,10 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
 
     final current = _snapshotFromControllers();
     if (!taxConfigHasChanges(_initialSnapshot!, current)) {
-      showWarningNotification(context, 'No changes to save');
+      showWarningNotification(
+        context,
+        context.flipperL10n.configNoChangesToSave,
+      );
       return;
     }
 
@@ -307,10 +315,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
       if (!mounted) return;
 
       if (!ok) {
-        showErrorNotification(
-          context,
-          'Could not save tax configuration. Check your connection and try again.',
-        );
+        showErrorNotification(context, context.flipperL10n.configSaveFailed);
         return;
       }
 
@@ -338,7 +343,10 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
         _initialSnapshot = _snapshotFromControllers();
       });
 
-      showSuccessNotification(context, 'Tax configuration saved');
+      showSuccessNotification(
+        context,
+        context.flipperL10n.configTaxConfigSaved,
+      );
       _showSavedConfirmation();
     } catch (e) {
       if (!mounted) return;
@@ -417,13 +425,14 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
       }
     });
 
+    final l10n = context.flipperL10n;
     return Form(
       key: _formKey,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _SectionLabel(title: 'General'),
+          _SectionLabel(title: l10n.configGeneral),
           const SizedBox(height: 12),
           _GeneralSection(
             model: model,
@@ -433,10 +442,10 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
             },
           ),
           const SizedBox(height: 24),
-          const _SectionLabel(title: 'Tax Configuration'),
+          _SectionLabel(title: l10n.configTaxConfiguration),
           const SizedBox(height: 6),
           Text(
-            'Save applies to EBM / tax URL, data connector URL, branch code, and MRC.',
+            l10n.configSaveAppliesTo,
             style: GoogleFonts.outfit(
               fontSize: 12.5,
               color: SystemConfigTokens.secondary,
@@ -455,18 +464,17 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
           const SizedBox(height: 16),
           _ScTextField(
             fieldKey: _serverFieldKey,
-            label: 'EBM / Tax server URL',
+            label: l10n.configTaxServerUrl,
             controller: _serverUrlController,
             validator: _validateUrl,
           ),
           const SizedBox(height: 14),
           _ScTextField(
             fieldKey: _dataConnectorFieldKey,
-            label: 'Data connector URL',
+            label: l10n.configDataConnectorUrl,
             controller: _dataConnectorUrlController,
             validator: _validateOptionalUrl,
-            helper:
-                'Bulk product RRA uses this service; RRA tax URL is configured on data-connector.',
+            helper: l10n.configDataConnectorHelper,
           ),
           const SizedBox(height: 14),
           Row(
@@ -474,7 +482,7 @@ class _SystemConfigModalCardState extends ConsumerState<SystemConfigModalCard> {
               Expanded(
                 child: _ScTextField(
                   fieldKey: _branchFieldKey,
-                  label: 'Branch code (bhfId)',
+                  label: l10n.configBranchCodeBhfId,
                   controller: _branchController,
                   validator: _validateBhfid,
                 ),
@@ -540,7 +548,7 @@ class _Header extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'System Configuration',
+                  context.flipperL10n.configSystemConfiguration,
                   style: GoogleFonts.outfit(
                     fontSize: 21,
                     fontWeight: FontWeight.w600,
@@ -551,7 +559,7 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Manage POS behaviour, currency and tax integration.',
+                  context.flipperL10n.configSystemConfigSubtitle,
                   style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     color: SystemConfigTokens.secondary,
@@ -647,6 +655,7 @@ class _GeneralSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border.all(color: SystemConfigTokens.border),
@@ -657,7 +666,7 @@ class _GeneralSection extends StatelessWidget {
         child: Column(
           children: [
             _ToggleRow(
-              label: 'Training Mode',
+              label: l10n.configTrainingMode,
               value: model.isTrainingModeEnabled,
               onChanged: (v) {
                 model.isTrainingModeEnabled = v;
@@ -665,7 +674,7 @@ class _GeneralSection extends StatelessWidget {
               },
             ),
             _ToggleRow(
-              label: 'Proforma Mode',
+              label: l10n.configProformaMode,
               value: model.isProformaModeEnabled,
               onChanged: (v) {
                 model.isProformaModeEnabled = v;
@@ -673,7 +682,7 @@ class _GeneralSection extends StatelessWidget {
               },
             ),
             _ToggleRow(
-              label: 'Print A4',
+              label: l10n.configPrintA4,
               value: model.printA4,
               onChanged: (v) {
                 model.printA4 = v;
@@ -681,7 +690,7 @@ class _GeneralSection extends StatelessWidget {
               },
             ),
             _ToggleRow(
-              label: 'Export as PDF',
+              label: l10n.configExportAsPdf,
               value: model.exportAsPdf,
               onChanged: (v) {
                 model.exportAsPdf = v;
@@ -756,7 +765,7 @@ class _CurrencyRow extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'System Currency',
+              context.flipperL10n.configSystemCurrency,
               style: GoogleFonts.outfit(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w600,
@@ -803,7 +812,7 @@ class _CurrencyDropdown extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: SystemConfigTokens.ink,
           ),
-          items: CurrencyOptions.getCurrencyOptions(),
+          items: CurrencyOptions.getCurrencyOptions(context.flipperL10n),
           onChanged: (v) {
             if (v != null) onChanged(v);
           },
@@ -864,7 +873,7 @@ class _VatLockedRow extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'VAT Enabled',
+                      context.flipperL10n.configVatEnabled,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -881,7 +890,7 @@ class _VatLockedRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Controlled by EBM configuration',
+                  context.flipperL10n.configVatControlledByEbm,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: SystemConfigTokens.muted,
@@ -941,7 +950,7 @@ class _TourismTaxRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tourism tax registered',
+                  context.flipperL10n.configTourismTaxRegistered,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -950,8 +959,7 @@ class _TourismTaxRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Enable only if RRA registered this branch for tourism tax. '
-                  'Rooms register as plain services otherwise.',
+                  context.flipperL10n.configTourismTaxHint,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: SystemConfigTokens.muted,
@@ -1136,9 +1144,9 @@ class _Footer extends StatelessWidget {
                   ? snapshot.data!
                   : snapshot.connectionState == ConnectionState.waiting
                   ? '…'
-                  : 'Version not available';
+                  : context.flipperL10n.configVersionNotAvailable;
               return Text(
-                'Version $version',
+                context.flipperL10n.configVersion(version),
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   color: SystemConfigTokens.muted,
@@ -1215,10 +1223,10 @@ class _SaveButtonState extends State<_SaveButton> {
               if (widget.isSaving || widget.saved) const SizedBox(width: 9),
               Text(
                 widget.isSaving
-                    ? 'Saving…'
+                    ? context.flipperL10n.configSaving
                     : widget.saved
-                    ? 'Saved'
-                    : 'Save configuration',
+                    ? context.flipperL10n.configSaved
+                    : context.flipperL10n.configSaveConfiguration,
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

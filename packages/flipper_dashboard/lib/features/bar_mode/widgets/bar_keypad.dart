@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,8 +18,8 @@ class BarKeypad extends StatefulWidget {
     required this.hint,
     required this.onSubmit,
     this.verifyPin,
-    this.errorText = 'Wrong PIN — try again',
-    this.managerErrorText = 'Not a manager PIN',
+    this.errorText,
+    this.managerErrorText,
     this.enabled = true,
     this.tight = false,
     this.mobile = false,
@@ -30,8 +31,12 @@ class BarKeypad extends StatefulWidget {
   final String hint;
   final PinSubmitCallback onSubmit;
   final PinVerifyCallback? verifyPin;
-  final String errorText;
-  final String managerErrorText;
+
+  /// Defaults to the localized "Wrong PIN — try again".
+  final String? errorText;
+
+  /// Defaults to the localized "Not a manager PIN".
+  final String? managerErrorText;
   final bool enabled;
   final bool tight;
   final bool mobile;
@@ -110,10 +115,10 @@ class _BarKeypadState extends State<BarKeypad>
   }
 
   void _clear() => setState(() {
-        _digits.clear();
-        _error = false;
-        _inlineError = null;
-      });
+    _digits.clear();
+    _error = false;
+    _inlineError = null;
+  });
 
   void _backspace() {
     if (_digits.isEmpty) return;
@@ -134,7 +139,8 @@ class _BarKeypadState extends State<BarKeypad>
       if (!ok) {
         setState(() {
           _error = true;
-          _inlineError = widget.errorText;
+          _inlineError =
+              widget.errorText ?? context.flipperL10n.barWrongPinTryAgain;
         });
         _shake.forward(from: 0);
         Future.delayed(const Duration(milliseconds: 380), _clear);
@@ -159,7 +165,10 @@ class _BarKeypadState extends State<BarKeypad>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _avatar(widget.avatarLabel!, widget.avatarColor ?? BarTokens.blue),
+              _avatar(
+                widget.avatarLabel!,
+                widget.avatarColor ?? BarTokens.blue,
+              ),
               const SizedBox(width: 11),
               Text(
                 widget.title,
@@ -183,7 +192,7 @@ class _BarKeypadState extends State<BarKeypad>
           ),
         const SizedBox(height: 4),
         Text(
-          widget.enabled ? widget.hint : 'Select your name',
+          widget.enabled ? widget.hint : context.flipperL10n.barSelectYourName,
           style: GoogleFonts.outfit(fontSize: 13.5, color: BarTokens.ink3),
           textAlign: TextAlign.center,
         ),
@@ -236,7 +245,7 @@ class _BarKeypadState extends State<BarKeypad>
                 children: [
                   for (var n = 1; n <= 9; n++)
                     _keyButton('$n', () => _tapDigit('$n')),
-                  _keyButton('Clear', _clear, util: true),
+                  _keyButton(context.flipperL10n.clear, _clear, util: true),
                   _keyButton('0', () => _tapDigit('0')),
                   _keyButton('⌫', _backspace, util: true),
                 ],
@@ -266,10 +275,7 @@ class _BarKeypadState extends State<BarKeypad>
         return FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: constraints.maxWidth,
-            child: content,
-          ),
+          child: SizedBox(width: constraints.maxWidth, child: content),
         );
       },
     );
@@ -279,15 +285,20 @@ class _BarKeypadState extends State<BarKeypad>
     final keyHeight = widget.mobile ? BarTokens.mobileKeySize : null;
     return Material(
       color: util ? BarTokens.surface2 : BarTokens.surface,
-      borderRadius: BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+      borderRadius: BorderRadius.circular(
+        widget.mobile ? 16 : BarTokens.radiusMd,
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+        borderRadius: BorderRadius.circular(
+          widget.mobile ? 16 : BarTokens.radiusMd,
+        ),
         child: Container(
           height: keyHeight,
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(widget.mobile ? 16 : BarTokens.radiusMd),
+            borderRadius: BorderRadius.circular(
+              widget.mobile ? 16 : BarTokens.radiusMd,
+            ),
             border: Border.all(
               color: util && widget.mobile
                   ? Colors.transparent
@@ -299,16 +310,16 @@ class _BarKeypadState extends State<BarKeypad>
           child: Text(
             label,
             style: (util
-                    ? GoogleFonts.outfit(
-                        fontSize: widget.mobile ? 15 : 13,
-                        fontWeight: FontWeight.w700,
-                        color: BarTokens.ink2,
-                      )
-                    : GoogleFonts.jetBrainsMono(
-                        fontSize: widget.mobile ? 26 : 22,
-                        fontWeight: FontWeight.w700,
-                        color: BarTokens.ink1,
-                      )),
+                ? GoogleFonts.outfit(
+                    fontSize: widget.mobile ? 15 : 13,
+                    fontWeight: FontWeight.w700,
+                    color: BarTokens.ink2,
+                  )
+                : GoogleFonts.jetBrainsMono(
+                    fontSize: widget.mobile ? 26 : 22,
+                    fontWeight: FontWeight.w700,
+                    color: BarTokens.ink1,
+                  )),
           ),
         ),
       ),

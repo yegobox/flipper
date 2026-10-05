@@ -1,4 +1,5 @@
 import 'package:flipper_models/sync/shift_sync.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,9 +62,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 8,
         backgroundColor: colorScheme.surface,
         child: Container(
@@ -116,11 +115,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                Icons.schedule,
-                color: colorScheme.primary,
-                size: 24,
-              ),
+              child: Icon(Icons.schedule, color: colorScheme.primary, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -128,7 +123,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.request.title ?? 'Start New Shift',
+                    widget.request.title ?? context.flipperL10n.startNewShift,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
@@ -136,7 +131,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Initialize your cash drawer and begin operations',
+                    context.flipperL10n.shiftStartSubtitle,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
@@ -147,9 +142,11 @@ class _StartShiftDialogState extends State<StartShiftDialog>
             IconButton(
               onPressed: () =>
                   widget.completer(DialogResponse(confirmed: false)),
-              icon: Icon(Icons.close,
-                  color: colorScheme.onSurface.withValues(alpha: 0.7)),
-              tooltip: 'Close',
+              icon: Icon(
+                Icons.close,
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+              tooltip: context.flipperL10n.close,
             ),
           ],
         ),
@@ -171,15 +168,13 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       decoration: BoxDecoration(
         color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Shift Details',
+            context.flipperL10n.shiftDetails,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
@@ -188,11 +183,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.calendar_today,
-                size: 16,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.calendar_today, size: 16, color: colorScheme.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -207,15 +198,11 @@ class _StartShiftDialogState extends State<StartShiftDialog>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: colorScheme.primary,
-              ),
+              Icon(Icons.access_time, size: 16, color: colorScheme.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Start time: ${timeFormat.format(now)}',
+                  context.flipperL10n.shiftStartTime(timeFormat.format(now)),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
@@ -236,7 +223,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Opening Cash Float',
+          context.flipperL10n.shiftOpeningCashFloat,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -244,7 +231,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
         ),
         const SizedBox(height: 8),
         Text(
-          'Enter the amount of cash in your drawer at the start of the shift',
+          context.flipperL10n.shiftOpeningCashFloatHint,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -258,11 +245,11 @@ class _StartShiftDialogState extends State<StartShiftDialog>
           ],
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Opening balance is required';
+              return context.flipperL10n.shiftOpeningBalanceRequired;
             }
             final balance = double.tryParse(value);
             if (balance == null || balance < 0) {
-              return 'Please enter a valid positive amount';
+              return context.flipperL10n.shiftEnterValidPositiveAmount;
             }
             return null;
           },
@@ -277,8 +264,10 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 ),
               ),
             ),
-            prefixIconConstraints:
-                const BoxConstraints(minWidth: 0, minHeight: 0),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
             hintText: '0.00',
             filled: true,
             fillColor: colorScheme.surface,
@@ -288,8 +277,9 @@ class _StartShiftDialogState extends State<StartShiftDialog>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -320,7 +310,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Notes (Optional)',
+          context.flipperL10n.shiftNotesOptional,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -328,7 +318,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
         ),
         const SizedBox(height: 8),
         Text(
-          'Add any additional notes about this shift',
+          context.flipperL10n.shiftNotesHint,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -338,7 +328,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
           controller: _notesController,
           maxLines: 3,
           decoration: InputDecoration(
-            hintText: 'Enter notes here...',
+            hintText: context.flipperL10n.shiftEnterNotesHere,
             filled: true,
             fillColor: colorScheme.surface,
             border: OutlineInputBorder(
@@ -347,8 +337,9 @@ class _StartShiftDialogState extends State<StartShiftDialog>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -374,11 +365,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: colorScheme.error,
-            size: 20,
-          ),
+          Icon(Icons.error_outline, color: colorScheme.error, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -423,12 +410,13 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              colorScheme.onPrimary),
+                            colorScheme.onPrimary,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Starting...',
+                        context.flipperL10n.shiftStarting,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: colorScheme.onPrimary,
                         ),
@@ -445,7 +433,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Start Shift',
+                        context.flipperL10n.shiftStartShift,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
@@ -470,7 +458,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
               side: BorderSide(color: colorScheme.outline),
             ),
             child: Text(
-              'Cancel',
+              context.flipperL10n.cancel,
               style: theme.textTheme.labelLarge?.copyWith(
                 color: colorScheme.onSurface,
               ),
@@ -509,14 +497,16 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       );
 
       // Success - close dialog
-      widget.completer(DialogResponse(
-        confirmed: true,
-        data: {
-          'openingBalance': openingBalance,
-          'notes': notes,
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-      ));
+      widget.completer(
+        DialogResponse(
+          confirmed: true,
+          data: {
+            'openingBalance': openingBalance,
+            'notes': notes,
+            'timestamp': DateTime.now().toIso8601String(),
+          },
+        ),
+      );
     } catch (e) {
       setState(() {
         _hasError = true;
@@ -534,14 +524,14 @@ class _StartShiftDialogState extends State<StartShiftDialog>
   String _getErrorMessage(dynamic error) {
     if (error.toString().contains('network') ||
         error.toString().contains('connection')) {
-      return 'Network error. Please check your connection and try again.';
+      return context.flipperL10n.shiftErrorNetwork;
     } else if (error.toString().contains('unauthorized') ||
         error.toString().contains('session')) {
-      return 'Your session has expired. Please log in again.';
+      return context.flipperL10n.shiftErrorSessionExpired;
     } else if (error.toString().contains('validation')) {
-      return 'Please check your input and try again.';
+      return context.flipperL10n.shiftErrorValidation;
     } else {
-      return 'An unexpected error occurred. Please try again.';
+      return context.flipperL10n.shiftErrorUnexpected;
     }
   }
 }

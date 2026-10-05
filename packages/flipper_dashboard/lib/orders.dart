@@ -1,4 +1,5 @@
 import 'package:flipper_models/providers/pos_cart_display_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -50,7 +51,7 @@ class Orders extends HookConsumerWidget {
         onWillPop(
           context: context,
           navigationPurpose: NavigationPurpose.home,
-          message: 'Done shopping?',
+          message: context.flipperL10n.ordersDoneShopping,
           onConfirmed: () {
             ProxyService.box.writeBool(key: 'isOrdering', value: false);
             syncPosCartIsExpenseWidget(ref);
@@ -124,7 +125,7 @@ class Orders extends HookConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Order from Supplier',
+            context.flipperL10n.ordersOrderFromSupplier,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -132,8 +133,10 @@ class Orders extends HookConsumerWidget {
           const SizedBox(height: 8),
           Text(
             selectedSupplier == null
-                ? 'Search and select a supplier to view their products'
-                : 'Search products from ${selectedSupplier.name}',
+                ? context.flipperL10n.ordersSelectSupplierHint
+                : context.flipperL10n.ordersSearchProductsFrom(
+                    selectedSupplier.name ?? '',
+                  ),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(
                 context,

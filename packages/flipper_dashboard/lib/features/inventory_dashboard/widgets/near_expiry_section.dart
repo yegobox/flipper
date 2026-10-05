@@ -1,11 +1,10 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import '../models/inventory_models.dart';
 
 class NearExpirySection extends StatelessWidget {
-  const NearExpirySection({
-    Key? key,
-    required this.nearExpiryItems,
-  }) : super(key: key);
+  const NearExpirySection({Key? key, required this.nearExpiryItems})
+    : super(key: key);
 
   final List<InventoryItem> nearExpiryItems;
 
@@ -18,12 +17,9 @@ class NearExpirySection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Near Expiry Items',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              context.flipperL10n.inventoryDashboardNearExpiryItems,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             ListView.separated(
@@ -33,13 +29,15 @@ class NearExpirySection extends StatelessWidget {
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final item = nearExpiryItems[index];
-                final daysLeft =
-                    item.expiryDate.difference(DateTime.now()).inDays;
+                final daysLeft = item.expiryDate
+                    .difference(DateTime.now())
+                    .inDays;
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        _getExpiryColor(daysLeft).withValues(alpha: 0.2),
+                    backgroundColor: _getExpiryColor(
+                      daysLeft,
+                    ).withValues(alpha: 0.2),
                     child: Icon(
                       Icons.timelapse,
                       color: _getExpiryColor(daysLeft),
@@ -47,7 +45,10 @@ class NearExpirySection extends StatelessWidget {
                   ),
                   title: Text(item.name),
                   subtitle: Text(
-                    '${item.quantity} units - ${item.location}',
+                    context.flipperL10n.inventoryDashboardUnitsAtLocation(
+                      item.quantity,
+                      item.location,
+                    ),
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -59,7 +60,7 @@ class NearExpirySection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      '$daysLeft days left',
+                      context.flipperL10n.inventoryDashboardDaysLeft(daysLeft),
                       style: TextStyle(
                         color: _getExpiryColor(daysLeft),
                         fontSize: 12,

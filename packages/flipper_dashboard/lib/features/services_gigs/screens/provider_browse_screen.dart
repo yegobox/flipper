@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/provider_detail_screen.dart';
@@ -77,8 +78,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
 
   bool _providerMatchesSearch(ServiceGigProvider p, String q) {
     if (q.isEmpty) return true;
-    bool inStr(String? s) =>
-        s != null && s.toLowerCase().contains(q);
+    bool inStr(String? s) => s != null && s.toLowerCase().contains(q);
 
     if (inStr(p.displayName)) return true;
     if (inStr(p.bio)) return true;
@@ -143,14 +143,16 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
   }
 
   /// Flat list: section header rows + provider rows for [CustomScrollView].
-  List<_BrowseListEntry> _buildBrowseEntries(List<ServiceGigProvider> filtered) {
+  List<_BrowseListEntry> _buildBrowseEntries(
+    List<ServiceGigProvider> filtered,
+  ) {
     if (filtered.isEmpty) return [];
 
-    final sorted = [...filtered]..sort(
-          (a, b) => a.displayName.toLowerCase().compareTo(
-                b.displayName.toLowerCase(),
-              ),
-        );
+    final sorted = [...filtered]
+      ..sort(
+        (a, b) =>
+            a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
+      );
 
     final byGroup = <String, List<ServiceGigProvider>>{};
     for (final p in sorted) {
@@ -181,9 +183,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
     var minR = _minRating;
     var ver = _verifiedOnly;
     var avail = _availableOnly;
-    final maxCtrl = TextEditingController(
-      text: _maxPriceRwf?.toString() ?? '',
-    );
+    final maxCtrl = TextEditingController(text: _maxPriceRwf?.toString() ?? '');
     var catId = _catalogCategoryId;
 
     await showModalBottomSheet<void>(
@@ -209,7 +209,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Advanced filters',
+                      context.flipperL10n.gigsAdvancedFilters,
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 17,
@@ -217,7 +217,9 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Minimum average rating: ${minR.toStringAsFixed(1)}',
+                      context.flipperL10n.gigsMinRating(
+                        minR.toStringAsFixed(1),
+                      ),
                       style: GoogleFonts.outfit(fontSize: 13),
                     ),
                     Slider(
@@ -229,7 +231,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     ),
                     SwitchListTile(
                       title: Text(
-                        'Verified providers only',
+                        context.flipperL10n.gigsVerifiedOnly,
                         style: GoogleFonts.outfit(fontSize: 14),
                       ),
                       value: ver,
@@ -238,7 +240,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     ),
                     SwitchListTile(
                       title: Text(
-                        'Available for booking',
+                        context.flipperL10n.gigsAvailableForBooking,
                         style: GoogleFonts.outfit(fontSize: 14),
                       ),
                       value: avail,
@@ -249,7 +251,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                       controller: maxCtrl,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: 'Max base price (RWF), optional',
+                        labelText: context.flipperL10n.gigsMaxBasePrice,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -259,20 +261,20 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     DropdownButtonFormField<String?>(
                       initialValue: catId,
                       decoration: InputDecoration(
-                        labelText: 'Category',
+                        labelText: context.flipperL10n.gigsCategory,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       items: [
-                        const DropdownMenuItem<String?>(
+                        DropdownMenuItem<String?>(
                           value: null,
-                          child: Text('All categories'),
+                          child: Text(context.flipperL10n.gigsAllCategories),
                         ),
                         ...ServiceCategory.defaultCategories.map(
                           (c) => DropdownMenuItem<String?>(
                             value: c.id,
-                            child: Text(c.name),
+                            child: Text(c.localizedName(context.flipperL10n)),
                           ),
                         ),
                       ],
@@ -281,15 +283,17 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     const SizedBox(height: 20),
                     FilledButton(
                       onPressed: () {
-                        final raw = maxCtrl.text.replaceAll(RegExp(r'[\s,]'), '');
+                        final raw = maxCtrl.text.replaceAll(
+                          RegExp(r'[\s,]'),
+                          '',
+                        );
                         final maxP = int.tryParse(raw);
                         Navigator.of(ctx).pop();
                         setState(() {
                           _minRating = minR;
                           _verifiedOnly = ver;
                           _availableOnly = avail;
-                          _maxPriceRwf =
-                              maxP != null && maxP > 0 ? maxP : null;
+                          _maxPriceRwf = maxP != null && maxP > 0 ? maxP : null;
                           _catalogCategoryId = catId;
                         });
                       },
@@ -298,7 +302,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: Text(
-                        'Apply filters',
+                        context.flipperL10n.gigsApplyFilters,
                         style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -331,7 +335,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Find a provider',
+          context.flipperL10n.gigsFindProvider,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -345,7 +349,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Advanced filters',
+            tooltip: context.flipperL10n.gigsAdvancedFilters,
             icon: const Icon(Icons.tune),
             onPressed: _openAdvancedFilters,
           ),
@@ -363,8 +367,8 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                 ],
               )
             : _providers.isEmpty
-                ? _buildEmptyNoProviders()
-                : _buildBrowseContent(),
+            ? _buildEmptyNoProviders()
+            : _buildBrowseContent(),
       ),
     );
   }
@@ -377,17 +381,13 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
         Icon(Icons.people_outline, size: 56, color: Colors.grey.shade400),
         const SizedBox(height: 16),
         Text(
-          'No providers yet',
+          context.flipperL10n.gigsNoProvidersYet,
           textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Text(
-          'When people offer their services here, you will see them in this list and can send a request.\n\n'
-          'Pull down to refresh. If you are registered as a provider yourself, your profile is not shown in this list.',
+          context.flipperL10n.gigsNoProvidersHint,
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 14,
@@ -418,7 +418,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   textInputAction: TextInputAction.search,
                   style: GoogleFonts.outfit(fontSize: 15),
                   decoration: InputDecoration(
-                    hintText: 'Search name, area, or service…',
+                    hintText: context.flipperL10n.gigsSearchHint,
                     hintStyle: GoogleFonts.outfit(
                       fontSize: 14,
                       color: Colors.grey.shade500,
@@ -458,7 +458,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                 if (serviceKeywords.isNotEmpty) ...[
                   const SizedBox(height: 14),
                   Text(
-                    'Browse by service',
+                    context.flipperL10n.gigsBrowseByService,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
@@ -477,7 +477,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                           final selected = _selectedService == null;
                           return FilterChip(
                             label: Text(
-                              'All',
+                              context.flipperL10n.gigsAll,
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: selected
@@ -489,8 +489,9 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                             onSelected: (_) {
                               setState(() => _selectedService = null);
                             },
-                            selectedColor:
-                                const Color(0xFF0D9488).withValues(alpha: 0.25),
+                            selectedColor: const Color(
+                              0xFF0D9488,
+                            ).withValues(alpha: 0.25),
                             checkmarkColor: const Color(0xFF0D9488),
                           );
                         }
@@ -512,8 +513,9 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                               _selectedService = selected ? null : label;
                             });
                           },
-                          selectedColor:
-                              const Color(0xFF0D9488).withValues(alpha: 0.25),
+                          selectedColor: const Color(
+                            0xFF0D9488,
+                          ).withValues(alpha: 0.25),
                           checkmarkColor: const Color(0xFF0D9488),
                         );
                       },
@@ -535,7 +537,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   Icon(Icons.search_off, size: 52, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
-                    'No matches',
+                    context.flipperL10n.gigsNoMatches,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
                       fontSize: 18,
@@ -544,7 +546,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Try different keywords, pick another service, or clear your filters.',
+                    context.flipperL10n.gigsNoMatchesHint,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
@@ -560,7 +562,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                       side: const BorderSide(color: Color(0xFF0D9488)),
                     ),
                     child: Text(
-                      'Clear search & filters',
+                      context.flipperL10n.gigsClearSearchFilters,
                       style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -572,36 +574,33 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final e = entries[index];
-                  if (e.isHeader) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        top: index == 0 ? 4 : 16,
-                        bottom: 8,
-                      ),
-                      child: Text(
-                        e.headerLabel!,
-                        style: GoogleFonts.outfit(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF0F766E),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    );
-                  }
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final e = entries[index];
+                if (e.isHeader) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _ProviderListTile(
-                      provider: e.provider!,
-                      onTap: () => _openProvider(e.provider!),
+                    padding: EdgeInsets.only(
+                      top: index == 0 ? 4 : 16,
+                      bottom: 8,
+                    ),
+                    child: Text(
+                      e.headerLabel!,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF0F766E),
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   );
-                },
-                childCount: entries.length,
-              ),
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _ProviderListTile(
+                    provider: e.provider!,
+                    onTap: () => _openProvider(e.provider!),
+                  ),
+                );
+              }, childCount: entries.length),
             ),
           ),
       ],
@@ -614,16 +613,10 @@ class _BrowseListEntry {
   final String? headerLabel;
   final ServiceGigProvider? provider;
 
-  _BrowseListEntry._({
-    required this.isHeader,
-    this.headerLabel,
-    this.provider,
-  });
+  _BrowseListEntry._({required this.isHeader, this.headerLabel, this.provider});
 
-  factory _BrowseListEntry.header(String label) => _BrowseListEntry._(
-        isHeader: true,
-        headerLabel: label,
-      );
+  factory _BrowseListEntry.header(String label) =>
+      _BrowseListEntry._(isHeader: true, headerLabel: label);
 
   factory _BrowseListEntry.provider(ServiceGigProvider p) =>
       _BrowseListEntry._(isHeader: false, provider: p);
@@ -633,10 +626,7 @@ class _ProviderListTile extends StatelessWidget {
   final ServiceGigProvider provider;
   final VoidCallback onTap;
 
-  const _ProviderListTile({
-    required this.provider,
-    required this.onTap,
-  });
+  const _ProviderListTile({required this.provider, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -655,8 +645,9 @@ class _ProviderListTile extends StatelessWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor:
-                    const Color(0xFF0D9488).withValues(alpha: 0.15),
+                backgroundColor: const Color(
+                  0xFF0D9488,
+                ).withValues(alpha: 0.15),
                 child: Text(
                   p.displayName.isNotEmpty
                       ? p.displayName[0].toUpperCase()
@@ -704,7 +695,11 @@ class _ProviderListTile extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.star, size: 15, color: Colors.amber.shade700),
+                          Icon(
+                            Icons.star,
+                            size: 15,
+                            color: Colors.amber.shade700,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             p.averageRating.toStringAsFixed(1),
@@ -735,4 +730,3 @@ class _ProviderListTile extends StatelessWidget {
     );
   }
 }
-

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -68,6 +69,17 @@ abstract final class StockRecountHelpers {
   }
 
   static double horizontalPadding(double width) => width <= 560 ? 16 : 20;
+
+  /// Display label for a recount status wire value (`draft`, `submitted`,
+  /// `synced`, or the `all` filter). Unknown values are shown as-is.
+  static String statusLabel(FlipperAppLocalizations l10n, String status) =>
+      switch (status) {
+        'all' => l10n.stockRecountStatusAll,
+        'draft' => l10n.stockRecountStatusDraft,
+        'submitted' => l10n.stockRecountStatusSubmitted,
+        'synced' => l10n.stockRecountStatusSynced,
+        _ => status,
+      };
 }
 
 class RecountItemStats {
@@ -159,7 +171,7 @@ abstract final class StockRecountExportContext {
       return cashierLabelFromAgentId(targetId);
     }
 
-    return 'Agent';
+    return FlipperL10n.current.stockRecountFallbackAgent;
   }
 
   /// Branch display name for the PDF header — never the raw branch UUID.
@@ -172,7 +184,7 @@ abstract final class StockRecountExportContext {
       final name = branch.name?.trim();
       if (name != null && name.isNotEmpty) return name;
     } catch (_) {}
-    return 'Branch';
+    return FlipperL10n.current.stockRecountFallbackBranch;
   }
 
   static Future<Map<String, String>> resolveVariantSkus(

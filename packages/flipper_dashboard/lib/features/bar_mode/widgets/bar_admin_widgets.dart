@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
@@ -214,7 +215,9 @@ class BarManagerTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        uppercase ? 'MANAGER' : 'Manager',
+        uppercase
+            ? context.flipperL10n.hotelManager.toUpperCase()
+            : context.flipperL10n.hotelManager,
         style: GoogleFonts.outfit(
           fontSize: 9.5,
           fontWeight: FontWeight.w800,
@@ -245,9 +248,9 @@ class BarStaffRow extends StatelessWidget {
   final bool showTopBorder;
 
   static String roleLabel(Tenant tenant) {
-    if (barTenantIsManager(tenant)) return 'Manager';
+    if (barTenantIsManager(tenant)) return FlipperL10n.current.hotelManager;
     final raw = tenant.type?.trim();
-    if (raw == null || raw.isEmpty) return 'Server';
+    if (raw == null || raw.isEmpty) return FlipperL10n.current.barRoleServer;
     return raw[0].toUpperCase() + raw.substring(1);
   }
 
@@ -259,7 +262,9 @@ class BarStaffRow extends StatelessWidget {
         (tenant.userId != null && tenant.userId!.trim().isNotEmpty) ||
         isUsableStaffPin(tenant.pin);
     final pinPart = hasPin ? 'PIN ••••' : 'PIN —';
-    final permPart = isManager ? 'can settle bills' : 'logs orders';
+    final permPart = isManager
+        ? context.flipperL10n.barCanSettleBills
+        : context.flipperL10n.barLogsOrders;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -274,10 +279,7 @@ class BarStaffRow extends StatelessWidget {
             width: 40,
             height: 40,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             child: Text(
               barTenantInitials(tenant.name),
               style: GoogleFonts.outfit(
@@ -296,7 +298,7 @@ class BarStaffRow extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        tenant.name ?? 'Staff',
+                        tenant.name ?? context.flipperL10n.barStaffFallback,
                         style: GoogleFonts.outfit(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
@@ -412,7 +414,7 @@ class BarEditButton extends StatelessWidget {
               const Icon(Icons.settings_outlined, size: 15),
               const SizedBox(width: 8),
               Text(
-                'Edit',
+                context.flipperL10n.edit,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -500,7 +502,11 @@ class BarPrimaryButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: enabled ? Colors.white : BarTokens.ink4),
+              Icon(
+                icon,
+                size: 18,
+                color: enabled ? Colors.white : BarTokens.ink4,
+              ),
               const SizedBox(width: 9),
               Text(
                 label,

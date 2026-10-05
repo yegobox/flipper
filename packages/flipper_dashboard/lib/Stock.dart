@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:community_charts_flutter/community_charts_flutter.dart'
@@ -28,7 +29,7 @@ class _StockState extends State<Stock> {
         onPop: () {
           _routerService.pop();
         },
-        title: 'StockLevel',
+        title: context.flipperL10n.stockLevel,
         showActionButton: false,
         onActionButtonClicked: () async {
           _routerService.pop();
@@ -45,17 +46,12 @@ class _StockState extends State<Stock> {
             // Show current stock value as text
             ListTile(
               title: Text(
-                "Current Stock Value",
-                style: TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                context.flipperL10n.stockCurrentValue,
+                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
                 "${totalStockValue.toStringAsFixed(2)} RWF",
-                style: TextStyle(
-                  fontSize: 16.0,
-                ),
+                style: TextStyle(fontSize: 16.0),
               ),
             ),
 

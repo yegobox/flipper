@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class Balances extends StatefulWidget {
@@ -61,12 +62,12 @@ class _BalancesState extends State<Balances>
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 61,
             top: 40.37,
             child: Text(
-              'Gross profit',
-              style: TextStyle(
+              context.flipperL10n.dashboardGaugeGrossProfit,
+              style: const TextStyle(
                 color: Color(0xFF98C2FE),
                 fontSize: 20,
                 fontFamily: 'Poppins',
@@ -76,12 +77,12 @@ class _BalancesState extends State<Balances>
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 285,
             top: 40.37,
             child: Text(
-              'Expenses',
-              style: TextStyle(
+              context.flipperL10n.balancesExpenses,
+              style: const TextStyle(
                 color: Color(0xFF98C2FE),
                 fontSize: 20,
                 fontFamily: 'Poppins',

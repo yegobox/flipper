@@ -17,6 +17,7 @@ import 'package:flipper_services/payment_rail.dart';
 import 'package:flipper_services/supabase_realtime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/models/subscription_plan.dart';
@@ -151,9 +152,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           );
     } catch (e) {
       if (!_mounted || !context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error setting up listener: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.flipperL10n.paymentFinalizeListenerError(e.toString()),
+          ),
+        ),
+      );
     }
   }
 
@@ -227,7 +232,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _discountError = 'Failed to validate code';
+          _discountError =
+              context.flipperL10n.failedPaymentFailedToValidateCode;
           _discountAmount = 0;
           _discountCode = null;
           _isValidatingCode = false;
@@ -267,13 +273,16 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   String? _getPhoneNumberError(String value) {
     String digitsOnly = value.replaceAll(' ', '');
     if (digitsOnly.isEmpty) return null;
+    final l10n = context.flipperL10n;
     if (!digitsOnly.startsWith('250'))
-      return 'Phone number must start with 250';
-    if (digitsOnly.length < 12) return 'Phone number must be 12 digits';
-    if (digitsOnly.length > 12) return 'Phone number cannot exceed 12 digits';
+      return l10n.failedPaymentPhoneMustStartWith250;
+    if (digitsOnly.length < 12) return l10n.failedPaymentPhoneMustBe12Digits;
+    if (digitsOnly.length > 12) {
+      return l10n.failedPaymentPhoneCannotExceed12Digits;
+    }
     String prefix = digitsOnly.substring(3, 5);
     if (!['78', '79'].contains(prefix)) {
-      return 'Invalid MTN number prefix (must start with 78 or 79)';
+      return l10n.failedPaymentInvalidMtnPrefix;
     }
     return null;
   }
@@ -283,9 +292,10 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   /// a payment for no reason.
   String? _getEmailError(String value) {
     final email = value.trim();
-    if (email.isEmpty) return 'An email is required for the card receipt';
+    if (email.isEmpty)
+      return context.flipperL10n.failedPaymentCardEmailRequired;
     if (!email.contains('@') || email.startsWith('@') || email.endsWith('@')) {
-      return 'Enter a valid email address';
+      return context.flipperL10n.failedPaymentEnterValidEmail;
     }
     return null;
   }
@@ -331,7 +341,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           SnackBar(
             content: Text(
               result.message ??
-                  'This subscription has ended. Choose a plan to start again.',
+                  context.flipperL10n.paymentFinalizeSubscriptionEnded,
             ),
           ),
         );
@@ -344,8 +354,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           _awaitingCardPayment = true;
           _pendingCheckout = result.checkout;
           _cardWaitMessage = result.start?.reusedExisting == true
-              ? 'You already had a payment page open for this plan — we '
-                    'reopened it rather than starting a second subscription.'
+              ? context.flipperL10n.paymentFinalizeReusedCheckout
               : null;
         });
         _startCardPolling(result.planId);
@@ -386,9 +395,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
     setState(() {
       _cardWaitMessage =
-          status?.lastError ??
-          'We have not seen the payment yet. Finish it on the payment page, '
-              'then tap "I have paid".';
+          status?.lastError ?? context.flipperL10n.paymentFinalizeNotSeenYet;
     });
   }
 
@@ -415,9 +422,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       setState(() {
         isLoading = false;
         _cardWaitMessage = status.nextAction == DodoNextAction.resubscribe
-            ? 'That payment did not go through. Choose a plan to start again.'
-            : 'The payment has not arrived yet. It can take a moment after you '
-                  'finish on the payment page.';
+            ? context.flipperL10n.paymentFinalizeDidNotGoThrough
+            : context.flipperL10n.paymentFinalizeNotArrivedYet;
       });
     } on DodoException catch (e) {
       if (!_mounted) return;
@@ -429,7 +435,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       if (!_mounted) return;
       setState(() {
         isLoading = false;
-        _cardWaitMessage = 'Could not check the payment just now: $e';
+        _cardWaitMessage = context.flipperL10n.paymentFinalizeCouldNotCheck(
+          e.toString(),
+        );
       });
     }
   }
@@ -465,7 +473,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Waiting for your card payment',
+                    context.flipperL10n.paymentFinalizeWaitingForCard,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -478,8 +486,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
             const SizedBox(height: 10),
             Text(
               _cardWaitMessage ??
-                  'Finish the payment on the page that opened. This screen '
-                      'updates on its own once it goes through.',
+                  context.flipperL10n.paymentFinalizeFinishOnPage,
               style: TextStyle(fontSize: 13.5, color: Colors.blue[900]),
             ),
             if (link != null) ...[
@@ -489,7 +496,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                 child: TextButton.icon(
                   onPressed: () => _reopenCheckout(link),
                   icon: const Icon(Icons.open_in_new, size: 18),
-                  label: const Text('Reopen payment page'),
+                  label: Text(context.flipperL10n.failedPaymentReopenPage),
                 ),
               ),
             ],
@@ -505,9 +512,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     ).openPaymentLink(link);
     if (!_mounted || opened) return;
     setState(() {
-      _cardWaitMessage =
-          'Could not open the payment page on this device. Try Mobile Money, '
-          'or finish the payment on a phone or computer with a browser.';
+      _cardWaitMessage = context.flipperL10n.failedPaymentCouldNotOpenPage;
     });
   }
 
@@ -527,12 +532,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Complete Payment',
+        title: Text(
+          l10n.paymentFinalizeCompletePayment,
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -560,15 +566,14 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                         _buildSectionTitle(
                           context,
                           _rail.isCard
-                              ? 'Card Payment'
-                              : 'MTN Mobile Money Payment',
+                              ? l10n.paymentFinalizeCardPayment
+                              : l10n.paymentFinalizeMomoPayment,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _rail.isCard
-                              ? 'Payment will be processed by card on a secure '
-                                    'payment page'
-                              : 'Payment will be processed using MTN Mobile Money',
+                              ? l10n.paymentFinalizeProcessedByCard
+                              : l10n.paymentFinalizeProcessedByMomo,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -600,7 +605,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Plan Summary',
+                                  l10n.paymentFinalizePlanSummary,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -609,12 +614,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                 ),
                                 const SizedBox(height: 12),
                                 _buildDetailRow(
-                                  'Plan',
-                                  _plan!.selectedPlan ?? 'N/A',
+                                  l10n.failedPaymentPlan,
+                                  _plan!.selectedPlan ??
+                                      l10n.dashboardNotApplicable,
                                 ),
                                 if (_discountAmount > 0) ...[
                                   _buildDetailRow(
-                                    'Subtotal',
+                                    l10n.subtotal,
                                     _originalPrice.toCurrencyFormatted(
                                       symbol: ProxyService.box
                                           .defaultCurrency(),
@@ -630,8 +636,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                       children: [
                                         Row(
                                           children: [
-                                            const Text(
-                                              'Discount',
+                                            Text(
+                                              l10n.discount,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 14.0,
@@ -663,7 +669,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                   ),
                                 ],
                                 _buildDetailRow(
-                                  _discountAmount > 0 ? 'Total' : 'Price',
+                                  _discountAmount > 0
+                                      ? l10n.failedPaymentTotal
+                                      : l10n.retailPrice,
                                   (_discountAmount > 0
                                               ? (_originalPrice -
                                                     _discountAmount)
@@ -672,7 +680,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                             symbol: ProxyService.box
                                                 .defaultCurrency(),
                                           ) ??
-                                      'N/A',
+                                      l10n.dashboardNotApplicable,
                                   isTotal: _discountAmount > 0,
                                 ),
                               ],
@@ -692,15 +700,15 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                             borderRadius: BorderRadius.circular(12),
                             clipBehavior: Clip.antiAlias,
                             child: SwitchListTile(
-                              title: const Text(
-                                'Use different phone number',
+                              title: Text(
+                                l10n.paymentFinalizeUseDifferentPhone,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               subtitle: Text(
-                                'Specify a different number for payment',
+                                l10n.paymentFinalizeSpecifyDifferentNumber,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey[600],
@@ -763,7 +771,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                               },
                               controller: phoneNumberController,
                               decoration: InputDecoration(
-                                labelText: 'MTN Phone Number',
+                                labelText: l10n.paymentFinalizeMtnPhoneNumber,
                                 hintText: '250 78 123 4567',
                                 prefixIcon: const Icon(Icons.phone_android),
                                 border: OutlineInputBorder(
@@ -781,7 +789,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                 errorText: _getPhoneNumberError(
                                   phoneNumberController.text,
                                 ),
-                                helperText: 'Must start with 250 78 or 250 79',
+                                helperText: l10n.paymentFinalizeMtnPhoneHelper,
                                 suffixIcon:
                                     phoneNumberController.text.isNotEmpty
                                     ? IconButton(
@@ -868,10 +876,10 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                   )
                                 : Text(
                                     _awaitingCardPayment
-                                        ? 'I have paid — check now'
+                                        ? l10n.paymentFinalizeIHavePaid
                                         : _rail.isCard
-                                        ? 'Continue to payment page'
-                                        : 'Complete Payment',
+                                        ? l10n.paymentFinalizeContinueToPage
+                                        : l10n.paymentFinalizeCompletePayment,
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -892,7 +900,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                     _awaitingCardPayment = false;
                                     _cardWaitMessage = null;
                                   }),
-                            child: const Text('Use a different payment method'),
+                            child: Text(l10n.paymentFinalizeUseDifferentMethod),
                           ),
                         ],
                       ],
@@ -984,8 +992,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${e.message} Approve the Mobile Money request on your phone, '
-              'then try again.',
+              context.flipperL10n.paymentFinalizeApproveMomo(e.message),
             ),
           ),
         );
@@ -998,7 +1005,11 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to initiate payment: $e')),
+          SnackBar(
+            content: Text(
+              context.flipperL10n.paymentFinalizeFailedToInitiate(e.toString()),
+            ),
+          ),
         );
       }
     }

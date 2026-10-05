@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' hide Category;
 
@@ -20,7 +21,9 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         title: Text(
-          isOrdering ? 'New Order' : 'Point of Sale',
+          isOrdering
+              ? context.flipperL10n.orderingNewOrder
+              : context.flipperL10n.orderingPointOfSale,
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -30,12 +33,12 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
             IconButton(
               icon: const Icon(Icons.receipt_long_outlined),
               onPressed: () => null,
-              tooltip: 'Transaction History',
+              tooltip: context.flipperL10n.orderingTransactionHistory,
             ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () => null,
-            tooltip: 'More Options',
+            tooltip: context.flipperL10n.orderingMoreOptions,
           ),
         ],
       );

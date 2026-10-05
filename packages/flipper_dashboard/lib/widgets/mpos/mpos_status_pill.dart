@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 
@@ -15,6 +16,24 @@ class MposStatusPill extends StatelessWidget {
         return (MposTokens.lossTint, MposTokens.lossInk);
       default:
         return (MposTokens.pendTint, MposTokens.pend);
+    }
+  }
+
+  /// [status] is the raw transaction status; only the label is localized.
+  String _label(FlipperAppLocalizations l10n) {
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return l10n.mposStatusPending;
+      case 'COMPLETED':
+        return l10n.mposStatusCompleted;
+      case 'PAID':
+        return l10n.mposStatusPaid;
+      case 'CANCELLED':
+        return l10n.mposStatusCancelled;
+      case 'PARKED':
+        return l10n.mposStatusParked;
+      default:
+        return status;
     }
   }
 
@@ -38,7 +57,7 @@ class MposStatusPill extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.toUpperCase(),
+            _label(context.flipperL10n).toUpperCase(),
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w800,

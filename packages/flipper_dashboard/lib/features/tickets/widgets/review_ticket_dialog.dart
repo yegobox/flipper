@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -88,8 +89,7 @@ class _ReviewTicketPanelState extends ConsumerState<ReviewTicketPanel> {
   @override
   Widget build(BuildContext context) {
     final paidAsync = ref.watch(transactionTotalPaidProvider(widget.ticket.id));
-    final branchId =
-        widget.ticket.branchId ?? ProxyService.box.getBranchId()!;
+    final branchId = widget.ticket.branchId ?? ProxyService.box.getBranchId()!;
     final itemsAsync = ref.watch(
       transactionItemsStreamProvider(
         transactionId: widget.ticket.id,
@@ -97,24 +97,17 @@ class _ReviewTicketPanelState extends ConsumerState<ReviewTicketPanel> {
       ),
     );
     final currency = ProxyService.box.defaultCurrency();
+    final l10n = context.flipperL10n;
 
     final scrollBody = Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        widget.showSheetHandle ? 8 : 16,
-        20,
-        16,
-      ),
+      padding: EdgeInsets.fromLTRB(20, widget.showSheetHandle ? 8 : 16, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.showSheetHandle) const _SheetHandle(),
-          _Header(
-            ticket: widget.ticket,
-            onClose: _saving ? null : _dismiss,
-          ),
+          _Header(ticket: widget.ticket, onClose: _saving ? null : _dismiss),
           const SizedBox(height: 22),
-          _sectionLabel('CUSTOMER'),
+          _sectionLabel(l10n.customer.toUpperCase()),
           const SizedBox(height: 8),
           _CustomerCard(ticket: widget.ticket),
           const SizedBox(height: 20),
@@ -122,7 +115,9 @@ class _ReviewTicketPanelState extends ConsumerState<ReviewTicketPanel> {
             data: (items) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionLabel('ITEMS · ${items.length}'),
+                _sectionLabel(
+                  l10n.ticketItemsSectionCount('${items.length}').toUpperCase(),
+                ),
                 const SizedBox(height: 8),
                 paidAsync.when(
                   data: (paid) => _ItemsAndTotalsCard(
@@ -143,12 +138,12 @@ class _ReviewTicketPanelState extends ConsumerState<ReviewTicketPanel> {
             ),
             loading: () => const _LoadingBlock(),
             error: (e, _) => Text(
-              'Could not load items: $e',
+              l10n.ticketCouldNotLoadItems(e.toString()),
               style: GoogleFonts.poppins(fontSize: 13, color: Colors.red),
             ),
           ),
           const SizedBox(height: 20),
-          _sectionLabel('PAYMENT'),
+          _sectionLabel(l10n.payment.toUpperCase()),
           const SizedBox(height: 8),
           _PaymentsCard(
             key: ValueKey('pay-${widget.ticket.id}'),
@@ -157,7 +152,7 @@ class _ReviewTicketPanelState extends ConsumerState<ReviewTicketPanel> {
           ),
           if ((widget.ticket.note ?? '').trim().isNotEmpty) ...[
             const SizedBox(height: 20),
-            _sectionLabel('NOTE'),
+            _sectionLabel(l10n.ticketNote.toUpperCase()),
             const SizedBox(height: 8),
             _surfaceCard(
               backgroundColor: const Color(0xFFF8FAFC),
@@ -176,10 +171,7 @@ class _ReviewTicketPanelState extends ConsumerState<ReviewTicketPanel> {
     );
 
     final footer = widget.canReview
-        ? _ReviewTicketFooter(
-            isSaving: _saving,
-            onPressed: _handleMarkReviewed,
-          )
+        ? _ReviewTicketFooter(isSaving: _saving, onPressed: _handleMarkReviewed)
         : null;
 
     if (widget.panelMode) {
@@ -250,10 +242,7 @@ Future<bool?> showReviewTicketDialog({
 }
 
 class _ReviewTicketFooter extends StatelessWidget {
-  const _ReviewTicketFooter({
-    required this.isSaving,
-    required this.onPressed,
-  });
+  const _ReviewTicketFooter({required this.isSaving, required this.onPressed});
 
   final bool isSaving;
   final VoidCallback onPressed;
@@ -285,8 +274,9 @@ class _ReviewTicketFooter extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: _kReviewPurple,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor:
-                      _kReviewPurple.withValues(alpha: 0.6),
+                  disabledBackgroundColor: _kReviewPurple.withValues(
+                    alpha: 0.6,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -302,7 +292,9 @@ class _ReviewTicketFooter extends StatelessWidget {
                       )
                     : const Icon(Icons.fact_check_outlined, size: 20),
                 label: Text(
-                  isSaving ? 'Marking…' : 'Mark as reviewed',
+                  isSaving
+                      ? context.flipperL10n.ticketMarking
+                      : context.flipperL10n.ticketMarkAsReviewed,
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -350,7 +342,7 @@ class _Header extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      'Review ticket',
+                      context.flipperL10n.ticketReviewTicketTitle,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
@@ -382,7 +374,8 @@ class _Header extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'PENDING REVIEW',
+                          context.flipperL10n.ticketStatusPendingReview
+                              .toUpperCase(),
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -421,7 +414,11 @@ class _CustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+    final name =
+        (ticket.customerName ??
+                ticket.ticketName ??
+                context.flipperL10n.ticketWalkIn)
+            .trim();
     final phone =
         (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
             .trim();
@@ -546,6 +543,7 @@ class _ItemsAndTotalsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final total = ticket.subTotal ?? 0.0;
+    final l10n = context.flipperL10n;
 
     return _surfaceCard(
       padding: EdgeInsets.zero,
@@ -556,7 +554,7 @@ class _ItemsAndTotalsCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'No items on this ticket.',
+                l10n.ticketNoItemsOnTicket,
                 style: GoogleFonts.poppins(fontSize: 14, color: _kLabel),
               ),
             )
@@ -564,8 +562,10 @@ class _ItemsAndTotalsCard extends StatelessWidget {
             for (var i = 0; i < items.length; i++) ...[
               if (i > 0) const Divider(height: 1, color: _kCardBorder),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 child: _ItemRow(
                   item: items[i],
                   swatchColor: _swatchColors[i % _swatchColors.length],
@@ -579,12 +579,12 @@ class _ItemsAndTotalsCard extends StatelessWidget {
             child: Column(
               children: [
                 _moneyRow(
-                  'Total amount',
+                  l10n.totalAmount,
                   total.toCurrencyFormatted(symbol: currency),
                 ),
                 const SizedBox(height: 10),
                 _moneyRow(
-                  'Amount paid',
+                  l10n.amountPaid,
                   paid.toCurrencyFormatted(symbol: currency),
                   valueColor: _kPaidGreen,
                 ),
@@ -618,10 +618,7 @@ class _ItemRow extends StatelessWidget {
           width: 40,
           height: 40,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: swatchColor,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: swatchColor, shape: BoxShape.circle),
           child: Text(
             _itemInitials(item.name),
             style: GoogleFonts.poppins(
@@ -669,7 +666,11 @@ class _ItemRow extends StatelessWidget {
 }
 
 class _PaymentsCard extends StatefulWidget {
-  const _PaymentsCard({super.key, required this.ticket, required this.currency});
+  const _PaymentsCard({
+    super.key,
+    required this.ticket,
+    required this.currency,
+  });
 
   final ITransaction ticket;
   final String currency;
@@ -718,7 +719,8 @@ class _PaymentsCardState extends State<_PaymentsCard> {
         final records = snap.data ?? const <TransactionPaymentRecord>[];
         if (records.isEmpty) {
           final fallbackMethod =
-              (widget.ticket.paymentType ?? 'Unknown').trim();
+              (widget.ticket.paymentType ?? context.flipperL10n.ticketUnknown)
+                  .trim();
           final fallbackAmount =
               widget.ticket.cashReceived ?? widget.ticket.subTotal ?? 0.0;
           return _surfaceCard(
@@ -742,7 +744,9 @@ class _PaymentsCardState extends State<_PaymentsCard> {
                     vertical: 12,
                   ),
                   child: _PaymentRow(
-                    method: records[i].paymentMethod ?? 'Unknown',
+                    method:
+                        records[i].paymentMethod ??
+                        context.flipperL10n.ticketUnknown,
                     amount: records[i].amount ?? 0,
                     currency: widget.currency,
                   ),
@@ -948,8 +952,10 @@ String _customerInitial(String name) {
 String _itemInitials(String name) {
   final trimmed = name.trim();
   if (trimmed.isEmpty) return '??';
-  final parts =
-      trimmed.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+  final parts = trimmed
+      .split(RegExp(r'\s+'))
+      .where((e) => e.isNotEmpty)
+      .toList();
   if (parts.length >= 2) {
     return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
   }

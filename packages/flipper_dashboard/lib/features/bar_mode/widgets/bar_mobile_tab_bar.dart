@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -32,7 +33,7 @@ class BarMobileTabBar extends StatelessWidget {
             Icon(Icons.shopping_cart_outlined, size: 18, color: BarTokens.ink3),
             const SizedBox(width: 7),
             Text(
-              'Tap products to start a tab',
+              context.flipperL10n.barTapProductsToStartTab,
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 color: BarTokens.ink3,
@@ -94,7 +95,10 @@ class BarMobileTabBar extends StatelessWidget {
                         top: -5,
                         right: -5,
                         child: Container(
-                          constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                          constraints: const BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -120,7 +124,7 @@ class BarMobileTabBar extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'View tab',
+                        context.flipperL10n.barViewTab,
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
@@ -129,7 +133,7 @@ class BarMobileTabBar extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '$lineCount item${lineCount == 1 ? '' : 's'}',
+                        context.flipperL10n.barItemsCount(lineCount),
                         style: GoogleFonts.outfit(
                           color: Colors.white.withValues(alpha: 0.85),
                           fontSize: 11.5,

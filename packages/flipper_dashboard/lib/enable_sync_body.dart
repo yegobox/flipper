@@ -1,6 +1,7 @@
 library flipper_login;
 
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -25,62 +26,69 @@ class _EnableSyncWidgetState extends State<EnableSyncWidget> {
         return SingleChildScrollView(
           child: Form(
             key: _formKey,
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const SizedBox(
-                height: 30,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: BoxInputField(
-                  leading: Icon(Icons.email),
-                  validatorFunc: (subCode) {
-                    // validate if is a gmail email regex
-                  },
-                  controller: emailController,
-                  placeholder: 'Enter subscription code',
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 30),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: BoxInputField(
+                    leading: Icon(Icons.email),
+                    validatorFunc: (subCode) {
+                      // validate if is a gmail email regex
+                    },
+                    controller: emailController,
+                    placeholder: context.flipperL10n.subscriptionEnterCode,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 5),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text(
-                  'Enter subscription code you receive from our agent',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                const SizedBox(height: 5),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    context.flipperL10n.subscriptionEnterCodeHint,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 8.0, right: 8.0, bottom: 20),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: !model.updateStart
-                          ? BoxButton(
-                              title: 'Subscribe',
-                              onTap: () async {},
-                            )
-                          : Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 8.0, right: 8.0),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 60,
-                                child: BoxButton(
-                                  title: 'Update subscription',
-                                  busy: true,
+                const SizedBox(height: 10),
+                Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 8.0,
+                        right: 8.0,
+                        bottom: 20,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 60,
+                        child: !model.updateStart
+                            ? BoxButton(
+                                title:
+                                    context.flipperL10n.subscriptionSubscribe,
+                                onTap: () async {},
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 8.0,
+                                  right: 8.0,
+                                ),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 60,
+                                  child: BoxButton(
+                                    title:
+                                        context.flipperL10n.subscriptionUpdate,
+                                    busy: true,
+                                  ),
                                 ),
                               ),
-                            ),
+                      ),
                     ),
-                  )
-                ],
-              ),
-            ]),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

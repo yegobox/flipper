@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_chat_message.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
@@ -12,10 +13,12 @@ import 'package:google_fonts/google_fonts.dart';
 class ProviderDashboardScreen extends StatefulWidget {
   final ServiceGigProvider profile;
 
-  const ProviderDashboardScreen({Key? key, required this.profile}) : super(key: key);
+  const ProviderDashboardScreen({Key? key, required this.profile})
+    : super(key: key);
 
   @override
-  State<ProviderDashboardScreen> createState() => _ProviderDashboardScreenState();
+  State<ProviderDashboardScreen> createState() =>
+      _ProviderDashboardScreenState();
 }
 
 class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
@@ -72,28 +75,33 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
       _busyAvailability = true;
       _available = v;
     });
-    final ok = await _providerRepo.updateAvailability(userId: uid, isAvailable: v);
+    final ok = await _providerRepo.updateAvailability(
+      userId: uid,
+      isAvailable: v,
+    );
     if (!mounted) return;
     setState(() => _busyAvailability = false);
     if (!ok) {
       setState(() => _available = !v);
       showErrorNotification(
         context,
-        'Could not update availability on the server.',
+        context.flipperL10n.gigsErrUpdateAvailability,
       );
     } else {
       showSuccessNotification(
         context,
-        v ? 'You are visible to customers.' : 'You are marked unavailable.',
+        v
+            ? context.flipperL10n.gigsVisibleToCustomers
+            : context.flipperL10n.gigsMarkedUnavailable,
       );
     }
   }
 
   String _fmtRwf(int n) {
     return n.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
   }
 
   @override
@@ -102,7 +110,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Provider dashboard',
+          context.flipperL10n.gigsProviderDashboard,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -140,11 +148,11 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                     ),
                     child: SwitchListTile(
                       title: Text(
-                        'Accept new requests',
+                        context.flipperL10n.gigsAcceptNewRequests,
                         style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(
-                        'When off, customers can still open your profile but booking is disabled.',
+                        context.flipperL10n.gigsAcceptNewRequestsHint,
                         style: GoogleFonts.outfit(fontSize: 12),
                       ),
                       value: _available,
@@ -155,30 +163,31 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                   const SizedBox(height: 12),
                   _metricCard(
                     icon: Icons.account_balance_wallet_outlined,
-                    title: 'Recorded payments (RWF)',
+                    title: context.flipperL10n.gigsRecordedPayments,
                     value: _earnings == null
                         ? '—'
                         : _fmtRwf(_earnings!.totalPaymentRwf),
-                    subtitle:
-                        '${_earnings?.fundedJobCount ?? 0} funded job(s) in hub data',
+                    subtitle: context.flipperL10n.gigsFundedJobs(
+                      _earnings?.fundedJobCount ?? 0,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   _metricCard(
                     icon: Icons.inbox_outlined,
-                    title: 'Open requests',
+                    title: context.flipperL10n.gigsOpenRequests,
                     value: '$_openRequests',
-                    subtitle: 'Awaiting response or payment',
+                    subtitle: context.flipperL10n.gigsAwaitingResponseOrPayment,
                   ),
                   const SizedBox(height: 10),
                   _metricCard(
                     icon: Icons.construction_outlined,
-                    title: 'Active jobs',
+                    title: context.flipperL10n.gigsActiveJobs,
                     value: '$_activeJobs',
-                    subtitle: 'Paid or in progress',
+                    subtitle: context.flipperL10n.gigsPaidOrInProgress,
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Payouts and platform fees are handled by your existing MTN and ledger flows.',
+                    context.flipperL10n.gigsPayoutsHandledNote,
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       height: 1.4,

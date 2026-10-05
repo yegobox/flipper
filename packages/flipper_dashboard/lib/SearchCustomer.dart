@@ -44,6 +44,10 @@ class CustomDropdownButton extends StatefulWidget {
   /// Icon tint when [iconOnly] is true (e.g. match customer add [Colors.blue]).
   final Color? iconOnlyIconColor;
 
+  /// Display text for an item; the raw item stays the value passed to
+  /// [onChanged]. Defaults to the item itself.
+  final String Function(String item)? itemLabel;
+
   const CustomDropdownButton({
     Key? key,
     required this.items,
@@ -54,6 +58,7 @@ class CustomDropdownButton extends StatefulWidget {
     this.compact = false,
     this.iconOnly = false,
     this.iconOnlyIconColor,
+    this.itemLabel,
   }) : super(key: key);
 
   @override
@@ -61,6 +66,8 @@ class CustomDropdownButton extends StatefulWidget {
 }
 
 class _CustomDropdownButtonState extends State<CustomDropdownButton> {
+  String _label(String item) => widget.itemLabel?.call(item) ?? item;
+
   void _showDropdown() {
     WoltModalSheet.show(
       context: context,
@@ -78,7 +85,7 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
                 final isSelected = value == widget.selectedItem;
                 return ListTile(
                   title: Text(
-                    value,
+                    _label(value),
                     style: TextStyle(
                       fontWeight: isSelected
                           ? FontWeight.w600
@@ -108,7 +115,7 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
       return IconButton(
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
-        tooltip: '${widget.label}: ${widget.selectedItem}',
+        tooltip: '${widget.label}: ${_label(widget.selectedItem)}',
         icon: Icon(
           widget.icon ?? Icons.arrow_drop_down_circle_outlined,
           size: 20,
@@ -141,7 +148,7 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
             if (widget.icon != null) SizedBox(width: widget.compact ? 2 : 4),
             Flexible(
               child: Text(
-                widget.selectedItem,
+                _label(widget.selectedItem),
                 style: TextStyle(
                   color: Colors.black87,
                   fontSize: widget.compact ? 12 : 14,
@@ -486,24 +493,26 @@ class _SearchInputWithDropdownState
                   iconOnly: true,
                   iconOnlyIconColor: PosLayoutBreakpoints.posAccentBlue,
                   items: const ['Walk-in', 'Shop'],
+                  itemLabel: (item) => _customerTypeLabel(context, item),
                   selectedItem: _selectedCustomerType,
                   onChanged: (value) {
                     setState(() => _selectedCustomerType = value);
                     _saveTransactionMetadata();
                   },
-                  label: 'Customer Type',
+                  label: context.flipperL10n.searchCustomerType,
                   icon: Icons.directions_walk,
                 ),
                 CustomDropdownButton(
                   iconOnly: true,
                   iconOnlyIconColor: PosLayoutBreakpoints.posAccentBlue,
                   items: const ['Outgoing- Sale', 'Agent Sale'],
+                  itemLabel: (item) => _saleTypeLabel(context, item),
                   selectedItem: _selectedSaleType,
                   onChanged: (value) {
                     setState(() => _selectedSaleType = value);
                     _saveTransactionMetadata();
                   },
-                  label: 'Sale Type',
+                  label: context.flipperL10n.searchSaleType,
                   icon: FluentIcons.call_outbound_20_regular,
                 ),
                 const _SearchCustomerAgentSuffix(),
@@ -597,7 +606,7 @@ class _SearchCustomerAgentSuffix extends ConsumerWidget {
       return IconButton(
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
-        tooltip: 'Assign agent',
+        tooltip: context.flipperL10n.searchAssignAgent,
         onPressed: null,
         icon: Icon(
           Icons.support_agent,
@@ -614,7 +623,7 @@ class _SearchCustomerAgentSuffix extends ConsumerWidget {
       return IconButton(
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
-        tooltip: 'Assign agent',
+        tooltip: context.flipperL10n.searchAssignAgent,
         onPressed: () => showSaleAgentAssignmentSheet(
           context: context,
           ref: ref,
@@ -629,8 +638,8 @@ class _SearchCustomerAgentSuffix extends ConsumerWidget {
 
     final nameAsync = ref.watch(attributedAgentNameProvider(uid));
     final label = nameAsync.maybeWhen(
-      data: (n) => n ?? 'Agent',
-      orElse: () => 'Agent',
+      data: (n) => n ?? context.flipperL10n.searchAgent,
+      orElse: () => context.flipperL10n.searchAgent,
     );
     final commissionLabel = formatSaleAgentCommissionLabel(
       commissionType: agentFields.commissionType,
@@ -806,7 +815,8 @@ class _FloatingResults extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  customer.custNm ?? 'Unknown',
+                                  customer.custNm ??
+                                      context.flipperL10n.dashUnknown,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
@@ -882,5 +892,29 @@ class _FloatingResults extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Display text for a stored customer-type value ('Walk-in' / 'Shop').
+String _customerTypeLabel(BuildContext context, String value) {
+  switch (value) {
+    case 'Walk-in':
+      return context.flipperL10n.checkoutWalkIn;
+    case 'Shop':
+      return context.flipperL10n.searchCustomerTypeShop;
+    default:
+      return value;
+  }
+}
+
+/// Display text for a stored sale-type value ('Outgoing- Sale' / 'Agent Sale').
+String _saleTypeLabel(BuildContext context, String value) {
+  switch (value) {
+    case 'Outgoing- Sale':
+      return context.flipperL10n.searchSaleTypeOutgoing;
+    case 'Agent Sale':
+      return context.flipperL10n.searchSaleTypeAgent;
+    default:
+      return value;
   }
 }

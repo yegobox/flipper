@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/mpos/mpos_status_pill.dart';
@@ -22,6 +23,7 @@ class MposCatalogHeader extends StatelessWidget {
   final Widget searchField;
   final VoidCallback onBack;
   final VoidCallback onScan;
+
   /// Long-press turns off barcode auto-add (scan mode) without opening the camera.
   final VoidCallback? onScanLongPress;
   final bool isScanActive;
@@ -43,9 +45,9 @@ class MposCatalogHeader extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'New sale',
-                        style: TextStyle(
+                      Text(
+                        context.flipperL10n.mposNewSale,
+                        style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.01,
@@ -161,7 +163,7 @@ class _MposScanButton extends StatelessWidget {
               ),
               const SizedBox(width: 7),
               Text(
-                'Scan',
+                context.flipperL10n.mposScan,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

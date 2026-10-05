@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/services/pdf_assets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -30,7 +31,6 @@ class SaleReceiptIssuer {
 /// before receipt upload, or an upload that never completed) so Share, Download
 /// and Print always produce a document instead of an error.
 class SaleReceiptPdf {
-
   static Future<Uint8List> build({
     required ITransaction transaction,
     required List<TransactionItem> items,
@@ -42,10 +42,12 @@ class SaleReceiptPdf {
     final logoSvg = await PdfAssets.flipperLogoMarkup();
     final fallback = await PdfAssets.unicodeFallback();
     final money = NumberFormat('#,##0.##');
-    final stamp = transaction.createdAt ??
+    final stamp =
+        transaction.createdAt ??
         transaction.lastTouched ??
         transaction.updatedAt;
-    final isExpense = transaction.isExpense == true ||
+    final isExpense =
+        transaction.isExpense == true ||
         transaction.isIncome == false ||
         transaction.transactionType == 'Cash Out';
 
@@ -55,11 +57,12 @@ class SaleReceiptPdf {
       lineTotal += (item.price * item.qty).toDouble();
       final rate = item.dcRt?.toDouble() ?? 0;
       if (rate != 0) {
-        discountTotal += item.price.toDouble() * (rate / 100) * item.qty.toDouble();
+        discountTotal +=
+            item.price.toDouble() * (rate / 100) * item.qty.toDouble();
       }
     }
-    final grandTotal = transaction.subTotal?.toDouble() ??
-        (lineTotal - discountTotal);
+    final grandTotal =
+        transaction.subTotal?.toDouble() ?? (lineTotal - discountTotal);
     final tax = transaction.taxAmount?.toDouble() ?? 0;
     final cash = transaction.cashReceived?.toDouble() ?? 0;
     final change = transaction.customerChangeDue?.toDouble() ?? 0;
@@ -81,7 +84,9 @@ class SaleReceiptPdf {
           _header(
             logoSvg: logoSvg,
             issuer: issuer,
-            title: isExpense ? 'Expense record' : 'Sale receipt',
+            title: isExpense
+                ? FlipperL10n.current.saleReceiptExpenseRecord
+                : FlipperL10n.current.saleReceiptSaleReceipt,
             // Always a copy: this builder only ever renders local data, even
             // when EBM details are available to quote.
             copy: true,
@@ -95,12 +100,17 @@ class SaleReceiptPdf {
           pw.SizedBox(height: 16),
           if (items.isEmpty)
             pw.Text(
-              'No line items were recorded for this transaction.',
+              FlipperL10n.current.saleReceiptNoLineItems,
               style: const pw.TextStyle(fontSize: 10),
             )
           else
             pw.TableHelper.fromTextArray(
-              headers: ['Item', 'Qty', 'Unit price', 'Amount'],
+              headers: [
+                FlipperL10n.current.item,
+                FlipperL10n.current.manualPurchaseQty,
+                FlipperL10n.current.unitPrice,
+                FlipperL10n.current.amount,
+              ],
               data: items.map((item) {
                 final gross = (item.price * item.qty).toDouble();
                 final rate = item.dcRt?.toDouble() ?? 0;
@@ -117,7 +127,9 @@ class SaleReceiptPdf {
                 fontSize: 10,
               ),
               cellStyle: const pw.TextStyle(fontSize: 10),
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColors.grey300,
+              ),
               cellAlignments: {
                 0: pw.Alignment.centerLeft,
                 1: pw.Alignment.centerRight,
@@ -152,13 +164,16 @@ class SaleReceiptPdf {
           pw.SizedBox(height: 20),
           pw.Text(
             fiscalReceipt == null
-                ? 'Customer copy generated from Flipper records on '
-                    '${DateFormat('dd MMM yyyy HH:mm').format((generatedAt ?? DateTime.now()).toLocal())}. '
-                    'This document is not an EBM fiscal receipt.'
-                : 'Customer copy generated from Flipper records on '
-                    '${DateFormat('dd MMM yyyy HH:mm').format((generatedAt ?? DateTime.now()).toLocal())}, '
-                    'with the EBM details recorded for this sale copied above. '
-                    'This document is not the EBM-signed receipt.',
+                ? FlipperL10n.current.saleReceiptCopyFooter(
+                    DateFormat(
+                      'dd MMM yyyy HH:mm',
+                    ).format((generatedAt ?? DateTime.now()).toLocal()),
+                  )
+                : FlipperL10n.current.saleReceiptCopyFooterWithEbm(
+                    DateFormat(
+                      'dd MMM yyyy HH:mm',
+                    ).format((generatedAt ?? DateTime.now()).toLocal()),
+                  ),
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
         ],
@@ -220,7 +235,7 @@ class SaleReceiptPdf {
             ),
             if (copy)
               pw.Text(
-                'CUSTOMER COPY',
+                FlipperL10n.current.saleReceiptCustomerCopy.toUpperCase(),
                 style: const pw.TextStyle(
                   fontSize: 9,
                   color: PdfColors.grey600,
@@ -237,27 +252,28 @@ class SaleReceiptPdf {
     required DateTime? stamp,
     required bool refunded,
   }) {
+    final l10n = FlipperL10n.current;
     final rows = <List<String>>[
-      ['Reference', _reference(transaction)],
+      [l10n.saleReceiptReference, _reference(transaction)],
       [
-        'Date',
+        l10n.reportDate,
         stamp != null
             ? DateFormat('dd MMM yyyy HH:mm').format(stamp.toLocal())
             : '—',
       ],
-      ['Payment', _paymentLabel(transaction.paymentType)],
+      [l10n.payment, _paymentLabel(transaction.paymentType)],
       [
-        'Status',
+        l10n.reportStatus,
         refunded
             ? (transaction.status ?? 'refunded').toUpperCase()
             : (transaction.status ?? '—').toUpperCase(),
       ],
       if ((transaction.customerName ?? '').trim().isNotEmpty)
-        ['Customer', transaction.customerName!.trim()],
+        [l10n.customer, transaction.customerName!.trim()],
       if ((transaction.customerPhone ?? '').trim().isNotEmpty)
-        ['Phone', transaction.customerPhone!.trim()],
+        [l10n.phone, transaction.customerPhone!.trim()],
       if ((transaction.customerTin ?? '').trim().isNotEmpty)
-        ['Customer TIN', transaction.customerTin!.trim()],
+        [l10n.saleReceiptCustomerTin, transaction.customerTin!.trim()],
     ];
 
     return pw.Container(
@@ -313,11 +329,12 @@ class SaleReceiptPdf {
     required String? paymentType,
   }) {
     final isCash = (paymentType ?? '').toUpperCase().contains('CASH');
+    final l10n = FlipperL10n.current;
     final rows = <List<String>>[
-      ['Subtotal', '$currency ${money.format(lineTotal)}'],
+      [l10n.subtotal, '$currency ${money.format(lineTotal)}'],
       if (discountTotal > 0)
-        ['Discount', '- $currency ${money.format(discountTotal)}'],
-      if (tax > 0) ['Tax', '$currency ${money.format(tax)}'],
+        [l10n.discount, '- $currency ${money.format(discountTotal)}'],
+      if (tax > 0) [l10n.manualPurchaseTax, '$currency ${money.format(tax)}'],
     ];
 
     return pw.Align(
@@ -342,7 +359,7 @@ class SaleReceiptPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'Total',
+                  l10n.failedPaymentTotal,
                   style: pw.TextStyle(
                     fontSize: 12,
                     fontWeight: pw.FontWeight.bold,
@@ -363,7 +380,7 @@ class SaleReceiptPdf {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'Cash received',
+                    l10n.cashReceived,
                     style: const pw.TextStyle(fontSize: 10),
                   ),
                   pw.Text(
@@ -375,7 +392,10 @@ class SaleReceiptPdf {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Change', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text(
+                    l10n.saleReceiptChange,
+                    style: const pw.TextStyle(fontSize: 10),
+                  ),
                   pw.Text(
                     '$currency ${money.format(change)}',
                     style: const pw.TextStyle(fontSize: 10),
@@ -394,10 +414,12 @@ class SaleReceiptPdf {
     required String currency,
     required NumberFormat money,
   }) {
-    final amount = transaction.refundedAmount?.toDouble() ??
+    final amount =
+        transaction.refundedAmount?.toDouble() ??
         transaction.subTotal?.toDouble() ??
         0;
-    final method = transaction.refundMethod == 'momo' ? 'MoMo' : 'Cash';
+    final l10n = FlipperL10n.current;
+    final method = transaction.refundMethod == 'momo' ? 'MoMo' : l10n.cash;
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
       decoration: pw.BoxDecoration(
@@ -408,12 +430,15 @@ class SaleReceiptPdf {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            'Refunded: $currency ${money.format(amount)} via $method',
+            l10n.saleReceiptRefundedVia(
+              '$currency ${money.format(amount)}',
+              method,
+            ),
             style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
           ),
           if ((transaction.refundReason ?? '').isNotEmpty)
             pw.Text(
-              'Reason: ${transaction.refundReason}',
+              l10n.saleReceiptReason('${transaction.refundReason}'),
               style: const pw.TextStyle(fontSize: 9),
             ),
         ],
@@ -429,8 +454,7 @@ class SaleReceiptPdf {
         ['Receipt no.', '${receipt.rcptNo}/${receipt.totRcptNo ?? '—'}'],
       if ((receipt.intrlData ?? '').isNotEmpty)
         ['Internal data', receipt.intrlData!],
-      if ((receipt.rcptSign ?? '').isNotEmpty)
-        ['Signature', receipt.rcptSign!],
+      if ((receipt.rcptSign ?? '').isNotEmpty) ['Signature', receipt.rcptSign!],
     ];
     if (rows.isEmpty) return pw.SizedBox();
 
@@ -456,10 +480,7 @@ class SaleReceiptPdf {
                 ),
               ),
               pw.Expanded(
-                child: pw.Text(
-                  row[1],
-                  style: const pw.TextStyle(fontSize: 9),
-                ),
+                child: pw.Text(row[1], style: const pw.TextStyle(fontSize: 9)),
               ),
             ],
           ),
@@ -481,8 +502,8 @@ class SaleReceiptPdf {
     if (paymentType == null || paymentType.trim().isEmpty) return '—';
     final upper = paymentType.toUpperCase();
     if (upper.contains('MOMO') || upper.contains('MOBILE')) return 'MoMo';
-    if (upper.contains('CARD')) return 'Card';
-    if (upper.contains('CASH')) return 'Cash';
+    if (upper.contains('CARD')) return FlipperL10n.current.saleReceiptCard;
+    if (upper.contains('CASH')) return FlipperL10n.current.cash;
     return paymentType;
   }
 }

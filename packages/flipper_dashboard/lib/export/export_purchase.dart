@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -15,12 +16,14 @@ import 'package:flutter/services.dart' show rootBundle;
 
 class ExportPurchase {
   Future<void> export(List<PurchaseReportItem> reportItems) async {
-    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     final groupedByPurchase = groupBy(
-        reportItems, (item) => item.purchase?.id); // Group by String? id
+      reportItems,
+      (item) => item.purchase?.id,
+    ); // Group by String? id
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
@@ -28,17 +31,21 @@ class ExportPurchase {
 
     // Footer template for logo
     final PdfPageTemplateElement footerTemplate = PdfPageTemplateElement(
-        Rect.fromLTWH(0, 0, pageSize.width, 50)); // Footer area height 50
+      Rect.fromLTWH(0, 0, pageSize.width, 50),
+    ); // Footer area height 50
     try {
-      final ByteData imageData =
-          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final ByteData imageData = await rootBundle.load(
+        'packages/receipt/assets/flipper_logo.png',
+      );
       final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
       const double logoWidth = 25;
       const double logoHeight = 25;
       final double xLogoPosition = (pageSize.width - logoWidth) / 2;
       // Draw logo at the top of the footer area, centered
       footerTemplate.graphics.drawImage(
-          logoImage, Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight));
+        logoImage,
+        Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight),
+      );
     } catch (e) {
       print('Error loading logo for footer: $e');
     }
@@ -58,24 +65,41 @@ class ExportPurchase {
     await _saveAndLaunchFile(bytes, 'PurchaseReport.pdf');
   }
 
-  void _drawHeader(PdfPage page, Size pageSize, List<Purchase> purchases,
-      Business? business) {
+  void _drawHeader(
+    PdfPage page,
+    Size pageSize,
+    List<Purchase> purchases,
+    Business? business,
+  ) {
     final PdfGraphics graphics = page.graphics;
-    final PdfFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
+    final PdfFont titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      20,
+      style: PdfFontStyle.bold,
+    );
     final PdfFont headerFont = PdfStandardFont(PdfFontFamily.helvetica, 12);
 
-    graphics.drawString('Purchases Report', titleFont,
-        bounds: Rect.fromLTWH(0, 0, pageSize.width, 30),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center));
+    final l10n = FlipperL10n.current;
+    graphics.drawString(
+      l10n.reportPurchasesReport,
+      titleFont,
+      bounds: Rect.fromLTWH(0, 0, pageSize.width, 30),
+      format: PdfStringFormat(alignment: PdfTextAlignment.center),
+    );
 
     final businessName = business?.name ?? 'Demo';
     final tin = business?.tinNumber ?? '933000005';
 
-    graphics.drawString(businessName, headerFont,
-        bounds: Rect.fromLTWH(0, 40, pageSize.width, 20));
-    graphics.drawString('TIN: $tin', headerFont,
-        bounds: Rect.fromLTWH(0, 60, pageSize.width, 20));
+    graphics.drawString(
+      businessName,
+      headerFont,
+      bounds: Rect.fromLTWH(0, 40, pageSize.width, 20),
+    );
+    graphics.drawString(
+      'TIN: $tin',
+      headerFont,
+      bounds: Rect.fromLTWH(0, 60, pageSize.width, 20),
+    );
 
     if (purchases.isNotEmpty) {
       final dates = purchases.map((p) => p.createdAt).cast<DateTime>().toList();
@@ -84,43 +108,56 @@ class ExportPurchase {
         dates.sort();
         // final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
         final endDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        graphics.drawString('Date: $endDate', headerFont,
-            bounds: Rect.fromLTWH(0, 80, pageSize.width, 20));
+        graphics.drawString(
+          l10n.reportDateValue(endDate),
+          headerFont,
+          bounds: Rect.fromLTWH(0, 80, pageSize.width, 20),
+        );
       }
     }
   }
 
-  void _drawTable(PdfPage page, Size pageSize,
-      Map<String?, List<PurchaseReportItem>> groupedItems) {
+  void _drawTable(
+    PdfPage page,
+    Size pageSize,
+    Map<String?, List<PurchaseReportItem>> groupedItems,
+  ) {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 7);
 
     final PdfGridRow header = grid.headers.add(1)[0];
-    header.cells[0].value = 'Supplier TIN';
-    header.cells[1].value = 'Supplier Name';
-    header.cells[2].value = 'Invoice Number';
-    header.cells[3].value = 'Request Date';
-    header.cells[4].value = 'Total Amount';
-    header.cells[5].value = 'Items';
-    header.cells[6].value = 'Total Items';
+    final l10n = FlipperL10n.current;
+    header.cells[0].value = l10n.manualPurchaseSupplierTin;
+    header.cells[1].value = l10n.manualPurchaseSupplierName;
+    header.cells[2].value = l10n.manualPurchaseInvoiceNumber;
+    header.cells[3].value = l10n.reportRequestDate;
+    header.cells[4].value = l10n.totalAmount;
+    header.cells[5].value = l10n.items;
+    header.cells[6].value = l10n.totalItems;
 
-    header.style.backgroundBrush =
-        PdfSolidBrush(PdfColor(173, 216, 230)); // Light Blue
+    header.style.backgroundBrush = PdfSolidBrush(
+      PdfColor(173, 216, 230),
+    ); // Light Blue
     header.style.textBrush = PdfBrushes
         .black; // Changed to black for better contrast with light blue
-    header.style.font =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    header.style.font = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
 
     for (final entry in groupedItems.entries) {
       final purchase = entry.value.first.purchase;
       if (purchase == null) continue;
 
-      final variantsInPurchase =
-          entry.value.map((item) => item.variant).toList();
+      final variantsInPurchase = entry.value
+          .map((item) => item.variant)
+          .toList();
 
       final itemsString = variantsInPurchase
-          .map((v) =>
-              '${v.itemNm ?? ''}=>${v.itemCd ?? ''}=>${v.pkgUnitCd ?? ''}')
+          .map(
+            (v) => '${v.itemNm ?? ''}=>${v.itemCd ?? ''}=>${v.pkgUnitCd ?? ''}',
+          )
           .join('\n');
 
       final PdfGridRow row = grid.rows.add();
@@ -136,8 +173,10 @@ class ExportPurchase {
     grid.style.cellPadding = PdfPaddings(left: 5, right: 5, top: 5, bottom: 5);
     grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 9);
 
-    final PdfPen lightGrayPen =
-        PdfPen(PdfColor(211, 211, 211), width: 0.5); // Light Gray, thinner
+    final PdfPen lightGrayPen = PdfPen(
+      PdfColor(211, 211, 211),
+      width: 0.5,
+    ); // Light Gray, thinner
 
     // Apply border to header cells
     for (int i = 0; i < header.cells.count; i++) {
@@ -154,8 +193,12 @@ class ExportPurchase {
 
     grid.draw(
       page: page,
-      bounds: Rect.fromLTWH(0, 120, pageSize.width,
-          pageSize.height - 170), // Adjusted for header (120) and footer (50)
+      bounds: Rect.fromLTWH(
+        0,
+        120,
+        pageSize.width,
+        pageSize.height - 170,
+      ), // Adjusted for header (120) and footer (50)
     );
   }
 

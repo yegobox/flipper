@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -45,7 +46,7 @@ class PeField extends StatelessWidget {
               ),
             if (optional)
               Text(
-                ' · optional',
+                ' · ${context.flipperL10n.productEditorOptional}',
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -60,7 +61,11 @@ class PeField extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.info_outline, size: 13, color: ProductEditorTokens.ink4),
+              const Icon(
+                Icons.info_outline,
+                size: 13,
+                color: ProductEditorTokens.ink4,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -180,14 +185,21 @@ class PeTextInput extends StatelessWidget {
               inputFormatters: inputFormatters,
               textInputAction: textInputAction,
               onFieldSubmitted: onFieldSubmitted,
-              style: GoogleFonts.outfit(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: locked ? ProductEditorTokens.ink2 : ProductEditorTokens.ink1,
-                fontFeatures: mono ? const [FontFeature.tabularFigures()] : null,
-              ).copyWith(
-                fontFamily: mono ? GoogleFonts.jetBrainsMono().fontFamily : null,
-              ),
+              style:
+                  GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: locked
+                        ? ProductEditorTokens.ink2
+                        : ProductEditorTokens.ink1,
+                    fontFeatures: mono
+                        ? const [FontFeature.tabularFigures()]
+                        : null,
+                  ).copyWith(
+                    fontFamily: mono
+                        ? GoogleFonts.jetBrainsMono().fontFamily
+                        : null,
+                  ),
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
@@ -207,7 +219,11 @@ class PeTextInput extends StatelessWidget {
           if (locked)
             const Padding(
               padding: EdgeInsets.only(right: 14),
-              child: Icon(Icons.lock, size: 16, color: ProductEditorTokens.ink4),
+              child: Icon(
+                Icons.lock,
+                size: 16,
+                color: ProductEditorTokens.ink4,
+              ),
             )
           else if (suffix != null)
             Padding(padding: const EdgeInsets.only(right: 10), child: suffix),

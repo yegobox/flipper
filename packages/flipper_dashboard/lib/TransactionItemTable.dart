@@ -1127,7 +1127,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       style: const TextStyle(fontSize: 16),
       decoration: InputDecoration(
         prefixIcon: Icon(Icons.shopping_cart_outlined, color: Colors.grey[600]),
-        suffixText: 'qty',
+        suffixText: context.flipperL10n.cartQtySuffix,
         suffixStyle: TextStyle(color: Colors.grey[600]),
         contentPadding: _fieldContentPadding(compact: compact),
         border: OutlineInputBorder(
@@ -1178,8 +1178,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         originalUnitPrice > 0 &&
         currentPrice != item.price) {
       final calculatedQty = currentPrice / originalUnitPrice;
-      helperText =
-          'Equivalent to ${calculatedQty.toStringAsFixed(2)} units at ${originalUnitPrice.toStringAsFixed(0)} RWF';
+      helperText = context.flipperL10n.cartPriceQtyEquivalent(
+        calculatedQty.toStringAsFixed(2),
+        originalUnitPrice.toStringAsFixed(0),
+      );
     }
 
     return TextFormField(

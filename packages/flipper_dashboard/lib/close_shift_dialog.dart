@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -189,7 +190,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => Center(
                   child: Text(
-                    'Error loading shift data',
+                    context.flipperL10n.shiftErrorLoadingData,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.error,
                     ),
@@ -235,7 +236,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.request.title ?? 'Close Shift',
+                    widget.request.title ?? context.flipperL10n.closeShift,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
@@ -253,7 +254,9 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'End time: ${timeFormat.format(now)}',
+                        context.flipperL10n.shiftEndTime(
+                          timeFormat.format(now),
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.65),
                         ),
@@ -281,7 +284,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                   color: colorScheme.onSurface.withValues(alpha: 0.7),
                   size: isSmallScreen ? 20 : 24,
                 ),
-                tooltip: 'Close',
+                tooltip: context.flipperL10n.close,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -314,7 +317,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
             ),
             const SizedBox(width: 8),
             Text(
-              'Shift Summary',
+              context.flipperL10n.shiftSummary,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurface,
@@ -340,7 +343,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 ),
                 child: _buildSummaryRow(
                   context,
-                  label: 'Opening Balance',
+                  label: context.flipperL10n.shiftOpeningBalance,
                   value:
                       '$currencySymbol  ${_formatCurrency(_openingBalance, symbol: '')}',
                   isSmallScreen: isSmallScreen,
@@ -359,7 +362,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 ),
                 child: _buildSummaryRow(
                   context,
-                  label: 'Cash Sales',
+                  label: context.flipperL10n.shiftCashSales,
                   value:
                       '$currencySymbol  ${_formatCurrency(_cashSales, symbol: '')}',
                   isSmallScreen: isSmallScreen,
@@ -385,7 +388,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 ),
                 child: _buildSummaryRow(
                   context,
-                  label: 'Expected Cash',
+                  label: context.flipperL10n.shiftExpectedCash,
                   value:
                       '$currencySymbol  ${_formatCurrency(_expectedCash, symbol: '')}',
                   isSmallScreen: isSmallScreen,
@@ -480,7 +483,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  'Cash Reconciliation',
+                  context.flipperL10n.shiftCashReconciliation,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF2B6DE9),
@@ -491,7 +494,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           ),
           const SizedBox(height: 8),
           Text(
-            'Count the physical cash in the drawer and enter the\nclosing balance below.',
+            context.flipperL10n.shiftCountCashHint,
             style: theme.textTheme.bodySmall?.copyWith(
               color: const Color(0xFF2B6DE9).withValues(alpha: 0.85),
             ),
@@ -513,7 +516,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Closing Cash Balance',
+          context.flipperL10n.shiftClosingCashBalance,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurface,
@@ -521,7 +524,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
         ),
         const SizedBox(height: 6),
         Text(
-          'Enter actual cash counted in the drawer',
+          context.flipperL10n.shiftClosingCashHint,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -535,11 +538,11 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           ],
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Required';
+              return context.flipperL10n.shiftRequired;
             }
             final balance = double.tryParse(value);
             if (balance == null || balance < 0) {
-              return 'Invalid amount';
+              return context.flipperL10n.shiftInvalidAmount;
             }
             return null;
           },
@@ -637,15 +640,15 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     if (_cashDifference == 0) {
       differenceColor = colorScheme.primary;
       differenceIcon = Icons.check_circle;
-      differenceText = 'Perfect Balance';
+      differenceText = context.flipperL10n.shiftPerfectBalance;
     } else if (_cashDifference > 0) {
       differenceColor = Colors.green;
       differenceIcon = Icons.add_circle;
-      differenceText = 'Overage';
+      differenceText = context.flipperL10n.shiftOverage;
     } else {
       differenceColor = Colors.red;
       differenceIcon = Icons.remove_circle;
-      differenceText = 'Shortage';
+      differenceText = context.flipperL10n.shiftShortage;
     }
 
     return Container(
@@ -694,7 +697,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
             children: [
               Expanded(
                 child: Text(
-                  'Difference',
+                  context.flipperL10n.shiftDifference,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
@@ -727,8 +730,8 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
             const SizedBox(height: 6),
             Text(
               _cashDifference > 0
-                  ? 'More cash than expected'
-                  : 'Less cash than expected',
+                  ? context.flipperL10n.shiftMoreCashThanExpected
+                  : context.flipperL10n.shiftLessCashThanExpected,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: differenceColor.withValues(alpha: 0.8),
                 fontStyle: FontStyle.italic,
@@ -751,7 +754,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
         Row(
           children: [
             Text(
-              'Notes',
+              context.flipperL10n.shiftNotes,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.onSurface,
@@ -769,7 +772,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                   ),
                 ),
                 child: Text(
-                  'Required',
+                  context.flipperL10n.shiftRequired,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.error,
                     fontWeight: FontWeight.w600,
@@ -781,7 +784,9 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
         ),
         const SizedBox(height: 6),
         Text(
-          isRequired ? 'Explain the shortage' : 'Add any notes',
+          isRequired
+              ? context.flipperL10n.shiftExplainShortage
+              : context.flipperL10n.shiftAddAnyNotes,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
@@ -794,7 +799,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           validator: isRequired
               ? (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Required when difference exists';
+                    return context.flipperL10n.shiftNotesRequiredWhenDifference;
                   }
                   return null;
                 }
@@ -805,8 +810,8 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 ? const EdgeInsets.all(12)
                 : const EdgeInsets.all(16),
             hintText: isRequired
-                ? 'Explain the difference...'
-                : 'Enter notes...',
+                ? context.flipperL10n.shiftExplainDifference
+                : context.flipperL10n.shiftEnterNotes,
             filled: true,
             fillColor: const Color(0xFFF4F6FA),
             border: OutlineInputBorder(
@@ -889,7 +894,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  'Confirm Shift Closure',
+                  context.flipperL10n.shiftConfirmClosure,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.onPrimaryContainer,
@@ -900,7 +905,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
           ),
           const SizedBox(height: 6),
           Text(
-            'This action cannot be undone.',
+            context.flipperL10n.actionCannotBeUndone,
             style: theme.textTheme.bodySmall?.copyWith(
               color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
             ),
@@ -931,7 +936,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                 side: BorderSide(color: colorScheme.outline),
               ),
               child: Text(
-                'Go Back',
+                context.flipperL10n.shiftGoBack,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
@@ -959,7 +964,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                     ),
                   ),
                   child: Text(
-                    'Cancel',
+                    context.flipperL10n.cancel,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.8),
                     ),
@@ -998,7 +1003,9 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
                           Icon(Icons.check, size: 18, color: Colors.white),
                           const SizedBox(width: 8),
                           Text(
-                            _showConfirmation ? 'Confirm Close' : 'Close Shift',
+                            _showConfirmation
+                                ? context.flipperL10n.shiftConfirmClose
+                                : context.flipperL10n.closeShift,
                             style: theme.textTheme.labelLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
@@ -1023,7 +1030,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     if (closingBalance == null) {
       setState(() {
         _hasError = true;
-        _errorMessage = 'Invalid closing balance';
+        _errorMessage = context.flipperL10n.shiftInvalidClosingBalance;
       });
       return;
     }
@@ -1062,7 +1069,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     } catch (e) {
       setState(() {
         _hasError = true;
-        _errorMessage = 'Failed to close shift: ${e.toString()}';
+        _errorMessage = context.flipperL10n.shiftFailedToClose(e.toString());
       });
     } finally {
       if (mounted) {

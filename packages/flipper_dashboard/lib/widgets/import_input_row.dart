@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/constants/import_options.dart';
 import './variant_selection_dropdown.dart';
 import 'package:flutter/material.dart';
@@ -85,10 +86,7 @@ class ImportInputRow extends HookConsumerWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: Color(0xFF0078D4),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF0078D4), width: 2),
         ),
         filled: true,
         fillColor: Colors.grey[50],
@@ -122,19 +120,17 @@ class ImportInputRow extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text(
-            'Save Changes',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+          child: Text(
+            context.flipperL10n.importSaveChanges,
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
         ),
         ElevatedButton.icon(
-          onPressed:
-              anyLoading ? null : () => acceptAllImportCallback(finalItemList),
+          onPressed: anyLoading
+              ? null
+              : () => acceptAllImportCallback(finalItemList),
           icon: const Icon(Icons.done_all, size: 18),
-          label: const Text('Accept All'),
+          label: Text(context.flipperL10n.importAcceptAll),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF10B981),
             foregroundColor: Colors.white,
@@ -153,7 +149,7 @@ class ImportInputRow extends HookConsumerWidget {
     return DropdownButtonFormField<String?>(
       initialValue: selectedFilterStatus,
       decoration: InputDecoration(
-        labelText: 'Filter by Status',
+        labelText: context.flipperL10n.importFilterByStatus,
         labelStyle: TextStyle(
           color: Colors.grey[600],
           fontSize: 14,
@@ -169,10 +165,7 @@ class ImportInputRow extends HookConsumerWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: Color(0xFF0078D4),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF0078D4), width: 2),
         ),
         filled: true,
         fillColor: Colors.grey[50],
@@ -181,13 +174,10 @@ class ImportInputRow extends HookConsumerWidget {
           vertical: 12,
         ),
       ),
-      items: importStatusOptions.entries.map((entry) {
+      items: importStatusOptions(context.flipperL10n).entries.map((entry) {
         return DropdownMenuItem<String?>(
           value: entry.key,
-          child: Text(
-            entry.value,
-            style: const TextStyle(fontSize: 14),
-          ),
+          child: Text(entry.value, style: const TextStyle(fontSize: 14)),
         );
       }).toList(),
       onChanged: onFilterStatusChanged,
@@ -199,8 +189,9 @@ class ImportInputRow extends HookConsumerWidget {
     String? initialSelectedVariantId;
     if (variantSelectedWhenClickingOnRow != null) {
       for (final entry in variantMap.entries) {
-        if (entry.value
-            .any((v) => v.id == variantSelectedWhenClickingOnRow!.id)) {
+        if (entry.value.any(
+          (v) => v.id == variantSelectedWhenClickingOnRow!.id,
+        )) {
           initialSelectedVariantId = entry.key;
           break;
         }
@@ -229,7 +220,7 @@ class ImportInputRow extends HookConsumerWidget {
               child: _buildTextField(
                 context: context,
                 controller: nameController,
-                hintText: 'Enter a name',
+                hintText: context.flipperL10n.importEnterName,
               ),
             ),
             const SizedBox(width: 10),
@@ -238,10 +229,11 @@ class ImportInputRow extends HookConsumerWidget {
               child: _buildTextField(
                 context: context,
                 controller: supplyPriceController,
-                hintText: 'Enter supply price',
+                hintText: context.flipperL10n.importEnterSupplyPrice,
                 isNumeric: true,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Supply price is required' : null,
+                validator: (value) => value?.isEmpty ?? true
+                    ? context.flipperL10n.importSupplyPriceRequired
+                    : null,
               ),
             ),
             const SizedBox(width: 10),
@@ -250,10 +242,11 @@ class ImportInputRow extends HookConsumerWidget {
               child: _buildTextField(
                 context: context,
                 controller: retailPriceController,
-                hintText: 'Enter retail price',
+                hintText: context.flipperL10n.importEnterRetailPrice,
                 isNumeric: true,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Retail price is required' : null,
+                validator: (value) => value?.isEmpty ?? true
+                    ? context.flipperL10n.importRetailPriceRequired
+                    : null,
               ),
             ),
             const SizedBox(width: 10),
@@ -267,14 +260,16 @@ class ImportInputRow extends HookConsumerWidget {
                     // Remove the import from any existing lists
                     for (final list in variantMap.values) {
                       list.removeWhere(
-                          (v) => v.id == variantSelectedWhenClickingOnRow!.id);
+                        (v) => v.id == variantSelectedWhenClickingOnRow!.id,
+                      );
                     }
                     if (selectedVariant != null &&
                         selectedVariant.id !=
                             variantSelectedWhenClickingOnRow!.id) {
                       variantMap[selectedVariant.id] ??= [];
-                      variantMap[selectedVariant.id]!
-                          .add(variantSelectedWhenClickingOnRow!);
+                      variantMap[selectedVariant.id]!.add(
+                        variantSelectedWhenClickingOnRow!,
+                      );
                     }
                   }
                   selectItemCallback(selectedVariant);
@@ -283,16 +278,10 @@ class ImportInputRow extends HookConsumerWidget {
             ),
             const SizedBox(width: 10),
             // Action Buttons
-            Flexible(
-              flex: 3,
-              child: _buildActionButtons(context),
-            ),
+            Flexible(flex: 3, child: _buildActionButtons(context)),
             const SizedBox(width: 10),
             // Status Filter Dropdown
-            Flexible(
-              flex: 2,
-              child: _buildStatusFilterDropdown(context),
-            ),
+            Flexible(flex: 2, child: _buildStatusFilterDropdown(context)),
           ],
         ),
       ),

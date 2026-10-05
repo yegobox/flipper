@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_dashboard/features/transfers_report/transfers_report_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
@@ -55,7 +57,11 @@ class TransfersReportPdfExport {
     final dateSlug = DateFormat('yyyyMMdd').format(DateTime.now());
     final branchSlug = destinationBranchName.replaceAll(RegExp(r'[^\w]+'), '_');
     final filename = 'transfers_to_${branchSlug}_$dateSlug.pdf';
-    await _saveOrShare(bytes: bytes, filename: filename, subject: 'Transfers Report');
+    await _saveOrShare(
+      bytes: bytes,
+      filename: filename,
+      subject: FlipperL10n.current.transfersReportTitle,
+    );
   }
 
   static Future<void> previewAndShareTransfer({
@@ -72,7 +78,11 @@ class TransfersReportPdfExport {
         ? transfer.id.substring(0, 8)
         : transfer.id;
     final filename = 'transfer_$short.pdf';
-    await _saveOrShare(bytes: bytes, filename: filename, subject: 'Stock Transfer');
+    await _saveOrShare(
+      bytes: bytes,
+      filename: filename,
+      subject: FlipperL10n.current.transfersReportPdfStockTransferSubject,
+    );
   }
 
   static Future<void> _saveOrShare({
@@ -81,12 +91,16 @@ class TransfersReportPdfExport {
     required String subject,
   }) async {
     if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: filename, subject: subject);
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: filename,
+        subject: subject,
+      );
       return;
     }
     if (UniversalPlatform.isDesktop) {
       final savedPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save Transfers PDF',
+        dialogTitle: FlipperL10n.current.transfersReportPdfSaveDialog,
         fileName: filename,
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
@@ -114,11 +128,13 @@ class TransfersReportPdfExport {
     final fallback = await _unicodeFallback();
     final dateFmt = DateFormat('dd MMM yyyy HH:mm');
     final rangeFmt = DateFormat('dd MMM yyyy');
+    final l10n = FlipperL10n.current;
 
     var totalUnits = 0;
     for (final t in transfers) {
       for (final line in t.transactionItems ?? const <TransactionItem>[]) {
-        totalUnits += line.quantityApproved ?? line.quantityRequested ?? line.qty.round();
+        totalUnits +=
+            line.quantityApproved ?? line.quantityRequested ?? line.qty.round();
       }
     }
 
@@ -136,25 +152,30 @@ class TransfersReportPdfExport {
         ),
         header: (ctx) => _header(
           logoSvg: logoSvg,
-          title: 'Stock transfers to $destinationBranchName',
+          title: l10n.transfersReportPdfTitleTo(destinationBranchName),
           subtitle: [
             if (rangeStart != null && rangeEnd != null)
               '${rangeFmt.format(rangeStart)} – ${rangeFmt.format(rangeEnd)}',
-            '${transfers.length} transfer(s) · $totalUnits unit(s)',
+            '${l10n.transfersReportPdfTransferCount(transfers.length)} · ${l10n.transfersReportPdfUnitCount(totalUnits)}',
           ].whereType<String>().join('  ·  '),
         ),
         build: (ctx) => [
           if (transfers.isEmpty)
-            pw.Text('No transfers in this range.')
+            pw.Text(l10n.transfersReportPdfNoTransfers)
           else
             pw.TableHelper.fromTextArray(
-              headers: const ['Date', 'From', 'ID', 'Items', 'Status'],
+              headers: [
+                l10n.transfersReportColDate,
+                l10n.transfersReportColFrom,
+                'ID',
+                l10n.items,
+                l10n.transfersReportStatus,
+              ],
               data: transfers.map((t) {
                 final stamp = t.approvedAt ?? t.createdAt;
                 final fromId = t.mainBranchId ?? '';
-                final fromName = fromBranchNames[fromId] ??
-                    t.branch?.name ??
-                    fromId;
+                final fromName =
+                    fromBranchNames[fromId] ?? t.branch?.name ?? fromId;
                 final short = t.id.length > 8 ? t.id.substring(0, 8) : t.id;
                 final count = t.itemCounts ?? t.transactionItems?.length ?? 0;
                 return [
@@ -162,7 +183,9 @@ class TransfersReportPdfExport {
                   fromName,
                   short.toUpperCase(),
                   '$count',
-                  t.status ?? '—',
+                  t.status != null
+                      ? transfersReportStatusLabel(l10n, t.status!)
+                      : '—',
                 ];
               }).toList(),
               headerStyle: pw.TextStyle(
@@ -170,7 +193,9 @@ class TransfersReportPdfExport {
                 fontSize: 10,
               ),
               cellStyle: const pw.TextStyle(fontSize: 9),
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              headerDecoration: const pw.BoxDecoration(
+                color: PdfColors.grey300,
+              ),
               cellAlignments: {
                 0: pw.Alignment.centerLeft,
                 3: pw.Alignment.centerRight,
@@ -189,7 +214,10 @@ class TransfersReportPdfExport {
               children: [
                 pw.SizedBox(height: 12),
                 pw.Text(
-                  'Transfer ${short.toUpperCase()} · from $fromName',
+                  l10n.transfersReportPdfTransferFrom(
+                    short.toUpperCase(),
+                    fromName,
+                  ),
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 11,
@@ -197,7 +225,10 @@ class TransfersReportPdfExport {
                 ),
                 pw.SizedBox(height: 4),
                 pw.TableHelper.fromTextArray(
-                  headers: const ['Product', 'Qty'],
+                  headers: [
+                    l10n.transfersReportColProduct,
+                    l10n.transfersReportColQty,
+                  ],
                   data: lines
                       .map(
                         (l) => [
@@ -218,7 +249,11 @@ class TransfersReportPdfExport {
           }),
         ],
         footer: (ctx) => pw.Text(
-          'Generated ${DateFormat('dd MMM yyyy HH:mm').format(DateTime.now())} · page ${ctx.pageNumber}/${ctx.pagesCount}',
+          l10n.transfersReportPdfFooter(
+            DateFormat('dd MMM yyyy HH:mm').format(DateTime.now()),
+            '${ctx.pageNumber}',
+            '${ctx.pagesCount}',
+          ),
           style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
         ),
       ),
@@ -233,6 +268,7 @@ class TransfersReportPdfExport {
   }) async {
     final logoSvg = await _flipperLogoMarkup();
     final fallback = await _unicodeFallback();
+    final l10n = FlipperL10n.current;
     final dateFmt = DateFormat('dd MMM yyyy HH:mm');
     final stamp = transfer.approvedAt ?? transfer.createdAt;
     final lines = transfer.transactionItems ?? const <TransactionItem>[];
@@ -254,13 +290,17 @@ class TransfersReportPdfExport {
         ),
         header: (ctx) => _header(
           logoSvg: logoSvg,
-          title: 'Stock transfer ${short.toUpperCase()}',
+          title: l10n.transfersReportPdfSingleTitle(short.toUpperCase()),
           subtitle:
-              '$fromBranchName → $destinationBranchName · ${stamp != null ? dateFmt.format(stamp.toLocal()) : '—'} · ${transfer.status ?? ''}',
+              '$fromBranchName → $destinationBranchName · ${stamp != null ? dateFmt.format(stamp.toLocal()) : '—'} · ${transfer.status != null ? transfersReportStatusLabel(l10n, transfer.status!) : ''}',
         ),
         build: (ctx) => [
           pw.TableHelper.fromTextArray(
-            headers: const ['Product', 'Requested', 'Approved'],
+            headers: [
+              l10n.transfersReportColProduct,
+              l10n.transfersReportColRequested,
+              l10n.approved,
+            ],
             data: lines
                 .map(
                   (l) => [
@@ -275,8 +315,7 @@ class TransfersReportPdfExport {
               fontSize: 10,
             ),
             cellStyle: const pw.TextStyle(fontSize: 10),
-            headerDecoration:
-                const pw.BoxDecoration(color: PdfColors.grey300),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
             cellAlignments: {
               1: pw.Alignment.centerRight,
               2: pw.Alignment.centerRight,
@@ -285,7 +324,7 @@ class TransfersReportPdfExport {
           if (transfer.approvedBy != null) ...[
             pw.SizedBox(height: 12),
             pw.Text(
-              'Approved by: ${transfer.approvedBy}',
+              l10n.transfersReportPdfApprovedBy('${transfer.approvedBy}'),
               style: const pw.TextStyle(fontSize: 10),
             ),
           ],

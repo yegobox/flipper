@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_card.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flutter/foundation.dart';
@@ -70,7 +71,7 @@ class OrderColumn extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        stage.label,
+                        stage.labelOf(context.flipperL10n),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -104,7 +105,7 @@ class OrderColumn extends StatelessWidget {
                 child: orders.isEmpty
                     ? Center(
                         child: Text(
-                          'No orders',
+                          context.flipperL10n.kitchenNoOrders,
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                       )

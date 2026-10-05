@@ -1,4 +1,5 @@
 import 'package:flipper_mfa/flipper_mfa.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
       final userId = ProxyService.box.getUserId();
       if (userId == null) {
         setState(() {
-          _error = 'User not logged in';
+          _error = FlipperL10n.current.mfaUserNotLoggedIn;
           _isLoading = false;
         });
         return;
@@ -78,14 +79,11 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
             accountName: ProxyService.box.getUserPhone(),
           ),
         );
-        await MfaService().cacheSecretLocally(
-          userId: userId,
-          secret: _secret!,
-        );
+        await MfaService().cacheSecretLocally(userId: userId, secret: _secret!);
       }
     } catch (e) {
       setState(() {
-        _error = 'Error loading/generating MFA secret: ${e.toString()}';
+        _error = FlipperL10n.current.mfaErrorLoadingSecret(e.toString());
       });
     } finally {
       setState(() {
@@ -152,7 +150,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
           elevation: 0,
           leading: leadingClose(),
           title: Text(
-            'Setup authenticator',
+            context.flipperL10n.mfaSetupAuthenticator,
             style: TextStyle(
               color: colorScheme.onSurface,
               fontSize: 20,
@@ -174,7 +172,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
               ),
               const SizedBox(height: 24),
               Text(
-                'Setting up your authenticator...',
+                context.flipperL10n.mfaSettingUp,
                 style: TextStyle(
                   color: colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 16,
@@ -194,7 +192,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
           elevation: 0,
           leading: leadingClose(),
           title: Text(
-            'Setup authenticator',
+            context.flipperL10n.mfaSetupAuthenticator,
             style: TextStyle(
               color: colorScheme.onSurface,
               fontSize: 20,
@@ -223,7 +221,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Setup failed',
+                  context.flipperL10n.mfaSetupFailed,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
@@ -253,9 +251,12 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  child: const Text(
-                    'Go back',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  child: Text(
+                    context.flipperL10n.mfaGoBack,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -279,7 +280,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
         elevation: 0,
         leading: leadingClose(),
         title: Text(
-          'Setup authenticator',
+          context.flipperL10n.mfaSetupAuthenticator,
           style: TextStyle(
             color: colorScheme.onSurface,
             fontSize: 20,
@@ -294,7 +295,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Set up two-factor\nauthentication',
+                context.flipperL10n.mfaSetUpTwoFactor,
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
@@ -304,7 +305,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
               ),
               const SizedBox(height: 10),
               Text(
-                'Scan the QR code below with your authenticator\napp to protect your Flipper account.',
+                context.flipperL10n.mfaScanQrHint,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
@@ -320,7 +321,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                   _StepDot(
                     active: true,
                     index: 1,
-                    label: 'Scan QR',
+                    label: context.flipperL10n.scanQr,
                     labelStyle: stepTextStyle,
                     colorScheme: colorScheme,
                   ),
@@ -337,7 +338,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                   _StepDot(
                     active: false,
                     index: 2,
-                    label: 'Verify',
+                    label: context.flipperL10n.mfaStepVerify,
                     labelStyle: stepTextStyle,
                     colorScheme: colorScheme,
                   ),
@@ -354,7 +355,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                   _StepDot(
                     active: false,
                     index: 3,
-                    label: 'Done',
+                    label: context.flipperL10n.done,
                     labelStyle: stepTextStyle,
                     colorScheme: colorScheme,
                   ),
@@ -418,9 +419,9 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
-                    child: const Text(
-                      'I\'ve set up my authenticator',
-                      style: TextStyle(
+                    child: Text(
+                      context.flipperL10n.mfaIveSetUp,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -449,7 +450,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Need help?',
+                              context.flipperL10n.mfaNeedHelp,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -462,7 +463,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Use apps like Microsoft Authenticator, Google Authenticator, or Authy to scan the QR code and generate verification codes.',
+                          context.flipperL10n.mfaHelpText,
                           style: TextStyle(
                             fontSize: 14,
                             color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -561,7 +562,7 @@ class _SetupKeyCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'SETUP KEY',
+                context.flipperL10n.mfaSetupKey,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -580,7 +581,9 @@ class _SetupKeyCard extends StatelessWidget {
                       : cs.onSurface.withValues(alpha: 0.6),
                 ),
                 label: Text(
-                  secretCopied ? 'Copied' : 'Copy',
+                  secretCopied
+                      ? context.flipperL10n.mfaCopied
+                      : context.flipperL10n.mfaCopy,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

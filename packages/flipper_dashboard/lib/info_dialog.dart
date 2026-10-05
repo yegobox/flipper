@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -44,7 +45,8 @@ class _InfoDialogState extends State<InfoDialog>
         widget.request.data?['status'] as InfoDialogStatus? ??
         InfoDialogStatus.info;
     final message =
-        widget.request.description ?? 'An unexpected error occurred.';
+        widget.request.description ??
+        context.flipperL10n.infoDialogUnexpectedError;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -175,26 +177,26 @@ class _InfoDialogState extends State<InfoDialog>
   String _getTitle(InfoDialogStatus status) {
     switch (status) {
       case InfoDialogStatus.error:
-        return 'Error';
+        return context.flipperL10n.error;
       case InfoDialogStatus.warning:
-        return 'Warning';
+        return context.flipperL10n.infoDialogWarning;
       case InfoDialogStatus.success:
-        return 'Success';
+        return context.flipperL10n.infoDialogSuccess;
       case InfoDialogStatus.info:
-        return 'Information';
+        return context.flipperL10n.infoDialogInformation;
     }
   }
 
   String _getButtonText(InfoDialogStatus status) {
     switch (status) {
       case InfoDialogStatus.error:
-        return 'Try Again';
+        return context.flipperL10n.dashTryAgain;
       case InfoDialogStatus.warning:
-        return 'Got It';
+        return context.flipperL10n.infoDialogGotIt;
       case InfoDialogStatus.success:
-        return 'Continue';
+        return context.flipperL10n.continueAction;
       case InfoDialogStatus.info:
-        return 'Dismiss';
+        return context.flipperL10n.infoDialogDismiss;
     }
   }
 }

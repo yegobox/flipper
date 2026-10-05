@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_dashboard/widgets/pos_handoff_icon.dart';
 import 'package:flipper_dashboard/widgets/pos_top_bar_widgets.dart';
@@ -43,6 +44,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
     final localPeer = presenceGraph.localPeer;
     final media = MediaQuery.sizeOf(context);
     final maxWidth = media.width < 520 ? media.width - 48 : 460.0;
+    final l10n = context.flipperL10n;
 
     String shortPeerKey(String key) =>
         key.length > 20 ? '${key.substring(0, 20)}...' : key;
@@ -106,7 +108,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Network Status',
+                              l10n.peersNetworkStatus,
                               style: GoogleFonts.outfit(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
@@ -117,9 +119,8 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                             const SizedBox(height: 4),
                             Text(
                               peers.isEmpty
-                                  ? 'This device only — no peers on the mesh yet.'
-                                  : 'Synced with ${peers.length} peer'
-                                      '${peers.length == 1 ? '' : 's'} on the mesh.',
+                                  ? l10n.peersThisDeviceOnly
+                                  : l10n.peersSyncedWith(peers.length),
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 height: 1.35,
@@ -132,7 +133,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _SectionLabel(label: 'Local device'),
+                  _SectionLabel(label: l10n.peersLocalDevice),
                   const SizedBox(height: 8),
                   _PeerCard(
                     iconName: 'monitor',
@@ -140,15 +141,15 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                     iconBackgroundColor: PosTokens.blueTint,
                     title: localPeer.deviceName,
                     subtitle: shortPeerKey(localPeer.peerKey),
-                    trailing: const _StatusPill(
-                      label: 'Online',
+                    trailing: _StatusPill(
+                      label: l10n.peersOnline,
                       background: Color(0xFFDCFCE7),
                       foreground: PosTokens.gainInk,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _SectionLabel(
-                    label: 'Connected peers',
+                    label: l10n.peersConnectedPeers,
                     count: peers.length,
                   ),
                   const SizedBox(height: 8),
@@ -159,8 +160,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: peerList.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 8),
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final peer = peerList[index];
                           return _PeerCard(
@@ -197,13 +197,14 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                         foregroundColor: PosTokens.ink1,
                         side: const BorderSide(color: PosTokens.lineStrong),
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(PosTokens.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            PosTokens.radiusMd,
+                          ),
                         ),
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: Text(
-                        'Close',
+                        l10n.close,
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -227,9 +228,13 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
     return presenceAsync.when(
       data: (presenceGraph) {
         if (presenceGraph == null) {
-          return const Tooltip(
-            message: 'Sync Service not initialized',
-            child: Icon(Icons.cloud_off_outlined, color: PosTokens.ink4, size: 20),
+          return Tooltip(
+            message: context.flipperL10n.peersSyncNotInitialized,
+            child: const Icon(
+              Icons.cloud_off_outlined,
+              color: PosTokens.ink4,
+              size: 20,
+            ),
           );
         }
 
@@ -242,8 +247,8 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
             iconName: 'refresh',
             iconSize: 19,
             tooltip: isConnected
-                ? 'Connected to $count device(s). Tap to see details.'
-                : 'Searching for devices on same network...',
+                ? context.flipperL10n.peersConnectedTooltip(count)
+                : context.flipperL10n.peersSearching,
             badge: '$count',
             onPressed: () => _showPeersDialog(context, presenceGraph),
           );
@@ -254,8 +259,8 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
           borderRadius: BorderRadius.circular(20),
           child: Tooltip(
             message: isConnected
-                ? 'Connected to $count device(s). Tap to see details.'
-                : 'Searching for devices on same network...',
+                ? context.flipperL10n.peersConnectedTooltip(count)
+                : context.flipperL10n.peersSearching,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -312,7 +317,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                   if (isConnected) ...[
                     const SizedBox(width: 4),
                     Text(
-                      'Live',
+                      context.flipperL10n.peersLive,
                       style: GoogleFonts.outfit(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -331,9 +336,9 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
         height: 16,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      error: (_, __) => const Tooltip(
-        message: 'Network check error',
-        child: Icon(Icons.error_outline, color: PosTokens.loss, size: 20),
+      error: (_, __) => Tooltip(
+        message: context.flipperL10n.peersNetworkCheckError,
+        child: const Icon(Icons.error_outline, color: PosTokens.loss, size: 20),
       ),
     );
   }
@@ -420,11 +425,7 @@ class _PeerCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: PosHandoffIcons.svg(
-                iconName,
-                size: 20,
-                color: iconColor,
-              ),
+              child: PosHandoffIcons.svg(iconName, size: 20, color: iconColor),
             ),
           ),
           const SizedBox(width: 12),
@@ -456,10 +457,7 @@ class _PeerCard extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 10),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
         ],
       ),
     );
@@ -539,7 +537,7 @@ class _EmptyPeersState extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            'No other devices found',
+            context.flipperL10n.peersNoOtherDevices,
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -548,7 +546,7 @@ class _EmptyPeersState extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Open Flipper on another device on the same network.',
+            context.flipperL10n.peersOpenFlipperHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: 12,

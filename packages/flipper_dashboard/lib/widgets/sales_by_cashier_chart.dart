@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -6,7 +7,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 export 'package:flipper_dashboard/transaction_report_cashier_utils.dart'
-    show cashierLabelFromAgentId, initialsFromLabel, cashierAccentColorForAgentId;
+    show
+        cashierLabelFromAgentId,
+        initialsFromLabel,
+        cashierAccentColorForAgentId;
 
 class CashierSalesEntry {
   const CashierSalesEntry({
@@ -51,7 +55,9 @@ class SalesByCashierChart extends StatelessWidget {
       if (agentId.isEmpty) continue;
 
       final s = sumsMap[tx.id.toString()];
-      final byHand = (s == null || !s.hasAnyRecord) ? (tx.cashReceived ?? 0.0) : s.byHand;
+      final byHand = (s == null || !s.hasAnyRecord)
+          ? (tx.cashReceived ?? 0.0)
+          : s.byHand;
       final credit = (s == null || !s.hasAnyRecord) ? 0.0 : s.credit;
       final sales = tx.subTotal ?? 0.0;
 
@@ -112,12 +118,12 @@ class SalesByCashierChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'SALES BY CASHIER',
+            context.flipperL10n.salesByCashierTitle,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: Colors.grey.shade600,
-                  letterSpacing: 0.6,
-                ),
+              fontWeight: FontWeight.w800,
+              color: Colors.grey.shade600,
+              letterSpacing: 0.6,
+            ),
           ),
           const SizedBox(height: 12),
           Expanded(
@@ -129,7 +135,8 @@ class SalesByCashierChart extends StatelessWidget {
                 return _CashierBarRow(
                   entry: e,
                   maxSales: maxSales,
-                  currencySymbol: currencySymbol ?? ProxyService.box.defaultCurrency(),
+                  currencySymbol:
+                      currencySymbol ?? ProxyService.box.defaultCurrency(),
                 );
               },
             ),
@@ -137,10 +144,19 @@ class SalesByCashierChart extends StatelessWidget {
           const SizedBox(height: 12),
           Wrap(
             spacing: 14,
-            children: const [
-              _LegendDot(color: Color(0xFF16A34A), label: 'Sales'),
-              _LegendDot(color: Color(0xFF3B82F6), label: 'By hand'),
-              _LegendDot(color: Color(0xFFF59E0B), label: 'Credit'),
+            children: [
+              _LegendDot(
+                color: const Color(0xFF16A34A),
+                label: context.flipperL10n.sales,
+              ),
+              _LegendDot(
+                color: const Color(0xFF3B82F6),
+                label: context.flipperL10n.salesByCashierByHand,
+              ),
+              _LegendDot(
+                color: const Color(0xFFF59E0B),
+                label: context.flipperL10n.credit,
+              ),
             ],
           ),
         ],
@@ -161,9 +177,9 @@ class _CashierBarRow extends StatelessWidget {
   final String currencySymbol;
 
   String _fmt(double v) {
-    return double.parse(v.toStringAsFixed(2)).toCurrencyFormatted(
-      symbol: currencySymbol,
-    );
+    return double.parse(
+      v.toStringAsFixed(2),
+    ).toCurrencyFormatted(symbol: currencySymbol);
   }
 
   @override
@@ -231,7 +247,10 @@ class _CashierBarRow extends StatelessWidget {
             children: [
               Text(
                 _fmt(entry.salesTotal),
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -330,4 +349,3 @@ class _LegendDot extends StatelessWidget {
     );
   }
 }
-

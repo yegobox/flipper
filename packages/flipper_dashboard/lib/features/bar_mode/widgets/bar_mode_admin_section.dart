@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_floor_plan_edito
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -92,20 +93,21 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Remove staff member'),
+          title: Text(dialogContext.flipperL10n.barRemoveStaffTitle),
           content: Text(
-            'Remove ${tenant.name ?? 'this staff member'} from your team? '
-            'They will lose PIN access for this business.',
+            dialogContext.flipperL10n.barRemoveStaffBody(
+              tenant.name ?? dialogContext.flipperL10n.barThisStaffMember,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: Text(dialogContext.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Delete'),
+              child: Text(dialogContext.flipperL10n.delete),
             ),
           ],
         );
@@ -121,12 +123,12 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
       _removeStaffFromList(tenant);
       await _loadStaff();
       if (!mounted) return;
-      showCustomSnackBarUtil(context, 'Staff member removed');
+      showCustomSnackBarUtil(context, context.flipperL10n.barStaffRemoved);
     } catch (_) {
       if (!mounted) return;
       showCustomSnackBarUtil(
         context,
-        'Could not remove staff member. Please try again.',
+        context.flipperL10n.barStaffRemoveFailed,
         backgroundColor: Colors.red.shade600,
       );
     } finally {
@@ -146,7 +148,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
       if (HotelModeSettings.enabled && mounted) {
         showCustomSnackBarUtil(
           context,
-          'Bar Mode on alongside Hotel Mode — pick what this device runs below.',
+          context.flipperL10n.barModeAlongsideHotel,
         );
       }
       final branchId = ProxyService.box.getBranchId();
@@ -167,10 +169,11 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BarAdminEyebrow(label: 'Service Mode'),
+        BarAdminEyebrow(label: l10n.barAdminServiceMode),
         _heroCard(),
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
@@ -182,9 +185,8 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                   BarSubRow(
                     showTopBorder: false,
                     icon: Icons.lock_outline,
-                    title: 'Require PIN to switch cashier',
-                    subtitle:
-                        'Each cashier logs in with their 6-digit PIN before adding to a tab.',
+                    title: l10n.barRequirePinTitle,
+                    subtitle: l10n.barRequirePinSubtitle,
                     value: _requirePin,
                     onChanged: (v) {
                       setState(() => _requirePin = v);
@@ -193,9 +195,8 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                   ),
                   BarSubRow(
                     icon: Icons.grid_view_rounded,
-                    title: 'Open the table floor on login',
-                    subtitle:
-                        'After PIN login, land on the table floor instead of a single cart.',
+                    title: l10n.barFloorFirstTitle,
+                    subtitle: l10n.barFloorFirstSubtitle,
                     value: _floorFirst,
                     onChanged: (v) {
                       setState(() => _floorFirst = v);
@@ -204,9 +205,8 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                   ),
                   BarSubRow(
                     icon: Icons.shield_outlined,
-                    title: 'Manager PIN required to settle',
-                    subtitle:
-                        'Only a manager PIN can take payment and close a table.',
+                    title: l10n.barManagerSettleTitle,
+                    subtitle: l10n.barManagerSettleSubtitle,
                     value: _managerSettle,
                     onChanged: (v) {
                       setState(() => _managerSettle = v);
@@ -215,8 +215,8 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                   ),
                   BarSubRow(
                     icon: Icons.logout,
-                    title: 'Auto-logout after saving to a tab',
-                    subtitle: 'Return to the PIN lock after Save to tab.',
+                    title: l10n.barAutoLogoutTitle,
+                    subtitle: l10n.barAutoLogoutSubtitle,
                     value: _autoLogout,
                     onChanged: (v) {
                       setState(() => _autoLogout = v);
@@ -234,16 +234,19 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
         ),
         if (_enabled) ...[
           const SizedBox(height: 22),
-          const BarAdminEyebrow(label: 'Floor & tables'),
+          BarAdminEyebrow(label: l10n.barAdminFloorTables),
           const BarFloorPlanEditor(),
         ],
         const SizedBox(height: 22),
-        const BarAdminEyebrow(label: 'Staff & PINs', accent: BarTokens.violet),
+        BarAdminEyebrow(
+          label: l10n.barAdminStaffPins,
+          accent: BarTokens.violet,
+        ),
         if (_staff.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              'No staff yet. Add users in User Management — they appear here with their PINs.',
+              l10n.barNoStaffYet,
               style: GoogleFonts.outfit(fontSize: 13, color: BarTokens.ink3),
             ),
           )
@@ -254,17 +257,20 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
               children: [
                 for (var i = 0; i < _staff.length; i++)
                   BarStaffRow(
-                    key: ValueKey('bar_staff_${_staff[i].id}_${_staff[i].userId}'),
+                    key: ValueKey(
+                      'bar_staff_${_staff[i].id}_${_staff[i].userId}',
+                    ),
                     tenant: _staff[i],
                     color: barColorForTenant(_staff[i].id, _staff),
                     showTopBorder: i > 0,
                     isDeleteLoading:
                         _deletingStaffKey == barStaffDeleteKey(_staff[i]),
                     onEdit: _openUserManagement,
-                    onDelete: barStaffDeleteAllowed(
-                      target: _staff[i],
-                      currentUserId: ProxyService.box.getUserId(),
-                    )
+                    onDelete:
+                        barStaffDeleteAllowed(
+                          target: _staff[i],
+                          currentUserId: ProxyService.box.getUserId(),
+                        )
                         ? () => _confirmDeleteStaff(_staff[i])
                         : null,
                   ),
@@ -286,12 +292,12 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               BarGhostButton(
-                label: 'Cancel',
+                label: l10n.cancel,
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
               const SizedBox(width: 12),
               BarPrimaryButton(
-                label: 'Open POS with Bar Mode',
+                label: l10n.barOpenPosWithBarMode,
                 onPressed: _enabled
                     ? () {
                         BarModeSettings.setLaunchOnStart(true);
@@ -353,7 +359,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                   children: [
                     Flexible(
                       child: Text(
-                        'Table Service (Bar Mode)',
+                        context.flipperL10n.barTableServiceTitle,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w800,
                           fontSize: 18,
@@ -374,7 +380,7 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          'ON',
+                          context.flipperL10n.hotelOnBadge,
                           style: GoogleFonts.outfit(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -388,12 +394,9 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Turns the register into a shared bar terminal: staff keep a '
-                  'running tab per table, log rounds under their own PIN, and '
-                  'hand off between cashiers without losing the bill. Leave off '
-                  'for standard retail checkout. On a keyboard, '
-                  '$serviceModeHotkeyLabel cycles Bar → Hotel → POS without '
-                  'coming back here.',
+                  context.flipperL10n.barModeDescription(
+                    serviceModeHotkeyLabel,
+                  ),
                   style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     color: BarTokens.ink2,

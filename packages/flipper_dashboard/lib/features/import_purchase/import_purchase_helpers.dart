@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -34,13 +35,14 @@ abstract final class ImportPurchaseHelpers {
     return 'rejected';
   }
 
-  static String importStatusLabel(String key) => switch (key) {
-    'pending' || 'wait' => 'Pending',
-    'approved' => 'Approved',
-    'rejected' => 'Rejected',
-    'processing' => 'Processing',
-    _ => key,
-  };
+  static String importStatusLabel(FlipperAppLocalizations l10n, String key) =>
+      switch (key) {
+        'pending' || 'wait' => l10n.importPurchaseStatusPending,
+        'approved' => l10n.approved,
+        'rejected' => l10n.importPurchaseStatusRejected,
+        'processing' => l10n.importPurchaseStatusProcessing,
+        _ => key,
+      };
 
   static String? importFilterCode(String? filterKey) => switch (filterKey) {
     'all' => null,
@@ -67,13 +69,14 @@ abstract final class ImportPurchaseHelpers {
     return 'rejected';
   }
 
-  static String purchaseStatusLabel(String key) => switch (key) {
-    'pending' || 'waiting' => 'Pending',
-    'approved' => 'Approved',
-    'rejected' => 'Rejected',
-    'processing' => 'Processing',
-    _ => key,
-  };
+  static String purchaseStatusLabel(FlipperAppLocalizations l10n, String key) =>
+      switch (key) {
+        'pending' || 'waiting' => l10n.importPurchaseStatusPending,
+        'approved' => l10n.approved,
+        'rejected' => l10n.importPurchaseStatusRejected,
+        'processing' => l10n.importPurchaseStatusProcessing,
+        _ => key,
+      };
 
   static String? purchaseFilterCode(String? filterKey) => switch (filterKey) {
     'all' => null,

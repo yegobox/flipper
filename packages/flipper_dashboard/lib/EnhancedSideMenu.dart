@@ -142,7 +142,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           ref.read(selectedPageProvider.notifier).state =
               DashboardPage.inventory;
         },
-        tooltip: 'Overview',
+        tooltip: context.flipperL10n.sideMenuOverview,
       ),
       _SideMenuItem(
         iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.aiChat, c),
@@ -151,7 +151,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
           ref.read(selectedMenuItemProvider.notifier).state = 1;
           ref.read(selectedPageProvider.notifier).state = DashboardPage.ai;
         },
-        tooltip: 'Chat',
+        tooltip: context.flipperL10n.menuChat,
       ),
     ];
 
@@ -169,7 +169,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedMenuItemProvider.notifier).state = 10;
             ref.read(selectedPageProvider.notifier).state = DashboardPage.leads;
           },
-          tooltip: 'Leads',
+          tooltip: context.flipperL10n.leads,
         ),
       if (isDesktop)
         _SideMenuItem(
@@ -205,7 +205,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
               },
             );
           },
-          tooltip: 'Authenticator',
+          tooltip: context.flipperL10n.sideMenuAuthenticator,
         ),
       if (showItems)
         _SideMenuItem(
@@ -216,7 +216,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.reports;
           },
-          tooltip: 'Items',
+          tooltip: context.flipperL10n.items,
         ),
       if (showKds)
         _SideMenuItem(
@@ -227,7 +227,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.kitchen;
           },
-          tooltip: 'Kitchen Display',
+          tooltip: context.flipperL10n.sideMenuKitchenDisplay,
         ),
       if (showStockRecount)
         _SideMenuItem(
@@ -239,7 +239,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.stockRecount;
           },
-          tooltip: 'Stock Recount',
+          tooltip: context.flipperL10n.sideMenuStockRecount,
         ),
       if (showDelegations)
         _SideMenuItem(
@@ -250,7 +250,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.delegations;
           },
-          tooltip: 'Delegations',
+          tooltip: context.flipperL10n.sideMenuDelegations,
         ),
       if (showIncomingOrders)
         _SideMenuItem(
@@ -261,7 +261,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.incomingOrders;
           },
-          tooltip: 'Incoming Orders',
+          tooltip: context.flipperL10n.sideMenuIncomingOrders,
         ),
       if (showIncomingOrders)
         _SideMenuItem(
@@ -272,7 +272,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.transfersReport;
           },
-          tooltip: 'Transfers Report',
+          tooltip: context.flipperL10n.sideMenuTransfersReport,
         ),
       if (showProduction)
         _SideMenuItem(
@@ -283,7 +283,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.productionOutput;
           },
-          tooltip: 'Production Output',
+          tooltip: context.flipperL10n.sideMenuProductionOutput,
         ),
     ];
 
@@ -301,21 +301,21 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.dailyReportFiles;
           },
-          tooltip: 'Daily Reports',
+          tooltip: context.flipperL10n.dailyReports,
         ),
       _SideMenuItem(
         key: const Key('transactions_desktop'),
         iconBuilder: (c) => Icon(Icons.receipt_long_outlined, color: c),
         isSelected: false,
         onTap: () => _openTransactionsReport(),
-        tooltip: 'Transactions',
+        tooltip: context.flipperL10n.sideMenuTransactions,
       ),
       _SideMenuItem(
         key: const Key('analytics_desktop'),
         iconBuilder: (c) => Icon(Icons.insights_outlined, color: c),
         isSelected: false,
         onTap: () => _openAnalyticsReport(),
-        tooltip: 'Analytics',
+        tooltip: context.flipperL10n.sideMenuAnalytics,
       ),
       if (showShiftHistory)
         _SideMenuItem(
@@ -326,7 +326,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.shiftHistory;
           },
-          tooltip: 'Shift History',
+          tooltip: context.flipperL10n.sideMenuShiftHistory,
         ),
       if (showAgentCommission)
         _SideMenuItem(
@@ -337,7 +337,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
             ref.read(selectedPageProvider.notifier).state =
                 DashboardPage.agentCommission;
           },
-          tooltip: 'Agent commission',
+          tooltip: context.flipperL10n.sideMenuAgentCommission,
         ),
     ];
 
@@ -346,7 +346,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
       iconBuilder: (c) => _coloredSideMenuSvg(_SideMenuSvgs.logout, c),
       isSelected: selectedItem == 4,
       onTap: () => _openEndOfShiftMenu(),
-      tooltip: 'End shift',
+      tooltip: context.flipperL10n.sideMenuEndShift,
       isLogout: true,
     );
 
@@ -390,7 +390,7 @@ class _EnhancedSideMenuState extends ConsumerState<EnhancedSideMenu>
               showAppChoiceDialog(
                 dialogService: _dialogService,
                 variant: DialogType.appChoice,
-                title: 'Choose Your Default App',
+                title: context.flipperL10n.chooseYourDefaultApp,
               );
             },
             tooltip: context.flipperL10n.chooseDefaultApp,

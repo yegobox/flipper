@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,19 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
 
   List<Variant> _searchResults = [];
 
+  String _productTypeLabel(FlipperAppLocalizations l10n, String value) {
+    switch (value) {
+      case 'Favorites':
+        return l10n.searchProductFavorites;
+      case 'In Stock':
+        return l10n.posStockFilterInStock;
+      case 'Out of Stock':
+        return l10n.posStockFilterOutOfStock;
+      default:
+        return l10n.searchProductAllProducts;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.nonReactive(
@@ -49,8 +63,9 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     return;
                   }
                   final paged = await ProxyService.strategy.variants(
-                    taxTyCds:
-                        ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+                    taxTyCds: ProxyService.box.vatEnabled()
+                        ? ['A', 'B', 'C']
+                        : ['D'],
                     name: searchKey,
                     branchId: ProxyService.box.getBranchId()!,
                   );
@@ -60,7 +75,7 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Search',
+                  hintText: context.flipperL10n.searchProductHint,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -82,11 +97,14 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                             _selectedProductType = newValue!;
                           });
                         },
-                        items: _productTypes
-                            .map<DropdownMenuItem<String>>((String value) {
+                        items: _productTypes.map<DropdownMenuItem<String>>((
+                          String value,
+                        ) {
                           return DropdownMenuItem<String>(
                             value: value,
-                            child: Text(value),
+                            child: Text(
+                              _productTypeLabel(context.flipperL10n, value),
+                            ),
                           );
                         }).toList(),
                       ),
@@ -114,13 +132,14 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                         ref
                             .read(selectedVariantsLocalProvider.notifier)
                             .addVariant(
-                                variant: VVariant(
-                              productName: _searchResults[index].productName!,
-                              name: _searchResults[index].name,
-                              retailPrice: _searchResults[index].retailPrice!,
-                              id: _searchResults[index].id,
-                              productId: _searchResults[index].productId!,
-                            ));
+                              variant: VVariant(
+                                productName: _searchResults[index].productName!,
+                                name: _searchResults[index].name,
+                                retailPrice: _searchResults[index].retailPrice!,
+                                id: _searchResults[index].id,
+                                productId: _searchResults[index].productId!,
+                              ),
+                            );
                         talker.warning("click on item found");
                         _searchController.clear();
                         setState(() {
@@ -133,8 +152,9 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                         ),
                         child: ListTile(
                           title: Text(_searchResults[index].name),
-                          subtitle:
-                              Text(_searchResults[index].productName ?? ""),
+                          subtitle: Text(
+                            _searchResults[index].productName ?? "",
+                          ),
                         ),
                       ),
                     );

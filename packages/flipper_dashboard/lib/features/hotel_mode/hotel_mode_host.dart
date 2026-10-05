@@ -16,6 +16,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_manager_pin_
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/services/hotel_room_rra_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -104,7 +105,7 @@ class _HotelModeHostState extends ConsumerState<HotelModeHost> {
 
       notifier.resolveEntry(requirePin: false, signedInClerk: signedIn);
       if (signedIn == null) {
-        notifier.showToast('Sign in with your PIN to open the desk');
+        notifier.showToast(context.flipperL10n.hotelSignInWithPinToOpenDesk);
       }
     } catch (e) {
       // Never leave the desk on the starting screen, and never open it on a

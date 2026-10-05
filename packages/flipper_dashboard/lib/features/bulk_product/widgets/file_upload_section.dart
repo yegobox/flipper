@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,9 +61,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
             : Colors.grey.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _isDragging
-              ? Colors.blue
-              : Colors.grey.withValues(alpha: 0.3),
+          color: _isDragging ? Colors.blue : Colors.grey.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -81,7 +80,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Drop your Excel file here',
+                context.flipperL10n.bulkProductDropExcelHere,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -90,7 +89,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
               ),
               const SizedBox(height: 6),
               Text(
-                'or click to browse your files',
+                context.flipperL10n.bulkProductClickToBrowse,
                 style: GoogleFonts.outfit(fontSize: 13, color: Colors.black54),
               ),
             ],
@@ -144,7 +143,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                     ),
                     if (count != null)
                       Text(
-                        '$count products loaded',
+                        context.flipperL10n.bulkProductProductsLoaded(count),
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           color: Colors.black54,
@@ -155,12 +154,12 @@ class _FileUploadSectionState extends State<FileUploadSection> {
               ),
               TextButton(
                 onPressed: () => widget.onSelectFile(),
-                child: const Text('Change'),
+                child: Text(context.flipperL10n.bulkProductChange),
               ),
               if (widget.onClearFile != null)
                 TextButton(
                   onPressed: widget.onClearFile,
-                  child: const Text('Remove'),
+                  child: Text(context.flipperL10n.remove),
                 ),
             ],
           ),
@@ -175,7 +174,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
         const Icon(FluentIcons.info_24_regular, size: 16, color: Colors.grey),
         const SizedBox(width: 8),
         Text(
-          'Supported: .xlsx, .xls (save WPS as Excel .xlsx)',
+          context.flipperL10n.bulkProductSupportedFormats,
           style: GoogleFonts.outfit(fontSize: 12, color: Colors.grey),
         ),
         const Spacer(),
@@ -183,7 +182,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           onPressed: widget.onDownloadTemplate,
           icon: const Icon(FluentIcons.arrow_download_24_regular, size: 18),
           label: Text(
-            'Download Template',
+            context.flipperL10n.bulkProductDownloadTemplate,
             style: GoogleFonts.outfit(fontWeight: FontWeight.w500),
           ),
         ),

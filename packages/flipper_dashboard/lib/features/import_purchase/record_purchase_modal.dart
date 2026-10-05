@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_mobile_screen.dart';
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_form.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -11,7 +12,10 @@ import 'package:supabase_models/brick/models/all_models.dart';
 import 'import_purchase_helpers.dart';
 import 'import_purchase_tokens.dart';
 
-Future<void> showRecordPurchaseModal(BuildContext context, WidgetRef ref) async {
+Future<void> showRecordPurchaseModal(
+  BuildContext context,
+  WidgetRef ref,
+) async {
   final branchId = ProxyService.box.getBranchId() ?? '';
   final catalogVariants =
       ref.read(outerVariantsProvider(branchId)).value ?? <Variant>[];
@@ -37,7 +41,7 @@ Future<void> showRecordPurchaseModal(BuildContext context, WidgetRef ref) async 
   await showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
-    barrierLabel: 'Record Purchase',
+    barrierLabel: context.flipperL10n.importPurchaseRecordPurchase,
     barrierColor: const Color(0x80141C2E),
     pageBuilder: (dialogContext, _, __) {
       return _RecordPurchaseModal(
@@ -95,9 +99,7 @@ class _RecordPurchaseModal extends StatelessWidget {
             color: Colors.transparent,
             child: Stack(
               children: [
-                Positioned.fill(
-                  child: GestureDetector(onTap: onClose),
-                ),
+                Positioned.fill(child: GestureDetector(onTap: onClose)),
                 if (isSheet)
                   Align(
                     alignment: Alignment.bottomCenter,
@@ -163,7 +165,7 @@ class _RecordPurchaseModal extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Record Purchase',
+                        context.flipperL10n.importPurchaseRecordPurchase,
                         style: ImportPurchaseHelpers.text(
                           size: 20,
                           weight: FontWeight.w800,
@@ -171,7 +173,9 @@ class _RecordPurchaseModal extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Capture a supplier invoice and its line items',
+                        context
+                            .flipperL10n
+                            .importPurchaseRecordPurchaseSubtitle,
                         style: ImportPurchaseHelpers.text(
                           size: 13,
                           weight: FontWeight.w500,

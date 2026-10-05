@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
@@ -63,7 +64,8 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
   @override
   void didUpdateWidget(covariant DashboardHomeGauge oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final fillChanged = oldWidget.value != widget.value ||
+    final fillChanged =
+        oldWidget.value != widget.value ||
         oldWidget.revenue != widget.revenue ||
         oldWidget.profitType != widget.profitType ||
         oldWidget.isEmpty != widget.isEmpty;
@@ -90,8 +92,10 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final metricShort =
-        widget.profitType == 'Gross Profit' ? 'Gross' : 'Net';
+    final l10n = context.flipperL10n;
+    final metricLine = widget.profitType == 'Gross Profit'
+        ? l10n.dashboardGaugeGrossProfitPeriod(widget.periodLabel)
+        : l10n.dashboardGaugeNetProfitPeriod(widget.periodLabel);
 
     return Container(
       decoration: BoxDecoration(
@@ -154,12 +158,12 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
                                 final displayed = widget.isEmpty
                                     ? 0.0
                                     : reduceMotion
-                                        ? widget.value
-                                        : lerpDouble(
-                                              0,
-                                              widget.value,
-                                              _valueAnimation.value,
-                                            )!;
+                                    ? widget.value
+                                    : lerpDouble(
+                                        0,
+                                        widget.value,
+                                        _valueAnimation.value,
+                                      )!;
                                 return Text(
                                   formatNumber(displayed),
                                   style: FlipperFonts.mono(
@@ -186,7 +190,7 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$metricShort profit · ${widget.periodLabel}',
+                  metricLine,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -203,20 +207,22 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
                 Expanded(
                   child: _splitCell(
                     dotColor: _gain,
-                    label: 'Gross profit',
+                    label: l10n.dashboardGaugeGrossProfit,
                     value: widget.grossProfit,
-                    valueColor:
-                        widget.isEmpty ? Colors.grey.shade400 : _gainInk,
+                    valueColor: widget.isEmpty
+                        ? Colors.grey.shade400
+                        : _gainInk,
                   ),
                 ),
                 VerticalDivider(width: 1, color: _line),
                 Expanded(
                   child: _splitCell(
                     dotColor: const Color(0xFFE5484D),
-                    label: 'Tax & expenses',
+                    label: l10n.dashboardGaugeTaxExpenses,
                     value: widget.deductions,
-                    valueColor:
-                        widget.isEmpty ? Colors.grey.shade400 : _lossInk,
+                    valueColor: widget.isEmpty
+                        ? Colors.grey.shade400
+                        : _lossInk,
                   ),
                 ),
               ],
@@ -236,7 +242,7 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
-          'No transactions yet',
+          context.flipperL10n.dashboardGaugeNoTransactionsYet,
           style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -266,7 +272,11 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
           ),
           const SizedBox(width: 2),
           Text(
-            '${isUp ? '' : ''}${delta.abs()}% vs ${widget.comparisonLabel ?? 'last period'}',
+            context.flipperL10n.dashboardGaugeDeltaVs(
+              '${delta.abs()}',
+              widget.comparisonLabel ??
+                  context.flipperL10n.dashboardGaugeLastPeriod,
+            ),
             style: FlipperFonts.mono(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -330,10 +340,7 @@ class _DashboardHomeGaugeState extends State<DashboardHomeGauge>
 }
 
 class _DashboardArcPainter extends CustomPainter {
-  _DashboardArcPainter({
-    required this.fillFraction,
-    required this.isEmpty,
-  });
+  _DashboardArcPainter({required this.fillFraction, required this.isEmpty});
 
   final double fillFraction;
   final bool isEmpty;
@@ -366,11 +373,7 @@ class _DashboardArcPainter extends CustomPainter {
         ..shader = const SweepGradient(
           startAngle: math.pi,
           endAngle: 2 * math.pi,
-          colors: [
-            Color(0xFF10B981),
-            Color(0xFF22D3EE),
-            Color(0xFF2563EB),
-          ],
+          colors: [Color(0xFF10B981), Color(0xFF22D3EE), Color(0xFF2563EB)],
           stops: [0.0, 0.6, 1.0],
         ).createShader(trackRect);
 

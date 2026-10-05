@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/shift_sync.dart';
 import 'package:flipper_services/proxy.dart';
@@ -46,10 +47,7 @@ void _presentBlockingLoader(
   );
 }
 
-void _hideBlockingLoader(
-  BuildContext context, {
-  required bool rootNavigator,
-}) {
+void _hideBlockingLoader(BuildContext context, {required bool rootNavigator}) {
   final nav = Navigator.of(context, rootNavigator: rootNavigator);
   if (nav.canPop()) nav.pop();
 }
@@ -79,11 +77,11 @@ Future<bool> _confirmExitWithoutClosingShift({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+          child: Text(ctx.flipperL10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Sign out anyway'),
+          child: Text(ctx.flipperL10n.shiftSignOutAnyway),
         ),
       ],
     ),
@@ -129,11 +127,12 @@ Future<bool> prepareSessionExitAfterShiftHandling({
   if (userId == null) return true;
 
   final askConfirmNoShift = confirmWhenNoOpenShift && !forUserSwitch;
+  final l10n = context.flipperL10n;
 
   if (!forUserSwitch) {
     _presentBlockingLoader(
       context,
-      'Checking your shift…',
+      l10n.shiftCheckingYourShift,
       useRootNavigator: loaderUseRootNavigator,
     );
   }
@@ -142,10 +141,7 @@ Future<bool> prepareSessionExitAfterShiftHandling({
         .getCurrentShift(userId: userId)
         .timeout(_kGetCurrentShiftTimeout);
     if (!forUserSwitch && context.mounted) {
-      _hideBlockingLoader(
-        context,
-        rootNavigator: loaderUseRootNavigator,
-      );
+      _hideBlockingLoader(context, rootNavigator: loaderUseRootNavigator);
     }
     if (!context.mounted) return false;
 
@@ -156,9 +152,8 @@ Future<bool> prepareSessionExitAfterShiftHandling({
         if (forUserSwitch) {
           await dialogService.showCustomDialog(
             variant: DialogType.info,
-            title: 'Cannot close shift',
-            description: 'The open shift belongs to another user. Ask that '
-                'agent to close their shift first, then try switching again.',
+            title: l10n.shiftCannotCloseShift,
+            description: l10n.shiftBelongsToAnotherUserSwitch,
           );
           return false;
         }
@@ -166,10 +161,8 @@ Future<bool> prepareSessionExitAfterShiftHandling({
         // closing it" — but the code returned false, so they could not.
         final proceed = await _confirmExitWithoutClosingShift(
           context: context,
-          title: 'Shift belongs to another user',
-          description: 'The open shift was started by another agent, so it '
-              'cannot be closed from here.\n\nYou can still sign out. The '
-              'shift stays open for that agent to close.',
+          title: l10n.shiftBelongsToAnotherUserTitle,
+          description: l10n.shiftBelongsToAnotherUserSignOut,
         );
         if (proceed) {
           talker.warning(
@@ -198,8 +191,8 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       final dialogResponse = await dialogService.showCustomDialog(
         variant: DialogType.closeShift,
         title: forUserSwitch
-            ? 'Close shift to switch user'
-            : 'Close shift to sign out',
+            ? l10n.shiftCloseToSwitchUser
+            : l10n.shiftCloseToSignOut,
         data: {
           'openingBalance': currentShift.openingBalance,
           'cashSales': currentShift.cashSales,
@@ -226,17 +219,15 @@ Future<bool> prepareSessionExitAfterShiftHandling({
         if (forUserSwitch) {
           await dialogService.showCustomDialog(
             variant: DialogType.info,
-            title: 'Could not close shift',
+            title: l10n.shiftCouldNotCloseShift,
             description: e.toString(),
           );
           return false;
         }
         final proceed = await _confirmExitWithoutClosingShift(
           context: context,
-          title: 'Could not close shift',
-          description: 'The shift could not be closed:\n\n$e\n\nYou can '
-              'sign out anyway. The shift stays open and can be closed the '
-              'next time you sign in.',
+          title: l10n.shiftCouldNotCloseShift,
+          description: l10n.shiftCouldNotCloseSignOutAnyway(e.toString()),
         );
         if (proceed) {
           talker.warning(
@@ -249,12 +240,10 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       if (context.mounted) {
         if (askConfirmNoShift) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Shift closed successfully. Taking you to the login screen…',
-              ),
+            SnackBar(
+              content: Text(l10n.shiftClosedTakingToLogin),
               behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 4),
+              duration: const Duration(seconds: 4),
             ),
           );
           await Future<void>.delayed(kPostShiftCloseLogoutDelay);
@@ -268,18 +257,16 @@ Future<bool> prepareSessionExitAfterShiftHandling({
         context: context,
         useRootNavigator: true,
         builder: (ctx) => AlertDialog(
-          title: const Text('Sign out'),
-          content: const Text(
-            'You do not have an open shift. Continue to the login screen?',
-          ),
+          title: Text(ctx.flipperL10n.shiftSignOut),
+          content: Text(ctx.flipperL10n.shiftNoOpenShiftContinue),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(ctx.flipperL10n.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Continue'),
+              child: Text(ctx.flipperL10n.continueAction),
             ),
           ],
         ),
@@ -289,10 +276,10 @@ Future<bool> prepareSessionExitAfterShiftHandling({
 
     if (context.mounted && askConfirmNoShift) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signing out…'),
+        SnackBar(
+          content: Text(l10n.shiftSigningOut),
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
       await Future<void>.delayed(kNoOpenShiftLogoutDelay);
@@ -305,12 +292,8 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       forUserSwitch: forUserSwitch,
       loaderUseRootNavigator: loaderUseRootNavigator,
       userId: userId,
-      blockedDescription:
-          'This is taking too long. Check your connection and try again.\n\n$e',
-      signOutAnywayDescription:
-          'Checking your shift is taking too long — you may be offline.\n\n'
-          'You can sign out anyway. Any open shift stays open and can be '
-          'closed the next time you sign in.',
+      blockedDescription: l10n.shiftTakingTooLongRetry(e.toString()),
+      signOutAnywayDescription: l10n.shiftTakingTooLongSignOutAnyway,
       logDetail: 'timed out: $e',
     );
   } catch (e) {
@@ -320,12 +303,10 @@ Future<bool> prepareSessionExitAfterShiftHandling({
       forUserSwitch: forUserSwitch,
       loaderUseRootNavigator: loaderUseRootNavigator,
       userId: userId,
-      blockedDescription:
-          'Please try again. If the problem continues, check your connection.\n\n$e',
-      signOutAnywayDescription:
-          'Your shift could not be checked:\n\n$e\n\nYou can sign out '
-          'anyway. Any open shift stays open and can be closed the next time '
-          'you sign in.',
+      blockedDescription: l10n.shiftCheckFailedRetry(e.toString()),
+      signOutAnywayDescription: l10n.shiftCheckFailedSignOutAnyway(
+        e.toString(),
+      ),
       logDetail: 'failed: $e',
     );
   }
@@ -355,7 +336,7 @@ Future<bool> _handleShiftVerificationFailure({
   if (forUserSwitch) {
     await dialogService.showCustomDialog(
       variant: DialogType.info,
-      title: 'Could not verify shift',
+      title: FlipperL10n.current.shiftCouldNotVerify,
       description: blockedDescription,
     );
     return false;
@@ -363,7 +344,7 @@ Future<bool> _handleShiftVerificationFailure({
 
   final proceed = await _confirmExitWithoutClosingShift(
     context: context,
-    title: 'Could not verify shift',
+    title: FlipperL10n.current.shiftCouldNotVerify,
     description: signOutAnywayDescription,
   );
   if (proceed) {
@@ -373,4 +354,3 @@ Future<bool> _handleShiftVerificationFailure({
   }
   return proceed;
 }
-

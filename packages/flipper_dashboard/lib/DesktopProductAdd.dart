@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -126,28 +127,26 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   void _showNoProductNameToast(BuildContext context) {
-    showWarningNotification(context, 'No product name!');
+    showWarningNotification(context, context.flipperL10n.dpaNoProductName);
   }
 
   void _showNoProductSavedToast(BuildContext context) {
-    showWarningNotification(context, 'No product saved!');
+    showWarningNotification(context, context.flipperL10n.dpaNoProductSaved);
   }
 
   String _productSaveErrorMessage(Object error) {
     final raw = error.toString().replaceFirst('Exception: ', '');
     final lower = raw.toLowerCase();
     if (lower.contains('timeout') || lower.contains('connection')) {
-      return 'RRA tax server timed out. The product is saved locally but not '
-          'fully reported to RRA yet. Check the tax server, then tap Save again.';
+      return context.flipperL10n.dpaRraTimeout;
     }
     if (lower.contains('saveitems') ||
         lower.contains('savestockitems') ||
         lower.contains('savestockmaster') ||
         lower.contains('rra ')) {
-      return 'Product saved locally but RRA reporting failed: $raw. '
-          'Tap Save again to retry.';
+      return context.flipperL10n.dpaRraReportingFailed(raw);
     }
-    return 'Could not save product: $raw';
+    return context.flipperL10n.dpaSaveProductFailed(raw);
   }
 
   /// Keeps [ScannViewModel.kProductName] and in-memory variant titles aligned with
@@ -306,7 +305,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          showSuccessNotification(context, 'Product saved successfully!');
+          showSuccessNotification(context, context.flipperL10n.dpaProductSaved);
           final isPhone =
               responsive.ResponsiveLayout.isPhone(context) ||
               responsive.ResponsiveLayout.isTinyLimit(context);
@@ -384,7 +383,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         if (mounted) {
           showErrorNotification(
             context,
-            'Product not initialized. Please try again.',
+            context.flipperL10n.dpaProductNotInitialized,
           );
           talker.error("Error: unsavedProductProvider is null");
         }
@@ -400,7 +399,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         if (mounted) {
           showErrorNotification(
             context,
-            "Branch ID not found. Please ensure you're logged in properly.",
+            context.flipperL10n.dpaBranchIdNotFound,
           );
           talker.error("Error: getBranchId() returned null");
         }
@@ -412,7 +411,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         if (mounted) {
           showErrorNotification(
             context,
-            "Business ID not found. Please ensure you're logged in properly.",
+            context.flipperL10n.dpaBusinessIdNotFound,
           );
           talker.error("Error: getBusinessId() returned null");
         }
@@ -427,10 +426,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       if (partOfComposite.isEmpty) {
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
-          showWarningNotification(
-            context,
-            'Please add at least one component to the composite product.',
-          );
+          showWarningNotification(context, context.flipperL10n.dpaAddComponent);
           talker.warning("No composite components selected");
         }
         return;
@@ -561,7 +557,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       if (!mounted) return;
 
       // Show success message and close dialog
-      showSuccessNotification(context, 'Composite product saved successfully!');
+      showSuccessNotification(context, context.flipperL10n.dpaCompositeSaved);
       Navigator.pop(context);
 
       // Clear the state after closing the dialog to prevent visual glitch
@@ -571,7 +567,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       if (mounted) {
         showErrorNotification(
           context,
-          'Failed to save composite product: ${e.toString()}',
+          context.flipperL10n.dpaCompositeSaveFailed(e.toString()),
         );
         talker.error(
           "Error saving composite product: $e\nStack trace: $stackTrace",
@@ -630,7 +626,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       if (productRef == null) {
         showErrorNotification(
           context,
-          'Invalid product reference. Please select or create a product first.',
+          context.flipperL10n.dpaInvalidProductRefSelect,
         );
         talker.error(
           "Attempted to scan barcode with null productRef. Skipping scan.",
@@ -652,10 +648,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         _scannedInputFocusNode.requestFocus();
       } catch (e, s) {
         talker.error("Error in onAddVariant: $e", s);
-        showErrorNotification(
-          context,
-          'We faced unexpected error, close this window and open again',
-        );
+        showErrorNotification(context, context.flipperL10n.dpaUnexpectedReopen);
       }
     }
   }
@@ -665,7 +658,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     try {
       if (_formKey.currentState!.validate() && !ref.read(isCompositeProvider)) {
         if (productRef == null) {
-          showErrorNotification(context, 'Invalid product reference');
+          showErrorNotification(
+            context,
+            context.flipperL10n.dpaInvalidProductRef,
+          );
           return;
         }
         if (!mounted) return;
@@ -679,7 +675,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         await _handleCompositeProductSave(model);
       }
     } catch (e) {
-      showErrorNotification(context, 'An unexpected error occurred');
+      showErrorNotification(context, context.flipperL10n.dpaUnexpectedError);
       talker.error("Error in save button: $e");
     }
   }
@@ -746,8 +742,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'basics',
-                title: 'Basics',
-                subtitle: 'Name & color',
+                title: context.flipperL10n.dpaBasics,
+                subtitle: context.flipperL10n.dpaNameColor,
                 icon: Icons.sell_outlined,
                 isFilled: nameFilled,
               ),
@@ -756,7 +752,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   PeField(
-                    label: 'Product color',
+                    label: context.flipperL10n.dpaProductColor,
                     child: ProductEditorColorPicker(
                       color: pickerColor,
                       onColorChanged: (color) {
@@ -769,16 +765,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   const SizedBox(height: 18),
                   PeField(
-                    label: 'Product name',
+                    label: context.flipperL10n.fuelProductName,
                     required: true,
                     child: PeTextInput(
                       controller: productNameController,
-                      placeholder: 'e.g. Fanta Orange 500ml',
+                      placeholder: context.flipperL10n.dpaProductNameHint,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Product name is required';
+                          return context.flipperL10n.fuelProductNameRequired;
                         } else if (value.length < 3) {
-                          return 'Product name must be at least 3 characters long';
+                          return context.flipperL10n.dpaProductNameMinLength;
                         }
                         return null;
                       },
@@ -792,8 +788,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'pricing',
-                title: 'Pricing & codes',
-                subtitle: 'Price, SKU, barcode',
+                title: context.flipperL10n.dpaPricingCodes,
+                subtitle: context.flipperL10n.dpaPriceSkuBarcode,
                 icon: Icons.payments_outlined,
                 isFilled: retailFilled,
               ),
@@ -805,9 +801,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     children: [
                       Expanded(
                         child: PeField(
-                          label: 'Retail price',
+                          label: context.flipperL10n.dpaRetailPrice,
                           required: true,
-                          hint: 'What the customer pays',
+                          hint: context.flipperL10n.dpaRetailPriceHint,
                           child: PeTextInput(
                             controller: retailPriceController,
                             prefix: 'RWF',
@@ -818,10 +814,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 model.setRetailPrice(price: value),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Price is required';
+                                return context.flipperL10n.dpaPriceRequired;
                               }
                               if (double.tryParse(value) == null) {
-                                return 'Invalid price';
+                                return context.flipperL10n.invalidPrice;
                               }
                               return null;
                             },
@@ -831,8 +827,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: PeField(
-                          label: 'Supply price',
-                          hint: 'Calculated from components',
+                          label: context.flipperL10n.dpaSupplyPrice,
+                          hint: context.flipperL10n.dpaSupplyFromComponents,
                           child: PeTextInput(
                             controller: supplyPriceController,
                             prefix: 'RWF',
@@ -861,8 +857,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'components',
-                title: 'Components',
-                subtitle: 'Bill of materials',
+                title: context.flipperL10n.dpaComponents,
+                subtitle: context.flipperL10n.dpaBillOfMaterials,
                 icon: Icons.layers_outlined,
                 isFilled: componentsFilled,
               ),
@@ -884,8 +880,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'basics',
-                title: 'Basics',
-                subtitle: 'Name & color',
+                title: context.flipperL10n.dpaBasics,
+                subtitle: context.flipperL10n.dpaNameColor,
                 icon: Icons.sell_outlined,
                 isFilled: nameFilled,
               ),
@@ -894,7 +890,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   PeField(
-                    label: 'Product color',
+                    label: context.flipperL10n.dpaProductColor,
                     child: ProductEditorColorPicker(
                       color: pickerColor,
                       onColorChanged: (color) {
@@ -907,16 +903,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   const SizedBox(height: 18),
                   PeField(
-                    label: 'Product name',
+                    label: context.flipperL10n.fuelProductName,
                     required: true,
                     child: PeTextInput(
                       controller: productNameController,
-                      placeholder: 'e.g. Fanta Orange 500ml',
+                      placeholder: context.flipperL10n.dpaProductNameHint,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Product name is required';
+                          return context.flipperL10n.fuelProductNameRequired;
                         } else if (value.length < 3) {
-                          return 'Product name must be at least 3 characters long';
+                          return context.flipperL10n.dpaProductNameMinLength;
                         }
                         return null;
                       },
@@ -930,8 +926,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'pricing',
-                title: 'Pricing',
-                subtitle: 'Retail & supply',
+                title: context.flipperL10n.pricing,
+                subtitle: context.flipperL10n.dpaRetailSupply,
                 icon: Icons.payments_outlined,
                 isFilled: retailFilled,
               ),
@@ -943,9 +939,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     children: [
                       Expanded(
                         child: PeField(
-                          label: 'Retail price',
+                          label: context.flipperL10n.dpaRetailPrice,
                           required: true,
-                          hint: 'What the customer pays',
+                          hint: context.flipperL10n.dpaRetailPriceHint,
                           child: PeTextInput(
                             controller: retailPriceController,
                             prefix: 'RWF',
@@ -956,10 +952,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 model.setRetailPrice(price: value),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Price is required';
+                                return context.flipperL10n.dpaPriceRequired;
                               }
                               if (double.tryParse(value) == null) {
-                                return 'Invalid price';
+                                return context.flipperL10n.invalidPrice;
                               }
                               return null;
                             },
@@ -969,8 +965,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: PeField(
-                          label: 'Supply price',
-                          hint: 'Your cost per unit',
+                          label: context.flipperL10n.dpaSupplyPrice,
+                          hint: context.flipperL10n.dpaCostPerUnit,
                           child: PeTextInput(
                             controller: supplyPriceController,
                             prefix: 'RWF',
@@ -994,8 +990,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'inventory',
-                title: 'Inventory & categorization',
-                subtitle: 'Category & item type',
+                title: context.flipperL10n.dpaInventoryCategorization,
+                subtitle: context.flipperL10n.dpaCategoryItemType,
                 icon: Icons.layers_outlined,
                 isFilled: inventoryFilled,
               ),
@@ -1032,8 +1028,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ProductEditorSectionContent(
               def: ProductEditorSectionDef(
                 id: 'variants',
-                title: 'Variants & stock',
-                subtitle: 'Stock & scan',
+                title: context.flipperL10n.dpaVariantsStock,
+                subtitle: context.flipperL10n.dpaStockScan,
                 icon: Icons.qr_code_scanner,
                 isFilled: variantsFilled,
               ),
@@ -1209,8 +1205,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           showErrorNotification(
             context,
             e is ProductNotFoundException
-                ? 'This product could not be loaded. It may have been deleted.'
-                : 'Could not load this product. Please try again.',
+                ? context.flipperL10n.dpaProductDeleted
+                : context.flipperL10n.dpaProductLoadFailed,
           );
         }
       },
@@ -1232,7 +1228,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 if (!mounted) return;
                 if (_formKey.currentState!.validate()) {
                   if (productRef == null) {
-                    showErrorNotification(context, 'Invalid product reference');
+                    showErrorNotification(
+                      context,
+                      context.flipperL10n.dpaInvalidProductRef,
+                    );
                     return;
                   }
                   await _onSaveButtonPressed(
@@ -1366,7 +1365,7 @@ class _ProductSavedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const accentBlue = Color(0xFF0078D4);
     return Scaffold(
-      appBar: AppBar(title: const Text('Product saved')),
+      appBar: AppBar(title: Text(context.flipperL10n.dpaProductSavedTitle)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -1384,7 +1383,7 @@ class _ProductSavedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                '$productName saved!',
+                context.flipperL10n.dpaNamedProductSaved(productName),
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
@@ -1392,7 +1391,7 @@ class _ProductSavedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Your product and variants have been added to inventory.',
+                context.flipperL10n.dpaAddedToInventory,
                 textAlign: TextAlign.center,
                 style: Theme.of(
                   context,
@@ -1408,21 +1407,26 @@ class _ProductSavedScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _SummaryRow(label: 'Product', value: productName),
+                    _SummaryRow(
+                      label: context.flipperL10n.productLabel,
+                      value: productName,
+                    ),
                     const SizedBox(height: 8),
                     _SummaryRow(
-                      label: 'Retail price',
+                      label: context.flipperL10n.dpaRetailPrice,
                       value: retailPrice.toStringAsFixed(2),
                     ),
                     const SizedBox(height: 8),
                     _SummaryRow(
-                      label: 'Supply price',
+                      label: context.flipperL10n.dpaSupplyPrice,
                       value: supplyPrice.toStringAsFixed(2),
                     ),
                     const SizedBox(height: 8),
                     _SummaryRow(
-                      label: 'Variants',
-                      value: '$variantsCount variants',
+                      label: context.flipperL10n.dpaVariants,
+                      value: context.flipperL10n.fuelVariantsCount(
+                        variantsCount,
+                      ),
                     ),
                   ],
                 ),
@@ -1440,7 +1444,7 @@ class _ProductSavedScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Done'),
+                  child: Text(context.flipperL10n.done),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1457,7 +1461,7 @@ class _ProductSavedScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text('Add another product'),
+                  child: Text(context.flipperL10n.dpaAddAnother),
                 ),
               ),
             ],
@@ -1629,8 +1633,8 @@ Future<void> _showVariantSheet({
                               Expanded(
                                 child: Text(
                                   existingVariant == null
-                                      ? 'Add variant'
-                                      : 'Edit variant',
+                                      ? context.flipperL10n.dpaAddVariant
+                                      : context.flipperL10n.dpaEditVariant,
                                   style: Theme.of(ctx).textTheme.titleLarge
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
@@ -1649,7 +1653,7 @@ Future<void> _showVariantSheet({
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'Image',
+                                    context.flipperL10n.variantsImage,
                                     style: Theme.of(ctx).textTheme.titleSmall
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
@@ -1662,7 +1666,9 @@ Future<void> _showVariantSheet({
                                           if (productRef == null) {
                                             showErrorNotification(
                                               ctx,
-                                              'Invalid product reference',
+                                              context
+                                                  .flipperL10n
+                                                  .dpaInvalidProductRef,
                                             );
                                             return;
                                           }
@@ -1712,7 +1718,9 @@ Future<void> _showVariantSheet({
                                             );
                                             showErrorNotification(
                                               ctx,
-                                              'Could not upload image. Please try again.',
+                                              context
+                                                  .flipperL10n
+                                                  .dpaImageUploadFailed,
                                             );
                                           } finally {
                                             if (ctx.mounted) {
@@ -1767,7 +1775,9 @@ Future<void> _showVariantSheet({
                                               }
                                               return Center(
                                                 child: Text(
-                                                  'Image selected',
+                                                  context
+                                                      .flipperL10n
+                                                      .dpaImageSelected,
                                                   style: TextStyle(
                                                     color: Colors.grey.shade700,
                                                     fontWeight: FontWeight.w600,
@@ -1788,7 +1798,9 @@ Future<void> _showVariantSheet({
                                                 ),
                                                 const SizedBox(height: 8),
                                                 Text(
-                                                  'Add image',
+                                                  context
+                                                      .flipperL10n
+                                                      .dpaAddImage,
                                                   style: TextStyle(
                                                     color: Colors.grey.shade700,
                                                     fontWeight: FontWeight.w600,
@@ -1822,15 +1834,19 @@ Future<void> _showVariantSheet({
                                   controller: nameController,
                                   textInputAction: TextInputAction.next,
                                   decoration: InputDecoration(
-                                    labelText: 'Variant name',
-                                    hintText: 'e.g. Sandals, Size 10',
+                                    labelText:
+                                        context.flipperL10n.dpaVariantName,
+                                    hintText:
+                                        context.flipperL10n.dpaVariantNameHint,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
                                   validator: (v) {
                                     if (v == null || v.trim().isEmpty) {
-                                      return 'Name is required';
+                                      return context
+                                          .flipperL10n
+                                          .dpaNameRequired;
                                     }
                                     return null;
                                   },
@@ -1846,11 +1862,19 @@ Future<void> _showVariantSheet({
                                     ),
                                   ],
                                   decoration: InputDecoration(
-                                    labelText: 'Retail price override',
-                                    helperText:
-                                        'Base retail price: ${(double.tryParse(retailPriceController.text) ?? 0).toStringAsFixed(2)}',
-                                    hintText:
-                                        'Leave blank to use base retail price',
+                                    labelText:
+                                        context.flipperL10n.dpaRetailOverride,
+                                    helperText: context.flipperL10n
+                                        .dpaBaseRetailPrice(
+                                          (double.tryParse(
+                                                    retailPriceController.text,
+                                                  ) ??
+                                                  0)
+                                              .toStringAsFixed(2),
+                                        ),
+                                    hintText: context
+                                        .flipperL10n
+                                        .dpaLeaveBlankBasePrice,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1860,7 +1884,7 @@ Future<void> _showVariantSheet({
                                       return null;
                                     }
                                     if (double.tryParse(v) == null) {
-                                      return 'Invalid price';
+                                      return context.flipperL10n.invalidPrice;
                                     }
                                     return null;
                                   },
@@ -1870,10 +1894,12 @@ Future<void> _showVariantSheet({
                                   controller: barcodeController,
                                   textInputAction: TextInputAction.next,
                                   decoration: InputDecoration(
-                                    labelText: 'Barcode',
-                                    hintText: 'SKU / barcode (optional)',
-                                    helperText:
-                                        'Leave blank to use the variant name',
+                                    labelText: context.flipperL10n.dpaBarcode,
+                                    hintText:
+                                        context.flipperL10n.dpaBarcodeHint,
+                                    helperText: context
+                                        .flipperL10n
+                                        .dpaLeaveBlankVariantName,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1889,7 +1915,8 @@ Future<void> _showVariantSheet({
                                     FilteringTextInputFormatter.digitsOnly,
                                   ],
                                   decoration: InputDecoration(
-                                    labelText: 'Stock quantity',
+                                    labelText:
+                                        context.flipperL10n.dpaStockQuantity,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1909,9 +1936,10 @@ Future<void> _showVariantSheet({
                                     ),
                                   ],
                                   decoration: InputDecoration(
-                                    labelText: 'Low stock / reorder at',
+                                    labelText:
+                                        context.flipperL10n.dpaLowStockReorder,
                                     helperText:
-                                        'Alert when on-hand quantity is at or below this level',
+                                        context.flipperL10n.dpaLowStockHelper,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1921,7 +1949,7 @@ Future<void> _showVariantSheet({
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'Tax',
+                                    context.flipperL10n.variantsTax,
                                     style: Theme.of(ctx).textTheme.titleSmall
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
@@ -1929,8 +1957,7 @@ Future<void> _showVariantSheet({
                                 if (!isVatEnabled) ...[
                                   const SizedBox(height: 4),
                                   Text(
-                                    'This branch is not VAT-registered. Only '
-                                    '"None" (D) applies.',
+                                    context.flipperL10n.dpaNotVatRegistered,
                                     style: Theme.of(ctx).textTheme.bodySmall
                                         ?.copyWith(color: Colors.grey.shade700),
                                   ),
@@ -1942,19 +1969,27 @@ Future<void> _showVariantSheet({
                                     runSpacing: 8,
                                     children: [
                                       ChoiceChip(
-                                        label: const Text('Standard B'),
+                                        label: Text(
+                                          context.flipperL10n.dpaTaxStandardB,
+                                        ),
                                         selected: taxTyCd == 'B',
                                         onSelected: (_) =>
                                             setModalState(() => taxTyCd = 'B'),
                                       ),
                                       ChoiceChip(
-                                        label: const Text('Standard A'),
+                                        label: Text(
+                                          context.flipperL10n.dpaTaxStandardA,
+                                        ),
                                         selected: taxTyCd == 'A',
                                         onSelected: (_) =>
                                             setModalState(() => taxTyCd = 'A'),
                                       ),
                                       ChoiceChip(
-                                        label: const Text('Exempt'),
+                                        label: Text(
+                                          context
+                                              .flipperL10n
+                                              .roomTaxExemptShort,
+                                        ),
                                         selected: taxTyCd == 'C',
                                         onSelected: (_) =>
                                             setModalState(() => taxTyCd = 'C'),
@@ -1969,7 +2004,9 @@ Future<void> _showVariantSheet({
                                         Icons.check_circle_outline,
                                         size: 20,
                                       ),
-                                      label: const Text('None (D)'),
+                                      label: Text(
+                                        context.flipperL10n.dpaTaxNoneD,
+                                      ),
                                       backgroundColor: Theme.of(
                                         ctx,
                                       ).colorScheme.surfaceContainerHighest,
@@ -1979,7 +2016,7 @@ Future<void> _showVariantSheet({
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'Discount %',
+                                    context.flipperL10n.variantsDiscountPercent,
                                     style: Theme.of(ctx).textTheme.titleSmall
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
@@ -2025,7 +2062,7 @@ Future<void> _showVariantSheet({
                                   if (productRef == null) {
                                     showErrorNotification(
                                       ctx,
-                                      'Invalid product reference',
+                                      context.flipperL10n.dpaInvalidProductRef,
                                     );
                                     return;
                                   }
@@ -2164,7 +2201,9 @@ Future<void> _showVariantSheet({
                                     if (ctx.mounted) {
                                       showErrorNotification(
                                         ctx,
-                                        'Could not save variant. Please try again.',
+                                        context
+                                            .flipperL10n
+                                            .dpaSaveVariantFailed,
                                       );
                                     }
                                   } finally {
@@ -2202,8 +2241,8 @@ Future<void> _showVariantSheet({
                                 )
                               : Text(
                                   existingVariant == null
-                                      ? 'Save variant'
-                                      : 'Save',
+                                      ? context.flipperL10n.dpaSaveVariant
+                                      : context.flipperL10n.save,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
@@ -2332,7 +2371,7 @@ class _MobileProductEntry extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12, bottom: 12),
                 children: [
                   Text(
-                    'Product info',
+                    context.flipperL10n.dpaProductInfo,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Colors.grey.shade600,
                     ),
@@ -2357,7 +2396,7 @@ class _MobileProductEntry extends StatelessWidget {
                     tilePadding: EdgeInsets.zero,
                     childrenPadding: const EdgeInsets.only(top: 8),
                     title: Text(
-                      'Advanced',
+                      context.flipperL10n.dpaAdvanced,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -2383,7 +2422,7 @@ class _MobileProductEntry extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Variants (${model.scannedVariants.length})',
+                          '${context.flipperL10n.dpaVariants} (${model.scannedVariants.length})',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -2402,7 +2441,7 @@ class _MobileProductEntry extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Scan'),
+                        child: Text(context.flipperL10n.checkoutScan),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
@@ -2419,13 +2458,13 @@ class _MobileProductEntry extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('+ Add'),
+                        child: Text(context.flipperL10n.dpaPlusAdd),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap a variant to expand · Edit or delete inside · swipe to delete',
+                    context.flipperL10n.dpaVariantsHint,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey.shade600,
                     ),
@@ -2434,7 +2473,7 @@ class _MobileProductEntry extends StatelessWidget {
                   ...model.scannedVariants.reversed.map((v) {
                     final displayName = v.name.isNotEmpty
                         ? v.name
-                        : (v.bcd ?? 'Variant');
+                        : (v.bcd ?? context.flipperL10n.variantsVariant);
                     final priceStr =
                         '${(v.retailPrice ?? 0).toStringAsFixed(2)}';
                     return Dismissible(
@@ -2507,7 +2546,9 @@ class _MobileProductEntry extends StatelessWidget {
                                     Icons.edit_outlined,
                                     size: 20,
                                   ),
-                                  label: const Text('Edit variant'),
+                                  label: Text(
+                                    context.flipperL10n.dpaEditVariant,
+                                  ),
                                   style: TextButton.styleFrom(
                                     foregroundColor: accentBlue,
                                   ),
@@ -2521,7 +2562,7 @@ class _MobileProductEntry extends StatelessWidget {
                                     color: Colors.red.shade700,
                                   ),
                                   label: Text(
-                                    'Delete',
+                                    context.flipperL10n.delete,
                                     style: TextStyle(
                                       color: Colors.red.shade700,
                                       fontWeight: FontWeight.w600,
@@ -2560,8 +2601,8 @@ class _MobileProductEntry extends StatelessWidget {
                         width: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Save product',
+                    : Text(
+                        context.flipperL10n.dpaSaveProduct,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -2583,8 +2624,8 @@ class _MobileProductEntry extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Close',
+                child: Text(
+                  context.flipperL10n.close,
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ),

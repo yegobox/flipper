@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -87,7 +88,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Scan to receive receipt',
+                      context.flipperL10n.waOptInScanTitle,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
                         color: Colors.white,
@@ -98,8 +99,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Customer must message your WhatsApp business number '
-                      'once so we can send their digital receipt.',
+                      context.flipperL10n.waOptInSubtitle,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
                         color: Colors.white.withValues(alpha: 0.92),
@@ -153,7 +153,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                               ),
                             const SizedBox(height: 12),
                             Text(
-                              'Open WhatsApp → scan with the camera',
+                              context.flipperL10n.waOptInScanHint,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
@@ -174,9 +174,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                           border: Border.all(color: const Color(0xFFFED7AA)),
                         ),
                         child: Text(
-                          'Receipt is queued. Ask the customer to message your '
-                          'WhatsApp business number, then the PDF will send '
-                          'automatically.',
+                          context.flipperL10n.waOptInQueued,
                           style: GoogleFonts.outfit(
                             fontSize: 14,
                             height: 1.4,
@@ -193,7 +191,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                'WhatsApp link copied',
+                                context.flipperL10n.waOptInLinkCopied,
                                 style: GoogleFonts.outfit(),
                               ),
                               behavior: SnackBarBehavior.floating,
@@ -235,7 +233,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Copy',
+                                context.flipperL10n.waOptInCopy,
                                 style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -249,7 +247,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                     ],
                     const SizedBox(height: 8),
                     Text(
-                      'Receipt phone: ${prompt.phone}',
+                      context.flipperL10n.waOptInReceiptPhone(prompt.phone),
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: const Color(0xFF9CA3AF),
@@ -273,7 +271,7 @@ class WhatsAppMetaOptInDialog extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Done',
+                      context.flipperL10n.done,
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

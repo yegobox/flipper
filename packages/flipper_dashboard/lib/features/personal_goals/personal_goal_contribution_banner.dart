@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/personal_goal.dart';
 import 'package:flutter/material.dart';
 
@@ -44,6 +45,7 @@ class PersonalGoalBannerData {
     DateTime? now,
   }) {
     assert(credits.isNotEmpty);
+    final l10n = FlipperL10n.current;
     final at = now ?? DateTime.now();
     final byGoal = <String, PersonalGoalCredit>{};
     for (final c in credits) {
@@ -62,12 +64,19 @@ class PersonalGoalBannerData {
         final period = goal.isRecurring ? goal.periodKey : null;
         return PersonalGoalBannerData(
           headline: period == null
-              ? 'Goal reached: ${goal.name}'
-              : 'Goal reached for ${goalPeriodName(period)}: ${goal.name}',
+              ? l10n.personalGoalBannerReached(goal.name)
+              : l10n.personalGoalBannerReachedForPeriod(
+                  goalPeriodName(period),
+                  goal.name,
+                ),
           detail: period == null
-              ? 'Target of ${formatAmount(goal.targetAmount)} met'
-              : 'Target of ${formatAmount(goal.targetAmount)} met · '
-                    '${goal.recurrence.restartDateLabel(at)}',
+              ? l10n.personalGoalBannerTargetMet(
+                  formatAmount(goal.targetAmount),
+                )
+              : l10n.personalGoalBannerTargetMetRestart(
+                  formatAmount(goal.targetAmount),
+                  goal.recurrence.restartDateLabel(at),
+                ),
           progress: 1,
           percentLabel: '100%',
           reached: true,
@@ -75,11 +84,16 @@ class PersonalGoalBannerData {
       }
       final hasTarget = goal.targetAmount > 0;
       return PersonalGoalBannerData(
-        headline: '+${formatAmount(amount)} saved to ${goal.name}',
+        headline: l10n.personalGoalBannerSavedTo(
+          formatAmount(amount),
+          goal.name,
+        ),
         detail: hasTarget
-            ? '${formatAmount(goal.savedAmount)} of '
-                  '${formatAmount(goal.targetAmount)}'
-            : '${formatAmount(goal.savedAmount)} saved so far',
+            ? l10n.personalGoalSavedOfTarget(
+                formatAmount(goal.savedAmount),
+                formatAmount(goal.targetAmount),
+              )
+            : l10n.personalGoalBannerSavedSoFar(formatAmount(goal.savedAmount)),
         progress: hasTarget ? goal.progressRatio : null,
         percentLabel: hasTarget ? '${goal.progressPercent}%' : null,
       );
@@ -92,10 +106,13 @@ class PersonalGoalBannerData {
     final detail = reachedGoals.isEmpty
         ? merged.map((c) => c.goal.name).join(' · ')
         : reachedGoals.length == 1
-        ? '${reachedGoals.single.name} reached its target'
-        : '${reachedGoals.length} goals reached their target';
+        ? l10n.personalGoalBannerOneReached(reachedGoals.single.name)
+        : l10n.personalGoalBannerManyReached(reachedGoals.length);
     return PersonalGoalBannerData(
-      headline: '+${formatAmount(total)} saved across ${merged.length} goals',
+      headline: l10n.personalGoalBannerSavedAcross(
+        merged.length,
+        formatAmount(total),
+      ),
       detail: detail,
       reached: reachedGoals.isNotEmpty,
     );
@@ -127,6 +144,14 @@ class PersonalGoalContributionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // On mobile this card is inserted via the global OverlaySupport, which
+    // sits above MaterialApp, so there may be no Localizations ancestor.
+    final l10n =
+        Localizations.of<FlipperAppLocalizations>(
+          context,
+          FlipperAppLocalizations,
+        ) ??
+        FlipperL10n.current;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final surface = dark ? const Color(0xFF1F2937) : Colors.white;
     final border = dark
@@ -194,7 +219,7 @@ class PersonalGoalContributionBanner extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'PERSONAL GOAL  ·  now',
+                            l10n.personalGoalBannerEyebrow,
                             style: TextStyle(
                               color: muted,
                               fontSize: 11,
@@ -265,7 +290,7 @@ class PersonalGoalContributionBanner extends StatelessWidget {
                     const SizedBox(width: 4),
                     // Semantics, not Tooltip: Tooltip asserts under DevicePreview.
                     Semantics(
-                      label: 'Dismiss',
+                      label: l10n.personalGoalBannerDismiss,
                       button: true,
                       child: SizedBox(
                         width: 28,

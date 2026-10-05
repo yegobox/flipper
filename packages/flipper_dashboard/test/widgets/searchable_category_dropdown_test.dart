@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/SearchableCategoryDropdown.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -29,6 +30,8 @@ void main() {
           categoryProvider.overrideWith((ref) => Stream.value(testCategories)),
         ],
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: SearchableCategoryDropdown(
               selectedValue: selectedValue,
@@ -43,28 +46,36 @@ void main() {
   }
 
   group('SearchableCategoryDropdown Widget Tests', () {
-    testWidgets('should render with correct label and hint text',
-        (WidgetTester tester) async {
+    testWidgets('should render with correct label and hint text', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
       await tester.pumpAndSettle();
 
       expect(
-          find.byWidgetPredicate((widget) =>
+        find.byWidgetPredicate(
+          (widget) =>
               widget is RichText &&
-              (widget.text as TextSpan).toPlainText().contains('Category')),
-          findsOneWidget);
+              (widget.text as TextSpan).toPlainText().contains('Category'),
+        ),
+        findsOneWidget,
+      );
       expect(
-          find.byWidgetPredicate((widget) =>
+        find.byWidgetPredicate(
+          (widget) =>
               widget is RichText &&
-              (widget.text as TextSpan).toPlainText().contains('*')),
-          findsOneWidget);
+              (widget.text as TextSpan).toPlainText().contains('*'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Search categories...'), findsOneWidget);
     });
 
-    testWidgets('should show add button when onAdd is provided',
-        (WidgetTester tester) async {
+    testWidgets('should show add button when onAdd is provided', (
+      WidgetTester tester,
+    ) async {
       bool addPressed = false;
       String? changedValue;
 
@@ -82,8 +93,9 @@ void main() {
       expect(addPressed, isTrue);
     });
 
-    testWidgets('should not show add button when onAdd is null',
-        (WidgetTester tester) async {
+    testWidgets('should not show add button when onAdd is null', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
@@ -92,8 +104,9 @@ void main() {
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
     });
 
-    testWidgets('should show suggestions when typing',
-        (WidgetTester tester) async {
+    testWidgets('should show suggestions when typing', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
@@ -109,8 +122,9 @@ void main() {
       expect(find.text('Food & Beverages'), findsNothing);
     });
 
-    testWidgets('should call onChanged when suggestion is selected',
-        (WidgetTester tester) async {
+    testWidgets('should call onChanged when suggestion is selected', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
@@ -127,8 +141,9 @@ void main() {
       expect(changedValue, equals('1'));
     });
 
-    testWidgets('should show all categories when field is empty',
-        (WidgetTester tester) async {
+    testWidgets('should show all categories when field is empty', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
@@ -143,8 +158,9 @@ void main() {
       expect(find.text('Food & Beverages'), findsOneWidget);
     });
 
-    testWidgets('should disable add button when widget is disabled',
-        (WidgetTester tester) async {
+    testWidgets('should disable add button when widget is disabled', (
+      WidgetTester tester,
+    ) async {
       bool addPressed = false;
       String? changedValue;
 
@@ -163,8 +179,9 @@ void main() {
       expect(addPressed, isFalse);
     });
 
-    testWidgets('should show empty message when no categories match search',
-        (WidgetTester tester) async {
+    testWidgets('should show empty message when no categories match search', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
@@ -183,10 +200,10 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            categoryProvider.overrideWith((ref) => Stream.empty()),
-          ],
+          overrides: [categoryProvider.overrideWith((ref) => Stream.empty())],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: SearchableCategoryDropdown(
                 onChanged: (value) => changedValue = value,
@@ -214,6 +231,8 @@ void main() {
             categoryProvider.overrideWith((ref) => Stream.error('Error')),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: Scaffold(
               body: SearchableCategoryDropdown(
                 onChanged: (value) => changedValue = value,
@@ -232,18 +251,22 @@ void main() {
       expect(find.byType(ListTile), findsNothing);
     });
 
-    testWidgets('should update text field when selectedValue changes',
-        (WidgetTester tester) async {
+    testWidgets('should update text field when selectedValue changes', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
       String? selectedValue;
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            categoryProvider
-                .overrideWith((ref) => Stream.value(testCategories)),
+            categoryProvider.overrideWith(
+              (ref) => Stream.value(testCategories),
+            ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: StatefulBuilder(
               builder: (context, setState) => Scaffold(
                 body: Column(
@@ -267,20 +290,25 @@ void main() {
 
       // Initially no text
       final textField = find.byType(TextFormField);
-      expect((tester.widget(textField) as TextFormField).controller?.text,
-          isEmpty);
+      expect(
+        (tester.widget(textField) as TextFormField).controller?.text,
+        isEmpty,
+      );
 
       // Change selectedValue
       await tester.tap(find.text('Select Electronics'));
       await tester.pumpAndSettle();
 
       // Text field should update
-      expect((tester.widget(textField) as TextFormField).controller?.text,
-          equals('Electronics'));
+      expect(
+        (tester.widget(textField) as TextFormField).controller?.text,
+        equals('Electronics'),
+      );
     });
 
-    testWidgets('should update text field when suggestion is selected',
-        (WidgetTester tester) async {
+    testWidgets('should update text field when suggestion is selected', (
+      WidgetTester tester,
+    ) async {
       String? changedValue;
 
       await pumpWidget(tester, onChanged: (value) => changedValue = value);
@@ -296,8 +324,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Text field should show selected category name
-      expect((tester.widget(textField) as TextFormField).controller?.text,
-          equals('Clothing'));
+      expect(
+        (tester.widget(textField) as TextFormField).controller?.text,
+        equals('Clothing'),
+      );
       expect(changedValue, equals('2'));
     });
   });

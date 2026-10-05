@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/books_module_entry.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/dashboard_all_apps_catalog.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/selected_business_restore.dart';
@@ -46,7 +47,9 @@ final _testBranch = Branch(
 );
 
 void main() {
-  testWidgets('dashboardAllAppsCatalog includes Finance Books tile', (tester) async {
+  testWidgets('dashboardAllAppsCatalog includes Finance Books tile', (
+    tester,
+  ) async {
     late List<DashboardAllAppSection> catalog;
 
     await tester.pumpWidget(
@@ -62,7 +65,9 @@ void main() {
 
     expect(catalog.first.label, 'Finance');
     expect(
-      catalog.first.apps.any((tile) => tile.page == 'Accounting' && tile.label == 'Books'),
+      catalog.first.apps.any(
+        (tile) => tile.page == 'Accounting' && tile.label == 'Books',
+      ),
       isTrue,
     );
   });
@@ -85,6 +90,8 @@ void main() {
           accountingPostSyncBootstrapProvider.overrideWith((ref) async {}),
         ],
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(body: BooksModuleEntry()),
         ),
       ),

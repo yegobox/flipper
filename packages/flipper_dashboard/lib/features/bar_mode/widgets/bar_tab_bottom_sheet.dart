@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/bar_mode_settings.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -53,9 +54,10 @@ class BarTabBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final footNote = serverCount > 1
-        ? 'Logged by $serverCount staff · you added $myLines'
-        : "You've logged $myLines line${myLines == 1 ? '' : 's'} on this tab";
+        ? l10n.barLoggedByStaff('$serverCount', '$myLines')
+        : l10n.barYouLoggedLines(myLines);
     final needsManagerPin =
         !isManager && BarModeSettings.managerSettle && lineCount > 0;
 
@@ -116,14 +118,14 @@ class BarTabBottomSheet extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Running tab',
+                                l10n.barRunningTab,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16,
                                 ),
                               ),
                               Text(
-                                '$zoneName · $lineCount item${lineCount == 1 ? '' : 's'}',
+                                l10n.barZoneItemCount(zoneName, lineCount),
                                 style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   color: BarTokens.ink3,
@@ -148,7 +150,7 @@ class BarTabBottomSheet extends StatelessWidget {
                         ? Padding(
                             padding: const EdgeInsets.all(32),
                             child: Text(
-                              'Tap products to add the first round',
+                              l10n.barTapProductsFirstRound,
                               style: GoogleFonts.outfit(color: BarTokens.ink3),
                               textAlign: TextAlign.center,
                             ),
@@ -157,9 +159,14 @@ class BarTabBottomSheet extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                             children: [
                               for (final entry in grouped.entries) ...[
-                                _groupHeader(entry.key, entry.value, staff),
+                                _groupHeader(
+                                  l10n,
+                                  entry.key,
+                                  entry.value,
+                                  staff,
+                                ),
                                 for (final line in entry.value)
-                                  _lineRow(line, cashier, isManager),
+                                  _lineRow(l10n, line, cashier, isManager),
                               ],
                             ],
                           ),
@@ -175,7 +182,7 @@ class BarTabBottomSheet extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'Tab total',
+                              l10n.barTabTotal,
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -210,8 +217,11 @@ class BarTabBottomSheet extends StatelessWidget {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            Icon(Icons.people_outline,
-                                size: 14, color: BarTokens.ink3),
+                            Icon(
+                              Icons.people_outline,
+                              size: 14,
+                              color: BarTokens.ink3,
+                            ),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
@@ -228,19 +238,25 @@ class BarTabBottomSheet extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: _outlineBtn('Back to tables', onBackToTables),
+                              child: _outlineBtn(
+                                l10n.barBackToTables,
+                                onBackToTables,
+                              ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: _primaryBtn('Save to tab', onSaveToTab),
+                              child: _primaryBtn(
+                                l10n.barSaveToTab,
+                                onSaveToTab,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 10),
                         _outlineBtn(
                           needsManagerPin
-                              ? 'Settle bill · manager PIN'
-                              : 'Settle bill & close table',
+                              ? l10n.barSettleManagerPin
+                              : l10n.barSettleAndClose,
                           lineCount == 0 ? null : onSettle,
                           icon: needsManagerPin
                               ? Icons.verified_user_outlined
@@ -251,7 +267,7 @@ class BarTabBottomSheet extends StatelessWidget {
                         if (onChargeToRoom != null) ...[
                           const SizedBox(height: 10),
                           _outlineBtn(
-                            'Charge to room',
+                            l10n.barChargeToRoom,
                             lineCount == 0 ? null : onChargeToRoom,
                             icon: Icons.hotel_outlined,
                             accent: lineCount == 0 ? null : BarTokens.violet,
@@ -270,6 +286,7 @@ class BarTabBottomSheet extends StatelessWidget {
   }
 
   Widget _groupHeader(
+    FlipperAppLocalizations l10n,
     String tenantId,
     List<TransactionItem> lines,
     List<Tenant> staff,
@@ -281,7 +298,8 @@ class BarTabBottomSheet extends StatelessWidget {
         break;
       }
     }
-    final name = tenant?.name ?? lines.first.loggedByName ?? 'Staff';
+    final name =
+        tenant?.name ?? lines.first.loggedByName ?? l10n.barStaffFallback;
     final initials = barTenantInitials(name);
     final color = barColorForTenant(tenantId, staff);
 
@@ -320,7 +338,12 @@ class BarTabBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _lineRow(TransactionItem line, Tenant cashier, bool isManager) {
+  Widget _lineRow(
+    FlipperAppLocalizations l10n,
+    TransactionItem line,
+    Tenant cashier,
+    bool isManager,
+  ) {
     final editable = isManager || line.loggedByTenantId == cashier.id;
     final thumbColor = barColorForName(line.name);
 
@@ -360,7 +383,9 @@ class BarTabBottomSheet extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'RWF ${NumberFormat('#,###').format(line.price)} each',
+                  l10n.barPriceEach(
+                    'RWF ${NumberFormat('#,###').format(line.price)}',
+                  ),
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 11.5,
                     color: BarTokens.ink3,
@@ -494,7 +519,7 @@ class BarTabBottomSheet extends StatelessWidget {
   Widget _primaryBtn(String label, VoidCallback onTap) {
     return Material(
       color: Colors.transparent,
-        child: InkWell(
+      child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Ink(

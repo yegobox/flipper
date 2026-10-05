@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -33,7 +34,7 @@ class MposCustomerSection extends StatelessWidget {
       return MposCard(
         child: _WalkInRow(
           onAttach: null,
-          subtitle: 'Removing customer…',
+          subtitle: context.flipperL10n.mposRemovingCustomer,
           showProgress: true,
         ),
       );
@@ -42,7 +43,8 @@ class MposCustomerSection extends StatelessWidget {
     return MposCard(
       child: _hasCustomer
           ? _AttachedRow(
-              name: customerName ?? customerPhone ?? 'Customer',
+              name:
+                  customerName ?? customerPhone ?? context.flipperL10n.customer,
               phone: customerPhone,
               onClear: onClear,
             )
@@ -54,21 +56,22 @@ class MposCustomerSection extends StatelessWidget {
 class _WalkInRow extends StatelessWidget {
   const _WalkInRow({
     required this.onAttach,
-    this.subtitle = 'Tap to attach a customer (optional)',
+    this.subtitle,
     this.showProgress = false,
   });
 
   final VoidCallback? onAttach;
-  final String subtitle;
+  final String? subtitle;
   final bool showProgress;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onAttach != null;
+    final l10n = context.flipperL10n;
 
     return MaestroSemantics(
       id: MaestroIds.mposCustomerAttach,
-      label: 'Attach customer',
+      label: l10n.mposAttachCustomer,
       button: true,
       enabled: enabled,
       child: Material(
@@ -112,7 +115,7 @@ class _WalkInRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Walk-in customer',
+                        l10n.mposWalkInCustomer,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -121,7 +124,7 @@ class _WalkInRow extends StatelessWidget {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        subtitle,
+                        subtitle ?? l10n.mposAttachCustomerHint,
                         style: TextStyle(
                           fontSize: 12.5,
                           color: showProgress ? PosTokens.blue : PosTokens.ink3,
@@ -134,18 +137,18 @@ class _WalkInRow extends StatelessWidget {
                   ),
                 ),
                 if (!showProgress)
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Add',
-                        style: TextStyle(
+                        l10n.add,
+                        style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
                           color: PosTokens.blue,
                         ),
                       ),
-                      Icon(
+                      const Icon(
                         Icons.chevron_right_rounded,
                         size: 18,
                         color: PosTokens.blue,
@@ -226,7 +229,7 @@ class _AttachedRow extends StatelessWidget {
           ),
           MaestroSemantics(
             id: MaestroIds.mposCustomerRemove,
-            label: 'Remove customer',
+            label: context.flipperL10n.mposRemoveCustomer,
             button: true,
             enabled: true,
             child: TextButton(
@@ -240,14 +243,17 @@ class _AttachedRow extends StatelessWidget {
                 minimumSize: const Size(44, 44),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.close_rounded, size: 16),
-                  SizedBox(width: 4),
+                  const Icon(Icons.close_rounded, size: 16),
+                  const SizedBox(width: 4),
                   Text(
-                    'Remove',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    context.flipperL10n.remove,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

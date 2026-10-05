@@ -31,18 +31,18 @@ class DashboardAllAppSection {
 
 /// Grouped launcher catalog — maps design handoff sections to real Flipper routes.
 List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
-  const DashboardAllAppSection(
-    label: 'Finance',
+  DashboardAllAppSection(
+    label: context.flipperL10n.dashboardAppFinance,
     apps: [
       DashboardAllAppTile(
         page: 'Accounting',
-        label: 'Books',
+        label: context.flipperL10n.dashboardAppBooks,
         icon: FluentIcons.book_24_regular,
         color: Color(0xFF2563EB),
       ),
       DashboardAllAppTile(
         page: 'Credits',
-        label: 'Credits',
+        label: context.flipperL10n.dashboardAppCredits,
         icon: FluentIcons.wallet_credit_card_24_regular,
         color: Color(0xFFF59E0B),
         feature: 'Credits',
@@ -99,16 +99,16 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         color: Color(0xFF10B981),
         feature: 'Sales',
       ),
-      const DashboardAllAppTile(
+      DashboardAllAppTile(
         page: 'StockRecount',
-        label: 'Stock Recount',
+        label: context.flipperL10n.dashboardAppStockRecount,
         icon: FluentIcons.clipboard_pulse_24_regular,
         color: Color(0xFF2563EB),
         feature: 'Stock',
       ),
-      const DashboardAllAppTile(
+      DashboardAllAppTile(
         page: 'TransfersReport',
-        label: 'Transfers Report',
+        label: context.flipperL10n.dashboardAppTransfersReport,
         icon: FluentIcons.arrow_swap_24_regular,
         color: Color(0xFF0EA5E9),
         feature: 'Orders',
@@ -120,9 +120,9 @@ List<DashboardAllAppSection> dashboardAllAppsCatalog(BuildContext context) => [
         color: Color(0xFFF59E0B),
         feature: 'Orders',
       ),
-      const DashboardAllAppTile(
+      DashboardAllAppTile(
         page: 'Orders',
-        label: 'Branch Orders',
+        label: context.flipperL10n.dashboardAppBranchOrders,
         icon: FluentIcons.box_multiple_24_regular,
         color: Color(0xFF2563EB),
         feature: 'Orders',

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/admin_metrics_screen.dart';
@@ -96,54 +97,50 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
 
   void _openAdminPayoutDispatch() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const AdminPayoutDispatchScreen()),
+      MaterialPageRoute(
+        builder: (context) => const AdminPayoutDispatchScreen(),
+      ),
     );
   }
 
   void _openAdminMetrics() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const AdminMetricsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AdminMetricsScreen()));
   }
 
-  static List<Widget> _howItWorksSectionCards() => [
+  static List<Widget> _howItWorksSectionCards(FlipperAppLocalizations l10n) => [
     _SectionCard(
       icon: Icons.person_add_alt_1_outlined,
-      title: 'Providers',
-      body:
-          'Workers register and list the services they can perform for others.',
+      title: l10n.gigsHowProvidersTitle,
+      body: l10n.gigsHowProvidersBody,
     ),
     _SectionCard(
       icon: Icons.star_outline_rounded,
-      title: 'Ratings',
-      body:
-          'We assign and update ratings from our verification and client feedback.',
+      title: l10n.gigsHowRatingsTitle,
+      body: l10n.gigsHowRatingsBody,
     ),
     _SectionCard(
       icon: Icons.send_outlined,
-      title: 'Requests',
-      body:
-          'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
-      highlight: '30 min to accept',
+      title: l10n.gigsHowRequestsTitle,
+      body: l10n.gigsHowRequestsBody,
+      highlight: l10n.gigsHowRequestsHighlight,
     ),
     _SectionCard(
       icon: Icons.payments_outlined,
-      title: 'Payment window',
-      body:
-          'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
-      highlight: '5 min to pay',
+      title: l10n.gigsHowPaymentTitle,
+      body: l10n.gigsHowPaymentBody,
+      highlight: l10n.gigsHowPaymentHighlight,
     ),
     _SectionCard(
       icon: Icons.route_outlined,
-      title: 'Execution',
-      body:
-          'Once paid, the worker can contact the customer and perform the service.',
+      title: l10n.gigsHowExecutionTitle,
+      body: l10n.gigsHowExecutionBody,
     ),
     _SectionCard(
       icon: Icons.account_balance_wallet_outlined,
-      title: 'Escrow & payout',
-      body:
-          'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
+      title: l10n.gigsHowEscrowTitle,
+      body: l10n.gigsHowEscrowBody,
     ),
   ];
 
@@ -178,7 +175,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                           child: Padding(
                             padding: const EdgeInsets.only(left: 8),
                             child: Text(
-                              'How Services hub works',
+                              context.flipperL10n.gigsHowItWorksTitle,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 17,
@@ -199,7 +196,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                     child: ListView(
                       controller: scrollController,
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                      children: _howItWorksSectionCards(),
+                      children: _howItWorksSectionCards(context.flipperL10n),
                     ),
                   ),
                 ],
@@ -227,7 +224,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Services hub',
+          context.flipperL10n.servicesHub,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -242,7 +239,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
-            tooltip: 'How it works',
+            tooltip: context.flipperL10n.gigsHowItWorks,
             onPressed: _showHowItWorksSheet,
           ),
         ],
@@ -269,7 +266,10 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                          child: Text('Admin tools', style: sectionTitleStyle),
+                          child: Text(
+                            context.flipperL10n.gigsAdminTools,
+                            style: sectionTitleStyle,
+                          ),
                         ),
                         ListTile(
                           leading: Icon(
@@ -277,7 +277,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                             color: Colors.red.shade700,
                           ),
                           title: Text(
-                            'Dispatch payouts',
+                            context.flipperL10n.gigsDispatchPayouts,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w500,
                               fontSize: 15,
@@ -300,7 +300,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                             color: Colors.red.shade700,
                           ),
                           title: Text(
-                            'Metrics',
+                            context.flipperL10n.gigsMetrics,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w500,
                               fontSize: 15,
@@ -323,7 +323,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
             error: (_, __) => const SizedBox.shrink(),
           ),
           Text(
-            'Find people for jobs, or offer your skills—payments stay on the platform.',
+            context.flipperL10n.gigsHubTagline,
             style: GoogleFonts.outfit(
               fontSize: 15,
               height: 1.45,
@@ -334,7 +334,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
           FilledButton.icon(
             onPressed: _openBrowseProviders,
             icon: const Icon(Icons.search),
-            label: const Text('Find providers'),
+            label: Text(context.flipperL10n.gigsFindProviders),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF0F766E),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
@@ -355,7 +355,10 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: Text('Your activity', style: sectionTitleStyle),
+                  child: Text(
+                    context.flipperL10n.gigsYourActivity,
+                    style: sectionTitleStyle,
+                  ),
                 ),
                 ListTile(
                   leading: Icon(
@@ -363,7 +366,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                     color: Colors.grey.shade700,
                   ),
                   title: Text(
-                    'My requests',
+                    context.flipperL10n.gigsMyRequests,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w500,
                       fontSize: 15,
@@ -382,7 +385,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                     color: Colors.grey.shade700,
                   ),
                   title: Text(
-                    'Notifications',
+                    context.flipperL10n.gigsNotifications,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w500,
                       fontSize: 15,
@@ -417,7 +420,10 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    child: Text('Provider tools', style: sectionTitleStyle),
+                    child: Text(
+                      context.flipperL10n.gigsProviderTools,
+                      style: sectionTitleStyle,
+                    ),
                   ),
                   ListTile(
                     leading: Icon(
@@ -425,7 +431,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                       color: Colors.grey.shade700,
                     ),
                     title: Text(
-                      'Incoming requests',
+                      context.flipperL10n.gigsIncomingRequests,
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w500,
                         fontSize: 15,
@@ -449,7 +455,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
             FilledButton.icon(
               onPressed: _openProviderDashboard,
               icon: const Icon(Icons.dashboard_customize_outlined),
-              label: const Text('Provider dashboard'),
+              label: Text(context.flipperL10n.gigsProviderDashboard),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
                 padding: const EdgeInsets.symmetric(
@@ -489,7 +495,7 @@ class _BecomeProviderCallout extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Earn on Services hub',
+              context.flipperL10n.gigsEarnOnHub,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -498,7 +504,7 @@ class _BecomeProviderCallout extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Register the services you offer so customers can find and book you.',
+              context.flipperL10n.gigsEarnOnHubBody,
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 height: 1.4,
@@ -509,7 +515,7 @@ class _BecomeProviderCallout extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRegister,
               icon: const Icon(Icons.how_to_reg_outlined),
-              label: const Text('Become a provider'),
+              label: Text(context.flipperL10n.gigsBecomeProvider),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
                 padding: const EdgeInsets.symmetric(
@@ -535,10 +541,10 @@ class _RegisteredProviderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final preview = profile.services.isEmpty
-        ? 'No services listed yet'
+        ? context.flipperL10n.gigsNoServicesListed
         : profile.services.take(4).join(' · ');
     final more = profile.services.length > 4
-        ? ' +${profile.services.length - 4} more'
+        ? ' ${context.flipperL10n.gigsMoreCount('${profile.services.length - 4}')}'
         : '';
 
     return Card(
@@ -593,7 +599,7 @@ class _RegisteredProviderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Tap to edit profile',
+                      context.flipperL10n.gigsTapToEditProfile,
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: const Color(0xFF0D9488),

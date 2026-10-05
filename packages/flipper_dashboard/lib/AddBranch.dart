@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -37,7 +38,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshBranchesFromSupabase());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _refreshBranchesFromSupabase(),
+    );
   }
 
   Future<void> _refreshBranchesFromSupabase() async {
@@ -52,7 +55,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   @override
   Widget build(BuildContext context) {
     final businessId = ProxyService.box.getBusinessId();
-    final branches = ref.watch(allBusinessBranchesProvider(businessId: businessId));
+    final branches = ref.watch(
+      allBusinessBranchesProvider(businessId: businessId),
+    );
     final isProcessing = ref.watch(isProcessingProvider);
 
     return Scaffold(
@@ -61,7 +66,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
         onPop: () {
           _routerService.pop();
         },
-        title: 'Branches',
+        title: context.flipperL10n.branchesTitle,
         showActionButton: false,
         icon: Icons.close,
         multi: 3,
@@ -85,7 +90,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Add New Branch',
+                      context.flipperL10n.branchesAddNew,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -95,16 +100,16 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                     SizedBox(height: 24),
                     _buildTextField(
                       controller: _nameController,
-                      label: 'Branch Name',
-                      hint: 'Enter branch name',
+                      label: context.flipperL10n.branchesName,
+                      hint: context.flipperL10n.branchesNameHint,
                       errorText: _nameError,
                       onChanged: (_) => setState(() => _nameError = null),
                     ),
                     SizedBox(height: 16),
                     _buildTextField(
                       controller: _locationController,
-                      label: 'Location',
-                      hint: 'Enter branch location',
+                      label: context.flipperL10n.location,
+                      hint: context.flipperL10n.branchesLocationHint,
                       errorText: _locationError,
                       onChanged: (_) => setState(() => _locationError = null),
                     ),
@@ -134,7 +139,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                 ),
                               )
                             : Text(
-                                'Create Branch',
+                                context.flipperL10n.branchesCreate,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -154,7 +159,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'All Branches',
+                      context.flipperL10n.branchesAll,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -175,7 +180,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                         ),
                         error: (error, stackTrace) => Center(
                           child: Text(
-                            'Could not load branches',
+                            context.flipperL10n.branchesLoadFailed,
                             style: TextStyle(color: Colors.red),
                           ),
                         ),
@@ -244,7 +249,10 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   Widget _buildBranchesList(List<Branch> branches) {
     if (branches.isEmpty) {
       return Center(
-        child: Text('No branches found', style: TextStyle(color: Colors.grey)),
+        child: Text(
+          context.flipperL10n.branchesNoneFound,
+          style: const TextStyle(color: Colors.grey),
+        ),
       );
     }
     return ListView.separated(
@@ -276,7 +284,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      branch.name ?? "Unknown",
+                      branch.name ?? context.flipperL10n.dashUnknown,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -305,7 +313,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Default',
+                    context.flipperL10n.branchesDefaultBadge,
                     style: TextStyle(
                       color: Colors.blue,
                       fontSize: 11,
@@ -321,7 +329,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Active',
+                    context.flipperL10n.branchesActiveBadge,
                     style: TextStyle(
                       color: Colors.green,
                       fontSize: 11,
@@ -337,9 +345,10 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                     color: Colors.red.shade400,
                     size: 20,
                   ),
-                  onPressed: () => _showDeleteDialog(branch, branches: branches),
+                  onPressed: () =>
+                      _showDeleteDialog(branch, branches: branches),
                   splashRadius: 20,
-                  tooltip: 'Delete Branch',
+                  tooltip: context.flipperL10n.branchesDelete,
                 ),
             ],
           ),
@@ -355,11 +364,11 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     if (!_canDeleteBranch(branch, branches)) {
       if (!mounted) return;
       final message = _isDefaultBranch(branch)
-          ? 'The default branch cannot be deleted'
-          : 'You must keep at least one branch';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+          ? context.flipperL10n.branchesDefaultCannotDelete
+          : context.flipperL10n.branchesKeepOne;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
       return;
     }
 
@@ -367,16 +376,21 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Branch'),
-          content: Text('Are you sure you want to delete ${branch.name}?'),
+          title: Text(context.flipperL10n.branchesDelete),
+          content: Text(
+            context.flipperL10n.branchesDeleteConfirm(branch.name ?? ''),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'),
+              child: Text(context.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              child: Text(
+                context.flipperL10n.delete,
+                style: const TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );
@@ -396,8 +410,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
             SnackBar(
               content: Text(
                 e.toString().contains('Default branch')
-                    ? 'The default branch cannot be deleted'
-                    : 'Could not delete branch',
+                    ? context.flipperL10n.branchesDefaultCannotDelete
+                    : context.flipperL10n.branchesDeleteFailed,
               ),
               backgroundColor: Colors.red,
             ),
@@ -430,7 +444,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error adding branch'),
+            content: Text(context.flipperL10n.branchesAddError),
             backgroundColor: Colors.red,
           ),
         );
@@ -443,10 +457,10 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   bool validateForm() {
     setState(() {
       _nameError = _nameController.text.isEmpty
-          ? "Branch name is required"
+          ? context.flipperL10n.branchesNameRequired
           : null;
       _locationError = _locationController.text.isEmpty
-          ? "Location is required"
+          ? context.flipperL10n.branchesLocationRequired
           : null;
     });
     return _nameError == null && _locationError == null;

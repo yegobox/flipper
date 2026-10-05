@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flipper_dashboard/features/hotel_mode/hotel_quotation_pdf.dart';
 import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -175,35 +176,36 @@ abstract final class HotelQuotationActions {
     return _presenter.present(
       context,
       mode: mode,
-      progressMessage: 'Preparing quotation…',
+      progressMessage: context.flipperL10n.hotelPreparingQuotation,
       build: () => buildPdf(quotation),
       filename: () => fileName(quotation),
-      label: 'Quotation',
-      shareSubject: 'Quotation ${quotation.reference}',
+      label: context.flipperL10n.hotelQuotation,
+      shareSubject: context.flipperL10n.hotelQuotationRef(quotation.reference),
     );
   }
 
   /// Subject line and body for the guest-facing email.
   static String emailSubject(HotelQuotation quotation, String? businessName) {
     final from = (businessName ?? '').trim();
+    final l10n = FlipperL10n.current;
     return from.isEmpty
-        ? 'Quotation ${quotation.reference}'
-        : 'Quotation ${quotation.reference} — $from';
+        ? l10n.hotelQuotationRef(quotation.reference)
+        : '${l10n.hotelQuotationRef(quotation.reference)} — $from';
   }
 
   static String emailHtml(HotelQuotation quotation, String? businessName) {
+    final l10n = FlipperL10n.current;
     final from = _escape(
-      (businessName ?? '').trim().isEmpty ? 'us' : businessName!.trim(),
+      (businessName ?? '').trim().isEmpty
+          ? l10n.hotelEmailUs
+          : businessName!.trim(),
     );
     final guest = _escape(quotation.guestName);
-    final nights = quotation.nights == 1
-        ? '1 night'
-        : '${quotation.nights} nights';
+    final nights = l10n.hotelNightsCount(quotation.nights);
     final validity = quotation.validUntil == null
         ? ''
         : '<p style="margin:0 0 16px;color:#4b5563;font-size:14px;">'
-              'This quotation is valid until '
-              '${_escape(_shortDate(quotation.validUntil!))}.</p>';
+              '${l10n.hotelEmailValidUntil(_escape(_shortDate(quotation.validUntil!)))}</p>';
 
     return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f3f4f6;">'
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
@@ -213,27 +215,26 @@ abstract final class HotelQuotationActions {
         'font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">'
         '<tr><td style="padding:24px;">'
         '<div style="color:#111827;font-size:20px;font-weight:700;margin-bottom:8px;">'
-        'Your quotation, ${_escape(quotation.reference)}</div>'
+        '${l10n.hotelEmailYourQuotation(_escape(quotation.reference))}</div>'
         '<p style="margin:0 0 16px;color:#4b5563;font-size:14px;line-height:1.55;">'
-        'Hello $guest, thank you for considering $from. Your quotation for '
-        'Room ${_escape(quotation.roomName)} over $nights is attached as a PDF.'
+        '${l10n.hotelEmailHtmlIntro(guest, from, _escape(quotation.roomName), nights)}'
         '</p>'
         '$validity'
         '<p style="margin:0;color:#6b7280;font-size:13px;">'
-        'A quotation holds no room until it is accepted — reply to this email '
-        'or call us to confirm.</p>'
+        '${l10n.hotelEmailHoldsNoRoom}</p>'
         '</td></tr></table></td></tr></table></body></html>';
   }
 
   static String emailPlain(HotelQuotation quotation, String? businessName) {
     final from = (businessName ?? '').trim();
-    return 'Hello ${quotation.guestName},\n\n'
-        'Thank you for considering ${from.isEmpty ? 'us' : from}. '
-        'Your quotation ${quotation.reference} for Room ${quotation.roomName} '
-        'is attached as a PDF.\n\n'
-        '${quotation.validUntil == null ? '' : 'Valid until ${_shortDate(quotation.validUntil!)}.\n\n'}'
-        'A quotation holds no room until it is accepted — reply or call us to '
-        'confirm.';
+    final l10n = FlipperL10n.current;
+    final validity = quotation.validUntil == null
+        ? ''
+        : '${l10n.hotelEmailValidUntil(_shortDate(quotation.validUntil!))}\n\n';
+    return '${l10n.hotelEmailHello(quotation.guestName)}\n\n'
+        '${l10n.hotelEmailPlainIntro(from.isEmpty ? l10n.hotelEmailUs : from, quotation.reference, quotation.roomName)}\n\n'
+        '$validity'
+        '${l10n.hotelEmailPlainHoldsNoRoom}';
   }
 
   /// Stable per version of the quotation: a double tap is deduplicated, while

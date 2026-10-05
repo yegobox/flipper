@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/utils/bounded_concurrency.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -31,13 +32,12 @@ Future<List<TransactionItem>> validateStockQuantity(
   final stocksMap = await capella.batchGetStocksByIds(stockIds.toList());
   // Batch misses were re-read one await at a time — a second sequential pass
   // over the cart, on the Pay path, before the sale can even be priced.
-  await forEachBounded(
-    stockIds.where((sid) => !stocksMap.containsKey(sid)),
-    (sid) async {
-      final loaded = await capella.getStockById(id: sid);
-      if (loaded != null) stocksMap[sid] = loaded;
-    },
-  );
+  await forEachBounded(stockIds.where((sid) => !stocksMap.containsKey(sid)), (
+    sid,
+  ) async {
+    final loaded = await capella.getStockById(id: sid);
+    if (loaded != null) stocksMap[sid] = loaded;
+  });
 
   // Aggregate requested qty by stockId so two variants (or lines) sharing one
   // stock row cannot each pass while their combined qty exceeds on-hand.
@@ -89,8 +89,9 @@ Future<void> showOutOfStockDialog(
     builder: (BuildContext context) {
       return AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(8), // Microsoft uses subtle rounded corners
+          borderRadius: BorderRadius.circular(
+            8,
+          ), // Microsoft uses subtle rounded corners
         ),
         // Microsoft-style spacing and padding
         contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
@@ -108,7 +109,9 @@ Future<void> showOutOfStockDialog(
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                isSingleItem ? 'Item unavailable' : 'Items unavailable',
+                isSingleItem
+                    ? context.flipperL10n.stockItemUnavailable
+                    : context.flipperL10n.stockItemsUnavailable,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 20,
@@ -129,22 +132,30 @@ Future<void> showOutOfStockDialog(
               // Microsoft style: Clear, direct messaging
               RichText(
                 text: TextSpan(
-                  style: DefaultTextStyle.of(context).style.copyWith(
-                        fontSize: 15,
-                        height: 1.4,
+                  style: DefaultTextStyle.of(
+                    context,
+                  ).style.copyWith(fontSize: 15, height: 1.4),
+                  // The translated sentence places the name; split around it
+                  // so the name keeps its bold weight in every language.
+                  children: () {
+                    final sentence = context.flipperL10n.stockNotEnoughSingle(
+                      singleItem.name,
+                    );
+                    final at = sentence.indexOf(singleItem.name);
+                    if (at < 0 || singleItem.name.isEmpty) {
+                      return [TextSpan(text: sentence)];
+                    }
+                    return [
+                      TextSpan(text: sentence.substring(0, at)),
+                      TextSpan(
+                        text: singleItem.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                  children: [
-                    const TextSpan(
-                      text: 'We don\'t have enough ',
-                    ),
-                    TextSpan(
-                      text: singleItem.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const TextSpan(
-                      text: ' in stock to complete your order.',
-                    ),
-                  ],
+                      TextSpan(
+                        text: sentence.substring(at + singleItem.name.length),
+                      ),
+                    ];
+                  }(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -160,9 +171,9 @@ Future<void> showOutOfStockDialog(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Requested Quantity:',
-                      style: TextStyle(
+                    Text(
+                      context.flipperL10n.stockRequestedQuantity,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black87,
                       ),
@@ -179,12 +190,9 @@ Future<void> showOutOfStockDialog(
                 ),
               ),
             ] else ...[
-              const Text(
-                'We don\'t have enough of these items in stock:',
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.4,
-                ),
+              Text(
+                context.flipperL10n.stockNotEnoughMultiple,
+                style: const TextStyle(fontSize: 15, height: 1.4),
               ),
               const SizedBox(height: 16),
 
@@ -214,7 +222,9 @@ Future<void> showOutOfStockDialog(
                               ),
                             ),
                             Text(
-                              'Requested: ${item.qty.toInt()}',
+                              context.flipperL10n.stockRequestedValue(
+                                '${item.qty.toInt()}',
+                              ),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey[600],
@@ -234,8 +244,8 @@ Future<void> showOutOfStockDialog(
             // Microsoft often provides helpful next steps
             Text(
               isSingleItem
-                  ? 'You can reduce the quantity or remove this item to continue.'
-                  : 'You can adjust quantities or remove these items to continue.',
+                  ? context.flipperL10n.stockReduceOrRemoveItem
+                  : context.flipperL10n.stockAdjustOrRemoveItems,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -250,22 +260,16 @@ Future<void> showOutOfStockDialog(
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               backgroundColor: Colors.blue[600],
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
-            child: const Text(
-              'Got it',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
+            child: Text(
+              context.flipperL10n.stockGotIt,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
           ),
         ],

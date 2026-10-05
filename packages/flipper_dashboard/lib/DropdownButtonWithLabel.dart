@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class DropdownButtonWithLabel extends StatelessWidget {
@@ -31,8 +32,9 @@ class DropdownButtonWithLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Ensure selected value is valid
-    final validatedSelectedValue =
-        options.contains(selectedValue) ? selectedValue : null;
+    final validatedSelectedValue = options.contains(selectedValue)
+        ? selectedValue
+        : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -42,9 +44,9 @@ class DropdownButtonWithLabel extends StatelessWidget {
           RichText(
             text: TextSpan(
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: textColor ?? Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: textColor ?? Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
               children: [
                 TextSpan(text: label),
                 if (isRequired)
@@ -92,10 +94,11 @@ class DropdownButtonWithLabel extends StatelessWidget {
                   );
                 }).toList(),
                 onChanged: isEnabled ? onChanged : null,
-                validator: validator ??
+                validator:
+                    validator ??
                     (value) {
                       if (isRequired && (value == null || value.isEmpty)) {
-                        return '$label is required';
+                        return context.flipperL10n.dashFieldRequired(label);
                       }
                       return null;
                     },
@@ -115,7 +118,7 @@ class DropdownButtonWithLabel extends StatelessWidget {
                   child: IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: isEnabled ? onAdd : null,
-                    tooltip: 'Add',
+                    tooltip: context.flipperL10n.add,
                   ),
                 ),
             ],

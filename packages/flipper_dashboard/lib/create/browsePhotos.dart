@@ -12,6 +12,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/providers/upload_providers.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/asset_sync_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -55,8 +56,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     _checkConnectivity();
 
     // Listen for asset sync status updates
-    _syncStatusSubscription =
-        AssetSyncService().syncStatusStream.listen(_handleSyncStatusUpdate);
+    _syncStatusSubscription = AssetSyncService().syncStatusStream.listen(
+      _handleSyncStatusUpdate,
+    );
   }
 
   @override
@@ -100,8 +102,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
   // Check for internet connectivity and set offline mode accordingly
   Future<void> _checkConnectivity() async {
     final connectivityResults = await Connectivity().checkConnectivity();
-    final hasConnection =
-        connectivityResults.any((result) => result != ConnectivityResult.none);
+    final hasConnection = connectivityResults.any(
+      (result) => result != ConnectivityResult.none,
+    );
 
     setState(() {
       isOfflineMode = !hasConnection;
@@ -183,7 +186,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Pick a color'),
+          title: Text(context.flipperL10n.photosPickColor),
           content: SingleChildScrollView(
             child: ColorPicker(
               color: tempColor,
@@ -207,11 +210,11 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
               runSpacing: 5,
               wheelDiameter: 165,
               subheading: Text(
-                'Select color shade',
+                context.flipperL10n.photosSelectColorShade,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               wheelSubheading: Text(
-                'Selected color and its shades',
+                context.flipperL10n.photosSelectedColorShades,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
@@ -221,13 +224,13 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: Text(context.flipperL10n.cancel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(tempColor);
               },
-              child: const Text('OK'),
+              child: Text(context.flipperL10n.ok),
             ),
           ],
         );
@@ -248,7 +251,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           : [
               ListTile(
                 leading: const Icon(Icons.color_lens),
-                title: const Text('Pick a color instead'),
+                title: Text(context.flipperL10n.photosPickColorInstead),
                 onTap: () async {
                   Navigator.of(context).pop();
                   await _showColorPickerDialog(context);
@@ -287,18 +290,21 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
         talker.info('Replacing existing image: ${productRef.imageUrl}');
         // Try to find and delete the existing asset
         try {
-          final existingAsset = await ProxyService.strategy
-              .getAsset(assetName: productRef.imageUrl!);
+          final existingAsset = await ProxyService.strategy.getAsset(
+            assetName: productRef.imageUrl!,
+          );
           if (existingAsset != null) {
             // If we're online, try to delete from S3 immediately
             if (!isOfflineMode) {
-              await ProxyService.strategy
-                  .removeS3File(fileName: productRef.imageUrl!);
+              await ProxyService.strategy.removeS3File(
+                fileName: productRef.imageUrl!,
+              );
             } else {
               // If offline, add to pending deletions to be processed when online
               await AssetSyncService().addPendingDeletion(productRef.imageUrl!);
-              talker
-                  .info('Added ${productRef.imageUrl} to pending S3 deletions');
+              talker.info(
+                'Added ${productRef.imageUrl} to pending S3 deletions',
+              );
             }
 
             // Delete the local file if it exists (we can do this regardless of connectivity)
@@ -351,7 +357,10 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
-  Future<void> _handleOfflineWithPickedPath(String productId, String path) async {
+  Future<void> _handleOfflineWithPickedPath(
+    String productId,
+    String path,
+  ) async {
     try {
       // Simulate upload progress
       _startProgressSimulation();
@@ -387,7 +396,8 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           // Force widget to rebuild with new image
           if (mounted) {
             talker.info(
-                'Setting image preview from local path: ${asset.localPath}');
+              'Setting image preview from local path: ${asset.localPath}',
+            );
             setState(() {
               // Update our local state variable instead of widget.imageUrl
               _currentImageUrl = asset.assetName;
@@ -400,9 +410,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Image saved locally. Will be uploaded when online.'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(context.flipperL10n.photosSavedLocally),
+          duration: const Duration(seconds: 3),
           backgroundColor: Colors.green,
         ),
       );
@@ -419,7 +429,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text(context.flipperL10n.errorWithValue(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -460,8 +470,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
               onTap: () async {
                 final sourceResult = await _showImageSourceSheet();
                 if (sourceResult == null) return;
-                final path =
-                    await pickLocalImagePathForSheetResult(sourceResult);
+                final path = await pickLocalImagePathForSheetResult(
+                  sourceResult,
+                );
                 if (path == null) return;
                 await _handleImageUpload(model, pickedPath: path);
               },
@@ -478,8 +489,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                   children: [
                     if (displayImageUrl != null)
                       FutureBuilder<String?>(
-                        future:
-                            getImageFilePath(imageFileName: displayImageUrl),
+                        future: getImageFilePath(
+                          imageFileName: displayImageUrl,
+                        ),
                         builder: (context, snapshot) {
                           if (snapshot.hasData && snapshot.data != null) {
                             return Image.file(
@@ -490,7 +502,8 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                                 // Try to load from network if local file fails
                                 return FutureBuilder(
                                   future: _tryLoadFromAssetPath(
-                                      displayImageUrl.toString()),
+                                    displayImageUrl.toString(),
+                                  ),
                                   builder: (context, assetSnapshot) {
                                     if (assetSnapshot.hasData &&
                                         assetSnapshot.data != null) {
@@ -499,14 +512,14 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                                         fit: BoxFit.cover,
                                         errorBuilder:
                                             (context, error, stackTrace) {
-                                          return Center(
-                                            child: Icon(
-                                              Icons.image_not_supported,
-                                              size: 50,
-                                              color: Colors.grey[500],
-                                            ),
-                                          );
-                                        },
+                                              return Center(
+                                                child: Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 50,
+                                                  color: Colors.grey[500],
+                                                ),
+                                              );
+                                            },
                                       );
                                     } else {
                                       return Center(
@@ -525,7 +538,8 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                             // Try to load from asset's localPath
                             return FutureBuilder(
                               future: _tryLoadFromAssetPath(
-                                  displayImageUrl.toString()),
+                                displayImageUrl.toString(),
+                              ),
                               builder: (context, assetSnapshot) {
                                 if (assetSnapshot.hasData &&
                                     assetSnapshot.data != null) {
@@ -571,8 +585,8 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                             const SizedBox(height: 8),
                             Text(
                               isOfflineMode
-                                  ? 'Add Image (Offline)'
-                                  : 'Add Image',
+                                  ? context.flipperL10n.photosAddImageOffline
+                                  : context.flipperL10n.photosAddImage,
                               style: TextStyle(
                                 color: isOfflineMode
                                     ? Colors.orange[600]
@@ -602,7 +616,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Click to change image',
+                                  context.flipperL10n.photosClickToChange,
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.8),
                                     fontSize: 14,
@@ -627,16 +641,24 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                                 CircularProgressIndicator(
                                   value: uploadProgress,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color.lerp(Colors.blue, Colors.green,
-                                              uploadProgress) ??
-                                          Colors.blue),
+                                    Color.lerp(
+                                          Colors.blue,
+                                          Colors.green,
+                                          uploadProgress,
+                                        ) ??
+                                        Colors.blue,
+                                  ),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
                                   '${(uploadProgress * 100).toInt()}%',
                                   style: TextStyle(
-                                    color: Color.lerp(Colors.blue, Colors.green,
-                                            uploadProgress) ??
+                                    color:
+                                        Color.lerp(
+                                          Colors.blue,
+                                          Colors.green,
+                                          uploadProgress,
+                                        ) ??
                                         Colors.blue,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -684,8 +706,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                           child: CircularProgressIndicator(
                             value: uploadProgress,
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       else
@@ -694,7 +717,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                       Text(
                         isUploading
                             ? '${(uploadProgress * 100).toInt()}%'
-                            : 'Upload Image',
+                            : context.flipperL10n.photosUploadImage,
                         style: TextStyle(
                           color: isUploading ? Colors.white : Colors.grey[800],
                           fontSize: 14,

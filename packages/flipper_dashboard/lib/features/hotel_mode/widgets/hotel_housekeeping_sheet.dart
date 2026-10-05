@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -25,35 +26,35 @@ class _HousekeepingOption {
   final Color tint;
 }
 
-const _options = <_HousekeepingOption>[
+List<_HousekeepingOption> _options(FlipperAppLocalizations l10n) => [
   _HousekeepingOption(
     value: HotelHousekeeping.clean,
-    label: 'Clean',
-    meaning: 'Ready to sell — the desk can check a guest in.',
+    label: l10n.hotelHkClean,
+    meaning: l10n.hotelHkCleanMeaning,
     icon: Icons.bed_outlined,
     ink: HotelTokens.vacantInk,
     tint: HotelTokens.vacantTint,
   ),
   _HousekeepingOption(
     value: HotelHousekeeping.dirty,
-    label: 'Needs cleaning',
-    meaning: 'Held back from sale until housekeeping releases it.',
+    label: l10n.hotelHkDirty,
+    meaning: l10n.hotelHkDirtyMeaning,
     icon: Icons.cleaning_services_outlined,
     ink: HotelTokens.dirtyInk,
     tint: HotelTokens.dirtyTint,
   ),
   _HousekeepingOption(
     value: HotelHousekeeping.inspected,
-    label: 'Inspected',
-    meaning: 'Cleaned and checked by a supervisor. Sellable.',
+    label: l10n.hotelHkInspected,
+    meaning: l10n.hotelHkInspectedMeaning,
     icon: Icons.verified_outlined,
     ink: HotelTokens.occupiedInk,
     tint: HotelTokens.occupiedTint,
   ),
   _HousekeepingOption(
     value: HotelHousekeeping.outOfOrder,
-    label: 'Out of order',
-    meaning: 'Blocked for maintenance. Never offered to a guest.',
+    label: l10n.hotelOutOfOrder,
+    meaning: l10n.hotelHkOutOfOrderMeaning,
     icon: Icons.build_outlined,
     ink: HotelTokens.blockedInk,
     tint: HotelTokens.blockedTint,
@@ -111,6 +112,8 @@ class HotelHousekeepingSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = hotelRoomState(room: room, stay: stay);
+    final l10n = context.flipperL10n;
+    final options = _options(l10n);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -147,7 +150,7 @@ class HotelHousekeepingSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Housekeeping · Room ${room.name}',
+                      l10n.hotelHousekeepingTitle(room.name),
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -157,7 +160,10 @@ class HotelHousekeepingSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${room.roomType} · sleeps ${room.capacity}',
+                      l10n.hotelRoomTypeSleeps(
+                        room.roomType,
+                        '${room.capacity}',
+                      ),
                       style: GoogleFonts.outfit(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,
@@ -172,12 +178,12 @@ class HotelHousekeepingSheet extends StatelessWidget {
           ),
           if (_isOccupied) ...[
             const SizedBox(height: 14),
-            _occupiedNotice(),
+            _occupiedNotice(l10n),
           ],
           const SizedBox(height: 16),
-          for (final option in _options) ...[
+          for (final option in options) ...[
             _optionRow(context, option),
-            if (option != _options.last) const SizedBox(height: 8),
+            if (option != options.last) const SizedBox(height: 8),
           ],
           const SizedBox(height: 14),
           Align(
@@ -185,7 +191,7 @@ class HotelHousekeepingSheet extends StatelessWidget {
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                'Close',
+                l10n.close,
                 style: GoogleFonts.outfit(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
@@ -199,7 +205,7 @@ class HotelHousekeepingSheet extends StatelessWidget {
     );
   }
 
-  Widget _occupiedNotice() {
+  Widget _occupiedNotice(FlipperAppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -216,8 +222,7 @@ class HotelHousekeepingSheet extends StatelessWidget {
           const SizedBox(width: 9),
           Expanded(
             child: Text(
-              '${stay!.guestName} is in this room. Check them out before '
-              'blocking it for maintenance.',
+              l10n.hotelOccupiedNotice(stay!.guestName),
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 height: 1.35,
@@ -242,7 +247,9 @@ class HotelHousekeepingSheet extends StatelessWidget {
         color: isCurrent ? option.tint : HotelTokens.surface,
         borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
         child: InkWell(
-          onTap: disabled ? null : () => Navigator.of(context).pop(option.value),
+          onTap: disabled
+              ? null
+              : () => Navigator.of(context).pop(option.value),
           borderRadius: BorderRadius.circular(HotelTokens.radiusMd),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -285,7 +292,7 @@ class HotelHousekeepingSheet extends StatelessWidget {
                       const SizedBox(height: 1),
                       Text(
                         disabled
-                            ? 'Unavailable while the room is occupied.'
+                            ? context.flipperL10n.hotelUnavailableWhileOccupied
                             : option.meaning,
                         style: GoogleFonts.outfit(
                           fontSize: 11.5,

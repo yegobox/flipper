@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -85,6 +86,7 @@ class _ProductionOutputScreenState
     final isSummaryLoading = summaryAsync.isLoading;
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
+    final l10n = context.flipperL10n;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -103,7 +105,7 @@ class _ProductionOutputScreenState
                   Icon(Icons.factory, color: Color(VarianceColors.neutral)),
                   const SizedBox(width: 8),
                   Text(
-                    isMobile ? 'Production' : 'Production Output',
+                    isMobile ? l10n.production : l10n.productionOutputTitle,
                     style: const TextStyle(
                       color: Colors.black87,
                       fontWeight: FontWeight.w600,
@@ -124,7 +126,7 @@ class _ProductionOutputScreenState
                       size: 20,
                     ),
                     onPressed: _refresh,
-                    tooltip: 'Refresh',
+                    tooltip: l10n.refresh,
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.grey[50],
                       shape: RoundedRectangleBorder(
@@ -144,7 +146,11 @@ class _ProductionOutputScreenState
                   child: ElevatedButton.icon(
                     onPressed: () => _openCreateWorkOrder(isMobile),
                     icon: const Icon(Icons.add, size: 18),
-                    label: Text(isMobile ? 'New' : 'New Order'),
+                    label: Text(
+                      isMobile
+                          ? l10n.productionOutputNew
+                          : l10n.productionOutputNewOrder,
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[600],
                       foregroundColor: Colors.white,
@@ -250,6 +256,7 @@ class _ProductionOutputScreenState
         if (workOrders.isEmpty) {
           return _buildEmptyWorkOrdersCard();
         }
+        final l10n = context.flipperL10n;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -264,7 +271,7 @@ class _ProductionOutputScreenState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Work Orders',
+                    l10n.productionOutputWorkOrders,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -273,7 +280,7 @@ class _ProductionOutputScreenState
                   ),
                   const Spacer(),
                   Text(
-                    '${workOrders.length} items',
+                    l10n.productionOutputItemsCount(workOrders.length),
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
@@ -295,6 +302,7 @@ class _ProductionOutputScreenState
 
   Widget _buildWorkOrdersErrorCard(Object error, StackTrace? stack) {
     talker.error('ProductionOutput: failed to load work orders', error, stack);
+    final l10n = context.flipperL10n;
     return stockRecountCard(
       borderColor: StockRecountTokens.negBorder,
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
@@ -316,12 +324,15 @@ class _ProductionOutputScreenState
             ),
             const SizedBox(height: 22),
             Text(
-              "Couldn't load work orders",
-              style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
+              l10n.productionOutputLoadFailed,
+              style: StockRecountHelpers.text(
+                size: 19,
+                weight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Check your connection and try again.',
+              l10n.productionOutputCheckConnection,
               textAlign: TextAlign.center,
               style: StockRecountHelpers.text(
                 size: 14.5,
@@ -330,7 +341,7 @@ class _ProductionOutputScreenState
             ),
             const SizedBox(height: 22),
             StockRecountPrimaryButton(
-              label: 'Retry',
+              label: l10n.retry,
               leading: const Icon(Icons.refresh, size: 18, color: Colors.white),
               onPressed: _refresh,
             ),
@@ -341,6 +352,7 @@ class _ProductionOutputScreenState
   }
 
   Widget _buildEmptyWorkOrdersCard() {
+    final l10n = context.flipperL10n;
     return stockRecountCard(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Center(
@@ -365,12 +377,15 @@ class _ProductionOutputScreenState
             ),
             const SizedBox(height: 22),
             Text(
-              'No work orders yet',
-              style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
+              l10n.productionOutputNoWorkOrdersYet,
+              style: StockRecountHelpers.text(
+                size: 19,
+                weight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Create a work order to start tracking production output.',
+              l10n.productionOutputNoWorkOrdersHint,
               textAlign: TextAlign.center,
               style: StockRecountHelpers.text(
                 size: 14.5,
@@ -379,7 +394,7 @@ class _ProductionOutputScreenState
             ),
             const SizedBox(height: 22),
             StockRecountPrimaryButton(
-              label: 'New Work Order',
+              label: l10n.productionOutputNewWorkOrder,
               leading: StockRecountIcons.plus(size: 19, color: Colors.white),
               onPressed: () => _openCreateWorkOrder(true),
             ),
@@ -395,6 +410,7 @@ class _ProductionOutputScreenState
     final varianceColor = variance >= 0
         ? Color(VarianceColors.positive)
         : Color(VarianceColors.negative);
+    final l10n = context.flipperL10n;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -407,7 +423,7 @@ class _ProductionOutputScreenState
               children: [
                 Expanded(
                   child: Text(
-                    wo.variantName ?? 'Unknown Product',
+                    wo.variantName ?? l10n.productionOutputUnknownProduct,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -415,14 +431,16 @@ class _ProductionOutputScreenState
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Color(status.color).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    status.label,
+                    status.localizedLabel(l10n),
                     style: TextStyle(
                       fontSize: 11,
                       color: Color(status.color),
@@ -437,18 +455,18 @@ class _ProductionOutputScreenState
             Row(
               children: [
                 _buildMetricChip(
-                  'Planned',
+                  l10n.productionOutputPlanned,
                   wo.plannedQuantity?.toStringAsFixed(0) ?? '0',
                 ),
                 const SizedBox(width: 12),
                 _buildMetricChip(
-                  'Actual',
+                  l10n.productionOutputActual,
                   wo.actualQuantity?.toStringAsFixed(0) ?? '0',
                   color: varianceColor,
                 ),
                 const SizedBox(width: 12),
                 _buildMetricChip(
-                  'Variance',
+                  l10n.productionOutputVariance,
                   '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
                   color: varianceColor,
                 ),
@@ -463,7 +481,7 @@ class _ProductionOutputScreenState
                   TextButton.icon(
                     onPressed: () => _showRecordOutputDialog(wo),
                     icon: const Icon(Icons.add_circle_outline, size: 18),
-                    label: const Text('Record'),
+                    label: Text(l10n.productionOutputRecord),
                     style: TextButton.styleFrom(
                       foregroundColor: Color(VarianceColors.neutral),
                     ),
@@ -472,7 +490,7 @@ class _ProductionOutputScreenState
                   TextButton.icon(
                     onPressed: () => _completeWorkOrder(wo),
                     icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: const Text('Complete'),
+                    label: Text(l10n.productionOutputComplete),
                     style: TextButton.styleFrom(
                       foregroundColor: Color(VarianceColors.positive),
                     ),
@@ -515,13 +533,14 @@ class _ProductionOutputScreenState
   }
 
   void _showRecordOutputDialog(dynamic workOrder) async {
+    final failureMessage = context.flipperL10n.productionOutputRecordFailed;
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => _RecordOutputDialog(workOrder: workOrder),
     );
 
     if (result != null) {
-      await _guard('record output', () async {
+      await _guard('record output', failureMessage, () async {
         await _service.recordActualOutput(
           workOrderId: workOrder.id as String,
           actualQuantity: result['quantity'] as double,
@@ -534,7 +553,11 @@ class _ProductionOutputScreenState
 
   /// These handlers are invoked as fire-and-forget callbacks, so an escaping
   /// error would become an unhandled zone error instead of reaching the user.
-  Future<void> _guard(String action, Future<void> Function() run) async {
+  Future<void> _guard(
+    String action,
+    String failureMessage,
+    Future<void> Function() run,
+  ) async {
     try {
       await run();
     } catch (e, s) {
@@ -542,7 +565,7 @@ class _ProductionOutputScreenState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Could not $action. Please try again.',
+          failureMessage,
           type: NotificationType.error,
         );
       }
@@ -550,22 +573,27 @@ class _ProductionOutputScreenState
   }
 
   Future<void> _completeWorkOrder(dynamic workOrder) async {
+    final failureMessage = context.flipperL10n.productionOutputCompleteFailed;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Complete Work Order?'),
-        content: Text('Mark "${workOrder.variantName}" as completed?'),
+        title: Text(context.flipperL10n.productionOutputCompleteTitle),
+        content: Text(
+          context.flipperL10n.productionOutputCompleteMessage(
+            '${workOrder.variantName}',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(VarianceColors.positive),
             ),
-            child: const Text('Complete'),
+            child: Text(context.flipperL10n.productionOutputComplete),
           ),
         ],
       ),
@@ -574,26 +602,32 @@ class _ProductionOutputScreenState
     if (confirm == true) {
       await _guard(
         'complete this work order',
+        failureMessage,
         () => _service.completeWorkOrder(workOrder.id as String),
       );
     }
   }
 
   Future<void> _startWorkOrder(dynamic workOrder) async {
+    final failureMessage = context.flipperL10n.productionOutputStartFailed;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Start Work Order?'),
-        content: Text('Begin production for "${workOrder.variantName}"?'),
+        title: Text(context.flipperL10n.productionOutputStartTitle),
+        content: Text(
+          context.flipperL10n.productionOutputStartMessage(
+            '${workOrder.variantName}',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]),
-            child: const Text('Start'),
+            child: Text(context.flipperL10n.productionOutputStart),
           ),
         ],
       ),
@@ -602,6 +636,7 @@ class _ProductionOutputScreenState
     if (confirm == true) {
       await _guard(
         'start this work order',
+        failureMessage,
         () => _service.startWorkOrder(workOrder.id as String),
       );
     }
@@ -630,28 +665,33 @@ class _RecordOutputDialogState extends State<_RecordOutputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return AlertDialog(
-      title: const Text('Record Output'),
+      title: Text(l10n.productionOutputRecordOutput),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Product: ${widget.workOrder.variantName ?? 'Unknown'}',
+            l10n.productionOutputProductLabel(
+              '${widget.workOrder.variantName ?? l10n.productionOutputUnknown}',
+            ),
             style: const TextStyle(fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           Text(
-            'Target: ${widget.workOrder.plannedQuantity.toStringAsFixed(0)}',
+            l10n.productionOutputTargetLabel(
+              '${widget.workOrder.plannedQuantity.toStringAsFixed(0)}',
+            ),
             style: TextStyle(color: Colors.grey[600]),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _controller,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Actual Quantity',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.productionOutputActualQuantity,
+              border: const OutlineInputBorder(),
             ),
             autofocus: true,
           ),
@@ -660,7 +700,7 @@ class _RecordOutputDialogState extends State<_RecordOutputDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -685,7 +725,7 @@ class _RecordOutputDialogState extends State<_RecordOutputDialog> {
               ).pop({'quantity': quantity, 'varianceReason': varianceReason});
             }
           },
-          child: const Text('Record'),
+          child: Text(l10n.productionOutputRecord),
         ),
       ],
     );

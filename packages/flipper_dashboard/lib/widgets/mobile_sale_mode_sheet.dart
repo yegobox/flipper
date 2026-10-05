@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +24,14 @@ SaleMode currentSaleMode() {
   return SaleMode.normal;
 }
 
-String saleModeLabel(SaleMode mode) => switch (mode) {
-  SaleMode.normal => 'Normal sale (NS)',
-  SaleMode.proforma => 'Proforma (PS)',
-  SaleMode.training => 'Training (TS)',
-};
+String saleModeLabel(SaleMode mode, [FlipperAppLocalizations? l10n]) {
+  final s = l10n ?? FlipperL10n.current;
+  return switch (mode) {
+    SaleMode.normal => '${s.saleModeNormal} (NS)',
+    SaleMode.proforma => '${s.saleModeProforma} (PS)',
+    SaleMode.training => '${s.saleModeTraining} (TS)',
+  };
+}
 
 /// Writes the two flags together so the device can never end up in both modes
 /// (or stuck in one, which the paired setters on `SettingViewModel` allow).
@@ -76,6 +80,7 @@ class _MobileSaleModeSheetState extends State<_MobileSaleModeSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -102,10 +107,10 @@ class _MobileSaleModeSheetState extends State<_MobileSaleModeSheet> {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Sale mode',
-                      style: TextStyle(
+                      l10n.saleModeTitle,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                       ),
@@ -118,12 +123,11 @@ class _MobileSaleModeSheetState extends State<_MobileSaleModeSheet> {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
               child: Text(
-                'The receipt type new sales are issued under. Leave this on '
-                'Normal sale unless you are practising or quoting.',
-                style: TextStyle(
+                l10n.saleModeDescription,
+                style: const TextStyle(
                   fontSize: 13,
                   height: 1.4,
                   color: Color(0xFF6B7280),
@@ -136,27 +140,25 @@ class _MobileSaleModeSheetState extends State<_MobileSaleModeSheet> {
               child: Column(
                 children: [
                   _SaleModeOption(
-                    title: 'Normal sale',
+                    title: l10n.saleModeNormal,
                     code: 'NS',
-                    subtitle: 'Real, fiscal sales. The default.',
+                    subtitle: l10n.saleModeNormalSubtitle,
                     selected: _mode == SaleMode.normal,
                     onTap: () => _select(SaleMode.normal),
                   ),
                   const SizedBox(height: 10),
                   _SaleModeOption(
-                    title: 'Proforma',
+                    title: l10n.saleModeProforma,
                     code: 'PS',
-                    subtitle: 'Quotes. Not a receipt, no stock movement.',
+                    subtitle: l10n.saleModeProformaSubtitle,
                     selected: _mode == SaleMode.proforma,
                     onTap: () => _select(SaleMode.proforma),
                   ),
                   const SizedBox(height: 10),
                   _SaleModeOption(
-                    title: 'Training',
+                    title: l10n.saleModeTraining,
                     code: 'TS',
-                    subtitle:
-                        'Practice sales. Training receipts cannot be shared '
-                        'or printed.',
+                    subtitle: l10n.saleModeTrainingSubtitle,
                     selected: _mode == SaleMode.training,
                     onTap: () => _select(SaleMode.training),
                   ),

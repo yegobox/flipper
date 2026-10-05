@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -78,8 +79,10 @@ class StockRecountPdfExport {
       counterName: counterName,
       variantSkus: skus,
     );
-    final deviceSlug = (recount.deviceName ?? 'device')
-        .replaceAll(RegExp(r'[^\w]+'), '_');
+    final deviceSlug = (recount.deviceName ?? 'device').replaceAll(
+      RegExp(r'[^\w]+'),
+      '_',
+    );
     final dateSlug = DateFormat('yyyyMMdd').format(DateTime.now());
     final filename = 'recount_${deviceSlug}_$dateSlug.pdf';
 
@@ -87,14 +90,14 @@ class StockRecountPdfExport {
       await Printing.sharePdf(
         bytes: bytes,
         filename: filename,
-        subject: 'Stock Recount Report',
+        subject: FlipperL10n.current.stockRecountPdfSubject,
       );
       return;
     }
 
     if (UniversalPlatform.isDesktop) {
       final savedPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save Stock Recount PDF',
+        dialogTitle: FlipperL10n.current.stockRecountPdfSaveTitle,
         fileName: filename,
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
@@ -112,7 +115,7 @@ class StockRecountPdfExport {
     await Printing.sharePdf(
       bytes: bytes,
       filename: filename,
-      subject: 'Stock Recount Report',
+      subject: FlipperL10n.current.stockRecountPdfSubject,
     );
   }
 
@@ -125,6 +128,7 @@ class StockRecountPdfExport {
     required String counterName,
     Map<String, String> variantSkus = const {},
   }) async {
+    final l10n = FlipperL10n.current;
     final logoSvg = await _flipperLogoMarkup();
     final baseFont = await _geist('Regular') ?? pw.Font.helvetica();
     final boldFont = await _geist('Bold') ?? pw.Font.helveticaBold();
@@ -191,7 +195,7 @@ class StockRecountPdfExport {
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
                   pw.Text(
-                    'Stock Recount',
+                    l10n.stockRecountTitle,
                     style: pw.TextStyle(
                       font: heavyFont,
                       fontSize: 22,
@@ -199,7 +203,7 @@ class StockRecountPdfExport {
                     ),
                   ),
                   pw.Text(
-                    'Report #$reportId',
+                    l10n.stockRecountPdfReportNumber(reportId),
                     style: pw.TextStyle(
                       font: baseFont,
                       fontSize: 12,
@@ -207,7 +211,7 @@ class StockRecountPdfExport {
                     ),
                   ),
                   pw.SizedBox(height: 6),
-                  _statusBadge(recount.status, heavyFont),
+                  _statusBadge(l10n, recount.status, heavyFont),
                 ],
               ),
             ],
@@ -215,13 +219,13 @@ class StockRecountPdfExport {
           pw.SizedBox(height: 20),
           pw.Container(height: 2, color: PdfColors.black),
           pw.SizedBox(height: 20),
-          _metaGrid(recount, counterName, now, baseFont, boldFont),
+          _metaGrid(l10n, recount, counterName, now, baseFont, boldFont),
           if (recount.notes != null && recount.notes!.trim().isNotEmpty) ...[
             pw.SizedBox(height: 14),
             pw.Wrap(
               children: [
                 pw.Text(
-                  'Note: ',
+                  '${l10n.stockRecountPdfNote} ',
                   style: pw.TextStyle(
                     font: boldFont,
                     fontSize: 13,
@@ -240,17 +244,33 @@ class StockRecountPdfExport {
             ),
           ],
           pw.SizedBox(height: 8),
-          _itemsTable(items, stats, variantSkus, baseFont, boldFont, heavyFont),
+          _itemsTable(
+            l10n,
+            items,
+            stats,
+            variantSkus,
+            baseFont,
+            boldFont,
+            heavyFont,
+          ),
           pw.SizedBox(height: 18),
-          _summaryPills(stats, baseFont, boldFont),
+          _summaryPills(l10n, stats, baseFont, boldFont),
           pw.SizedBox(height: 48),
           pw.Row(
             children: [
               pw.Expanded(
-                child: _signatureBlock('Counted by — $counterName', boldFont),
+                child: _signatureBlock(
+                  l10n.stockRecountPdfCountedByName(counterName),
+                  boldFont,
+                ),
               ),
               pw.SizedBox(width: 40),
-              pw.Expanded(child: _signatureBlock('Approved by', boldFont)),
+              pw.Expanded(
+                child: _signatureBlock(
+                  l10n.stockRecountPdfApprovedBy,
+                  boldFont,
+                ),
+              ),
             ],
           ),
           pw.SizedBox(height: 30),
@@ -260,7 +280,7 @@ class StockRecountPdfExport {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(
-                'Generated by Flipper · Stock Recount',
+                l10n.stockRecountPdfFooter,
                 style: pw.TextStyle(
                   font: baseFont,
                   fontSize: 11,
@@ -283,24 +303,28 @@ class StockRecountPdfExport {
     return doc.save();
   }
 
-  static pw.Widget _statusBadge(String status, pw.Font bold) {
+  static pw.Widget _statusBadge(
+    FlipperAppLocalizations l10n,
+    String status,
+    pw.Font bold,
+  ) {
     final (bg, fg) = switch (status) {
       'draft' => (
-          const PdfColor.fromInt(0xFFFEF3C7),
-          const PdfColor.fromInt(0xFFB45309),
-        ),
+        const PdfColor.fromInt(0xFFFEF3C7),
+        const PdfColor.fromInt(0xFFB45309),
+      ),
       'submitted' => (
-          const PdfColor.fromInt(0xFFDBEAFE),
-          const PdfColor.fromInt(0xFF1D4ED8),
-        ),
+        const PdfColor.fromInt(0xFFDBEAFE),
+        const PdfColor.fromInt(0xFF1D4ED8),
+      ),
       'synced' => (
-          const PdfColor.fromInt(0xFFD1FAE5),
-          const PdfColor.fromInt(0xFF047857),
-        ),
+        const PdfColor.fromInt(0xFFD1FAE5),
+        const PdfColor.fromInt(0xFF047857),
+      ),
       _ => (
-          const PdfColor.fromInt(0xFFF7F9FE),
-          const PdfColor.fromInt(0xFF7E8AA0),
-        ),
+        const PdfColor.fromInt(0xFFF7F9FE),
+        const PdfColor.fromInt(0xFF7E8AA0),
+      ),
     };
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 9, vertical: 3),
@@ -311,7 +335,7 @@ class StockRecountPdfExport {
         borderRadius: pw.BorderRadius.circular(9),
       ),
       child: pw.Text(
-        status.toUpperCase(),
+        StockRecountHelpers.statusLabel(l10n, status).toUpperCase(),
         style: pw.TextStyle(
           font: bold,
           fontSize: 10.5,
@@ -323,6 +347,7 @@ class StockRecountPdfExport {
   }
 
   static pw.Widget _metaGrid(
+    FlipperAppLocalizations l10n,
     StockRecount recount,
     String counter,
     DateTime now,
@@ -343,10 +368,7 @@ class StockRecountPdfExport {
             ),
           ),
           pw.SizedBox(height: 4),
-          pw.Text(
-            value,
-            style: pw.TextStyle(font: bold, fontSize: 14),
-          ),
+          pw.Text(value, style: pw.TextStyle(font: bold, fontSize: 14)),
         ],
       ),
     );
@@ -355,11 +377,14 @@ class StockRecountPdfExport {
       children: [
         pw.Row(
           children: [
-            cell('Device', recount.deviceName ?? '—'),
-            cell('Counted by', counter),
-            cell('Created', StockRecountHelpers.formatDate(recount.createdAt)),
+            cell(l10n.stockRecountDevice, recount.deviceName ?? '—'),
+            cell(l10n.stockRecountCountedBy, counter),
             cell(
-              'Generated',
+              l10n.stockRecountCreated,
+              StockRecountHelpers.formatDate(recount.createdAt),
+            ),
+            cell(
+              l10n.stockRecountGenerated,
               '${StockRecountHelpers.formatDate(now)} ${StockRecountHelpers.formatTime(now)}',
             ),
           ],
@@ -371,6 +396,7 @@ class StockRecountPdfExport {
   }
 
   static pw.Widget _itemsTable(
+    FlipperAppLocalizations l10n,
     List<StockRecountItem> items,
     RecountItemStats stats,
     Map<String, String> variantSkus,
@@ -384,7 +410,10 @@ class StockRecountPdfExport {
       return const PdfColor.fromInt(0xFF8A93A6);
     }
 
-    pw.Widget headerCell(String text, {pw.TextAlign align = pw.TextAlign.left}) {
+    pw.Widget headerCell(
+      String text, {
+      pw.TextAlign align = pw.TextAlign.left,
+    }) {
       return pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         child: pw.Text(
@@ -426,10 +455,10 @@ class StockRecountPdfExport {
           ),
           children: [
             headerCell('#'),
-            headerCell('Product'),
-            headerCell('System', align: pw.TextAlign.right),
-            headerCell('Counted', align: pw.TextAlign.right),
-            headerCell('Variance', align: pw.TextAlign.right),
+            headerCell(l10n.stockRecountProduct),
+            headerCell(l10n.stockRecountSystem, align: pw.TextAlign.right),
+            headerCell(l10n.stockRecountCounted, align: pw.TextAlign.right),
+            headerCell(l10n.stockRecountVariance, align: pw.TextAlign.right),
           ],
         ),
         ...items.asMap().entries.map((entry) {
@@ -438,7 +467,10 @@ class StockRecountPdfExport {
           return pw.TableRow(
             children: [
               pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 10,
+                ),
                 child: pw.Text(
                   '$i',
                   style: pw.TextStyle(
@@ -449,16 +481,16 @@ class StockRecountPdfExport {
                 ),
               ),
               pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 10,
+                ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
                       item.productName,
-                      style: pw.TextStyle(
-                        font: bold,
-                        fontSize: 13.5,
-                      ),
+                      style: pw.TextStyle(font: bold, fontSize: 13.5),
                     ),
                     pw.Text(
                       'SKU ${skuFor(item)}',
@@ -474,7 +506,10 @@ class StockRecountPdfExport {
               _numCell(item.previousQuantity, regular),
               _numCell(item.countedQuantity, regular),
               pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 10,
+                ),
                 child: pw.Text(
                   StockRecountHelpers.formatSignedVariance(item.difference),
                   textAlign: pw.TextAlign.right,
@@ -491,10 +526,7 @@ class StockRecountPdfExport {
         pw.TableRow(
           decoration: const pw.BoxDecoration(
             border: pw.Border(
-              top: pw.BorderSide(
-                color: PdfColor.fromInt(0xFFD6DEEA),
-                width: 2,
-              ),
+              top: pw.BorderSide(color: PdfColor.fromInt(0xFFD6DEEA), width: 2),
             ),
           ),
           children: [
@@ -502,7 +534,7 @@ class StockRecountPdfExport {
             pw.Padding(
               padding: const pw.EdgeInsets.fromLTRB(10, 14, 10, 12),
               child: pw.Text(
-                'Totals · ${stats.count} ${stats.count == 1 ? 'item' : 'items'}',
+                l10n.stockRecountPdfTotals(stats.count),
                 style: pw.TextStyle(font: heavy, fontSize: 14),
               ),
             ),
@@ -529,7 +561,8 @@ class StockRecountPdfExport {
   // Same stroke paths as assets/pos_handoff/icons/{check,trend-up,arrow-down}.svg
   // so the PDF pills render the exact icons the app shows.
   static const _checkPath = '<path d="M5 12.5 10 17 19 7.5"/>';
-  static const _trendUpPath = '<path d="m4 15 5-5 4 4 7-7"/><path d="M16 7h4v4"/>';
+  static const _trendUpPath =
+      '<path d="m4 15 5-5 4 4 7-7"/><path d="M16 7h4v4"/>';
   static const _arrowDownPath = '<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>';
 
   static String _hex(PdfColor c) {
@@ -542,7 +575,8 @@ class StockRecountPdfExport {
       width: size,
       height: size,
       child: pw.SvgImage(
-        svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
+        svg:
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
             'fill="none" stroke="${_hex(color)}" stroke-width="1.5" '
             'stroke-linecap="round" stroke-linejoin="round">$paths</svg>',
       ),
@@ -550,6 +584,7 @@ class StockRecountPdfExport {
   }
 
   static pw.Widget _summaryPills(
+    FlipperAppLocalizations l10n,
     RecountItemStats stats,
     pw.Font regular,
     pw.Font bold,
@@ -589,21 +624,21 @@ class StockRecountPdfExport {
       children: [
         pill(
           iconPaths: _checkPath,
-          label: '${stats.match} matching',
+          label: l10n.stockRecountMatchingCount('${stats.match}'),
           bg: const PdfColor.fromInt(0xFFFFFFFF),
           border: const PdfColor.fromInt(0xFFE6ECF5),
           fg: const PdfColor.fromInt(0xFF4A5567),
         ),
         pill(
           iconPaths: _trendUpPath,
-          label: '${stats.over} surplus',
+          label: l10n.stockRecountSurplusCount('${stats.over}'),
           bg: const PdfColor.fromInt(0xFFE6F8F0),
           border: const PdfColor.fromInt(0xFFBBEAD4),
           fg: const PdfColor.fromInt(0xFF047857),
         ),
         pill(
           iconPaths: _arrowDownPath,
-          label: '${stats.short} short',
+          label: l10n.stockRecountShortCount('${stats.short}'),
           bg: const PdfColor.fromInt(0xFFFDECEC),
           border: const PdfColor.fromInt(0xFFF6C9C9),
           fg: const PdfColor.fromInt(0xFFB91C1C),

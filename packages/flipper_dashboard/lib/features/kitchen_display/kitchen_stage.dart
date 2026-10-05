@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/kitchen_order.dart';
 import 'package:flutter/material.dart';
 
@@ -5,16 +6,20 @@ import 'package:flutter/material.dart';
 /// the ticket's own status labels — a ticket can be "Parked" at the till and
 /// "In Progress" in the kitchen at the same time.
 extension KitchenStageDisplay on KitchenStage {
-  String get label {
+  /// Display label in the app's current language. Widgets should prefer
+  /// [labelOf] with `context.flipperL10n` so a language switch rebuilds.
+  String get label => labelOf(FlipperL10n.current);
+
+  String labelOf(FlipperAppLocalizations l10n) {
     switch (this) {
       case KitchenStage.incoming:
-        return 'Incoming';
+        return l10n.kitchenStageIncoming;
       case KitchenStage.inProgress:
-        return 'In Progress';
+        return l10n.kitchenStageInProgress;
       case KitchenStage.ready:
-        return 'Ready';
+        return l10n.kitchenStageReady;
       case KitchenStage.served:
-        return 'Served';
+        return l10n.kitchenStageServed;
     }
   }
 
@@ -103,13 +108,14 @@ Map<KitchenStage, List<T>> groupKitchenOrders<T>(
 
 /// Kitchen Display confirmation after Served, by the ticket's own status —
 /// where the order went for the cashier.
-String servedMessage(String? ticketStatus) {
+String servedMessage(String? ticketStatus, [FlipperAppLocalizations? l10n]) {
+  final strings = l10n ?? FlipperL10n.current;
   switch (ticketStatus) {
     case 'completed':
-      return 'Served. This order was already paid.';
+      return strings.kitchenServedAlreadyPaid;
     case 'pending':
-      return 'Served. The cashier has this ticket open for payment.';
+      return strings.kitchenServedCashierHasTicket;
     default:
-      return 'Served. It is in Tickets, ready for payment.';
+      return strings.kitchenServedInTickets;
   }
 }

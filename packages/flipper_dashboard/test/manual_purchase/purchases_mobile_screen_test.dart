@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/features/import_purchase/purchases_mobile_screen.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -183,7 +184,11 @@ Future<void> _pump(
           (ref) => _vm = _FakeViewModel(ref, _purchases, imports: imports),
         ),
       ],
-      child: const MaterialApp(home: PurchasesMobileScreen()),
+      child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: PurchasesMobileScreen(),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -273,10 +278,7 @@ void main() {
       await tester.tap(find.text('Approve all 2 waiting'));
       await tester.pumpAndSettle();
       expect(_vm.approveAllCalls, 0);
-      expect(
-        find.textContaining('need a supply and retail price'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('a supply and retail price'), findsOneWidget);
     });
 
     testWidgets('pricing an item in its sheet and approving it', (

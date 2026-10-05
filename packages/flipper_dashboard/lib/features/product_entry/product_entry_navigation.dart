@@ -1,12 +1,10 @@
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Opens add/edit product as a full-page route (desktop) or Scaffold (phone).
-Future<void> openProductEntryScreen(
-  BuildContext context, {
-  String? productId,
-}) {
+Future<void> openProductEntryScreen(BuildContext context, {String? productId}) {
   final isPhone =
       responsive.ResponsiveLayout.isPhone(context) ||
       responsive.ResponsiveLayout.isTinyLimit(context);
@@ -17,7 +15,9 @@ Future<void> openProductEntryScreen(
         builder: (ctx) => Scaffold(
           appBar: AppBar(
             title: Text(
-              productId == null ? 'Add New Product' : 'Edit Product',
+              productId == null
+                  ? ctx.flipperL10n.productEntryAddNewProduct
+                  : ctx.flipperL10n.productEntryEditProduct,
             ),
             leading: IconButton(
               icon: const Icon(Icons.close),

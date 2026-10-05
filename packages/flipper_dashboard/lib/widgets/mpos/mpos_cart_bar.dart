@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
@@ -10,24 +11,28 @@ class MposCartBar extends StatelessWidget {
     required this.itemCount,
     required this.total,
     required this.onReviewPay,
-    this.emptyLabel = 'Tap a product to start a sale',
-    this.actionLabel = 'Review & Pay',
+    this.emptyLabel,
+    this.actionLabel,
   });
 
   final int itemCount;
   final double total;
   final VoidCallback? onReviewPay;
-  final String emptyLabel;
-  final String actionLabel;
+  final String? emptyLabel;
+  final String? actionLabel;
 
   bool get _isEmpty => itemCount <= 0;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    final emptyLabel = this.emptyLabel ?? l10n.mposCartEmptyHint;
+    final actionLabel = this.actionLabel ?? l10n.mposCartReviewPay;
+    final summary = l10n.mposCartSummary(itemCount, mposMoneyLabel(total));
     return MaestroSemantics(
       id: MaestroIds.mposCartBar,
-      label: _isEmpty ? emptyLabel : 'Cart',
-      value: '$itemCount items, RWF ${mposMoneyLabel(total)}',
+      label: _isEmpty ? emptyLabel : l10n.mposCartLabel,
+      value: summary,
       child: Container(
         decoration: const BoxDecoration(
           color: PosTokens.surface,
@@ -69,7 +74,7 @@ class MposCartBar extends StatelessWidget {
                 label: actionLabel,
                 button: true,
                 enabled: onReviewPay != null,
-                value: '$itemCount items, RWF ${mposMoneyLabel(total)}',
+                value: summary,
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
@@ -109,7 +114,7 @@ class MposCartBar extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '$itemCount ${itemCount == 1 ? 'item' : 'items'} in cart',
+                                  l10n.mposCartItemsInCart(itemCount),
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w600,

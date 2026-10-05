@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/product_view.dart';
@@ -23,9 +24,13 @@ class AddToFavorites extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 30.0),
-            Text('Set Favorite Product',
-                style: GoogleFonts.outfit(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              context.flipperL10n.favoritesSetProduct,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 16.0),
             Expanded(
               child: ProductView.favoriteMode(
@@ -34,7 +39,7 @@ class AddToFavorites extends StatelessWidget {
               ),
             ),
             ElevatedButton(
-              child: Text('Close'),
+              child: Text(context.flipperL10n.close),
               onPressed: () {
                 final _routerService = locator<RouterService>();
                 _routerService.back();

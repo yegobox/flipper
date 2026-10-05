@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
@@ -34,7 +35,7 @@ class _BackUpState extends State<BackUp> {
               _routerService.pop();
               ;
             },
-            title: 'BackUp Configuration',
+            title: context.flipperL10n.backupConfiguration,
             disableButton: false,
             showActionButton: false,
           ),
@@ -51,12 +52,15 @@ class _BackUpState extends State<BackUp> {
                 ),
               ),
               SwitchListTile.adaptive(
-                  title: const Text('Enable Auto Backup'),
-                  value: model.isAutoBackupEnabled,
-                  onChanged: (value) {
-                    FlipperBottomSheet.showABackUpBottomSheet(
-                        model: model, context: context);
-                  }),
+                title: Text(context.flipperL10n.backupEnableAuto),
+                value: model.isAutoBackupEnabled,
+                onChanged: (value) {
+                  FlipperBottomSheet.showABackUpBottomSheet(
+                    model: model,
+                    context: context,
+                  );
+                },
+              ),
             ],
           ),
         );
