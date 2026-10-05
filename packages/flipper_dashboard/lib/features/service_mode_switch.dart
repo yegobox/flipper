@@ -251,23 +251,22 @@ Future<bool> applyServiceMode(
   ServiceMode mode, {
   Duration persistTimeout = const Duration(seconds: 3),
 }) async {
+  final enablingHotel = mode == ServiceMode.hotel && !HotelModeSettings.enabled;
+  final enablingBar = mode == ServiceMode.bar && !BarModeSettings.enabled;
+
+  // Seed the default plan only when the branch is turning the service on.
+  // A branch that already runs it has a plan on some device; seeding here
+  // from a device that has not synced it yet would resurrect deleted tables
+  // and rooms and reset renamed ones on every device.
   final branchId = ProxyService.box.getBranchId();
-  if (branchId != null) {
+  if (branchId != null && (enablingBar || enablingHotel)) {
     final sync = ProxyService.getStrategy(Strategy.capella);
-    switch (mode) {
-      case ServiceMode.bar:
-        await sync.seedDefaultFloorPlan(branchId: branchId);
-      case ServiceMode.hotel:
-        await sync.seedDefaultRooms(branchId: branchId);
-      case ServiceMode.pos:
-        break;
-    }
+    if (enablingBar) await sync.seedDefaultFloorPlan(branchId: branchId);
+    if (enablingHotel) await sync.seedDefaultRooms(branchId: branchId);
   }
 
   // `persist: false`: the awaited save below is the only branch write, so the
   // document is written once per switch rather than twice.
-  final enablingHotel = mode == ServiceMode.hotel && !HotelModeSettings.enabled;
-  final enablingBar = mode == ServiceMode.bar && !BarModeSettings.enabled;
   if (enablingHotel) HotelModeSettings.setEnabled(true, persist: false);
   if (enablingBar) BarModeSettings.setEnabled(true, persist: false);
 

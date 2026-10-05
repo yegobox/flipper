@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
@@ -56,7 +57,25 @@ class BarModeState {
 
 class BarModeNotifier extends Notifier<BarModeState> {
   @override
-  BarModeState build() => const BarModeState();
+  BarModeState build() {
+    // activeTable is a copy taken when the table was opened. Follow the live
+    // floor plan so a rename or seat change made on another device shows on
+    // this one's POS and settle screens. A table deleted elsewhere keeps its
+    // last copy: the open tab still needs a name.
+    ref.listen(barTablesProvider, (_, next) {
+      final active = state.activeTable;
+      final tables = next.value;
+      if (active == null || tables == null) return;
+      for (final live in tables) {
+        if (live.id != active.id) continue;
+        if (!mapEquals(live.toJson(), active.toJson())) {
+          state = state.copyWith(activeTable: live);
+        }
+        return;
+      }
+    });
+    return const BarModeState();
+  }
 
   void setScreen(BarScreen screen) {
     var next = state.copyWith(screen: screen);
