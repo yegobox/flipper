@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -23,7 +24,7 @@ class VisualizationUtils {
           if (context.mounted) {
             showErrorNotification(
               context,
-              'Error: Could not find chart to copy.',
+              FlipperL10n.current.aiChartNotFound,
             );
           }
           return;
@@ -36,7 +37,7 @@ class VisualizationUtils {
           if (context.mounted) {
             showErrorNotification(
               context,
-              'Error: Could not generate image data.',
+              FlipperL10n.current.aiChartImageFailed,
             );
           }
           return;
@@ -45,13 +46,14 @@ class VisualizationUtils {
         await Pasteboard.writeImage(byteData.buffer.asUint8List());
 
         if (context.mounted) {
-          showSuccessNotification(context, 'Chart copied to clipboard!');
+          showSuccessNotification(context, FlipperL10n.current.aiChartCopied);
         }
 
         onSuccess?.call();
       } catch (e) {
         if (context.mounted) {
-          showErrorNotification(context, 'Failed to copy chart: $e');
+          showErrorNotification(
+              context, FlipperL10n.current.aiChartCopyFailed('$e'));
         }
       }
     });

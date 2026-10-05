@@ -2,6 +2,7 @@ import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/secrets.dart';
@@ -215,7 +216,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   /// Validates that username is not too long
   static String? _min4Char(String? username) {
     if (username!.length > 11) {
-      return 'Name is too long';
+      return FlipperL10n.current.signupNameTooLong;
     }
     return null;
   }
@@ -223,7 +224,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   /// Validates phone number format or email format
   static String? _validateContactInfo(String? contact) {
     if (contact == null || contact.isEmpty) {
-      return 'Phone number or email is required';
+      return FlipperL10n.current.signupContactRequired;
     }
 
     // Regex for phone number (optional +, 8-15 digits, spaces, hyphens, parentheses allowed)
@@ -239,40 +240,40 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return null; // Valid email
     }
 
-    return 'Please enter a valid phone number or email address';
+    return FlipperL10n.current.signupContactInvalid;
   }
 
   /// Checks if username is available
   Future<String?> _checkUsername(String? username) async {
     try {
       if (username == null) {
-        return "Username/business name is required";
+        return FlipperL10n.current.signupUsernameRequired;
       }
       int status = await ProxyService.strategy.userNameAvailable(
           name: username, flipperHttpClient: ProxyService.http);
 
       if (status == 200) {
-        return 'That username is already taken';
+        return FlipperL10n.current.signupUsernameTaken;
       }
 
       return null;
     } catch (e) {
-      return 'Name Search not available';
+      return FlipperL10n.current.signupUsernameCheckUnavailable;
     }
   }
 
   /// Validates OTP format
   static String? _validateOtp(String? otp) {
     if (otp == null || otp.isEmpty) {
-      return 'OTP is required';
+      return FlipperL10n.current.loginOtpRequired;
     }
 
     if (otp.length != 6) {
-      return 'OTP must be 6 digits';
+      return FlipperL10n.current.signupOtpMustBe6Digits;
     }
 
     if (!RegExp(r'^\d{6}$').hasMatch(otp)) {
-      return 'OTP must contain only digits';
+      return FlipperL10n.current.signupOtpDigitsOnly;
     }
 
     return null;
@@ -309,7 +310,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     }
 
     if (phoneNumber.value.isEmpty) {
-      throw Exception('Phone number or email is required to send OTP');
+      // Surfaces in the "Failed to send OTP" snackbar.
+      throw Exception(FlipperL10n.current.signupContactRequired);
     }
 
     // Check if it's an email
@@ -413,7 +415,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       } else {
         // Reset phone verification status on failure so user can try again
         setPhoneVerified(false);
-        _otpVerificationError = result['error'] ?? 'Verification failed';
+        _otpVerificationError =
+            result['error'] ?? FlipperL10n.current.signupVerificationFailed;
         _otpVerificationStatusController.add({
           'isVerifying': false,
           'isVerified': false,
@@ -455,7 +458,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
           log('Invalid OTP format: $otpError',
               name: 'AsyncFieldValidationFormBloc');
           signupViewModel.stopRegistering();
-          emitFailure(failureResponse: otpError);
+          // Failure responses are raw reasons the view matches on (it shows
+          // its own localized copy), so they stay untranslated.
+          emitFailure(failureResponse: 'Invalid OTP format');
           return;
         }
 
@@ -529,11 +534,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     }
     if (_isTinValidationRelaxed) return null;
     if (_isTinVerified) return null;
-    return 'Please validate TIN';
+    return FlipperL10n.current.signupValidateTin;
   }
 
   static String? _validatePhoneNotVerified(String? value) {
-    return 'Phone number must be verified';
+    return FlipperL10n.current.signupPhoneMustBeVerified;
   }
 
   void setTinVerified(bool verified) {

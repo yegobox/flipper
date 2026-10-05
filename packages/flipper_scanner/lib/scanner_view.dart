@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -275,7 +276,7 @@ class ScannViewState extends ConsumerState<ScannView>
       child: Column(
         children: [
           Text(
-            'Align QR code within frame',
+            context.flipperL10n.scannerAlignQrCode,
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -300,13 +301,13 @@ class ScannViewState extends ConsumerState<ScannView>
   String getInstructionByIntent() {
     switch (widget.intent) {
       case SELLING:
-        return 'Scan product barcode to add to cart';
+        return context.flipperL10n.scannerInstructionSelling;
       case ATTENDANCE:
-        return 'Scan attendance QR code to check in';
+        return context.flipperL10n.scannerInstructionAttendance;
       case LOGIN:
-        return 'Scan QR code to log in to your account';
+        return context.flipperL10n.scannerInstructionLogin;
       default:
-        return 'Scanning...';
+        return context.flipperL10n.scannerScanning;
     }
   }
 
@@ -317,51 +318,52 @@ class ScannViewState extends ConsumerState<ScannView>
     String statusTitle;
     String statusMessage;
     bool showSpinner = false;
+    final l10n = context.flipperL10n;
 
     switch (scanStatus) {
       case ScanStatus.processing:
         backgroundColor = Colors.blue.shade50;
         iconColor = Colors.blue;
         statusIcon = Icons.sync;
-        statusTitle = 'Processing';
-        statusMessage = 'Sending login to desktop...';
+        statusTitle = l10n.scannerStatusProcessing;
+        statusMessage = l10n.scannerSendingLoginToDesktop;
         showSpinner = true;
         break;
       case ScanStatus.waitingForDesktop:
         backgroundColor = Colors.blue.shade50;
         iconColor = Colors.blue;
         statusIcon = Icons.desktop_windows;
-        statusTitle = 'Waiting for desktop';
-        statusMessage = 'Login sent — completing on your computer...';
+        statusTitle = l10n.scannerWaitingForDesktop;
+        statusMessage = l10n.scannerLoginSentCompleting;
         showSpinner = true;
         break;
       case ScanStatus.success:
         backgroundColor = Colors.green.shade50;
         iconColor = Colors.green;
         statusIcon = Icons.check_circle;
-        statusTitle = 'Scan Successful';
-        statusMessage = 'QR code processed successfully';
+        statusTitle = l10n.scannerScanSuccessful;
+        statusMessage = l10n.scannerQrProcessedSuccessfully;
         break;
       case ScanStatus.desktopLoginSuccess:
         backgroundColor = Colors.green.shade50;
         iconColor = Colors.green;
         statusIcon = Icons.check_circle;
-        statusTitle = 'Login Successful';
-        statusMessage = 'Desktop device authenticated';
+        statusTitle = l10n.scannerLoginSuccessful;
+        statusMessage = l10n.scannerDesktopAuthenticated;
         break;
       case ScanStatus.failed:
         backgroundColor = Colors.red.shade50;
         iconColor = Colors.red;
         statusIcon = Icons.error;
-        statusTitle = 'Login Failed';
-        statusMessage = 'Could not authenticate desktop device';
+        statusTitle = l10n.scannerLoginFailed;
+        statusMessage = l10n.scannerCouldNotAuthenticateDesktop;
         break;
       case ScanStatus.idle:
         backgroundColor = Colors.white;
         iconColor = Colors.green;
         statusIcon = Icons.check;
-        statusTitle = 'QR Code Detected';
-        statusMessage = 'Processing your request...';
+        statusTitle = l10n.scannerQrCodeDetected;
+        statusMessage = l10n.scannerProcessingRequest;
         showSpinner = true;
         break;
     }
@@ -498,6 +500,7 @@ class ScannViewState extends ConsumerState<ScannView>
   }
 
   Widget _buildInfoSheet(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -517,7 +520,7 @@ class ScannViewState extends ConsumerState<ScannView>
             ),
           ),
           Text(
-            'Scanner Help',
+            l10n.scannerHelpTitle,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -526,18 +529,18 @@ class ScannViewState extends ConsumerState<ScannView>
           SizedBox(height: 16),
           ListTile(
             leading: Icon(Icons.qr_code_scanner, color: Colors.blue),
-            title: Text('Position the code within the frame'),
-            subtitle: Text('Make sure it\'s well-lit and not blurry'),
+            title: Text(l10n.scannerHelpPositionCode),
+            subtitle: Text(l10n.scannerHelpWellLit),
           ),
           ListTile(
             leading: Icon(Icons.flash_on, color: Colors.amber),
-            title: Text('Use flash in low light'),
-            subtitle: Text('Toggle the flash icon at the bottom'),
+            title: Text(l10n.scannerHelpUseFlash),
+            subtitle: Text(l10n.scannerHelpToggleFlash),
           ),
           ListTile(
             leading: Icon(Icons.devices, color: Colors.green),
-            title: Text('Clean your camera lens'),
-            subtitle: Text('For better scanning results'),
+            title: Text(l10n.scannerHelpCleanLens),
+            subtitle: Text(l10n.scannerHelpBetterResults),
           ),
           SizedBox(height: 20),
           ElevatedButton(
@@ -550,7 +553,7 @@ class ScannViewState extends ConsumerState<ScannView>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text('Got it'),
+            child: Text(l10n.dialogGotIt),
           ),
         ],
       ),
@@ -560,13 +563,13 @@ class ScannViewState extends ConsumerState<ScannView>
   String getScannerTitleByIntent() {
     switch (widget.intent) {
       case SELLING:
-        return 'Product Scanner';
+        return context.flipperL10n.scannerTitleProduct;
       case ATTENDANCE:
-        return 'Attendance Scanner';
+        return context.flipperL10n.scannerTitleAttendance;
       case LOGIN:
-        return 'Login Scanner';
+        return context.flipperL10n.scannerTitleLogin;
       default:
-        return 'QR Scanner';
+        return context.flipperL10n.scannerTitleQr;
     }
   }
 
@@ -583,7 +586,8 @@ class ScannViewState extends ConsumerState<ScannView>
             // Gallery button
             GestureDetector(
               onTap: () {
-                showToast(context, 'Gallery selection coming soon');
+                showToast(
+                    context, context.flipperL10n.scannerGalleryComingSoon);
               },
               child: Container(
                 width: 60,
@@ -698,6 +702,7 @@ class ScannViewState extends ConsumerState<ScannView>
       return;
     }
     if (widget.intent == SELLING) {
+      final notFoundMessage = context.flipperL10n.productNotFound;
       Product? product = await widget.scannerActions
           .getStrategyService()
           .getProductByBarCode(code: code);
@@ -705,7 +710,7 @@ class ScannViewState extends ConsumerState<ScannView>
         widget.scannerActions.navigateToSellRoute(product);
         return;
       }
-      widget.scannerActions.showSimpleNotification("Product not found");
+      widget.scannerActions.showSimpleNotification(notFoundMessage);
       widget.scannerActions.pop();
       return;
     }

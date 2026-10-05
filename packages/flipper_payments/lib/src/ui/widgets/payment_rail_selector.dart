@@ -2,6 +2,7 @@ import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:flipper_payments/src/payment_rail.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Mobile Money / Card selector, styled to match [PaymentSegment2].
@@ -32,7 +33,7 @@ class PaymentRailSelector extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
-            'How would you like to pay?',
+            context.flipperL10n.paywallHowToPay,
             style: PaymentTypography.sectionLabel(),
           ),
         ),

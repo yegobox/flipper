@@ -43,23 +43,23 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                     if (!RegExp(
                             r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                         .hasMatch(email)) {
-                      return "Invalid Email";
+                      return context.flipperL10n.loginInvalidEmail;
                     }
                     if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(email)) {
-                      return "Gmail Email is required";
+                      return context.flipperL10n.loginGmailRequired;
                     }
                   },
                   controller: emailController,
-                  placeholder: 'Enter Email',
+                  placeholder: context.flipperL10n.loginEnterEmail,
                 ),
               ),
               const SizedBox(height: 5),
-              const Padding(
-                padding: EdgeInsets.all(8.0),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: Text(
-                  'After entering your email, click on add email',
+                  context.flipperL10n.loginAddEmailHint,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ),
               const SizedBox(height: 10),
@@ -81,8 +81,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                   );
                                   if (updated) {
                                     showSimpleNotification(
-                                      Text(
-                                          context.flipperL10n.emailAdded),
+                                      Text(context.flipperL10n.emailAdded),
                                       background: Colors.green,
                                       position: NotificationPosition.bottom,
                                     );
@@ -98,8 +97,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                 width: double.infinity,
                                 height: 60,
                                 child: BoxButton(
-                                  title:
-                                      context.flipperL10n.updateSettings,
+                                  title: context.flipperL10n.updateSettings,
                                   busy: true,
                                 ),
                               ),

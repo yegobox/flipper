@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/flo_theme.dart';
@@ -27,18 +28,19 @@ class FloModelSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     // No local option → a static "Cloud" indicator, nothing to switch.
     if (!localAvailable) {
       return _pill(
         icon: Icons.cloud_outlined,
         iconColor: FloTheme.blue,
-        label: 'Cloud',
+        label: l10n.floModeCloud,
         showChevron: false,
       );
     }
 
     return PopupMenuButton<bool>(
-      tooltip: 'Choose AI mode',
+      tooltip: l10n.floChooseAiMode,
       position: PopupMenuPosition.under,
       onSelected: onChanged,
       itemBuilder: (context) => [
@@ -47,22 +49,22 @@ class FloModelSelector extends StatelessWidget {
           selected: useLocal,
           icon: Icons.offline_bolt_outlined,
           iconColor: FloTheme.gain,
-          title: 'On-Device',
-          subtitle: 'Free · offline · private',
+          title: l10n.floModeOnDevice,
+          subtitle: l10n.floOnDeviceSubtitle,
         ),
         _menuItem(
           value: false,
           selected: !useLocal,
           icon: Icons.cloud_outlined,
           iconColor: FloTheme.blue,
-          title: 'Cloud',
-          subtitle: 'More capable · uses connection',
+          title: l10n.floModeCloud,
+          subtitle: l10n.floCloudSubtitle,
         ),
       ],
       child: _pill(
         icon: useLocal ? Icons.offline_bolt_outlined : Icons.cloud_outlined,
         iconColor: useLocal ? FloTheme.gain : FloTheme.blue,
-        label: useLocal ? 'On-Device' : 'Cloud',
+        label: useLocal ? l10n.floModeOnDevice : l10n.floModeCloud,
         showChevron: true,
       ),
     );
@@ -91,13 +93,11 @@ class FloModelSelector extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w600)),
                 Text(subtitle,
-                    style: const TextStyle(
-                        fontSize: 11, color: FloTheme.ink3)),
+                    style: const TextStyle(fontSize: 11, color: FloTheme.ink3)),
               ],
             ),
           ),
-          if (selected)
-            const Icon(Icons.check, size: 15, color: FloTheme.blue),
+          if (selected) const Icon(Icons.check, size: 15, color: FloTheme.blue),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -62,9 +63,9 @@ class ConversationList extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text(
-            'Conversations',
-            style: TextStyle(
+          Text(
+            context.flipperL10n.aiConversations,
+            style: const TextStyle(
               fontSize: 16, // Slightly smaller font
               fontWeight: FontWeight.w600,
               color: AiTheme.textColor,
@@ -74,7 +75,7 @@ class ConversationList extends StatelessWidget {
           // Single add button with dropdown menu
           PopupMenuButton<String>(
             icon: const Icon(Icons.add_rounded, color: AiTheme.primaryColor),
-            tooltip: 'Add',
+            tooltip: context.flipperL10n.aiAdd,
             splashRadius: 16,
             padding: EdgeInsets.zero,
             offset: const Offset(0, 40),
@@ -82,31 +83,31 @@ class ConversationList extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'new_conversation',
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.chat_bubble_outline_rounded,
                       color: AiTheme.primaryColor,
                       size: 20,
                     ),
-                    SizedBox(width: 12),
-                    Text('New Conversation'),
+                    const SizedBox(width: 12),
+                    Text(context.flipperL10n.aiNewConversation),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'connect_whatsapp',
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.chat_rounded,
                       color: AiTheme.whatsAppGreen,
                       size: 20,
                     ),
-                    SizedBox(width: 12),
-                    Text('Connect WhatsApp'),
+                    const SizedBox(width: 12),
+                    Text(context.flipperL10n.aiWhatsappConnect),
                   ],
                 ),
               ),
@@ -147,7 +148,11 @@ class ConversationList extends StatelessWidget {
     final title = (conversation.title.isNotEmpty &&
             conversation.title != "New Conversation")
         ? conversation.title
-        : (lastMessage?.text.split('\n').first ?? conversation.title);
+        : (lastMessage?.text.split('\n').first ??
+            // 'New Conversation' is the stored default title; show it localized.
+            (conversation.title == 'New Conversation'
+                ? context.flipperL10n.aiNewConversation
+                : conversation.title));
 
     final timestamp =
         lastMessage?.timestamp ?? conversation.createdAt ?? DateTime.now();
@@ -224,7 +229,7 @@ class ConversationList extends StatelessWidget {
                   }),
                 ),
                 onPressed: () => onDeleteConversation(conversationId),
-                tooltip: 'Delete Conversation',
+                tooltip: context.flipperL10n.aiDeleteConversation,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -244,13 +249,14 @@ class ConversationList extends StatelessWidget {
     if (difference.inDays > 7) {
       return DateFormat('MMM d').format(localTimestamp);
     } else if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
+      return FlipperL10n.current.aiDaysAgo('${difference.inDays}');
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
+      return FlipperL10n.current.aiDataSourceHoursAgo('${difference.inHours}');
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
+      return FlipperL10n.current
+          .aiDataSourceMinutesAgo('${difference.inMinutes}');
     } else {
-      return 'Just now';
+      return FlipperL10n.current.aiDataSourceJustNow;
     }
   }
 }

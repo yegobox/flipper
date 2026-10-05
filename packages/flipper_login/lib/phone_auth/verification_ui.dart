@@ -55,7 +55,7 @@ class VerificationUI extends StatelessWidget {
 
             // Title
             Text(
-              'Verification Code',
+              context.flipperL10n.phoneAuthVerificationCode,
               style: GoogleFonts.poppins(
                 fontSize: 28,
                 fontWeight: FontWeight.w600,
@@ -238,7 +238,7 @@ class VerificationUI extends StatelessWidget {
                 onPressed: state.isLoading ? null : onChangePhoneNumber,
                 icon: Icon(Icons.edit, size: 18, color: colorScheme.primary),
                 label: Text(
-                  'Change Phone Number',
+                  context.flipperL10n.phoneAuthChangeNumber,
                   style: GoogleFonts.poppins(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,

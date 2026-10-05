@@ -1,6 +1,7 @@
 import 'package:flipper_payments/src/catalog/billing_cadence.dart';
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Daily / Monthly / Yearly billing segment with a sliding thumb.
@@ -67,9 +68,10 @@ class PaymentCadenceSegment extends StatelessWidget {
                         label: option.label,
                         // Only worth the space when it is the saving on offer;
                         // three labels plus a tag is too much for a phone.
-                        saveTag: option == BillingCadence.yearly &&
+                        saveTag:
+                            option == BillingCadence.yearly &&
                                 options.length < 3
-                            ? '($discount% off)'
+                            ? context.flipperL10n.paywallPercentOff('$discount')
                             : null,
                         selected: option == selected,
                         onTap: () => onChanged(option),
@@ -101,8 +103,9 @@ class _CadenceTap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = selected ? Colors.white : PaymentTokens.ink2;
-    final saveColor =
-        selected ? Colors.white.withValues(alpha: 0.85) : PaymentTokens.blue;
+    final saveColor = selected
+        ? Colors.white.withValues(alpha: 0.85)
+        : PaymentTokens.blue;
 
     return GestureDetector(
       onTap: onTap,
@@ -122,12 +125,15 @@ class _CadenceTap extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: '$label ',
-                        style: PaymentTypography.segmentButton(color: textColor),
+                        style: PaymentTypography.segmentButton(
+                          color: textColor,
+                        ),
                       ),
                       TextSpan(
                         text: saveTag,
-                        style: PaymentTypography.segmentButton(color: saveColor)
-                            .copyWith(fontWeight: FontWeight.w600),
+                        style: PaymentTypography.segmentButton(
+                          color: saveColor,
+                        ).copyWith(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
@@ -965,7 +966,7 @@ class _InteractiveVisualizationWrapperState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Inventory Visualization',
+                          context.flipperL10n.aiInventoryVisualization,
                           style: TextStyle(
                             fontSize: config['titleSize'],
                             fontWeight: FontWeight.w600,
@@ -974,7 +975,7 @@ class _InteractiveVisualizationWrapperState
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Coming Soon',
+                          context.flipperL10n.aiComingSoon,
                           style: TextStyle(
                             fontSize: config['legendSize'],
                             color: Colors.grey.shade500,

@@ -1,6 +1,7 @@
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class PaymentSummaryRow {
@@ -21,11 +22,12 @@ class PaymentSummaryCard extends StatelessWidget {
   const PaymentSummaryCard({
     super.key,
     required this.rows,
-    this.title = 'Payment Summary',
+    this.title,
     this.plain = false,
   });
 
-  final String title;
+  /// Defaults to the localized "Payment Summary".
+  final String? title;
   final List<PaymentSummaryRow> rows;
   final bool plain;
 
@@ -61,7 +63,10 @@ class PaymentSummaryCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(title, style: PaymentTypography.cardTitle()),
+              Text(
+                title ?? context.flipperL10n.paywallPaymentSummary,
+                style: PaymentTypography.cardTitle(),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -95,19 +100,20 @@ class PaymentSummaryCard extends StatelessWidget {
                       textAlign: TextAlign.end,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: (rows[i].mono
-                              ? PaymentTypography.monoPrice(
-                                  size: 14.5,
-                                  weight: FontWeight.w700,
-                                )
-                              : PaymentTypography.inlineLabel().copyWith(
-                                  fontSize: 14.5,
-                                ))
-                          .copyWith(
-                        color: rows[i].highlight
-                            ? PaymentTokens.gain
-                            : PaymentTokens.ink1,
-                      ),
+                      style:
+                          (rows[i].mono
+                                  ? PaymentTypography.monoPrice(
+                                      size: 14.5,
+                                      weight: FontWeight.w700,
+                                    )
+                                  : PaymentTypography.inlineLabel().copyWith(
+                                      fontSize: 14.5,
+                                    ))
+                              .copyWith(
+                                color: rows[i].highlight
+                                    ? PaymentTokens.gain
+                                    : PaymentTokens.ink1,
+                              ),
                     ),
                   ),
                 ],

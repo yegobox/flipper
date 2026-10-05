@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -36,6 +37,9 @@ class WorkOrderDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The helper builders below read FlipperL10n.current; this dependency
+    // rebuilds the dialog when the language changes.
+    final l10n = context.flipperL10n;
     final variance = workOrder.variance;
     final varianceColor =
         variance >= 0 ? const Color(0xFF10B981) : const Color(0xFFEF4444);
@@ -84,7 +88,8 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          workOrder.variantName ?? 'Unknown Product',
+                          workOrder.variantName ??
+                              l10n.uiWorkOrderUnknownProduct,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w700,
                             fontSize: 20,
@@ -93,7 +98,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'ID: ${workOrder.id.substring(0, 8)}',
+                          l10n.uiWorkOrderId(workOrder.id.substring(0, 8)),
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.9),
@@ -166,7 +171,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                         },
                         icon: const Icon(Icons.play_arrow, size: 18),
                         label: Text(
-                          'Start',
+                          l10n.uiWorkOrderStart,
                           style:
                               GoogleFonts.poppins(fontWeight: FontWeight.w600),
                         ),
@@ -189,7 +194,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                         },
                         icon: const Icon(Icons.add_circle_outline, size: 18),
                         label: Text(
-                          'Record Output',
+                          l10n.uiWorkOrderRecordOutput,
                           style:
                               GoogleFonts.poppins(fontWeight: FontWeight.w600),
                         ),
@@ -215,7 +220,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Close',
+                      l10n.close,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF42474E),
@@ -240,17 +245,17 @@ class WorkOrderDetailsDialog extends StatelessWidget {
       case 'completed':
         statusColor = const Color(0xFF10B981);
         statusIcon = Icons.check_circle;
-        statusLabel = 'Completed';
+        statusLabel = FlipperL10n.current.uiWorkOrderCompleted;
         break;
       case 'in_progress':
         statusColor = const Color(0xFFF59E0B);
         statusIcon = Icons.play_circle;
-        statusLabel = 'In Progress';
+        statusLabel = FlipperL10n.current.uiWorkOrderInProgress;
         break;
       default:
         statusColor = const Color(0xFF6B7280);
         statusIcon = Icons.schedule;
-        statusLabel = 'Planned';
+        statusLabel = FlipperL10n.current.uiWorkOrderPlanned;
     }
 
     return Container(
@@ -289,25 +294,25 @@ class WorkOrderDetailsDialog extends StatelessWidget {
       childAspectRatio: 1.3,
       children: [
         _buildMetricCard(
-          'Planned',
+          FlipperL10n.current.uiWorkOrderPlanned,
           workOrder.plannedQuantity.toStringAsFixed(0),
           Icons.flag_outlined,
           const Color(0xFF01B8E4),
         ),
         _buildMetricCard(
-          'Actual',
+          FlipperL10n.current.uiWorkOrderActual,
           workOrder.actualQuantity.toStringAsFixed(0),
           Icons.inventory_2_outlined,
           varianceColor,
         ),
         _buildMetricCard(
-          'Variance',
+          FlipperL10n.current.uiWorkOrderVariance,
           '${variance >= 0 ? '+' : ''}${variance.toStringAsFixed(0)}',
           variance >= 0 ? Icons.trending_up : Icons.trending_down,
           varianceColor,
         ),
         _buildMetricCard(
-          'Efficiency',
+          FlipperL10n.current.uiWorkOrderEfficiency,
           '${workOrder.efficiency.toStringAsFixed(1)}%',
           Icons.speed,
           workOrder.efficiency >= 100
@@ -317,15 +322,15 @@ class WorkOrderDetailsDialog extends StatelessWidget {
                   : const Color(0xFFEF4444),
         ),
         _buildMetricCard(
-          'Target Date',
+          FlipperL10n.current.uiWorkOrderTargetDate,
           _formatDate(workOrder.targetDate),
           Icons.calendar_today,
           const Color(0xFF6B7280),
         ),
         if (workOrder.shiftId != null)
           _buildMetricCard(
-            'Shift',
-            workOrder.shiftId ?? 'N/A',
+            FlipperL10n.current.uiWorkOrderShift,
+            workOrder.shiftId ?? FlipperL10n.current.uiWorkOrderNotApplicable,
             Icons.access_time,
             const Color(0xFF6B7280),
           ),
@@ -383,7 +388,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
               const Icon(Icons.notes, size: 18, color: Color(0xFF6B7280)),
               const SizedBox(width: 8),
               Text(
-                'Notes',
+                FlipperL10n.current.uiWorkOrderNotes,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -410,7 +415,7 @@ class WorkOrderDetailsDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Timeline',
+          FlipperL10n.current.uiWorkOrderTimeline,
           style: GoogleFonts.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -420,21 +425,21 @@ class WorkOrderDetailsDialog extends StatelessWidget {
         const SizedBox(height: 12),
         if (workOrder.createdAt != null)
           _buildTimelineItem(
-            'Created',
+            FlipperL10n.current.uiWorkOrderCreated,
             workOrder.createdAt,
             Icons.add_circle_outline,
             const Color(0xFF01B8E4),
           ),
         if (workOrder.startedAt != null)
           _buildTimelineItem(
-            'Started',
+            FlipperL10n.current.uiWorkOrderStarted,
             workOrder.startedAt,
             Icons.play_circle_outline,
             const Color(0xFFF59E0B),
           ),
         if (workOrder.completedAt != null)
           _buildTimelineItem(
-            'Completed',
+            FlipperL10n.current.uiWorkOrderCompleted,
             workOrder.completedAt,
             Icons.check_circle_outline,
             const Color(0xFF10B981),

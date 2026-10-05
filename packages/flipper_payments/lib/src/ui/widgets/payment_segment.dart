@@ -1,5 +1,6 @@
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Monthly / Yearly billing segment with sliding thumb.
@@ -50,15 +51,17 @@ class PaymentSegment2 extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _SegmentTap(
-                      label: 'Monthly',
+                      label: context.flipperL10n.paywallCadenceMonthly,
                       selected: !isYearly,
                       onTap: () => onChanged(false),
                     ),
                   ),
                   Expanded(
                     child: _SegmentTap(
-                      label: 'Yearly',
-                      saveTag: '($discount% off)',
+                      label: context.flipperL10n.paywallCadenceYearly,
+                      saveTag: context.flipperL10n.paywallPercentOff(
+                        '$discount',
+                      ),
                       selected: isYearly,
                       onTap: () => onChanged(true),
                     ),
@@ -111,13 +114,15 @@ class _SegmentTap extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: '$label ',
-                        style:
-                            PaymentTypography.segmentButton(color: textColor),
+                        style: PaymentTypography.segmentButton(
+                          color: textColor,
+                        ),
                       ),
                       TextSpan(
                         text: saveTag,
-                        style: PaymentTypography.segmentButton(color: saveColor)
-                            .copyWith(fontWeight: FontWeight.w600),
+                        style: PaymentTypography.segmentButton(
+                          color: saveColor,
+                        ).copyWith(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),

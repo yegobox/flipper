@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -23,20 +24,23 @@ const Color _kParkedOrange = Color(0xFFD97706);
 const Color _kParkedBg = Color(0xFFFFF7ED);
 const double _kSheetRadius = 26;
 
-const _monthShort = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
+/// Localized short month name for [month] (1–12).
+String _monthShort(FlipperAppLocalizations l10n, int month) {
+  return switch (month) {
+    1 => l10n.uiMonthShortJan,
+    2 => l10n.uiMonthShortFeb,
+    3 => l10n.uiMonthShortMar,
+    4 => l10n.uiMonthShortApr,
+    5 => l10n.uiMonthShortMay,
+    6 => l10n.uiMonthShortJun,
+    7 => l10n.uiMonthShortJul,
+    8 => l10n.uiMonthShortAug,
+    9 => l10n.uiMonthShortSep,
+    10 => l10n.uiMonthShortOct,
+    11 => l10n.uiMonthShortNov,
+    _ => l10n.uiMonthShortDec,
+  };
+}
 
 /// Space below scroll content so status chips stay above [stickyActionBar].
 /// Matches footer padding (12+52+20) plus clearance and device safe area.
@@ -177,7 +181,7 @@ class _ResumeTicketFooter extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'DUE',
+                                context.flipperL10n.uiTicketDue,
                                 style: GoogleFonts.poppins(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -201,8 +205,8 @@ class _ResumeTicketFooter extends StatelessWidget {
                         Expanded(
                           flex: 6,
                           child: AsyncActionGradientButton(
-                            idleLabel: 'Resume order',
-                            loadingLabel: 'Resuming…',
+                            idleLabel: context.flipperL10n.uiTicketResumeOrder,
+                            loadingLabel: context.flipperL10n.uiTicketResuming,
                             icon: Icons.replay_rounded,
                             syncNotifier: isResumingNotifier,
                             onPressed: () async {
@@ -272,7 +276,7 @@ class ResumeTicketSummary extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 22),
-          _sectionLabel('CUSTOMER'),
+          _sectionLabel(context.flipperL10n.uiTicketCustomerSection),
           const SizedBox(height: 8),
           _CustomerCard(ticket: ticket),
           const SizedBox(height: 20),
@@ -281,7 +285,9 @@ class ResumeTicketSummary extends ConsumerWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _sectionLabel('ITEMS · ${items.length}'),
+                  _sectionLabel(
+                    context.flipperL10n.uiTicketItemsSection('${items.length}'),
+                  ),
                   const SizedBox(height: 8),
                   totalPaidAsync.when(
                     data: (paid) => _ItemsAndTotalsCard(
@@ -319,13 +325,13 @@ class ResumeTicketSummary extends ConsumerWidget {
               ),
             ),
             error: (e, _) => Text(
-              'Could not load items: $e',
+              context.flipperL10n.uiTicketCouldNotLoadItems('$e'),
               style: GoogleFonts.poppins(fontSize: 13, color: _kDueRed),
             ),
           ),
           _PaymentHistorySection(ticket: ticket, currency: currency),
           const SizedBox(height: 24),
-          _sectionLabel('STATUS'),
+          _sectionLabel(context.flipperL10n.uiTicketStatusSection),
           const SizedBox(height: 10),
           IgnorePointer(
             child: Opacity(
@@ -350,7 +356,7 @@ class _ResumeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badge = _statusBadgeFor(ticket.status ?? PARKED);
+    final badge = _statusBadgeFor(context.flipperL10n, ticket.status ?? PARKED);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +383,7 @@ class _ResumeHeader extends StatelessWidget {
                 children: [
                   Flexible(
                     child: Text(
-                      'Resume ticket',
+                      context.flipperL10n.uiTicketResumeTicket,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w700,
                         fontSize: 20,
@@ -446,7 +452,13 @@ class _CustomerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+    final l10n = context.flipperL10n;
+    // 'Walk-in' is also what older builds stored as the name of an anonymous
+    // ticket, so it is matched as a value and only localized for display.
+    final rawName =
+        (ticket.customerName ?? ticket.ticketName ?? 'Walk-in').trim();
+    final isWalkIn = rawName == 'Walk-in';
+    final name = isWalkIn ? l10n.uiTicketWalkIn : rawName;
     final phone =
         (ticket.customerPhone ?? ticket.currentSaleCustomerPhoneNumber ?? '')
             .trim();
@@ -525,21 +537,21 @@ class _CustomerCard extends StatelessWidget {
           children: [
             if (ticket.isLoan == true)
               _infoTag(
-                label: 'Loan',
+                label: l10n.uiTicketLoan,
                 icon: Icons.account_balance_wallet_outlined,
                 fg: _kLoanPurple,
                 bg: const Color(0xFFF3E5F5),
               ),
-            if (name == 'Walk-in')
+            if (isWalkIn)
               _infoTag(
-                label: 'Walk-in',
+                label: l10n.uiTicketWalkIn,
                 icon: Icons.person_outline_rounded,
                 fg: const Color(0xFF6B7280),
                 bg: Colors.white,
                 bordered: true,
               ),
             _infoTag(
-              label: _formatTicketDate(ticket.createdAt),
+              label: _formatTicketDate(l10n, ticket.createdAt),
               icon: Icons.calendar_today_outlined,
               fg: const Color(0xFF6B7280),
               bg: Colors.white,
@@ -586,7 +598,7 @@ class _ItemsAndTotalsCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'No items on this ticket.',
+                context.flipperL10n.uiTicketNoItems,
                 style: GoogleFonts.poppins(fontSize: 14, color: _kLabel),
               ),
             )
@@ -609,12 +621,12 @@ class _ItemsAndTotalsCard extends StatelessWidget {
             child: Column(
               children: [
                 _moneyRow(
-                  'Total amount',
+                  context.flipperL10n.totalAmount,
                   total.toCurrencyFormatted(symbol: currency),
                 ),
                 const SizedBox(height: 10),
                 _moneyRow(
-                  'Amount paid',
+                  context.flipperL10n.amountPaid,
                   paid.toCurrencyFormatted(symbol: currency),
                   valueColor: _kPaidGreen,
                 ),
@@ -627,7 +639,7 @@ class _ItemsAndTotalsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Remaining balance',
+                      context.flipperL10n.remainingBalance,
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -764,7 +776,9 @@ class _PaymentHistorySection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        _sectionLabel('PAYMENTS · ${payments.length}'),
+        _sectionLabel(
+          context.flipperL10n.uiTicketPaymentsSection('${payments.length}'),
+        ),
         const SizedBox(height: 8),
         _surfaceCard(
           padding: EdgeInsets.zero,
@@ -792,13 +806,13 @@ class _PaymentHistorySection extends ConsumerWidget {
                 child: Column(
                   children: [
                     _moneyRow(
-                      'Total paid so far',
+                      context.flipperL10n.uiTicketTotalPaidSoFar,
                       paid.toCurrencyFormatted(symbol: currency),
                       valueColor: _kPaidGreen,
                     ),
                     const SizedBox(height: 10),
                     _moneyRow(
-                      'Still due',
+                      context.flipperL10n.uiTicketStillDue,
                       stillDue.toCurrencyFormatted(symbol: currency),
                       valueColor: _kDueRed,
                     ),
@@ -828,7 +842,8 @@ class _PaymentHistoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final method = (record.paymentMethod ?? 'Unknown').trim();
+    final l10n = context.flipperL10n;
+    final method = (record.paymentMethod ?? '').trim();
     final payer = record.payerName?.trim() ?? '';
     // Only surface the payer when it adds information (mobile money / bank
     // transfers are often tendered from someone else's account).
@@ -858,7 +873,10 @@ class _PaymentHistoryRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Payment $index · ${method.isEmpty ? 'Unknown' : method.toUpperCase()}',
+                l10n.uiTicketPaymentLine(
+                  '$index',
+                  method.isEmpty ? l10n.uiTicketUnknown : method.toUpperCase(),
+                ),
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -869,7 +887,7 @@ class _PaymentHistoryRow extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                _formatPaymentTimestamp(record.createdAt),
+                _formatPaymentTimestamp(l10n, record.createdAt),
                 style: GoogleFonts.poppins(fontSize: 12, color: _kLabel),
               ),
               if (showPayer) ...[
@@ -884,7 +902,7 @@ class _PaymentHistoryRow extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Paid by $payer',
+                        l10n.uiTicketPaidBy(payer),
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           color: Colors.grey.shade700,
@@ -928,7 +946,7 @@ class _StatusRow extends StatelessWidget {
       children: [
         Expanded(
           child: _StatusCard(
-            label: 'Waiting',
+            label: context.flipperL10n.uiTicketStatusWaiting,
             dotColor: _kParkedOrange,
             isSelected: _isWaitingStatus(currentStatus),
             enabled: enabled,
@@ -938,7 +956,7 @@ class _StatusRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _StatusCard(
-            label: 'In Progress',
+            label: context.flipperL10n.uiTicketStatusInProgress,
             dotColor: const Color(0xFF2563EB),
             isSelected:
                 currentStatus == IN_PROGRESS || currentStatus == ORDERING,
@@ -949,7 +967,7 @@ class _StatusRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _StatusCard(
-            label: 'Completed',
+            label: context.flipperL10n.uiTicketStatusCompleted,
             dotColor: _kPaidGreen,
             isSelected: currentStatus == COMPLETE,
             enabled: enabled,
@@ -982,7 +1000,8 @@ class _StatusCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: enabled ? onTap : null,
-        mouseCursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        mouseCursor:
+            enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 16),
@@ -1190,22 +1209,26 @@ class _StatusBadge {
   final Color bg;
 }
 
-_StatusBadge _statusBadgeFor(String status) {
+_StatusBadge _statusBadgeFor(FlipperAppLocalizations l10n, String status) {
   switch (status) {
     case IN_PROGRESS:
     case ORDERING:
-      return const _StatusBadge(
-        'IN PROGRESS',
-        Color(0xFF2563EB),
-        Color(0xFFE3F2FD),
+      return _StatusBadge(
+        l10n.uiTicketBadgeInProgress,
+        const Color(0xFF2563EB),
+        const Color(0xFFE3F2FD),
       );
     case COMPLETE:
-      return const _StatusBadge('COMPLETED', _kPaidGreen, Color(0xFFE8F5E9));
+      return _StatusBadge(
+        l10n.uiTicketBadgeCompleted,
+        _kPaidGreen,
+        const Color(0xFFE8F5E9),
+      );
     case PARKED:
     case PENDING:
     case WAITING:
     default:
-      return const _StatusBadge('PARKED', _kParkedOrange, _kParkedBg);
+      return _StatusBadge(l10n.uiTicketBadgeParked, _kParkedOrange, _kParkedBg);
   }
 }
 
@@ -1246,10 +1269,10 @@ String _itemInitials(String name) {
   return trimmed[0].toUpperCase();
 }
 
-String _formatTicketDate(DateTime? date) {
+String _formatTicketDate(FlipperAppLocalizations l10n, DateTime? date) {
   if (date == null) return '—';
   final local = date.toLocal();
-  final m = _monthShort[local.month - 1];
+  final m = _monthShort(l10n, local.month);
   return '${local.day} $m ${local.year}';
 }
 
@@ -1274,17 +1297,17 @@ IconData _paymentMethodIcon(String method) {
 /// "Today · 14:32" / "Yesterday · 09:05" / "3 Aug 2026 · 09:05".
 ///
 /// Records are stamped in UTC (savePaymentType) — display in device local time.
-String _formatPaymentTimestamp(DateTime? at) {
-  if (at == null) return 'Date not recorded';
+String _formatPaymentTimestamp(FlipperAppLocalizations l10n, DateTime? at) {
+  if (at == null) return l10n.uiTicketDateNotRecorded;
   final local = at.toLocal();
   final time = '${_twoDigits(local.hour)}:${_twoDigits(local.minute)}';
   final now = DateTime.now();
   final days = DateTime(now.year, now.month, now.day)
       .difference(DateTime(local.year, local.month, local.day))
       .inDays;
-  if (days == 0) return 'Today · $time';
-  if (days == 1) return 'Yesterday · $time';
-  return '${local.day} ${_monthShort[local.month - 1]} ${local.year} · $time';
+  if (days == 0) return l10n.uiTicketTodayAt(time);
+  if (days == 1) return l10n.uiTicketYesterdayAt(time);
+  return '${local.day} ${_monthShort(l10n, local.month)} ${local.year} · $time';
 }
 
 String _twoDigits(int value) => value.toString().padLeft(2, '0');

@@ -1,12 +1,14 @@
 import 'package:flipper_ai_feature/src/providers/currency_provider.dart';
 import 'package:flipper_ai_feature/src/widgets/data_visualization.dart';
 import 'package:flipper_ai_feature/src/widgets/data_visualization/structured_data_visualization.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../services/mock_currency_service.dart';
+
 // flutter test test/features/ai/widgets/data_visualization_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   // A dummy function for onCopyGraph since the tests don't focus on copy functionality
@@ -76,14 +78,15 @@ The most sold item overall is Mango, with 23858 units sold.
       return UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           theme: ThemeData(primaryColor: Colors.blue),
           home: Scaffold(body: child),
         ),
       );
     }
 
-    testWidgets(
-        'renders business analytics chart when valid data is provided',
+    testWidgets('renders business analytics chart when valid data is provided',
         (tester) async {
       await tester.pumpWidget(
         buildTestableWidget(
@@ -106,18 +109,22 @@ The most sold item overall is Mango, with 23858 units sold.
 
       // Verify metric cards using specific ancestor finders
       final revenueMetricRow = find.widgetWithIcon(Row, Icons.trending_up);
-      expect(find.descendant(of: revenueMetricRow, matching: find.text('Revenue')),
+      expect(
+          find.descendant(of: revenueMetricRow, matching: find.text('Revenue')),
           findsOneWidget);
       expect(
-          find.descendant(of: revenueMetricRow, matching: find.text('RWF 17.7M')),
+          find.descendant(
+              of: revenueMetricRow, matching: find.text('RWF 17.7M')),
           findsOneWidget);
 
       final profitMetricRow =
           find.widgetWithIcon(Row, Icons.account_balance_wallet);
-      expect(find.descendant(of: profitMetricRow, matching: find.text('Profit')),
+      expect(
+          find.descendant(of: profitMetricRow, matching: find.text('Profit')),
           findsOneWidget);
       expect(
-          find.descendant(of: profitMetricRow, matching: find.text('RWF 10.5M')),
+          find.descendant(
+              of: profitMetricRow, matching: find.text('RWF 10.5M')),
           findsOneWidget);
 
       final unitsSoldMetricRow = find.widgetWithIcon(Row, Icons.inventory);

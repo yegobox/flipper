@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class TimeSegmentUI extends StatefulWidget {
@@ -209,7 +210,9 @@ class TimeSegmentPainter extends CustomPainter {
     // Draw the time text in the center
     TextPainter textPainter = TextPainter(
       text: TextSpan(
-        text: isComplete ? 'Done!' : _formatDuration(remainingTime),
+        text: isComplete
+            ? FlipperL10n.current.uiTimerDone
+            : _formatDuration(remainingTime),
         style: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
@@ -228,7 +231,9 @@ class TimeSegmentPainter extends CustomPainter {
     // Draw the "Until Delivered" text below
     TextPainter untilDeliveredPainter = TextPainter(
       text: TextSpan(
-        text: isComplete ? 'Delivered!' : 'Until Delivered',
+        text: isComplete
+            ? FlipperL10n.current.uiTimerDelivered
+            : FlipperL10n.current.uiTimerUntilDelivered,
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w500,
@@ -247,13 +252,13 @@ class TimeSegmentPainter extends CustomPainter {
 
   String _formatDuration(Duration duration) {
     if (duration.inDays >= 1) {
-      return "${duration.inDays} Days";
+      return FlipperL10n.current.uiTimerDays(duration.inDays);
     } else if (duration.inHours >= 1) {
-      return "${duration.inHours} Hours";
+      return FlipperL10n.current.uiTimerHours(duration.inHours);
     } else if (duration.inMinutes >= 1) {
-      return "${duration.inMinutes} MIN";
+      return FlipperL10n.current.uiTimerMinutes('${duration.inMinutes}');
     } else {
-      return "${duration.inSeconds} SEC";
+      return FlipperL10n.current.uiTimerSeconds('${duration.inSeconds}');
     }
   }
 

@@ -2,6 +2,7 @@
 ///
 /// Dialog for adding or editing a data source connection.
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -53,7 +54,9 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(isEditing ? 'Edit Data Source' : 'Connect Data Source'),
+            child: Text(isEditing
+                ? context.flipperL10n.aiDataSourceEdit
+                : context.flipperL10n.aiDataSourceConnectTitle),
           ),
         ],
       ),
@@ -66,10 +69,10 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
             if (!isEditing) ...[
               DropdownButtonFormField<DataSourceType>(
                 value: dataSourceType.value,
-                decoration: const InputDecoration(
-                  labelText: 'Data Source Type',
-                  prefixIcon: Icon(Icons.storage),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.flipperL10n.aiDataSourceType,
+                  prefixIcon: const Icon(Icons.storage),
+                  border: const OutlineInputBorder(),
                 ),
                 items: const [
                   DropdownMenuItem(
@@ -96,9 +99,9 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
             // Name
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Connection Name',
-                hintText: 'e.g., Production Database',
+              decoration: InputDecoration(
+                labelText: context.flipperL10n.aiDataSourceConnectionName,
+                hintText: context.flipperL10n.aiDataSourceConnectionNameHint,
                 prefixIcon: Icon(Icons.label),
                 border: OutlineInputBorder(),
               ),
@@ -109,11 +112,11 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
             if (dataSourceType.value == DataSourceType.supabase) ...[
               TextField(
                 controller: supabaseUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Supabase URL',
+                decoration: InputDecoration(
+                  labelText: context.flipperL10n.aiDataSourceSupabaseUrl,
                   hintText: 'https://xxxxx.supabase.co',
-                  prefixIcon: Icon(Icons.link),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.link),
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.url,
               ),
@@ -122,11 +125,11 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
               // Anon Key
               TextField(
                 controller: anonKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'Anon/Public Key',
+                decoration: InputDecoration(
+                  labelText: context.flipperL10n.aiDataSourceAnonKey,
                   hintText: 'eyJhbGc...',
-                  prefixIcon: Icon(Icons.key),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.key),
+                  border: const OutlineInputBorder(),
                 ),
                 obscureText: true,
               ),
@@ -135,12 +138,12 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
               // Service Key (optional)
               TextField(
                 controller: serviceKeyController,
-                decoration: const InputDecoration(
-                  labelText: 'Service Role Key (Optional)',
+                decoration: InputDecoration(
+                  labelText: context.flipperL10n.aiDataSourceServiceKey,
                   hintText: 'eyJhbGc...',
-                  prefixIcon: Icon(Icons.vpn_key),
-                  border: OutlineInputBorder(),
-                  helperText: 'Required for admin operations',
+                  prefixIcon: const Icon(Icons.vpn_key),
+                  border: const OutlineInputBorder(),
+                  helperText: context.flipperL10n.aiDataSourceServiceKeyHelper,
                 ),
                 obscureText: true,
               ),
@@ -154,13 +157,15 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                       onPressed: isTestingConnection.value
                           ? null
                           : () async {
+                              final l10n = context.flipperL10n;
                               isTestingConnection.value = true;
                               testResult.value = null;
                               errorMessage.value = null;
 
                               try {
                                 final anon = anonKeyController.text.trim();
-                                final service = serviceKeyController.text.trim();
+                                final service =
+                                    serviceKeyController.text.trim();
                                 final config = DataSourceConfig.supabase(
                                   id: initialConfig?.id ??
                                       DateTime.now().toString(),
@@ -177,11 +182,11 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
 
                                 if (!result) {
                                   errorMessage.value =
-                                      'Connection test failed. Please check your credentials.';
+                                      l10n.aiDataSourceTestFailedCredentials;
                                 }
                               } catch (e) {
                                 errorMessage.value =
-                                    'Connection test failed: $e';
+                                    l10n.aiDataSourceTestFailed('$e');
                                 testResult.value = false;
                               } finally {
                                 isTestingConnection.value = false;
@@ -195,8 +200,8 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                             )
                           : const Icon(Icons.wifi_find),
                       label: Text(isTestingConnection.value
-                          ? 'Testing...'
-                          : 'Test Connection'),
+                          ? context.flipperL10n.aiDataSourceTesting
+                          : context.flipperL10n.aiDataSourceTestConnection),
                     ),
                   ),
                   if (testResult.value != null) ...[
@@ -238,8 +243,7 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'When connected, the assistant can use schema and sample rows from '
-                      'this source in your chats. Credentials are stored only on this device.',
+                      context.flipperL10n.aiDataSourcePrivacyNote,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -252,7 +256,7 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.flipperL10n.cancel),
         ),
         FilledButton.icon(
           onPressed: isLoading.value
@@ -260,24 +264,28 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
               : () async {
                   // Validate inputs
                   if (nameController.text.trim().isEmpty) {
-                    errorMessage.value = 'Please enter a connection name';
+                    errorMessage.value =
+                        context.flipperL10n.aiDataSourceEnterName;
                     return;
                   }
 
                   if (dataSourceType.value == DataSourceType.supabase) {
                     if (supabaseUrlController.text.trim().isEmpty) {
-                      errorMessage.value = 'Please enter the Supabase URL';
+                      errorMessage.value =
+                          context.flipperL10n.aiDataSourceEnterUrl;
                       return;
                     }
                     final hasAnon = anonKeyController.text.trim().isNotEmpty;
-                    final hasService = serviceKeyController.text.trim().isNotEmpty;
+                    final hasService =
+                        serviceKeyController.text.trim().isNotEmpty;
                     if (!hasAnon && !hasService) {
                       errorMessage.value =
-                          'Please enter an Anon/Public Key or Service Role Key';
+                          context.flipperL10n.aiDataSourceEnterKey;
                       return;
                     }
                   }
 
+                  final l10n = context.flipperL10n;
                   isLoading.value = true;
                   errorMessage.value = null;
 
@@ -311,8 +319,8 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                         SnackBar(
                           content: Text(
                             isEditing
-                                ? 'Data source updated successfully'
-                                : 'Data source connected successfully',
+                                ? l10n.aiDataSourceUpdated
+                                : l10n.aiDataSourceConnected,
                           ),
                           backgroundColor:
                               Theme.of(context).colorScheme.primary,
@@ -320,7 +328,7 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                       );
                     }
                   } catch (e) {
-                    errorMessage.value = 'Failed to connect: $e';
+                    errorMessage.value = l10n.aiDataSourceConnectFailed('$e');
                   } finally {
                     isLoading.value = false;
                   }
@@ -334,8 +342,10 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                 )
               : const Icon(Icons.check),
           label: Text(isLoading.value
-              ? 'Connecting...'
-              : (isEditing ? 'Update' : 'Connect')),
+              ? context.flipperL10n.aiDataSourceConnecting
+              : (isEditing
+                  ? context.flipperL10n.aiDataSourceUpdate
+                  : context.flipperL10n.aiDataSourceConnect)),
         ),
       ],
     );
@@ -364,25 +374,25 @@ class DataSourceStatusChip extends StatelessWidget {
       case DataSourceStatus.connected:
         backgroundColor = Theme.of(context).colorScheme.primaryContainer;
         textColor = Theme.of(context).colorScheme.onPrimaryContainer;
-        label = 'Connected';
+        label = context.flipperL10n.aiDataSourceStatusConnected;
         icon = Icons.check_circle;
         break;
       case DataSourceStatus.connecting:
         backgroundColor = Theme.of(context).colorScheme.tertiaryContainer;
         textColor = Theme.of(context).colorScheme.onTertiaryContainer;
-        label = 'Connecting';
+        label = context.flipperL10n.aiDataSourceStatusConnecting;
         icon = Icons.sync;
         break;
       case DataSourceStatus.error:
         backgroundColor = Theme.of(context).colorScheme.errorContainer;
         textColor = Theme.of(context).colorScheme.onErrorContainer;
-        label = 'Error';
+        label = context.flipperL10n.aiDataSourceStatusError;
         icon = Icons.error;
         break;
       case DataSourceStatus.disconnected:
         backgroundColor = Theme.of(context).colorScheme.surfaceContainerHighest;
         textColor = Theme.of(context).colorScheme.onSurfaceVariant;
-        label = 'Disconnected';
+        label = context.flipperL10n.aiDataSourceStatusDisconnected;
         icon = Icons.cloud_off;
     }
 

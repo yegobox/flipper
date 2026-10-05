@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
@@ -231,7 +232,7 @@ class _ProduceSelectionDialogContentState
               Padding(
                 padding: const EdgeInsets.only(left: 24, top: 8, bottom: 8),
                 child: Text(
-                  'Items',
+                  context.flipperL10n.uiProduceItems,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -302,7 +303,7 @@ class _Header extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              'Select Item to Produce',
+              context.flipperL10n.uiProduceSelectItem,
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -318,7 +319,7 @@ class _Header extends StatelessWidget {
             style: IconButton.styleFrom(
               foregroundColor: FluentTheme.textSecondary,
             ),
-            tooltip: 'Close',
+            tooltip: context.flipperL10n.close,
           ),
         ],
       ),
@@ -366,7 +367,7 @@ class _Description extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 16, 28, 12),
       child: Text(
-        'Choose an item from the list below to begin production.',
+        context.flipperL10n.uiProduceDescription,
         style: TextStyle(
           fontSize: 14,
           height: 1.5,
@@ -401,7 +402,7 @@ class _ItemCountBadge extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              '$remaining ${remaining == 1 ? 'item' : 'items'} remaining',
+              context.flipperL10n.uiProduceItemsRemaining(remaining),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -427,7 +428,8 @@ class _ItemCountBadge extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '$producedCount assigned',
+                    context.flipperL10n
+                        .uiProduceAssignedCount('$producedCount'),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -631,7 +633,7 @@ class _Details extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              'Qty: ${item.qty}',
+              context.flipperL10n.uiProduceQty('${item.qty}'),
               style: TextStyle(
                 fontSize: 12,
                 color: isProduced
@@ -664,9 +666,9 @@ class _StatusIndicator extends StatelessWidget {
           color: FluentTheme.successGreen.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Text(
-          'Assigned',
-          style: TextStyle(
+        child: Text(
+          context.flipperL10n.uiProduceAssigned,
+          style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: FluentTheme.successGreen,
@@ -694,9 +696,9 @@ class _StatusIndicator extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            const Text(
-              'In Progress',
-              style: TextStyle(
+            Text(
+              context.flipperL10n.uiProduceInProgress,
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: FluentTheme.warningOrange,
@@ -764,7 +766,7 @@ class _DetailPanel extends StatelessWidget {
                     backgroundColor: FluentTheme.surfaceCard,
                     foregroundColor: FluentTheme.textSecondary,
                   ),
-                  tooltip: 'Back to list',
+                  tooltip: context.flipperL10n.uiProduceBackToList,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -772,7 +774,7 @@ class _DetailPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Production Details',
+                        context.flipperL10n.uiProduceDetails,
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

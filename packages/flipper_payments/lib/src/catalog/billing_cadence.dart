@@ -1,3 +1,5 @@
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// How often a subscription is billed.
 ///
 /// The wire values are `plans.rule`, read by data-connector's `Rule::parse`
@@ -31,24 +33,24 @@ enum BillingCadence {
   bool get isDaily => this == BillingCadence.daily;
 
   String get label => switch (this) {
-        BillingCadence.daily => 'Daily',
-        BillingCadence.monthly => 'Monthly',
-        BillingCadence.yearly => 'Yearly',
-      };
+    BillingCadence.daily => FlipperL10n.current.paywallCadenceDaily,
+    BillingCadence.monthly => FlipperL10n.current.paywallCadenceMonthly,
+    BillingCadence.yearly => FlipperL10n.current.paywallCadenceYearly,
+  };
 
   /// Suffix for a price line: `5,000 RWF/month`.
   String get periodSuffix => switch (this) {
-        BillingCadence.daily => '/day',
-        BillingCadence.monthly => '/month',
-        BillingCadence.yearly => '/year',
-      };
+    BillingCadence.daily => FlipperL10n.current.paywallPeriodDay,
+    BillingCadence.monthly => FlipperL10n.current.paywallPeriodMonth,
+    BillingCadence.yearly => FlipperL10n.current.paywallPeriodYear,
+  };
 
   /// Days in one period, for the next billing date.
   int get periodDays => switch (this) {
-        BillingCadence.daily => 1,
-        BillingCadence.monthly => 30,
-        BillingCadence.yearly => 365,
-      };
+    BillingCadence.daily => 1,
+    BillingCadence.monthly => 30,
+    BillingCadence.yearly => 365,
+  };
 }
 
 /// Divisor turning a monthly price into a daily one.

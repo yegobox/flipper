@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/data_connector_url.dart';
@@ -73,14 +74,14 @@ class _FloInboxViewState extends ConsumerState<FloInboxView> {
               const Icon(Icons.error_outline, color: FloTheme.loss, size: 32),
               const SizedBox(height: 12),
               Text(
-                'Could not read Ditto whatsapp_messages\n$e',
+                context.flipperL10n.aiWhatsappReadInboxFailed('$e'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: FloTheme.ink2, fontSize: 13),
               ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => ref.invalidate(whatsappDittoThreadsProvider),
-                child: const Text('Retry'),
+                child: Text(context.flipperL10n.retry),
               ),
             ],
           ),
@@ -217,7 +218,7 @@ class _FloInboxViewState extends ConsumerState<FloInboxView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Send failed: $e'),
+            content: Text(context.flipperL10n.aiWhatsappSendFailed('$e')),
             backgroundColor: FloTheme.loss,
           ),
         );
@@ -251,19 +252,19 @@ class _LockedState extends StatelessWidget {
               child: FloIcons.whatsApp(size: 28, color: FloTheme.blueDeep),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Answer customers on WhatsApp',
-              style: TextStyle(
+            Text(
+              context.flipperL10n.aiWhatsappAnswerCustomers,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: FloTheme.ink1,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Connect your Meta WhatsApp Business account to see customer messages here and draft replies with Flo.',
+            Text(
+              context.flipperL10n.aiWhatsappConnectPitch,
               textAlign: TextAlign.center,
-              style: TextStyle(color: FloTheme.ink2),
+              style: const TextStyle(color: FloTheme.ink2),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -285,9 +286,9 @@ class _LockedState extends StatelessWidget {
                       children: [
                         FloIcons.link(size: 16, color: Colors.white),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Connect WhatsApp',
-                          style: TextStyle(
+                        Text(
+                          context.flipperL10n.aiWhatsappConnect,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -327,18 +328,18 @@ class _EmptyThreadHint extends StatelessWidget {
             child: FloIcons.whatsApp(size: 24, color: FloTheme.ink3),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Select a customer',
-            style: TextStyle(
+          Text(
+            context.flipperL10n.aiWhatsappSelectCustomer,
+            style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: FloTheme.ink1,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'WhatsApp inbox · data-connector + Ditto',
-            style: TextStyle(fontSize: 13, color: FloTheme.ink3),
+          Text(
+            context.flipperL10n.aiWhatsappInboxSource,
+            style: const TextStyle(fontSize: 13, color: FloTheme.ink3),
           ),
         ],
       ),
@@ -370,10 +371,10 @@ class _ListPane extends StatelessWidget {
               children: [
                 FloIcons.whatsApp(size: 16, color: FloTheme.blueDeep),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Customers · WhatsApp',
-                    style: TextStyle(
+                    context.flipperL10n.aiWhatsappCustomers,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.01,
@@ -465,14 +466,18 @@ class _ListPane extends StatelessWidget {
     final local = at.toLocal();
     final now = DateTime.now();
     final diff = now.difference(local);
-    if (diff.inMinutes < 1) return 'now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m';
+    if (diff.inMinutes < 1) return FlipperL10n.current.floTimeNow;
+    if (diff.inHours < 1) {
+      return FlipperL10n.current.floTimeMinutesShort('${diff.inMinutes}');
+    }
     if (diff.inDays < 1) {
       final h = local.hour.toString().padLeft(2, '0');
       final m = local.minute.toString().padLeft(2, '0');
       return '$h:$m';
     }
-    if (diff.inDays < 7) return '${diff.inDays}d';
+    if (diff.inDays < 7) {
+      return FlipperL10n.current.floTimeDaysShort('${diff.inDays}');
+    }
     return '${local.day}/${local.month}';
   }
 }
@@ -482,30 +487,30 @@ class _EmptyCustomerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.chat_bubble_outline_rounded,
+            const Icon(Icons.chat_bubble_outline_rounded,
                 size: 36, color: FloTheme.ink4),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'No WhatsApp messages yet',
+              context.flipperL10n.aiWhatsappNoMessages,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: FloTheme.ink1,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              'Inbound messages load from data-connector (local Ditto is a backup). When Meta posts to the webhook they appear here within a few seconds.',
+              context.flipperL10n.aiWhatsappNoMessagesHint,
               textAlign: TextAlign.center,
-              style:
-                  TextStyle(fontSize: 12.5, height: 1.4, color: FloTheme.ink3),
+              style: const TextStyle(
+                  fontSize: 12.5, height: 1.4, color: FloTheme.ink3),
             ),
           ],
         ),
@@ -702,10 +707,10 @@ class _ThreadPaneState extends State<_ThreadPane> {
           ),
           Expanded(
             child: thread.messages.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      'No messages in this thread yet',
-                      style: TextStyle(color: FloTheme.ink3),
+                      context.flipperL10n.aiWhatsappNoThreadMessages,
+                      style: const TextStyle(color: FloTheme.ink3),
                     ),
                   )
                 : ListView.builder(
@@ -866,8 +871,8 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
       if (!mounted) return;
       if (bytes == null || bytes.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not download this PDF'),
+          SnackBar(
+            content: Text(context.flipperL10n.aiWhatsappPdfDownloadFailed),
             backgroundColor: FloTheme.loss,
           ),
         );
@@ -879,7 +884,7 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
           : '${widget.message.displayFilename}.pdf';
 
       final savedPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save PDF',
+        dialogTitle: context.flipperL10n.aiWhatsappSavePdf,
         fileName: fileName,
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
@@ -890,7 +895,7 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Saved $fileName'),
+          content: Text(context.flipperL10n.aiWhatsappSavedFile(fileName)),
           backgroundColor: FloTheme.blueDeep,
         ),
       );
@@ -898,7 +903,7 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Download failed: $e'),
+          content: Text(context.flipperL10n.aiWhatsappDownloadFailed('$e')),
           backgroundColor: FloTheme.loss,
         ),
       );
@@ -966,7 +971,7 @@ class _PdfAttachmentState extends State<_PdfAttachment> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'PDF document',
+                      context.flipperL10n.aiWhatsappPdfDocument,
                       style: TextStyle(
                         fontSize: 11.5,
                         color: onBlue
@@ -1128,13 +1133,13 @@ class _DraftCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              FloMark(size: 18),
-              SizedBox(width: 8),
+              const FloMark(size: 18),
+              const SizedBox(width: 8),
               Text(
-                'Flo suggested reply',
-                style: TextStyle(
+                context.flipperL10n.aiWhatsappFloSuggestedReply,
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                   color: FloTheme.ink1,
@@ -1159,11 +1164,11 @@ class _DraftCard extends StatelessWidget {
                   replyController.text = draft;
                   onSend();
                 },
-                child: const Text('Send'),
+                child: Text(context.flipperL10n.aiWhatsappSend),
               ),
               TextButton(
                 onPressed: () => replyController.text = draft,
-                child: const Text('Edit first'),
+                child: Text(context.flipperL10n.aiWhatsappEditFirst),
               ),
             ],
           ),
@@ -1210,7 +1215,7 @@ class _ComposerBar extends StatelessWidget {
                     height: 14,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Draft'),
+                : Text(context.flipperL10n.aiWhatsappDraft),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -1220,7 +1225,7 @@ class _ComposerBar extends StatelessWidget {
               maxLines: 4,
               enabled: !sending,
               decoration: InputDecoration(
-                hintText: 'Reply on WhatsApp…',
+                hintText: context.flipperL10n.aiWhatsappReplyHint,
                 hintStyle: const TextStyle(color: FloTheme.ink4),
                 filled: true,
                 fillColor: FloTheme.surface2,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/local_inference_engine.dart';
 
 import '../local/local_ai_config.dart';
@@ -30,48 +31,52 @@ class LocalFloService {
     List<Map<String, String>> history = const [],
     Map<String, dynamic>? deviceSales,
     String? shopName,
+
     /// ISO/short currency code for the shop (e.g. "RWF"). Injected into the
     /// prompt so the model formats amounts in the right currency instead of
     /// defaulting to "$".
     String? currency,
+
     /// Optional RAG context (Phase 2): compact rows retrieved from the
     /// on-device Qdrant store, injected verbatim into the prompt.
     String? ragContext,
   }) async* {
     final engine = LocalInferenceRegistry.engine;
     if (engine == null || !engine.isSupported) {
-      yield const FloChatEvent(
+      yield FloChatEvent(
         event: 'error',
-        data: 'On-device AI is not available on this device.',
+        data: FlipperL10n.current.aiLocalUnavailable,
       );
       return;
     }
 
     // Make first-run weight download visible as a thinking step.
     if (!engine.isReady) {
-      yield const FloChatEvent(
+      yield FloChatEvent(
         event: 'thinking',
-        data: 'Preparing the on-device model…',
+        data: FlipperL10n.current.aiLocalPreparing,
       );
       try {
         await engine.ensureModelReady();
       } catch (e) {
         yield FloChatEvent(
           event: 'error',
-          data: 'Could not load the on-device model: $e',
+          data: FlipperL10n.current.aiLocalLoadFailed('$e'),
         );
         return;
       }
     }
 
-    yield const FloChatEvent(event: 'thinking', data: 'Reading your shop data…');
+    yield FloChatEvent(
+        event: 'thinking', data: FlipperL10n.current.aiLocalReadingShopData);
 
     // On-device retrieval over indexed sales (skipped if a context was passed
     // in, or if retrieval fails / returns nothing).
     var rag = ragContext;
     if (rag == null && engine.supportsRag) {
       try {
-        final hits = await engine.retrieve(message, topK: LocalAiConfig.ragTopK);
+        final hits =
+            await engine.retrieve(message, topK: LocalAiConfig.ragTopK);
         if (hits.isNotEmpty) {
           rag = hits.map((h) => '- ${h.content}').join('\n');
         }
@@ -89,7 +94,8 @@ class LocalFloService {
       ragContext: rag,
     );
 
-    yield const FloChatEvent(event: 'thinking', data: 'Thinking on-device…');
+    yield FloChatEvent(
+        event: 'thinking', data: FlipperL10n.current.aiLocalThinking);
 
     final buffer = StringBuffer();
     try {
@@ -97,7 +103,9 @@ class LocalFloService {
         buffer.write(chunk);
       }
     } catch (e) {
-      yield FloChatEvent(event: 'error', data: 'On-device generation failed: $e');
+      yield FloChatEvent(
+          event: 'error',
+          data: FlipperL10n.current.aiLocalGenerationFailed('$e'));
       return;
     }
 
@@ -130,7 +138,8 @@ class LocalFloService {
     final cur = currency?.trim() ?? '';
     final b = StringBuffer()
       ..writeln(_systemPreamble)
-      ..writeln('Shop: ${shopName?.trim().isNotEmpty == true ? shopName : 'your shop'}');
+      ..writeln(
+          'Shop: ${shopName?.trim().isNotEmpty == true ? shopName : 'your shop'}');
     if (cur.isNotEmpty) {
       b.writeln(
         'Currency is $cur. Write every money amount as "$cur" followed by the '

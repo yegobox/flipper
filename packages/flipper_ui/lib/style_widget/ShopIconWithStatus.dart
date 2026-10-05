@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class ShopIconWithStatus extends StatefulWidget {
@@ -7,7 +8,9 @@ class ShopIconWithStatus extends StatefulWidget {
   final Color borderColor;
   final Color iconColor;
   final Color statusColor;
-  final String label;
+
+  /// Defaults to the localized "Shop".
+  final String? label;
   final bool isActive;
   final VoidCallback? onTap;
   final String? tooltip;
@@ -21,7 +24,7 @@ class ShopIconWithStatus extends StatefulWidget {
     this.borderColor = Colors.grey,
     this.iconColor = Colors.black87,
     this.statusColor = Colors.green,
-    this.label = 'Shop',
+    this.label,
     this.isActive = true,
     this.onTap,
     this.tooltip,
@@ -58,10 +61,13 @@ class _ShopIconWithStatusState extends State<ShopIconWithStatus>
 
   @override
   Widget build(BuildContext context) {
+    final label = widget.label ?? context.flipperL10n.uiShop;
     return Semantics(
       button: true,
       enabled: widget.onTap != null,
-      label: '${widget.label} ${widget.isActive ? 'active' : 'inactive'}',
+      label: widget.isActive
+          ? context.flipperL10n.uiShopActiveSemantic(label)
+          : context.flipperL10n.uiShopInactiveSemantic(label),
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
@@ -73,7 +79,7 @@ class _ShopIconWithStatusState extends State<ShopIconWithStatus>
           child: ScaleTransition(
             scale: _scaleAnimation,
             child: Tooltip(
-              message: widget.tooltip ?? widget.label,
+              message: widget.tooltip ?? label,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: widget.width,
@@ -119,7 +125,7 @@ class _ShopIconWithStatusState extends State<ShopIconWithStatus>
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              widget.label,
+                              label,
                               style: TextStyle(
                                 color: widget.iconColor,
                                 fontSize: 12,

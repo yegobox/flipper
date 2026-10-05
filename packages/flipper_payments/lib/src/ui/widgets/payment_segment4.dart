@@ -3,6 +3,7 @@ import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:flipper_payments/src/ui/widgets/payment_toggle_switch.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// 1× / 3× / 6× / 12× installment segment.
@@ -107,7 +108,7 @@ class PaymentSplitSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Split into payments',
+                context.flipperL10n.paywallSplitIntoPayments,
                 style: PaymentTypography.inlineLabel(),
               ),
               PaymentToggleSwitch(
@@ -160,7 +161,8 @@ class PaymentSplitSection extends StatelessWidget {
   }
 
   List<InlineSpan> _hintSpans(String text) {
-    final boldPattern = RegExp(r'RWF [\d,]+(?:\.\d+)?|\d+ payments');
+    // Amounts and the installment count, whatever language the hint is in.
+    final boldPattern = RegExp(r'RWF [\d,]+(?:\.\d+)?|\b\d+\b');
     final spans = <InlineSpan>[];
     var start = 0;
     for (final match in boldPattern.allMatches(text)) {

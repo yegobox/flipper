@@ -25,17 +25,45 @@ class PhoneInputUI extends StatelessWidget {
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter your phone number';
+      return FlipperL10n.current.phoneAuthEnterPhone;
     }
     if (!RegExp(r'^\d{8,15}$')
         .hasMatch(value.replaceAll(RegExp(r'[^\d]'), ''))) {
-      return 'Please enter a valid phone number';
+      return FlipperL10n.current.phoneAuthInvalidPhone;
     }
     return null;
   }
 
+  static const _kTermsToken = '\u0001';
+  static const _kPrivacyToken = '\u0002';
+
+  /// Splits a localized sentence around its link tokens so each link keeps
+  /// its own style and tap target, whatever word order the language uses.
+  static List<InlineSpan> _termsSpans(
+    String sentence,
+    Map<String, InlineSpan> links,
+  ) {
+    final spans = <InlineSpan>[];
+    final buffer = StringBuffer();
+    for (final char in sentence.split('')) {
+      final link = links[char];
+      if (link == null) {
+        buffer.write(char);
+        continue;
+      }
+      if (buffer.isNotEmpty) {
+        spans.add(TextSpan(text: buffer.toString()));
+        buffer.clear();
+      }
+      spans.add(link);
+    }
+    if (buffer.isNotEmpty) spans.add(TextSpan(text: buffer.toString()));
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Column(
       key: const ValueKey('phone_input'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -60,7 +88,7 @@ class PhoneInputUI extends StatelessWidget {
 
         // Title
         Text(
-          'Phone Verification',
+          l10n.phoneAuthTitle,
           style: GoogleFonts.poppins(
             fontSize: 28,
             fontWeight: FontWeight.w600,
@@ -72,7 +100,7 @@ class PhoneInputUI extends StatelessWidget {
 
         // Subtitle
         Text(
-          'We\'ll send a verification code to your phone number to verify your identity.',
+          l10n.phoneAuthSubtitle,
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: Colors.grey[600],
@@ -163,7 +191,7 @@ class PhoneInputUI extends StatelessWidget {
                           ),
                           decoration: InputDecoration(
                             labelText: context.flipperL10n.phoneNumber,
-                            hintText: '783054874 (without leading 0)',
+                            hintText: l10n.phoneAuthPhoneHint,
                             hintStyle: GoogleFonts.poppins(
                               color: Colors.grey.withValues(alpha: 0.5),
                               fontSize: 15,
@@ -276,12 +304,10 @@ class PhoneInputUI extends StatelessWidget {
                 color: Colors.grey[600],
                 height: 1.5,
               ),
-              children: [
-                const TextSpan(
-                  text: 'By continuing, you agree to our ',
-                ),
-                TextSpan(
-                  text: 'Terms of Service',
+              children: _termsSpans(
+                  l10n.phoneAuthTermsAgreement(_kTermsToken, _kPrivacyToken), {
+                _kTermsToken: TextSpan(
+                  text: l10n.phoneAuthTermsOfService,
                   style: TextStyle(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -291,11 +317,8 @@ class PhoneInputUI extends StatelessWidget {
                       // Navigate to Terms of Service
                     },
                 ),
-                const TextSpan(
-                  text: ' and ',
-                ),
-                TextSpan(
-                  text: 'Privacy Policy',
+                _kPrivacyToken: TextSpan(
+                  text: l10n.phoneAuthPrivacyPolicy,
                   style: TextStyle(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -305,7 +328,7 @@ class PhoneInputUI extends StatelessWidget {
                       // Navigate to Privacy Policy
                     },
                 ),
-              ],
+              }),
             ),
           ),
         ),

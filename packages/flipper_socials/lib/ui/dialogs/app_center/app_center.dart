@@ -1,4 +1,5 @@
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -65,7 +66,7 @@ class AppCenter extends StackedView<AppCenterModel> {
                     ),
                   ),
                   Text(
-                    "Inventory",
+                    context.flipperL10n.inventory,
                     style: GoogleFonts.poppins(
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,

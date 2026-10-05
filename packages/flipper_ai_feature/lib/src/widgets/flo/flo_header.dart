@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/flo_theme.dart';
@@ -71,14 +72,15 @@ class FloHeader extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: FloTheme.blueTint,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        'Business AI',
-                        style: TextStyle(
+                      child: Text(
+                        context.flipperL10n.floBusinessAi,
+                        style: const TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.04,
@@ -91,12 +93,12 @@ class FloHeader extends StatelessWidget {
                 const SizedBox(height: 1),
                 if (miniDataConnected)
                   Row(
-                    children: const [
-                      FloLiveDot(),
-                      SizedBox(width: 6),
+                    children: [
+                      const FloLiveDot(),
+                      const SizedBox(width: 6),
                       Text(
-                        'MiniData connected · live',
-                        style: TextStyle(
+                        context.flipperL10n.floMiniDataConnectedLive,
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: FloTheme.ink3,
@@ -124,7 +126,7 @@ class FloHeader extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             _HeadBtn(
-              label: 'New chat',
+              label: context.flipperL10n.floNewChat,
               icon: FloIcons.newChat(size: 17, color: FloTheme.ink2),
               onTap: onNewChat,
             ),
@@ -184,20 +186,22 @@ class _ModeTabs extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ModeTab(
-            label: 'Ask Flo',
+            label: context.flipperL10n.floAskFlo,
             icon: FloIcons.sparkle(
               size: 15,
-              color: mode == FloPanelMode.askFlo ? FloTheme.ink1 : FloTheme.ink3,
+              color:
+                  mode == FloPanelMode.askFlo ? FloTheme.ink1 : FloTheme.ink3,
             ),
             selected: mode == FloPanelMode.askFlo,
             onTap: () => onChanged(FloPanelMode.askFlo),
             compact: isMobile,
           ),
           _ModeTab(
-            label: 'Messages',
+            label: context.flipperL10n.floMessages,
             icon: FloIcons.whatsApp(
               size: 15,
-              color: mode == FloPanelMode.messages ? FloTheme.ink1 : FloTheme.ink3,
+              color:
+                  mode == FloPanelMode.messages ? FloTheme.ink1 : FloTheme.ink3,
             ),
             selected: mode == FloPanelMode.messages,
             onTap: () => onChanged(FloPanelMode.messages),
@@ -258,7 +262,8 @@ class _ModeTab extends StatelessWidget {
               if (badge != null) ...[
                 const SizedBox(width: 6),
                 Container(
-                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  constraints:
+                      const BoxConstraints(minWidth: 18, minHeight: 18),
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   decoration: BoxDecoration(
                     color: FloTheme.blue,
@@ -371,7 +376,8 @@ class _ChanChip extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg),
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: fg),
             ),
           ],
         ),
@@ -403,9 +409,9 @@ class _ConnectChip extends StatelessWidget {
             children: [
               FloIcons.whatsApp(size: 14, color: FloTheme.blue),
               const SizedBox(width: 6),
-              const Text(
-                'Connect WhatsApp',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.aiWhatsappConnect,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: FloTheme.ink2,
@@ -503,23 +509,25 @@ class FloMenuPopover extends StatelessWidget {
           _MenuItem(
             icon: FloIcons.newChat(size: 16, color: FloTheme.blue),
             iconBg: FloTheme.blueTint,
-            title: 'New conversation',
+            title: context.flipperL10n.floNewConversation,
             onTap: onNewChat,
           ),
           const Divider(height: 12, color: FloTheme.lineSoft),
           _MenuItem(
             icon: FloIcons.whatsApp(size: 16, color: FloTheme.blueDeep),
             iconBg: FloTheme.blueTint,
-            title: 'Connect WhatsApp',
-            subtitle: 'Chat with Flo & customers',
-            badge: whatsAppConnected ? 'On' : 'Off',
+            title: context.flipperL10n.aiWhatsappConnect,
+            subtitle: context.flipperL10n.floChatWithFloAndCustomers,
+            badge: whatsAppConnected
+                ? context.flipperL10n.floOn
+                : context.flipperL10n.floOff,
             badgeOn: whatsAppConnected,
             onTap: onWhatsApp,
           ),
           _MenuItem(
             icon: FloIcons.database(size: 16, color: FloTheme.blue),
             iconBg: FloTheme.blueTint,
-            title: 'Manage data sources',
+            title: context.flipperL10n.floManageDataSources,
             subtitle: 'MiniData · Supabase',
             onTap: onSources,
           ),
@@ -596,7 +604,8 @@ class _MenuItem extends StatelessWidget {
               ),
               if (badge != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
                     color: badgeOn ? FloTheme.blueTint : FloTheme.surface2,
                     borderRadius: BorderRadius.circular(FloTheme.radiusPill),

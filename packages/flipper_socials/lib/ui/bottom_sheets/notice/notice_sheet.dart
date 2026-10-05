@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -22,14 +23,15 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
     NoticeSheetModel viewModel,
     Widget? child,
   ) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Request Ealry Access',
+          Text(
+            l10n.socialsRequestEarlyAccess,
             style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
           ),
           verticalSpaceTiny,
@@ -38,14 +40,13 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
             child: Column(
               children: [
                 TextFormField(
-                  decoration: const InputDecoration(
-                    hintText:
-                        'Enter your email, phone number and a message why you want to join!',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: l10n.socialsEarlyAccessHint,
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a message';
+                      return l10n.socialsPleaseEnterMessage;
                     }
                     return null;
                   },
@@ -64,12 +65,11 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                         await viewModel.expressInterest();
                         // show a snackbar using built flutter
                         showSuccessNotification(
-                            context, 'Thank you for your interest');
+                            context, l10n.socialsThanksForInterest);
 
                         completer!(SheetResponse(
                           confirmed: true,
-                          data:
-                              "Thank you for your interest, we will get back to you soon",
+                          data: l10n.socialsThanksWeWillGetBack,
                         ));
                       }
                     },
@@ -97,8 +97,8 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                         },
                       ),
                     ),
-                    child: const Text('Expression of intrest',
-                        style: TextStyle(color: Colors.white))),
+                    child: Text(l10n.socialsExpressInterest,
+                        style: const TextStyle(color: Colors.white))),
               ],
             ),
           ),

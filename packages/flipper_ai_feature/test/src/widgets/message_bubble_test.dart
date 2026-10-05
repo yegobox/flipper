@@ -1,4 +1,5 @@
 import 'package:flipper_ai_feature/src/widgets/message_bubble.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -25,6 +26,8 @@ void main() {
 
     Widget buildTestableWidget(Widget child) {
       return MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         ),

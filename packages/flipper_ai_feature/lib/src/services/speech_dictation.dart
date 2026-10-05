@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -86,7 +87,7 @@ class SpeechDictation extends ChangeNotifier {
     }
 
     if (!isSupportedPlatform) {
-      _fail('Voice input isn\'t available on this platform yet.');
+      _fail(FlipperL10n.current.aiVoiceUnavailable);
       return;
     }
 
@@ -107,15 +108,12 @@ class SpeechDictation extends ChangeNotifier {
           onError: _onError,
         );
       } catch (e) {
-        if (isCurrent()) _fail('Could not start voice input: $e');
+        if (isCurrent()) _fail(FlipperL10n.current.aiVoiceStartFailed('$e'));
         return;
       }
       if (!isCurrent()) return;
       if (!_initialized) {
-        _fail(
-          'Microphone access is off. Enable it for Flipper in your system '
-          'settings, then try again.',
-        );
+        _fail(FlipperL10n.current.aiMicAccessOff);
         return;
       }
     }
@@ -138,7 +136,7 @@ class SpeechDictation extends ChangeNotifier {
         ),
       );
     } catch (e) {
-      if (isCurrent()) _fail('Could not start listening: $e');
+      if (isCurrent()) _fail(FlipperL10n.current.aiListenStartFailed('$e'));
       return;
     }
 
@@ -208,15 +206,14 @@ class SpeechDictation extends ChangeNotifier {
     switch (errorMsg) {
       case 'error_permission':
       case 'error_audio_error':
-        return 'Microphone access is off. Enable it for Flipper in your '
-            'system settings, then try again.';
+        return FlipperL10n.current.aiMicAccessOff;
       case 'error_network':
       case 'error_network_timeout':
-        return 'Voice input needs a network connection right now.';
+        return FlipperL10n.current.aiVoiceNeedsNetwork;
       case 'error_busy':
-        return 'The microphone is in use by another app.';
+        return FlipperL10n.current.aiMicInUse;
       default:
-        return 'Voice input failed ($errorMsg).';
+        return FlipperL10n.current.aiVoiceFailed(errorMsg);
     }
   }
 

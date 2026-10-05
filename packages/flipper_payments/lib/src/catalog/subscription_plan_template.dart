@@ -156,7 +156,8 @@ class SubscriptionPlanTemplate {
 
   String formatListPrice({required bool isYearly, String suffix = 'RWF'}) {
     final amount = calculateTotal(isYearly: isYearly);
-    final period = isYearly ? '/year' : '/month';
+    final period = (isYearly ? BillingCadence.yearly : BillingCadence.monthly)
+        .periodSuffix;
     final formatted = _formatRwf(amount);
     if (isEnterprise && addons.isNotEmpty) {
       return '$formatted+ $suffix$period';
@@ -168,7 +169,8 @@ class SubscriptionPlanTemplate {
     SubscriptionPlanAddonTemplate addon, {
     required bool isYearly,
   }) {
-    final period = isYearly ? '/year' : '/month';
+    final period = (isYearly ? BillingCadence.yearly : BillingCadence.monthly)
+        .periodSuffix;
     if (isYearly) {
       final discountMultiplier = 1 - (yearlyDiscountPercent / 100);
       final yearly = (addon.monthlyPrice * 12 * discountMultiplier).round();
@@ -215,9 +217,7 @@ class SubscriptionPlanCatalog {
   static Future<SubscriptionPlanCatalog> fetchFromSupabase() async {
     final rows = await Supabase.instance.client
         .from('subscription_plan_templates')
-        .select(
-          '*, subscription_plan_addon_templates(*)',
-        )
+        .select('*, subscription_plan_addon_templates(*)')
         .eq('is_active', true)
         .order('sort_order', ascending: true);
 
