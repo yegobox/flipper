@@ -69,7 +69,9 @@ abstract final class HotelModeBranchSettingsService {
       try {
         await persistCurrentBranch();
       } catch (e, s) {
-        talker.warning('Hotel branch settings migration persist failed: $e\n$s');
+        talker.warning(
+          'Hotel branch settings migration persist failed: $e\n$s',
+        );
       }
       return;
     }
@@ -103,7 +105,8 @@ abstract final class HotelModeBranchSettingsService {
       branchId: branchId,
       enabled: _readLocalEnabled(),
       launchOnStart:
-          ProxyService.box.readBool(key: launchOnStartKey) ?? _readLocalEnabled(),
+          ProxyService.box.readBool(key: launchOnStartKey) ??
+          _readLocalEnabled(),
       autoPostRoomCharge:
           ProxyService.box.readBool(key: autoPostRoomChargeKey) ?? true,
       managerCheckout:
