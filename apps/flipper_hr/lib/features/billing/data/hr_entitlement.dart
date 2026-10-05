@@ -8,6 +8,8 @@
 /// `hr_access_state()`, `hr_plan_quote()` and `hr_start_subscription()`.
 library;
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// Whether the business may use the paid surface, and why not when it may not.
 enum HrAccessStatus {
   /// Still resolving, or nobody is signed in.
@@ -200,7 +202,8 @@ class HrAccessState {
   bool get isSkipped => status == HrAccessStatus.skipped;
 
   /// Skips left to spend, floored at zero.
-  int get skipsRemaining => (maxPaymentSkips - skipsUsed).clamp(0, maxPaymentSkips);
+  int get skipsRemaining =>
+      (maxPaymentSkips - skipsUsed).clamp(0, maxPaymentSkips);
 
   /// True when a skip is on offer: payment is due and one is still available.
   bool get canSkipPayment => needsPayment && skipsRemaining > 0;
@@ -302,7 +305,9 @@ class HrPlanQuote {
   final int periodDays;
   final HrPlanAllowance allowance;
 
-  String get periodLabel => isYearly ? 'per year' : 'per month';
+  /// `per month` / `per year`, in the current app language.
+  String get periodLabel =>
+      isYearly ? FlipperL10n.current.hrPerYear : FlipperL10n.current.hrPerMonth;
 
   factory HrPlanQuote.fromJson(Map<String, dynamic> json) {
     return HrPlanQuote(

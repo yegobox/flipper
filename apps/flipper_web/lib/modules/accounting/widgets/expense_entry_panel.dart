@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/chart_account_resolver.dart';
@@ -63,17 +64,21 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     if (accounts.isEmpty) return;
     _defaultCategorySet = true;
     final roles = ChartAccountResolver(accounts);
-    _expenseCode ??= roles.operatingExpense ?? roles.expenseCategories.firstOrNull?.code;
+    _expenseCode ??=
+        roles.operatingExpense ?? roles.expenseCategories.firstOrNull?.code;
   }
 
-  int get _amount => int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+  int get _amount =>
+      int.tryParse(_amountCtrl.text.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
 
   bool get _canSubmit =>
       _amount > 0 && _expenseCode != null && _expenseCode!.isNotEmpty;
 
   void _openAddExpenseAccount() {
     final accounts = ref.read(accountingAccountsProvider);
-    ref.read(createAccountModalProvider.notifier).state = CreateAccountModalRequest(
+    ref
+        .read(createAccountModalProvider.notifier)
+        .state = CreateAccountModalRequest(
       lockType: AccountType.expense,
       suggestedCode: suggestNextExpenseCode(accounts),
       onCreated: (account) => setState(() => _expenseCode = account.code),
@@ -110,7 +115,9 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
     );
 
     try {
-      await ref.read(accountingLedgerRepositoryProvider).createJournalEntry(
+      await ref
+          .read(accountingLedgerRepositoryProvider)
+          .createJournalEntry(
             businessId: businessId,
             entry: entry,
             journalCode: 'misc',
@@ -198,7 +205,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Submitted for approval',
+              context.flipperL10n.booksSubmittedForApproval,
               style: AccountingTokens.sans(
                 fontSize: 23,
                 fontWeight: FontWeight.w800,
@@ -207,7 +214,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Debits equal credits. Review and approve from the Approvals tab to post to the ledger.',
+              context.flipperL10n.booksSubmittedForApprovalBody,
               style: AccountingTokens.sans(
                 fontSize: 14,
                 color: AccountingTokens.ink3,
@@ -216,7 +223,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
             ),
             const SizedBox(height: 24),
             AccountingButton(
-              label: 'Done',
+              label: context.flipperL10n.done,
               primary: true,
               onPressed: widget.onClose,
             ),
@@ -227,12 +234,14 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
   }
 
   Widget _buildForm() {
+    final l10n = context.flipperL10n;
     final accounts = ref.watch(accountingAccountsProvider);
     final roles = ChartAccountResolver(accounts);
     final categories = roles.expenseCategories;
     final currency = ref.watch(accountingCurrencyProvider);
 
-    final dropdownValue = _expenseCode != null &&
+    final dropdownValue =
+        _expenseCode != null &&
             (categories.any((a) => a.code == _expenseCode) ||
                 accounts.any((a) => a.code == _expenseCode))
         ? _expenseCode
@@ -253,7 +262,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Record expense',
+                      l10n.booksRecordExpense,
                       style: AccountingTokens.sans(
                         fontSize: 19,
                         fontWeight: FontWeight.w800,
@@ -262,7 +271,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Pick a category and how you paid — Flipper posts a balanced entry.',
+                      l10n.booksRecordExpenseSubtitle,
                       style: AccountingTokens.sans(
                         fontSize: 13,
                         color: AccountingTokens.ink3,
@@ -297,14 +306,17 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Date', style: _fieldLabel),
+                Text(l10n.sortCompactDate, style: _fieldLabel),
                 const SizedBox(height: 7),
                 Container(
                   height: 46,
                   padding: const EdgeInsets.symmetric(horizontal: 13),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(11),
-                    border: Border.all(color: AccountingTokens.line, width: 1.5),
+                    border: Border.all(
+                      color: AccountingTokens.line,
+                      width: 1.5,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -322,7 +334,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('Expense category', style: _fieldLabel),
+                Text(l10n.booksExpenseCategory, style: _fieldLabel),
                 const SizedBox(height: 7),
                 DropdownButtonFormField<String>(
                   key: ValueKey(_expenseCode),
@@ -338,9 +350,9 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    const DropdownMenuItem(
+                    DropdownMenuItem(
                       value: _addExpenseAccountValue,
-                      child: Text('+ Add expense account'),
+                      child: Text(l10n.booksAddExpenseAccount),
                     ),
                   ],
                   onChanged: (v) {
@@ -352,7 +364,7 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Amount', style: _fieldLabel),
+                Text(l10n.amount, style: _fieldLabel),
                 const SizedBox(height: 7),
                 TextField(
                   controller: _amountCtrl,
@@ -365,21 +377,24 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 16),
-                Text('Paid via', style: _fieldLabel),
+                Text(l10n.booksPaidVia, style: _fieldLabel),
                 const SizedBox(height: 7),
                 SegmentedButton<ExpensePaymentMethod>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: ExpensePaymentMethod.cash,
-                      label: Text('Cash'),
-                      icon: Icon(Icons.payments_outlined, size: 16),
+                      label: Text(l10n.cash),
+                      icon: const Icon(Icons.payments_outlined, size: 16),
                     ),
                     ButtonSegment(
                       value: ExpensePaymentMethod.bank,
-                      label: Text('Bank'),
-                      icon: Icon(Icons.account_balance_outlined, size: 16),
+                      label: Text(l10n.booksBank),
+                      icon: const Icon(
+                        Icons.account_balance_outlined,
+                        size: 16,
+                      ),
                     ),
-                    ButtonSegment(
+                    const ButtonSegment(
                       value: ExpensePaymentMethod.momo,
                       label: Text('MoMo'),
                       icon: Icon(Icons.phone_android_outlined, size: 16),
@@ -390,20 +405,23 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
                       setState(() => _paymentMethod = s.first),
                 ),
                 const SizedBox(height: 16),
-                Text('Memo / description', style: _fieldLabel),
+                Text(l10n.booksMemoDescription, style: _fieldLabel),
                 const SizedBox(height: 7),
                 TextField(
                   controller: _memoCtrl,
                   decoration: _inputDecoration(
                     icon: Icons.receipt_long_outlined,
-                    hint: 'What was this expense for?',
+                    hint: l10n.booksExpenseMemoHint,
                   ),
                 ),
                 if (_canSubmit) ...[
                   const SizedBox(height: 20),
                   _PostPreview(
                     expenseCode: _expenseCode!,
-                    fundingCode: fundingCodeForPaymentMethod(roles, _paymentMethod),
+                    fundingCode: fundingCodeForPaymentMethod(
+                      roles,
+                      _paymentMethod,
+                    ),
                     amount: _amount,
                     accountMap: {for (final a in accounts) a.code: a},
                     currency: currency,
@@ -421,12 +439,15 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
           child: Row(
             children: [
               Expanded(
-                child: AccountingButton(label: 'Cancel', onPressed: _isSubmitting ? null : widget.onClose),
+                child: AccountingButton(
+                  label: l10n.cancel,
+                  onPressed: _isSubmitting ? null : widget.onClose,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: AccountingButton(
-                  label: 'Submit for approval',
+                  label: l10n.booksSubmitForApproval,
                   icon: Icons.check,
                   primary: true,
                   enabled: _canSubmit,
@@ -462,7 +483,10 @@ class _ExpenseEntryPanelState extends ConsumerState<ExpenseEntryPanel> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(11),
-        borderSide: const BorderSide(color: AccountingTokens.accent, width: 1.5),
+        borderSide: const BorderSide(
+          color: AccountingTokens.accent,
+          width: 1.5,
+        ),
       ),
     );
   }
@@ -503,7 +527,7 @@ class _PostPreview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Journal preview',
+            context.flipperL10n.booksJournalPreview,
             style: AccountingTokens.sans(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -512,20 +536,22 @@ class _PostPreview extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _PreviewLine(
-            side: 'Dr',
+            side: context.flipperL10n.booksDrShort,
             name: accountMap[expenseCode]?.name ?? expenseCode,
             amount: amount,
             isDebit: true,
           ),
           _PreviewLine(
-            side: 'Cr',
+            side: context.flipperL10n.booksCrShort,
             name: accountMap[fundingCode]?.name ?? fundingCode,
             amount: amount,
             isDebit: false,
           ),
           const SizedBox(height: 6),
           Text(
-            'Balanced · $currency ${NumberFormat('#,###').format(amount)}',
+            context.flipperL10n.booksBalancedAmount(
+              '$currency ${NumberFormat('#,###').format(amount)}',
+            ),
             style: AccountingTokens.sans(
               fontSize: 12,
               color: AccountingTokens.gainInk,

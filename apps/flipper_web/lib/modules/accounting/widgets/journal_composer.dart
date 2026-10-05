@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -50,7 +51,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
   }
 
   List<({String name, IconData icon, String memo, List<String> codes})>
-  _templatesFor(ChartAccountResolver roles) {
+  _templatesFor(ChartAccountResolver roles, FlipperAppLocalizations l10n) {
     final templates =
         <({String name, IconData icon, String memo, List<String> codes})>[];
 
@@ -61,9 +62,9 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
     ].whereType<String>().toList();
     if (saleCodes.length >= 2) {
       templates.add((
-        name: 'Record a sale',
+        name: l10n.booksTplRecordSale,
         icon: Icons.shopping_cart_outlined,
-        memo: 'Record a sale',
+        memo: l10n.booksTplRecordSale,
         codes: saleCodes,
       ));
     }
@@ -74,9 +75,9 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
     ].whereType<String>().toList();
     if (expenseCodes.length == 2) {
       templates.add((
-        name: 'Pay an expense',
+        name: l10n.booksTplPayExpense,
         icon: Icons.account_balance_wallet_outlined,
-        memo: 'Pay an expense',
+        memo: l10n.booksTplPayExpense,
         codes: expenseCodes,
       ));
     }
@@ -87,9 +88,9 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
     ].whereType<String>().toList();
     if (receiveCodes.length == 2) {
       templates.add((
-        name: 'Receive payment',
+        name: l10n.booksTplReceivePayment,
         icon: Icons.arrow_downward,
-        memo: 'Receive payment',
+        memo: l10n.booksTplReceivePayment,
         codes: receiveCodes,
       ));
     }
@@ -100,9 +101,9 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
     ].whereType<String>().toList();
     if (billCodes.length == 2) {
       templates.add((
-        name: 'Pay a bill',
+        name: l10n.booksTplPayBill,
         icon: Icons.receipt_long_outlined,
-        memo: 'Pay a bill',
+        memo: l10n.booksTplPayBill,
         codes: billCodes,
       ));
     }
@@ -177,8 +178,8 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
       } else {
         showAccountingToast(
           context,
-          'Draft saved',
-          subtitle: '${_refCtrl.text} kept in Drafts',
+          context.flipperL10n.booksDraftSaved,
+          subtitle: context.flipperL10n.booksDraftKeptInDrafts(_refCtrl.text),
           icon: Icons.receipt_long_outlined,
         );
         widget.onClose();
@@ -188,7 +189,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
         setState(() => _isSaving = false);
         showAccountingToast(
           context,
-          'Could not save entry',
+          context.flipperL10n.booksCouldNotSaveEntry,
           subtitle: '$e',
           icon: Icons.error_outline,
           tone: AccountingToastTone.warn,
@@ -266,7 +267,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Submitted for approval',
+              context.flipperL10n.booksSubmittedForApproval,
               style: AccountingTokens.sans(
                 fontSize: 23,
                 fontWeight: FontWeight.w800,
@@ -275,7 +276,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Debits equal credits. Review and approve from the Approvals tab to post to the ledger.',
+              context.flipperL10n.booksSubmittedForApprovalBody,
               style: AccountingTokens.sans(
                 fontSize: 14,
                 color: AccountingTokens.ink3,
@@ -284,7 +285,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
             ),
             const SizedBox(height: 24),
             AccountingButton(
-              label: 'Done',
+              label: context.flipperL10n.done,
               primary: true,
               onPressed: widget.onClose,
             ),
@@ -297,7 +298,11 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
   Widget _buildForm() {
     final accounts = ref.watch(accountingAccountsProvider);
     final accountMap = {for (final a in accounts) a.code: a};
-    final templates = _templatesFor(ChartAccountResolver(accounts));
+    final l10n = context.flipperL10n;
+    final templates = _templatesFor(ChartAccountResolver(accounts), l10n);
+    final hintParts = l10n
+        .booksDebitCreditHint('\u0000into\u0000', '\u0000out\u0000')
+        .split('\u0000');
 
     return Column(
       children: [
@@ -311,7 +316,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Quick start', style: _fieldLabel),
+                    Text(l10n.booksQuickStart, style: _fieldLabel),
                     const SizedBox(height: 7),
                     Wrap(
                       spacing: 8,
@@ -331,7 +336,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                       children: [
                         Expanded(
                           child: _LabeledField(
-                            label: 'Date',
+                            label: l10n.sortCompactDate,
                             child: _ComposerInput(
                               icon: Icons.calendar_today_outlined,
                               readOnly: true,
@@ -342,7 +347,7 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                         const SizedBox(width: 14),
                         Expanded(
                           child: _LabeledField(
-                            label: 'Reference',
+                            label: l10n.booksReference,
                             child: _ComposerInput(
                               icon: Icons.tag,
                               controller: _refCtrl,
@@ -354,15 +359,18 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                     ),
                     const SizedBox(height: 16),
                     _LabeledField(
-                      label: 'Memo / description',
+                      label: l10n.booksMemoDescription,
                       child: _ComposerInput(
                         icon: Icons.receipt_long_outlined,
                         controller: _memoCtrl,
-                        hint: 'What is this entry for?',
+                        hint: l10n.booksEntryMemoHint,
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text('Lines', style: _fieldLabel.copyWith(fontSize: 12.5)),
+                    Text(
+                      l10n.booksLines,
+                      style: _fieldLabel.copyWith(fontSize: 12.5),
+                    ),
                     const SizedBox(height: 10),
                     const _LinesHeader(),
                     for (var i = 0; i < _lines.length; i++)
@@ -411,33 +419,31 @@ class _JournalComposerState extends ConsumerState<JournalComposer> {
                                 color: AccountingTokens.ink3,
                                 height: 1.4,
                               ),
+                              // The sentence comes from one message with
+                              // {into}/{out} markers so translations keep
+                              // their own word order; the markers are styled.
                               children: [
-                                const TextSpan(
-                                  text: 'Every entry has two sides. Money ',
-                                ),
-                                TextSpan(
-                                  text: 'into',
-                                  style: AccountingTokens.sans(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AccountingTokens.drInk,
-                                  ),
-                                ),
-                                const TextSpan(
-                                  text: ' an account is a debit; money ',
-                                ),
-                                TextSpan(
-                                  text: 'out',
-                                  style: AccountingTokens.sans(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AccountingTokens.crInk,
-                                  ),
-                                ),
-                                const TextSpan(
-                                  text:
-                                      ' is a credit. They must add up to the same total.',
-                                ),
+                                for (final part in hintParts)
+                                  if (part == 'into')
+                                    TextSpan(
+                                      text: l10n.booksMoneyIntoWord,
+                                      style: AccountingTokens.sans(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AccountingTokens.drInk,
+                                      ),
+                                    )
+                                  else if (part == 'out')
+                                    TextSpan(
+                                      text: l10n.booksMoneyOutWord,
+                                      style: AccountingTokens.sans(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AccountingTokens.crInk,
+                                      ),
+                                    )
+                                  else
+                                    TextSpan(text: part),
                               ],
                             ),
                           ),
@@ -517,7 +523,7 @@ class _ComposerHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New journal entry',
+                  context.flipperL10n.booksNewJournalEntry,
                   style: AccountingTokens.sans(
                     fontSize: 19,
                     fontWeight: FontWeight.w800,
@@ -526,7 +532,7 @@ class _ComposerHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Pick the accounts and enter amounts — Flipper keeps it balanced.',
+                  context.flipperL10n.booksComposerSubtitle,
                   style: AccountingTokens.sans(
                     fontSize: 13,
                     color: AccountingTokens.ink3,
@@ -651,12 +657,17 @@ class _LinesHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(2, 0, 2, 8),
       child: Row(
         children: [
-          Expanded(child: Text('ACCOUNT', style: AccountingTokens.tableHead)),
+          Expanded(
+            child: Text(
+              context.flipperL10n.booksAccountUpper,
+              style: AccountingTokens.tableHead,
+            ),
+          ),
           const SizedBox(width: 10),
           SizedBox(
             width: 150,
             child: Text(
-              'DEBIT',
+              context.flipperL10n.booksDebitUpper,
               style: AccountingTokens.tableHead,
               textAlign: TextAlign.right,
             ),
@@ -665,7 +676,7 @@ class _LinesHeader extends StatelessWidget {
           SizedBox(
             width: 150,
             child: Text(
-              'CREDIT',
+              context.flipperL10n.booksCreditUpper,
               style: AccountingTokens.tableHead,
               textAlign: TextAlign.right,
             ),
@@ -745,7 +756,7 @@ class _LineEditor extends StatelessWidget {
               ] else
                 Expanded(
                   child: Text(
-                    'Select account…',
+                    context.flipperL10n.booksSelectAccount,
                     style: AccountingTokens.sans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w500,
@@ -959,7 +970,7 @@ class _AddLineButton extends StatelessWidget {
               const Icon(Icons.add, size: 15, color: AccountingTokens.ink2),
               const SizedBox(width: 7),
               Text(
-                'Add line',
+                context.flipperL10n.booksAddLine,
                 style: AccountingTokens.sans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -999,11 +1010,12 @@ class _ComposerFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final statusLabel = balanced
-        ? 'Balanced'
+        ? l10n.booksBalanced
         : totDr == 0
-        ? 'Enter amounts'
-        : 'Off by ${money(diff.abs())}';
+        ? l10n.booksEnterAmounts
+        : l10n.booksOffBy(money(diff.abs()));
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
@@ -1029,7 +1041,7 @@ class _ComposerFooter extends StatelessWidget {
             child: Row(
               children: [
                 _BalanceSide(
-                  label: 'Total debits',
+                  label: l10n.booksTotalDebits,
                   amount: money(totDr),
                   color: AccountingTokens.drInk,
                 ),
@@ -1044,7 +1056,7 @@ class _ComposerFooter extends StatelessWidget {
                 ),
                 const SizedBox(width: 16),
                 _BalanceSide(
-                  label: 'Total credits',
+                  label: l10n.booksTotalCredits,
                   amount: money(totCr),
                   color: AccountingTokens.crInk,
                 ),
@@ -1103,7 +1115,7 @@ class _ComposerFooter extends StatelessWidget {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Text(
-                            'Save draft',
+                            l10n.booksSaveDraft,
                             style: AccountingTokens.sans(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -1138,10 +1150,14 @@ class _ComposerFooter extends StatelessWidget {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.check, size: 18, color: Colors.white),
+                              const Icon(
+                                Icons.check,
+                                size: 18,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 8),
                               Text(
-                                'Submit for approval',
+                                l10n.booksSubmitForApproval,
                                 style: AccountingTokens.sans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -1219,13 +1235,14 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
-  static const _groups = [
-    (AccountType.asset, 'Assets'),
-    (AccountType.liability, 'Liabilities'),
-    (AccountType.equity, 'Equity'),
-    (AccountType.income, 'Income'),
-    (AccountType.expense, 'Expenses'),
-  ];
+  static List<(AccountType, String)> _groupsFor(FlipperAppLocalizations l10n) =>
+      [
+        (AccountType.asset, l10n.booksAssets),
+        (AccountType.liability, l10n.booksLiabilities),
+        (AccountType.equity, l10n.booksEquity),
+        (AccountType.income, l10n.booksIncome),
+        (AccountType.expense, l10n.booksExpenses),
+      ];
 
   @override
   void dispose() {
@@ -1278,7 +1295,7 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
-                          hintText: 'Search accounts…',
+                          hintText: context.flipperL10n.booksSearchAccounts,
                           hintStyle: AccountingTokens.sans(
                             fontSize: 14.5,
                             color: AccountingTokens.ink4,
@@ -1299,7 +1316,9 @@ class _AccountPickerPopoverState extends State<_AccountPickerPopover> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
                   children: [
-                    for (final (type, label) in _groups) ...[
+                    for (final (type, label) in _groupsFor(
+                      context.flipperL10n,
+                    )) ...[
                       Builder(
                         builder: (context) {
                           final rows = widget.accounts

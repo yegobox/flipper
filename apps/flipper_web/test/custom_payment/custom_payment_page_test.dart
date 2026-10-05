@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/custom_payment/application/custom_payment_providers.dart';
 import 'package:flipper_web/features/custom_payment/presentation/custom_payment_page.dart';
@@ -56,7 +57,11 @@ Future<ProviderContainer> _pump(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp.router(routerConfig: router),
+      child: MaterialApp.router(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        routerConfig: router,
+      ),
     ),
   );
   await tester.pumpAndSettle();

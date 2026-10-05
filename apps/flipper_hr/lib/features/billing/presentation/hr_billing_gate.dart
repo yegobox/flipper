@@ -2,6 +2,7 @@ import 'package:flipper_hr/features/billing/application/hr_billing_providers.dar
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/presentation/hr_skip_payment_action.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +54,8 @@ class HrPaywallPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final feature = featureName ?? 'This';
+    final l10n = context.flipperL10n;
+    final feature = featureName;
     final lapsed = access.hasLapsed;
 
     return Center(
@@ -87,8 +89,10 @@ class HrPaywallPanel extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     lapsed
-                        ? 'Your subscription has ended'
-                        : '$feature needs a subscription',
+                        ? l10n.hrSubscriptionEnded
+                        : feature == null
+                        ? l10n.hrThisNeedsSubscription
+                        : l10n.hrFeatureNeedsSubscription(feature),
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -98,12 +102,8 @@ class HrPaywallPanel extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     lapsed
-                        ? 'Nothing has been deleted — the roster, leave and '
-                              'attendance records are all still here. Renew the '
-                              'subscription to open them again.'
-                        : 'Flipper HR is part of the Flipper subscription. Pay '
-                              'for the business once and the roster, leave and '
-                              'attendance open for everyone on it.',
+                        ? l10n.hrSubscriptionEndedBody
+                        : l10n.hrSubscriptionPitch,
                     style: const TextStyle(
                       fontSize: 13.5,
                       color: HrTokens.ink2,
@@ -113,9 +113,7 @@ class HrPaywallPanel extends StatelessWidget {
                   if (access.isAwaitingSettlement) ...[
                     const SizedBox(height: 12),
                     Text(
-                      'A payment is already on its way. If you approved it on '
-                      'your phone, this unlocks as soon as Mobile Money '
-                      'confirms it.',
+                      l10n.hrPaymentOnItsWay,
                       style: const TextStyle(
                         fontSize: 12.5,
                         color: HrTokens.ink3,
@@ -135,11 +133,17 @@ class HrPaywallPanel extends StatelessWidget {
                         borderRadius: BorderRadius.circular(HrTokens.radiusMd),
                       ),
                     ),
-                    icon: const Icon(Icons.workspace_premium_outlined, size: 18),
-                    label: Text(lapsed ? 'Renew now' : 'See the plan'),
+                    icon: const Icon(
+                      Icons.workspace_premium_outlined,
+                      size: 18,
+                    ),
+                    label: Text(lapsed ? l10n.hrRenewNow : l10n.hrSeeThePlan),
                   ),
                   if (businessId != null)
-                    HrSkipPaymentAction(businessId: businessId!, access: access),
+                    HrSkipPaymentAction(
+                      businessId: businessId!,
+                      access: access,
+                    ),
                 ],
               ),
             ),
@@ -195,12 +199,10 @@ class HrBillingNotice extends ConsumerWidget {
           key: const Key('hr-billing-unreachable'),
           tone: _Tone.warning,
           icon: Icons.cloud_off_outlined,
-          message:
-              'Could not check this business\'s subscription, so it is being '
-              'left open for now.',
+          message: context.flipperL10n.hrSubscriptionCheckFailedOpen,
           action: TextButton(
             onPressed: () => ref.invalidate(hrAccessStateProvider(businessId)),
-            child: const Text('Try again'),
+            child: Text(context.flipperL10n.hrTryAgain),
           ),
         ),
       );
@@ -211,24 +213,24 @@ class HrBillingNotice extends ConsumerWidget {
     if (access.testMode) {
       return Padding(
         padding: padding,
-        child: const _Strip(
-          key: Key('hr-billing-test-mode'),
+        child: _Strip(
+          key: const Key('hr-billing-test-mode'),
           tone: _Tone.warning,
           icon: Icons.science_outlined,
-          message:
-              'Test pricing is switched on for this project, so subscriptions '
-              'are charged at a reduced amount.',
+          message: context.flipperL10n.hrTestPricingOn,
         ),
       );
     }
 
     if (access.isSkipped) {
       final skipDays = access.skipDaysLeft();
-      final left = switch (skipDays) {
-        null => 'soon',
-        0 => 'today',
-        1 => 'in 1 day',
-        final d => 'in $d days',
+      final l10n = context.flipperL10n;
+      final used = '${access.skipsUsed}';
+      final max = '${access.maxPaymentSkips}';
+      final message = switch (skipDays) {
+        null => l10n.hrSkipEndsSoon(used, max),
+        0 => l10n.hrSkipEndsToday(used, max),
+        final d => l10n.hrSkipEndsInDays(d, used, max),
       };
       return Padding(
         padding: padding,
@@ -236,12 +238,10 @@ class HrBillingNotice extends ConsumerWidget {
           key: const Key('hr-billing-skipped'),
           tone: _Tone.warning,
           icon: Icons.timer_outlined,
-          message:
-              'You\'re using free access without paying (${access.skipsUsed} '
-              'of ${access.maxPaymentSkips} skips used). It ends $left.',
+          message: message,
           action: TextButton(
             onPressed: () => context.go('/subscribe'),
-            child: const Text('Pay now'),
+            child: Text(l10n.hrPayNow),
           ),
         ),
       );
@@ -251,10 +251,11 @@ class HrBillingNotice extends ConsumerWidget {
     if (access.status == HrAccessStatus.entitled &&
         days != null &&
         days <= warnWithinDays) {
-      final left = switch (days) {
-        0 => 'ends today',
-        1 => 'ends tomorrow',
-        _ => 'ends in $days days',
+      final l10n = context.flipperL10n;
+      final message = switch (days) {
+        0 => l10n.hrSubscriptionEndsToday,
+        1 => l10n.hrSubscriptionEndsTomorrow,
+        _ => l10n.hrSubscriptionEndsInDays(days),
       };
       return Padding(
         padding: padding,
@@ -262,10 +263,10 @@ class HrBillingNotice extends ConsumerWidget {
           key: const Key('hr-billing-expiring'),
           tone: _Tone.warning,
           icon: Icons.schedule,
-          message: 'Your subscription $left.',
+          message: message,
           action: TextButton(
             onPressed: () => context.go('/subscribe'),
-            child: const Text('Renew'),
+            child: Text(l10n.hrRenew),
           ),
         ),
       );

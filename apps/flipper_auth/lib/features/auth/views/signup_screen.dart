@@ -1,6 +1,7 @@
 // lib/features/auth/views/signup_screen.dart
 import 'package:flipper_auth/features/auth/providers/auth_notifier.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,6 +64,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
+    final l10n = context.flipperL10n;
 
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.isAuthenticated) {
@@ -101,7 +103,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           FlipperOnboardingPanel(
                             children: [
                               Text(
-                                'Create your account',
+                                l10n.authCreateYourAccount,
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineSmall
@@ -113,7 +115,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Start with the same secure signup flow, now tuned for a faster mobile setup.',
+                                l10n.authSignupSubtitle,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -126,12 +128,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               const SizedBox(height: 22),
                               _AuthInputField(
                                 controller: _nameController,
-                                label: 'Full name',
-                                hintText: 'Enter your full name',
+                                label: l10n.authFullName,
+                                hintText: l10n.authEnterFullName,
                                 prefixIcon: Icons.person_outline_rounded,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your name';
+                                    return l10n.authPleaseEnterName;
                                   }
                                   return null;
                                 },
@@ -139,8 +141,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               const SizedBox(height: 18),
                               _AuthInputField(
                                 controller: _emailController,
-                                label: 'Email',
-                                hintText: 'Enter your email',
+                                label: l10n.email,
+                                hintText: l10n.authEnterYourEmail,
                                 prefixIcon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
@@ -150,14 +152,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               const SizedBox(height: 18),
                               _AuthInputField(
                                 controller: _passwordController,
-                                label: 'Password',
-                                hintText: 'Enter your password',
+                                label: l10n.authPassword,
+                                hintText: l10n.authEnterYourPassword,
                                 prefixIcon: Icons.lock_outline_rounded,
                                 obscureText: !_isPasswordVisible,
                                 suffixIcon: IconButton(
                                   tooltip: _isPasswordVisible
-                                      ? 'Hide password'
-                                      : 'Show password',
+                                      ? l10n.authHidePassword
+                                      : l10n.authShowPassword,
                                   icon: Icon(
                                     _isPasswordVisible
                                         ? Icons.visibility_rounded
@@ -172,10 +174,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please enter your password';
+                                    return l10n.authPleaseEnterPassword;
                                   }
                                   if (value.length < 6) {
-                                    return 'Password must be at least 6 characters';
+                                    return l10n.authPasswordMinLength;
                                   }
                                   return null;
                                 },
@@ -183,23 +185,23 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                               const SizedBox(height: 18),
                               _AuthInputField(
                                 controller: _confirmPasswordController,
-                                label: 'Confirm password',
-                                hintText: 'Confirm your password',
+                                label: l10n.authConfirmPassword,
+                                hintText: l10n.authConfirmYourPassword,
                                 prefixIcon: Icons.verified_user_outlined,
                                 obscureText: !_isPasswordVisible,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please confirm your password';
+                                    return l10n.authPleaseConfirmPassword;
                                   }
                                   if (value != _passwordController.text) {
-                                    return 'Passwords do not match';
+                                    return l10n.authPasswordsDoNotMatch;
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 26),
                               FlipperGradientButton(
-                                text: 'Create account',
+                                text: l10n.authCreateAccountButton,
                                 icon: Icons.chevron_right_rounded,
                                 isLoading: authState.isLoading,
                                 onPressed:
@@ -212,9 +214,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: const Text(
-                              'Already have an account? Sign in',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.authAlreadyHaveAccount,
+                              style: const TextStyle(
                                 color: Color(0xFF2563EB),
                                 fontWeight: FontWeight.w800,
                               ),
@@ -266,9 +268,9 @@ class _SignupHeader extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
               ),
-              const Text(
-                'Business setup',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.authBusinessSetup,
+                style: const TextStyle(
                   color: Color(0xFF7E8AA0),
                   fontWeight: FontWeight.w700,
                 ),

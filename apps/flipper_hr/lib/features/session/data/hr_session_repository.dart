@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/session/data/hr_session.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Resolves the signed-in session to what HR can prove about it.
@@ -38,12 +39,12 @@ class SupabaseHrSessionRepository implements HrSessionRepository {
         );
       }
       throw HrSessionException(
-        'Could not work out what you have access to: ${e.message}',
+        FlipperL10n.current.hrErrorResolveAccess(e.message),
         cause: e,
       );
     } catch (e) {
       throw HrSessionException(
-        'Could not work out what you have access to: $e',
+        FlipperL10n.current.hrErrorResolveAccess('$e'),
         cause: e,
       );
     }

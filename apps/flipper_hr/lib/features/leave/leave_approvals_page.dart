@@ -7,6 +7,7 @@ import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/people/data/person_ref.dart';
 import 'package:flipper_hr/features/session/data/hr_session.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -77,7 +78,11 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
         );
       }
       if (mounted) {
-        _toast(approve ? 'Leave approved.' : 'Leave rejected.');
+        _toast(
+          approve
+              ? context.flipperL10n.hrLeaveApproved
+              : context.flipperL10n.hrLeaveRejected,
+        );
       }
     } catch (e) {
       if (mounted) _toast(_messageOf(e), isError: true);
@@ -164,7 +169,7 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                     const SizedBox(height: 20),
                     FilledButton(
                       onPressed: _refresh,
-                      child: const Text('Try again'),
+                      child: Text(context.flipperL10n.hrTryAgain),
                     ),
                   ],
                 ),
@@ -186,7 +191,10 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Leave', style: theme.textTheme.headlineSmall),
+                        Text(
+                          context.flipperL10n.hrLeave,
+                          style: theme.textTheme.headlineSmall,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           _subtitle(split),
@@ -204,17 +212,17 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                     names: names,
                     // No heading when there is nothing to contrast it with: the page
                     // title already says whose queue this is.
-                    heading: split.theirs.isEmpty ? null : 'Waiting on you',
+                    heading: split.theirs.isEmpty
+                        ? null
+                        : context.flipperL10n.hrWaitingOnYou,
                     canDecide: split.canDecide,
                   ),
                 if (split.theirs.isNotEmpty)
                   ..._pendingSection(
                     requests: split.theirs,
                     names: names,
-                    heading: 'With their manager',
-                    caption:
-                        'Their own manager has not answered yet. Deciding one of '
-                        'these answers it over their head.',
+                    heading: context.flipperL10n.hrWithTheirManager,
+                    caption: context.flipperL10n.hrWithTheirManagerCaption,
                     canDecide: split.canDecide,
                   ),
                 if (split.decided.isNotEmpty) ...[
@@ -222,7 +230,7 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
                     padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                     sliver: SliverToBoxAdapter(
                       child: Text(
-                        'Decided',
+                        context.flipperL10n.hrDecided,
                         style: theme.textTheme.titleMedium,
                       ),
                     ),
@@ -256,20 +264,21 @@ class _LeaveApprovalsPageState extends ConsumerState<LeaveApprovalsPage> {
 
   String _subtitle(_QueueSplit split) {
     final waiting = split.mine.length;
+    final l10n = context.flipperL10n;
     return [
       if (waiting == 0)
-        'Nothing waiting on you'
+        l10n.hrNothingWaitingOnYouShort
       else
-        '$waiting ${waiting == 1 ? 'request' : 'requests'} waiting on you',
+        l10n.hrRequestsWaitingOnYou(waiting),
       if (split.theirs.isNotEmpty)
-        '${split.theirs.length} with another manager',
+        l10n.hrWithAnotherManager('${split.theirs.length}'),
       // Named because the branch queue is branch-scoped: someone switching
       // branches needs to see which one they are approving for. A team-only
       // queue has no branch to name, so it says whose queue it is instead.
       if (widget.branchName case final name? when name.isNotEmpty)
         name
       else if (widget.branchId == null)
-        'Your team',
+        l10n.hrYourTeam,
     ].join(' · ');
   }
 
@@ -444,10 +453,11 @@ class _DecisionDialogState extends State<_DecisionDialog> {
   @override
   Widget build(BuildContext context) {
     final request = widget.request;
+    final l10n = context.flipperL10n;
     return AlertDialog(
       key: const Key('leave-decision-dialog'),
       title: Text(
-        widget.approve ? 'Approve this leave?' : 'Reject this leave?',
+        widget.approve ? l10n.hrApproveThisLeave : l10n.hrRejectThisLeave,
       ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
@@ -470,8 +480,8 @@ class _DecisionDialogState extends State<_DecisionDialog> {
               maxLines: 3,
               decoration: InputDecoration(
                 labelText: widget.approve
-                    ? 'Note (optional)'
-                    : 'Why? (shown to them)',
+                    ? l10n.hrNoteOptional
+                    : l10n.hrRejectReasonLabel,
                 border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
@@ -482,14 +492,14 @@ class _DecisionDialogState extends State<_DecisionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           key: const Key('leave-decision-confirm'),
           // An empty note is a deliberate "no comment" and must still decide, so
           // this pops a string rather than leaving it null.
           onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
-          child: Text(widget.approve ? 'Approve' : 'Reject'),
+          child: Text(widget.approve ? l10n.hrApprove : l10n.hrReject),
         ),
       ],
     );
@@ -542,7 +552,8 @@ class _ApprovalCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  person?.fullName ?? 'Employee ${request.employeeId}',
+                  person?.fullName ??
+                      context.flipperL10n.hrEmployeeWithId(request.employeeId),
                   style: theme.textTheme.titleSmall,
                 ),
               ),
@@ -552,7 +563,7 @@ class _ApprovalCard extends StatelessWidget {
           if (manager case final manager?) ...[
             const SizedBox(height: 2),
             Text(
-              'Reports to ${manager.fullName}',
+              context.flipperL10n.hrReportsToName(manager.fullName),
               key: Key('approval-manager-${request.id}'),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
@@ -585,7 +596,7 @@ class _ApprovalCard extends StatelessWidget {
             )
           else if (approve == null || reject == null)
             Text(
-              'Only their manager can answer this one.',
+              context.flipperL10n.hrOnlyTheirManagerCanAnswer,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
@@ -598,13 +609,13 @@ class _ApprovalCard extends StatelessWidget {
                 TextButton(
                   key: Key('reject-${request.id}'),
                   onPressed: reject,
-                  child: const Text('Reject'),
+                  child: Text(context.flipperL10n.hrReject),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   key: Key('approve-${request.id}'),
                   onPressed: approve,
-                  child: const Text('Approve'),
+                  child: Text(context.flipperL10n.hrApprove),
                 ),
               ],
             ),
@@ -630,7 +641,8 @@ class _DecidedRow extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              person?.fullName ?? 'Employee ${request.employeeId}',
+              person?.fullName ??
+                  context.flipperL10n.hrEmployeeWithId(request.employeeId),
               style: theme.textTheme.bodyMedium,
             ),
           ),
@@ -674,16 +686,15 @@ class _NoLeaveYet extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             const SizedBox(height: 16),
-            Text('No leave requests yet', style: theme.textTheme.titleMedium),
+            Text(
+              context.flipperL10n.hrNoLeaveRequestsYet,
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               canManageRoster
-                  ? 'Invite people from the People page and they can book their '
-                        'own leave. Set who each person reports to and their '
-                        'requests go to that manager; anyone with no manager '
-                        'lands here.'
-                  : 'Requests from anyone who reports to you will appear here '
-                        'for you to approve.',
+                  ? context.flipperL10n.hrNoLeaveRequestsOwnerHint
+                  : context.flipperL10n.hrNoLeaveRequestsManagerHint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -20,6 +21,7 @@ class AccountingJournalView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final filter = ref.watch(journalFilterProvider);
     final sourceFilter = ref.watch(journalSourceFilterProvider);
     final pending = ref.watch(pendingCountProvider);
@@ -49,38 +51,37 @@ class AccountingJournalView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: 'Daybook',
-            title: 'Journal entries',
-            subtitle:
-                'Every transaction as a balanced double entry · $currency',
+            eyebrow: l10n.booksDaybook,
+            title: l10n.booksJournalEntries,
+            subtitle: l10n.booksJournalSubtitle(currency),
             actions: [
               PopupMenuButton<String?>(
-                tooltip: 'Filter by source',
+                tooltip: l10n.booksFilterBySource,
                 offset: const Offset(0, 40),
                 onSelected: (src) =>
                     ref.read(journalSourceFilterProvider.notifier).state = src,
                 itemBuilder: (context) => [
-                  const PopupMenuItem<String?>(
+                  PopupMenuItem<String?>(
                     value: null,
-                    child: Text('All sources'),
+                    child: Text(l10n.booksAllSources),
                   ),
                   for (final src in sources)
                     PopupMenuItem(value: src, child: Text(src)),
                 ],
                 child: AccountingButton(
-                  label: sourceFilter ?? 'Filter',
+                  label: sourceFilter ?? l10n.booksFilter,
                   icon: Icons.filter_list,
                   small: true,
                 ),
               ),
               AccountingButton(
-                label: 'Record expense',
+                label: l10n.booksRecordExpense,
                 icon: Icons.account_balance_wallet_outlined,
                 small: true,
                 onPressed: onRecordExpense,
               ),
               AccountingButton(
-                label: 'New journal entry',
+                label: l10n.booksNewJournalEntry,
                 icon: Icons.add,
                 primary: true,
                 onPressed: onNewEntry,
@@ -99,10 +100,10 @@ class AccountingJournalView extends ConsumerWidget {
             children: [
               ...JournalFilter.values.map((f) {
                 final label = switch (f) {
-                  JournalFilter.all => 'All',
-                  JournalFilter.posted => 'Posted',
-                  JournalFilter.pending => 'Pending',
-                  JournalFilter.draft => 'Drafts',
+                  JournalFilter.all => l10n.booksFilterAll,
+                  JournalFilter.posted => l10n.booksFilterPosted,
+                  JournalFilter.pending => l10n.booksFilterPending,
+                  JournalFilter.draft => l10n.booksFilterDrafts,
                 };
                 final on = filter == f;
                 return ChoiceChip(
@@ -130,7 +131,7 @@ class AccountingJournalView extends ConsumerWidget {
               }),
               if (pending > 0)
                 Text(
-                  '$pending entries awaiting approval',
+                  l10n.booksEntriesAwaitingApproval(pending),
                   style: AccountingTokens.sans(
                     fontSize: 13,
                     color: AccountingTokens.warnAmber,
@@ -147,7 +148,7 @@ class AccountingJournalView extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.all(32),
                     child: Text(
-                      'No entries match this filter.',
+                      l10n.booksNoEntriesMatchFilter,
                       style: AccountingTokens.sans(
                         fontSize: 13.5,
                         color: AccountingTokens.ink3,
@@ -229,7 +230,7 @@ class _JournalRow extends StatelessWidget {
                           ),
                         TextSpan(
                           text:
-                              '${entry.lines[i].dr > 0 ? 'Dr' : 'Cr'} ${acctName(entry.lines[i].ac, accountMap)}',
+                              '${entry.lines[i].dr > 0 ? context.flipperL10n.booksDrAbbr : context.flipperL10n.booksCrAbbr} ${acctName(entry.lines[i].ac, accountMap)}',
                           style: AccountingTokens.sans(
                             fontSize: 12,
                             color: entry.lines[i].dr > 0
@@ -252,8 +253,10 @@ class _JournalRow extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AccountingTokens.surface2,
                     borderRadius: BorderRadius.circular(6),

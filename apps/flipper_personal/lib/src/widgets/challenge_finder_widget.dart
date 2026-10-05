@@ -1,5 +1,6 @@
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_personal/src/providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -261,7 +262,9 @@ class _AnimatedChallengeCardState extends State<AnimatedChallengeCard>
               ),
             ),
             title: Text(
-              'Business: ${widget.challenge.businessId}',
+              context.flipperL10n.personalBusinessLabel(
+                widget.challenge.businessId,
+              ),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             subtitle: Column(
@@ -277,7 +280,10 @@ class _AnimatedChallengeCardState extends State<AnimatedChallengeCard>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Reward: ${widget.challenge.reward?.value ?? 'Special reward'}',
+                      context.flipperL10n.personalRewardLabel(
+                        widget.challenge.reward?.value ??
+                            context.flipperL10n.personalSpecialReward,
+                      ),
                       style: TextStyle(
                         color: FlipperPalette.textSecondary,
                         fontSize: 14,
@@ -301,12 +307,12 @@ class _AnimatedChallengeCardState extends State<AnimatedChallengeCard>
                   vertical: 10,
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.star, size: 16),
                   SizedBox(width: 4),
-                  Text('Claim'),
+                  Text(context.flipperL10n.personalClaim),
                 ],
               ),
             ),
@@ -356,7 +362,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
             // Show feedback when no challenges found
             HapticFeedback.lightImpact();
             _showActionFeedback(
-              'No challenges found nearby. Try moving around!',
+              context.flipperL10n.personalNoChallengesNearby,
               isError: true,
             );
           }
@@ -392,8 +398,8 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
               const SizedBox(height: 16),
               Text(
                 challenges.isEmpty
-                    ? 'Tap to discover challenges nearby'
-                    : 'Tap to search again',
+                    ? context.flipperL10n.personalTapToDiscover
+                    : context.flipperL10n.personalTapToSearchAgain,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -425,7 +431,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
                 key: const ValueKey('searching'),
                 children: [
                   Text(
-                    'Searching for nearby challenges...',
+                    context.flipperL10n.personalSearchingChallenges,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -467,7 +473,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Tap to discover challenges nearby',
+                context.flipperL10n.personalTapToDiscover,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -530,8 +536,8 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Challenges Found!',
+                          Text(
+                            context.flipperL10n.personalChallengesFound,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -539,7 +545,9 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
                             ),
                           ),
                           Text(
-                            '${challenges.length} nearby rewards',
+                            context.flipperL10n.personalNearbyRewards(
+                              challenges.length,
+                            ),
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.white70,
@@ -581,7 +589,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
                       ),
                     ),
                     child: Text(
-                      'Close',
+                      context.flipperL10n.close,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -609,7 +617,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
       if (!mounted) return;
       Navigator.of(context).pop(); // Close the dialog
       HapticFeedback.heavyImpact(); // Success haptic
-      _showActionFeedback('Challenge claimed successfully! 🎉');
+      _showActionFeedback(context.flipperL10n.personalChallengeClaimedToast);
     } catch (e) {
       if (!mounted) return;
       HapticFeedback.heavyImpact(); // Error haptic
@@ -620,7 +628,11 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Failed to claim challenge: $e')),
+              Expanded(
+                child: Text(
+                  context.flipperL10n.personalFailedToClaimChallenge('$e'),
+                ),
+              ),
             ],
           ),
           behavior: SnackBarBehavior.floating,
@@ -651,7 +663,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         action: SnackBarAction(
-          label: 'OK',
+          label: context.flipperL10n.ok,
           textColor: Colors.white70,
           onPressed: () {},
         ),

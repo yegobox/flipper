@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/billing/application/books_billing_providers.dart';
 import 'package:flipper_web/features/billing/data/books_return_url.dart';
 import 'package:flipper_web/features/billing/presentation/books_billing_gate.dart';
@@ -32,9 +33,9 @@ Future<ProviderContainer> _pumpGate(
   );
   addTearDown(container.dispose);
   addTearDown(repo.dispose);
-  container.read(selectedBusinessProvider.notifier).set(
-        testBusiness(businessTypeId: businessTypeId, isDefault: isDefault),
-      );
+  container
+      .read(selectedBusinessProvider.notifier)
+      .set(testBusiness(businessTypeId: businessTypeId, isDefault: isDefault));
 
   final router = GoRouter(
     initialLocation: '/accounting',
@@ -58,7 +59,11 @@ Future<ProviderContainer> _pumpGate(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp.router(routerConfig: router),
+      child: MaterialApp.router(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        routerConfig: router,
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -86,15 +91,15 @@ void main() {
       expect(find.text('Choose a plan'), findsOneWidget);
     });
 
-    testWidgets('an expired plan reads as lapsed, with a renew action',
-        (tester) async {
+    testWidgets('an expired plan reads as lapsed, with a renew action', (
+      tester,
+    ) async {
       await _pumpGate(
         tester,
         repo: FakeBooksPlanRepository(
           plans: {
             'biz-1': paidPlan(
-              nextBillingDate:
-                  DateTime.now().subtract(const Duration(days: 2)),
+              nextBillingDate: DateTime.now().subtract(const Duration(days: 2)),
             ),
           },
         ),
@@ -125,8 +130,9 @@ void main() {
       expect(find.byKey(const Key('subscribe-stub')), findsOneWidget);
     });
 
-    testWidgets('a payment settled elsewhere unlocks the open tab',
-        (tester) async {
+    testWidgets('a payment settled elsewhere unlocks the open tab', (
+      tester,
+    ) async {
       final repo = FakeBooksPlanRepository(plans: {'biz-1': unpaidPlan()});
       await _pumpGate(tester, repo: repo);
       expect(find.byKey(const Key('books-paywall-panel')), findsOneWidget);

@@ -1,16 +1,25 @@
 import 'package:flipper_hr/features/people/data/employee.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// How the roster is sorted.
 enum PeopleSort {
-  nameAsc('Name (A–Z)'),
-  nameDesc('Name (Z–A)'),
-  newestHire('Newest hire'),
-  longestServing('Longest serving'),
-  highestPaid('Highest paid');
+  nameAsc,
+  nameDesc,
+  newestHire,
+  longestServing,
+  highestPaid;
 
-  const PeopleSort(this.label);
-
-  final String label;
+  /// Display name in the current app language.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      PeopleSort.nameAsc => l10n.hrSortNameAsc,
+      PeopleSort.nameDesc => l10n.hrSortNameDesc,
+      PeopleSort.newestHire => l10n.hrSortNewestHire,
+      PeopleSort.longestServing => l10n.hrSortLongestServing,
+      PeopleSort.highestPaid => l10n.hrSortHighestPaid,
+    };
+  }
 }
 
 /// Search / filter / sort state for the people directory.

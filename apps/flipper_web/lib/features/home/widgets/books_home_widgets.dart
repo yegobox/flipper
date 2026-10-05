@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
 import 'package:flipper_web/widgets/flipper_logo.dart';
@@ -11,11 +12,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 bool booksHomeShowDeviceMocks = true;
 
 class BooksHomeSection extends StatelessWidget {
-  const BooksHomeSection({
-    super.key,
-    required this.child,
-    this.padding,
-  });
+  const BooksHomeSection({super.key, required this.child, this.padding});
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -29,7 +26,8 @@ class BooksHomeSection extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: AppSpace.maxW),
             child: Padding(
-              padding: padding ??
+              padding:
+                  padding ??
                   EdgeInsets.symmetric(
                     horizontal: gutter,
                     vertical: AppSpace.sectionY,
@@ -92,15 +90,9 @@ class BooksWordmark extends StatelessWidget {
       children: [
         Text(
           'Flipper',
-          style: AppText.h3.copyWith(
-            fontSize: 21,
-            letterSpacing: -0.42,
-          ),
+          style: AppText.h3.copyWith(fontSize: 21, letterSpacing: -0.42),
         ),
-        if (!compact) ...[
-          const SizedBox(width: 8),
-          const BooksTag(),
-        ],
+        if (!compact) ...[const SizedBox(width: 8), const BooksTag()],
       ],
     );
 
@@ -145,12 +137,19 @@ class HeroTopBadge extends StatelessWidget {
           const SizedBox(width: 8),
           Text.rich(
             TextSpan(
-              style: AppText.small.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.ink2),
+              style: AppText.small.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.ink2,
+              ),
               children: [
-                const TextSpan(text: 'Flipper Books · powered by '),
+                TextSpan(text: '${booksHomeL10n(context).webHomePoweredBy} '),
                 TextSpan(
                   text: 'Flow AI',
-                  style: TextStyle(color: AppColors.ink0, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: AppColors.ink0,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -173,7 +172,10 @@ class HeroCheckItem extends StatelessWidget {
       children: [
         BooksLineIcon(BooksIcon.check, size: 15, color: AppColors.green),
         const SizedBox(width: 7),
-        Text(label, style: AppText.small.copyWith(fontSize: 13, color: AppColors.ink3)),
+        Text(
+          label,
+          style: AppText.small.copyWith(fontSize: 13, color: AppColors.ink3),
+        ),
       ],
     );
   }
@@ -218,11 +220,7 @@ class NavTextLink extends StatelessWidget {
 }
 
 class Reveal extends StatefulWidget {
-  const Reveal({
-    super.key,
-    required this.child,
-    this.delay = Duration.zero,
-  });
+  const Reveal({super.key, required this.child, this.delay = Duration.zero});
 
   final Widget child;
   final Duration delay;
@@ -238,7 +236,9 @@ class _RevealState extends State<Reveal> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkInitialVisibility());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _checkInitialVisibility(),
+    );
   }
 
   void _scheduleShow() {
@@ -259,7 +259,10 @@ class _RevealState extends State<Reveal> {
 
     final visibleTop = topLeft.dy.clamp(0.0, viewportHeight);
     final visibleBottom = bottom.clamp(0.0, viewportHeight);
-    final visibleHeight = (visibleBottom - visibleTop).clamp(0.0, box.size.height);
+    final visibleHeight = (visibleBottom - visibleTop).clamp(
+      0.0,
+      box.size.height,
+    );
 
     if (visibleHeight / box.size.height >= 0.12) {
       _scheduleShow();
@@ -365,11 +368,7 @@ class _FloatyState extends State<Floaty> with SingleTickerProviderStateMixin {
 }
 
 class PressScale extends StatefulWidget {
-  const PressScale({
-    super.key,
-    required this.child,
-    required this.onTap,
-  });
+  const PressScale({super.key, required this.child, required this.onTap});
 
   final Widget child;
   final VoidCallback onTap;
@@ -444,7 +443,9 @@ class _HoverLiftCardState extends State<HoverLiftCard> {
           gradient: AppGrad.pricingCardFill,
           borderRadius: BorderRadius.circular(widget.radius),
           border: Border.all(
-            color: _hover ? AppColors.line2 : (widget.baseBorder ?? AppColors.line),
+            color: _hover
+                ? AppColors.line2
+                : (widget.baseBorder ?? AppColors.line),
           ),
           boxShadow: _hover ? AppShadow.card : null,
         ),
@@ -537,7 +538,10 @@ class PrimaryButton extends StatelessWidget {
           children: [
             Text(
               label,
-              style: AppText.buttonLabel.copyWith(fontSize: fontSize, color: AppColors.onBrand),
+              style: AppText.buttonLabel.copyWith(
+                fontSize: fontSize,
+                color: AppColors.onBrand,
+              ),
             ),
             if (showArrow) ...[
               const SizedBox(width: 9),
@@ -591,7 +595,10 @@ class GhostButton extends StatelessWidget {
           children: [
             Text(
               label,
-              style: AppText.buttonLabel.copyWith(fontSize: fontSize, color: AppColors.ink1),
+              style: AppText.buttonLabel.copyWith(
+                fontSize: fontSize,
+                color: AppColors.ink1,
+              ),
             ),
             if (showArrow) ...[
               const SizedBox(width: 9),
@@ -721,7 +728,10 @@ class TrustChip extends StatelessWidget {
           const SizedBox(width: 9),
           Text.rich(
             TextSpan(
-              style: AppText.small.copyWith(fontSize: 13.5, color: AppColors.ink2),
+              style: AppText.small.copyWith(
+                fontSize: 13.5,
+                color: AppColors.ink2,
+              ),
               children: [
                 if (bold != null && bold!.isNotEmpty) ...[
                   TextSpan(
@@ -757,10 +767,13 @@ class MostPopularTag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('★', style: TextStyle(fontSize: 11.5, color: AppColors.popularTagInk)),
+          Text(
+            '★',
+            style: TextStyle(fontSize: 11.5, color: AppColors.popularTagInk),
+          ),
           const SizedBox(width: 4),
           Text(
-            'Most Popular',
+            booksHomeL10n(context).webHomeMostPopular,
             style: AppText.small.copyWith(
               fontSize: 11.5,
               fontWeight: FontWeight.w700,
@@ -842,7 +855,10 @@ class EyebrowLabel extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 9),
-        Text(text.toUpperCase(), style: AppText.eyebrow.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          text.toUpperCase(),
+          style: AppText.eyebrow.copyWith(fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
@@ -988,10 +1004,7 @@ class DashedOutlineContainer extends StatelessWidget {
         radius: radius,
         color: color ?? AppColors.line2,
       ),
-      child: Padding(
-        padding: padding ?? EdgeInsets.zero,
-        child: child,
-      ),
+      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
     );
   }
 }
@@ -1064,3 +1077,12 @@ class StickyHeaderShell extends StatelessWidget {
     );
   }
 }
+
+/// Landing-page strings. Falls back to [FlipperL10n.current] when the page is
+/// pumped without localization delegates (some widget tests).
+FlipperAppLocalizations booksHomeL10n(BuildContext context) =>
+    Localizations.of<FlipperAppLocalizations>(
+      context,
+      FlipperAppLocalizations,
+    ) ??
+    FlipperL10n.current;

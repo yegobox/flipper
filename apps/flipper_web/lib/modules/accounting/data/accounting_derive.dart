@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:intl/intl.dart';
 
@@ -31,10 +32,12 @@ TrialBalanceResult trialBalance(List<Account> accounts) {
 
 IncomeStatementResult incomeStatement(List<Account> accounts) {
   final income = accounts.where((a) => a.type == AccountType.income).toList();
-  final grossRevenue =
-      income.where((a) => !a.contra).fold<int>(0, (s, a) => s + a.bal);
-  final discounts =
-      income.where((a) => a.contra).fold<int>(0, (s, a) => s + a.bal);
+  final grossRevenue = income
+      .where((a) => !a.contra)
+      .fold<int>(0, (s, a) => s + a.bal);
+  final discounts = income
+      .where((a) => a.contra)
+      .fold<int>(0, (s, a) => s + a.bal);
   final netRevenue = grossRevenue - discounts;
   final cogs = accounts
       .where((a) => a.sub == 'Cost of sales')
@@ -67,15 +70,19 @@ BalanceSheetResult balanceSheet(List<Account> accounts) {
 
   final currentAssets = byAssetSub('Current assets');
   final fixedAssets = byAssetSub('Fixed assets');
-  final totalCurrentAssets =
-      currentAssets.fold<int>(0, (s, x) => s + _assetVal(x));
+  final totalCurrentAssets = currentAssets.fold<int>(
+    0,
+    (s, x) => s + _assetVal(x),
+  );
   final totalFixedAssets = fixedAssets.fold<int>(0, (s, x) => s + _assetVal(x));
   final totalAssets = totalCurrentAssets + totalFixedAssets;
 
-  final curLiab =
-      accounts.where((x) => x.sub == 'Current liabilities').toList();
-  final ltLiab =
-      accounts.where((x) => x.sub == 'Long-term liabilities').toList();
+  final curLiab = accounts
+      .where((x) => x.sub == 'Current liabilities')
+      .toList();
+  final ltLiab = accounts
+      .where((x) => x.sub == 'Long-term liabilities')
+      .toList();
   final totalCurLiab = curLiab.fold<int>(0, (s, x) => s + x.bal);
   final totalLtLiab = ltLiab.fold<int>(0, (s, x) => s + x.bal);
   final totalLiab = totalCurLiab + totalLtLiab;
@@ -143,8 +150,9 @@ String money(int? n, {bool sign = false}) {
 }
 
 /// IAS 1: the bottom line is profit or loss for the period, not always "income".
-String profitOrLossLabel(int netIncome) =>
-    netIncome < 0 ? 'Net loss' : 'Net income';
+String profitOrLossLabel(int netIncome) => netIncome < 0
+    ? FlipperL10n.current.booksNetLoss
+    : FlipperL10n.current.booksNetIncome;
 
 String compact(int n) {
   final abs = n.abs();
@@ -173,7 +181,8 @@ List<GlPosting> generalLedgerPostings(
   //
   // Journal streams emit newest-first; a running balance must be accumulated
   // oldest-first so the last row lands on the closing balance.
-  final postings = <({String date, String jeId, String memo, int debit, int credit})>[];
+  final postings =
+      <({String date, String jeId, String memo, int debit, int credit})>[];
   for (final e in journal.reversed) {
     if (e.status != JournalStatus.posted) continue;
     for (final line in e.lines) {
@@ -207,14 +216,16 @@ List<GlPosting> generalLedgerPostings(
     } else {
       balance += p.credit - p.debit;
     }
-    result.add(GlPosting(
-      date: p.date,
-      jeId: p.jeId,
-      memo: p.memo,
-      debit: p.debit,
-      credit: p.credit,
-      balance: balance,
-    ));
+    result.add(
+      GlPosting(
+        date: p.date,
+        jeId: p.jeId,
+        memo: p.memo,
+        debit: p.debit,
+        credit: p.credit,
+        balance: balance,
+      ),
+    );
   }
   return result;
 }

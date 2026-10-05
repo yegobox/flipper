@@ -4,6 +4,7 @@ import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/data/hr_msisdn.dart';
 import 'package:flipper_hr/features/billing/presentation/hr_skip_payment_action.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,10 +42,8 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
 
     if (businessId == null) {
       return _Message(
-        message:
-            'Pick the business you are paying for, then the plan and its price '
-            'appear here.',
-        actionLabel: 'Choose a business',
+        message: context.flipperL10n.hrSubscribePickBusiness,
+        actionLabel: context.flipperL10n.hrChooseABusiness,
         onAction: () => context.go('/business-selection'),
       );
     }
@@ -79,80 +78,80 @@ class _HrSubscribePageState extends ConsumerState<HrSubscribePage> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: quote.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(48),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, _) => _Message(
-                  message:
-                      'Could not load the plan: '
-                      '${error.toString().replaceFirst('Exception: ', '')}',
-                  actionLabel: 'Try again',
-                  onAction: () =>
-                      ref.invalidate(hrPlanQuoteProvider(quoteRequest)),
-                ),
-                data: (quote) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      access.hasLapsed
-                          ? 'Renew your subscription'
-                          : 'Subscribe to Flipper',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: HrTokens.ink1,
+                  loading: () => const Padding(
+                    padding: EdgeInsets.all(48),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (error, _) => _Message(
+                    message: context.flipperL10n.hrCouldNotLoadPlan(
+                      error.toString().replaceFirst('Exception: ', ''),
+                    ),
+                    actionLabel: context.flipperL10n.hrTryAgain,
+                    onAction: () =>
+                        ref.invalidate(hrPlanQuoteProvider(quoteRequest)),
+                  ),
+                  data: (quote) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        access.hasLapsed
+                            ? context.flipperL10n.hrRenewYourSubscription
+                            : context.flipperL10n.hrSubscribeToFlipper,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: HrTokens.ink1,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      business?.name ?? '',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: HrTokens.ink3,
+                      const SizedBox(height: 4),
+                      Text(
+                        business?.name ?? '',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HrTokens.ink3,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    _BillingPeriodToggle(
-                      isYearly: _isYearly,
-                      // Locked while a charge is in flight: switching period
-                      // re-prices the plan, and the row being charged is the one
-                      // that was written when Pay was pressed.
-                      onChanged: payment.isBusy
-                          ? null
-                          : (value) => setState(() => _isYearly = value),
-                    ),
-                    const SizedBox(height: 16),
-                    _PlanCard(quote: quote),
-                    const SizedBox(height: 20),
-                    _PhoneField(
-                      controller: _phoneController,
-                      enabled: !payment.isBusy,
-                      onChanged: (_) {
-                        if (!_phoneTouched) {
-                          setState(() => _phoneTouched = true);
-                        } else {
-                          setState(() {});
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _PaymentAction(
-                      quote: quote,
-                      payment: payment,
-                      phone: _phoneController.text,
-                      onPay: () => ref
-                          .read(hrSubscriptionControllerProvider.notifier)
-                          .pay(
-                            businessId: businessId,
-                            phoneNumber: _phoneController.text,
-                            slug: quote.slug,
-                            isYearly: _isYearly,
-                          ),
-                      onDone: () => context.go('/people'),
-                      onRetry: () => ref
-                          .read(hrSubscriptionControllerProvider.notifier)
-                          .reset(),
+                      const SizedBox(height: 20),
+                      _BillingPeriodToggle(
+                        isYearly: _isYearly,
+                        // Locked while a charge is in flight: switching period
+                        // re-prices the plan, and the row being charged is the one
+                        // that was written when Pay was pressed.
+                        onChanged: payment.isBusy
+                            ? null
+                            : (value) => setState(() => _isYearly = value),
+                      ),
+                      const SizedBox(height: 16),
+                      _PlanCard(quote: quote),
+                      const SizedBox(height: 20),
+                      _PhoneField(
+                        controller: _phoneController,
+                        enabled: !payment.isBusy,
+                        onChanged: (_) {
+                          if (!_phoneTouched) {
+                            setState(() => _phoneTouched = true);
+                          } else {
+                            setState(() {});
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _PaymentAction(
+                        quote: quote,
+                        payment: payment,
+                        phone: _phoneController.text,
+                        onPay: () => ref
+                            .read(hrSubscriptionControllerProvider.notifier)
+                            .pay(
+                              businessId: businessId,
+                              phoneNumber: _phoneController.text,
+                              slug: quote.slug,
+                              isYearly: _isYearly,
+                            ),
+                        onDone: () => context.go('/people'),
+                        onRetry: () => ref
+                            .read(hrSubscriptionControllerProvider.notifier)
+                            .reset(),
                       ),
                       if (payment.stage == HrPaymentStage.idle)
                         HrSkipPaymentAction(
@@ -191,12 +190,12 @@ class _BillingPeriodToggle extends StatelessWidget {
       child: Row(
         children: [
           _Segment(
-            label: 'Monthly',
+            label: context.flipperL10n.hrPayMonthly,
             selected: !isYearly,
             onTap: onChanged == null ? null : () => onChanged!(false),
           ),
           _Segment(
-            label: 'Yearly',
+            label: context.flipperL10n.hrPeriodYearly,
             selected: isYearly,
             onTap: onChanged == null ? null : () => onChanged!(true),
           ),
@@ -237,8 +236,8 @@ class _Segment extends StatelessWidget {
                 color: onTap == null
                     ? HrTokens.ink4
                     : selected
-                        ? HrTokens.ink1
-                        : HrTokens.ink2,
+                    ? HrTokens.ink1
+                    : HrTokens.ink2,
               ),
             ),
           ),
@@ -317,8 +316,10 @@ class _PlanCard extends StatelessWidget {
             if (quote.testMode && full != null && full != quote.amountRwf) ...[
               const SizedBox(height: 6),
               Text(
-                'Test pricing is on — normally ${formatRwf(full)} RWF '
-                '${quote.periodLabel}.',
+                context.flipperL10n.hrTestPricingNormally(
+                  '${formatRwf(full)} RWF',
+                  quote.periodLabel,
+                ),
                 key: const Key('hr-plan-test-mode'),
                 style: const TextStyle(
                   fontSize: 12,
@@ -357,9 +358,9 @@ class _PlanCard extends StatelessWidget {
             ],
             if (allowance.hasLimits) ...[
               const Divider(height: 28, color: HrTokens.line),
-              const Text(
-                'What this business is using',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.hrWhatBusinessIsUsing,
+                style: const TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   color: HrTokens.ink3,
@@ -368,17 +369,17 @@ class _PlanCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               _UsageRow(
-                label: 'POS users',
+                label: context.flipperL10n.hrUsagePosUsers,
                 used: allowance.posUsersUsed,
                 limit: allowance.maxPosUsers,
               ),
               _UsageRow(
-                label: 'Branches',
+                label: context.flipperL10n.hrUsageBranches,
                 used: allowance.branchesUsed,
                 limit: allowance.maxBranches,
               ),
               _UsageRow(
-                label: 'HR employees',
+                label: context.flipperL10n.hrUsageHrEmployees,
                 used: allowance.employeesUsed,
                 limit: allowance.maxHrEmployees,
               ),
@@ -391,7 +392,11 @@ class _PlanCard extends StatelessWidget {
 }
 
 class _UsageRow extends StatelessWidget {
-  const _UsageRow({required this.label, required this.used, required this.limit});
+  const _UsageRow({
+    required this.label,
+    required this.used,
+    required this.limit,
+  });
 
   final String label;
   final int used;
@@ -420,7 +425,9 @@ class _UsageRow extends StatelessWidget {
                 style: const TextStyle(fontSize: 13, color: HrTokens.ink2),
               ),
               Text(
-                cap == null ? '$used · unlimited' : '$used of $cap',
+                cap == null
+                    ? context.flipperL10n.hrUsageUnlimited('$used')
+                    : context.flipperL10n.hrUsageOf('$used', '$cap'),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -473,7 +480,7 @@ class _PhoneField extends StatelessWidget {
       onChanged: onChanged,
       style: const TextStyle(fontSize: 15, color: HrTokens.ink1),
       decoration: InputDecoration(
-        labelText: 'Mobile Money number',
+        labelText: context.flipperL10n.hrMomoNumberLabel,
         hintText: '0788123456',
         prefixIcon: const Icon(
           Icons.smartphone_outlined,
@@ -496,9 +503,7 @@ class _PhoneField extends StatelessWidget {
           borderRadius: BorderRadius.circular(HrTokens.radiusMd),
           borderSide: const BorderSide(color: HrTokens.accent, width: 1.6),
         ),
-        errorText: invalid
-            ? 'Enter a valid MTN or Airtel number, e.g. 0788123456.'
-            : null,
+        errorText: invalid ? context.flipperL10n.hrEnterValidMomoNumber : null,
       ),
     );
   }
@@ -525,6 +530,7 @@ class _PaymentAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = payment.message;
+    final l10n = context.flipperL10n;
 
     if (payment.stage == HrPaymentStage.confirmed) {
       return Column(
@@ -534,7 +540,7 @@ class _PaymentAction extends StatelessWidget {
             key: const Key('hr-payment-confirmed'),
             icon: Icons.check_circle_outline,
             color: HrTokens.success,
-            message: message ?? 'Payment received.',
+            message: message ?? l10n.hrPaymentReceived,
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -543,7 +549,7 @@ class _PaymentAction extends StatelessWidget {
               key: const Key('hr-payment-continue'),
               onPressed: onDone,
               style: _payButtonStyle,
-              child: const Text('Open Flipper HR'),
+              child: Text(l10n.hrOpenFlipperHr),
             ),
           ),
         ],
@@ -579,20 +585,16 @@ class _PaymentAction extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.smartphone),
-          label: Text(
-            switch (payment.stage) {
-              HrPaymentStage.preparing => 'Preparing…',
-              HrPaymentStage.awaitingApproval => 'Waiting for your approval…',
-              HrPaymentStage.failed ||
-              HrPaymentStage.timedOut => 'Try again',
-              _ => 'Pay ${formatRwf(quote.amountRwf)} RWF with Mobile Money',
-            },
-          ),
+          label: Text(switch (payment.stage) {
+            HrPaymentStage.preparing => l10n.hrPreparing,
+            HrPaymentStage.awaitingApproval => l10n.hrWaitingForApproval,
+            HrPaymentStage.failed || HrPaymentStage.timedOut => l10n.hrTryAgain,
+            _ => l10n.hrPayWithMomo('${formatRwf(quote.amountRwf)} RWF'),
+          }),
         ),
         const SizedBox(height: 10),
         Text(
-          'You will get a Mobile Money prompt on this number. Approving it '
-          'charges ${formatRwf(quote.amountRwf)} RWF.',
+          l10n.hrMomoPromptNote('${formatRwf(quote.amountRwf)} RWF'),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 12,

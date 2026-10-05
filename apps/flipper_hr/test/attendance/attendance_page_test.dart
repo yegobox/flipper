@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/attendance/attendance_page.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_providers.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_repository.dart';
@@ -38,6 +39,8 @@ Future<void> _pumpBoard(
         hrClockProvider.overrideWithValue(() => _now),
       ],
       child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: AttendancePage(
             businessId: 'biz-1',
@@ -53,8 +56,9 @@ Future<void> _pumpBoard(
 
 void main() {
   group('the board', () {
-    testWidgets('lists everyone on the roster, including those not in',
-        (tester) async {
+    testWidgets('lists everyone on the roster, including those not in', (
+      tester,
+    ) async {
       // The point of driving rows from the roster: "who is missing?" is the
       // question a manager opens this for.
       await _pumpBoard(
@@ -73,8 +77,9 @@ void main() {
       expect(find.text('Tue 18 Aug · Kigali Main'), findsOneWidget);
     });
 
-    testWidgets('leaves terminated people off, they have no hours to record',
-        (tester) async {
+    testWidgets('leaves terminated people off, they have no hours to record', (
+      tester,
+    ) async {
       await _pumpBoard(
         tester,
         people: FakeEmployeeRepository(
@@ -93,8 +98,9 @@ void main() {
       expect(find.byKey(const Key('attendance-row-e-2')), findsNothing);
     });
 
-    testWidgets('shows an open session as clocked in, with the running total',
-        (tester) async {
+    testWidgets('shows an open session as clocked in, with the running total', (
+      tester,
+    ) async {
       await _pumpBoard(
         tester,
         attendance: FakeAttendanceRepository(
@@ -133,7 +139,10 @@ void main() {
     testWidgets('an empty roster explains what to do first', (tester) async {
       await _pumpBoard(tester, people: FakeEmployeeRepository());
 
-      expect(find.textContaining('No one is on this branch yet'), findsOneWidget);
+      expect(
+        find.textContaining('No one is on this branch yet'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -151,8 +160,9 @@ void main() {
       expect(find.text('Aline Uwase is clocked in.'), findsOneWidget);
     });
 
-    testWidgets('a manager entry is recorded as such, not as self-service',
-        (tester) async {
+    testWidgets('a manager entry is recorded as such, not as self-service', (
+      tester,
+    ) async {
       final attendance = FakeAttendanceRepository(now: _now);
       await _pumpBoard(tester, attendance: attendance);
 
@@ -177,8 +187,9 @@ void main() {
       expect(find.text('Clocked out'), findsOneWidget);
     });
 
-    testWidgets('a refused clock-in reports why and records nothing',
-        (tester) async {
+    testWidgets('a refused clock-in reports why and records nothing', (
+      tester,
+    ) async {
       final attendance = FakeAttendanceRepository(now: _now);
       await _pumpBoard(tester, attendance: attendance);
       attendance.failWith = AttendanceRepositoryException('Already clocked in');
@@ -208,8 +219,9 @@ void main() {
       expect(find.byKey(const Key('attendance-row-e-1')), findsOneWidget);
     });
 
-    testWidgets('today shows no "Today" shortcut, since it is already today',
-        (tester) async {
+    testWidgets('today shows no "Today" shortcut, since it is already today', (
+      tester,
+    ) async {
       await _pumpBoard(tester);
       expect(find.byKey(const Key('attendance-today')), findsNothing);
       expect(find.byKey(const Key('attendance-pick-date')), findsOneWidget);

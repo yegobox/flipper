@@ -1,5 +1,6 @@
 import 'package:flipper_hr/features/leave/data/leave_balance.dart';
 import 'package:flipper_hr/features/leave/data/leave_working_days.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// One leave type's standing for the year: days left, and how much of the
@@ -17,6 +18,7 @@ class LeaveBalanceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final remaining = balance.remaining;
+    final l10n = context.flipperL10n;
 
     return Container(
       key: Key('leave-balance-${balance.type.wire}'),
@@ -53,8 +55,8 @@ class LeaveBalanceCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             remaining == null
-                ? 'taken · no yearly limit'
-                : 'left of ${formatLeaveDays(balance.entitlement!)}',
+                ? l10n.hrLeaveTakenNoLimit
+                : l10n.hrLeaveLeftOf(formatLeaveDays(balance.entitlement!)),
             style: theme.textTheme.bodySmall?.copyWith(
               color: scheme.onSurfaceVariant,
             ),
@@ -74,7 +76,7 @@ class LeaveBalanceCard extends StatelessWidget {
           if (balance.pending > 0) ...[
             const SizedBox(height: 8),
             Text(
-              '${formatLeaveDays(balance.pending)} awaiting approval',
+              l10n.hrLeaveAwaitingApproval(formatLeaveDays(balance.pending)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: scheme.tertiary,
               ),

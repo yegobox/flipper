@@ -2,6 +2,7 @@ import 'package:flipper_hr/features/billing/application/hr_billing_providers.dar
 import 'package:flipper_hr/features/billing/data/hr_billing_repository.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,7 +53,9 @@ class _HrSkipPaymentActionState extends ConsumerState<HrSkipPaymentAction> {
       if (!skipped && mounted) setState(() => _error = e.message);
     } catch (e) {
       if (!skipped && mounted) {
-        setState(() => _error = 'Could not skip this payment: $e');
+        setState(
+          () => _error = context.flipperL10n.hrErrorSkipPaymentWith('$e'),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -74,8 +77,10 @@ class _HrSkipPaymentActionState extends ConsumerState<HrSkipPaymentAction> {
           style: TextButton.styleFrom(foregroundColor: HrTokens.ink2),
           child: Text(
             _busy
-                ? 'Skipping…'
-                : 'Skip for now (${widget.access.skipsRemaining} left)',
+                ? context.flipperL10n.hrSkipping
+                : context.flipperL10n.hrSkipForNow(
+                    '${widget.access.skipsRemaining}',
+                  ),
           ),
         ),
         if (_error != null)

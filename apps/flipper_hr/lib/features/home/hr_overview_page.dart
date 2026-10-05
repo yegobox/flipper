@@ -6,7 +6,9 @@ import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/people/data/people_query.dart';
 import 'package:flipper_hr/features/session/data/hr_identity_providers.dart';
+import 'package:flipper_hr/features/ui/hr_l10n.dart';
 import 'package:flipper_hr/features/ui/hr_ui.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -71,11 +73,7 @@ class HrOverviewPage extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
           children: [
-            _Greeting(
-              name: identity.name,
-              branchName: branchName,
-              asOf: now,
-            ),
+            _Greeting(name: identity.name, branchName: branchName, asOf: now),
             const SizedBox(height: 20),
             _QuickActions(
               onAddPerson: () => context.go('/people'),
@@ -141,14 +139,18 @@ class _Greeting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${greetingFor(asOf)}, ${firstNameOf(name)}', style: HrType.display),
+        Text(
+          l10n.hrGreetingWithName(greetingFor(asOf, l10n), firstNameOf(name)),
+          style: HrType.display,
+        ),
         const SizedBox(height: 4),
         Text(
           [
-            formatLongDate(asOf),
+            formatLongDate(asOf, l10n),
             if (branchName != null && branchName!.isNotEmpty) branchName!,
           ].join(' · '),
           style: HrType.caption,
@@ -159,10 +161,11 @@ class _Greeting extends StatelessWidget {
 }
 
 /// "Good morning" / "Good afternoon" / "Good evening", by local hour.
-String greetingFor(DateTime asOf) {
-  if (asOf.hour < 12) return 'Good morning';
-  if (asOf.hour < 18) return 'Good afternoon';
-  return 'Good evening';
+String greetingFor(DateTime asOf, [FlipperAppLocalizations? l10n]) {
+  final t = l10n ?? FlipperL10n.current;
+  if (asOf.hour < 12) return t.hrGoodMorning;
+  if (asOf.hour < 18) return t.hrGoodAfternoon;
+  return t.hrGoodEvening;
 }
 
 /// The part of a name a greeting uses. Falls back to the whole thing.
@@ -171,37 +174,19 @@ String firstNameOf(String name) {
   return first.isEmpty ? name : first;
 }
 
-const _weekdays = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
-
-const _months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-
 /// `Wednesday, 19 August` — the date a person would say out loud.
 ///
-/// Written out rather than taken from `intl`: HR ships one locale, and a
-/// dashboard heading is not worth a dependency that has to be initialised.
-String formatLongDate(DateTime date) =>
-    '${_weekdays[date.weekday - 1]}, ${date.day} ${_months[date.month - 1]}';
+/// Written out rather than taken from `intl`: a dashboard heading is not worth
+/// a dependency that has to be initialised per locale (and `intl` has no
+/// Kinyarwanda date symbols at all).
+String formatLongDate(DateTime date, [FlipperAppLocalizations? l10n]) {
+  final t = l10n ?? FlipperL10n.current;
+  return t.hrLongDate(
+    hrWeekdayName(t, date.weekday),
+    '${date.day}',
+    hrMonthName(t, date.month),
+  );
+}
 
 // ─── Quick actions ────────────────────────────────────────────────────────────
 
@@ -220,6 +205,7 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -229,7 +215,7 @@ class _QuickActions extends StatelessWidget {
           onPressed: onAddPerson,
           style: hrPrimaryButtonStyle(),
           icon: const Icon(Icons.person_add_alt_1, size: 17),
-          label: const Text('Add a person'),
+          label: Text(l10n.hrAddAPerson),
         ),
         OutlinedButton.icon(
           key: const Key('hr-overview-review'),
@@ -238,15 +224,15 @@ class _QuickActions extends StatelessWidget {
           icon: const Icon(Icons.fact_check_outlined, size: 17),
           label: Text(
             pendingCount == 0
-                ? 'Approvals'
-                : 'Review $pendingCount request${pendingCount == 1 ? '' : 's'}',
+                ? l10n.hrApprovals
+                : l10n.hrReviewRequests(pendingCount),
           ),
         ),
         OutlinedButton.icon(
           onPressed: onAttendance,
           style: hrSecondaryButtonStyle(),
           icon: const Icon(Icons.schedule_outlined, size: 17),
-          label: const Text('Attendance board'),
+          label: Text(l10n.hrAttendanceBoard),
         ),
       ],
     );
@@ -275,6 +261,7 @@ class _StatRow extends StatelessWidget {
     // A dash rather than a zero while the roster is still arriving: a headcount
     // of 0 is a real and alarming number, and it must never be a loading state.
     String n(int value) => loading ? '—' : '$value';
+    final l10n = context.flipperL10n;
 
     return Wrap(
       spacing: 12,
@@ -282,14 +269,14 @@ class _StatRow extends StatelessWidget {
       children: [
         HrStatTile(
           key: const Key('hr-overview-headcount'),
-          label: 'Headcount',
+          label: l10n.hrHeadcount,
           value: n(summary.headcount),
           icon: Icons.groups_outlined,
-          hint: loading ? null : '${summary.active} active',
+          hint: loading ? null : l10n.hrActiveCount('${summary.active}'),
           onTap: onOpenRoster,
         ),
         HrStatTile(
-          label: 'On leave',
+          label: l10n.hrOnLeave,
           value: n(summary.onLeave),
           icon: Icons.beach_access_outlined,
           tone: summary.onLeave > 0 ? HrTone.warning : HrTone.neutral,
@@ -297,27 +284,27 @@ class _StatRow extends StatelessWidget {
         ),
         HrStatTile(
           key: const Key('hr-overview-pending'),
-          label: 'Waiting on you',
+          label: l10n.hrWaitingOnYou,
           value: loading ? '—' : '$pendingCount',
           icon: Icons.pending_actions_outlined,
           tone: pendingCount > 0 ? HrTone.danger : HrTone.positive,
-          hint: pendingCount > 0 ? 'Needs a decision' : 'All clear',
+          hint: pendingCount > 0 ? l10n.hrNeedsADecision : l10n.hrAllClear,
           onTap: onOpenApprovals,
         ),
         HrStatTile(
-          label: 'New this month',
+          label: l10n.hrNewThisMonth,
           value: n(summary.newThisMonth),
           icon: Icons.auto_awesome_outlined,
           tone: HrTone.positive,
           onTap: onOpenRoster,
         ),
         HrStatTile(
-          label: 'Monthly payroll',
+          label: l10n.hrMonthlyPayroll,
           value: loading
               ? '—'
               : formatCompactMoney(summary.monthlyPayroll, summary.currency),
           icon: Icons.payments_outlined,
-          hint: loading ? null : 'Estimated',
+          hint: loading ? null : l10n.hrEstimated,
         ),
       ],
     );
@@ -345,6 +332,7 @@ class _NeedsYouPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return HrPanel(
       key: const Key('hr-overview-needs-you'),
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
@@ -352,10 +340,10 @@ class _NeedsYouPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           HrSectionHeader(
-            title: 'Needs your decision',
-            subtitle: 'Leave requests nobody has answered yet',
+            title: l10n.hrNeedsYourDecision,
+            subtitle: l10n.hrNeedsYourDecisionSubtitle,
             count: pending.value?.length,
-            actionLabel: 'Open queue',
+            actionLabel: l10n.hrOpenQueue,
             onAction: onOpenQueue,
           ),
           const SizedBox(height: 8),
@@ -363,8 +351,8 @@ class _NeedsYouPanel extends StatelessWidget {
             AsyncError() => [
               HrEmptyState(
                 icon: Icons.cloud_off_outlined,
-                message: 'Could not load the approvals queue.',
-                actionLabel: 'Try again',
+                message: l10n.hrCouldNotLoadApprovalsQueue,
+                actionLabel: l10n.hrTryAgain,
                 onAction: onRetry,
                 compact: true,
               ),
@@ -386,10 +374,10 @@ class _NeedsYouPanel extends StatelessWidget {
   List<Widget> _rows(BuildContext context) {
     final requests = pending.value ?? const <LeaveRequest>[];
     if (requests.isEmpty) {
-      return const [
+      return [
         HrEmptyState(
           icon: Icons.check_circle_outline,
-          message: 'Nothing is waiting on you. Every request has been decided.',
+          message: context.flipperL10n.hrNothingWaitingOnYou,
           compact: true,
         ),
       ];
@@ -409,7 +397,11 @@ class _NeedsYouPanel extends StatelessWidget {
           child: TextButton(
             onPressed: onOpenQueue,
             style: TextButton.styleFrom(foregroundColor: HrTokens.accent),
-            child: Text('${requests.length - shown.length} more waiting'),
+            child: Text(
+              context.flipperL10n.hrMoreWaiting(
+                '${requests.length - shown.length}',
+              ),
+            ),
           ),
         ),
     ];
@@ -429,10 +421,9 @@ class _RequestRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = employee?.fullName ?? 'Employee ${request.employeeId}';
-    final days = request.days == request.days.roundToDouble()
-        ? '${request.days.round()}'
-        : request.days.toStringAsFixed(1);
+    final l10n = context.flipperL10n;
+    final name =
+        employee?.fullName ?? l10n.hrEmployeeWithId(request.employeeId);
 
     return InkWell(
       onTap: onOpen,
@@ -461,7 +452,7 @@ class _RequestRow extends StatelessWidget {
                   Text(
                     '${request.type.label} · '
                     '${formatShortRange(request.startDate, request.endDate)} · '
-                    '$days day${days == '1' ? '' : 's'}',
+                    '${hrDayCount(l10n, request.days)}',
                     style: HrType.caption,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -470,7 +461,7 @@ class _RequestRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            const HrPill(label: 'Pending', tone: HrTone.warning),
+            HrPill(label: LeaveStatus.pending.label, tone: HrTone.warning),
           ],
         ),
       ),
@@ -480,7 +471,8 @@ class _RequestRow extends StatelessWidget {
 
 /// `19 Aug – 23 Aug`, collapsing a single day to just itself.
 String formatShortRange(DateTime start, DateTime end) {
-  String one(DateTime d) => '${d.day} ${_months[d.month - 1].substring(0, 3)}';
+  final t = FlipperL10n.current;
+  String one(DateTime d) => '${d.day} ${hrMonthShortName(t, d.month)}';
   return start == end ? one(start) : '${one(start)} – ${one(end)}';
 }
 
@@ -512,16 +504,16 @@ class _OutTodayPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           HrSectionHeader(
-            title: 'Out today',
+            title: context.flipperL10n.hrOutToday,
             count: out.isEmpty ? null : out.length,
-            actionLabel: 'Roster',
+            actionLabel: context.flipperL10n.hrRoster,
             onAction: onOpenRoster,
           ),
           const SizedBox(height: 8),
           if (out.isEmpty)
-            const HrEmptyState(
+            HrEmptyState(
               icon: Icons.wb_sunny_outlined,
-              message: 'Everyone is in today.',
+              message: context.flipperL10n.hrEveryoneIsInToday,
               compact: true,
             )
           else
@@ -562,16 +554,16 @@ class _NewJoinersPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           HrSectionHeader(
-            title: 'Joined this month',
+            title: context.flipperL10n.hrJoinedThisMonth,
             count: joiners.isEmpty ? null : joiners.length,
-            actionLabel: 'Roster',
+            actionLabel: context.flipperL10n.hrRoster,
             onAction: onOpenRoster,
           ),
           const SizedBox(height: 8),
           if (joiners.isEmpty)
-            const HrEmptyState(
+            HrEmptyState(
               icon: Icons.person_add_alt_outlined,
-              message: 'Nobody new this month.',
+              message: context.flipperL10n.hrNobodyNewThisMonth,
               compact: true,
             )
           else

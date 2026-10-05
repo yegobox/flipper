@@ -178,7 +178,10 @@ class _BkTopBar extends StatelessWidget {
             const Spacer(),
             Text(
               'FY 2026 · RWF',
-              style: AppText.small.copyWith(fontSize: 12, color: AppColors.ink4),
+              style: AppText.small.copyWith(
+                fontSize: 12,
+                color: AppColors.ink4,
+              ),
             ),
           ],
         ),
@@ -190,6 +193,7 @@ class _BkTopBar extends StatelessWidget {
 class _BkSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border(right: BorderSide(color: AppColors.line)),
@@ -199,14 +203,14 @@ class _BkSidebar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _navLabel('Overview'),
-            _navItem('Dashboard', BooksIcon.grid, active: true),
-            _navLabel('Daybook'),
-            _navItem('Journal entries', BooksIcon.journal, badge: '2'),
-            _navItem('General ledger', BooksIcon.layers),
-            _navItem('Bank reconciliation', BooksIcon.bankLines),
-            _navLabel('Reports'),
-            _navItem('Financial statements', BooksIcon.chartLine),
+            _navLabel(l10n.booksOverview),
+            _navItem(l10n.dashboard, BooksIcon.grid, active: true),
+            _navLabel(l10n.booksDaybook),
+            _navItem(l10n.booksJournalEntries, BooksIcon.journal, badge: '2'),
+            _navItem(l10n.booksGeneralLedger, BooksIcon.layers),
+            _navItem(l10n.booksBankReconciliation, BooksIcon.bankLines),
+            _navLabel(l10n.reports),
+            _navItem(l10n.booksFinancialStatements, BooksIcon.chartLine),
           ],
         ),
       ),
@@ -288,6 +292,7 @@ class _BkMain extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
       child: Column(
@@ -301,7 +306,7 @@ class _BkMain extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'FINANCIAL OVERVIEW',
+                      l10n.webHomeMockFinancialOverview,
                       style: AppText.small.copyWith(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -311,21 +316,30 @@ class _BkMain extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Books at a glance',
-                      style: AppText.h3.copyWith(fontSize: 22, letterSpacing: -0.44),
+                      l10n.booksAtAGlance,
+                      style: AppText.h3.copyWith(
+                        fontSize: 22,
+                        letterSpacing: -0.44,
+                      ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.line),
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Text(
                   'May 2026',
-                  style: AppText.small.copyWith(fontSize: 12, color: AppColors.ink3),
+                  style: AppText.small.copyWith(
+                    fontSize: 12,
+                    color: AppColors.ink3,
+                  ),
                 ),
               ),
             ],
@@ -335,7 +349,7 @@ class _BkMain extends StatelessWidget {
             children: [
               Expanded(
                 child: _BkKpi(
-                  label: 'Net income',
+                  label: l10n.booksNetIncome,
                   icon: BooksIcon.trendUp,
                   value: '4.82M',
                   delta: '▲ 18.4%',
@@ -345,7 +359,7 @@ class _BkMain extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _BkKpi(
-                  label: 'Cash on hand',
+                  label: l10n.webHomeMockCashOnHand,
                   icon: BooksIcon.card,
                   value: '11.3M',
                   delta: '▲ 6.1%',
@@ -355,7 +369,7 @@ class _BkMain extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _BkKpi(
-                  label: 'Receivables',
+                  label: l10n.booksReceivables,
                   icon: BooksIcon.dollar,
                   value: '2.07M',
                   delta: '▼ 3.2%',
@@ -374,10 +388,7 @@ class _BkMain extends StatelessWidget {
                   child: _RevenueChart(chartHeights: chartHeights),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  flex: 10,
-                  child: _ProfitLossPanel(),
-                ),
+                Expanded(flex: 10, child: _ProfitLossPanel()),
               ],
             ),
           ),
@@ -420,14 +431,21 @@ class _BkKpi extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: AppText.small.copyWith(fontSize: 11.5, color: AppColors.ink3),
+                style: AppText.small.copyWith(
+                  fontSize: 11.5,
+                  color: AppColors.ink3,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: AppText.mono(size: 22, w: FontWeight.w700, c: AppColors.ink0),
+            style: AppText.mono(
+              size: 22,
+              w: FontWeight.w700,
+              c: AppColors.ink0,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -463,13 +481,19 @@ class _RevenueChart extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Revenue trend',
-                style: AppText.h4.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+                booksHomeL10n(context).webHomeMockRevenueTrend,
+                style: AppText.h4.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const Spacer(),
               Text(
-                'Last 8 months',
-                style: AppText.small.copyWith(fontSize: 11, color: AppColors.blue),
+                booksHomeL10n(context).webHomeMockLast8Months,
+                style: AppText.small.copyWith(
+                  fontSize: 11,
+                  color: AppColors.blue,
+                ),
               ),
             ],
           ),
@@ -482,7 +506,9 @@ class _RevenueChart extends StatelessWidget {
                 for (var i = 0; i < chartHeights.length; i++)
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(right: i < chartHeights.length - 1 ? 8 : 0),
+                      padding: EdgeInsets.only(
+                        right: i < chartHeights.length - 1 ? 8 : 0,
+                      ),
                       child: _ChartBar(
                         height: 96 * chartHeights[i],
                         highlight: i == chartHeights.length - 1,
@@ -524,11 +550,11 @@ class _ChartBar extends StatelessWidget {
 
 class _ProfitLossPanel extends StatelessWidget {
   static TextStyle get _footerLabelStyle => AppText.small.copyWith(
-        fontSize: 13,
-        height: 1.1,
-        fontWeight: FontWeight.w700,
-        color: AppColors.green,
-      );
+    fontSize: 13,
+    height: 1.1,
+    fontWeight: FontWeight.w700,
+    color: AppColors.green,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -545,7 +571,7 @@ class _ProfitLossPanel extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Profit & loss',
+                booksHomeL10n(context).booksProfitLoss,
                 style: AppText.h4.copyWith(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -555,7 +581,11 @@ class _ProfitLossPanel extends StatelessWidget {
               const Spacer(),
               Text(
                 'May',
-                style: AppText.small.copyWith(fontSize: 11, height: 1.1, color: AppColors.blue),
+                style: AppText.small.copyWith(
+                  fontSize: 11,
+                  height: 1.1,
+                  color: AppColors.blue,
+                ),
               ),
             ],
           ),
@@ -570,20 +600,36 @@ class _ProfitLossPanel extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _plRow('Net revenue', '18.9M', showBorder: false),
-                      _plRow('Cost of sales', '−9.2M'),
-                      _plRow('Operating exp.', '−4.9M'),
+                      _plRow(
+                        booksHomeL10n(context).booksNetRevenue,
+                        '18.9M',
+                        showBorder: false,
+                      ),
+                      _plRow(
+                        booksHomeL10n(context).webHomeMockCostOfSales,
+                        '−9.2M',
+                      ),
+                      _plRow(
+                        booksHomeL10n(context).webHomeMockOperatingExp,
+                        '−4.9M',
+                      ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 13,
+                      vertical: 9,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.green.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(11),
                     ),
                     child: Row(
                       children: [
-                        Text('Net income', style: _footerLabelStyle),
+                        Text(
+                          booksHomeL10n(context).booksNetIncome,
+                          style: _footerLabelStyle,
+                        ),
                         const Spacer(),
                         Text(
                           '4.82M',
@@ -608,18 +654,30 @@ class _ProfitLossPanel extends StatelessWidget {
   Widget _plRow(String label, String value, {bool showBorder = true}) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        border: showBorder ? Border(top: BorderSide(color: AppColors.line)) : null,
+        border: showBorder
+            ? Border(top: BorderSide(color: AppColors.line))
+            : null,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
           children: [
-            Text(label, style: AppText.small.copyWith(fontSize: 12.5, height: 1.15, color: AppColors.ink2)),
+            Text(
+              label,
+              style: AppText.small.copyWith(
+                fontSize: 12.5,
+                height: 1.15,
+                color: AppColors.ink2,
+              ),
+            ),
             const Spacer(),
             Text(
               value,
-              style: AppText.mono(size: 12.5, w: FontWeight.w600, c: AppColors.ink1)
-                  .copyWith(height: 1.15),
+              style: AppText.mono(
+                size: 12.5,
+                w: FontWeight.w600,
+                c: AppColors.ink1,
+              ).copyWith(height: 1.15),
             ),
           ],
         ),
@@ -667,7 +725,11 @@ class _FlowToast extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: const Center(
-                  child: BooksLineIcon(BooksIcon.flow, size: 17, color: AppColors.suiteActiveInk),
+                  child: BooksLineIcon(
+                    BooksIcon.flow,
+                    size: 17,
+                    color: AppColors.suiteActiveInk,
+                  ),
                 ),
               ),
               const SizedBox(width: 9),
@@ -676,10 +738,13 @@ class _FlowToast extends StatelessWidget {
                 children: [
                   Text(
                     'Flow AI',
-                    style: AppText.h4.copyWith(fontSize: 13, fontWeight: FontWeight.w700),
+                    style: AppText.h4.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   Text(
-                    'AUTO-POSTED',
+                    booksHomeL10n(context).webHomeMockAutoPosted,
                     style: AppText.small.copyWith(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -694,19 +759,33 @@ class _FlowToast extends StatelessWidget {
           const SizedBox(height: 11),
           Text.rich(
             TextSpan(
-              style: AppText.body.copyWith(fontSize: 12.5, color: AppColors.ink2, height: 1.45),
+              style: AppText.body.copyWith(
+                fontSize: 12.5,
+                color: AppColors.ink2,
+                height: 1.45,
+              ),
+              // One message with markers so translations keep their own word
+              // order; the product and account names are emphasised.
               children: [
-                const TextSpan(text: 'New sale on '),
-                TextSpan(
-                  text: 'Flipper POS',
-                  style: TextStyle(color: AppColors.ink0, fontWeight: FontWeight.w600),
-                ),
-                const TextSpan(text: ' — categorized to '),
-                TextSpan(
-                  text: 'Sales Revenue',
-                  style: TextStyle(color: AppColors.ink0, fontWeight: FontWeight.w600),
-                ),
-                const TextSpan(text: ' and reconciled to MoMo.'),
+                for (final part
+                    in booksHomeL10n(context)
+                        .webHomeMockToast(
+                          '\u0000pos\u0000',
+                          '\u0000account\u0000',
+                        )
+                        .split('\u0000'))
+                  if (part == 'pos' || part == 'account')
+                    TextSpan(
+                      text: part == 'pos'
+                          ? 'Flipper POS'
+                          : booksHomeL10n(context).webHomeMockSalesRevenue,
+                      style: TextStyle(
+                        color: AppColors.ink0,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                  else
+                    TextSpan(text: part),
               ],
             ),
           ),
@@ -721,16 +800,27 @@ class _FlowToast extends StatelessWidget {
                 children: [
                   Text(
                     'JE-1048',
-                    style: AppText.mono(size: 11.5, w: FontWeight.w600, c: AppColors.blue),
+                    style: AppText.mono(
+                      size: 11.5,
+                      w: FontWeight.w600,
+                      c: AppColors.blue,
+                    ),
                   ),
                   Text(
-                    ' · balanced',
-                    style: AppText.small.copyWith(fontSize: 11.5, color: AppColors.ink3),
+                    ' ${booksHomeL10n(context).webHomeMockBalancedSuffix}',
+                    style: AppText.small.copyWith(
+                      fontSize: 11.5,
+                      color: AppColors.ink3,
+                    ),
                   ),
                   const Spacer(),
                   Text(
                     '+12,000',
-                    style: AppText.mono(size: 11.5, w: FontWeight.w700, c: AppColors.green),
+                    style: AppText.mono(
+                      size: 11.5,
+                      w: FontWeight.w700,
+                      c: AppColors.green,
+                    ),
                   ),
                 ],
               ),
@@ -776,18 +866,24 @@ class _PosPhoneMock extends StatelessWidget {
                 child: Row(
                   children: [
                     Text(
-                      'New sale',
-                      style: AppText.h4.copyWith(fontSize: 13, fontWeight: FontWeight.w700),
+                      booksHomeL10n(context).webHomeNewSale,
+                      style: AppText.h4.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.amber.withValues(alpha: 0.16),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        '● PENDING',
+                        booksHomeL10n(context).webHomeMockPending,
                         style: AppText.small.copyWith(
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
@@ -809,11 +905,18 @@ class _PosPhoneMock extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      BooksLineIcon(BooksIcon.search, size: 13, color: AppColors.ink4),
+                      BooksLineIcon(
+                        BooksIcon.search,
+                        size: 13,
+                        color: AppColors.ink4,
+                      ),
                       const SizedBox(width: 7),
                       Text(
-                        'Search or scan…',
-                        style: AppText.small.copyWith(fontSize: 11, color: AppColors.ink4),
+                        booksHomeL10n(context).webHomeMockSearchOrScan,
+                        style: AppText.small.copyWith(
+                          fontSize: 11,
+                          color: AppColors.ink4,
+                        ),
                       ),
                     ],
                   ),
@@ -823,11 +926,29 @@ class _PosPhoneMock extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
                 child: Column(
                   children: [
-                    _posItem('SO', 'Smoke 006', '80 left', '30', AppColors.posSo),
+                    _posItem(
+                      'SO',
+                      'Smoke 006',
+                      booksHomeL10n(context).webHomeMockLeft('80'),
+                      '30',
+                      AppColors.posSo,
+                    ),
                     const SizedBox(height: 8),
-                    _posItem('CC', 'Coupe Coupe', '367 left', '2,400', AppColors.posCc),
+                    _posItem(
+                      'CC',
+                      'Coupe Coupe',
+                      booksHomeL10n(context).webHomeMockLeft('367'),
+                      '2,400',
+                      AppColors.posCc,
+                    ),
                     const SizedBox(height: 8),
-                    _posItem('FC', 'Fanta Citron', '142 left', '800', AppColors.posFc),
+                    _posItem(
+                      'FC',
+                      'Fanta Citron',
+                      booksHomeL10n(context).webHomeMockLeft('142'),
+                      '800',
+                      AppColors.posFc,
+                    ),
                   ],
                 ),
               ),
@@ -838,7 +959,13 @@ class _PosPhoneMock extends StatelessWidget {
     );
   }
 
-  Widget _posItem(String abbr, String name, String stock, String price, Color color) {
+  Widget _posItem(
+    String abbr,
+    String name,
+    String stock,
+    String price,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
@@ -879,14 +1006,21 @@ class _PosPhoneMock extends StatelessWidget {
                 ),
                 Text(
                   stock,
-                  style: AppText.small.copyWith(fontSize: 9.5, color: AppColors.ink4),
+                  style: AppText.small.copyWith(
+                    fontSize: 9.5,
+                    color: AppColors.ink4,
+                  ),
                 ),
               ],
             ),
           ),
           Text(
             price,
-            style: AppText.mono(size: 11, w: FontWeight.w700, c: AppColors.ink1),
+            style: AppText.mono(
+              size: 11,
+              w: FontWeight.w700,
+              c: AppColors.ink1,
+            ),
           ),
           const SizedBox(width: 9),
           Container(

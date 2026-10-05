@@ -1,6 +1,7 @@
 import 'package:flipper_hr/features/attendance/data/attendance_repository.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_row_mapper.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_session.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart'
     show describeBackendError, rlsViolationCode;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -38,7 +39,7 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
     } catch (e) {
       throw AttendanceRepositoryException(
         describeBackendError(
-          'Could not load attendance for this day.',
+          FlipperL10n.current.hrErrorLoadDayAttendance,
           e,
           scope: 'branch $branchId',
         ),
@@ -64,14 +65,16 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
       return [for (final row in rows) AttendanceRowMapper.fromRow(row)];
     } catch (e) {
       throw AttendanceRepositoryException(
-        describeBackendError('Could not load this timesheet.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadTimesheet, e),
         cause: e,
       );
     }
   }
 
   @override
-  Future<AttendanceSession?> openSessionFor({required String employeeId}) async {
+  Future<AttendanceSession?> openSessionFor({
+    required String employeeId,
+  }) async {
     try {
       final rows = await _client
           .from(table)
@@ -84,7 +87,7 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
       return AttendanceRowMapper.fromRow(rows.first);
     } catch (e) {
       throw AttendanceRepositoryException(
-        describeBackendError('Could not check whether you are clocked in.', e),
+        describeBackendError(FlipperL10n.current.hrErrorCheckClockedIn, e),
         cause: e,
       );
     }
@@ -145,7 +148,7 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
     } catch (e) {
       throw AttendanceRepositoryException(
         describeBackendError(
-          'Could not correct this entry.',
+          FlipperL10n.current.hrErrorCorrectEntry,
           e,
           scope: 'branch ${session.branchId}',
         ),
@@ -167,7 +170,7 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
       );
     }
     throw AttendanceRepositoryException(
-      'The server accepted the $what but returned nothing to show.',
+      FlipperL10n.current.hrErrorServerReturnedNothing,
     );
   }
 
@@ -183,11 +186,18 @@ class SupabaseAttendanceRepository implements AttendanceRepository {
       // than wrapping it in something vaguer.
       if (e.code == 'P0001') return e.message;
       if (e.code == rlsViolationCode) {
-        return 'You are not allowed to clock $direction for this person. '
-            '[${e.code}] ${e.message}';
+        final denied = direction == 'in'
+            ? FlipperL10n.current.hrErrorClockInNotAllowed
+            : FlipperL10n.current.hrErrorClockOutNotAllowed;
+        return '$denied [${e.code}] ${e.message}';
       }
     }
-    return describeBackendError('Could not clock $direction.', e);
+    return describeBackendError(
+      direction == 'in'
+          ? FlipperL10n.current.hrErrorClockIn
+          : FlipperL10n.current.hrErrorClockOut,
+      e,
+    );
   }
 
   /// `date` columns compare as `YYYY-MM-DD`; sending a full timestamp makes

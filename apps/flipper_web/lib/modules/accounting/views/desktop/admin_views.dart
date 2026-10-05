@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -22,6 +23,7 @@ class AccountingRecurringView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final rows = ref.watch(recurringSchedulesProvider);
     final accounts = ref.watch(accountingAccountsProvider);
     final accountMap = {for (final a in accounts) a.code: a};
@@ -40,13 +42,12 @@ class AccountingRecurringView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: 'Daybook',
-            title: 'Recurring entries',
-            subtitle:
-                'Rent, salaries and other repeating entries post themselves · $currency',
+            eyebrow: l10n.booksDaybook,
+            title: l10n.booksRecurringEntries,
+            subtitle: l10n.booksRecurringSubtitle(currency),
             actions: [
               AccountingButton(
-                label: 'New schedule',
+                label: l10n.booksNewSchedule,
                 accIcon: AccIcon.plus,
                 primary: true,
                 onPressed: () => _openEditor(ref, rows),
@@ -57,20 +58,23 @@ class AccountingRecurringView extends ConsumerWidget {
             maxColumns: 3,
             children: [
               AccountingKpiCard(
-                label: 'Active schedules',
-                textValue: '$activeCount of ${rows.length}',
+                label: l10n.booksActiveSchedules,
+                textValue: l10n.booksCountOfTotal(
+                  '$activeCount',
+                  '${rows.length}',
+                ),
                 icon: AccIcon.refresh,
                 tone: KpiTone.blue,
                 currencyPrefix: false,
               ),
               AccountingKpiCard(
-                label: 'Monthly committed',
+                label: l10n.booksMonthlyCommitted,
                 value: monthlyTotal,
                 icon: AccIcon.wallet,
                 tone: KpiTone.amber,
               ),
               AccountingKpiCard(
-                label: 'Next run',
+                label: l10n.booksNextRun,
                 textValue: nextRun,
                 icon: AccIcon.calendar,
                 tone: KpiTone.green,
@@ -86,8 +90,7 @@ class AccountingRecurringView extends ConsumerWidget {
                 padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    'No recurring schedules yet. Create one to post rent, '
-                    'salaries or other repeating entries.',
+                    l10n.booksNoRecurringYet,
                     style: AccountingTokens.sans(color: AccountingTokens.ink3),
                   ),
                 ),
@@ -95,14 +98,17 @@ class AccountingRecurringView extends ConsumerWidget {
             )
           else
             AccountingDataTable(
-              columns: const [
-                AccountingTableColumn(label: 'Schedule'),
-                AccountingTableColumn(label: 'Frequency'),
-                AccountingTableColumn(label: 'Next run'),
-                AccountingTableColumn(label: 'Posts to'),
-                AccountingTableColumn(label: 'Amount', align: TextAlign.right),
-                AccountingTableColumn(label: 'Status'),
-                AccountingTableColumn(label: '', width: 150),
+              columns: [
+                AccountingTableColumn(label: l10n.booksSchedule),
+                AccountingTableColumn(label: l10n.booksFrequency),
+                AccountingTableColumn(label: l10n.booksNextRun),
+                AccountingTableColumn(label: l10n.booksPostsTo),
+                AccountingTableColumn(
+                  label: l10n.amount,
+                  align: TextAlign.right,
+                ),
+                AccountingTableColumn(label: l10n.booksStatus),
+                const AccountingTableColumn(label: '', width: 150),
               ],
               mutedRow: (i) => !rows[i].active,
               rows: [
@@ -126,9 +132,11 @@ class AccountingRecurringView extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    AccountingTag(label: '${r.freq} · ${r.day}'),
+                    AccountingTag(
+                      label: '${booksFrequencyLabel(r.freq, l10n)} · ${r.day}',
+                    ),
                     Text(
-                      r.active ? r.next : '— paused —',
+                      r.active ? r.next : l10n.booksPaused,
                       style: AccountingTokens.sans(
                         fontSize: 13.5,
                         color: AccountingTokens.ink3,
@@ -158,14 +166,14 @@ class AccountingRecurringView extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            tooltip: 'Edit',
+                            tooltip: l10n.edit,
                             visualDensity: VisualDensity.compact,
                             icon: const Icon(Icons.edit_outlined, size: 16),
                             onPressed: () => _openEditor(ref, rows, editing: r),
                           ),
                           const SizedBox(width: 4),
                           AccountingButton(
-                            label: 'Run now',
+                            label: l10n.booksRunNow,
                             small: true,
                             enabled: r.active,
                             onPressed: r.active
@@ -231,7 +239,9 @@ Future<void> _toggleActive(
   if (!context.mounted) return;
   showAccountingToast(
     context,
-    active ? 'Schedule resumed' : 'Schedule paused',
+    active
+        ? context.flipperL10n.booksScheduleResumed
+        : context.flipperL10n.booksSchedulePaused,
     subtitle: r.name,
     accIcon: active ? AccIcon.check : AccIcon.clock,
     tone: active ? AccountingToastTone.success : AccountingToastTone.info,
@@ -276,7 +286,7 @@ Future<void> _runNow(
       );
       showAccountingToast(
         context,
-        'Entry posted',
+        context.flipperL10n.booksEntryPosted,
         subtitle: '${r.name} · $currency ${money(r.amount)}',
         accIcon: AccIcon.check,
         tone: AccountingToastTone.success,
@@ -284,7 +294,7 @@ Future<void> _runNow(
     } else {
       showAccountingToast(
         context,
-        'Already posted this period',
+        context.flipperL10n.booksAlreadyPostedThisPeriod,
         subtitle: '${r.name} · $period',
         accIcon: AccIcon.clock,
         tone: AccountingToastTone.info,
@@ -294,7 +304,7 @@ Future<void> _runNow(
     if (!context.mounted) return;
     showAccountingToast(
       context,
-      'Could not post entry',
+      context.flipperL10n.booksCouldNotPostEntry,
       subtitle: '$e',
       accIcon: AccIcon.warn,
       tone: AccountingToastTone.warn,
@@ -340,7 +350,9 @@ class AccountingRecurringPanelHost extends ConsumerWidget {
           );
           showAccountingToast(
             context,
-            ui.editing == null ? 'Schedule created' : 'Schedule updated',
+            ui.editing == null
+                ? context.flipperL10n.booksScheduleCreated
+                : context.flipperL10n.booksScheduleUpdated,
             subtitle: schedule.name,
             accIcon: AccIcon.check,
             tone: AccountingToastTone.success,
@@ -357,6 +369,7 @@ class AccountingPeriodCloseView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final tasks = ref.watch(periodCloseTasksProvider);
     final locked = ref.watch(periodCloseLockedProvider);
     final period = ref.watch(accountingPeriodLabelProvider);
@@ -370,9 +383,9 @@ class AccountingPeriodCloseView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: 'Setup',
-            title: 'Period close',
-            subtitle: 'Lock $period once the books are final · $currency',
+            eyebrow: l10n.booksSetup,
+            title: l10n.booksPeriodClose,
+            subtitle: l10n.booksPeriodCloseSubtitle(currency, period),
             actions: [
               if (locked)
                 Container(
@@ -394,7 +407,7 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '$period locked',
+                        l10n.booksPeriodLocked(period),
                         style: AccountingTokens.sans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -410,7 +423,7 @@ class AccountingPeriodCloseView extends ConsumerWidget {
               // that was never closed.
               if (locked)
                 AccountingButton(
-                  label: 'Reopen period',
+                  label: l10n.booksReopenPeriod,
                   accIcon: AccIcon.shieldCheck,
                   onPressed: () async {
                     final messenger = context;
@@ -425,7 +438,7 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                       if (!messenger.mounted) return;
                       showAccountingToast(
                         messenger,
-                        'Could not reopen the period',
+                        l10n.booksCouldNotReopenPeriod,
                         subtitle: err.toString(),
                         accIcon: AccIcon.shieldCheck,
                         tone: AccountingToastTone.warn,
@@ -442,8 +455,8 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                     if (!messenger.mounted) return;
                     showAccountingToast(
                       messenger,
-                      'Period reopened',
-                      subtitle: '$period is postable again',
+                      l10n.booksPeriodReopened,
+                      subtitle: l10n.booksPeriodPostableAgain(period),
                       accIcon: AccIcon.shieldCheck,
                       tone: AccountingToastTone.success,
                     );
@@ -451,7 +464,7 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                 )
               else
                 AccountingButton(
-                  label: 'Close period',
+                  label: l10n.booksClosePeriod,
                   accIcon: AccIcon.shieldCheck,
                   primary: true,
                   enabled: ready,
@@ -471,7 +484,7 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                             if (!messenger.mounted) return;
                             showAccountingToast(
                               messenger,
-                              'Could not close the period',
+                              l10n.booksCouldNotClosePeriod,
                               subtitle: err.toString(),
                               accIcon: AccIcon.shieldCheck,
                               tone: AccountingToastTone.warn,
@@ -489,9 +502,8 @@ class AccountingPeriodCloseView extends ConsumerWidget {
                           if (!messenger.mounted) return;
                           showAccountingToast(
                             messenger,
-                            'Period closed',
-                            subtitle:
-                                '$period locked · entries are now read-only',
+                            l10n.booksPeriodClosed,
+                            subtitle: l10n.booksPeriodLockedReadOnly(period),
                             accIcon: AccIcon.shieldCheck,
                             tone: AccountingToastTone.success,
                           );
@@ -565,8 +577,11 @@ class _CloseChecklist extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AccountingCardHeader(
-            title: 'Close checklist',
-            subtitle: '$done of ${tasks.length} steps complete',
+            title: context.flipperL10n.booksCloseChecklist,
+            subtitle: context.flipperL10n.booksStepsComplete(
+              '$done',
+              '${tasks.length}',
+            ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
@@ -665,7 +680,7 @@ class _CloseTaskRow extends StatelessWidget {
             TextButton.icon(
               onPressed: onReview,
               icon: const AccountingIcon(icon: AccIcon.chevRight, size: 13),
-              label: const Text('Review'),
+              label: Text(context.flipperL10n.booksReview),
             ),
         ],
       ),
@@ -680,33 +695,31 @@ class _CloseNotes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return AccountingCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const AccountingCardHeader(title: 'What closing does'),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(22, 0, 22, 12),
+          AccountingCardHeader(title: l10n.booksWhatClosingDoes),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 12),
             child: _CloseNote(
               icon: AccIcon.shieldCheck,
-              text:
-                  'Locks the period. Posted entries become read-only — no edits without re-opening.',
+              text: l10n.booksCloseNoteLocks,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(22, 0, 22, 12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 12),
             child: _CloseNote(
               icon: AccIcon.stack,
-              text:
-                  'Rolls forward. Net income is moved into retained earnings and balances carry into the next month.',
+              text: l10n.booksCloseNoteRollsForward,
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(22, 0, 22, 12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 12),
             child: _CloseNote(
               icon: AccIcon.receipt,
-              text:
-                  'Creates an audit point. A snapshot is logged in the audit trail with your name and time.',
+              text: l10n.booksCloseNoteAuditPoint,
             ),
           ),
           Padding(
@@ -724,8 +737,8 @@ class _CloseNotes extends StatelessWidget {
                 Expanded(
                   child: Text(
                     ready
-                        ? 'All checks passed — ready to close.'
-                        : 'Finish every checklist step to enable closing.',
+                        ? l10n.booksAllChecksPassed
+                        : l10n.booksFinishChecklist,
                     style: AccountingTokens.sans(
                       fontWeight: FontWeight.w700,
                       color: ready
@@ -769,6 +782,7 @@ class AccountingAuditView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Session entries first (instant feedback), then the persisted trail
     // (deduped by id — appendAuditLog writes both with the same id).
+    final l10n = context.flipperL10n;
     final session = ref.watch(auditLogProvider);
     final persisted =
         ref.watch(persistedAuditLogProvider).value ?? const <AuditEntry>[];
@@ -796,7 +810,7 @@ class AccountingAuditView extends ConsumerWidget {
                 id: e.id,
                 ts: e.date,
                 user: '—',
-                role: 'System',
+                role: l10n.booksRoleSystem,
                 action: e.status == JournalStatus.posted
                     ? 'posted'
                     : e.status.name,
@@ -813,9 +827,9 @@ class AccountingAuditView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: 'Setup',
-            title: 'Audit trail',
-            subtitle: 'Every change, who made it, and when · immutable',
+            eyebrow: l10n.booksSetup,
+            title: l10n.booksAuditTrail,
+            subtitle: l10n.booksAuditSubtitle,
             actions: [
               PopupMenuButton<String>(
                 offset: const Offset(0, 40),
@@ -824,25 +838,25 @@ class AccountingAuditView extends ConsumerWidget {
                   for (final u in users)
                     PopupMenuItem(
                       value: u,
-                      child: Text(u == 'all' ? 'All users' : u),
+                      child: Text(u == 'all' ? l10n.booksAllUsers : u),
                     ),
                 ],
                 onSelected: (u) =>
                     ref.read(auditUserFilterProvider.notifier).state = u,
                 child: AccountingButton(
-                  label: userFilter == 'all' ? 'All users' : userFilter,
+                  label: userFilter == 'all' ? l10n.booksAllUsers : userFilter,
                   accIcon: AccIcon.filter,
                   small: true,
                 ),
               ),
               AccountingButton(
-                label: 'Export',
+                label: l10n.booksExport,
                 accIcon: AccIcon.download,
                 small: true,
                 onPressed: () => showAccountingToast(
                   context,
-                  'Exporting audit log',
-                  subtitle: '${display.length} events · CSV',
+                  l10n.booksExportingAuditLog,
+                  subtitle: l10n.booksEventsCsv('${display.length}'),
                   accIcon: AccIcon.download,
                 ),
               ),
@@ -854,7 +868,7 @@ class AccountingAuditView extends ConsumerWidget {
                     padding: const EdgeInsets.all(32),
                     child: Center(
                       child: Text(
-                        'No audit events yet.',
+                        l10n.booksNoAuditEvents,
                         style: AccountingTokens.sans(
                           color: AccountingTokens.ink3,
                         ),
@@ -964,6 +978,7 @@ class AccountingRolesView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final team = ref.watch(accountingTeamProvider);
 
     return SingleChildScrollView(
@@ -972,18 +987,18 @@ class AccountingRolesView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AccountingPageHeader(
-            eyebrow: 'Setup',
-            title: 'Users & roles',
-            subtitle: 'Control who can see and change the books',
+            eyebrow: l10n.booksSetup,
+            title: l10n.booksUsersRoles,
+            subtitle: l10n.booksRolesSubtitle,
             actions: [
               AccountingButton(
-                label: 'Invite teammate',
+                label: l10n.booksInviteTeammate,
                 accIcon: AccIcon.plus,
                 primary: true,
                 onPressed: () => showAccountingToast(
                   context,
-                  'Invite sent',
-                  subtitle: 'Team invitations coming soon',
+                  l10n.booksInviteSent,
+                  subtitle: l10n.booksInvitationsComingSoon,
                   accIcon: AccIcon.mail,
                 ),
               ),
@@ -993,12 +1008,14 @@ class AccountingRolesView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                AccountingCardHeader(title: 'Team (${team.length})'),
+                AccountingCardHeader(
+                  title: l10n.booksTeamCount('${team.length}'),
+                ),
                 if (team.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'Only you have access. Invite teammates to collaborate.',
+                      l10n.booksOnlyYouHaveAccess,
                       style: AccountingTokens.sans(
                         color: AccountingTokens.ink3,
                       ),
@@ -1031,7 +1048,7 @@ class AccountingRolesView extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                'You',
+                                l10n.booksYou,
                                 style: AccountingTokens.sans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -1049,8 +1066,8 @@ class AccountingRolesView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const AccountingCardHeader(title: 'Roles'),
-                for (final r in accountingRoles)
+                AccountingCardHeader(title: l10n.booksRoles),
+                for (final r in accountingRoles(l10n))
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
                     child: Row(
@@ -1095,15 +1112,15 @@ class AccountingRolesView extends ConsumerWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Capability')),
-                  DataColumn(label: Text('Owner')),
-                  DataColumn(label: Text('Bookkeeper')),
-                  DataColumn(label: Text('Cashier')),
-                  DataColumn(label: Text('Viewer')),
+                columns: [
+                  DataColumn(label: Text(l10n.booksCapability)),
+                  DataColumn(label: Text(l10n.booksRoleOwner)),
+                  DataColumn(label: Text(l10n.booksRoleBookkeeper)),
+                  DataColumn(label: Text(l10n.booksRoleCashier)),
+                  DataColumn(label: Text(l10n.booksRoleViewer)),
                 ],
                 rows: [
-                  for (final p in accountingPermissions)
+                  for (final p in accountingPermissions(l10n))
                     DataRow(
                       cells: [
                         DataCell(Text(p.cap)),

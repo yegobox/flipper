@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_payments/flipper_payments.dart';
@@ -94,14 +95,17 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
 
     return PaymentScreenShell(
       key: const Key('custom-payment-page'),
-      title: 'Custom payment',
+      title: context.flipperL10n.webPayTitle,
       showBack: true,
       onBack: () => context.go('/accounting'),
       badge: dodoBuildMode == 'test'
-          ? const PaymentHeaderBadge(label: 'TEST')
+          ? PaymentHeaderBadge(label: context.flipperL10n.webBillingTestBadge)
           : null,
       overlay: payment.stage == CustomPaymentStage.submitting
-          ? PaymentLoadingOverlay(message: payment.message ?? 'One moment…')
+          ? PaymentLoadingOverlay(
+              message:
+                  payment.message ?? context.flipperL10n.webBillingOneMoment,
+            )
           : null,
       aside: showForm
           ? _asideBlocks(
@@ -119,20 +123,22 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
             )
           : [
               staff.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(40),
-                  child: PaymentCenterLoading(message: 'Checking access…'),
+                loading: () => Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: PaymentCenterLoading(
+                    message: context.flipperL10n.webPayCheckingAccess,
+                  ),
                 ),
                 error: (error, _) => _Gate(
                   key: const Key('custom-payment-gate'),
-                  message: 'Could not check staff access: ${_describe(error)}',
+                  message: context.flipperL10n.webPayCouldNotCheckAccess(
+                    _describe(error),
+                  ),
                 ),
                 data: (member) => member == null
-                    ? const _Gate(
-                        key: Key('custom-payment-gate'),
-                        message:
-                            'This page is for billing staff. Ask an '
-                            'administrator to add you to the billing staff list.',
+                    ? _Gate(
+                        key: const Key('custom-payment-gate'),
+                        message: context.flipperL10n.webPayStaffOnlyBody,
                       )
                     : _SettledCard(
                         view: payment.view!,
@@ -155,8 +161,9 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
   CustomPaymentRail _effectiveRail(bool cardAvailable) =>
       cardAvailable ? _rail : CustomPaymentRail.momo;
 
-  String get _periodSuffix =>
-      _cadence == CustomPaymentCadence.yearly ? '/year' : '/month';
+  String get _periodSuffix => _cadence == CustomPaymentCadence.yearly
+      ? context.flipperL10n.webPayPerYear
+      : context.flipperL10n.webPayPerMonth;
 
   /// The form column.
   List<Widget> _formBlocks(
@@ -167,25 +174,25 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
   }) {
     final rail = _effectiveRail(cardAvailable);
     final locked = payment.isBusy;
+    final l10n = context.flipperL10n;
 
     return [
       PaymentIntroBlock(
-        title: 'Negotiated price',
-        subtitle:
-            'Charge the amount agreed with the customer. It becomes '
-            'their recurring price, and whatever they were on before stops '
-            'billing.${staffName == null ? '' : ' Signed in as $staffName.'}',
+        title: l10n.webPayNegotiatedPrice,
+        subtitle: staffName == null
+            ? l10n.webPayNegotiatedBody
+            : '${l10n.webPayNegotiatedBody} ${l10n.webPaySignedInAs(staffName)}',
       ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const PaymentSectionLabel('Business'),
+          PaymentSectionLabel(l10n.business),
           const SizedBox(height: 8),
           if (_business == null) ...[
             PaymentInput(
               key: const Key('custom-payment-search'),
               controller: _searchController,
-              hintText: 'Search by name, phone, email or id',
+              hintText: l10n.webPaySearchHint,
               leadingIcon: FluentIcons.search_20_regular,
               onChanged: _onSearchChanged,
               autofocus: true,
@@ -211,12 +218,12 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const PaymentSectionLabel('Agreed amount'),
+          PaymentSectionLabel(l10n.webPayAgreedAmount),
           const SizedBox(height: 8),
           PaymentInput(
             key: const Key('custom-payment-amount'),
             controller: _amountController,
-            hintText: 'Amount in RWF per period',
+            hintText: l10n.webPayAmountHint,
             leadingIcon: FluentIcons.money_20_regular,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -246,7 +253,7 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const PaymentSectionLabel('Customer pays with'),
+            PaymentSectionLabel(l10n.webPayCustomerPaysWith),
             const SizedBox(height: 8),
             PaymentRailSelector(
               key: const Key('custom-payment-rail'),
@@ -270,7 +277,7 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
           phoneError:
               _phoneController.text.isNotEmpty &&
                   !MomoMsisdn.isPlausible(_phoneController.text)
-              ? 'Enter a valid Mobile Money number, e.g. 0788123456.'
+              ? l10n.webBillingInvalidMomo
               : null,
         )
       else
@@ -288,13 +295,14 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
         _LinkRow(
           key: const Key('custom-payment-link'),
           link: payment.checkoutLink!,
-          onCopy: () => _copy(context, payment.checkoutLink!, 'Link copied'),
+          onCopy: () =>
+              _copy(context, payment.checkoutLink!, l10n.webPayLinkCopied),
           onOpen: () => _openLink(payment.checkoutLink!),
         ),
       PaymentInput(
         key: const Key('custom-payment-note'),
         controller: _noteController,
-        hintText: 'Note for the record (optional)',
+        hintText: l10n.webPayNoteHint,
         leadingIcon: FluentIcons.note_20_regular,
       ),
     ];
@@ -311,29 +319,31 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
   }) {
     final rail = _effectiveRail(cardAvailable);
     final locked = payment.isBusy;
-    final cadenceLabel =
-        _cadence == CustomPaymentCadence.yearly ? 'Yearly' : 'Monthly';
+    final l10n = context.flipperL10n;
+    final cadenceLabel = _cadence == CustomPaymentCadence.yearly
+        ? l10n.booksFreqYearly
+        : l10n.booksFreqMonthly;
 
     return [
       PaymentSummaryCard(
         key: const Key('custom-payment-summary'),
         rows: [
           PaymentSummaryRow(
-            label: 'Business',
+            label: l10n.business,
             value: _business == null
-                ? 'Not selected'
+                ? l10n.webPayNotSelected
                 : (_business!.name.isEmpty ? _business!.id : _business!.name),
           ),
           PaymentSummaryRow(
-            label: 'Billing period',
+            label: l10n.webPayBillingPeriod,
             value: cadenceLabel,
           ),
           PaymentSummaryRow(
-            label: 'Pays with',
-            value: rail.isCard ? 'Card' : 'Mobile Money',
+            label: l10n.webPayPaysWith,
+            value: rail.isCard ? l10n.webPayCard : 'Mobile Money',
           ),
           PaymentSummaryRow(
-            label: 'Price per period',
+            label: l10n.webPayPricePerPeriod,
             value: '${formatPaymentRwf(_amount)} RWF',
             mono: true,
             highlight: true,
@@ -343,7 +353,7 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
       PaymentTotalCard(
         key: const Key('custom-payment-total'),
         total: _amount,
-        subtitle: 'Charged now, then every period',
+        subtitle: l10n.webPayChargedNow,
         cadence: _cadence == CustomPaymentCadence.yearly
             ? BillingCadence.yearly
             : BillingCadence.monthly,
@@ -356,14 +366,14 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
           PaymentPrimaryButton(
             key: const Key('custom-payment-submit'),
             label: rail.isCard
-                ? 'Create card payment link'
-                : 'Charge ${formatPaymentRwf(_amount)} RWF by Mobile Money',
+                ? l10n.webPayCreateCardLink
+                : l10n.webPayChargeByMomo(formatPaymentRwf(_amount)),
             loading: locked,
             loadingLabel: payment.stage == CustomPaymentStage.awaitingApproval
-                ? "Waiting for the customer's approval…"
+                ? l10n.webPayWaitingCustomerApproval
                 : payment.stage == CustomPaymentStage.awaitingCheckout
-                ? 'Waiting for the card payment…'
-                : 'Starting…',
+                ? l10n.webBillingWaitingCard
+                : l10n.webPayStartingShort,
             onPressed: locked || _business == null || _amount <= 0
                 ? null
                 : () => _confirmAndSubmit(context, rail),
@@ -374,8 +384,8 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
             PaymentSecondaryButton(
               key: const Key('custom-payment-retry'),
               label: payment.stage == CustomPaymentStage.timedOut
-                  ? 'Check again'
-                  : 'Start over',
+                  ? l10n.webBillingCheckAgain
+                  : l10n.webBillingStartOver,
               onPressed: () {
                 final controller = ref.read(
                   customPaymentControllerProvider.notifier,
@@ -405,24 +415,22 @@ class _CustomPaymentPageState extends ConsumerState<CustomPaymentPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Charge this business?'),
+        title: Text(context.flipperL10n.webPayConfirmTitle),
         content: Text(
           '${business.name}\n'
-          '${formatPaymentRwf(_amount)} RWF ${_cadence.label.toLowerCase()} '
-          'by ${rail.label}.\n\n'
-          'This becomes their recurring price. Any existing card '
-          'subscription is cancelled immediately'
-          '${rail.isCard ? ', and their Mobile Money mandate is revoked' : ''}.',
+          '${context.flipperL10n.webPayConfirmSummary(formatPaymentRwf(_amount), _cadence == CustomPaymentCadence.yearly ? context.flipperL10n.booksFreqYearly : context.flipperL10n.booksFreqMonthly, rail.isCard ? context.flipperL10n.webPayCard : 'Mobile Money')}'
+          '\n\n'
+          '${rail.isCard ? context.flipperL10n.webPayConfirmBodyCard : context.flipperL10n.webPayConfirmBodyMomo}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           FilledButton(
             key: const Key('custom-payment-confirm'),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Charge'),
+            child: Text(context.flipperL10n.webPayCharge),
           ),
         ],
       ),
@@ -489,13 +497,13 @@ class _Gate extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PaymentHeroBlock(
-          headline: 'Staff only',
+          headline: context.flipperL10n.webPayStaffOnly,
           body: message,
           tone: PaymentHeroTone.error,
         ),
         const SizedBox(height: PaymentTokens.blockGap),
         PaymentSecondaryButton(
-          label: 'Back to Books',
+          label: context.flipperL10n.webPayBackToBooks,
           onPressed: () => context.go('/accounting'),
         ),
       ],
@@ -514,14 +522,18 @@ class _SearchResults extends ConsumerWidget {
     if (query.trim().length < 2) return const SizedBox.shrink();
     final results = ref.watch(businessSearchProvider(query));
     return results.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(12),
-        child: PaymentCenterLoading(message: 'Searching…'),
+      loading: () => Padding(
+        padding: const EdgeInsets.all(12),
+        child: PaymentCenterLoading(
+          message: context.flipperL10n.webPaySearching,
+        ),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.all(8),
         child: Text(
-          'Search failed: ${error.toString().replaceFirst('Exception: ', '')}',
+          context.flipperL10n.webPaySearchFailed(
+            error.toString().replaceFirst('Exception: ', ''),
+          ),
           style: PaymentTypography.body(color: PaymentTokens.loss),
         ),
       ),
@@ -529,7 +541,7 @@ class _SearchResults extends ConsumerWidget {
           ? Padding(
               padding: const EdgeInsets.all(8),
               child: Text(
-                'No business matches "$query".',
+                context.flipperL10n.webPayNoBusinessMatches(query),
                 style: PaymentTypography.hint(),
               ),
             )
@@ -596,7 +608,7 @@ class _BusinessChip extends StatelessWidget {
             TextButton(
               key: const Key('custom-payment-change-business'),
               onPressed: onChange,
-              child: const Text('Change'),
+              child: Text(context.flipperL10n.webPayChange),
             ),
         ],
       ),
@@ -629,12 +641,12 @@ class _LinkRow extends StatelessWidget {
         ),
         IconButton(
           key: const Key('custom-payment-copy-link'),
-          tooltip: 'Copy link',
+          tooltip: context.flipperL10n.webPayCopyLink,
           onPressed: onCopy,
           icon: const Icon(FluentIcons.copy_20_regular),
         ),
         IconButton(
-          tooltip: 'Open',
+          tooltip: context.flipperL10n.webPayOpen,
           onPressed: onOpen,
           icon: const Icon(FluentIcons.open_20_regular),
         ),
@@ -710,8 +722,8 @@ class _InFlightNote extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
-        'Existing payment ${inFlight.id} is ${inFlight.status.wireValue}'
-        '${inFlight.paymentLink == null ? '' : ' — link: ${inFlight.paymentLink}'}',
+        '${context.flipperL10n.webPayExistingPayment(inFlight.id, inFlight.status.wireValue)}'
+        '${inFlight.paymentLink == null ? '' : ' — ${context.flipperL10n.webPayLinkSuffix(inFlight.paymentLink!)}'}',
         style: PaymentTypography.hint(),
       ),
     );
@@ -727,57 +739,69 @@ class _SettledCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final rows = <PaymentSummaryRow>[
       PaymentSummaryRow(
-        label: 'Reference',
+        label: l10n.webPayReference,
         value: view.id,
         mono: true,
         highlight: true,
       ),
-      PaymentSummaryRow(label: 'Business', value: view.businessId, mono: true),
-      if (view.planId != null)
-        PaymentSummaryRow(label: 'Plan', value: view.planId!, mono: true),
       PaymentSummaryRow(
-        label: 'Amount',
+        label: l10n.business,
+        value: view.businessId,
+        mono: true,
+      ),
+      if (view.planId != null)
+        PaymentSummaryRow(
+          label: l10n.webBillingPlan,
+          value: view.planId!,
+          mono: true,
+        ),
+      PaymentSummaryRow(
+        label: l10n.amount,
         value:
             '${formatPaymentRwf(view.amount)} ${view.currency} ${view.cadence.label.toLowerCase()}',
       ),
-      PaymentSummaryRow(label: 'Rail', value: view.rail.label),
+      PaymentSummaryRow(label: l10n.webPayRail, value: view.rail.label),
       if (view.nextBillingDate != null)
-        PaymentSummaryRow(label: 'Paid through', value: view.nextBillingDate!),
+        PaymentSummaryRow(
+          label: l10n.webPayPaidThrough,
+          value: view.nextBillingDate!,
+        ),
       if (view.chargeId != null)
         PaymentSummaryRow(
-          label: 'MoMo charge',
+          label: l10n.webPayMomoCharge,
           value: view.chargeId!,
           mono: true,
         ),
       if (view.financialTransactionId != null)
         PaymentSummaryRow(
-          label: 'MTN transaction',
+          label: l10n.webPayMtnTransaction,
           value: view.financialTransactionId!,
           mono: true,
         ),
       if (view.dodoSubscriptionId != null)
         PaymentSummaryRow(
-          label: 'Dodo subscription',
+          label: l10n.webPayDodoSubscription,
           value: view.dodoSubscriptionId!,
           mono: true,
         ),
       if (view.dodoPaymentId != null)
         PaymentSummaryRow(
-          label: 'Dodo payment',
+          label: l10n.webPayDodoPayment,
           value: view.dodoPaymentId!,
           mono: true,
         ),
       if (view.previous.cancelledDodoSubscriptionId != null)
         PaymentSummaryRow(
-          label: 'Cancelled card sub',
+          label: l10n.webPayCancelledCardSub,
           value: view.previous.cancelledDodoSubscriptionId!,
           mono: true,
         ),
       if (view.previous.revokedPreapprovalId != null)
         PaymentSummaryRow(
-          label: 'Revoked MoMo mandate',
+          label: l10n.webPayRevokedMandate,
           value: view.previous.revokedPreapprovalId!,
           mono: true,
         ),
@@ -808,15 +832,14 @@ class _SettledCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Paid',
+                      l10n.webPayPaid,
                       style: PaymentTypography.cardTitle(
                         color: PaymentTokens.gainInk,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "The negotiated amount is now this business's recurring "
-                      'price. Keep the reference below for support.',
+                      l10n.webPaySettledBody,
                       style: PaymentTypography.body(
                         color: PaymentTokens.gainInk,
                       ),
@@ -828,18 +851,18 @@ class _SettledCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: PaymentTokens.blockGap),
-        PaymentSummaryCard(title: 'Reference', rows: rows),
+        PaymentSummaryCard(title: l10n.webPayReference, rows: rows),
         const SizedBox(height: 12),
         PaymentSecondaryButton(
           key: const Key('custom-payment-copy-receipt'),
-          label: 'Copy all ids',
+          label: l10n.webPayCopyAllIds,
           onPressed: () async {
             await Clipboard.setData(ClipboardData(text: receipt));
             if (!context.mounted) return;
             ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-              const SnackBar(
-                content: Text('Copied'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.webPayCopied),
+                duration: const Duration(seconds: 2),
               ),
             );
           },
@@ -847,7 +870,7 @@ class _SettledCard extends StatelessWidget {
         const SizedBox(height: 8),
         PaymentPrimaryButton(
           key: const Key('custom-payment-new'),
-          label: 'New payment',
+          label: l10n.webPayNewPayment,
           onPressed: onNewPayment,
         ),
       ],

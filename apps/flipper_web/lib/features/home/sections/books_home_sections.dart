@@ -5,8 +5,7 @@ import 'package:flipper_web/features/home/theme/books_home_theme.dart';
 import 'package:flipper_web/features/home/widgets/books_home_widgets.dart';
 import 'package:flipper_web/features/home/widgets/books_line_icon.dart';
 import 'package:flipper_web/features/home/widgets/books_theme_toggle.dart';
-import 'package:flipper_web/l10n/app_localizations.dart';
-import 'package:flipper_web/l10n/app_localizations_en.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,6 +25,7 @@ class BooksHomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
@@ -50,10 +50,7 @@ class BooksHomeHeader extends StatelessWidget {
                           onSignIn,
                           onStartFree,
                         ),
-                        icon: Icon(
-                          Icons.menu_rounded,
-                          color: AppColors.ink1,
-                        ),
+                        icon: Icon(Icons.menu_rounded, color: AppColors.ink1),
                       ),
                     ],
                   )
@@ -78,17 +75,20 @@ class BooksHomeHeader extends StatelessWidget {
                               ].indexed) ...[
                                 if (i > 0) const SizedBox(width: 26),
                                 NavTextLink(
-                                  label: link,
+                                  label: booksHomeNavLabel(link, l10n),
                                   onTap: () => onNavTap(link),
                                 ),
                               ],
                               const SizedBox(width: 18),
                               const BooksThemeToggle(),
                               const SizedBox(width: 14),
-                              NavTextLink(label: 'Log in', onTap: onSignIn),
+                              NavTextLink(
+                                label: l10n.webHomeLogIn,
+                                onTap: onSignIn,
+                              ),
                               const SizedBox(width: 12),
                               PrimaryButton(
-                                label: 'Start free',
+                                label: l10n.webHomeStartFree,
                                 onTap: onStartFree,
                                 height: AppText.buttonHeightNav,
                                 compact: true,
@@ -111,6 +111,7 @@ class BooksHomeHeader extends StatelessWidget {
     VoidCallback onSignIn,
     VoidCallback onStartFree,
   ) {
+    final l10n = booksHomeL10n(context);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.panel,
@@ -126,7 +127,7 @@ class BooksHomeHeader extends StatelessWidget {
             for (final link in ['Platform', 'Flow AI', 'Features', 'Pricing'])
               ListTile(
                 title: Text(
-                  link,
+                  booksHomeNavLabel(link, l10n),
                   style: AppText.body.copyWith(color: AppColors.ink1),
                 ),
                 onTap: () {
@@ -137,7 +138,7 @@ class BooksHomeHeader extends StatelessWidget {
             BooksThemeToggleTile(onToggled: () => Navigator.pop(ctx)),
             const SizedBox(height: 12),
             GhostButton(
-              label: 'Log in',
+              label: l10n.webHomeLogIn,
               onTap: () {
                 Navigator.pop(ctx);
                 onSignIn();
@@ -145,7 +146,7 @@ class BooksHomeHeader extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             PrimaryButton(
-              label: 'Start free',
+              label: l10n.webHomeStartFree,
               onTap: () {
                 Navigator.pop(ctx);
                 onStartFree();
@@ -262,6 +263,7 @@ class BooksHomeHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final l10n = booksHomeL10n(context);
         final w = constraints.maxWidth;
         final h1 = booksHomeH1Size(w);
         final gutter = booksHomeGutter(w);
@@ -290,7 +292,7 @@ class BooksHomeHero extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'Accounting',
+                                l10n.webHomeHeroLine1,
                                 style: AppText.h1(h1),
                                 textAlign: TextAlign.center,
                               ),
@@ -298,9 +300,12 @@ class BooksHomeHero extends StatelessWidget {
                                 alignment: WrapAlignment.center,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  Text('that ', style: AppText.h1(h1)),
+                                  Text(
+                                    '${l10n.webHomeHeroLine2Lead} ',
+                                    style: AppText.h1(h1),
+                                  ),
                                   GradientText(
-                                    'does itself.',
+                                    l10n.webHomeHeroLine2Accent,
                                     style: AppText.h1(h1),
                                   ),
                                 ],
@@ -309,12 +314,12 @@ class BooksHomeHero extends StatelessWidget {
                           ),
                           const SizedBox(height: 26),
                           SizedBox(
-                            width: AppSpace.heroSubMaxW.clamp(0, w - gutter * 2),
+                            width: AppSpace.heroSubMaxW.clamp(
+                              0,
+                              w - gutter * 2,
+                            ),
                             child: Text(
-                              'Flipper Books is modern accounting for growing businesses. '
-                              'Every sale from Flipper POS posts straight to your ledger — and '
-                              'Flow AI categorizes, reconciles, and files the rest. You just run '
-                              'your business.',
+                              l10n.webHomeHeroBody,
                               style: AppText.lead.copyWith(
                                 fontSize: (w * 0.015).clamp(16.0, 20.0),
                               ),
@@ -329,28 +334,28 @@ class BooksHomeHero extends StatelessWidget {
                             children: [
                               IntrinsicWidth(
                                 child: PrimaryButton(
-                                  label: 'Start free',
+                                  label: l10n.webHomeStartFree,
                                   onTap: onStartFree,
                                   showArrow: true,
                                 ),
                               ),
                               IntrinsicWidth(
                                 child: GhostButton(
-                                  label: 'See how it works',
+                                  label: l10n.webHomeSeeHowItWorks,
                                   onTap: onSecondary,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 22),
-                          const Wrap(
+                          Wrap(
                             alignment: WrapAlignment.center,
                             spacing: 20,
                             runSpacing: 10,
                             children: [
-                              HeroCheckItem('RRA / EBM-ready'),
-                              HeroCheckItem('Works offline'),
-                              HeroCheckItem('RWF-native'),
+                              HeroCheckItem(l10n.webHomeCheckEbmReady),
+                              HeroCheckItem(l10n.webHomeCheckOffline),
+                              HeroCheckItem(l10n.webHomeCheckRwf),
                             ],
                           ),
                         ],
@@ -380,13 +385,14 @@ class BooksHomeTrustStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
     return BooksHomeSection(
       padding: const EdgeInsets.fromLTRB(28, 40, 28, 8),
       child: Reveal(
         child: Column(
           children: [
             Text(
-              'Built for businesses everywhere — and the way money actually moves.',
+              l10n.webHomeTrustTagline,
               style: AppText.small.copyWith(
                 fontSize: 13,
                 letterSpacing: 0.52,
@@ -399,19 +405,25 @@ class BooksHomeTrustStrip extends StatelessWidget {
               alignment: WrapAlignment.center,
               spacing: 14,
               runSpacing: 12,
-              children: const [
+              children: [
                 TrustChip(
                   icon: BooksIcon.shield,
                   bold: 'EBM 2.1',
-                  label: 'tax integration',
+                  label: l10n.webHomeTrustTaxIntegration,
                 ),
                 TrustChip(
                   icon: BooksIcon.trendUp,
                   bold: '12,400+',
-                  label: 'businesses',
+                  label: l10n.webHomeTrustBusinesses,
                 ),
-                TrustChip(icon: BooksIcon.card, label: 'MoMo & bank sync'),
-                TrustChip(icon: BooksIcon.clock, label: 'Real-time ledger'),
+                TrustChip(
+                  icon: BooksIcon.card,
+                  label: l10n.webHomeTrustMomoBank,
+                ),
+                TrustChip(
+                  icon: BooksIcon.clock,
+                  label: l10n.webHomeTrustRealtimeLedger,
+                ),
               ],
             ),
           ],
@@ -431,32 +443,31 @@ class BooksHomeSuiteSection extends StatelessWidget {
         builder: (context, constraints) {
           final w = constraints.maxWidth;
           final stacked = w <= 860;
+          final l10n = booksHomeL10n(context);
 
           return Column(
             children: [
               Reveal(
-                child: const SectionHead(
-                  eyebrow: 'One platform',
-                  title: 'Three apps. One ledger. Zero double-entry.',
-                  body:
-                      "Flipper POS, Books, and Flow aren't integrations bolted together — "
-                      "they're one system. Money moves through it once, and your books stay closed.",
+                child: SectionHead(
+                  eyebrow: l10n.webHomeSuiteEyebrow,
+                  title: l10n.webHomeSuiteTitle,
+                  body: l10n.webHomeSuiteBody,
                 ),
               ),
               const SizedBox(height: 56),
               if (stacked)
                 Column(
                   children: [
-                    Reveal(child: _SuiteCard.pos()),
+                    Reveal(child: _SuiteCard.pos(l10n)),
                     const _Connector(vertical: true),
                     Reveal(
                       delay: const Duration(milliseconds: 80),
-                      child: _SuiteCard.books(),
+                      child: _SuiteCard.books(l10n),
                     ),
                     const _Connector(vertical: true),
                     Reveal(
                       delay: const Duration(milliseconds: 160),
-                      child: _SuiteCard.flow(),
+                      child: _SuiteCard.flow(l10n),
                     ),
                   ],
                 )
@@ -465,19 +476,19 @@ class BooksHomeSuiteSection extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(child: Reveal(child: _SuiteCard.pos())),
+                      Expanded(child: Reveal(child: _SuiteCard.pos(l10n))),
                       const _Connector(),
                       Expanded(
                         child: Reveal(
                           delay: const Duration(milliseconds: 80),
-                          child: _SuiteCard.books(),
+                          child: _SuiteCard.books(l10n),
                         ),
                       ),
                       const _Connector(),
                       Expanded(
                         child: Reveal(
                           delay: const Duration(milliseconds: 160),
-                          child: _SuiteCard.flow(),
+                          child: _SuiteCard.flow(l10n),
                         ),
                       ),
                     ],
@@ -515,9 +526,11 @@ class BooksHomeSuiteSection extends StatelessWidget {
                                     color: AppColors.ink2,
                                   ),
                                   children: [
-                                    const TextSpan(text: 'Sell on POS → '),
                                     TextSpan(
-                                      text: 'posts to Books',
+                                      text: '${l10n.webHomeLoopSellOnPos} ',
+                                    ),
+                                    TextSpan(
+                                      text: l10n.webHomeLoopPostsToBooks,
                                       style: TextStyle(
                                         color: AppColors.ink0,
                                         fontWeight: FontWeight.w600,
@@ -525,16 +538,13 @@ class BooksHomeSuiteSection extends StatelessWidget {
                                     ),
                                     const TextSpan(text: ' → '),
                                     TextSpan(
-                                      text: 'Flow reconciles',
+                                      text: l10n.webHomeLoopFlowReconciles,
                                       style: TextStyle(
                                         color: AppColors.ink0,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    const TextSpan(
-                                      text:
-                                          ' → you see profit in real time. One loop, fully automatic.',
-                                    ),
+                                    TextSpan(text: ' ${l10n.webHomeLoopTail}'),
                                   ],
                                 ),
                                 textAlign: TextAlign.center,
@@ -610,26 +620,22 @@ class _SuiteCard extends StatelessWidget {
     this.highlighted = false,
   });
 
-  factory _SuiteCard.pos() => _SuiteCard(
+  factory _SuiteCard.pos(FlipperAppLocalizations l10n) => _SuiteCard(
     productLabel: 'FLIPPER POS',
-    role: 'Sell',
-    tagline: 'The front counter',
-    body:
-        'Ring up sales on mobile or desktop, scan stock, take cash or MoMo. '
-        'Works the second you open the shop — online or off.',
+    role: l10n.webHomePosRole,
+    tagline: l10n.webHomePosTagline,
+    body: l10n.webHomePosBody,
     icon: BooksIcon.cart,
     gradient: AppGrad.suitePosIcon,
     labelColor: AppColors.ink3,
     glowColor: AppColors.blue,
   );
 
-  factory _SuiteCard.books() => _SuiteCard(
+  factory _SuiteCard.books(FlipperAppLocalizations l10n) => _SuiteCard(
     productLabel: 'FLIPPER BOOKS',
-    role: 'Account',
-    tagline: 'The source of truth',
-    body:
-        'Every sale lands as a balanced journal entry. Real-time P&L, cash flow, '
-        'receivables and EBM-ready tax — no spreadsheets, no month-end scramble.',
+    role: l10n.webHomeBooksRole,
+    tagline: l10n.webHomeBooksTagline,
+    body: l10n.webHomeBooksBody,
     icon: BooksIcon.book,
     gradient: AppGrad.suiteBooksIcon,
     labelColor: AppColors.cyan,
@@ -637,13 +643,11 @@ class _SuiteCard extends StatelessWidget {
     highlighted: true,
   );
 
-  factory _SuiteCard.flow() => _SuiteCard(
+  factory _SuiteCard.flow(FlipperAppLocalizations l10n) => _SuiteCard(
     productLabel: 'FLIPPER FLOW',
-    role: 'Automate',
-    tagline: 'The AI bookkeeper',
-    body:
-        'Flow watches the whole flow — categorizing, reconciling, flagging anomalies '
-        'and prepping tax. The work that used to take an accountant a week happens in real time.',
+    role: l10n.webHomeFlowRole,
+    tagline: l10n.webHomeFlowTagline,
+    body: l10n.webHomeFlowBody,
     icon: BooksIcon.flow,
     gradient: AppGrad.suiteFlowIcon,
     labelColor: AppColors.amber,
@@ -803,20 +807,21 @@ class BooksHomeFlowSection extends StatelessWidget {
   }
 
   Widget _flowCopy(BuildContext context, double w) {
+    final l10n = booksHomeL10n(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const EyebrowLabel('Meet Flow AI'),
+        EyebrowLabel(l10n.webHomeMeetFlow),
         const SizedBox(height: 16),
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              'Your books, kept by an ',
+              '${l10n.webHomeFlowHeadlineLead} ',
               style: AppText.h2(booksHomeH2SizeOf(context)),
             ),
             GradientText(
-              'AI bookkeeper.',
+              l10n.webHomeFlowHeadlineAccent,
               style: AppText.h2(booksHomeH2SizeOf(context)),
             ),
           ],
@@ -825,8 +830,7 @@ class BooksHomeFlowSection extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: Text(
-            'Flow turns raw transactions into clean, audit-ready accounting — and asks you '
-            'only when it genuinely needs a decision. Sleep free from the hassle of accounting tasks.',
+            l10n.webHomeFlowLead,
             style: AppText.lead.copyWith(fontSize: 17),
           ),
         ),
@@ -834,23 +838,19 @@ class BooksHomeFlowSection extends StatelessWidget {
         for (final item in [
           (
             BooksIcon.listLines,
-            'Auto-categorization',
-            'Each sale, expense and transfer is coded to the right account the instant it happens.',
+            l10n.webHomeFlowAutoCat,
+            l10n.webHomeFlowAutoCatBody,
           ),
           (
             BooksIcon.refreshLoop,
-            'Bank & MoMo reconciliation',
-            'Flow matches your ledger to statements automatically and surfaces only true exceptions.',
+            l10n.webHomeFlowRecon,
+            l10n.webHomeFlowReconBody,
           ),
-          (
-            BooksIcon.shieldCheck,
-            'Tax & VAT, prepared',
-            'EBM-ready filings drafted from your live ledger, so RRA deadlines stop being a panic.',
-          ),
+          (BooksIcon.shieldCheck, l10n.webHomeFlowTax, l10n.webHomeFlowTaxBody),
           (
             BooksIcon.alert,
-            'Anomaly alerts',
-            'Duplicate entries, margin dips and unusual spend get flagged before they become a problem.',
+            l10n.webHomeFlowAnomaly,
+            l10n.webHomeFlowAnomalyBody,
           ),
         ])
           Padding(
@@ -892,7 +892,7 @@ class BooksHomeFlowSection extends StatelessWidget {
             ),
           ),
         GhostButton(
-          label: 'Explore Flow AI',
+          label: l10n.webHomeExploreFlow,
           onTap: () {},
           height: AppText.buttonHeightNav,
           compact: true,
@@ -908,6 +908,7 @@ class _FlowChatPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -983,7 +984,7 @@ class _FlowChatPanel extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    'Watching your ledger',
+                                    l10n.webHomeWatchingLedger,
                                     style: AppText.small.copyWith(
                                       fontSize: 11.5,
                                       color: AppColors.green,
@@ -999,23 +1000,13 @@ class _FlowChatPanel extends StatelessWidget {
                   ),
                 ),
               ),
-              _bubble(
-                'A new sale came in on POS for RWF 12,000, paid by MoMo. Book it.',
-                mine: true,
-              ),
+              _bubble(l10n.webHomeChatUser1, mine: true),
               const SizedBox(height: 12),
-              _bubble(
-                "Done — posted a balanced entry and reconciled it to your MTN MoMo account. Here's the journal entry:",
-                mine: false,
-                child: _jeEntry(),
-              ),
+              _bubble(l10n.webHomeChatBot1, mine: false, child: _jeEntry(l10n)),
               const SizedBox(height: 12),
-              _bubble('Anything I should look at this week?', mine: true),
+              _bubble(l10n.webHomeChatUser2, mine: true),
               const SizedBox(height: 12),
-              _bubble(
-                "VAT for May is ready to file (RWF 318,400) and one supplier was charged twice — I've flagged it in Payables.",
-                mine: false,
-              ),
+              _bubble(l10n.webHomeChatBot2, mine: false),
             ],
           ),
         ),
@@ -1062,7 +1053,7 @@ class _FlowChatPanel extends StatelessWidget {
     );
   }
 
-  Widget _jeEntry() {
+  Widget _jeEntry(FlipperAppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.line),
@@ -1095,7 +1086,7 @@ class _FlowChatPanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  'Balanced',
+                  l10n.booksBalanced,
                   style: AppText.small.copyWith(
                     color: AppColors.green,
                     fontWeight: FontWeight.w600,
@@ -1137,41 +1128,33 @@ class _FlowChatPanel extends StatelessWidget {
 class BooksHomeCapabilitiesSection extends StatelessWidget {
   const BooksHomeCapabilitiesSection({super.key});
 
-  static const _items = [
+  static List<(String, String, BooksIcon)> _itemsFor(
+    FlipperAppLocalizations l10n,
+  ) => [
     (
-      'Financial statements',
-      'Income statement, balance sheet and cash flow generated live from your general ledger.',
+      l10n.booksFinancialStatements,
+      l10n.webHomeCapStatementsBody,
       BooksIcon.chartLine,
     ),
     (
-      'Bank reconciliation',
-      'Match ledger lines to bank and MoMo statements in one pass, with exceptions surfaced for you.',
+      l10n.booksBankReconciliation,
+      l10n.webHomeCapBankRecBody,
       BooksIcon.bankLines,
     ),
+    (l10n.webHomeCapArAp, l10n.webHomeCapArApBody, BooksIcon.dollar),
+    (l10n.booksTaxVat, l10n.webHomeCapTaxBody, BooksIcon.shieldCheck),
+    (l10n.booksChartOfAccounts, l10n.webHomeCapCoaBody, BooksIcon.doc),
     (
-      'Receivables & payables',
-      'Track who owes you and what you owe, with aging buckets and gentle automatic reminders.',
-      BooksIcon.dollar,
-    ),
-    (
-      'Tax & VAT',
-      'EBM 2.1 integration and VAT computed continuously — filings drafted before the deadline.',
-      BooksIcon.shieldCheck,
-    ),
-    (
-      'Chart of accounts',
-      'A numbered, audit-friendly ledger structure that adapts to how your business is organized.',
-      BooksIcon.doc,
-    ),
-    (
-      'Multi-branch',
-      'Consolidate every shop into one set of books, then drill into any branch on its own.',
+      l10n.webHomeCapMultiBranch,
+      l10n.webHomeCapMultiBranchBody,
       BooksIcon.building,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final l10n = booksHomeL10n(context);
+    final items = _itemsFor(l10n);
     return BooksHomeSection(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -1180,11 +1163,10 @@ class BooksHomeCapabilitiesSection extends StatelessWidget {
           return Reveal(
             child: Column(
               children: [
-                const SectionHead(
-                  eyebrow: 'INSIDE BOOKS',
-                  title: 'Everything an accountant does — built in.',
-                  body:
-                      "Double-entry accounting that's serious enough for your auditor and simple enough to run yourself.",
+                SectionHead(
+                  eyebrow: l10n.webHomeInsideBooks,
+                  title: l10n.webHomeCapTitle,
+                  body: l10n.webHomeCapBody,
                 ),
                 const SizedBox(height: 56),
                 GridView.builder(
@@ -1196,9 +1178,9 @@ class BooksHomeCapabilitiesSection extends StatelessWidget {
                     mainAxisSpacing: 16,
                     childAspectRatio: cols == 1 ? 1.55 : 1.35,
                   ),
-                  itemCount: _items.length,
+                  itemCount: items.length,
                   itemBuilder: (context, i) {
-                    final item = _items[i];
+                    final item = items[i];
                     return Reveal(
                       delay: Duration(milliseconds: i * 80),
                       child: HoverLiftCard(
@@ -1265,7 +1247,7 @@ class BooksHomePricingSection extends StatelessWidget {
 
   final GlobalKey sectionKey;
   final VoidCallback onStartFree;
-  final AppLocalizations l10n;
+  final FlipperAppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
@@ -1280,11 +1262,9 @@ class BooksHomePricingSection extends StatelessWidget {
               key: sectionKey,
               children: [
                 SectionHead(
-                  eyebrow: 'PRICING',
-                  title: l10n.pricingTitle,
-                  body:
-                      'Choose the plan that works best for you. Every plan includes the full '
-                      'Flipper suite — POS, Books and Flow.',
+                  eyebrow: l10n.webHomePricingEyebrow,
+                  title: l10n.webPricingTitle,
+                  body: l10n.webHomePricingBody,
                 ),
                 const SizedBox(height: 56),
                 Flex(
@@ -1296,19 +1276,19 @@ class BooksHomePricingSection extends StatelessWidget {
                   children: [
                     Flexible(
                       child: _PricingCard(
-                        title: l10n.planMobile,
-                        price: l10n.priceMobile,
-                        period: l10n.currencyPerMonth,
+                        title: l10n.webPlanMobile,
+                        price: '5,000',
+                        period: l10n.webCurrencyPerMonth,
                         features: [
-                          l10n.featureMobileAppAccess,
-                          l10n.featureBasicBusinessTools,
-                          l10n.featureDataEncryption,
-                          l10n.featureSingleDevice,
-                          l10n.featureTaxReportingMobile,
+                          l10n.webFeatureMobileAppAccess,
+                          l10n.webFeatureBasicBusinessTools,
+                          l10n.webFeatureDataEncryption,
+                          l10n.webFeatureSingleDevice,
+                          l10n.webFeatureTaxReportingAddon,
                         ],
                         popular: false,
                         onStart: onStartFree,
-                        cta: l10n.getStarted,
+                        cta: l10n.webGetStarted,
                       ),
                     ),
                     SizedBox(width: oneCol ? 0 : 18, height: oneCol ? 18 : 0),
@@ -1316,41 +1296,41 @@ class BooksHomePricingSection extends StatelessWidget {
                       child: Transform.translate(
                         offset: oneCol ? Offset.zero : const Offset(0, -8),
                         child: _PricingCard(
-                          title: l10n.planMobileDesktop,
-                          price: l10n.priceMobileDesktop,
-                          period: l10n.currencyPerMonth,
+                          title: l10n.webPlanMobileDesktop,
+                          price: '120,000',
+                          period: l10n.webCurrencyPerMonth,
                           features: [
-                            l10n.featureMobileDesktopAppAccess,
-                            l10n.featureAdvancedBusinessTools,
-                            l10n.featureMilitaryGradeEncryption,
-                            l10n.featurePrioritySupport,
-                            l10n.featureMultipleDevices,
-                            l10n.featureAdvancedAnalytics,
-                            l10n.featureTaxReportingDesktop,
+                            l10n.webFeatureMobileDesktopAppAccess,
+                            l10n.webFeatureAdvancedBusinessTools,
+                            l10n.webFeatureMilitaryGradeEncryption,
+                            l10n.webFeaturePrioritySupport,
+                            l10n.webFeatureMultipleDevices,
+                            l10n.webFeatureAdvancedAnalytics,
+                            l10n.webFeatureTaxReportingAddon,
                           ],
                           popular: true,
                           onStart: onStartFree,
-                          cta: l10n.getStarted,
+                          cta: l10n.webGetStarted,
                         ),
                       ),
                     ),
                     SizedBox(width: oneCol ? 0 : 18, height: oneCol ? 18 : 0),
                     Flexible(
                       child: _PricingCard(
-                        title: l10n.planEnterprise,
+                        title: l10n.webPlanEnterprise,
                         price: '1.5M+',
-                        period: l10n.currencyPerMonth,
+                        period: l10n.webCurrencyPerMonth,
                         features: [
-                          l10n.featureFullPlatformAccess,
-                          l10n.featureEnterpriseGradeSecurity,
-                          l10n.feature247DedicatedSupport,
-                          l10n.featureUnlimitedUsersBranches,
-                          l10n.featureCustomIntegrations,
-                          l10n.featurePremiumTaxConsulting,
+                          l10n.webFeatureFullPlatformAccess,
+                          l10n.webFeatureEnterpriseGradeSecurity,
+                          l10n.webFeature247DedicatedSupport,
+                          l10n.webFeatureUnlimitedUsersBranches,
+                          l10n.webFeatureCustomIntegrations,
+                          l10n.webFeaturePremiumTaxConsulting,
                         ],
                         popular: false,
                         onStart: onStartFree,
-                        cta: 'Contact sales',
+                        cta: l10n.webHomeContactSales,
                       ),
                     ),
                   ],
@@ -1512,13 +1492,20 @@ class BooksHomeBrandBand extends StatelessWidget {
                   child: stacked
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [_bandCopy(onStartFree, onSignIn, bandH2)],
+                          children: [
+                            _bandCopy(context, onStartFree, onSignIn, bandH2),
+                          ],
                         )
                       : Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
-                              child: _bandCopy(onStartFree, onSignIn, bandH2),
+                              child: _bandCopy(
+                                context,
+                                onStartFree,
+                                onSignIn,
+                                bandH2,
+                              ),
                             ),
                             if (showVisual)
                               Expanded(
@@ -1541,10 +1528,12 @@ class BooksHomeBrandBand extends StatelessWidget {
   }
 
   Widget _bandCopy(
+    BuildContext context,
     VoidCallback onStartFree,
     VoidCallback onSignIn,
     double h2Size,
   ) {
+    final l10n = booksHomeL10n(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1562,7 +1551,7 @@ class BooksHomeBrandBand extends StatelessWidget {
           // headline wraps to three lines like the reference.
           constraints: BoxConstraints(maxWidth: h2Size * 7),
           child: Text(
-            'Your shop, your books, all in one place.',
+            l10n.webHomeBandTitle,
             style: AppText.h2(h2Size).copyWith(color: AppColors.onBrand),
           ),
         ),
@@ -1570,8 +1559,7 @@ class BooksHomeBrandBand extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
           child: Text(
-            'Start selling on Flipper today and let Flow keep your books — automatically, '
-            'in real time. Pick up right where you left off.',
+            l10n.webHomeBandBody,
             style: AppText.lead.copyWith(
               color: Colors.white.withValues(alpha: 0.86),
             ),
@@ -1584,13 +1572,16 @@ class BooksHomeBrandBand extends StatelessWidget {
           children: [
             IntrinsicWidth(
               child: WhiteButton(
-                label: 'Start free',
+                label: l10n.webHomeStartFree,
                 onTap: onStartFree,
                 showArrow: true,
               ),
             ),
             IntrinsicWidth(
-              child: OutlineWhiteButton(label: 'Talk to sales', onTap: onSignIn),
+              child: OutlineWhiteButton(
+                label: l10n.webHomeTalkToSales,
+                onTap: onSignIn,
+              ),
             ),
           ],
         ),
@@ -1599,9 +1590,9 @@ class BooksHomeBrandBand extends StatelessWidget {
           spacing: 36,
           runSpacing: 12,
           children: [
-            _BandStat('12,400+', 'businesses'),
-            _BandStat('RWF 1.2B', 'processed monthly'),
-            _BandStat('99.9%', 'uptime'),
+            _BandStat('12,400+', l10n.webHomeTrustBusinesses),
+            _BandStat('RWF 1.2B', l10n.webHomeStatProcessedMonthly),
+            _BandStat('99.9%', l10n.webHomeStatUptime),
           ],
         ),
       ],
@@ -1622,7 +1613,11 @@ class _BandStat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppText.mono(size: 26, w: FontWeight.w700, c: AppColors.onBrand),
+          style: AppText.mono(
+            size: 26,
+            w: FontWeight.w700,
+            c: AppColors.onBrand,
+          ),
         ),
         Text(
           label,
@@ -1745,7 +1740,7 @@ class _BandChartCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Revenue · this week',
+                  booksHomeL10n(context).webHomeRevenueThisWeek,
                   style: AppText.small.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.whiteCardMuted,
@@ -1838,7 +1833,7 @@ class _BandSaleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New sale',
+                  booksHomeL10n(context).webHomeNewSale,
                   style: AppText.h4.copyWith(
                     fontSize: 12.5,
                     color: AppColors.whiteCardInk,
@@ -1896,7 +1891,7 @@ class _BandStreakCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '12 days',
+                booksHomeL10n(context).webHomeDays(12),
                 style: AppText.mono(
                   size: 16,
                   w: FontWeight.w800,
@@ -1904,10 +1899,8 @@ class _BandStreakCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'Sales streak',
-                style: AppText.small.copyWith(
-                  color: AppColors.whiteCardMuted,
-                ),
+                booksHomeL10n(context).webHomeSalesStreak,
+                style: AppText.small.copyWith(color: AppColors.whiteCardMuted),
               ),
             ],
           ),
@@ -1957,8 +1950,7 @@ class BooksHomeFooter extends StatelessWidget {
                                   maxWidth: 280,
                                 ),
                                 child: Text(
-                                  'The connected business platform for Africa — point of sale, '
-                                  'accounting and an AI bookkeeper, in one place.',
+                                  booksHomeL10n(context).webHomeFooterTagline,
                                   style: AppText.small.copyWith(
                                     fontSize: 13.5,
                                     color: AppColors.ink3,
@@ -1969,7 +1961,9 @@ class BooksHomeFooter extends StatelessWidget {
                             ],
                           ),
                         ),
-                        for (final col in _footerColumns)
+                        for (final col in _footerColumnsFor(
+                          booksHomeL10n(context),
+                        ))
                           Expanded(flex: 10, child: col),
                       ],
                     )
@@ -1977,8 +1971,7 @@ class BooksHomeFooter extends StatelessWidget {
                     const BooksWordmark(logoSize: 30),
                     const SizedBox(height: 16),
                     Text(
-                      'The connected business platform for Africa — point of sale, '
-                      'accounting and an AI bookkeeper, in one place.',
+                      booksHomeL10n(context).webHomeFooterTagline,
                       style: AppText.small.copyWith(
                         fontSize: 13.5,
                         color: AppColors.ink3,
@@ -1993,7 +1986,7 @@ class BooksHomeFooter extends StatelessWidget {
                       crossAxisSpacing: 24,
                       mainAxisSpacing: 24,
                       childAspectRatio: 2.8,
-                      children: _footerColumns,
+                      children: _footerColumnsFor(booksHomeL10n(context)),
                     ),
                   ],
                   // .foot-bottom: margin-top 56, padding-top 24, color ink-4.
@@ -2003,15 +1996,15 @@ class BooksHomeFooter extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '© 2026 Flipper. Made for business everywhere.',
+                        booksHomeL10n(context).webHomeCopyright,
                         style: AppText.small.copyWith(color: AppColors.ink4),
                       ),
                       const Spacer(),
                       for (final (i, link) in [
-                        'Privacy',
-                        'Terms',
-                        'Security',
-                        'English',
+                        booksHomeL10n(context).webHomePrivacy,
+                        booksHomeL10n(context).webHomeTerms,
+                        booksHomeL10n(context).security,
+                        _currentLanguageName(booksHomeL10n(context)),
                       ].indexed) ...[
                         if (i > 0) const SizedBox(width: 22),
                         Text(
@@ -2037,27 +2030,37 @@ class _FooterColumn extends StatelessWidget {
   final String title;
   final List<String> links;
 
-  static const columns = [
+  static List<_FooterColumn> columnsFor(FlipperAppLocalizations l10n) => [
     _FooterColumn(
-      title: 'PLATFORM',
-      links: ['Flipper POS', 'Flipper Books', 'Flipper Flow', 'Pricing'],
+      title: l10n.webHomeFooterPlatform,
+      links: ['Flipper POS', 'Flipper Books', 'Flipper Flow', l10n.pricing],
     ),
     _FooterColumn(
       title: 'BOOKS',
       links: [
-        'Financial statements',
-        'Bank reconciliation',
-        'Tax & VAT',
-        'Multi-branch',
+        l10n.booksFinancialStatements,
+        l10n.booksBankReconciliation,
+        l10n.booksTaxVat,
+        l10n.webHomeCapMultiBranch,
       ],
     ),
     _FooterColumn(
-      title: 'COMPANY',
-      links: ['About', 'Blog', 'Careers', 'Contact'],
+      title: l10n.webHomeFooterCompany,
+      links: [
+        l10n.webHomeAbout,
+        l10n.webHomeBlog,
+        l10n.webHomeCareers,
+        l10n.webHomeContact,
+      ],
     ),
     _FooterColumn(
-      title: 'SUPPORT',
-      links: ['Help center', 'Download', 'Status', 'Community'],
+      title: l10n.webHomeFooterSupport,
+      links: [
+        l10n.webHomeHelpCenter,
+        l10n.webHomeDownload,
+        l10n.webHomeStatus,
+        l10n.webHomeCommunity,
+      ],
     ),
   ];
 
@@ -2082,7 +2085,10 @@ class _FooterColumn extends StatelessWidget {
             child: Text(
               // .foot-col a: 14px, ink-2.
               link,
-              style: AppText.small.copyWith(fontSize: 14, color: AppColors.ink2),
+              style: AppText.small.copyWith(
+                fontSize: 14,
+                color: AppColors.ink2,
+              ),
             ),
           ),
       ],
@@ -2090,10 +2096,27 @@ class _FooterColumn extends StatelessWidget {
   }
 }
 
-const _footerColumns = _FooterColumn.columns;
+List<_FooterColumn> _footerColumnsFor(FlipperAppLocalizations l10n) =>
+    _FooterColumn.columnsFor(l10n);
 
-AppLocalizations booksHomeL10n(BuildContext context) =>
-    AppLocalizations.of(context) ?? AppLocalizationsEn();
+/// Name of the language the page is currently rendered in.
+String _currentLanguageName(FlipperAppLocalizations l10n) =>
+    switch (l10n.localeName.split(RegExp('[_-]')).first) {
+      'fr' => l10n.french,
+      'rw' => l10n.kinyarwanda,
+      'sw' => l10n.swahili,
+      _ => l10n.english,
+    };
+
+/// Display text for a landing-page nav id ([BooksHomeHeader] link values
+/// stay English because the page routes on them).
+String booksHomeNavLabel(String id, FlipperAppLocalizations l10n) =>
+    switch (id) {
+      'Platform' => l10n.webHomeNavPlatform,
+      'Features' => l10n.webHomeNavFeatures,
+      'Pricing' => l10n.pricing,
+      _ => id,
+    };
 
 void booksHomeGoSignup(BuildContext context) => context.go('/signup');
 

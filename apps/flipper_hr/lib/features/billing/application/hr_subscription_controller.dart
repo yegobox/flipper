@@ -3,6 +3,7 @@ import 'package:flipper_hr/features/billing/data/hr_billing_repository.dart';
 import 'package:flipper_hr/features/billing/data/hr_entitlement.dart';
 import 'package:flipper_hr/features/billing/data/hr_momo_gateway.dart';
 import 'package:flipper_hr/features/billing/data/hr_msisdn.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// How often the request-to-pay status is read. Matches Books' cadence;
@@ -110,18 +111,18 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
 
     if (!HrMsisdn.isValid(phoneNumber)) {
       _set(
-        const HrPaymentState(
+        HrPaymentState(
           stage: HrPaymentStage.failed,
-          message: 'Enter a valid MTN or Airtel number, e.g. 0788123456.',
+          message: FlipperL10n.current.hrEnterValidMomoNumber,
         ),
       );
       return;
     }
 
     _set(
-      const HrPaymentState(
+      HrPaymentState(
         stage: HrPaymentStage.preparing,
-        message: 'Preparing your subscription…',
+        message: FlipperL10n.current.hrPreparingSubscription,
       ),
     );
 
@@ -136,9 +137,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
             phoneNumber: phoneNumber,
           );
     } on HrBillingSchemaMissing catch (e) {
-      _set(
-        HrPaymentState(stage: HrPaymentStage.failed, message: e.toString()),
-      );
+      _set(HrPaymentState(stage: HrPaymentStage.failed, message: e.toString()));
       return;
     } on HrBillingException catch (e) {
       _set(HrPaymentState(stage: HrPaymentStage.failed, message: e.message));
@@ -147,7 +146,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
       _set(
         HrPaymentState(
           stage: HrPaymentStage.failed,
-          message: 'Could not start the subscription: $e',
+          message: FlipperL10n.current.hrErrorStartSubscriptionWith('$e'),
         ),
       );
       return;
@@ -162,7 +161,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
           stage: HrPaymentStage.confirmed,
           planId: start.planId,
           amountRwf: start.amountRwf,
-          message: 'This subscription is already active.',
+          message: FlipperL10n.current.hrSubscriptionAlreadyActive,
         ),
       );
       return;
@@ -172,7 +171,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
       state.copyWith(
         planId: start.planId,
         amountRwf: start.amountRwf,
-        message: 'Sending the request to your phone…',
+        message: FlipperL10n.current.hrSendingRequestToPhone,
       ),
     );
 
@@ -193,7 +192,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
       _set(
         state.copyWith(
           stage: HrPaymentStage.failed,
-          message: 'The payment could not be started: $e',
+          message: FlipperL10n.current.hrPaymentCouldNotStartWith('$e'),
         ),
       );
       return;
@@ -203,7 +202,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
       state.copyWith(
         stage: HrPaymentStage.awaitingApproval,
         reference: reference,
-        message: 'Approve the Mobile Money request on your phone.',
+        message: FlipperL10n.current.hrApproveMomoOnPhone,
       ),
     );
 
@@ -254,7 +253,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
         _set(
           state.copyWith(
             stage: HrPaymentStage.confirmed,
-            message: 'Payment received. Your subscription is active.',
+            message: FlipperL10n.current.hrPaymentReceivedActive,
           ),
         );
         return;
@@ -265,7 +264,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
           state.copyWith(
             stage: HrPaymentStage.failed,
             message: reason == null || reason.isEmpty
-                ? 'The payment was not completed on your phone.'
+                ? FlipperL10n.current.hrPaymentNotCompleted
                 : reason,
           ),
         );
@@ -276,9 +275,7 @@ class HrSubscriptionController extends Notifier<HrPaymentState> {
     _set(
       state.copyWith(
         stage: HrPaymentStage.timedOut,
-        message:
-            'We have not had a verdict from Mobile Money yet. If you approved '
-            'the request, it will unlock shortly — check again in a moment.',
+        message: FlipperL10n.current.hrPaymentNoVerdictYet,
       ),
     );
   }

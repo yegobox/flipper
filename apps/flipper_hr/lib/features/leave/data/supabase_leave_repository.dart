@@ -1,6 +1,7 @@
 import 'package:flipper_hr/features/leave/data/leave_repository.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
 import 'package:flipper_hr/features/leave/data/leave_row_mapper.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/people/data/supabase_employee_repository.dart'
     show describeBackendError;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,7 +33,7 @@ class SupabaseLeaveRepository implements LeaveRepository {
       return [for (final row in rows) LeaveRowMapper.fromRow(row)];
     } catch (e) {
       throw LeaveRepositoryException(
-        describeBackendError('Could not load your leave.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadYourLeave, e),
         cause: e,
       );
     }
@@ -49,7 +50,7 @@ class SupabaseLeaveRepository implements LeaveRepository {
       return [for (final row in rows) LeaveRowMapper.fromRow(row)];
     } catch (e) {
       throw LeaveRepositoryException(
-        describeBackendError('Could not load leave for this branch.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadBranchLeave, e),
         cause: e,
       );
     }
@@ -72,7 +73,7 @@ class SupabaseLeaveRepository implements LeaveRepository {
       return [for (final row in rows) LeaveRowMapper.fromRow(row)];
     } catch (e) {
       throw LeaveRepositoryException(
-        describeBackendError('Could not load leave for your team.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadTeamLeave, e),
         cause: e,
       );
     }
@@ -90,7 +91,7 @@ class SupabaseLeaveRepository implements LeaveRepository {
     } catch (e) {
       throw LeaveRepositoryException(
         describeBackendError(
-          'Could not send this leave request.',
+          FlipperL10n.current.hrErrorSendLeaveRequest,
           e,
           scope: _selfScope(request.employeeId),
         ),
@@ -154,7 +155,7 @@ class SupabaseLeaveRepository implements LeaveRepository {
     } catch (e) {
       throw LeaveRepositoryException(
         describeBackendError(
-          'Could not withdraw this request. It may already have been decided.',
+          FlipperL10n.current.hrErrorWithdrawRequest,
           e,
           scope: 'request $id',
         ),
@@ -167,12 +168,14 @@ class SupabaseLeaveRepository implements LeaveRepository {
   /// list. Here that means the `status = pending` guard failed — somebody else
   /// got there first — which is worth saying plainly instead of "no rows".
   static String _decisionFailure(LeaveStatus status, Object? cause) {
-    final verb = status == LeaveStatus.approved ? 'approve' : 'reject';
+    final l10n = FlipperL10n.current;
+    final approve = status == LeaveStatus.approved;
     if (cause is PostgrestException && cause.code == 'PGRST116') {
-      return 'Could not $verb this request: it has already been decided or '
-          'withdrawn. Refresh to see where it stands.';
+      return approve
+          ? l10n.hrErrorApproveAlreadyDecided
+          : l10n.hrErrorRejectAlreadyDecided;
     }
-    return 'Could not $verb this request.';
+    return approve ? l10n.hrErrorApproveRequest : l10n.hrErrorRejectRequest;
   }
 
   /// What RLS is judging an insert on. Unlike the roster, the deciding fact is

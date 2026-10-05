@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
@@ -9,7 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 String accountingEntityInitials(String name) {
-  final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  final parts = name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((p) => p.isNotEmpty)
+      .toList();
   if (parts.isEmpty) return '?';
   if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
   return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
@@ -24,7 +29,8 @@ class AccountingMobileHeader extends ConsumerWidget {
     final showEntity = tab == AccountingMobileTab.snapshot;
     final pending = ref.watch(pendingCountProvider);
     final business = ref.watch(selectedBusinessProvider);
-    final entityName = business?.name ?? 'Business';
+    final entityName =
+        business?.name ?? context.flipperL10n.booksBusinessFallback;
     final initials = accountingEntityInitials(entityName);
     final fiscalYear = ref.watch(accountingFiscalYearLabelProvider);
     final currency = ref.watch(accountingCurrencyProvider);
@@ -42,7 +48,10 @@ class AccountingMobileHeader extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const BooksBrandRow(logoSize: 32, variant: BooksBrandVariant.mobile),
+                  const BooksBrandRow(
+                    logoSize: 32,
+                    variant: BooksBrandVariant.mobile,
+                  ),
                   const Spacer(),
                   _HeaderIconButton(
                     onPressed: () {
@@ -52,8 +61,8 @@ class AccountingMobileHeader extends ConsumerWidget {
                       } else {
                         showAccountingToast(
                           context,
-                          'All caught up',
-                          subtitle: 'No pending journal entries',
+                          context.flipperL10n.booksAllCaughtUp,
+                          subtitle: context.flipperL10n.booksNoPendingEntries,
                           icon: Icons.check,
                           tone: AccountingToastTone.success,
                         );
@@ -62,7 +71,11 @@ class AccountingMobileHeader extends ConsumerWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        const Icon(Icons.notifications_outlined, size: 20, color: AccountingTokens.ink2),
+                        const Icon(
+                          Icons.notifications_outlined,
+                          size: 20,
+                          color: AccountingTokens.ink2,
+                        ),
                         if (pending > 0)
                           Positioned(
                             right: -1,
@@ -94,7 +107,11 @@ class AccountingMobileHeader extends ConsumerWidget {
                     ),
                     child: Text(
                       initials,
-                      style: AccountingTokens.sans(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                      style: AccountingTokens.sans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -104,7 +121,8 @@ class AccountingMobileHeader extends ConsumerWidget {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => context.goNamed(AppRoute.businessSelection.name),
+                    onTap: () =>
+                        context.goNamed(AppRoute.businessSelection.name),
                     borderRadius: BorderRadius.circular(10),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -186,11 +204,7 @@ class _HeaderIconButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Center(child: child),
-        ),
+        child: SizedBox(width: 40, height: 40, child: Center(child: child)),
       ),
     );
   }

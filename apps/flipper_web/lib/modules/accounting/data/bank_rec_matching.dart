@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/services/bank_statement_service.dart';
 
@@ -20,18 +21,27 @@ int bankMovement(JournalEntry entry, String accountCode) => entry.lines
       start = correctStatementYear(start, now);
       end = correctStatementYear(end, now);
       if (end.isBefore(start)) {
-        end = DateTime(start.year, start.month, start.day)
-            .add(const Duration(days: 45));
+        end = DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ).add(const Duration(days: 45));
       }
       return (
-        DateTime(start.year, start.month, start.day)
-            .subtract(const Duration(days: 30)),
+        DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ).subtract(const Duration(days: 30)),
         DateTime(end.year, end.month, end.day).add(const Duration(days: 30)),
       );
     }
   }
   // No imported metadata: search the last twelve months.
-  return (DateTime(now.year, now.month, now.day).subtract(const Duration(days: 365)), now);
+  return (
+    DateTime(now.year, now.month, now.day).subtract(const Duration(days: 365)),
+    now,
+  );
 }
 
 /// Bank-statement parsers often misread the year (e.g. 2024 on a 2026 stmt).
@@ -58,8 +68,9 @@ List<BankMatchCandidate> findBankMatchCandidates({
   required BankLine line,
   String primaryAccountCode = '1020',
 }) {
-  final posted =
-      journal.where((e) => e.status == JournalStatus.posted).toList();
+  final posted = journal
+      .where((e) => e.status == JournalStatus.posted)
+      .toList();
 
   final primary = _matchesOnAccount(posted, line, primaryAccountCode);
   if (primary.isNotEmpty) {
@@ -103,8 +114,8 @@ String bankRecJournalRangeLabel(DateTime start, DateTime end) {
 }
 
 String liquidAccountLabel(String code) => switch (code) {
-      '1020' => 'Bank',
-      '1030' => 'Mobile Money',
-      '1010' => 'Cash',
-      _ => code,
-    };
+  '1020' => FlipperL10n.current.booksBank,
+  '1030' => FlipperL10n.current.paymentMobileMoney,
+  '1010' => FlipperL10n.current.cash,
+  _ => code,
+};

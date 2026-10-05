@@ -2,6 +2,7 @@ import 'package:flipper_personal/src/providers/location_service.dart';
 import 'package:flipper_personal/src/services/ditto_service.dart';
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'dart:convert';
@@ -54,7 +55,7 @@ class ChallengeFinder extends _$ChallengeFinder {
 
       if (position == null) {
         state = AsyncValue.error(
-          'Could not determine your location.',
+          FlipperL10n.current.personalCouldNotDetermineLocation,
           StackTrace.current,
         );
         return;
@@ -64,7 +65,7 @@ class ChallengeFinder extends _$ChallengeFinder {
       final businessId = ProxyService.box.getBusinessId();
       if (businessId == null) {
         state = AsyncValue.error(
-          'Business ID not found. Please login again.',
+          FlipperL10n.current.personalBusinessIdNotFound,
           StackTrace.current,
         );
         return;
@@ -89,13 +90,14 @@ class ChallengeFinder extends _$ChallengeFinder {
           state = AsyncValue.data(challenges);
         } else {
           state = AsyncValue.error(
-            jsonResponse['message'] ?? 'Failed to fetch challenges',
+            jsonResponse['message'] ??
+                FlipperL10n.current.personalFailedToFetchChallenges,
             StackTrace.current,
           );
         }
       } else {
         state = AsyncValue.error(
-          'Failed to fetch challenges. Please try again.',
+          FlipperL10n.current.personalFailedToFetchChallengesRetry,
           StackTrace.current,
         );
       }

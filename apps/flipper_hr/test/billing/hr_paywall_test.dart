@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/billing/application/hr_billing_providers.dart';
 import 'package:flipper_hr/features/billing/application/hr_subscription_controller.dart';
 import 'package:flipper_hr/features/billing/data/hr_momo_gateway.dart';
@@ -38,11 +39,19 @@ ProviderContainer _container({
   return container;
 }
 
-Future<void> _pump(WidgetTester tester, ProviderContainer container, Widget child) async {
+Future<void> _pump(
+  WidgetTester tester,
+  ProviderContainer container,
+  Widget child,
+) async {
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(home: Scaffold(body: child)),
+      child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(body: child),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -68,7 +77,9 @@ void main() {
       expect(find.byKey(const Key('hr-paywall-panel')), findsNothing);
     });
 
-    testWidgets('locks the page when the business has not paid', (tester) async {
+    testWidgets('locks the page when the business has not paid', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState()),
       );
@@ -77,7 +88,10 @@ void main() {
       await _pump(
         tester,
         container,
-        const HrBillingGate(featureName: 'The roster', child: Text('the roster')),
+        const HrBillingGate(
+          featureName: 'The roster',
+          child: Text('the roster'),
+        ),
       );
 
       expect(find.text('the roster'), findsNothing);
@@ -86,29 +100,32 @@ void main() {
       expect(find.byKey(const Key('hr-paywall-subscribe')), findsOneWidget);
     });
 
-    testWidgets('a lapsed subscription is offered a renewal, not a first sale',
-        (tester) async {
-      final container = _container(
-        billing: FakeHrBillingRepository(
-          access: unpaidState(
-            validUntil: DateTime.now().subtract(const Duration(days: 3)),
+    testWidgets(
+      'a lapsed subscription is offered a renewal, not a first sale',
+      (tester) async {
+        final container = _container(
+          billing: FakeHrBillingRepository(
+            access: unpaidState(
+              validUntil: DateTime.now().subtract(const Duration(days: 3)),
+            ),
           ),
-        ),
-      );
-      await container.read(hrAccessStateProvider('biz-1').future);
+        );
+        await container.read(hrAccessStateProvider('biz-1').future);
 
-      await _pump(
-        tester,
-        container,
-        const HrBillingGate(child: Text('the roster')),
-      );
+        await _pump(
+          tester,
+          container,
+          const HrBillingGate(child: Text('the roster')),
+        );
 
-      expect(find.text('Your subscription has ended'), findsOneWidget);
-      expect(find.text('Renew now'), findsOneWidget);
-    });
+        expect(find.text('Your subscription has ended'), findsOneWidget);
+        expect(find.text('Renew now'), findsOneWidget);
+      },
+    );
 
-    testWidgets('an employee with no business is never shown a paywall',
-        (tester) async {
+    testWidgets('an employee with no business is never shown a paywall', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(
           access: const HrAccessState(status: HrAccessStatus.noBusiness),
@@ -126,8 +143,9 @@ void main() {
       expect(find.text('my leave'), findsOneWidget);
     });
 
-    testWidgets('an unapplied migration does not lock anybody out',
-        (tester) async {
+    testWidgets('an unapplied migration does not lock anybody out', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState())
           ..failure = const HrBillingSchemaMissing(),
@@ -142,8 +160,9 @@ void main() {
       expect(find.text('the roster'), findsOneWidget);
     });
 
-    testWidgets('an unpaid business with skips left is offered one',
-        (tester) async {
+    testWidgets('an unpaid business with skips left is offered one', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState()),
       );
@@ -176,8 +195,9 @@ void main() {
       expect(find.byKey(const Key('hr-skip-payment')), findsNothing);
     });
 
-    testWidgets('tapping skip spends one and unlocks the roster',
-        (tester) async {
+    testWidgets('tapping skip spends one and unlocks the roster', (
+      tester,
+    ) async {
       final billing = FakeHrBillingRepository(access: unpaidState());
       final container = _container(billing: billing);
       await container.read(hrAccessStateProvider('biz-1').future);
@@ -199,8 +219,9 @@ void main() {
   });
 
   group('HrSubscribePage', () {
-    testWidgets('shows the Basic package, its price and its limits',
-        (tester) async {
+    testWidgets('shows the Basic package, its price and its limits', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState()),
       );
@@ -217,8 +238,9 @@ void main() {
       expect(find.text('12 of 50'), findsOneWidget);
     });
 
-    testWidgets('a test charge is shown next to the amount it stands in for',
-        (tester) async {
+    testWidgets('a test charge is shown next to the amount it stands in for', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(
           access: unpaidState(),
@@ -242,7 +264,10 @@ void main() {
       final button = find.byKey(const Key('hr-pay-button'));
       expect(tester.widget<FilledButton>(button).onPressed, isNull);
 
-      await tester.enterText(find.byKey(const Key('hr-momo-phone')), '0788123456');
+      await tester.enterText(
+        find.byKey(const Key('hr-momo-phone')),
+        '0788123456',
+      );
       await tester.pump();
 
       expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
@@ -254,7 +279,10 @@ void main() {
       final container = _container(billing: billing, gateway: gateway);
 
       await _pump(tester, container, const HrSubscribePage());
-      await tester.enterText(find.byKey(const Key('hr-momo-phone')), '0788123456');
+      await tester.enterText(
+        find.byKey(const Key('hr-momo-phone')),
+        '0788123456',
+      );
       await tester.pump();
 
       billing.access = entitledState();
@@ -270,8 +298,9 @@ void main() {
       expect(find.byKey(const Key('hr-payment-continue')), findsOneWidget);
     });
 
-    testWidgets('a refusal is shown in the gateway\'s own words',
-        (tester) async {
+    testWidgets('a refusal is shown in the gateway\'s own words', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState()),
         gateway: FakeHrMomoGateway(
@@ -280,7 +309,10 @@ void main() {
       );
 
       await _pump(tester, container, const HrSubscribePage());
-      await tester.enterText(find.byKey(const Key('hr-momo-phone')), '0788123456');
+      await tester.enterText(
+        find.byKey(const Key('hr-momo-phone')),
+        '0788123456',
+      );
       await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('hr-pay-button')));
       await tester.pumpAndSettle();
@@ -291,8 +323,9 @@ void main() {
       expect(find.textContaining('MTN credential missing'), findsOneWidget);
     });
 
-    testWidgets('with no business picked it asks for one instead of a price',
-        (tester) async {
+    testWidgets('with no business picked it asks for one instead of a price', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState()),
         withBusiness: false,
@@ -304,8 +337,9 @@ void main() {
       expect(find.byKey(const Key('hr-plan-card')), findsNothing);
     });
 
-    testWidgets('offers a skip alongside paying, while one is left',
-        (tester) async {
+    testWidgets('offers a skip alongside paying, while one is left', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(access: unpaidState()),
       );
@@ -315,8 +349,9 @@ void main() {
       expect(find.byKey(const Key('hr-skip-payment')), findsOneWidget);
     });
 
-    testWidgets('no skip is offered on the pay screen once exhausted',
-        (tester) async {
+    testWidgets('no skip is offered on the pay screen once exhausted', (
+      tester,
+    ) async {
       final container = _container(
         billing: FakeHrBillingRepository(
           access: unpaidState(skipsUsed: 2, maxPaymentSkips: 2),

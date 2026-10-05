@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/branding/hr_brand_panel.dart';
 import 'package:flipper_web/core/branding/brand_panel_builder.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
@@ -12,7 +13,11 @@ Future<void> _pumpPanel(WidgetTester tester, Widget panel) async {
   addTearDown(tester.view.reset);
 
   await tester.pumpWidget(
-    MaterialApp(home: Scaffold(body: SizedBox(width: 720, child: panel))),
+    MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      home: Scaffold(body: SizedBox(width: 720, child: panel)),
+    ),
   );
   // Cards float on a repeating controller — pumpAndSettle would never settle.
   await tester.pump();

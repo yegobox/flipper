@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -200,7 +201,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
 
                             const SizedBox(height: 12),
                             Text(
-                              'Ready for adventure?',
+                              context.flipperL10n.personalReadyForAdventure,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
@@ -228,7 +229,9 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      '$currentStreak day streak!',
+                                      context.flipperL10n.personalDayStreak(
+                                        currentStreak,
+                                      ),
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -351,7 +354,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Today\'s Progress',
+                  context.flipperL10n.personalTodaysProgress,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -368,7 +371,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    '3/5 completed',
+                    context.flipperL10n.personalCompletedOf('3', '5'),
                     style: TextStyle(
                       color: FlipperPalette.darkGreen,
                       fontWeight: FontWeight.bold,
@@ -388,14 +391,14 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'XP Progress',
+                      context.flipperL10n.personalXpProgress,
                       style: TextStyle(
                         color: FlipperPalette.textSecondary,
                         fontSize: 14,
                       ),
                     ),
                     Text(
-                      '+50 XP today',
+                      context.flipperL10n.personalXpToday('50'),
                       style: TextStyle(
                         color: FlipperPalette.xpGold,
                         fontWeight: FontWeight.bold,
@@ -428,7 +431,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quick Actions',
+            context.flipperL10n.quickActions,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -439,7 +442,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
           Row(
             children: [
               _buildActionCard(
-                'Find\nChallenges',
+                context.flipperL10n.personalFindChallenges,
                 Icons.search,
                 FlipperPalette.accentBlue,
                 () => _openChallengeFinder(),
@@ -447,7 +450,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: _buildActionCard(
-                  'View\nRewards',
+                  context.flipperL10n.personalViewRewards,
                   Icons.card_giftcard,
                   FlipperPalette.warningOrange,
                   () => Navigator.push(
@@ -461,7 +464,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: _buildActionCard(
-                  'Leaderboard',
+                  context.flipperL10n.personalLeaderboard,
                   Icons.leaderboard,
                   FlipperPalette.gemPurple,
                   () => Navigator.push(
@@ -523,7 +526,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Recent Achievements',
+                context.flipperL10n.personalRecentAchievements,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -531,10 +534,11 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                 ),
               ),
               TextButton(
-                onPressed: () =>
-                    _showActionFeedback('Opening all achievements!'),
+                onPressed: () => _showActionFeedback(
+                  context.flipperL10n.personalOpeningAchievements,
+                ),
                 child: Text(
-                  'View all',
+                  context.flipperL10n.personalViewAll,
                   style: TextStyle(color: FlipperPalette.accentBlue),
                 ),
               ),
@@ -546,25 +550,25 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
             child: Row(
               children: [
                 _buildAchievementBadge(
-                  'First Steps',
+                  context.flipperL10n.personalAchievementFirstSteps,
                   Icons.directions_walk,
                   FlipperPalette.primaryGreen,
                   true,
                 ),
                 _buildAchievementBadge(
-                  'Explorer',
+                  context.flipperL10n.personalAchievementExplorer,
                   Icons.explore,
                   FlipperPalette.accentBlue,
                   true,
                 ),
                 _buildAchievementBadge(
-                  'Streak Master',
+                  context.flipperL10n.personalAchievementStreakMaster,
                   Icons.local_fire_department,
                   FlipperPalette.streakOrange,
                   true,
                 ),
                 _buildAchievementBadge(
-                  'Social Star',
+                  context.flipperL10n.personalAchievementSocialStar,
                   Icons.people,
                   FlipperPalette.gemPurple,
                   false,
@@ -631,7 +635,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'How to Level Up',
+            context.flipperL10n.personalHowToLevelUp,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -642,27 +646,24 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
           _buildGameFeatureCard(
             icon: Icons.location_on,
             iconBg: FlipperPalette.accentBlue,
-            title: 'Discover Hidden Quests',
-            description:
-                'Visit local businesses to unlock secret challenges and earn bonus XP!',
+            title: context.flipperL10n.personalDiscoverQuests,
+            description: context.flipperL10n.personalDiscoverQuestsBody,
             xpReward: '+25 XP',
           ),
           const SizedBox(height: 12),
           _buildGameFeatureCard(
             icon: Icons.emoji_events,
             iconBg: FlipperPalette.xpGold,
-            title: 'Complete Daily Challenges',
-            description:
-                'Maintain your streak and climb the leaderboard with friends!',
+            title: context.flipperL10n.personalDailyChallenges,
+            description: context.flipperL10n.personalDailyChallengesBody,
             xpReward: '+50 XP',
           ),
           const SizedBox(height: 12),
           _buildGameFeatureCard(
             icon: Icons.group,
             iconBg: FlipperPalette.gemPurple,
-            title: 'Team Up with Friends',
-            description:
-                'Join forces for group challenges and earn multiplier bonuses!',
+            title: context.flipperL10n.personalTeamUp,
+            description: context.flipperL10n.personalTeamUpBody,
             xpReward: '+75 XP',
           ),
         ],
@@ -775,7 +776,8 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
           ],
         ),
         child: ElevatedButton(
-          onPressed: () => _showActionFeedback('Let the adventure begin! 🚀'),
+          onPressed: () =>
+              _showActionFeedback(context.flipperL10n.personalAdventureBegins),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
@@ -789,8 +791,8 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
             children: [
               const Icon(Icons.rocket_launch, color: Colors.white, size: 24),
               const SizedBox(width: 12),
-              const Text(
-                'Start Your Adventure!',
+              Text(
+                context.flipperL10n.personalStartAdventure,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -809,11 +811,11 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: FlipperPalette.accentBlue,
-        content: const Row(
+        content: Row(
           children: [
             Icon(Icons.sync, color: Colors.white),
             SizedBox(width: 12),
-            Text('Syncing with nearby adventures...'),
+            Text(context.flipperL10n.personalSyncingAdventures),
           ],
         ),
         behavior: SnackBarBehavior.floating,
@@ -834,14 +836,14 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
             children: [
               Icon(Icons.logout, color: FlipperPalette.errorRed, size: 28),
               const SizedBox(width: 12),
-              const Text(
-                'Logout',
+              Text(
+                context.flipperL10n.logOut,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
           content: Text(
-            'Are you sure you want to logout?',
+            context.flipperL10n.confirmLogoutMessage,
             style: TextStyle(color: FlipperPalette.textPrimary, fontSize: 16),
           ),
           actions: [
@@ -850,7 +852,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                 Navigator.of(context).pop(); // Close dialog
               },
               child: Text(
-                'Cancel',
+                context.flipperL10n.cancel,
                 style: TextStyle(
                   color: FlipperPalette.textSecondary,
                   fontWeight: FontWeight.w600,
@@ -872,8 +874,8 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                   vertical: 12,
                 ),
               ),
-              child: const Text(
-                'Logout',
+              child: Text(
+                context.flipperL10n.logOut,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -892,7 +894,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: FlipperPalette.accentBlue,
-          content: const Row(
+          content: Row(
             children: [
               SizedBox(
                 width: 20,
@@ -903,7 +905,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                 ),
               ),
               SizedBox(width: 12),
-              Text('Logging out...'),
+              Text(context.flipperL10n.personalLoggingOut),
             ],
           ),
           behavior: SnackBarBehavior.floating,
@@ -925,11 +927,11 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: FlipperPalette.primaryGreen,
-            content: const Row(
+            content: Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 12),
-                Text('Successfully logged out!'),
+                Text(context.flipperL10n.personalLoggedOut),
               ],
             ),
             behavior: SnackBarBehavior.floating,
@@ -949,7 +951,11 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 12),
-                Expanded(child: Text('Logout failed: ${e.toString()}')),
+                Expanded(
+                  child: Text(
+                    context.flipperL10n.personalLogoutFailed(e.toString()),
+                  ),
+                ),
               ],
             ),
             behavior: SnackBarBehavior.floating,

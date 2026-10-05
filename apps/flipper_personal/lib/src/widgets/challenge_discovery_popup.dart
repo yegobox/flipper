@@ -1,4 +1,5 @@
 import 'package:flipper_models/models/challenge_code.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/providers.dart';
@@ -83,7 +84,7 @@ class _ChallengeDiscoveryPopupState
 
               // Title
               Text(
-                'Challenge Discovered!',
+                context.flipperL10n.personalChallengeDiscovered,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.blue.shade800,
@@ -114,7 +115,7 @@ class _ChallengeDiscoveryPopupState
                   child: Column(
                     children: [
                       Text(
-                        'Reward Available!',
+                        context.flipperL10n.personalRewardAvailable,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade800,
@@ -148,7 +149,7 @@ class _ChallengeDiscoveryPopupState
                         ),
                       ),
                       child: Text(
-                        'Later',
+                        context.flipperL10n.personalLater,
                         style: TextStyle(color: Colors.grey.shade700),
                       ),
                     ),
@@ -191,9 +192,9 @@ class _ChallengeDiscoveryPopupState
                                 ),
                               ),
                             )
-                          : const Text(
-                              'Claim Reward',
-                              style: TextStyle(color: Colors.white),
+                          : Text(
+                              context.flipperL10n.personalClaimReward,
+                              style: const TextStyle(color: Colors.white),
                             ),
                     ),
                   ),
@@ -204,7 +205,7 @@ class _ChallengeDiscoveryPopupState
               if (claimState.hasError) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Failed to claim reward. Please try again.',
+                  context.flipperL10n.personalFailedToClaimReward,
                   style: TextStyle(color: Colors.red.shade600, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
@@ -223,7 +224,7 @@ class _ChallengeDiscoveryPopupState
           children: [
             Icon(Icons.check_circle, color: Colors.green.shade400),
             const SizedBox(width: 8),
-            const Text('Reward claimed successfully!'),
+            Text(context.flipperL10n.personalRewardClaimed),
           ],
         ),
         backgroundColor: Colors.green.shade50,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flipper_hr/features/billing/data/hr_msisdn.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:http/http.dart' as http;
 
 /// Where a request-to-pay stands.
@@ -161,9 +162,7 @@ class HttpHrMomoGateway implements HrMomoGateway {
   }) async {
     final partyId = HrMsisdn.toPartyId(phoneNumber);
     if (partyId == null) {
-      throw const HrMomoException(
-        'Enter a valid MTN or Airtel number, e.g. 0788123456.',
-      );
+      throw HrMomoException(FlipperL10n.current.hrEnterValidMomoNumber);
     }
 
     final response = await _client
@@ -190,17 +189,12 @@ class HttpHrMomoGateway implements HrMomoGateway {
     _throwForStatus(response.statusCode, response.body);
     final decoded = _decode(response.body);
     if (decoded == null) {
-      throw const HrMomoException(
-        'The payment gateway sent an unreadable reply.',
-      );
+      throw HrMomoException(FlipperL10n.current.hrMomoUnreadableReply);
     }
 
     final reference = referenceFrom(decoded);
     if (reference == null || reference.isEmpty) {
-      throw const HrMomoException(
-        'The payment started but no reference came back — check your Mobile '
-        'Money statement before trying again.',
-      );
+      throw HrMomoException(FlipperL10n.current.hrMomoNoReference);
     }
     return reference;
   }
@@ -209,7 +203,7 @@ class HttpHrMomoGateway implements HrMomoGateway {
   Future<HrMomoSettlement> status(String reference) async {
     final id = sanitizeReference(reference);
     if (id == null || id.isEmpty) {
-      throw const HrMomoException('Missing payment reference.');
+      throw HrMomoException(FlipperL10n.current.hrMomoMissingReference);
     }
 
     final response = await _client
@@ -223,9 +217,7 @@ class HttpHrMomoGateway implements HrMomoGateway {
 
     final decoded = _decode(response.body);
     if (decoded == null) {
-      throw const HrMomoException(
-        'The payment gateway sent an unreadable reply.',
-      );
+      throw HrMomoException(FlipperL10n.current.hrMomoUnreadableReply);
     }
     // A non-2xx here means "no verdict yet", not "failed": the caller keeps
     // polling rather than telling somebody their payment went wrong.
@@ -249,10 +241,7 @@ class HttpHrMomoGateway implements HrMomoGateway {
           .post(
             Uri.parse('$baseUrl/v2/api/payment/finalize-on-success'),
             headers: _headers,
-            body: jsonEncode({
-              'planId': planId,
-              'paymentReference': reference,
-            }),
+            body: jsonEncode({'planId': planId, 'paymentReference': reference}),
           )
           .timeout(_timeout);
     } catch (_) {
@@ -265,14 +254,14 @@ class HttpHrMomoGateway implements HrMomoGateway {
   void _throwForStatus(int status, String body) {
     if (status == 200 || status == 202) return;
 
+    final l10n = FlipperL10n.current;
     final fallback = switch (status) {
-      400 => 'The payment request was rejected as invalid.',
-      401 || 403 => 'This account is not authorised to take payments.',
-      404 => 'The payment service could not be found.',
-      409 => 'That payment has already been submitted.',
-      >= 500 =>
-        'Mobile Money is unavailable right now. Please try again shortly.',
-      _ => 'The payment could not be started (HTTP $status).',
+      400 => l10n.hrMomoRejectedInvalid,
+      401 || 403 => l10n.hrMomoNotAuthorised,
+      404 => l10n.hrMomoServiceNotFound,
+      409 => l10n.hrMomoAlreadySubmitted,
+      >= 500 => l10n.hrMomoUnavailable,
+      _ => l10n.hrMomoCouldNotStart('$status'),
     };
 
     // Lead with what the gateway said. data-connector answers every failure as

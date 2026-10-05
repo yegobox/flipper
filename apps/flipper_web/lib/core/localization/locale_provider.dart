@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -7,12 +8,10 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
   return LocaleNotifier();
 });
 
-/// List of supported locales in the app
-const List<Locale> supportedLocales = [
-  Locale('en'), // English
-  Locale('fr'), // French
-  Locale('sw'), // Swahili
-];
+/// Locales the app can render (en, fr, rw, sw) — sourced from
+/// flipper_localize so this list never drifts from the ARBs.
+const List<Locale> supportedLocales =
+    FlipperLocalizationDelegates.supportedLocales;
 
 class LocaleNotifier extends StateNotifier<Locale> {
   LocaleNotifier() : super(const Locale('en')) {
@@ -62,11 +61,12 @@ class LocaleNotifier extends StateNotifier<Locale> {
     for (final platformLocale in platformLocales) {
       if (platformLocale.countryCode == 'FR') {
         return const Locale('fr');
+      } else if (platformLocale.countryCode == 'RW') {
+        return const Locale('rw'); // Kinyarwanda
       } else if ([
         'KE', // Kenya
         'TZ', // Tanzania
         'UG', // Uganda
-        'RW', // Rwanda
         'BI', // Burundi
         'CD', // Democratic Republic of Congo
       ].contains(platformLocale.countryCode)) {

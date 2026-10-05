@@ -22,7 +22,9 @@ class BooksThemeToggle extends ConsumerWidget {
     // known trigger for the `!_skipMarkNeedsLayout` assert.
     return Semantics(
       button: true,
-      label: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+      label: isDark
+          ? booksHomeL10n(context).webHomeSwitchToLight
+          : booksHomeL10n(context).webHomeSwitchToDark,
       child: PressScale(
         onTap: () => ref.read(themeProvider.notifier).toggle(),
         child: Container(
@@ -70,7 +72,9 @@ class BooksThemeToggleTile extends ConsumerWidget {
         color: AppColors.ink2,
       ),
       title: Text(
-        isDark ? 'Light mode' : 'Dark mode',
+        isDark
+            ? booksHomeL10n(context).webHomeLightMode
+            : booksHomeL10n(context).webHomeDarkMode,
         style: AppText.body.copyWith(color: AppColors.ink1),
       ),
       onTap: () {

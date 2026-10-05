@@ -9,6 +9,7 @@ import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
 import 'package:flipper_hr/features/ui/hr_ui.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/services/auth_service.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,10 +60,10 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final session      = ref.watch(hrSessionProvider).value ?? HrSession.none;
+    final session = ref.watch(hrSessionProvider).value ?? HrSession.none;
     final destinations = hrDestinationsFor(session);
-    final location     = GoRouterState.of(context).uri.path;
-    final isWide       = MediaQuery.sizeOf(context).width >= _sidebarBreakpoint;
+    final location = GoRouterState.of(context).uri.path;
+    final isWide = MediaQuery.sizeOf(context).width >= _sidebarBreakpoint;
 
     if (isWide) {
       final collapsed = ref.watch(hrSidebarCollapsedProvider);
@@ -85,9 +86,8 @@ class _HrHomeShellState extends ConsumerState<HrHomeShell> {
                     location: location,
                     destinations: destinations,
                     collapsed: collapsed,
-                    onToggleSidebar: () => ref
-                        .read(hrSidebarCollapsedProvider.notifier)
-                        .toggle(),
+                    onToggleSidebar: () =>
+                        ref.read(hrSidebarCollapsedProvider.notifier).toggle(),
                     isSigningOut: _isSigningOut,
                     onSignOut: _signOut,
                     canSearch: session.canManageRoster,
@@ -172,10 +172,10 @@ class _HrSidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final business = ref.watch(selectedBusinessProvider);
-    final branch   = ref.watch(selectedBranchProvider);
+    final branch = ref.watch(selectedBranchProvider);
 
     final entityName = business?.name ?? 'Flipper HR';
-    final subtitle   = branch?.name ?? '';
+    final subtitle = branch?.name ?? '';
 
     return AnimatedContainer(
       duration: HrTokens.motion,
@@ -351,7 +351,10 @@ class _EntitySwitcher extends StatelessWidget {
                     if (subtitle.isNotEmpty)
                       Text(
                         subtitle,
-                        style: const TextStyle(fontSize: 11.5, color: HrTokens.ink3),
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: HrTokens.ink3,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -385,7 +388,7 @@ class _SidebarNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor  = selected ? HrTokens.accent : HrTokens.ink3;
+    final iconColor = selected ? HrTokens.accent : HrTokens.ink3;
     final labelColor = selected ? HrTokens.accent : HrTokens.ink2;
 
     return Padding(
@@ -426,8 +429,9 @@ class _SidebarNavItem extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 13.5,
-                          fontWeight:
-                              selected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           color: labelColor,
                         ),
                       ),
@@ -478,10 +482,7 @@ class _SidebarAccountFooter extends ConsumerWidget {
                 ),
               )
             : Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 child: Row(
                   children: [
                     _CircleAvatar(label: identity.initials),
@@ -522,7 +523,11 @@ class _SidebarAccountFooter extends ConsumerWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     else
-                      const Icon(Icons.more_horiz, color: HrTokens.ink3, size: 18),
+                      const Icon(
+                        Icons.more_horiz,
+                        color: HrTokens.ink3,
+                        size: 18,
+                      ),
                   ],
                 ),
               ),
@@ -577,15 +582,18 @@ class _HrTopbar extends ConsumerWidget {
         children: [
           _IconAction(
             key: const Key('hr-sidebar-toggle'),
-            icon: collapsed
-                ? Icons.menu_open_outlined
-                : Icons.menu_outlined,
-            tooltip: collapsed ? 'Expand the menu' : 'Collapse the menu',
+            icon: collapsed ? Icons.menu_open_outlined : Icons.menu_outlined,
+            tooltip: collapsed
+                ? context.flipperL10n.hrExpandMenu
+                : context.flipperL10n.hrCollapseMenu,
             onTap: onToggleSidebar,
           ),
           const SizedBox(width: 8),
           // Breadcrumb
-          const Text('HR', style: TextStyle(fontSize: 13, color: HrTokens.ink3)),
+          const Text(
+            'HR',
+            style: TextStyle(fontSize: 13, color: HrTokens.ink3),
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Icon(Icons.chevron_right, size: 14, color: HrTokens.ink3),
@@ -611,7 +619,7 @@ class _HrTopbar extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 300),
               child: HrSearchField(
                 key: const Key('hr-topbar-search'),
-                hintText: 'Search people…',
+                hintText: context.flipperL10n.hrSearchPeople,
                 onChanged: onSearch,
               ),
             ),
@@ -720,13 +728,17 @@ class _AccountMenu extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'switch',
           child: ListTile(
             dense: true,
             contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.swap_horiz, size: 18, color: HrTokens.ink2),
-            title: Text('Switch business or branch'),
+            leading: const Icon(
+              Icons.swap_horiz,
+              size: 18,
+              color: HrTokens.ink2,
+            ),
+            title: Text(context.flipperL10n.hrSwitchBusinessOrBranch),
           ),
         ),
         PopupMenuItem(
@@ -735,7 +747,11 @@ class _AccountMenu extends StatelessWidget {
             dense: true,
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.logout, size: 18, color: HrTokens.ink2),
-            title: Text(isSigningOut ? 'Signing out…' : 'Sign out'),
+            title: Text(
+              isSigningOut
+                  ? context.flipperL10n.hrSigningOut
+                  : context.flipperL10n.signOut,
+            ),
           ),
         ),
       ],
@@ -990,61 +1006,62 @@ List<HrNavGroup> hrNavGroups(List<HrDestination> destinations) {
   if (mine.isEmpty) return [HrNavGroup(destinations: manage)];
   return [
     HrNavGroup(destinations: manage),
-    HrNavGroup(title: 'You', destinations: mine),
+    HrNavGroup(title: FlipperL10n.current.hrNavYou, destinations: mine),
   ];
 }
 
 /// The modules this session may open, in nav order.
 List<HrDestination> hrDestinationsFor(HrSession session) {
   final destinations = <HrDestination>[];
+  final l10n = FlipperL10n.current;
   if (session.canManageRoster) {
     destinations.add(
-      const HrDestination(
+      HrDestination(
         path: '/overview',
-        label: 'Home',
+        label: l10n.home,
         icon: Icons.space_dashboard_outlined,
       ),
     );
   }
   if (session.canManageRoster || session.landing == HrLanding.unresolved) {
     destinations.add(
-      const HrDestination(
+      HrDestination(
         path: '/people',
-        label: 'People',
+        label: l10n.hrPeople,
         icon: Icons.groups_outlined,
       ),
     );
   }
   if (session.canManageRoster) {
     destinations.add(
-      const HrDestination(
+      HrDestination(
         path: '/attendance',
-        label: 'Attendance',
+        label: l10n.hrAttendance,
         icon: Icons.schedule_outlined,
       ),
     );
   }
   if (session.canApproveLeave) {
     destinations.add(
-      const HrDestination(
+      HrDestination(
         path: '/approvals',
-        label: 'Approvals',
+        label: l10n.hrApprovals,
         icon: Icons.fact_check_outlined,
       ),
     );
   }
   if (session.hasOwnRecord) {
     destinations.add(
-      const HrDestination(
+      HrDestination(
         path: '/my-time',
-        label: 'My time',
+        label: l10n.hrMyTime,
         icon: Icons.timer_outlined,
       ),
     );
     destinations.add(
-      const HrDestination(
+      HrDestination(
         path: '/leave',
-        label: 'My leave',
+        label: l10n.hrMyLeave,
         icon: Icons.beach_access_outlined,
       ),
     );

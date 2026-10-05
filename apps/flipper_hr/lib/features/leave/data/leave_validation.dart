@@ -15,6 +15,7 @@ import 'package:flipper_hr/features/leave/data/leave_request.dart';
 import 'package:flipper_hr/features/leave/data/leave_type.dart';
 import 'package:flipper_hr/features/leave/data/leave_working_days.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// How far ahead leave may be booked. A year is generous for a real request and
 /// still catches a mistyped year, which is the actual failure mode (2027 for
@@ -32,28 +33,27 @@ String? validateLeaveDates({
   required DateTime today,
   bool allowBackdated = true,
 }) {
-  if (start == null) return 'Pick the first day of leave.';
-  if (end == null) return 'Pick the last day of leave.';
+  final l10n = FlipperL10n.current;
+  if (start == null) return l10n.hrPickFirstDayOfLeave;
+  if (end == null) return l10n.hrPickLastDayOfLeave;
 
   final from = _dateOnly(start);
   final to = _dateOnly(end);
   final now = _dateOnly(today);
 
-  if (to.isBefore(from)) return 'The last day cannot be before the first day.';
+  if (to.isBefore(from)) return l10n.hrLastDayBeforeFirstDay;
 
   final notice = to.difference(now).inDays;
   if (notice > maxLeaveNoticeDays) {
-    return 'Leave cannot be booked more than a year ahead. '
-        'Check the year on these dates.';
+    return l10n.hrLeaveTooFarAhead;
   }
 
   final backdated = now.difference(from).inDays;
   if (backdated > 0 && !allowBackdated) {
-    return 'Leave cannot start in the past.';
+    return l10n.hrLeaveCannotStartInPast;
   }
   if (backdated > maxBackdatedLeaveDays) {
-    return 'This started more than $maxBackdatedLeaveDays days ago. Ask '
-        'whoever manages the roster to record it instead.';
+    return l10n.hrLeaveBackdatedTooFar('$maxBackdatedLeaveDays');
   }
 
   return null;
@@ -67,7 +67,7 @@ String? validateLeaveDates({
 String? validateLeaveReason({required LeaveType type, required String reason}) {
   if (type == LeaveType.annual) return null;
   if (reason.trim().length < 3) {
-    return 'Say briefly why you need ${type.label.toLowerCase()}.';
+    return FlipperL10n.current.hrLeaveReasonRequired(type.label.toLowerCase());
   }
   return null;
 }
@@ -85,6 +85,7 @@ List<String> validateLeaveRequest({
   bool allowBackdated = true,
 }) {
   final problems = <String>[];
+  final l10n = FlipperL10n.current;
 
   final dateProblem = validateLeaveDates(
     start: request.startDate,
@@ -111,18 +112,19 @@ List<String> validateLeaveRequest({
     if (days <= 0) {
       problems.add(
         request.type.countsCalendarDays
-            ? 'Pick at least one day.'
-            : 'That period is all weekend — pick at least one working day.',
+            ? l10n.hrPickAtLeastOneDay
+            : l10n.hrPeriodAllWeekend,
       );
     }
 
     final clash = findOverlap(request: request, existing: existing);
     if (clash != null) {
       problems.add(
-        'This overlaps leave you already have from '
-        '${formatShortDate(clash.startDate)} to '
-        '${formatShortDate(clash.endDate)} '
-        '(${clash.status.label.toLowerCase()}).',
+        l10n.hrLeaveOverlaps(
+          formatShortDate(clash.startDate),
+          formatShortDate(clash.endDate),
+          clash.status.label.toLowerCase(),
+        ),
       );
     }
 
@@ -138,11 +140,16 @@ List<String> validateLeaveRequest({
       if (left != null && days > left) {
         problems.add(
           left <= 0
-              ? 'No ${request.type.label.toLowerCase()} left for '
-                    '${request.accrualYear}.'
-              : 'Only ${formatLeaveDays(left)} of ${request.type.label.toLowerCase()} '
-                    'left for ${request.accrualYear}; this asks for '
-                    '${formatLeaveDays(days)}.',
+              ? l10n.hrNoLeaveLeft(
+                  request.type.label.toLowerCase(),
+                  '${request.accrualYear}',
+                )
+              : l10n.hrOnlyLeaveLeft(
+                  formatLeaveDays(left),
+                  request.type.label.toLowerCase(),
+                  '${request.accrualYear}',
+                  formatLeaveDays(days),
+                ),
         );
       }
     }

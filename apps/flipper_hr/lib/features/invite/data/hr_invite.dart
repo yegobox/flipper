@@ -5,6 +5,8 @@
 /// The network calls live in `apihub_hr_invite_repository.dart`.
 library;
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// What an invited person may do in HR.
 ///
 /// These map onto Flipper's existing feature/access-level model (see
@@ -13,16 +15,27 @@ library;
 /// than a parallel permission system.
 enum HrRole {
   /// A new hire: books their own leave and sees their own balance. Nothing else.
-  staff('read', 'Staff — books own leave'),
+  staff('read'),
 
   /// An HR manager: the roster plus approving other people's leave.
-  manager('admin', 'Manager — roster and approvals');
+  manager('admin');
 
-  const HrRole(this.accessLevel, this.label);
+  const HrRole(this.accessLevel);
 
   /// `accesses.access_level` granted for [featureName].
   final String accessLevel;
-  final String label;
+
+  /// `Staff — books own leave`, in the current app language.
+  String get label => switch (this) {
+    HrRole.staff => FlipperL10n.current.hrRoleStaffLabel,
+    HrRole.manager => FlipperL10n.current.hrRoleManagerLabel,
+  };
+
+  /// Just the role's name (`Staff`, `Manager`), in the current app language.
+  String get shortLabel => switch (this) {
+    HrRole.staff => FlipperL10n.current.hrRoleStaff,
+    HrRole.manager => FlipperL10n.current.hrRoleManager,
+  };
 
   /// The single feature name HR grants. `create_agent` accepts any string here;
   /// keeping it to one feature means an HR invite never widens someone's POS

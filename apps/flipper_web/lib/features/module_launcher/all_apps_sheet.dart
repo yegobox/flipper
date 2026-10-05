@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:ui';
 
 import 'package:flipper_web/features/login/signin_styles.dart';
@@ -10,7 +11,8 @@ class AllAppsSheet {
   AllAppsSheet._();
 
   static Future<void> show(BuildContext context) {
-    final isDesktop = MediaQuery.sizeOf(context).width >= SITokens.desktopBreakpoint;
+    final isDesktop =
+        MediaQuery.sizeOf(context).width >= SITokens.desktopBreakpoint;
     if (isDesktop) {
       return showDialog<void>(
         context: context,
@@ -27,7 +29,7 @@ class AllAppsSheet {
     return showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'All apps',
+      barrierLabel: context.flipperL10n.allApps,
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 320),
       pageBuilder: (context, animation, secondaryAnimation) => const Align(
@@ -51,7 +53,10 @@ class AllAppsSheet {
             Align(
               alignment: Alignment.bottomCenter,
               child: SlideTransition(
-                position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(animation),
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(animation),
                 child: child,
               ),
             ),
@@ -67,7 +72,7 @@ class _AllAppsSheetBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sections = webAllAppsCatalog();
+    final sections = webAllAppsCatalog(context.flipperL10n);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.86;
 
@@ -91,7 +96,14 @@ class _AllAppsSheetBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 10),
-            Container(width: 40, height: 5, decoration: BoxDecoration(color: AccountingTokens.lineStrong, borderRadius: BorderRadius.circular(3))),
+            Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: AccountingTokens.lineStrong,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
               child: Row(
@@ -100,12 +112,27 @@ class _AllAppsSheetBody extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('All apps', style: AccountingTokens.sans(fontSize: 19, fontWeight: FontWeight.w700)),
-                        Text('Everything in your business', style: AccountingTokens.sans(fontSize: 12.5, color: AccountingTokens.ink3)),
+                        Text(
+                          context.flipperL10n.allApps,
+                          style: AccountingTokens.sans(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          context.flipperL10n.webAppsEverything,
+                          style: AccountingTokens.sans(
+                            fontSize: 12.5,
+                            color: AccountingTokens.ink3,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  IconButton(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close, size: 18)),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, size: 18),
+                  ),
                 ],
               ),
             ),
@@ -119,18 +146,24 @@ class _AllAppsSheetBody extends StatelessWidget {
                       padding: EdgeInsets.fromLTRB(6, i == 0 ? 0 : 16, 6, 12),
                       child: Text(
                         sections[i].label.toUpperCase(),
-                        style: AccountingTokens.sans(fontSize: 11, fontWeight: FontWeight.w700, color: AccountingTokens.ink3, letterSpacing: 0.08 * 11),
+                        style: AccountingTokens.sans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AccountingTokens.ink3,
+                          letterSpacing: 0.08 * 11,
+                        ),
                       ),
                     ),
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 4,
-                        childAspectRatio: 0.78,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 4,
+                            childAspectRatio: 0.78,
+                          ),
                       itemCount: sections[i].apps.length,
                       itemBuilder: (context, index) {
                         final tile = sections[i].apps[index];
@@ -143,7 +176,13 @@ class _AllAppsSheetBody extends StatelessWidget {
                               return;
                             }
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${tile.label} — coming soon')),
+                              SnackBar(
+                                content: Text(
+                                  context.flipperL10n.webAppsComingSoon(
+                                    tile.label,
+                                  ),
+                                ),
+                              ),
                             );
                           },
                         );
@@ -179,7 +218,10 @@ class _AppTile extends StatelessWidget {
               width: 54,
               height: 54,
               decoration: BoxDecoration(
-                color: Color.alphaBlend(tile.color.withValues(alpha: 0.13), Colors.white),
+                color: Color.alphaBlend(
+                  tile.color.withValues(alpha: 0.13),
+                  Colors.white,
+                ),
                 borderRadius: BorderRadius.circular(17),
               ),
               child: Icon(tile.icon, color: tile.color, size: 24),
@@ -190,7 +232,10 @@ class _AppTile extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AccountingTokens.sans(fontSize: 11.5, fontWeight: FontWeight.w600),
+              style: AccountingTokens.sans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

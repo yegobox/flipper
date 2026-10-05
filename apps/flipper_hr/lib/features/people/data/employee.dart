@@ -6,6 +6,8 @@
 /// `supabase_employee_repository.dart`.
 library;
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// Lowercases and strips separators so `on_leave`, `onLeave` and `On Leave`
 /// all resolve to the same enum value.
 String _normalizeWire(String value) =>
@@ -27,31 +29,52 @@ T _fromWire<T>(
 }
 
 enum EmploymentType {
-  fullTime('full_time', 'Full time'),
-  partTime('part_time', 'Part time'),
-  contract('contract', 'Contract'),
-  intern('intern', 'Intern'),
-  casual('casual', 'Casual');
+  fullTime('full_time'),
+  partTime('part_time'),
+  contract('contract'),
+  intern('intern'),
+  casual('casual');
 
-  const EmploymentType(this.wire, this.label);
+  const EmploymentType(this.wire);
 
   final String wire;
-  final String label;
+
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      EmploymentType.fullTime => l10n.hrEmploymentFullTime,
+      EmploymentType.partTime => l10n.hrEmploymentPartTime,
+      EmploymentType.contract => l10n.hrEmploymentContract,
+      EmploymentType.intern => l10n.hrEmploymentIntern,
+      EmploymentType.casual => l10n.hrEmploymentCasual,
+    };
+  }
 
   static EmploymentType fromWire(String? raw) =>
       _fromWire(values, (v) => v.wire, raw, EmploymentType.fullTime);
 }
 
 enum EmploymentStatus {
-  active('active', 'Active'),
-  onLeave('on_leave', 'On leave'),
-  suspended('suspended', 'Suspended'),
-  terminated('terminated', 'Terminated');
+  active('active'),
+  onLeave('on_leave'),
+  suspended('suspended'),
+  terminated('terminated');
 
-  const EmploymentStatus(this.wire, this.label);
+  const EmploymentStatus(this.wire);
 
   final String wire;
-  final String label;
+
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      EmploymentStatus.active => l10n.hrStatusActive,
+      EmploymentStatus.onLeave => l10n.hrOnLeave,
+      EmploymentStatus.suspended => l10n.hrStatusSuspended,
+      EmploymentStatus.terminated => l10n.hrStatusTerminated,
+    };
+  }
 
   /// Terminated people are kept for history but never paid or counted as staff.
   bool get isEmployed => this != EmploymentStatus.terminated;
@@ -61,29 +84,48 @@ enum EmploymentStatus {
 }
 
 enum PayFrequency {
-  monthly('monthly', 'Monthly'),
-  weekly('weekly', 'Weekly'),
-  daily('daily', 'Daily'),
-  hourly('hourly', 'Hourly');
+  monthly('monthly'),
+  weekly('weekly'),
+  daily('daily'),
+  hourly('hourly');
 
-  const PayFrequency(this.wire, this.label);
+  const PayFrequency(this.wire);
 
   final String wire;
-  final String label;
+
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      PayFrequency.monthly => l10n.hrPayMonthly,
+      PayFrequency.weekly => l10n.hrPayWeekly,
+      PayFrequency.daily => l10n.hrPayDaily,
+      PayFrequency.hourly => l10n.hrPayHourly,
+    };
+  }
 
   static PayFrequency fromWire(String? raw) =>
       _fromWire(values, (v) => v.wire, raw, PayFrequency.monthly);
 }
 
 enum PaymentMethod {
-  mobileMoney('mobile_money', 'Mobile money'),
-  bankTransfer('bank_transfer', 'Bank transfer'),
-  cash('cash', 'Cash');
+  mobileMoney('mobile_money'),
+  bankTransfer('bank_transfer'),
+  cash('cash');
 
-  const PaymentMethod(this.wire, this.label);
+  const PaymentMethod(this.wire);
 
   final String wire;
-  final String label;
+
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      PaymentMethod.mobileMoney => l10n.paymentMobileMoney,
+      PaymentMethod.bankTransfer => l10n.hrPaymentBankTransfer,
+      PaymentMethod.cash => l10n.cash,
+    };
+  }
 
   static PaymentMethod fromWire(String? raw) =>
       _fromWire(values, (v) => v.wire, raw, PaymentMethod.mobileMoney);
@@ -210,15 +252,15 @@ class Employee {
     return p.isNotEmpty ? p : email.trim();
   }
 
-  String get fullName => [firstName.trim(), lastName.trim()]
-      .where((p) => p.isNotEmpty)
-      .join(' ');
+  String get fullName =>
+      [firstName.trim(), lastName.trim()].where((p) => p.isNotEmpty).join(' ');
 
   /// Up to two letters for the avatar; empty when the name is still blank.
   String get initials {
-    final parts = [firstName.trim(), lastName.trim()]
-        .where((p) => p.isNotEmpty)
-        .toList();
+    final parts = [
+      firstName.trim(),
+      lastName.trim(),
+    ].where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return '';
     if (parts.length == 1) {
       final only = parts.first;

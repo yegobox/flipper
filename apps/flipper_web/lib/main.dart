@@ -11,10 +11,9 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // go_router is used via the provider
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flipper_web/l10n/app_localizations.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/core/utils/error_logging.dart';
 import 'package:flipper_web/core/utils/initialization.dart';
@@ -92,13 +91,8 @@ class MyApp extends ConsumerWidget {
       themeMode: themeMode,
       locale: locale,
       routerConfig: router,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en'), Locale('fr'), Locale('sw')],
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
     );
   }
 }

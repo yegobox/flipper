@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_analytics/flipper_analytics.dart';
 import 'package:flipper_web/core/analytics/analytics_provider.dart';
@@ -107,8 +108,7 @@ class _BusinessBranchSelectorState
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.black),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                         strokeWidth: 3,
                         backgroundColor: Color(0xFFE0E0E0),
                       ),
@@ -129,14 +129,14 @@ class _BusinessBranchSelectorState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'No businesses available',
-              style: TextStyle(color: LoginChoicesTokens.ink2),
+            Text(
+              context.flipperL10n.webBizNoBusinesses,
+              style: const TextStyle(color: LoginChoicesTokens.ink2),
             ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: _isSigningOut ? null : _logout,
-              child: const Text('Sign out'),
+              child: Text(context.flipperL10n.signOut),
             ),
           ],
         ),
@@ -146,9 +146,9 @@ class _BusinessBranchSelectorState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Choose a business',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.webBizChooseBusiness,
+          style: const TextStyle(
             color: LoginChoicesTokens.ink1,
             fontWeight: FontWeight.w700,
             height: 1.05,
@@ -157,9 +157,9 @@ class _BusinessBranchSelectorState
           ),
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Select the business you want to manage.',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.webBizChooseBusinessSubtitle,
+          style: const TextStyle(
             color: LoginChoicesTokens.ink2,
             height: 1.35,
             fontWeight: FontWeight.w400,
@@ -191,7 +191,7 @@ class _BusinessBranchSelectorState
               const SizedBox(height: 22),
               Center(
                 child: Text(
-                  'Not seeing your business? Ask the owner to invite you.',
+                  context.flipperL10n.webBizNotSeeing,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: LoginChoicesTokens.ink3,
@@ -224,7 +224,9 @@ class _BusinessBranchSelectorState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BranchSelectionTopRow(
-          businessName: _selectedBusinessName ?? 'Business',
+          businessName:
+              _selectedBusinessName ??
+              context.flipperL10n.booksBusinessFallback,
           onBack: () {
             setState(() {
               _currentStep = SelectionStep.business;
@@ -235,9 +237,9 @@ class _BusinessBranchSelectorState
           },
         ),
         const SizedBox(height: 28),
-        const Text(
-          'Choose a branch',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.webBizChooseBranch,
+          style: const TextStyle(
             color: LoginChoicesTokens.ink1,
             fontWeight: FontWeight.w700,
             height: 1.05,
@@ -246,9 +248,9 @@ class _BusinessBranchSelectorState
           ),
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Select the branch you want to access',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.webBizChooseBranchSubtitle,
+          style: const TextStyle(
             color: LoginChoicesTokens.ink2,
             height: 1.35,
             fontWeight: FontWeight.w400,
@@ -279,7 +281,9 @@ class _BusinessBranchSelectorState
           ),
         ),
         FlipperGradientButton(
-          text: 'Continue to ${selectedBranch?.name ?? 'branch'}',
+          text: context.flipperL10n.continueToBranch(
+            selectedBranch?.name ?? context.flipperL10n.branch,
+          ),
           icon: Icons.arrow_outward_rounded,
           isLoading: _isLoading,
           onPressed: selectedBranch == null
@@ -302,14 +306,16 @@ class _BusinessBranchSelectorState
     ref.read(selectedBusinessProvider.notifier).set(business);
     ref.read(selectedBranchProvider.notifier).set(null);
     kickoffAccountingBootstrap(ref, business.id);
-    await ref.read(productAnalyticsProvider).track(
-      AnalyticsEvents.businessSelected,
-      properties: {
-        'source': 'business_branch_selector',
-        'business_id': business.id,
-        'business_name': business.name,
-      },
-    );
+    await ref
+        .read(productAnalyticsProvider)
+        .track(
+          AnalyticsEvents.businessSelected,
+          properties: {
+            'source': 'business_branch_selector',
+            'business_id': business.id,
+            'business_name': business.name,
+          },
+        );
 
     try {
       final tenant = widget.userProfile.tenants.first;
@@ -331,8 +337,8 @@ class _BusinessBranchSelectorState
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not set business. Please try again.'),
+          SnackBar(
+            content: Text(context.flipperL10n.webBizCouldNotSet),
             backgroundColor: Colors.red,
           ),
         );

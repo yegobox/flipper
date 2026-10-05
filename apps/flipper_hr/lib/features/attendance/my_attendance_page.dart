@@ -5,6 +5,7 @@ import 'package:flipper_hr/features/attendance/data/attendance_session.dart';
 import 'package:flipper_hr/features/attendance/widgets/attendance_state_chip.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -41,7 +42,7 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
 
   Future<void> _clockIn(String employeeId) => _run(() async {
     await ref.read(attendanceActionsProvider).clockIn(employeeId: employeeId);
-    if (mounted) _toast('Clocked in.');
+    if (mounted) _toast(context.flipperL10n.hrClockedInToast);
   });
 
   Future<void> _clockOut(AttendanceSession session) => _run(() async {
@@ -49,7 +50,11 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
         .read(attendanceActionsProvider)
         .clockOut(session: session);
     if (mounted) {
-      _toast('Clocked out — ${formatWorkedMinutes(saved.minutes ?? 0)} today.');
+      _toast(
+        context.flipperL10n.hrClockedOutToast(
+          formatWorkedMinutes(saved.minutes ?? 0),
+        ),
+      );
     }
   });
 
@@ -88,12 +93,14 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'My time',
+                      context.flipperL10n.hrMyTime,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Your hours for the last $timesheetWindowDays days.',
+                      context.flipperL10n.hrYourHoursForLastDays(
+                        '$timesheetWindowDays',
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -124,13 +131,10 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
               ) =>
                 me == null
                     ? [
-                        const SliverFillRemaining(
+                        SliverFillRemaining(
                           hasScrollBody: false,
                           child: _Message(
-                            message:
-                                'You do not have an employee record on this '
-                                'account yet, so there are no hours to track. Ask '
-                                'whoever manages HR to add you.',
+                            message: context.flipperL10n.hrNoRecordNoHours,
                           ),
                         ),
                       ]
@@ -193,7 +197,7 @@ class _MyAttendancePageState extends ConsumerState<MyAttendancePage> {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
         sliver: SliverToBoxAdapter(
           child: Text(
-            'RECENT DAYS',
+            context.flipperL10n.hrRecentDays.toUpperCase(),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               letterSpacing: 1.1,
@@ -284,10 +288,14 @@ class _ClockCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               isIn
-                  ? 'Clocked in at ${formatClockTime(openSession!.startedAt)}'
+                  ? context.flipperL10n.hrClockedInAt(
+                      formatClockTime(openSession!.startedAt),
+                    )
                   : day.sessions.isEmpty
-                  ? 'Not clocked in today'
-                  : 'Last out at ${formatClockTime(day.lastOut!)}',
+                  ? context.flipperL10n.hrNotClockedInToday
+                  : context.flipperL10n.hrLastOutAt(
+                      formatClockTime(day.lastOut!),
+                    ),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 20),
@@ -298,18 +306,21 @@ class _ClockCard extends StatelessWidget {
                     key: const Key('my-attendance-clock-out'),
                     onPressed: busy ? null : onClockOut,
                     icon: const Icon(Icons.logout),
-                    label: const Text('Clock out'),
+                    label: Text(context.flipperL10n.hrClockOut),
                   )
                 else
                   FilledButton.icon(
                     key: const Key('my-attendance-clock-in'),
                     onPressed: busy ? null : onClockIn,
                     icon: const Icon(Icons.login),
-                    label: const Text('Clock in'),
+                    label: Text(context.flipperL10n.hrClockIn),
                   ),
                 const Spacer(),
                 Text(
-                  '${formatWorkedMinutes(windowMinutes)} in $timesheetWindowDays days',
+                  context.flipperL10n.hrWorkedInDays(
+                    formatWorkedMinutes(windowMinutes),
+                    '$timesheetWindowDays',
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -337,11 +348,15 @@ class _DayRow extends StatelessWidget {
       child: ListTile(
         title: Row(
           children: [
-            Text(isToday ? 'Today' : formatDayLabel(day.workDate)),
+            Text(
+              isToday
+                  ? context.flipperL10n.hrToday
+                  : formatDayLabel(day.workDate),
+            ),
             if (day.hasOvernightSession) ...[
               const SizedBox(width: 8),
               Text(
-                'overnight',
+                context.flipperL10n.hrOvernight,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -349,7 +364,7 @@ class _DayRow extends StatelessWidget {
             ],
           ],
         ),
-        subtitle: Text(_detail(day)),
+        subtitle: Text(_detail(context.flipperL10n, day)),
         trailing: Text(
           formatWorkedMinutes(day.workedMinutes),
           style: theme.textTheme.titleMedium?.copyWith(
@@ -360,17 +375,17 @@ class _DayRow extends StatelessWidget {
     );
   }
 
-  String _detail(AttendanceDay day) {
-    if (day.sessions.isEmpty) return 'No hours';
+  String _detail(FlipperAppLocalizations l10n, AttendanceDay day) {
+    if (day.sessions.isEmpty) return l10n.hrNoHours;
     final parts = <String>[
       for (final s in day.sessions)
         s.endedAt == null
-            ? '${formatClockTime(s.startedAt)} – now'
+            ? l10n.hrSessionUntilNow(formatClockTime(s.startedAt))
             : '${formatClockTime(s.startedAt)} – ${formatClockTime(s.endedAt!)}',
     ];
     final breaks = day.breakMinutes;
     if (breaks != null && breaks > 0) {
-      parts.add('${formatWorkedMinutes(breaks)} break');
+      parts.add(l10n.hrBreakDuration(formatWorkedMinutes(breaks)));
     }
     return parts.join(' · ');
   }
@@ -411,7 +426,7 @@ class _Message extends StatelessWidget {
                 FilledButton(
                   key: const Key('my-attendance-retry'),
                   onPressed: onRetry,
-                  child: const Text('Try again'),
+                  child: Text(context.flipperL10n.hrTryAgain),
                 ),
               ],
             ],

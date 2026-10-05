@@ -12,12 +12,15 @@
 /// it is worth testing without Supabase in the room.
 library;
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 class HrIdentity {
   const HrIdentity({required this.name, this.phone, this.email});
 
   /// Signed in, nothing resolved yet. Never shows a number: an avatar that
   /// flickers from digits to initials reads as two different people.
-  static const unknown = HrIdentity(name: 'Account');
+  static HrIdentity get unknown =>
+      HrIdentity(name: FlipperL10n.current.account);
 
   /// The best name available. Never empty.
   final String name;

@@ -5,6 +5,9 @@
 /// only transitively available through flipper_web).
 library;
 
+import 'package:flipper_hr/features/ui/hr_l10n.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// `1250000` → `RWF 1,250,000`. Fractions are dropped for whole amounts and
 /// shown to two places otherwise, which is how RWF payroll figures read.
 String formatMoney(double amount, String currency) {
@@ -53,37 +56,26 @@ String _trimZero(double value) {
       : oneDecimal.toStringAsFixed(1);
 }
 
-const _months = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
-];
-
 /// `2026-03-04` → `4 Mar 2026`.
 String formatShortDate(DateTime date) =>
-    '${date.day} ${_months[date.month - 1]} ${date.year}';
+    '${date.day} ${hrMonthShortName(FlipperL10n.current, date.month)} '
+    '${date.year}';
 
 /// Human tenure for the roster row: `3 yr 2 mo`, `5 mo`, `12 d`, `Starts soon`.
 String formatTenure({required DateTime hireDate, required DateTime asOf}) {
   final hire = DateTime(hireDate.year, hireDate.month, hireDate.day);
   final now = DateTime(asOf.year, asOf.month, asOf.day);
-  if (hire.isAfter(now)) return 'Starts ${formatShortDate(hire)}';
+  final l10n = FlipperL10n.current;
+  if (hire.isAfter(now)) return l10n.hrTenureStarts(formatShortDate(hire));
 
   var months = (now.year - hire.year) * 12 + (now.month - hire.month);
   if (now.day < hire.day) months -= 1;
-  if (months < 1) return '${now.difference(hire).inDays} d';
+  if (months < 1) return l10n.hrTenureDays('${now.difference(hire).inDays}');
 
   final years = months ~/ 12;
   final remainder = months % 12;
-  if (years == 0) return '$months mo';
-  return remainder == 0 ? '$years yr' : '$years yr $remainder mo';
+  if (years == 0) return l10n.hrTenureMonths('$months');
+  return remainder == 0
+      ? l10n.hrTenureYears('$years')
+      : l10n.hrTenureYearsMonths('$years', '$remainder');
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,7 +9,13 @@ void main() {
   group('PinScreen', () {
     testWidgets('renders correctly before PIN verification', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(child: MaterialApp(home: PinScreen())),
+        const ProviderScope(
+          child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+            home: PinScreen(),
+          ),
+        ),
       );
       await tester.pump();
 
@@ -26,7 +33,11 @@ void main() {
       ) async {
         await tester.pumpWidget(
           const ProviderScope(
-            child: MaterialApp(home: PinScreen(isPinVerified: true)),
+            child: MaterialApp(
+              localizationsDelegates: FlipperLocalizationDelegates.delegates,
+              supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+              home: PinScreen(isPinVerified: true),
+            ),
           ),
         );
         await tester.pump();
@@ -41,7 +52,11 @@ void main() {
       testWidgets('toggles to SMS and updates UI', (tester) async {
         await tester.pumpWidget(
           const ProviderScope(
-            child: MaterialApp(home: PinScreen(isPinVerified: true)),
+            child: MaterialApp(
+              localizationsDelegates: FlipperLocalizationDelegates.delegates,
+              supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+              home: PinScreen(isPinVerified: true),
+            ),
           ),
         );
         await tester.pump();
@@ -58,7 +73,11 @@ void main() {
       ) async {
         await tester.pumpWidget(
           const ProviderScope(
-            child: MaterialApp(home: PinScreen(isPinVerified: true)),
+            child: MaterialApp(
+              localizationsDelegates: FlipperLocalizationDelegates.delegates,
+              supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+              home: PinScreen(isPinVerified: true),
+            ),
           ),
         );
         await tester.pump();

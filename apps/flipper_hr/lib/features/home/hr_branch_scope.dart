@@ -1,4 +1,5 @@
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -61,13 +62,12 @@ class _NoBranchSelected extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Pick a branch to continue',
+              context.flipperL10n.hrPickBranchToContinue,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'HR records belong to a branch, so choose the one you are '
-              'working on.',
+              context.flipperL10n.hrPickBranchBody,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -77,7 +77,7 @@ class _NoBranchSelected extends StatelessWidget {
             FilledButton.icon(
               onPressed: onPick,
               icon: const Icon(Icons.swap_horiz),
-              label: const Text('Choose business or branch'),
+              label: Text(context.flipperL10n.hrChooseBusinessOrBranch),
             ),
           ],
         ),

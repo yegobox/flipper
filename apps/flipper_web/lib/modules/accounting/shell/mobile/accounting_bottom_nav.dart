@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/routing/accounting_route.dart';
 import 'package:flipper_web/modules/accounting/theme/accounting_tokens.dart';
@@ -25,28 +26,36 @@ class AccountingBottomNav extends ConsumerWidget {
             children: [
               _TabBtn(
                 icon: Icons.home_outlined,
-                label: 'Snapshot',
+                label: context.flipperL10n.booksTabSnapshot,
                 selected: tab == AccountingMobileTab.snapshot,
-                onTap: () => ref.read(accountingMobileTabProvider.notifier).state = AccountingMobileTab.snapshot,
+                onTap: () =>
+                    ref.read(accountingMobileTabProvider.notifier).state =
+                        AccountingMobileTab.snapshot,
               ),
               _TabBtn(
                 icon: Icons.verified_user_outlined,
-                label: 'Approvals',
+                label: context.flipperL10n.booksTabApprovals,
                 selected: tab == AccountingMobileTab.approvals,
                 badge: pending,
-                onTap: () => ref.read(accountingMobileTabProvider.notifier).state = AccountingMobileTab.approvals,
+                onTap: () =>
+                    ref.read(accountingMobileTabProvider.notifier).state =
+                        AccountingMobileTab.approvals,
               ),
               _TabBtn(
                 icon: Icons.bar_chart_outlined,
-                label: 'Reports',
+                label: context.flipperL10n.reports,
                 selected: tab == AccountingMobileTab.reports,
-                onTap: () => ref.read(accountingMobileTabProvider.notifier).state = AccountingMobileTab.reports,
+                onTap: () =>
+                    ref.read(accountingMobileTabProvider.notifier).state =
+                        AccountingMobileTab.reports,
               ),
               _TabBtn(
                 icon: Icons.grid_view,
-                label: 'More',
+                label: context.flipperL10n.more,
                 selected: tab == AccountingMobileTab.more,
-                onTap: () => ref.read(accountingMobileTabProvider.notifier).state = AccountingMobileTab.more,
+                onTap: () =>
+                    ref.read(accountingMobileTabProvider.notifier).state =
+                        AccountingMobileTab.more,
               ),
             ],
           ),
@@ -92,13 +101,19 @@ class _TabBtn extends StatelessWidget {
                       top: -2,
                       left: 22,
                       child: Container(
-                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: AccountingTokens.loss,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AccountingTokens.surface, width: 1.5),
+                          border: Border.all(
+                            color: AccountingTokens.surface,
+                            width: 1.5,
+                          ),
                         ),
                         child: Text(
                           '$badge',
@@ -115,7 +130,11 @@ class _TabBtn extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 label,
-                style: AccountingTokens.sans(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+                style: AccountingTokens.sans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
             ],
           ),

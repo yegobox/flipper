@@ -5,6 +5,8 @@
 /// binding to run.
 library;
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// A kind of leave, with the statutory entitlement Rwanda's Law N° 66/2018
 /// attaches to it.
 ///
@@ -20,33 +22,27 @@ library;
 /// than in a booking screen.
 enum LeaveType {
   /// Art. 63: 18 working days a year, accruing 1.5 days a month.
-  annual('annual', 'Annual leave', entitlementDays: 18),
+  annual('annual', entitlementDays: 18),
 
   /// Art. 70: 15 days a year at full pay.
-  sick('sick', 'Sick leave', entitlementDays: 15),
+  sick('sick', entitlementDays: 15),
 
   /// Art. 66: 12 weeks. Stated in weeks, so counted in calendar days.
-  maternity(
-    'maternity',
-    'Maternity leave',
-    entitlementDays: 84,
-    countsCalendarDays: true,
-  ),
+  maternity('maternity', entitlementDays: 84, countsCalendarDays: true),
 
   /// Art. 67: 4 working days.
-  paternity('paternity', 'Paternity leave', entitlementDays: 4),
+  paternity('paternity', entitlementDays: 4),
 
   /// Art. 65 circumstantial leave: 6 working days a year, for a bereavement,
   /// a wedding, and the like.
-  compassionate('compassionate', 'Compassionate leave', entitlementDays: 6),
+  compassionate('compassionate', entitlementDays: 6),
 
   /// Agreed with the employer, unpaid. No cap, because there is no entitlement
   /// to run out of — every day still needs approving.
-  unpaid('unpaid', 'Unpaid leave');
+  unpaid('unpaid');
 
   const LeaveType(
-    this.wire,
-    this.label, {
+    this.wire, {
     this.entitlementDays,
     this.countsCalendarDays = false,
   });
@@ -55,7 +51,18 @@ enum LeaveType {
   /// `supabase/migrations/0004_hr_leave.sql`.
   final String wire;
 
-  final String label;
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      LeaveType.annual => l10n.hrLeaveTypeAnnual,
+      LeaveType.sick => l10n.hrLeaveTypeSick,
+      LeaveType.maternity => l10n.hrLeaveTypeMaternity,
+      LeaveType.paternity => l10n.hrLeaveTypePaternity,
+      LeaveType.compassionate => l10n.hrLeaveTypeCompassionate,
+      LeaveType.unpaid => l10n.hrLeaveTypeUnpaid,
+    };
+  }
 
   /// Days granted per year, or null when the type is uncapped ([unpaid]).
   final double? entitlementDays;

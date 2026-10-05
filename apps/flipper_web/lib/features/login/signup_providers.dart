@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -124,8 +125,7 @@ class SignupFormState {
       isSendingOtp: isSendingOtp ?? this.isSendingOtp,
       isVerifyingOtp: isVerifyingOtp ?? this.isVerifyingOtp,
       otpCode: otpCode ?? this.otpCode,
-      otpError:
-          otpError == _unset ? this.otpError : (otpError as String?),
+      otpError: otpError == _unset ? this.otpError : (otpError as String?),
       verifiedContact: verifiedContact == _unset
           ? this.verifiedContact
           : (verifiedContact as String?),
@@ -245,7 +245,7 @@ class SignupForm extends _$SignupForm {
         state = state.copyWith(
           isCheckingUsername: false,
           isUsernameAvailable: null,
-          errorMessage: 'Error checking username availability',
+          errorMessage: FlipperL10n.current.webSignupUsernameCheckError,
         );
       }
     }
@@ -299,7 +299,7 @@ class SignupForm extends _$SignupForm {
         // IPPIS answered and does not know this TIN.
         state = state.copyWith(
           isValidatingTin: false,
-          tinError: 'No data found for this TIN',
+          tinError: FlipperL10n.current.webSignupNoTinData,
         );
       }
     } on IppisUnavailableException {
@@ -363,7 +363,8 @@ class SignupForm extends _$SignupForm {
     // a verified one: a code sent to the old number left the code field open
     // and typing into it verified the *new* contact against that request.
     final movedOn = contact != null && contact != state.phoneNumber;
-    final hasOtpState = state.verifiedContact != null ||
+    final hasOtpState =
+        state.verifiedContact != null ||
         state.isOtpRequested ||
         state.otpCode.isNotEmpty;
     final resetOtp = movedOn && hasOtpState;
@@ -386,7 +387,7 @@ class SignupForm extends _$SignupForm {
     final contact = state.phoneNumber;
     if (contact == null || contact.isEmpty) {
       state = state.copyWith(
-        otpError: 'Enter a phone number or email first.',
+        otpError: FlipperL10n.current.webSignupEnterContactFirst,
       );
       return false;
     }
@@ -421,7 +422,10 @@ class SignupForm extends _$SignupForm {
       }
       state = state.copyWith(
         isSendingOtp: false,
-        otpError: _readableError(e, fallback: 'Failed to send the code.'),
+        otpError: _readableError(
+          e,
+          fallback: FlipperL10n.current.webSignupFailedToSendCode,
+        ),
       );
       return false;
     }
@@ -457,8 +461,9 @@ class SignupForm extends _$SignupForm {
 
       state = state.copyWith(
         isVerifyingOtp: false,
-        otpError: result['error']?.toString() ??
-            'That code is not right. Please try again.',
+        otpError:
+            result['error']?.toString() ??
+            FlipperL10n.current.webSignupWrongCode,
         verifiedContact: null,
       );
       return false;
@@ -469,7 +474,10 @@ class SignupForm extends _$SignupForm {
       }
       state = state.copyWith(
         isVerifyingOtp: false,
-        otpError: _readableError(e, fallback: 'Could not check that code.'),
+        otpError: _readableError(
+          e,
+          fallback: FlipperL10n.current.webSignupCouldNotCheckCode,
+        ),
         verifiedContact: null,
       );
       return false;
@@ -505,24 +513,30 @@ class SignupForm extends _$SignupForm {
 
     // Validate required fields
     if (state.username.isEmpty) {
-      state = state.copyWith(errorMessage: 'Username is required');
+      state = state.copyWith(
+        errorMessage: FlipperL10n.current.webSignupUsernameRequired,
+      );
       return false;
     }
 
     if (state.username.length < 4) {
       state = state.copyWith(
-        errorMessage: 'Username must be at least 4 characters',
+        errorMessage: FlipperL10n.current.webSignupUsernameTooShort,
       );
       return false;
     }
 
     if (state.fullName.trim().isEmpty) {
-      state = state.copyWith(errorMessage: 'Please enter your full name');
+      state = state.copyWith(
+        errorMessage: FlipperL10n.current.webSignupEnterFullName,
+      );
       return false;
     }
 
     if (state.businessType == null) {
-      state = state.copyWith(errorMessage: 'Please select a business type');
+      state = state.copyWith(
+        errorMessage: FlipperL10n.current.webSignupSelectBusinessType,
+      );
       return false;
     }
 
@@ -530,13 +544,15 @@ class SignupForm extends _$SignupForm {
     final needsTin = state.businessType?.id != '2'; // '2' is Individual
     if (needsTin && (state.tinNumber.isEmpty || state.tinNumber.length < 9)) {
       state = state.copyWith(
-        errorMessage: 'Please enter a valid TIN number (at least 9 characters)',
+        errorMessage: FlipperL10n.current.webSignupInvalidTin,
       );
       return false;
     }
 
     if (state.country.isEmpty) {
-      state = state.copyWith(errorMessage: 'Please select a country');
+      state = state.copyWith(
+        errorMessage: FlipperL10n.current.webSignupSelectCountry,
+      );
       return false;
     }
 
@@ -547,8 +563,8 @@ class SignupForm extends _$SignupForm {
     if (contact != null && contact.isNotEmpty && !state.isPhoneVerified) {
       state = state.copyWith(
         errorMessage: state.isOtpRequested
-            ? 'Enter the code we sent to $contact to continue.'
-            : 'Verify $contact first — tap "Send code".',
+            ? FlipperL10n.current.webSignupEnterCodeSentTo(contact)
+            : FlipperL10n.current.webSignupVerifyFirst(contact),
       );
       return false;
     }
@@ -567,8 +583,7 @@ class SignupForm extends _$SignupForm {
 
         if (!isAvailable) {
           state = state.copyWith(
-            errorMessage:
-                'Username is not available. Please choose another one.',
+            errorMessage: FlipperL10n.current.webSignupUsernameTaken,
           );
           return false;
         }
@@ -576,8 +591,7 @@ class SignupForm extends _$SignupForm {
         if (kDebugMode) print('Error checking username availability: $e');
         state = state.copyWith(
           isCheckingUsername: false,
-          errorMessage:
-              'Error checking username availability. Please try again.',
+          errorMessage: FlipperL10n.current.webSignupUsernameCheckRetry,
         );
         return false;
       }
@@ -586,7 +600,7 @@ class SignupForm extends _$SignupForm {
     // Final validation check using isValid getter
     if (!state.isValid) {
       state = state.copyWith(
-        errorMessage: 'Please fill in all required fields correctly',
+        errorMessage: FlipperL10n.current.webSignupFillRequired,
       );
       return false;
     }
@@ -644,12 +658,11 @@ class SignupForm extends _$SignupForm {
         errorMessage = e.toString().split('Exception:')[1].trim();
       } else if (e.toString().contains('HttpException') ||
           e.toString().contains('SocketException')) {
-        errorMessage =
-            'Network error. Please check your connection and try again.';
+        errorMessage = FlipperL10n.current.webSignupNetworkError;
       } else if (e.toString().contains('timeout')) {
-        errorMessage = 'Request timed out. Please try again later.';
+        errorMessage = FlipperL10n.current.webSignupTimeout;
       } else {
-        errorMessage = 'Failed to create account: ${e.toString()}';
+        errorMessage = FlipperL10n.current.webSignupFailedCreate(e.toString());
       }
 
       if (kDebugMode) print('Signup error: $e');
@@ -671,3 +684,15 @@ class _Unset {
 }
 
 const _unset = _Unset();
+
+/// Display text for a business type. The three built-in types are
+/// translated; anything else (server-provided) is shown as stored.
+String webSignupBusinessTypeLabel(
+  BusinessType t,
+  FlipperAppLocalizations l10n,
+) => switch (t.typeName) {
+  'Flipper Retailer' => l10n.webSignupTypeRetailer,
+  'Individual' => l10n.webSignupTypeIndividual,
+  'Enterprise' => l10n.webSignupTypeEnterprise,
+  _ => t.typeName,
+};
