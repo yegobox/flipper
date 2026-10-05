@@ -64,8 +64,24 @@ class _BarKeypadState extends State<BarKeypad>
     super.dispose();
   }
 
+  /// This handler is global, so it must stand down when the keypad is not
+  /// what the user is typing into: a covered route (e.g. admin settings
+  /// pushed over the lock screen) or any focused text field. Otherwise it
+  /// swallows Backspace and digits and fields like the floor-plan table
+  /// name cannot be edited.
+  bool get _ownsKeyboard {
+    if (!mounted) return false;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return false;
+    final focused = FocusManager.instance.primaryFocus?.context;
+    if (focused == null) return true;
+    if (focused.widget is EditableText) return false;
+    return focused.findAncestorStateOfType<EditableTextState>() == null;
+  }
+
   bool _onKey(KeyEvent event) {
     if (!widget.enabled || event is! KeyDownEvent) return false;
+    if (!_ownsKeyboard) return false;
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.backspace) {
       _backspace();

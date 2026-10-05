@@ -86,17 +86,26 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
   }
 
   Future<void> _saveTable(BarTable table) async {
-    await _sync.saveBarTable(table);
+    try {
+      await _sync.saveBarTable(table);
+    } catch (e) {
+      _snack('Could not save ${table.name}: $e');
+      rethrow;
+    }
   }
 
   Future<void> _renameZone(_ZoneGroup zone, String newName) async {
     final trimmed = newName.trim();
     if (trimmed.isEmpty || trimmed == zone.zoneName) return;
-    await _runBusy(() async {
-      for (final t in zone.tables) {
-        await _saveTable(t.copyWith(zoneName: trimmed));
-      }
-    });
+    try {
+      await _runBusy(() async {
+        for (final t in zone.tables) {
+          await _saveTable(t.copyWith(zoneName: trimmed));
+        }
+      });
+    } catch (_) {
+      // _saveTable already told the user.
+    }
   }
 
   String _prefixForZone(_ZoneGroup zone) {
@@ -134,13 +143,25 @@ class _BarFloorPlanEditorState extends ConsumerState<BarFloorPlanEditor> {
     final branchId = _branchId;
     if (branchId == null) return;
     final prefix = _prefixForZone(zone);
-    final num = _nextTableNumber(zone, prefix);
+    // Ids embed the name at creation and never change on rename, so a
+    // renamed table still owns its old id. Skip any taken id or name, or the
+    // upsert below silently overwrites that table (e.g. B6 renamed to
+    // "Patio" would be reset to "B6" by the next Add table).
+    final takenIds = allTables.map((t) => t.id).toSet();
+    final takenNames =
+        zone.tables.map((t) => t.name.trim().toLowerCase()).toSet();
+    var num = _nextTableNumber(zone, prefix);
+    String idFor(int n) => '${branchId}_${zone.zoneId}_$prefix$n';
+    while (takenIds.contains(idFor(num)) ||
+        takenNames.contains('$prefix$num'.toLowerCase())) {
+      num++;
+    }
     final name = '$prefix$num';
     final maxOrdinal = allTables.isEmpty
         ? 0
         : allTables.map((t) => t.ordinal).reduce(math.max);
     final table = BarTable(
-      id: '${branchId}_${zone.zoneId}_$name',
+      id: idFor(num),
       branchId: branchId,
       zoneId: zone.zoneId,
       zoneName: zone.zoneName,
@@ -429,11 +450,16 @@ class _ZoneNameField extends StatefulWidget {
 
 class _ZoneNameFieldState extends State<_ZoneNameField> {
   late final TextEditingController _controller;
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialName);
+    // Clicking away is how most people finish an edit on desktop.
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) widget.onSubmitted(_controller.text);
+    });
   }
 
   @override
@@ -447,6 +473,7 @@ class _ZoneNameFieldState extends State<_ZoneNameField> {
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -455,6 +482,7 @@ class _ZoneNameFieldState extends State<_ZoneNameField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
+      focusNode: _focusNode,
       style: GoogleFonts.outfit(
         fontSize: 15,
         fontWeight: FontWeight.w800,
@@ -466,8 +494,8 @@ class _ZoneNameFieldState extends State<_ZoneNameField> {
         border: InputBorder.none,
         contentPadding: EdgeInsets.zero,
       ),
-      onSubmitted: widget.onSubmitted,
-      onEditingComplete: () => widget.onSubmitted(_controller.text),
+      // Enter unfocuses, and the focus listener commits.
+      onSubmitted: (_) => _focusNode.unfocus(),
     );
   }
 }
@@ -498,38 +526,64 @@ class _TableRow extends StatefulWidget {
 
 class _TableRowState extends State<_TableRow> {
   late final TextEditingController _nameController;
+  final _nameFocus = FocusNode();
+
+  /// Last name sent to [_TableRow.onSave]; the stream echo lags the write,
+  /// so this stops Enter + blur from saving the same rename twice.
+  String? _committedName;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.table.name);
+    // Clicking away is how most people finish an edit on desktop.
+    _nameFocus.addListener(() {
+      if (!_nameFocus.hasFocus) _commitName();
+    });
   }
 
   @override
   void didUpdateWidget(covariant _TableRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.table.name != widget.table.name &&
-        _nameController.text != widget.table.name) {
+        _nameController.text != widget.table.name &&
+        !_nameFocus.hasFocus) {
       _nameController.text = widget.table.name;
     }
   }
 
   @override
   void dispose() {
+    _nameFocus.dispose();
     _nameController.dispose();
     super.dispose();
   }
 
   Future<void> _commitName() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty || name == widget.table.name) return;
-    await widget.onSave(widget.table.copyWith(name: name));
+    if (name.isEmpty) {
+      _nameController.text = widget.table.name;
+      return;
+    }
+    if (name == widget.table.name || name == _committedName) return;
+    _committedName = name;
+    try {
+      await widget.onSave(widget.table.copyWith(name: name));
+    } catch (_) {
+      // The editor already told the user; put the saved name back.
+      _committedName = null;
+      if (mounted) _nameController.text = widget.table.name;
+    }
   }
 
   Future<void> _setSeats(int seats) async {
     final next = seats.clamp(1, 99);
     if (next == widget.table.seats) return;
-    await widget.onSave(widget.table.copyWith(seats: next));
+    try {
+      await widget.onSave(widget.table.copyWith(seats: next));
+    } catch (_) {
+      // The editor already told the user.
+    }
   }
 
   @override
@@ -566,6 +620,7 @@ class _TableRowState extends State<_TableRow> {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: TextField(
                     controller: _nameController,
+                    focusNode: _nameFocus,
                     enabled: widget.enabled,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
@@ -593,8 +648,8 @@ class _TableRowState extends State<_TableRow> {
                         borderSide: const BorderSide(color: BarTokens.blue),
                       ),
                     ),
-                    onSubmitted: (_) => _commitName(),
-                    onEditingComplete: _commitName,
+                    // Enter unfocuses, and the focus listener commits.
+                    onSubmitted: (_) => _nameFocus.unfocus(),
                   ),
                 ),
               ),
