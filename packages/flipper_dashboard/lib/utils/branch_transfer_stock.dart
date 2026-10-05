@@ -99,7 +99,7 @@ bool variantPassesPosCatalogFilters(
   required bool destVatEnabled,
 }) {
   const blockedImport = {'2', '4'};
-  const blockedPurchase = {'01', '04'};
+  const blockedPurchase = {'01', '03', '04'};
   const blockedNames = {'Cash In', 'Cash Out', 'Utility', 'Custom Amount'};
 
   final name = variant.name.trim();

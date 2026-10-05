@@ -33,6 +33,10 @@ class ManualPurchaseLine {
   final double unitPrice;
   final String taxTyCd;
 
+  /// New items only: the price the product sells at once created. Null
+  /// means "same as the cost" (the owner can change it in Inventory).
+  final double? sellingPrice;
+
   const ManualPurchaseLine({
     required this.uid,
     this.catalogVariantId,
@@ -43,6 +47,7 @@ class ManualPurchaseLine {
     this.qty = 1,
     this.unitPrice = 0,
     this.taxTyCd = 'B',
+    this.sellingPrice,
   });
 
   double get total => qty * unitPrice;
@@ -55,6 +60,8 @@ class ManualPurchaseLine {
     double? qty,
     double? unitPrice,
     String? taxTyCd,
+    double? sellingPrice,
+    bool clearSellingPrice = false,
   }) {
     return ManualPurchaseLine(
       uid: uid,
@@ -66,6 +73,9 @@ class ManualPurchaseLine {
       qty: qty ?? this.qty,
       unitPrice: unitPrice ?? this.unitPrice,
       taxTyCd: taxTyCd ?? this.taxTyCd,
+      sellingPrice: clearSellingPrice
+          ? null
+          : (sellingPrice ?? this.sellingPrice),
     );
   }
 }
@@ -318,6 +328,7 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
     double? qty,
     double? unitPrice,
     String? taxTyCd,
+    double? sellingPrice,
   }) {
     if (index < 0 || index >= state.lines.length) return;
     final lines = [...state.lines];
@@ -326,6 +337,10 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
       qty: qty,
       unitPrice: unitPrice,
       taxTyCd: taxTyCd,
+      sellingPrice: sellingPrice != null && sellingPrice > 0
+          ? sellingPrice
+          : null,
+      clearSellingPrice: sellingPrice != null && sellingPrice <= 0,
     );
     state = state.copyWith(lines: lines, clearError: true);
   }
@@ -401,8 +416,15 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
       final supplierTin = s.supplierTin.trim();
 
       final variants = <Variant>[];
+      // itemSeq → catalog variant the line was picked from: approval adds
+      // the line's quantity to that product's stock.
+      final catalogTargets = <int, String>{};
       for (var i = 0; i < s.lines.length; i++) {
         final line = s.lines[i];
+        final catalogId = line.catalogVariantId;
+        if (catalogId != null && catalogId.isNotEmpty) {
+          catalogTargets[i + 1] = catalogId;
+        }
         variants.add(
           Variant(
             name: line.name.trim(),
@@ -417,6 +439,9 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
             qtyUnitCd: 'BA',
             qty: line.qty,
             prc: line.unitPrice,
+            supplyPrice: line.unitPrice,
+            // New items: the product created on approval sells at this.
+            retailPrice: line.sellingPrice ?? line.unitPrice,
             splyAmt: line.total,
             dcRt: 0,
             dcAmt: 0,
@@ -425,11 +450,9 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
             taxAmt: line.taxAmt,
             totAmt: line.total,
             spplrNm: supplierName,
-            stock: Stock(
-              branchId: branchId,
-              currentStock: line.qty,
-              lastTouched: now,
-            ),
+            // No stock until approval: the quantity then goes onto the
+            // product's own stock (see stockInManualPurchase).
+            stock: Stock(branchId: branchId, currentStock: 0, lastTouched: now),
           ),
         );
       }
@@ -477,6 +500,7 @@ class ManualPurchaseNotifier extends StateNotifier<ManualPurchaseState> {
         purchase: purchase,
         branchId: branchId,
         supplier: supplier,
+        catalogTargets: catalogTargets,
       );
 
       state = state.copyWith(isSaving: false);

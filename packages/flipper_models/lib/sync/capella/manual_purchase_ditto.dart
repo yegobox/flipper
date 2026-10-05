@@ -42,13 +42,25 @@ abstract final class ManualPurchaseDitto {
     );
   }
 
-  static Future<void> _upsertVariant(Variant variant) async {
+  /// [extra] carries Ditto-only fields the [Variant] model has no slot for
+  /// (see [targetVariantIdField]).
+  static Future<void> _upsertVariant(
+    Variant variant, {
+    Map<String, dynamic> extra = const {},
+  }) async {
     final ditto = _dittoOrThrow();
     await ditto.store.execute(
       'INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
-      arguments: {'doc': variant.toFlipperJson()},
+      arguments: {
+        'doc': {...variant.toFlipperJson(), ...extra},
+      },
     );
   }
+
+  /// On a purchase line variant: the catalog variant whose stock the line
+  /// adds to. Set at save for lines picked from the catalog, and on approval
+  /// for new items (the product created for them).
+  static const String targetVariantIdField = 'targetVariantId';
 
   static Future<void> _upsertSupplier(Supplier supplier) async {
     final ditto = _dittoOrThrow();
@@ -153,10 +165,15 @@ abstract final class ManualPurchaseDitto {
   }
 
   /// Saves a manual purchase and its line variants to Ditto only.
+  ///
+  /// No stock moves here: a waiting purchase can still be declined. Approval
+  /// adds each line to its catalog variant's stock. [catalogTargets] maps a
+  /// line's `itemSeq` to the catalog variant it was picked from.
   static Future<Purchase> save({
     required Purchase purchase,
     required String branchId,
     Supplier? supplier,
+    Map<int, String> catalogTargets = const {},
   }) async {
     final now = DateTime.now().toUtc();
     purchase.branchId = branchId;
@@ -180,6 +197,8 @@ abstract final class ManualPurchaseDitto {
       final stock = variant.stock ?? Stock(branchId: branchId);
       stock.id = stock.id.isEmpty ? const Uuid().v4() : stock.id;
       stock.branchId = branchId;
+      stock.currentStock = 0;
+      stock.rsdQty = 0;
       stock.lastTouched = now;
       await _upsertStock(stock);
 
@@ -192,7 +211,11 @@ abstract final class ManualPurchaseDitto {
       variant.lastTouched = now;
       variant.itemNm ??= variant.name;
       variant.name = variant.itemNm ?? variant.name;
-      await _upsertVariant(variant);
+      final target = catalogTargets[variant.itemSeq];
+      await _upsertVariant(
+        variant,
+        extra: {if (target != null) targetVariantIdField: target},
+      );
       lineVariants.add(variant);
     }
 
@@ -258,6 +281,41 @@ abstract final class ManualPurchaseDitto {
     if (filterKey == 'pending') return variant.pchsSttsCd == '01';
     if (filterKey == 'rejected') return variant.pchsSttsCd == '04';
     return variant.pchsSttsCd == purchaseStatusApiParam(filterKey);
+  }
+
+  /// Line variant id → catalog variant id its stock goes to, for [purchaseId].
+  static Future<Map<String, String>> catalogTargets(String purchaseId) async {
+    final ditto = _dittoService.dittoInstance;
+    if (ditto == null) return {};
+    final result = await ditto.store.execute(
+      'SELECT * FROM variants WHERE purchaseId = :purchaseId',
+      arguments: {'purchaseId': purchaseId},
+    );
+    return {
+      for (final item in result.items)
+        if ('${item.value[targetVariantIdField] ?? ''}'.isNotEmpty)
+          '${item.value['_id'] ?? item.value['id']}':
+              '${item.value[targetVariantIdField]}',
+    };
+  }
+
+  /// Marks a line as stocked in: its quantity now sits on [targetVariantId]'s
+  /// stock, so the line itself is a purchase record (`'03'`, hidden from the
+  /// POS catalog) and is never stocked in again.
+  static Future<void> markLineStockedIn({
+    required Variant line,
+    required String targetVariantId,
+  }) async {
+    line.pchsSttsCd = '03';
+    line.assigned = true;
+    line.lastTouched = DateTime.now().toUtc();
+    await _upsertVariant(line, extra: {targetVariantIdField: targetVariantId});
+  }
+
+  /// Purchase header after every line was stocked in.
+  static Future<void> markPurchaseApproved(Purchase purchase) async {
+    purchase.hasUnApprovedVariant = false;
+    await _upsertPurchase(purchase);
   }
 
   /// Local approve/decline for manual purchases (not on data-connector).

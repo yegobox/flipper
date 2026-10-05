@@ -8,6 +8,7 @@ abstract class PurchaseInterface {
     required Purchase purchase,
     required String branchId,
     Supplier? supplier,
+    Map<int, String> catalogTargets = const {},
   });
 
   Future<Supplier> upsertSupplierParty(PartyDraft draft);

@@ -16,6 +16,7 @@ mixin PurchaseMixin implements PurchaseInterface {
     required Purchase purchase,
     required String branchId,
     Supplier? supplier,
+    Map<int, String> catalogTargets = const {},
   }) {
     throw UnimplementedError(
       'Manual purchase requires Capella sync (Ditto)',

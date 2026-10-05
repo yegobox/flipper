@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_notifier.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
+import 'package:flipper_models/services/purchase_expense_recorder.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
-import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -51,10 +52,8 @@ Future<bool> submitManualPurchase({
   final paidUpfront = terms.pmtTyCd == '03' ? terms.paidUpfront : null;
   if (approve) {
     try {
-      await ManualPurchaseDitto.setPurchaseStatus(
-        purchase: saved,
-        pchsSttsCd: '02',
-      );
+      // Stock first: each line goes onto its product (created for new items).
+      final stock = await stockInManualPurchase(saved);
       await PosPurchaseJournalPoster.postPurchase(
         purchase: saved,
         postToLedger: true,
@@ -62,7 +61,12 @@ Future<bool> submitManualPurchase({
         paidUpfront: paidUpfront,
         dueDate: terms.isOnCredit ? terms.effectiveDueDate : null,
       );
-      toast('Purchase recorded and approved');
+      // What was paid now shows with the other expenses (like a cash-out).
+      await PurchaseExpenseRecorder.record(
+        purchase: saved,
+        paidUpfront: paidUpfront ?? 0,
+      );
+      toast(stock.rraMessage ?? 'Purchase recorded and approved');
     } catch (e) {
       // The purchase stays in Waiting; nothing is lost.
       toast('Purchase saved as waiting. Approval failed: $e');

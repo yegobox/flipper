@@ -26,11 +26,13 @@ mixin CapellaPurchaseMixin on PurchaseMixin implements PurchaseInterface {
     required Purchase purchase,
     required String branchId,
     Supplier? supplier,
+    Map<int, String> catalogTargets = const {},
   }) {
     return ManualPurchaseDitto.save(
       purchase: purchase,
       branchId: branchId,
       supplier: supplier,
+      catalogTargets: catalogTargets,
     );
   }
 
