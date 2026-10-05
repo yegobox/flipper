@@ -153,4 +153,172 @@ void main() {
       );
     });
   });
+
+  group('classifyCashbookEntry', () {
+    test('cash book receipt types win over the category name', () {
+      expect(
+        classifyCashbookEntry(
+          receiptType: 'Cash Out',
+          transactionType: 'Transport',
+          isIncome: false,
+        ),
+        CashbookEntryKind.cashOut,
+      );
+      expect(
+        classifyCashbookEntry(
+          receiptType: 'Cash In',
+          transactionType: 'Owner deposit',
+          isIncome: true,
+        ),
+        CashbookEntryKind.cashIn,
+      );
+    });
+
+    test('POS sales are sales', () {
+      expect(
+        classifyCashbookEntry(
+          receiptType: null,
+          transactionType: 'Sale',
+          isIncome: true,
+        ),
+        CashbookEntryKind.sale,
+      );
+    });
+
+    test('falls back to the direction when no receipt type is set', () {
+      expect(
+        classifyCashbookEntry(
+          receiptType: null,
+          transactionType: 'Cash Out',
+          isIncome: false,
+        ),
+        CashbookEntryKind.cashOut,
+      );
+      expect(
+        classifyCashbookEntry(
+          receiptType: null,
+          transactionType: 'Rent',
+          isIncome: false,
+        ),
+        CashbookEntryKind.cashOut,
+      );
+    });
+  });
+
+  group('cashbookRowLabels', () {
+    test('cash out shows its category beneath the label', () {
+      final l = cashbookRowLabels(
+        kind: CashbookEntryKind.cashOut,
+        transactionType: 'Transport',
+      );
+      expect(l.title, 'Cash out');
+      expect(l.detail, 'Transport');
+    });
+
+    test('the note follows the category', () {
+      final l = cashbookRowLabels(
+        kind: CashbookEntryKind.cashOut,
+        transactionType: 'Transport',
+        note: '  Moto to supplier ',
+      );
+      expect(l.detail, 'Transport · Moto to supplier');
+    });
+
+    test('a movement without a category says so', () {
+      expect(
+        cashbookRowLabels(
+          kind: CashbookEntryKind.cashOut,
+          transactionType: 'Cash Out',
+        ).detail,
+        'No category',
+      );
+      expect(
+        cashbookRowLabels(
+          kind: CashbookEntryKind.cashIn,
+          transactionType: null,
+        ).detail,
+        'No category',
+      );
+    });
+
+    test('sales are labelled Sale, never with a category', () {
+      final l = cashbookRowLabels(
+        kind: CashbookEntryKind.sale,
+        transactionType: 'Sale',
+      );
+      expect(l.title, 'Sale');
+      expect(l.detail, 'Point of sale');
+    });
+  });
+
+  test('cashbookCategoryLabel', () {
+    expect(cashbookCategoryLabel('Rent'), 'Rent');
+    expect(cashbookCategoryLabel('cash out'), 'No category');
+    expect(cashbookCategoryLabel(null), 'No category');
+  });
+
+  test('cashbookMethodBadge marks only mobile money', () {
+    expect(cashbookMethodBadge('CASH'), isNull);
+    expect(cashbookMethodBadge(null), isNull);
+    expect(cashbookMethodBadge('MTN MOMO'), 'MoMo');
+    expect(cashbookMethodBadge('AIRTEL MONEY'), 'Airtel');
+  });
+
+  group('cashbookDayLabel', () {
+    final now = DateTime(2026, 10, 5, 0, 30);
+
+    test('today and yesterday by calendar day, not 24h', () {
+      expect(cashbookDayLabel(DateTime(2026, 10, 5, 0, 1), now), 'Today');
+      expect(cashbookDayLabel(DateTime(2026, 10, 4, 23, 59), now), 'Yesterday');
+    });
+
+    test('yesterday stays yesterday across a DST change', () {
+      // US spring-forward is 2026-03-08: local midnights there are 23h apart.
+      // Meaningful when run with TZ set to a DST zone; harmless in UTC.
+      expect(
+        cashbookDayLabel(DateTime(2026, 3, 8, 12), DateTime(2026, 3, 9, 0, 30)),
+        'Yesterday',
+      );
+    });
+
+    test(
+      'older days show a short date, with the year only when it differs',
+      () {
+        expect(cashbookDayLabel(DateTime(2026, 10, 1), now), 'Thu, Oct 1');
+        expect(
+          cashbookDayLabel(DateTime(2025, 12, 31), now),
+          'Wed, Dec 31, 2025',
+        );
+      },
+    );
+  });
+
+  test('groupCashbookByDay orders days newest first and keeps row order', () {
+    final items = [
+      DateTime(2026, 10, 5, 9),
+      DateTime(2026, 10, 3, 18),
+      DateTime(2026, 10, 5, 8),
+      DateTime(2026, 10, 3, 7),
+    ];
+    final groups = groupCashbookByDay(items, at: (d) => d);
+    expect(groups.map((g) => g.day), [
+      DateTime(2026, 10, 5),
+      DateTime(2026, 10, 3),
+    ]);
+    expect(groups.first.items, [
+      DateTime(2026, 10, 5, 9),
+      DateTime(2026, 10, 5, 8),
+    ]);
+  });
+
+  test('cashbookTotals counts sales and cash in as money in', () {
+    final t = cashbookTotals(const [
+      (kind: CashbookEntryKind.sale, amount: 3000),
+      (kind: CashbookEntryKind.cashIn, amount: 500),
+      (kind: CashbookEntryKind.cashOut, amount: 1200),
+    ]);
+    expect(t.moneyIn, 3500);
+    expect(t.moneyOut, 1200);
+    expect(t.net, 2300);
+  });
 }

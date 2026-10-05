@@ -127,3 +127,147 @@ T? resolveCashbookSelectedCategory<T>({
   if (createdHere != null && id(createdHere) == selectedId) return createdHere;
   return null;
 }
+
+/// What a Cash Book list row represents.
+enum CashbookEntryKind { cashIn, cashOut, sale }
+
+const String _cashInType = 'Cash In';
+const String _cashOutType = 'Cash Out';
+const String _saleType = 'Sale';
+
+/// Classifies a transaction for the Cash Book list. A movement recorded in the
+/// Cash Book carries `receiptType` 'Cash In'/'Cash Out' (its `transactionType`
+/// is the category name); POS sales come through the same stream as income.
+CashbookEntryKind classifyCashbookEntry({
+  required String? receiptType,
+  required String? transactionType,
+  required bool? isIncome,
+}) {
+  final receipt = receiptType?.trim().toLowerCase();
+  if (receipt == _cashInType.toLowerCase()) return CashbookEntryKind.cashIn;
+  if (receipt == _cashOutType.toLowerCase()) return CashbookEntryKind.cashOut;
+  final type = transactionType?.trim().toLowerCase();
+  if (type == _cashInType.toLowerCase()) return CashbookEntryKind.cashIn;
+  if (type == _cashOutType.toLowerCase()) return CashbookEntryKind.cashOut;
+  if (isIncome == false) return CashbookEntryKind.cashOut;
+  return CashbookEntryKind.sale;
+}
+
+/// Row title and the line beneath it. The title is the kind ("Cash out");
+/// the detail is what it was for: the category, then the note.
+({String title, String? detail}) cashbookRowLabels({
+  required CashbookEntryKind kind,
+  required String? transactionType,
+  String? note,
+}) {
+  final title = switch (kind) {
+    CashbookEntryKind.cashIn => 'Cash in',
+    CashbookEntryKind.cashOut => 'Cash out',
+    CashbookEntryKind.sale => 'Sale',
+  };
+  final raw = transactionType?.trim() ?? '';
+  final lower = raw.toLowerCase();
+  final isPlaceholder =
+      raw.isEmpty ||
+      lower == _cashInType.toLowerCase() ||
+      lower == _cashOutType.toLowerCase() ||
+      lower == _saleType.toLowerCase();
+  final category = isPlaceholder ? null : raw;
+  final trimmedNote = note?.trim();
+  final hasNote = trimmedNote != null && trimmedNote.isNotEmpty;
+
+  final parts = <String>[
+    if (category != null)
+      category
+    else if (kind == CashbookEntryKind.sale)
+      'Point of sale'
+    else
+      'No category',
+    if (hasNote) trimmedNote,
+  ];
+  return (title: title, detail: parts.isEmpty ? null : parts.join(' · '));
+}
+
+/// The category to show for a Cash Book movement, or "No category".
+String cashbookCategoryLabel(String? transactionType) {
+  final raw = transactionType?.trim() ?? '';
+  final lower = raw.toLowerCase();
+  if (raw.isEmpty ||
+      lower == _cashInType.toLowerCase() ||
+      lower == _cashOutType.toLowerCase()) {
+    return 'No category';
+  }
+  return raw;
+}
+
+/// Short label for a non-cash payment method, or null for cash.
+String? cashbookMethodBadge(String? paymentType) {
+  final p = paymentType?.trim().toUpperCase() ?? '';
+  if (p.isEmpty || p == cashbookMethodCash) return null;
+  if (p.contains('AIRTEL')) return 'Airtel';
+  if (p.contains('MOMO') || p.contains('MOBILE MONEY')) return 'MoMo';
+  return null;
+}
+
+/// Day group header: "Today", "Yesterday", or a short date (year only when it
+/// differs from [now]).
+String cashbookDayLabel(DateTime day, DateTime now) {
+  final d = DateTime(day.year, day.month, day.day);
+  final today = DateTime(now.year, now.month, now.day);
+  // Count calendar days on UTC dates: local midnights can be 23 or 25 hours
+  // apart across a DST change, which would make `inDays` call yesterday today.
+  final diff = DateTime.utc(
+    today.year,
+    today.month,
+    today.day,
+  ).difference(DateTime.utc(d.year, d.month, d.day)).inDays;
+  if (diff == 0) return 'Today';
+  if (diff == 1) return 'Yesterday';
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  final base = '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
+  return d.year == today.year ? base : '$base, ${d.year}';
+}
+
+/// Groups items by calendar day, newest day first, keeping each day's order.
+List<({DateTime day, List<T> items})> groupCashbookByDay<T>(
+  Iterable<T> items, {
+  required DateTime Function(T) at,
+}) {
+  final groups = <DateTime, List<T>>{};
+  for (final item in items) {
+    final t = at(item);
+    groups.putIfAbsent(DateTime(t.year, t.month, t.day), () => []).add(item);
+  }
+  final days = groups.keys.toList()..sort((a, b) => b.compareTo(a));
+  return [for (final d in days) (day: d, items: groups[d]!)];
+}
+
+/// Money in (sales + cash in), money out, and the net.
+({double moneyIn, double moneyOut, double net}) cashbookTotals(
+  Iterable<({CashbookEntryKind kind, double amount})> entries,
+) {
+  var moneyIn = 0.0;
+  var moneyOut = 0.0;
+  for (final e in entries) {
+    if (e.kind == CashbookEntryKind.cashOut) {
+      moneyOut += e.amount;
+    } else {
+      moneyIn += e.amount;
+    }
+  }
+  return (moneyIn: moneyIn, moneyOut: moneyOut, net: moneyIn - moneyOut);
+}

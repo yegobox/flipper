@@ -3,9 +3,11 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
-import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
+import 'package:flipper_dashboard/widgets/cashbook_list_view.dart';
 import 'package:flipper_dashboard/widgets/cashbook_new_category_sheet.dart';
+import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
 import 'package:flipper_dashboard/features/personal_goals/personal_goals_providers.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -36,17 +38,11 @@ abstract final class _CashbookColors {
   static const Color beigeInactive = Color(0xFFEDEADF);
   static const Color labelMuted = Color(0xFF6B7280);
 
-  /// Recent-transactions card (design spec)
-  static const Color designBlue = Color(0xFF2563EB);
   static const Color cashInGreen = Color(0xFF1B5E20);
   static const Color cashInSurface = Color(0xFFE8F5E9);
   static const Color cashOutRed = Color(0xFFB71C1C);
   static const Color cashOutSurface = Color(0xFFFFEBEE);
-  static const Color rowHighlight = Color(0xFFFAF8F3);
-  static const Color chipBorder = Color(0xFFE5E7EB);
 }
-
-enum _RecentTxFilter { all, cashIn, cashOut, momo }
 
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
@@ -74,7 +70,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   /// Seeds [_selectedCategoryId] once categories load for a new entry.
   bool _categorySeedPending = false;
 
-  _RecentTxFilter _recentTxFilter = _RecentTxFilter.all;
+  CashbookListFilter _listFilter = CashbookListFilter.all;
 
   bool _personalGoalCashInIntentApplied = false;
 
@@ -224,35 +220,49 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   Widget _buildCashbookHeader(CoreViewModel model) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 14, 8, 10),
-      child: Stack(
-        alignment: Alignment.center,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AppBarRoundIconButton(
-                icon: Icons.close,
-                onPressed: () => _onCashbookClosePressed(model),
-                tooltip: 'Close',
-              ),
-              const Expanded(child: SizedBox()),
-              AppBarRoundIconButton(
-                icon: Icons.calendar_today_rounded,
-                iconColor: Colors.blue.shade600,
-                borderColor: Colors.blue.shade300,
-                onPressed: handleDateTimePicker,
-                tooltip: 'Select Date',
-              ),
-            ],
+          _HeaderIconButton(
+            tooltip: model.newTransactionPressed ? 'Back' : 'Close',
+            onPressed: () => _onCashbookClosePressed(model),
+            child: model.newTransactionPressed
+                ? TransactionDetailSvgs.icon(
+                    TransactionDetailSvgs.chevronLeft(),
+                    size: 22,
+                    color: CashbookListTokens.ink,
+                  )
+                : DashboardQuickAccessSvgs.assetIcon(
+                    DashboardQuickAccessSvgs.x,
+                    size: 20,
+                    color: CashbookListTokens.ink,
+                  ),
           ),
-          IgnorePointer(
+          Expanded(
             child: Text(
               'Cash Book',
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade900,
+                fontWeight: FontWeight.w700,
+                fontSize: 19,
+                color: CashbookListTokens.ink,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ),
+          // Keeps the title centred while the form hides the date picker.
+          Visibility(
+            visible: !model.newTransactionPressed,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: _HeaderIconButton(
+              tooltip: 'Select dates',
+              onPressed: handleDateTimePicker,
+              child: DashboardQuickAccessSvgs.assetIcon(
+                DashboardQuickAccessSvgs.calendar,
+                size: 20,
+                color: CashbookListTokens.ink,
               ),
             ),
           ),
@@ -262,12 +272,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget _buildShellBody(CoreViewModel model) {
-    return Column(
-      children: [
-        Expanded(child: _buildMainContent(model)),
-        const SizedBox(height: 12),
-      ],
-    );
+    return _buildMainContent(model);
   }
 
   Widget _buildMainContent(CoreViewModel model) {
@@ -280,35 +285,82 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final transactionData = ref.watch(cashbookRecentTransactionsProvider);
     final dateRange = ref.watch(dateRangeProvider);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: transactionData.when(
-              data: (all) => _buildRecentTransactionsCard(
-                allTransactions: all,
-                dateRange: dateRange,
-              ),
-              loading: () => const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              error: (e, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    e.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: transactionData.when(
+            data: (all) => _buildList(all, dateRange),
+            loading: () => const ColoredBox(
+              color: CashbookListTokens.page,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  e.toString(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade700),
                 ),
               ),
             ),
           ),
-          _buildActionButtons(model),
-        ],
-      ),
+        ),
+        CashbookActionBar(
+          onCashIn: () => _startNewTransaction(model, TransactionType.cashIn),
+          onCashOut: () => _startNewTransaction(model, TransactionType.cashOut),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildList(List<ITransaction> all, DateRangeModel dateRange) {
+    final window = _effectiveTransactionWindow(dateRange);
+    final inWindow = _filterByDateWindow(all, window);
+    final byId = {for (final t in inWindow) t.id: t};
+
+    return CashbookListView(
+      entries: [for (final t in inWindow) _toListEntry(t)],
+      filter: _listFilter,
+      onFilterChanged: (f) => setState(() => _listFilter = f),
+      currency: ProxyService.box.defaultCurrency(),
+      periodLabel: _recentTxPeriodSubtitle(window),
+      onPickPeriod: handleDateTimePicker,
+      onViewAll: () => locator<RouterService>().navigateTo(TransactionsRoute()),
+      onRefresh: () async {
+        ref.invalidate(cashbookRecentTransactionsProvider);
+      },
+      onEntryTap: (id) {
+        final t = byId[id];
+        if (t == null) return;
+        locator<RouterService>().navigateTo(
+          TransactionDetailRoute(transaction: t),
+        );
+      },
+    );
+  }
+
+  CashbookListEntry _toListEntry(ITransaction t) {
+    final kind = classifyCashbookEntry(
+      receiptType: t.receiptType,
+      transactionType: t.transactionType,
+      isIncome: t.isIncome,
+    );
+    final labels = cashbookRowLabels(
+      kind: kind,
+      transactionType: t.transactionType,
+      note: t.note,
+    );
+    return CashbookListEntry(
+      id: t.id,
+      kind: kind,
+      title: labels.title,
+      detail: labels.detail,
+      amount: (t.subTotal ?? 0).toDouble(),
+      at: (_transactionWindowInstant(t) ?? DateTime.now()).toLocal(),
+      methodBadge: cashbookMethodBadge(t.paymentType),
+      isMobileMoney: _isMomoTransaction(t),
     );
   }
 
@@ -386,590 +438,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           DateTime.fromMillisecondsSinceEpoch(0);
       return tb.compareTo(ta);
     });
-  }
-
-  List<ITransaction> _applyChipFilter(
-    List<ITransaction> list,
-    _RecentTxFilter filter,
-  ) {
-    switch (filter) {
-      case _RecentTxFilter.all:
-        return list;
-      case _RecentTxFilter.cashIn:
-        return list.where((t) => t.isIncome == true).toList();
-      case _RecentTxFilter.cashOut:
-        return list.where((t) => t.isIncome == false).toList();
-      case _RecentTxFilter.momo:
-        return list.where(_isMomoTransaction).toList();
-    }
-  }
-
-  String _transactionRowTitle(ITransaction t) {
-    final raw = (t.transactionType ?? '').trim();
-    if (raw.isEmpty) {
-      return 'Transaction';
-    }
-    // Category names are stored as plain text; avoid over-formatting acronyms.
-    if (raw.length <= 40 && !RegExp(r'[a-z][A-Z]').hasMatch(raw)) {
-      return raw.toUpperCase();
-    }
-    return raw
-        .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}')
-        .toUpperCase();
-  }
-
-  Widget _buildRecentTransactionsCard({
-    required List<ITransaction> allTransactions,
-    required DateRangeModel dateRange,
-  }) {
-    final window = _effectiveTransactionWindow(dateRange);
-    final byDate = _filterByDateWindow(allTransactions, window);
-    final filtered = _applyChipFilter(byDate, _recentTxFilter);
-
-    final subtitle = _recentTxPeriodSubtitle(window);
-    final currency = ProxyService.box.defaultCurrency();
-
-    if (byDate.isEmpty) {
-      return _buildRecentTxEmptyState(subtitle: subtitle);
-    }
-
-    if (filtered.isEmpty) {
-      return _buildRecentTxEmptyFilterState(
-        subtitle: subtitle,
-        periodLabel: subtitle,
-      );
-    }
-
-    final sumIn = filtered
-        .where((t) => t.isIncome == true)
-        .fold<double>(0, (s, t) => s + (t.subTotal ?? 0));
-    final sumOut = filtered
-        .where((t) => t.isIncome == false)
-        .fold<double>(0, (s, t) => s + (t.subTotal ?? 0));
-
-    return SizedBox.expand(
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(0),
-          border: Border.all(color: _CashbookColors.chipBorder),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildRecentTxHeader(count: filtered.length, subtitle: subtitle),
-            Divider(height: 1, color: Colors.grey.shade200),
-            _buildRecentTxFilterChips(),
-            Divider(height: 1, color: Colors.grey.shade200),
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  return _buildRecentTxRow(
-                    transaction: filtered[index],
-                    currency: currency,
-                    highlight: index == 0,
-                    showBottomBorder: index < filtered.length - 1,
-                  );
-                },
-              ),
-            ),
-            Divider(height: 1, color: Colors.grey.shade200),
-            _buildRecentTxFooter(
-              currency: currency,
-              sumIn: sumIn,
-              sumOut: sumOut,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentTxHeader({required int count, required String subtitle}) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: _CashbookColors.designBlue,
-              borderRadius: BorderRadius.circular(0),
-            ),
-            child: const Icon(
-              Icons.credit_card_outlined,
-              color: Colors.white,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recent transactions',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey.shade900,
-                    fontSize: 18,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _CashbookColors.chipBorder),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: _CashbookColors.designBlue,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$count',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentTxFilterChips() {
-    Widget chip(String label, _RecentTxFilter value) {
-      final selected = _recentTxFilter == value;
-      return Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            child: InkWell(
-              onTap: () => setState(() => _recentTxFilter = value),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: selected
-                        ? Colors.grey.shade400
-                        : _CashbookColors.chipBorder,
-                  ),
-                  color: selected ? Colors.grey.shade50 : Colors.white,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: Colors.grey.shade900,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      child: Row(
-        children: [
-          chip('All', _RecentTxFilter.all),
-          chip('Cash in', _RecentTxFilter.cashIn),
-          chip('Cash out', _RecentTxFilter.cashOut),
-          chip('MoMo', _RecentTxFilter.momo),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentTxRow({
-    required ITransaction transaction,
-    required String currency,
-    required bool highlight,
-    required bool showBottomBorder,
-  }) {
-    final routerService = locator<RouterService>();
-    final isIncome = transaction.isIncome ?? true;
-    final rawAmount = transaction.subTotal ?? 0;
-    final formatted = NumberFormat('#,###').format(rawAmount);
-    final dt = _transactionWindowInstant(transaction) ?? DateTime.now();
-
-    final Color iconBg = isIncome
-        ? _CashbookColors.cashInSurface
-        : _CashbookColors.cashOutSurface;
-    final Color iconFg = isIncome
-        ? _CashbookColors.cashInGreen
-        : _CashbookColors.cashOutRed;
-    final Color amountColor = iconFg;
-
-    final badgeBg = iconBg;
-    final badgeFg = iconFg;
-    final badgeLabel = isIncome ? 'Cash in' : 'Cash out';
-
-    return SizedBox(
-      width: double.infinity,
-      child: Material(
-        color: highlight ? _CashbookColors.rowHighlight : Colors.white,
-        child: InkWell(
-          onTap: () => routerService.navigateTo(
-            TransactionDetailRoute(transaction: transaction),
-          ),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: showBottomBorder
-                ? BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey.shade200),
-                    ),
-                  )
-                : null,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: iconBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isIncome
-                        ? Icons.arrow_upward_rounded
-                        : Icons.arrow_downward_rounded,
-                    color: iconFg,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _transactionRowTitle(transaction),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade900,
-                            height: 1.2,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${DateFormat('MMM d, yyyy').format(dt)} · ${DateFormat('HH:mm').format(dt)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                            height: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8, top: 2),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '${isIncome ? '+' : '-'}$formatted $currency',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: amountColor,
-                            height: 1.1,
-                          ),
-                          maxLines: 1,
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: badgeBg,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          child: Text(
-                            badgeLabel,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: badgeFg,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.grey.shade400,
-                    size: 22,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentTxFooter({
-    required String currency,
-    required double sumIn,
-    required double sumOut,
-  }) {
-    final fmt = NumberFormat('#,###');
-    final (
-      String leftLabel,
-      String rightText,
-      Color amountColor,
-    ) = switch (_recentTxFilter) {
-      _RecentTxFilter.cashOut => (
-        'Total out',
-        '-${fmt.format(sumOut)} $currency',
-        _CashbookColors.cashOutRed,
-      ),
-      _RecentTxFilter.momo => () {
-        final net = sumIn - sumOut;
-        return (
-          'MoMo net',
-          '${net >= 0 ? '+' : '-'}${fmt.format(net.abs())} $currency',
-          net >= 0 ? _CashbookColors.cashInGreen : _CashbookColors.cashOutRed,
-        );
-      }(),
-      _RecentTxFilter.all || _RecentTxFilter.cashIn => (
-        'Total in',
-        '+${fmt.format(sumIn)} $currency',
-        _CashbookColors.cashInGreen,
-      ),
-    };
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  leftLabel,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    rightText,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: amountColor,
-                      height: 1.1,
-                    ),
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: _CashbookColors.designBlue,
-              padding: const EdgeInsets.only(left: 12, top: 0),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              alignment: Alignment.topRight,
-            ),
-            onPressed: () =>
-                locator<RouterService>().navigateTo(TransactionsRoute()),
-            child: const Text(
-              'View all',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentTxEmptyState({required String subtitle}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _CashbookColors.chipBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildRecentTxHeader(count: 0, subtitle: subtitle),
-          const Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(28),
-              child: Center(
-                child: Text(
-                  'Your transactions will appear here once you start adding them.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentTxEmptyFilterState({
-    required String subtitle,
-    required String periodLabel,
-  }) {
-    final msg = switch (_recentTxFilter) {
-      _RecentTxFilter.cashIn => 'No cash in transactions for $periodLabel.',
-      _RecentTxFilter.cashOut => 'No cash out transactions for $periodLabel.',
-      _RecentTxFilter.momo => 'No MoMo transactions for $periodLabel.',
-      _RecentTxFilter.all => 'No transactions for $periodLabel.',
-    };
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _CashbookColors.chipBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildRecentTxHeader(count: 0, subtitle: subtitle),
-          Divider(height: 1, color: Colors.grey.shade200),
-          _buildRecentTxFilterChips(),
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  msg,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(CoreViewModel model) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          _buildTransactionButton(
-            text: '↑ ${TransactionType.cashIn}',
-            color: _CashbookColors.primaryGreen,
-            onPressed: () =>
-                _startNewTransaction(model, TransactionType.cashIn),
-          ),
-          _buildTransactionButton(
-            text: '↓ ${TransactionType.cashOut}',
-            color: const Color(0xFFFF0331),
-            onPressed: () =>
-                _startNewTransaction(model, TransactionType.cashOut),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionButton({
-    required String text,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: FlipperButton(
-          text: text,
-          color: color,
-          width: double.infinity,
-          height: 52,
-          radius: 12,
-          textColor: Colors.white,
-          onPressed: onPressed,
-        ),
-      ),
-    );
   }
 
   void _startNewTransaction(
@@ -1422,57 +890,61 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget _buildFormFooter(CoreViewModel model) {
+    final isIncome = model.newTransactionType == TransactionType.cashIn;
+    final accent = isIncome ? CashbookListTokens.gain : CashbookListTokens.loss;
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    );
+    final textStyle = Theme.of(
+      context,
+    ).textTheme.labelLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w700);
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton(
-            onPressed: () => _cancelTransaction(model),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.grey.shade900,
-              backgroundColor: _CashbookColors.beigeField,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: BorderSide(color: Colors.grey.shade300),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            height: 56,
+            child: OutlinedButton(
+              onPressed: () => _cancelTransaction(model),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: CashbookListTokens.ink,
+                side: const BorderSide(
+                  color: CashbookListTokens.line,
+                  width: 1.5,
+                ),
+                shape: shape,
+                textStyle: textStyle,
               ),
+              child: const Text('Cancel'),
             ),
-            child: const Text('Cancel'),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: ElevatedButton(
-            onPressed: model.isBusy
-                ? null
-                : () => _handleSaveTransaction(model, 'N/A'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _CashbookColors.primaryGreen,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            height: 56,
+            child: FilledButton(
+              onPressed: model.isBusy
+                  ? null
+                  : () => _handleSaveTransaction(model, 'N/A'),
+              style: FilledButton.styleFrom(
+                backgroundColor: accent,
+                disabledBackgroundColor: accent.withValues(alpha: 0.6),
+                foregroundColor: Colors.white,
+                shape: shape,
+                textStyle: textStyle,
               ),
-              elevation: 0,
+              child: model.isBusy
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(isIncome ? 'Save cash in' : 'Save cash out'),
             ),
-            child: model.isBusy
-                ? const SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.check_rounded, color: Colors.white, size: 22),
-                      SizedBox(width: 8),
-                      Text('Save Entry'),
-                    ],
-                  ),
           ),
         ),
       ],
@@ -1671,5 +1143,35 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       talker.error(s);
       rethrow;
     }
+  }
+}
+
+/// 40px round header button holding an SVG icon.
+class _HeaderIconButton extends StatelessWidget {
+  const _HeaderIconButton({
+    required this.child,
+    required this.onPressed,
+    required this.tooltip,
+  });
+
+  final Widget child;
+  final VoidCallback onPressed;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: tooltip,
+      child: Material(
+        color: const Color(0xFFF3F4F6),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox(width: 40, height: 40, child: Center(child: child)),
+        ),
+      ),
+    );
   }
 }
