@@ -214,7 +214,13 @@ String? cashbookMethodBadge(String? paymentType) {
 String cashbookDayLabel(DateTime day, DateTime now) {
   final d = DateTime(day.year, day.month, day.day);
   final today = DateTime(now.year, now.month, now.day);
-  final diff = today.difference(d).inDays;
+  // Count calendar days on UTC dates: local midnights can be 23 or 25 hours
+  // apart across a DST change, which would make `inDays` call yesterday today.
+  final diff = DateTime.utc(
+    today.year,
+    today.month,
+    today.day,
+  ).difference(DateTime.utc(d.year, d.month, d.day)).inDays;
   if (diff == 0) return 'Today';
   if (diff == 1) return 'Yesterday';
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

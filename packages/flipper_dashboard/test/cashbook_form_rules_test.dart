@@ -272,6 +272,15 @@ void main() {
       expect(cashbookDayLabel(DateTime(2026, 10, 4, 23, 59), now), 'Yesterday');
     });
 
+    test('yesterday stays yesterday across a DST change', () {
+      // US spring-forward is 2026-03-08: local midnights there are 23h apart.
+      // Meaningful when run with TZ set to a DST zone; harmless in UTC.
+      expect(
+        cashbookDayLabel(DateTime(2026, 3, 8, 12), DateTime(2026, 3, 9, 0, 30)),
+        'Yesterday',
+      );
+    });
+
     test(
       'older days show a short date, with the year only when it differs',
       () {
