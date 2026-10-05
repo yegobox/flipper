@@ -42,6 +42,7 @@ import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:device_preview_plus/device_preview_plus.dart';
 import 'firebase_options.dart';
+import 'keyboard_pan.dart';
 import 'touch_keyboard.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -846,7 +847,9 @@ class _FlipperAppState extends State<FlipperApp> {
               data: MediaQuery.of(context).copyWith(
                 textScaler: TextScaler.noScaling,
               ),
-              child: app,
+              // Windows touch keyboard: slide the focused field into view
+              // instead of letting the window shrink.
+              child: KeyboardPan(occlusion: keyboardOcclusion, child: app),
             );
           },
         );
