@@ -1,16 +1,19 @@
 import 'package:flipper_dashboard/export/export_import.dart';
 import 'package:flipper_dashboard/export/export_purchase.dart';
+import 'package:flipper_dashboard/manual_purchase/manual_purchase_stock_in.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/imports_purchases_client.dart';
 import 'package:flipper_models/imports_purchases_map.dart';
 import 'package:flipper_models/services/pos_purchase_journal_poster.dart';
+import 'package:flipper_models/services/purchase_expense_recorder.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:http/http.dart' as http;
+import 'package:overlay_support/overlay_support.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 
 final importsPurchasesClientProvider =
@@ -338,17 +341,30 @@ class ImportPurchaseViewModel extends StateNotifier<ImportPurchaseState> {
     final processing = {...state.processingIds, purchase.id};
     _patchState((s) => s.copyWith(processingIds: processing, clearError: true));
     try {
-      await ManualPurchaseDitto.setPurchaseStatus(
-        purchase: purchase,
-        pchsSttsCd: pchsSttsCd,
-      );
       if (declined) {
+        await ManualPurchaseDitto.setPurchaseStatus(
+          purchase: purchase,
+          pchsSttsCd: pchsSttsCd,
+        );
         await PosPurchaseJournalPoster.discardPurchase(purchase: purchase);
       } else {
+        // Stock first: each waiting line goes onto its product (created for
+        // new items) and becomes a purchase record; approving twice is a
+        // no-op for lines already stocked in.
+        final stock = await stockInManualPurchase(purchase);
         await PosPurchaseJournalPoster.postPurchase(
           purchase: purchase,
           postToLedger: postToLedger,
         );
+        // What was paid now shows with the other expenses (like a cash-out);
+        // the Cash/Credit "paid now" lives on the purchase's bill.
+        await PurchaseExpenseRecorder.record(
+          purchase: purchase,
+          paidUpfront: purchase.pmtTyCd == '03'
+              ? await PurchaseExpenseRecorder.paidUpfrontFromBill(purchase.id)
+              : 0,
+        );
+        if (stock.rraMessage != null) toast(stock.rraMessage!);
       }
       await loadList();
       talker.info(successMessage);

@@ -695,6 +695,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                 Expanded(flex: 4, child: _columnLabel('Item')),
                 Expanded(flex: 2, child: _columnLabel('Qty')),
                 Expanded(flex: 2, child: _columnLabel('Unit price')),
+                Expanded(flex: 2, child: _columnLabel('Sell price')),
                 Expanded(flex: 2, child: _columnLabel('Tax')),
                 Expanded(flex: 2, child: _columnLabel('Total', alignEnd: true)),
                 const SizedBox(width: 40),
@@ -712,6 +713,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                 double? qty,
                 double? unitPrice,
                 String? taxTyCd,
+                double? sellingPrice,
               }) {
                 notifier.updateLine(
                   i,
@@ -719,6 +721,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                   qty: qty,
                   unitPrice: unitPrice,
                   taxTyCd: taxTyCd,
+                  sellingPrice: sellingPrice,
                 );
               },
               onRemove: () => notifier.removeLine(i),
@@ -935,6 +938,7 @@ class _ManualPurchaseLineRow extends StatefulWidget {
     double? qty,
     double? unitPrice,
     String? taxTyCd,
+    double? sellingPrice,
   }) onChanged;
   final VoidCallback onRemove;
 
@@ -954,6 +958,7 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
   late final TextEditingController _nameController;
   late final TextEditingController _qtyController;
   late final TextEditingController _priceController;
+  late final TextEditingController _sellingController;
 
   @override
   void initState() {
@@ -965,6 +970,9 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
     _priceController = TextEditingController(
       text: widget.line.unitPrice == 0 ? '' : widget.line.unitPrice.toString(),
     );
+    _sellingController = TextEditingController(
+      text: widget.line.sellingPrice?.toString() ?? '',
+    );
   }
 
   @override
@@ -972,6 +980,7 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
     _nameController.dispose();
     _qtyController.dispose();
     _priceController.dispose();
+    _sellingController.dispose();
     super.dispose();
   }
 
@@ -1059,6 +1068,27 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
               onChanged: (value) =>
                   widget.onChanged(unitPrice: double.tryParse(value) ?? 0),
             ),
+          ),
+          const SizedBox(width: 8),
+          // New items become a product on approval and sell at this price
+          // (empty: at cost). Catalog items keep their own price.
+          Expanded(
+            flex: 2,
+            child: fromCatalog
+                ? Text(
+                    '—',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[500]),
+                  )
+                : TextFormField(
+                    controller: _sellingController,
+                    decoration: _cellDecoration.copyWith(hintText: 'at cost'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (value) => widget.onChanged(
+                      sellingPrice: double.tryParse(value.trim()) ?? 0,
+                    ),
+                  ),
           ),
           const SizedBox(width: 8),
           Expanded(

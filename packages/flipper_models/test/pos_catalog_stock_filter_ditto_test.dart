@@ -132,7 +132,7 @@ void main() {
           'SELECT * FROM variants WHERE branchId = :branchId'
           " AND name NOT IN ('Cash In', 'Cash Out', 'Utility', 'Custom Amount')"
           " AND (imptItemSttsCd IS NULL OR imptItemSttsCd NOT IN ('2', '4'))"
-          " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '04'))"
+          " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '03', '04'))"
           ' AND taxTyCd IN (:tax0, :tax1)';
       const orderSuffix =
           ' ORDER BY lastTouched DESC LIMIT :limit OFFSET :offset';

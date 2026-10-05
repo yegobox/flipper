@@ -35,4 +35,33 @@ void main() {
       expect(isAccountingRecognizedTransaction(txn), isFalse);
     });
   });
+
+  group('purchase expense mirror', () {
+    final mirror = {
+      'subTotal': 50000,
+      'status': 'completed',
+      'isExpense': true,
+      'receiptType': 'Purchase',
+      'paymentType': 'CASH',
+    };
+
+    test('is never posted: the purchase has its own journal entry', () {
+      expect(isPurchaseExpenseMirror(mirror), isTrue);
+      expect(isAccountingRecognizedTransaction(mirror), isFalse);
+      expect(
+        isAccountingRecognizedTransaction({
+          ...mirror,
+          'receiptType': null,
+          'receipt_type': ' purchase ',
+        }),
+        isFalse,
+      );
+    });
+
+    test('a normal cash-out is still posted', () {
+      final cashOut = {...mirror, 'receiptType': 'Cash Out'};
+      expect(isPurchaseExpenseMirror(cashOut), isFalse);
+      expect(isAccountingRecognizedTransaction(cashOut), isTrue);
+    });
+  });
 }

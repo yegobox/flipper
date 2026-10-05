@@ -199,6 +199,7 @@ class _ManualPurchaseMobileScreenState
       qty: result.qty,
       unitPrice: result.unitPrice,
       taxTyCd: result.taxTyCd,
+      sellingPrice: result.sellingPrice,
     );
   }
 
@@ -218,6 +219,7 @@ class _ManualPurchaseMobileScreenState
       qty: result.qty,
       unitPrice: result.unitPrice,
       taxTyCd: result.taxTyCd,
+      sellingPrice: result.sellingPrice,
     );
   }
 
@@ -1152,6 +1154,7 @@ class _LineEdit {
     required this.qty,
     required this.unitPrice,
     required this.taxTyCd,
+    this.sellingPrice = 0,
   }) : remove = false;
 
   const _LineEdit.remove()
@@ -1159,12 +1162,16 @@ class _LineEdit {
       qty = 0,
       unitPrice = 0,
       taxTyCd = 'B',
+      sellingPrice = 0,
       remove = true;
 
   final String name;
   final double qty;
   final double unitPrice;
   final String taxTyCd;
+
+  /// New items: 0 means "sell at cost".
+  final double sellingPrice;
   final bool remove;
 }
 
@@ -1189,6 +1196,11 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
         ? formatAmountForEdit(widget.line!.unitPrice)
         : '',
   );
+  late final _selling = TextEditingController(
+    text: (widget.line?.sellingPrice ?? 0) > 0
+        ? formatAmountForEdit(widget.line!.sellingPrice!)
+        : '',
+  );
   late String _tax = widget.line?.taxTyCd ?? 'B';
 
   /// Catalog items keep their name; only new lines are typed in.
@@ -1202,6 +1214,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
     _name.dispose();
     _qty.dispose();
     _price.dispose();
+    _selling.dispose();
     super.dispose();
   }
 
@@ -1213,6 +1226,7 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
         qty: _num(_qty.text),
         unitPrice: _num(_price.text),
         taxTyCd: _tax,
+        sellingPrice: _fromCatalog ? 0 : _num(_selling.text),
       ),
     );
   }
@@ -1288,6 +1302,22 @@ class _LineEditorSheetState extends State<_LineEditorSheet> {
                   ),
                 ],
               ),
+              // A catalog item already has its price; a new item becomes a
+              // product on approval and needs one.
+              if (!_fromCatalog) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _selling,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Selling price (optional)',
+                    helperText: 'Leave empty to sell at cost',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               Text(
                 'Tax',

@@ -32,6 +32,7 @@ String accountingTxnStatus(dynamic raw) =>
 /// loan form is an accounting event; recognizing plain held tickets would
 /// post revenue and cash that were never earned or received.
 bool isAccountingRecognizedTransaction(Map<String, dynamic> txn) {
+  if (isPurchaseExpenseMirror(txn)) return false;
   final sub = _amount(txn, 'sub_total', 'subTotal');
   if (sub <= 0) return false;
   final status = accountingTxnStatus(txn['status']);
@@ -39,6 +40,20 @@ bool isAccountingRecognizedTransaction(Map<String, dynamic> txn) {
   if (status == accountingSaleStatusParked) return isAccountingLoan(txn);
   return false;
 }
+
+/// `receiptType` of the expense row written when a supplier purchase is
+/// approved, so it shows with other expenses (Cashbook, dashboard).
+const String purchaseExpenseReceiptType = 'Purchase';
+
+/// The purchase posted its own journal entry (Dr Inventory/VAT, Cr cash/AP);
+/// posting its expense mirror too would credit cash twice. Mirrored in the
+/// data-connector poster (`accounting/semantics.rs`).
+bool isPurchaseExpenseMirror(Map<String, dynamic> txn) =>
+    (txn['receipt_type'] ?? txn['receiptType'])
+        ?.toString()
+        .trim()
+        .toLowerCase() ==
+    purchaseExpenseReceiptType.toLowerCase();
 
 bool isAccountingExpense(Map<String, dynamic> txn) =>
     txn['is_expense'] == true || txn['isExpense'] == true;

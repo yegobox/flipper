@@ -348,7 +348,10 @@ mixin CapellaVariantMixin implements VariantInterface {
         // Exclude certain statuses but still allow NULL
         query +=
             " AND (imptItemSttsCd IS NULL OR imptItemSttsCd NOT IN ('2', '4'))";
-        query += " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '04'))";
+        // '03': a purchase line whose stock went to another (catalog)
+        // variant — a purchase record, not a product to sell.
+        query +=
+            " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '03', '04'))";
       }
 
       // Tax filters
@@ -615,7 +618,7 @@ mixin CapellaVariantMixin implements VariantInterface {
             countQuery +=
                 " AND (imptItemSttsCd IS NULL OR imptItemSttsCd NOT IN ('2', '4'))";
             countQuery +=
-                " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '04'))";
+                " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '03', '04'))";
           }
 
           if (taxTyCds != null && taxTyCds.isNotEmpty) {
