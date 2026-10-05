@@ -151,8 +151,14 @@ class MfaService {
     if (cached != null && cached.isNotEmpty) {
       final outcome = _verifyAgainstSecret(cached, code);
       if (outcome == TotpVerifyOutcome.valid || localOnly) return outcome;
-      final fresh = await _fetchAndCacheSecret(userId: userId, pin: pin);
-      if (fresh == null || fresh == cached) return outcome;
+      final fetched = await _fetchSecret(userId: userId, pin: pin);
+      final fresh = fetched.secret;
+      if (fresh == null) {
+        // The server dropped the secret (MFA removed): say so, rather than
+        // blaming the code. Unreachable keeps the cached-secret verdict.
+        return fetched.reached ? TotpVerifyOutcome.notEnrolled : outcome;
+      }
+      if (fresh == cached) return outcome;
       return _verifyAgainstSecret(fresh, code);
     }
 
@@ -199,13 +205,21 @@ class MfaService {
 
   /// Seed the on-device secret after PIN validation so the authenticator
   /// check that follows needs no network. No-op when already cached.
+  ///
+  /// Never throws: callers fire it in the background with `unawaited`, so a
+  /// cache failure here must not surface as an unhandled async error.
   Future<bool> prefetchAndCacheSecret({
     required String userId,
     int? pin,
   }) async {
-    final cached = await LocalMfaSecretCache.read(userId, pin: pin);
-    if (cached != null && cached.isNotEmpty) return true;
-    return await _fetchAndCacheSecret(userId: userId, pin: pin) != null;
+    try {
+      final cached = await LocalMfaSecretCache.read(userId, pin: pin);
+      if (cached != null && cached.isNotEmpty) return true;
+      return await _fetchAndCacheSecret(userId: userId, pin: pin) != null;
+    } catch (e) {
+      debugPrint('MFA secret prefetch failed: $e');
+      return false;
+    }
   }
 
   /// Persist [secret] for [userId] on this device (call after MFA setup).
