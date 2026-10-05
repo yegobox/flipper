@@ -18,6 +18,7 @@ import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
@@ -43,6 +44,12 @@ class _PinLoginState extends State<PinLogin>
   final TextEditingController _otpController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
   final FocusNode _otpFocusNode = FocusNode();
+
+  /// Flutter on Windows does not raise the touch keyboard for the hidden PIN
+  /// field, so a touch screen register gets the on-screen keypad from its
+  /// first touch on. Static so it stays up when the PIN screen comes back
+  /// after a logout.
+  static bool _touchInputSeen = false;
 
   bool _isProcessing = false;
   bool _isDone = false;
@@ -196,6 +203,18 @@ class _PinLoginState extends State<PinLogin>
 
   void _onFocusChange() {
     if (mounted) setState(() {});
+  }
+
+  void _onPointerDown(PointerDownEvent event) {
+    if (_touchInputSeen) return;
+    switch (event.kind) {
+      case PointerDeviceKind.touch:
+      case PointerDeviceKind.stylus:
+      case PointerDeviceKind.invertedStylus:
+        setState(() => _touchInputSeen = true);
+      default:
+        break;
+    }
   }
 
   @override
@@ -632,14 +651,18 @@ class _PinLoginState extends State<PinLogin>
           child: Scaffold(
             key: const Key('PinLogin'),
             backgroundColor: SignInTokens.surface,
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  if (_useSignInDesktopLayout(constraints)) {
-                    return _buildDesktopSignInLayout(constraints);
-                  }
-                  return _buildCompactSignInLayout(constraints);
-                },
+            body: Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerDown: _onPointerDown,
+              child: SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (_useSignInDesktopLayout(constraints)) {
+                      return _buildDesktopSignInLayout(constraints);
+                    }
+                    return _buildCompactSignInLayout(constraints);
+                  },
+                ),
               ),
             ),
           ),
@@ -891,7 +914,7 @@ class _PinLoginState extends State<PinLogin>
             successBusinessName: _successBusinessLabel,
           ),
         ),
-        if (compact) ...[
+        if (compact || _touchInputSeen) ...[
           const SizedBox(height: 22),
           SignInPinKeypad(
             enabled: !_isProcessing && !_isDone,
