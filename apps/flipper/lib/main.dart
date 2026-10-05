@@ -42,6 +42,7 @@ import 'package:firebase_core/firebase_core.dart';
 // ignore: depend_on_referenced_packages
 import 'package:device_preview_plus/device_preview_plus.dart';
 import 'firebase_options.dart';
+import 'touch_keyboard.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -474,8 +475,8 @@ Future<void> initializeApp() async {
 Future<void> main() async {
   // Initialize GlobalErrorHandler first to capture early errors
 
-  // Initialize WidgetsBinding
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // Initialize WidgetsBinding (with the Windows touch keyboard hook)
+  final widgetsBinding = FlipperWidgetsBinding.ensureInitialized();
 
   // Open maximized on a computer, before anything else draws.
   await maximizeOnLaunch();
