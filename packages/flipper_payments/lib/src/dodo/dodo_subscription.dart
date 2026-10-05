@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/src/logging.dart';
 import 'package:flipper_payments/src/dodo/dodo_client.dart';
 import 'package:flipper_payments/src/dodo/dodo_models.dart';
@@ -165,7 +166,7 @@ class DodoCardCheckout {
           outcome: DodoCheckoutOutcome.resubscribeRequired,
           planId: result.planId,
           start: result,
-          message: 'This subscription has ended. Choose a plan to start again.',
+          message: FlipperL10n.current.paywallSubscriptionEnded,
         );
 
       case DodoNextAction.openPaymentLink:
@@ -181,8 +182,7 @@ class DodoCardCheckout {
                 : DodoCheckoutOutcome.awaitingPayment,
             planId: result.planId,
             start: result,
-            message:
-                'The payment page is not ready yet. Try again in a moment.',
+            message: FlipperL10n.current.paywallPaymentPageNotReady,
           );
         }
         if (!openCheckout) {
@@ -208,8 +208,7 @@ class DodoCardCheckout {
           launched: launched,
           message: launched
               ? null
-              : 'Could not open the payment page on this device. Copy the link, '
-                    'or pay with Mobile Money instead.',
+              : FlipperL10n.current.paywallCouldNotOpenPageCopyLink,
         );
 
       case DodoNextAction.none:
@@ -251,9 +250,7 @@ class DodoCardCheckout {
       planId: planId,
       checkout: checkout,
       launched: launched,
-      message: launched
-          ? null
-          : 'Could not open the payment page on this device.',
+      message: launched ? null : FlipperL10n.current.paywallCouldNotOpenPage,
     );
   }
 

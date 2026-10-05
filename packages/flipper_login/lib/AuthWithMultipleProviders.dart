@@ -225,7 +225,8 @@ class _AuthState extends State<Auth> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const LoadingDialog(message: 'Finalizing authentication...');
+        return LoadingDialog(
+            message: context.flipperL10n.loginFinalizingAuthentication);
       },
     ).then((_) {
       _isAuthDialogShowing = false;
@@ -278,7 +279,7 @@ class _AuthState extends State<Auth> {
             timeoutOccurred = true;
             talker.warning('Authentication process timed out after 30 seconds');
             _authenticationStateController.add(AuthenticationState.error(
-                'Authentication timed out. Please try again.'));
+                FlipperL10n.current.loginAuthTimedOut));
           }
         });
 
@@ -343,7 +344,8 @@ class _AuthState extends State<Auth> {
     try {
       await _routerService.clearStackAndShow(CountryPickerRoute());
     } catch (e) {
-      _authController.notifyError("Failed to navigate to phone login");
+      _authController
+          .notifyError(FlipperL10n.current.loginPhoneLoginNavigationFailed);
     }
   }
 
@@ -357,7 +359,7 @@ class _AuthState extends State<Auth> {
       if (userCredential.user != null) {
         _authController.notifySignedIn();
       } else {
-        _authController.notifyError("Sign in failed");
+        _authController.notifyError(FlipperL10n.current.loginSignInFailed);
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'popup-closed-by-user' ||
@@ -366,11 +368,12 @@ class _AuthState extends State<Auth> {
         _authController.notifySignedOut();
       } else {
         Sentry.captureException(e, stackTrace: StackTrace.current);
-        _authController.notifyError(e.message ?? "Authentication failed");
+        _authController.notifyError(
+            e.message ?? FlipperL10n.current.loginAuthenticationFailed);
       }
     } catch (e) {
       Sentry.captureException(e, stackTrace: StackTrace.current);
-      _authController.notifyError("An unexpected error occurred");
+      _authController.notifyError(FlipperL10n.current.loginUnexpectedError);
     }
   }
 
@@ -407,7 +410,7 @@ class _AuthState extends State<Auth> {
             .info('Microsoft sign-in successful: ${authCredential.user?.uid}');
         _authController.notifySignedIn();
       } else {
-        _authController.notifyError("Sign in failed");
+        _authController.notifyError(FlipperL10n.current.loginSignInFailed);
       }
     } on FirebaseAuthException catch (e) {
       // Handle specific Firebase Auth errors
@@ -421,22 +424,22 @@ class _AuthState extends State<Auth> {
           e.code == 'web-context-canceled') {
         _authController.notifySignedOut();
       } else if (e.code == 'unauthorized-domain') {
-        _authController.notifyError(
-            "Authentication domain not authorized. Please contact support.");
+        _authController
+            .notifyError(FlipperL10n.current.loginAuthDomainUnauthorized);
       } else if (e.code == 'user-disabled') {
-        _authController.notifyError("This account has been disabled.");
+        _authController.notifyError(FlipperL10n.current.loginAccountDisabled);
       } else if (e.code == 'account-exists-with-different-credential') {
         _authController.notifyError(
-            "An account already exists with the same email address but different sign-in credentials.");
+            FlipperL10n.current.loginAccountExistsDifferentCredential);
       } else {
-        _authController.notifyError("Microsoft login failed: ${e.message}");
+        _authController.notifyError(
+            FlipperL10n.current.loginMicrosoftFailedWithReason('${e.message}'));
       }
     } catch (e) {
       // Log detailed error information for other exceptions
       talker.error('Microsoft login error: ${e.toString()}');
       Sentry.captureException(e, stackTrace: StackTrace.current);
-      _authController
-          .notifyError("Microsoft login failed. Please try again later.");
+      _authController.notifyError(FlipperL10n.current.loginMicrosoftFailed);
     }
   }
 
@@ -462,22 +465,25 @@ class _AuthState extends State<Auth> {
       if (userCredential.user != null) {
         _authController.notifySignedIn();
       } else {
-        _authController.notifyError("Sign in failed");
+        _authController.notifyError(FlipperL10n.current.loginSignInFailed);
       }
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code == AuthorizationErrorCode.canceled) {
         _authController.notifySignedOut();
       } else {
         Sentry.captureException(e, stackTrace: StackTrace.current);
-        _authController.notifyError("Apple authorization failed: ${e.message}");
+        _authController.notifyError(
+            FlipperL10n.current.loginAppleAuthorizationFailed(e.message));
       }
     } on FirebaseAuthException catch (e) {
       Sentry.captureException(e, stackTrace: StackTrace.current);
-      _authController.notifyError(e.message ?? "Authentication failed");
+      _authController.notifyError(
+          e.message ?? FlipperL10n.current.loginAuthenticationFailed);
     } catch (e) {
       talker.warning(e);
       Sentry.captureException(e, stackTrace: StackTrace.current);
-      _authController.notifyError("Apple login failed: ${e.toString()}");
+      _authController
+          .notifyError(FlipperL10n.current.loginAppleFailed(e.toString()));
     }
   }
 
@@ -516,7 +522,7 @@ class _AuthState extends State<Auth> {
 
                         // Heading
                         Text(
-                          "Welcome to Flipper",
+                          context.flipperL10n.loginWelcomeToFlipper,
                           style: AppStyles.heading,
                           textAlign: TextAlign.center,
                         ),
@@ -525,7 +531,7 @@ class _AuthState extends State<Auth> {
 
                         // Subheading
                         Text(
-                          "How would you like to sign in?",
+                          context.flipperL10n.loginHowToSignIn,
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             color: AppColors.textLight,
@@ -575,8 +581,7 @@ class _AuthState extends State<Auth> {
                             onPressed:
                                 _isLoading ? null : _handlePhoneNumberLogin,
                             icon: Icon(Icons.phone, size: 20),
-                            label: Text(
-                                context.flipperL10n.continueWithPhone,
+                            label: Text(context.flipperL10n.continueWithPhone,
                                 style: AppStyles.buttonText),
                           ),
                         ),

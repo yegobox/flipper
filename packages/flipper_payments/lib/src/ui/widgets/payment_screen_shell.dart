@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Sticky header + radial gradient + a responsive body for payment screens.
@@ -85,14 +86,16 @@ class PaymentScreenShell extends StatelessWidget {
                       builder: (context, constraints) {
                         final gutter = _gutter(constraints.maxWidth);
                         final content = constraints.maxWidth - gutter * 2;
-                        final twoColumn = asideBlocks.isNotEmpty &&
+                        final twoColumn =
+                            asideBlocks.isNotEmpty &&
                             content >= twoColumnMinWidth;
 
                         return Align(
                           alignment: Alignment.topCenter,
                           child: ConstrainedBox(
-                            constraints:
-                                BoxConstraints(maxWidth: maxContentWidth),
+                            constraints: BoxConstraints(
+                              maxWidth: maxContentWidth,
+                            ),
                             child: twoColumn
                                 ? _TwoColumnBody(
                                     gutter: gutter,
@@ -238,9 +241,7 @@ class _Header extends StatelessWidget {
     // optically centred — but a badge is text, and 40px wraps "TEST" to
     // "TES / T". Give the badge the room it needs; the title stays centred
     // enough because the badge is narrow.
-    final rightSlotWidth = hasActions
-        ? 116.0
-        : (badge != null ? 72.0 : 40.0);
+    final rightSlotWidth = hasActions ? 116.0 : (badge != null ? 72.0 : 40.0);
 
     return ClipRect(
       child: BackdropFilter(
@@ -248,9 +249,7 @@ class _Header extends StatelessWidget {
         child: DecoratedBox(
           decoration: const BoxDecoration(
             color: Color(0xDBFFFFFF), // rgba(255,255,255,0.86)
-            border: Border(
-              bottom: BorderSide(color: PaymentTokens.line),
-            ),
+            border: Border(bottom: BorderSide(color: PaymentTokens.line)),
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -270,7 +269,8 @@ class _Header extends StatelessWidget {
                             child: canPop
                                 ? _IconCircleButton(
                                     icon: FluentIcons.chevron_left_20_regular,
-                                    onTap: onBack ??
+                                    onTap:
+                                        onBack ??
                                         () => Navigator.maybePop(context),
                                   )
                                 : const SizedBox.shrink(),
@@ -382,9 +382,10 @@ class PaymentHeaderBadge extends StatelessWidget {
 
 /// Centered loading state inside the shell body area.
 class PaymentCenterLoading extends StatelessWidget {
-  const PaymentCenterLoading({super.key, this.message = 'Loading…'});
+  const PaymentCenterLoading({super.key, this.message});
 
-  final String message;
+  /// Defaults to the localized "Loading…".
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -402,7 +403,10 @@ class PaymentCenterLoading extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Text(message, style: PaymentTypography.hint()),
+          Text(
+            message ?? context.flipperL10n.paywallLoading,
+            style: PaymentTypography.hint(),
+          ),
         ],
       ),
     );

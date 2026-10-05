@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ippis_service.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import '../blocs/signup_form_bloc.dart';
+import 'signup_components.dart';
 
 class TinInputField extends StatefulWidget {
   final TextFieldBloc tinNumberBloc;
@@ -59,13 +60,13 @@ class _TinInputFieldState extends State<TinInputField> {
           widget.tinNumberBloc.updateValue(tin);
         } else {
           setState(() {
-            _errorText = 'Could not extract TIN from the provided document';
+            _errorText = FlipperL10n.current.signupTinExtractFailed;
           });
         }
       }
     } catch (e) {
       setState(() {
-        _errorText = 'Error processing PDF: ${e.toString()}';
+        _errorText = FlipperL10n.current.signupTinPdfError(e.toString());
       });
     } finally {
       if (mounted) {
@@ -88,8 +89,8 @@ class _TinInputFieldState extends State<TinInputField> {
 
       if (business != null) {
         if (mounted) {
-          showSuccessNotification(
-              context, 'TIN validated: ${business.taxPayerName}');
+          showSuccessNotification(context,
+              context.flipperL10n.signupTinValidated(business.taxPayerName));
 
           // Update the username field with the taxpayer name if formBloc is available.
           // Truncate to 11 chars to satisfy the username length validator.
@@ -107,7 +108,7 @@ class _TinInputFieldState extends State<TinInputField> {
         }
       } else {
         setState(() {
-          _errorText = 'No data found for this TIN';
+          _errorText = FlipperL10n.current.signupTinNoData;
         });
         widget.onValidationResult?.call(false, false);
       }
@@ -116,7 +117,7 @@ class _TinInputFieldState extends State<TinInputField> {
       // than telling the user their TIN is unknown.
       if (mounted) {
         showErrorNotification(
-            context, 'Service Unavailable: Validation skipped');
+            context, context.flipperL10n.signupTinServiceUnavailable);
         widget.onValidationResult?.call(false, true);
       }
     } catch (e) {
@@ -124,12 +125,13 @@ class _TinInputFieldState extends State<TinInputField> {
         // Relax validation
         if (mounted) {
           showErrorNotification(
-              context, 'Service Unavailable: Validation skipped');
+              context, context.flipperL10n.signupTinServiceUnavailable);
           widget.onValidationResult?.call(false, true);
         }
       } else {
         setState(() {
-          _errorText = 'Error validating TIN: ${e.toString()}';
+          _errorText =
+              FlipperL10n.current.signupTinValidationError(e.toString());
         });
         widget.onValidationResult?.call(false, false);
       }
@@ -149,6 +151,7 @@ class _TinInputFieldState extends State<TinInputField> {
       children: [
         TextFieldBlocBuilder(
           textFieldBloc: widget.tinNumberBloc,
+          errorBuilder: SignupComponents.fieldErrorText,
           decoration: InputDecoration(
             labelText: context.flipperL10n.tinNumber,
             labelStyle: const TextStyle(

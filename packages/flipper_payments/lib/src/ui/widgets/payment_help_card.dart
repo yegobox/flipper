@@ -1,19 +1,19 @@
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class PaymentHelpCard extends StatelessWidget {
-  const PaymentHelpCard({
-    super.key,
-    this.onTap,
-    this.title = 'Need Help?',
-    this.subtitle = 'Chat with support about this payment',
-  });
+  const PaymentHelpCard({super.key, this.onTap, this.title, this.subtitle});
 
   final VoidCallback? onTap;
-  final String title;
-  final String subtitle;
+
+  /// Defaults to the localized "Need Help?".
+  final String? title;
+
+  /// Defaults to the localized "Chat with support about this payment".
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +50,14 @@ class PaymentHelpCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      title ?? context.flipperL10n.paywallNeedHelp,
                       style: PaymentTypography.cardTitle(),
                     ),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: PaymentTypography.hint()),
+                    Text(
+                      subtitle ?? context.flipperL10n.paywallChatWithSupport,
+                      style: PaymentTypography.hint(),
+                    ),
                   ],
                 ),
               ),

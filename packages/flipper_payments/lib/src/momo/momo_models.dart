@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// Where a request-to-pay currently stands.
 ///
 /// Ported from eduAI. The important rule is the default arm: **anything
@@ -104,7 +106,11 @@ class MomoSettlement {
 
   /// A poll that could not be read as a verdict — the handset may simply be
   /// offline. Pending, so the caller keeps trying.
-  factory MomoSettlement.unresolved(String reference, {int? httpStatus, String? reason}) {
+  factory MomoSettlement.unresolved(
+    String reference, {
+    int? httpStatus,
+    String? reason,
+  }) {
     return MomoSettlement(
       reference: reference,
       status: MomoPaymentStatus.pending,
@@ -134,7 +140,8 @@ enum MomoMandateState {
   static MomoMandateState fromWire(String? value) {
     return switch (value?.trim().toLowerCase()) {
       'active' => MomoMandateState.active,
-      'awaiting_approval' || 'awaitingapproval' => MomoMandateState.awaitingApproval,
+      'awaiting_approval' ||
+      'awaitingapproval' => MomoMandateState.awaitingApproval,
       'failed' => MomoMandateState.failed,
       _ => MomoMandateState.awaitingApproval,
     };
@@ -200,7 +207,10 @@ class MomoMandate {
         : _stateFromMtnStatus(rawStatus);
     return MomoMandate(
       state: state,
-      id: _string(json['preapprovalId']) ?? _string(json['uuid']) ?? _string(json['id']),
+      id:
+          _string(json['preapprovalId']) ??
+          _string(json['uuid']) ??
+          _string(json['id']),
       status: rawStatus,
       authorisedAmount: _int(json['authorisedAmount'] ?? json['amount']),
       expiresAt: _dateTime(json['expiresAt']),
@@ -244,9 +254,12 @@ class MomoMandate {
 
 /// Mobile Money is not reachable from this build (no gateway configured).
 class MomoUnavailable implements Exception {
-  const MomoUnavailable([this.message = 'Mobile Money is not set up on this device yet.']);
+  const MomoUnavailable([this._message]);
 
-  final String message;
+  final String? _message;
+
+  /// Defaults to the localized "Mobile Money is not set up on this device yet."
+  String get message => _message ?? FlipperL10n.current.paywallMomoNotSetUp;
 
   @override
   String toString() => message;
@@ -306,7 +319,9 @@ String? _string(dynamic value) {
 int? _int(dynamic value) {
   if (value is num) return value.round();
   final text = _string(value);
-  return text == null ? null : int.tryParse(text) ?? double.tryParse(text)?.round();
+  return text == null
+      ? null
+      : int.tryParse(text) ?? double.tryParse(text)?.round();
 }
 
 DateTime? _dateTime(dynamic value) {

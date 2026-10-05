@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
 import 'package:flipper_scanner/random.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
@@ -36,7 +37,8 @@ class QrLoginScanHandler {
         !result.contains('-') ||
         !result.split('-')[0].contains('login')) {
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      actions.showSimpleNotification('Invalid QR code format');
+      actions
+          .showSimpleNotification(FlipperL10n.current.scannerInvalidQrFormat);
       await Future<void>.delayed(const Duration(milliseconds: 1500));
       actions.pop();
       return;
@@ -59,7 +61,8 @@ class QrLoginScanHandler {
 
       _listenForLoginResponse(responseChannel);
 
-      final pin = await actions.getPinLocal(userId: userId, alwaysHydrate: false);
+      final pin =
+          await actions.getPinLocal(userId: userId, alwaysHydrate: false);
 
       await DittoService.instance.ensureEventsChannelSubscription(channel);
       await DittoService.instance.ensureBroadEventsCloudSubscription();
@@ -84,7 +87,8 @@ class QrLoginScanHandler {
       _startDesktopResponseTimeout();
     } catch (e) {
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      actions.showSimpleNotification('Login error: ${e.toString()}');
+      actions.showSimpleNotification(
+          FlipperL10n.current.scannerLoginError(e.toString()));
       await Future<void>.delayed(const Duration(milliseconds: 2000));
       actions.pop();
     }
@@ -97,7 +101,7 @@ class QrLoginScanHandler {
       _responseHandled = true;
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       actions.showSimpleNotification(
-        'Desktop did not respond — check it is on the QR login screen',
+        FlipperL10n.current.scannerDesktopNoResponse,
       );
       dispose();
       Future<void>.delayed(const Duration(seconds: 2), actions.pop);
@@ -119,7 +123,8 @@ class QrLoginScanHandler {
       await Future<void>.delayed(const Duration(milliseconds: 200));
     }
     if (!DittoService.instance.dittoInstance!.sync.isActive) {
-      throw StateError('Ditto sync not active — QR login event would stay local');
+      throw StateError(
+          'Ditto sync not active — QR login event would stay local');
     }
 
     final connectivity = await Connectivity().checkConnectivity();
@@ -177,8 +182,8 @@ class QrLoginScanHandler {
       actions.triggerHapticFeedback();
       actions.showSimpleNotification(
         status == 'choices_needed'
-            ? 'Desktop logged in — select your business there'
-            : 'Desktop login successful',
+            ? FlipperL10n.current.scannerDesktopSelectBusiness
+            : FlipperL10n.current.scannerDesktopLoginSuccessful,
       );
       dispose();
       Timer(const Duration(seconds: 2), actions.pop);
@@ -186,8 +191,8 @@ class QrLoginScanHandler {
     }
 
     ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-    final errorMessage =
-        response['message']?.toString() ?? 'Desktop login failed';
+    final errorMessage = response['message']?.toString() ??
+        FlipperL10n.current.scannerDesktopLoginFailed;
     actions.showSimpleNotification(errorMessage);
     dispose();
     Timer(const Duration(seconds: 2), actions.pop);

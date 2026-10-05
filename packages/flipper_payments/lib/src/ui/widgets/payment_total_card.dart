@@ -2,6 +2,7 @@ import 'package:flipper_payments/src/catalog/billing_cadence.dart';
 import 'package:flipper_payments/src/ui/payment_format.dart';
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class PaymentTotalCard extends StatelessWidget {
@@ -11,7 +12,7 @@ class PaymentTotalCard extends StatelessWidget {
     required this.subtitle,
     this.isYearly = false,
     this.cadence,
-    this.label = 'Total',
+    this.label,
     this.plain = false,
   });
 
@@ -24,14 +25,16 @@ class PaymentTotalCard extends StatelessWidget {
 
   /// The billing cadence. Prefer this over [isYearly].
   final BillingCadence? cadence;
-  final String label;
+
+  /// Defaults to the localized "Total".
+  final String? label;
   final bool plain;
 
   @override
   Widget build(BuildContext context) {
-    final period = (cadence ??
-            (isYearly ? BillingCadence.yearly : BillingCadence.monthly))
-        .periodSuffix;
+    final period =
+        (cadence ?? (isYearly ? BillingCadence.yearly : BillingCadence.monthly))
+            .periodSuffix;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
@@ -52,7 +55,7 @@ class PaymentTotalCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label.toUpperCase(),
+                  (label ?? context.flipperL10n.paywallTotal).toUpperCase(),
                   style: PaymentTypography.totalLabel(),
                 ),
                 const SizedBox(height: 3),

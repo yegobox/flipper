@@ -1,6 +1,7 @@
 import 'package:flipper_payments/src/ui/payment_tokens.dart';
 import 'package:flipper_payments/src/ui/payment_typography.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 class PaymentPrimaryButton extends StatelessWidget {
@@ -31,8 +32,7 @@ class PaymentPrimaryButton extends StatelessWidget {
           gradient: disabled && !loading
               ? LinearGradient(
                   colors: [
-                    PaymentTokens.gradBtn.colors.first
-                        .withValues(alpha: 0.75),
+                    PaymentTokens.gradBtn.colors.first.withValues(alpha: 0.75),
                     PaymentTokens.gradBtn.colors.last.withValues(alpha: 0.75),
                   ],
                 )
@@ -71,7 +71,10 @@ class PaymentPrimaryButton extends StatelessWidget {
                   ],
                   Flexible(
                     child: Text(
-                      loading ? (loadingLabel ?? 'Processing…') : label,
+                      loading
+                          ? (loadingLabel ??
+                                context.flipperL10n.paywallProcessing)
+                          : label,
                       style: PaymentTypography.primaryButton(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -136,20 +139,28 @@ class PaymentCtaNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sentence = context.flipperL10n.paywallSecurePaymentVia(provider);
+    final providerAt = sentence.indexOf(provider);
+    final providerSpan = TextSpan(
+      text: provider,
+      style: PaymentTypography.inlineLabel().copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: PaymentTokens.ink2,
+      ),
+    );
     return Text.rich(
       TextSpan(
         style: PaymentTypography.hint().copyWith(fontSize: 12),
-        children: [
-          const TextSpan(text: 'Secure payment via '),
-          TextSpan(
-            text: provider,
-            style: PaymentTypography.inlineLabel().copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: PaymentTokens.ink2,
-            ),
-          ),
-        ],
+        children: providerAt < 0
+            ? [TextSpan(text: sentence)]
+            : [
+                TextSpan(text: sentence.substring(0, providerAt)),
+                providerSpan,
+                TextSpan(
+                  text: sentence.substring(providerAt + provider.length),
+                ),
+              ],
       ),
       textAlign: TextAlign.center,
     );

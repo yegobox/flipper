@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
@@ -95,30 +96,34 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   // Success is handled by navigation in the bloc
                 },
                 onFailure: (context, state) {
-                  final message = state.failureResponse ??
-                      'An error occurred during signup';
-                  final isOtpError = message.toLowerCase().contains('otp') ||
-                      message.toLowerCase().contains('expired') ||
-                      message.toLowerCase().contains('invalid');
+                  final l10n = context.flipperL10n;
+                  // failureResponse is a raw (untranslated) reason from the
+                  // bloc; match on it, show localized copy.
+                  final raw = state.failureResponse;
+                  final message = raw ?? l10n.signupErrorGeneric;
+                  final rawLower = raw?.toLowerCase() ?? '';
+                  final isOtpError = rawLower.contains('otp') ||
+                      rawLower.contains('expired') ||
+                      rawLower.contains('invalid');
 
                   if (isOtpError) {
                     // Show a snackbar with a "Resend OTP" action so the user
                     // can immediately get a fresh code without hunting for the button.
                     showErrorNotification(
                       context,
-                      'OTP expired or invalid. Please request a new code.',
+                      l10n.signupOtpExpiredOrInvalid,
                       duration: const Duration(seconds: 8),
-                      actionLabel: 'Resend OTP',
+                      actionLabel: l10n.signupResendOtp,
                       onAction: () async {
                         try {
                           await formBloc.requestOtp();
                           if (!context.mounted) return;
                           showSuccessNotification(
-                              context, 'New OTP sent successfully!');
+                              context, l10n.signupNewOtpSent);
                         } catch (e) {
                           if (!context.mounted) return;
                           showErrorNotification(
-                              context, 'Failed to resend OTP: $e');
+                              context, l10n.signupFailedToResendOtp('$e'));
                         }
                       },
                     );
@@ -127,6 +132,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   }
                 },
                 child: Builder(builder: (context) {
+                  final l10n = context.flipperL10n;
                   final size = MediaQuery.sizeOf(context);
                   final isMobileLayout =
                       size.shortestSide < 600 || size.width <= 820;
@@ -148,22 +154,22 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                     if (_signupStep == 0) ...[
                       components.SignupComponents.buildInputField(
                         fieldBloc: formBloc.username,
-                        label: 'Username',
+                        label: l10n.signupUsername,
                         icon: Icons.person_outline,
-                        hint: 'Enter your username',
+                        hint: l10n.signupUsernameHint,
                       ),
                       components.SignupComponents.buildInputField(
                         fieldBloc: formBloc.fullName,
-                        label: 'Full Name',
+                        label: l10n.signupFullName,
                         icon: Icons.badge_outlined,
-                        hint: 'First name, Last name',
+                        hint: l10n.signupFullNameHint,
                       ),
                     ] else if (_signupStep == 1) ...[
                       components.SignupComponents.buildInputField(
                         fieldBloc: formBloc.phoneNumber,
-                        label: 'Phone / Email',
+                        label: l10n.signupPhoneOrEmail,
                         icon: Icons.phone_outlined,
-                        hint: '783054874 or your@email.com',
+                        hint: l10n.signupPhoneOrEmailHint,
                         keyboardType: TextInputType.text,
                         // Dial-code prefix chip — shows when input is a phone number,
                         // hides automatically when the user types "@" (email mode).
@@ -266,11 +272,13 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                               await formBloc.requestOtp();
                                               if (!mounted) return;
                                               showSuccessNotification(context,
-                                                  'OTP resent successfully!');
+                                                  l10n.signupOtpResent);
                                             } catch (e) {
                                               if (!mounted) return;
-                                              showErrorNotification(context,
-                                                  'Failed to resend OTP: ${e.toString()}');
+                                              showErrorNotification(
+                                                  context,
+                                                  l10n.signupFailedToResendOtp(
+                                                      e.toString()));
                                             } finally {
                                               if (mounted) {
                                                 setState(() {
@@ -297,8 +305,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                       Color(0xFF4F46E5)),
                                             ),
                                           )
-                                        : const Text('Resend',
-                                            style: TextStyle(
+                                        : Text(l10n.signupResend,
+                                            style: const TextStyle(
                                                 fontWeight: FontWeight.w600)),
                                   );
                                 } else if (isVerified && phoneHasValue) {
@@ -322,12 +330,14 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             try {
                                               await formBloc.requestOtp();
                                               if (!mounted) return;
-                                              showSuccessNotification(context,
-                                                  'OTP sent successfully!');
+                                              showSuccessNotification(
+                                                  context, l10n.signupOtpSent);
                                             } catch (e) {
                                               if (!mounted) return;
-                                              showErrorNotification(context,
-                                                  'Failed to send OTP: ${e.toString()}');
+                                              showErrorNotification(
+                                                  context,
+                                                  l10n.signupFailedToSendOtp(
+                                                      e.toString()));
                                             } finally {
                                               if (mounted) {
                                                 setState(() {
@@ -354,8 +364,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                       Color(0xFF4F46E5)),
                                             ),
                                           )
-                                        : const Text('Send Code',
-                                            style: TextStyle(
+                                        : Text(l10n.signupSendCode,
+                                            style: const TextStyle(
                                                 fontWeight: FontWeight.w600)),
                                   );
                                 }
@@ -374,9 +384,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                           if (isEnabled) {
                             return components.SignupComponents.buildInputField(
                               fieldBloc: formBloc.otpCode,
-                              label: 'OTP Code',
+                              label: l10n.signupOtpCode,
                               icon: Icons.lock_outlined,
-                              hint: 'Enter the 6-digit OTP',
+                              hint: l10n.signupOtpHint,
                               keyboardType: TextInputType.number,
                               inputFormatters: [
                                 LengthLimitingTextInputFormatter(6),
@@ -438,8 +448,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             context, status['error']);
                                       } else if (status['isVerified']) {
                                         // Show success notification when verification succeeds
-                                        showSuccessNotification(context,
-                                            'Phone number verified successfully!');
+                                        showSuccessNotification(
+                                            context, l10n.signupPhoneVerified);
                                       }
                                       // Cancel subscription after handling the result
                                       _otpVerificationSubscription?.cancel();
@@ -458,7 +468,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                       components.SignupComponents.buildDropdownField<
                           BusinessType>(
                         fieldBloc: formBloc.businessTypes,
-                        label: 'Usage',
+                        label: l10n.signupUsage,
                         icon: Icons.business_outlined,
                         itemBuilder: (context, value) => FieldItem(
                           child: Text(
@@ -495,9 +505,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                         ),
                       components.SignupComponents.buildSearchableSelectField(
                         fieldBloc: formBloc.countryName,
-                        label: 'Country',
+                        label: l10n.signupCountry,
                         icon: Icons.public_outlined,
-                        searchHint: 'Search your country',
+                        searchHint: l10n.signupSearchCountry,
                         trailingLabel: signupDialCodeFor,
                         // So 'USA', 'UK' and 'DRC' find their country too.
                         search: (query, options) =>
@@ -653,7 +663,12 @@ class _SignupStepHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['Identity', 'Verify', 'Business'];
+    final l10n = context.flipperL10n;
+    final labels = [
+      l10n.signupStepIdentity,
+      l10n.signupStepVerify,
+      l10n.business,
+    ];
 
     return Row(
       children: [
@@ -675,7 +690,7 @@ class _SignupStepHeader extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    'Step ${step + 1} of 3',
+                    l10n.signupStepOf('${step + 1}', '3'),
                     style: const TextStyle(
                       color: Color(0xFF7E8AA0),
                       fontSize: 15,
@@ -797,9 +812,9 @@ class _SignupRewardBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Finish setup to unlock 500 points',
-                  style: TextStyle(
+                Text(
+                  context.flipperL10n.signupRewardTitle,
+                  style: const TextStyle(
                     color: Color(0xFF0B1220),
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
@@ -807,9 +822,9 @@ class _SignupRewardBanner extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Spend points on lower fees & premium reports',
-                  style: TextStyle(
+                Text(
+                  context.flipperL10n.signupRewardSubtitle,
+                  style: const TextStyle(
                     color: Color(0xFF4A5567),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -853,15 +868,16 @@ class _SignupStepIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final titles = [
-      'Who are you?',
-      'How do we reach you?',
-      'Tell us about your shop',
+      l10n.signupStep1Title,
+      l10n.signupStep2Title,
+      l10n.signupStep3Title,
     ];
     final descriptions = [
-      'This is how you’ll sign in and how teammates find you.',
-      'We’ll send a one-time code to verify it’s really you.',
-      'We’ll tailor Flipper to how you sell.',
+      l10n.signupStep1Description,
+      l10n.signupStep2Description,
+      l10n.signupStep3Description,
     ];
 
     return Column(
@@ -919,12 +935,13 @@ class _SignupFooter extends StatelessWidget {
                   bloc: formBloc.businessTypes,
                   builder: (context, _) {
                     final enabled = _enabledForStep();
+                    final l10n = context.flipperL10n;
                     return Column(
                       children: [
                         FlipperGradientButton(
                           text: step < 2
-                              ? 'Continue'
-                              : 'Create account · claim 500 pts',
+                              ? l10n.continueAction
+                              : l10n.signupCreateAccountClaim,
                           icon: step < 2
                               ? Icons.chevron_right_rounded
                               : Icons.emoji_events_outlined,
@@ -932,29 +949,27 @@ class _SignupFooter extends StatelessWidget {
                           onPressed: enabled ? onContinue : null,
                         ),
                         const SizedBox(height: 14),
-                        const Text.rich(
+                        Text.rich(
                           TextSpan(
-                            text: 'By continuing you agree to Flipper’s ',
-                            children: [
-                              TextSpan(
-                                text: 'Terms',
-                                style: TextStyle(
-                                  color: Color(0xFF4F46E5),
-                                  fontWeight: FontWeight.w800,
-                                ),
+                            children: _termsSpans(
+                              l10n.signupTermsAgreement(
+                                _kTermsToken,
+                                _kPrivacyToken,
                               ),
-                              TextSpan(text: ' & '),
-                              TextSpan(
-                                text: 'Privacy',
-                                style: TextStyle(
-                                  color: Color(0xFF4F46E5),
-                                  fontWeight: FontWeight.w800,
+                              {
+                                _kTermsToken: TextSpan(
+                                  text: l10n.signupTermsLink,
+                                  style: _linkStyle,
                                 ),
-                              ),
-                            ],
+                                _kPrivacyToken: TextSpan(
+                                  text: l10n.signupPrivacyLink,
+                                  style: _linkStyle,
+                                ),
+                              },
+                            ),
                           ),
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Color(0xFF7E8AA0),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -970,6 +985,43 @@ class _SignupFooter extends StatelessWidget {
         );
       },
     );
+  }
+
+  static const _kTermsToken = '\u0000terms\u0000';
+  static const _kPrivacyToken = '\u0000privacy\u0000';
+  static const _linkStyle = TextStyle(
+    color: Color(0xFF4F46E5),
+    fontWeight: FontWeight.w800,
+  );
+
+  /// Splits a localized sentence around the link tokens passed in as its
+  /// placeholders, so each language keeps its own word order.
+  static List<InlineSpan> _termsSpans(
+    String text,
+    Map<String, InlineSpan> links,
+  ) {
+    final spans = <InlineSpan>[];
+    var rest = text;
+    while (rest.isNotEmpty) {
+      var nextIndex = -1;
+      String? nextToken;
+      for (final token in links.keys) {
+        final i = rest.indexOf(token);
+        if (i >= 0 && (nextIndex < 0 || i < nextIndex)) {
+          nextIndex = i;
+          nextToken = token;
+        }
+      }
+      if (nextToken == null) {
+        spans.add(TextSpan(text: rest));
+        break;
+      }
+      if (nextIndex > 0)
+        spans.add(TextSpan(text: rest.substring(0, nextIndex)));
+      spans.add(links[nextToken]!);
+      rest = rest.substring(nextIndex + nextToken.length);
+    }
+    return spans;
   }
 
   bool _enabledForStep() {

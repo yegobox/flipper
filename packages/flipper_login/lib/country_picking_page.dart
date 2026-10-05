@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:country_code_picker/country_code_picker.dart';
@@ -43,7 +44,7 @@ class _CountryPickerState extends State<CountryPicker> {
                     // Handle sign in navigation
                   },
                   child: Text(
-                    "Sign In",
+                    context.flipperL10n.loginSignIn,
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -60,7 +61,7 @@ class _CountryPickerState extends State<CountryPicker> {
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 32),
                   Text(
-                    'Select the country where your business is located',
+                    context.flipperL10n.phoneAuthSelectCountryTitle,
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
@@ -78,7 +79,7 @@ class _CountryPickerState extends State<CountryPicker> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       hideSearch: false,
                       searchDecoration: InputDecoration(
-                        hintText: 'Search country...',
+                        hintText: context.flipperL10n.phoneAuthSearchCountry,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -128,7 +129,7 @@ class _CountryPickerState extends State<CountryPicker> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'I agree to flippers Seller Agreement and Privacy Policy.',
+                            context.flipperL10n.phoneAuthAgreeSellerAgreement,
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               height: 1.5,
@@ -140,7 +141,7 @@ class _CountryPickerState extends State<CountryPicker> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'This app is protected by reCAPTCHA Enterprise and Google Privacy Policy and Terms of Service apply.',
+                    context.flipperL10n.phoneAuthRecaptchaNotice,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -176,7 +177,7 @@ class _CountryPickerState extends State<CountryPicker> {
                   }
                 : null,
             child: Text(
-              "Continue",
+              context.flipperL10n.continueAction,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 fontSize: 18,

@@ -1,5 +1,6 @@
 import 'package:flipper_ai_feature/src/services/speech_dictation.dart';
 import 'package:flipper_ai_feature/src/widgets/flo/flo_composer.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -42,6 +43,8 @@ void main() {
 
   Future<void> pumpComposer(WidgetTester tester, {VoidCallback? onSend}) {
     return tester.pumpWidget(MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         body: FloComposer(
           controller: controller,

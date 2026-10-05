@@ -229,8 +229,41 @@ class AppInitException implements Exception {
 final Set<String> _finishedInitSteps = <String>{};
 
 /// Drives the label under the startup spinner so a slow boot shows progress
-/// rather than an indefinite blank wait.
+/// rather than an indefinite blank wait. Holds the running step's id; the
+/// spinner maps it to a localized label via [_initStepDisplayLabel].
 final ValueNotifier<String> initProgressLabel = ValueNotifier<String>('');
+
+/// Localized, user-facing name of a startup step. `_InitStep.label` stays
+/// English because it also goes into logs, Sentry and the copied error report.
+String _initStepDisplayLabel(FlipperAppLocalizations l10n, String? stepId) {
+  switch (stepId) {
+    case 'firebase':
+      return l10n.appInitStepFirebase;
+    case 'locator':
+      return l10n.appInitStepLocator;
+    case 'platform':
+      return l10n.appInitStepPlatform;
+    case 'error-handler':
+      return l10n.appInitStepDiagnostics;
+    case 'database':
+      return l10n.appInitStepDatabase;
+    case 'dependencies':
+      return l10n.appInitStepServices;
+    case 'analytics':
+      return l10n.appInitStepAnalytics;
+    case 'amplify':
+      return l10n.appInitStepCloudStorage;
+    case 'ditto-registry':
+      return l10n.appInitStepSync;
+    case 'background':
+      return l10n.appInitStepFinishing;
+    case null:
+    case '':
+      return '';
+    default:
+      return l10n.appInitStepStartup;
+  }
+}
 
 void _reportInitFailure(
   _InitStep step,
@@ -278,7 +311,7 @@ Future<void> _runInitStep(_InitStep step) async {
     return;
   }
 
-  initProgressLabel.value = step.label;
+  initProgressLabel.value = step.id;
   final watch = Stopwatch()..start();
   try {
     await step.run().timeout(
@@ -527,6 +560,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
               error is AppInitException ? error.stepLabel : 'Startup';
 
           return _StartupFailure(
+            stepId: error is AppInitException ? error.stepId : null,
             stepLabel: stepLabel,
             details: _formatInitError(error, stackTrace),
             onRetry: _retry,
@@ -548,8 +582,12 @@ class _StartupProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Runs before the saved app language can be read, so it follows the
+    // device language.
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -560,8 +598,8 @@ class _StartupProgress extends StatelessWidget {
               const SizedBox(height: 20),
               ValueListenableBuilder<String>(
                 valueListenable: initProgressLabel,
-                builder: (context, label, _) => Text(
-                  label,
+                builder: (context, stepId, _) => Text(
+                  _initStepDisplayLabel(context.flipperL10n, stepId),
                   style: const TextStyle(fontSize: 13, color: Colors.black54),
                 ),
               ),
@@ -577,90 +615,107 @@ class _StartupProgress extends StatelessWidget {
 /// resumes the pipeline, and lets the user copy the full error for support.
 class _StartupFailure extends StatelessWidget {
   const _StartupFailure({
+    required this.stepId,
     required this.stepLabel,
     required this.details,
     required this.onRetry,
   });
 
+  /// Id of the failed step, or null when the failure was not tied to one.
+  final String? stepId;
+
+  /// English step name, kept for the copied error report support reads.
   final String stepLabel;
   final String details;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    // Runs before the saved app language can be read, so it follows the
+    // device language.
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 64),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Initialization Failed',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'The app could not finish starting at "$stepLabel". '
-                    'Tap Try again — it will resume from that step.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Try again'),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton.icon(
-                    onPressed: () {
-                      Clipboard.setData(
-                        ClipboardData(text: '[$stepLabel]\n$details'),
-                      );
-                    },
-                    icon: const Icon(Icons.copy_all, size: 18),
-                    label: const Text('Copy error details'),
-                  ),
-                  const SizedBox(height: 16),
-                  // Shown in every build: without it a field failure is a
-                  // photograph of a screen that says nothing actionable.
-                  Theme(
-                    data: ThemeData(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      title: const Text(
-                        'Technical details',
-                        style: TextStyle(fontSize: 13, color: Colors.black54),
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      home: Builder(builder: (context) {
+        final l10n = context.flipperL10n;
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: Colors.red, size: 64),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.appInitFailedTitle,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.appInitFailedMessage(
+                        _initStepDisplayLabel(l10n, stepId ?? 'startup'),
                       ),
-                      childrenPadding: EdgeInsets.zero,
-                      children: [
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 260),
-                          child: SingleChildScrollView(
-                            child: SelectableText(
-                              details,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.black54,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(l10n.appInitTryAgain),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(
+                          ClipboardData(text: '[$stepLabel]\n$details'),
+                        );
+                      },
+                      icon: const Icon(Icons.copy_all, size: 18),
+                      label: Text(l10n.appInitCopyErrorDetails),
+                    ),
+                    const SizedBox(height: 16),
+                    // Shown in every build: without it a field failure is a
+                    // photograph of a screen that says nothing actionable.
+                    Theme(
+                      data: ThemeData(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        title: Text(
+                          l10n.appInitTechnicalDetails,
+                          style: const TextStyle(
+                              fontSize: 13, color: Colors.black54),
+                        ),
+                        childrenPadding: EdgeInsets.zero,
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 260),
+                            child: SingleChildScrollView(
+                              child: SelectableText(
+                                details,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }

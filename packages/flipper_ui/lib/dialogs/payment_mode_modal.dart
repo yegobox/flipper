@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -54,7 +55,7 @@ SliverWoltModalSheetPage _buildPaymentModePage(
           ),
           const SizedBox(width: 16),
           Text(
-            'Select Payment Mode',
+            context.flipperL10n.uiPaymentModeSelect,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w700,
               fontSize: 22,
@@ -106,7 +107,7 @@ SliverWoltModalSheetPage _buildPaymentModePage(
                 ),
               ),
               child: Text(
-                "Cancel",
+                context.flipperL10n.cancel,
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -129,7 +130,7 @@ SliverWoltModalSheetPage _buildPaymentModePage(
                 ),
               ),
               child: Text(
-                'Confirm',
+                context.flipperL10n.confirm,
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -178,7 +179,8 @@ class PaymentModeFormState extends State<PaymentModeForm> {
       } catch (e) {
         debugPrint('Payment processing error: $e');
         if (mounted) {
-          showErrorNotification(context, 'Payment failed');
+          showErrorNotification(
+              context, context.flipperL10n.uiPaymentModeFailed);
         }
       } finally {
         if (mounted) {
@@ -190,7 +192,7 @@ class PaymentModeFormState extends State<PaymentModeForm> {
     } else {
       showWarningNotification(
         context,
-        'Please select a payment mode',
+        context.flipperL10n.uiPaymentModePleaseSelect,
       );
     }
   }
@@ -210,7 +212,7 @@ class PaymentModeFormState extends State<PaymentModeForm> {
             ),
           ),
         Text(
-          'Select Financing Option',
+          context.flipperL10n.uiPaymentModeSelectFinancing,
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -295,7 +297,8 @@ class PaymentModeFormState extends State<PaymentModeForm> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              'Interest: ${provider.interestRate}%',
+                              context.flipperL10n.uiPaymentModeInterest(
+                                  '${provider.interestRate}'),
                               style: GoogleFonts.poppins(
                                 color: Colors.orange.shade800,
                                 fontSize: 12,

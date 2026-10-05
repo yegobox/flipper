@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -15,6 +16,24 @@ class SignupComponents {
   static const Color textSecondary = Color(0xFF7E8AA0);
   static const Color errorColor = FlipperColors.error;
   static const Color surfaceColor = Colors.white;
+
+  /// Localized replacement for form_bloc's English default error builder.
+  /// Validators return either form_bloc's `required` sentinel or text that is
+  /// already localized.
+  static String? fieldErrorText(BuildContext context, Object error) {
+    if (error == FieldBlocValidatorsErrors.required) {
+      return context.flipperL10n.signupFieldRequired;
+    }
+    return '$error';
+  }
+
+  /// [fieldErrorText] for dropdowns, where "required" means pick an option.
+  static String? selectFieldErrorText(BuildContext context, Object error) {
+    if (error == FieldBlocValidatorsErrors.required) {
+      return context.flipperL10n.signupSelectOption;
+    }
+    return '$error';
+  }
 
   /// Build the header section with the app's branding.
   static Widget buildHeaderSection() {
@@ -40,23 +59,27 @@ class SignupComponents {
             ],
           ),
         ),
-        const Text(
-          'Join Flipper',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
+        Builder(
+          builder: (context) => Text(
+            context.flipperL10n.signupJoinFlipper,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              color: textPrimary,
+            ),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: const Text(
-            'Start your journey with us today 🚀',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: textSecondary,
+          child: Builder(
+            builder: (context) => Text(
+              context.flipperL10n.signupJourneyTagline,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: textSecondary,
+              ),
             ),
           ),
         ),
@@ -95,6 +118,7 @@ class SignupComponents {
 
           return TextFieldBlocBuilder(
             textFieldBloc: fieldBloc,
+            errorBuilder: fieldErrorText,
             isEnabled: isEnabled,
             suffixButton: suffix != null || isComplete
                 ? null
@@ -167,6 +191,7 @@ class SignupComponents {
       child: DropdownFieldBlocBuilder<T>(
         showEmptyItem: false,
         selectFieldBloc: fieldBloc,
+        errorBuilder: selectFieldErrorText,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: textSecondary, size: 22),
@@ -258,8 +283,8 @@ class SignupComponents {
                 ),
                 // The field bloc types its error as the bloc's Error generic,
                 // which is `dynamic` here.
-                errorText: state?.canShowError == true
-                    ? state?.error?.toString()
+                errorText: state?.canShowError == true && state?.error != null
+                    ? selectFieldErrorText(context, state!.error as Object)
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: Corners.s12Border,
@@ -390,7 +415,7 @@ class SignupComponents {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 24),
                               child: FlipperGradientButton(
-                                text: 'Create account',
+                                text: context.flipperL10n.createAccount,
                                 icon: Icons.person_add_alt_1_rounded,
                                 isLoading: isLoading,
                                 onPressed: (isLoading || !isValid)
@@ -534,7 +559,7 @@ class _SearchableOptionsSheetState extends State<_SearchableOptionsSheet> {
             ),
             Expanded(
               child: options.isEmpty
-                  ? const Center(child: Text('No matches'))
+                  ? Center(child: Text(context.flipperL10n.signupNoMatches))
                   : ListView.builder(
                       itemCount: options.length,
                       itemBuilder: (context, index) {

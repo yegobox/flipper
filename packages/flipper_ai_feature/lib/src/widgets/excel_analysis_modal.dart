@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +24,7 @@ class ExcelAnalysisModal extends ConsumerStatefulWidget {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Excel Analysis',
+      barrierLabel: context.flipperL10n.aiExcelAnalysis,
       pageBuilder: (context, _, __) => ExcelAnalysisModal(
         filePath: filePath,
         preSelectedModel: preSelectedModel,
@@ -129,16 +130,17 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
                 child: const Icon(Icons.table_chart, color: Color(0xFF107C10)),
               ),
               const SizedBox(width: 16),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'AI Excel Business Analyst',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    context.flipperL10n.aiExcelAnalystTitle,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Interactive Exploration & Visual Trends',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    context.flipperL10n.aiExcelAnalystSubtitle,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
@@ -163,7 +165,10 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
                     return DropdownMenuItem<AIModel>(
                       value: model,
                       child: Text(
-                        model.name + (model.isDefault ? ' (Default)' : ''),
+                        model.isDefault
+                            ? context.flipperL10n
+                                .aiModelDefaultSuffix(model.name)
+                            : model.name,
                         style: const TextStyle(fontSize: 12),
                       ),
                     );
@@ -203,7 +208,7 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
               color: Colors.grey.shade300,
             ),
             const SizedBox(height: 16),
-            const Text('No data found in Excel file'),
+            Text(context.flipperL10n.aiExcelNoData),
           ],
         ),
       );
@@ -222,9 +227,9 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              const Text(
-                'Source Data:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                context.flipperL10n.aiExcelSourceData,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 8),
               Chip(
@@ -274,11 +279,11 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 16),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
             child: Text(
-              'Visual Analysis:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              context.flipperL10n.aiExcelVisualAnalysis,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           if (state.lastVisualizationData != null)
@@ -297,7 +302,7 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
                     } catch (e) {
                       return Center(
                         child: Text(
-                          'Error rendering chart: $e',
+                          context.flipperL10n.aiChartRenderError('$e'),
                           style: const TextStyle(color: Colors.red),
                         ),
                       );
@@ -319,7 +324,7 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Ask questions to generate charts',
+                      context.flipperL10n.aiExcelAskForCharts,
                       style: TextStyle(color: Colors.grey.shade400),
                     ),
                   ],
@@ -334,15 +339,16 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
   Widget _buildChat(ExcelAnalysisState state) {
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Icon(Icons.chat_bubble_outline, size: 16, color: Colors.grey),
-              SizedBox(width: 8),
+              const Icon(Icons.chat_bubble_outline,
+                  size: 16, color: Colors.grey),
+              const SizedBox(width: 8),
               Text(
-                'Analyst Chat',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                context.flipperL10n.aiExcelAnalystChat,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -374,7 +380,7 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
                       OutlinedButton.icon(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.close),
-                        label: const Text('Close'),
+                        label: Text(context.flipperL10n.close),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
@@ -452,7 +458,7 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
             child: TextField(
               controller: _chatController,
               decoration: InputDecoration(
-                hintText: 'Ask about this data...',
+                hintText: context.flipperL10n.aiExcelAskHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

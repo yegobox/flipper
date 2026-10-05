@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +35,7 @@ class AiInputField extends ConsumerStatefulWidget {
     this.onAttachFile,
     this.attachedFilePath,
     this.onClearAttachedFile,
-    this.hintText = 'Message',
+    this.hintText,
     this.enabled = true,
   });
 
@@ -356,7 +357,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         }
       });
     } catch (e) {
-      _showErrorSnackBar('Failed to start recording: $e');
+      _showErrorSnackBar(FlipperL10n.current.aiRecordingStartFailed('$e'));
       _resetRecordingState();
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -399,9 +400,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             HapticFeedback.lightImpact();
             // Format the voice message and send it through the main onSend callback
             widget.onSend('[voice]($path)');
-            _showSuccessSnackBar('Voice message sent!');
+            _showSuccessSnackBar(FlipperL10n.current.aiVoiceMessageSent);
           } else {
-            _showErrorSnackBar('Audio file is corrupted or incomplete');
+            _showErrorSnackBar(FlipperL10n.current.aiAudioCorrupted);
             if (await audioFile.exists()) await audioFile.delete();
           }
         } else {
@@ -410,14 +411,14 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           if (await file.exists()) await file.delete();
 
           if (_recordingDuration < 1 && send) {
-            _showErrorSnackBar('Recording too short (minimum 1 second)');
+            _showErrorSnackBar(FlipperL10n.current.aiRecordingTooShort);
           }
         }
       }
 
       _resetRecordingState();
     } catch (e) {
-      _showErrorSnackBar('Failed to stop recording: $e');
+      _showErrorSnackBar(FlipperL10n.current.aiRecordingStopFailed('$e'));
       _resetRecordingState();
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -477,18 +478,18 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           children: [
             Icon(Icons.mic_none, color: AiTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text('Microphone Permission'),
+            Text(context.flipperL10n.aiMicPermissionTitle),
           ],
         ),
-        content: const Text(
-          'Microphone access is required to record voice messages. Please enable it in your device settings.',
-          style: TextStyle(fontSize: 16),
+        content: Text(
+          context.flipperL10n.aiMicPermissionBody,
+          style: const TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'OK',
+              context.flipperL10n.ok,
               style: TextStyle(
                 color: AiTheme.primaryColor,
                 fontWeight: FontWeight.w600,
@@ -557,7 +558,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       }
       // User canceled the picker - no action needed
     } catch (e) {
-      _showErrorSnackBar('Error picking file: $e');
+      _showErrorSnackBar(FlipperL10n.current.aiFilePickError('$e'));
     }
   }
 
@@ -1078,9 +1079,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                         size: 18,
                       ),
                       const SizedBox(width: 6),
-                      const Text(
-                        'Slide to cancel',
-                        style: TextStyle(
+                      Text(
+                        context.flipperL10n.aiSlideToCancel,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -1139,9 +1140,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Slide up to lock',
-                        style: TextStyle(
+                      Text(
+                        context.flipperL10n.aiSlideUpToLock,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -1211,9 +1212,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                           size: 20,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Hold & slide to control recording',
-                          style: TextStyle(
+                        Text(
+                          context.flipperL10n.aiHoldAndSlide,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -1278,7 +1279,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         enabled: widget.enabled && !_isRecording,
         maxLines: null,
         decoration: InputDecoration(
-          hintText: widget.hintText,
+          hintText: widget.hintText ?? context.flipperL10n.aiMessageHint,
           hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(

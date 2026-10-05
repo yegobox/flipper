@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/loginCode.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -138,7 +139,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Logging in...',
+              context.flipperL10n.loginLoggingIn,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 fontSize: 16,
@@ -163,7 +164,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             const Icon(Icons.error_outline, color: Colors.red, size: 32),
             const SizedBox(height: 12),
             Text(
-              'Login failed',
+              context.flipperL10n.loginFailed,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -174,7 +175,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Please try again or use PIN login',
+                context.flipperL10n.loginTryAgainOrUsePin,
                 style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
                 textAlign: TextAlign.center,
               ),
@@ -191,8 +192,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   }
                 });
               },
-              child: const Text('Retry',
-                  style: TextStyle(color: Color(0xff006AFE))),
+              child: Text(context.flipperL10n.retry,
+                  style: const TextStyle(color: Color(0xff006AFE))),
             ),
           ],
         ),
@@ -213,7 +214,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 color: Colors.green, size: 32),
             const SizedBox(height: 12),
             Text(
-              'Login successful!',
+              context.flipperL10n.loginSuccessful,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -242,7 +243,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
           ),
           child: Text(
-            'QR Code scanned! Completing login...',
+            context.flipperL10n.loginQrScanned,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w500,
               fontSize: 14,
@@ -263,7 +264,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
           ),
           child: Text(
-            'Login failed. Please try again.',
+            context.flipperL10n.loginFailedTryAgain,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w500,
               fontSize: 14,
@@ -284,7 +285,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
           ),
           child: Text(
-            'Login successful! Redirecting...',
+            context.flipperL10n.loginSuccessfulRedirecting,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w500,
               fontSize: 14,
@@ -346,7 +347,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 SizedBox(
                   width: 380,
                   child: Text(
-                    'Log in to Flipper by QR Code',
+                    context.flipperL10n.loginQrTitle,
                     style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w400,
                         fontSize: 20,
@@ -356,7 +357,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 const SizedBox(height: 10),
                 SizedBox(
                   width: 380,
-                  child: Text('1. Open Flipper on your phone',
+                  child: Text(context.flipperL10n.loginQrStep1,
                       style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w400,
                           fontSize: 15,
@@ -364,15 +365,14 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                 ),
                 SizedBox(
                     width: 380,
-                    child: Text('2. Go to Profile Icon > LongPress on it.',
+                    child: Text(context.flipperL10n.loginQrStep2,
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
                             fontSize: 15,
                             color: Colors.black))),
                 SizedBox(
                     width: 380,
-                    child: Text(
-                        '3. Point your phone at this screen to confirm login',
+                    child: Text(context.flipperL10n.loginQrStep3,
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
                             fontSize: 15,
@@ -385,7 +385,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Don't have the Flipper app? Download it:",
+                        context.flipperL10n.loginDownloadApp,
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w500,
                           fontSize: 15,
@@ -411,8 +411,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                       'https://apps.apple.com/rw/app/flipperrw/id6711352372'));
                                   // Show a snackbar for feedback
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Opening App Store...'),
+                                    SnackBar(
+                                      content: Text(context
+                                          .flipperL10n.loginOpeningAppStore),
                                       duration: Duration(seconds: 1),
                                       behavior: SnackBarBehavior.floating,
                                     ),
@@ -446,8 +447,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                       'https://play.google.com/store/apps/details?id=rw.flipper&hl=en'));
                                   // Show a snackbar for feedback
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Opening Play Store...'),
+                                    SnackBar(
+                                      content: Text(context
+                                          .flipperL10n.loginOpeningPlayStore),
                                       duration: Duration(seconds: 1),
                                       behavior: SnackBarBehavior.floating,
                                     ),
@@ -474,9 +476,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   width: 380,
                   child: OutlinedButton(
                     key: const Key('pinLogin_desktop'),
-                    child: const Text(
-                      'Switch to PIN login',
-                      style: TextStyle(color: Color(0xff006AFE)),
+                    child: Text(
+                      context.flipperL10n.loginSwitchToPin,
+                      style: const TextStyle(color: Color(0xff006AFE)),
                     ),
                     style: ButtonStyle(
                       shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
@@ -514,7 +516,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     key: const Key('createAccount_desktop'),
                     onPressed: _createAccount,
                     child: Text(
-                      'New to Flipper? Create an account',
+                      context.flipperL10n.loginNewToFlipperCreateAccount,
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w500,
                         fontSize: 15,
@@ -529,9 +531,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
                       if (snapshot.data!.contains(ConnectivityResult.none)) {
-                        return const Text(
-                          'Device is offline',
-                          style: TextStyle(color: Colors.red),
+                        return Text(
+                          context.flipperL10n.loginDeviceOffline,
+                          style: const TextStyle(color: Colors.red),
                         );
                       }
                     }

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,7 +37,7 @@ class _WhatsAppConnectionDialogState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Phone Number ID cannot be empty',
+          context.flipperL10n.aiWhatsappPhoneIdEmpty,
           backgroundColor: FloTheme.loss,
         );
       }
@@ -47,7 +48,7 @@ class _WhatsAppConnectionDialogState
       if (mounted) {
         showCustomSnackBarUtil(
           context,
-          'Phone Number ID must contain only digits and be 5-15 characters long',
+          context.flipperL10n.aiWhatsappPhoneIdInvalid,
           backgroundColor: FloTheme.loss,
         );
       }
@@ -61,7 +62,7 @@ class _WhatsAppConnectionDialogState
       widget.onConnectionChanged?.call();
       showCustomSnackBarUtil(
         context,
-        'WhatsApp account connected successfully',
+        context.flipperL10n.aiWhatsappConnectedSuccess,
         backgroundColor: FloTheme.blue,
       );
       Navigator.of(context).pop();
@@ -76,7 +77,7 @@ class _WhatsAppConnectionDialogState
       widget.onConnectionChanged?.call();
       showCustomSnackBarUtil(
         context,
-        'WhatsApp account disconnected successfully',
+        context.flipperL10n.aiWhatsappDisconnectedSuccess,
         backgroundColor: FloTheme.blue,
       );
       Navigator.of(context).pop();
@@ -184,7 +185,9 @@ class _WhatsAppConnectionDialogState
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  isConnected ? 'Connected' : 'Not connected',
+                  isConnected
+                      ? context.flipperL10n.aiWhatsappConnected
+                      : context.flipperL10n.aiWhatsappNotConnected,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -234,9 +237,9 @@ class _WhatsAppConnectionDialogState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Account active',
-                      style: TextStyle(
+                    Text(
+                      context.flipperL10n.aiWhatsappAccountActive,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                         color: FloTheme.ink1,
@@ -260,15 +263,16 @@ class _WhatsAppConnectionDialogState
             color: FloTheme.surface2,
             borderRadius: BorderRadius.circular(FloTheme.radiusSm),
           ),
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline_rounded, size: 16, color: FloTheme.ink3),
-              SizedBox(width: 10),
+              const Icon(Icons.info_outline_rounded,
+                  size: 16, color: FloTheme.ink3),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Saved to your business account — it stays connected on other devices when you sign in.',
-                  style: TextStyle(
+                  context.flipperL10n.aiWhatsappSavedToBusiness,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: FloTheme.ink2,
                     height: 1.4,
@@ -293,7 +297,9 @@ class _WhatsAppConnectionDialogState
                     ),
                   )
                 : const Icon(Icons.link_off_rounded, size: 18),
-            label: Text(state.isLoading ? 'Disconnecting...' : 'Disconnect'),
+            label: Text(state.isLoading
+                ? context.flipperL10n.aiWhatsappDisconnecting
+                : context.flipperL10n.aiWhatsappDisconnect),
             style: OutlinedButton.styleFrom(
               foregroundColor: FloTheme.lossInk,
               side: const BorderSide(color: FloTheme.loss),
@@ -313,9 +319,9 @@ class _WhatsAppConnectionDialogState
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Connect your WhatsApp Business account to receive and reply to customer messages.',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.aiWhatsappConnectIntro,
+          style: const TextStyle(
             color: FloTheme.ink2,
             fontSize: 14,
             height: 1.5,
@@ -324,28 +330,28 @@ class _WhatsAppConnectionDialogState
         const SizedBox(height: 18),
         _buildSetupStep(
           number: '1',
-          text: 'Go to your Meta Business Suite',
+          text: context.flipperL10n.aiWhatsappStep1,
           icon: Icons.open_in_new_rounded,
         ),
         const SizedBox(height: 8),
         _buildSetupStep(
           number: '2',
-          text: 'Find your Phone Number ID in WhatsApp settings',
+          text: context.flipperL10n.aiWhatsappStep2,
           icon: Icons.search_rounded,
         ),
         const SizedBox(height: 8),
         _buildSetupStep(
           number: '3',
-          text: 'Paste it below and connect',
+          text: context.flipperL10n.aiWhatsappStep3,
           icon: Icons.content_paste_rounded,
         ),
         const SizedBox(height: 18),
         TextField(
           controller: _phoneNumberIdController,
           decoration: InputDecoration(
-            labelText: 'Phone Number ID',
+            labelText: context.flipperL10n.aiWhatsappPhoneIdLabel,
             labelStyle: const TextStyle(color: FloTheme.ink3),
-            hintText: 'e.g., 101514826127381',
+            hintText: context.flipperL10n.aiWhatsappPhoneIdHint,
             hintStyle: TextStyle(
               color: FloTheme.ink4.withValues(alpha: 0.9),
             ),
@@ -399,9 +405,7 @@ class _WhatsAppConnectionDialogState
                   gradient: state.isLoading ? null : FloTheme.gradBtn,
                   color: state.isLoading ? FloTheme.lineStrong : null,
                   borderRadius: BorderRadius.circular(FloTheme.radiusMd),
-                  boxShadow: state.isLoading
-                      ? null
-                      : const [FloTheme.shBlue],
+                  boxShadow: state.isLoading ? null : const [FloTheme.shBlue],
                 ),
                 child: Center(
                   child: state.isLoading
@@ -419,9 +423,9 @@ class _WhatsAppConnectionDialogState
                           children: [
                             FloIcons.link(size: 18, color: Colors.white),
                             const SizedBox(width: 8),
-                            const Text(
-                              'Connect WhatsApp',
-                              style: TextStyle(
+                            Text(
+                              context.flipperL10n.aiWhatsappConnect,
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
@@ -504,10 +508,10 @@ class _WhatsAppConnectionDialogState
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Connection Error',
-                  style: TextStyle(
+                  context.flipperL10n.aiWhatsappConnectionError,
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     color: FloTheme.ink1,
@@ -556,10 +560,10 @@ class _WhatsAppConnectionDialogState
                     gradient: FloTheme.gradBtn,
                     borderRadius: BorderRadius.circular(FloTheme.radiusMd),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'Try Again',
-                      style: TextStyle(
+                      context.flipperL10n.aiWhatsappTryAgain,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,

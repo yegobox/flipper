@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/login_semantics.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
@@ -55,9 +56,9 @@ class SignInPinCells extends StatelessWidget {
     return Semantics(
       key: const Key(LoginMaestroIds.pinCells),
       identifier: LoginMaestroIds.pinCells,
-      label: 'PIN entry cells',
+      label: context.flipperL10n.loginPinEntryCells,
       button: true,
-      value: '${pin.length} digits entered',
+      value: context.flipperL10n.loginPinDigitsEntered(pin.length),
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -182,14 +183,16 @@ class SignInPinStatusLine extends StatelessWidget {
   final bool hasError;
   final bool isSuccess;
   final String message;
-  final String successBusinessName;
+
+  /// Shown in the success line; falls back to a localized "your business".
+  final String? successBusinessName;
 
   const SignInPinStatusLine({
     super.key,
     required this.hasError,
     required this.isSuccess,
     required this.message,
-    this.successBusinessName = 'your business',
+    this.successBusinessName,
   });
 
   @override
@@ -224,7 +227,9 @@ class SignInPinStatusLine extends StatelessWidget {
           const SizedBox(width: 7),
           Expanded(
             child: Text(
-              'Verified — opening $successBusinessName…',
+              context.flipperL10n.loginVerifiedOpening(
+                successBusinessName ?? context.flipperL10n.loginYourBusiness,
+              ),
               style: context.signInText(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -294,7 +299,7 @@ class SignInPinKeypad extends StatelessWidget {
           ),
         _SignInKeypadKey(
           semanticId: LoginMaestroIds.keypadShowToggle,
-          semanticLabel: 'Show or hide PIN',
+          semanticLabel: context.flipperL10n.loginShowOrHidePin,
           enabled: enabled,
           onTap: onToggleShow,
           isAction: true,
@@ -310,7 +315,7 @@ class SignInPinKeypad extends StatelessWidget {
         ),
         _SignInKeypadKey(
           semanticId: LoginMaestroIds.keypadBackspace,
-          semanticLabel: 'Backspace',
+          semanticLabel: context.flipperL10n.loginBackspace,
           enabled: enabled,
           onTap: onBackspace,
           isAction: true,
@@ -411,7 +416,7 @@ class SignInBottomBar extends StatelessWidget {
                 size: 14, color: SignInTokens.win),
             const SizedBox(width: 6),
             Text(
-              'Secured with end-to-end encryption',
+              context.flipperL10n.loginSecuredE2e,
               style:
                   context.signInText(fontSize: 12.5, color: SignInTokens.ink3),
             ),

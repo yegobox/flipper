@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/speech_dictation.dart';
@@ -27,20 +28,39 @@ class FloComposer extends StatefulWidget {
   /// Injectable for tests; a private instance is created when omitted.
   final SpeechDictation? dictation;
 
-  static const quickPrompts = [
-    {'icon': 'bolt', 'label': 'Summarize today', 'q': "Summarize today's business performance"},
-    {'icon': 'coins', 'label': 'Top products', 'q': 'Which products are most profitable this week?'},
-    {'icon': 'users', 'label': 'User count', 'q': 'How many users do we have in MiniData?'},
-    {'icon': 'trend', 'label': 'Sales trend', 'q': "Show this week's sales trend"},
-  ];
+  /// `q` is sent as the user's message, so it follows the app language.
+  static List<Map<String, String>> quickPromptsFor(
+    FlipperAppLocalizations l10n,
+  ) =>
+      [
+        {
+          'icon': 'bolt',
+          'label': l10n.floQuickSummarizeToday,
+          'q': l10n.floSuggestTodayQuestion,
+        },
+        {
+          'icon': 'coins',
+          'label': l10n.floQuickTopProducts,
+          'q': l10n.floSuggestProfitQuestion,
+        },
+        {
+          'icon': 'users',
+          'label': l10n.floQuickUserCount,
+          'q': l10n.floSuggestUsersQuestion,
+        },
+        {
+          'icon': 'trend',
+          'label': l10n.floQuickSalesTrend,
+          'q': l10n.floSuggestTrendQuestion,
+        },
+      ];
 
   @override
   State<FloComposer> createState() => _FloComposerState();
 }
 
 class _FloComposerState extends State<FloComposer> {
-  late final SpeechDictation _dictation =
-      widget.dictation ?? SpeechDictation();
+  late final SpeechDictation _dictation = widget.dictation ?? SpeechDictation();
   late final bool _ownsDictation = widget.dictation == null;
 
   @override
@@ -103,7 +123,8 @@ class _FloComposerState extends State<FloComposer> {
     final enabled = widget.enabled;
     final controller = widget.controller;
     return Container(
-      padding: EdgeInsets.fromLTRB(isMobile ? 14 : 20, 12, isMobile ? 14 : 20, isMobile ? 22 : 16),
+      padding: EdgeInsets.fromLTRB(
+          isMobile ? 14 : 20, 12, isMobile ? 14 : 20, isMobile ? 22 : 16),
       decoration: BoxDecoration(
         border: const Border(top: BorderSide(color: FloTheme.line)),
         gradient: LinearGradient(
@@ -127,16 +148,18 @@ class _FloComposerState extends State<FloComposer> {
                   height: 36,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: FloComposer.quickPrompts.length,
+                    itemCount:
+                        FloComposer.quickPromptsFor(context.flipperL10n).length,
                     separatorBuilder: (_, __) => const SizedBox(width: 8),
                     itemBuilder: (context, i) {
-                      final p = FloComposer.quickPrompts[i];
+                      final p =
+                          FloComposer.quickPromptsFor(context.flipperL10n)[i];
                       return _QuickPromptChip(
-                        icon: _quickIcon(p['icon'] as String),
-                        label: p['label'] as String,
+                        icon: _quickIcon(p['icon']!),
+                        label: p['label']!,
                         onTap: enabled
                             ? () {
-                                controller.text = p['q'] as String;
+                                controller.text = p['q']!;
                                 _handleSend();
                               }
                             : null,
@@ -175,11 +198,14 @@ class _FloComposerState extends State<FloComposer> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
-                                    margin: const EdgeInsets.only(left: 4, bottom: 2),
-                                    padding: const EdgeInsets.fromLTRB(7, 3, 9, 3),
+                                    margin: const EdgeInsets.only(
+                                        left: 4, bottom: 2),
+                                    padding:
+                                        const EdgeInsets.fromLTRB(7, 3, 9, 3),
                                     decoration: BoxDecoration(
                                       color: FloTheme.surface2,
-                                      borderRadius: BorderRadius.circular(FloTheme.radiusPill),
+                                      borderRadius: BorderRadius.circular(
+                                          FloTheme.radiusPill),
                                       border: Border.all(color: FloTheme.line),
                                     ),
                                     child: Row(
@@ -190,7 +216,8 @@ class _FloComposerState extends State<FloComposer> {
                                           glow: FloTheme.gainTint,
                                         ),
                                         const SizedBox(width: 6),
-                                        FloIcons.database(size: 12, color: FloTheme.ink2),
+                                        FloIcons.database(
+                                            size: 12, color: FloTheme.ink2),
                                         const SizedBox(width: 4),
                                         const Text(
                                           'MiniData',
@@ -200,14 +227,17 @@ class _FloComposerState extends State<FloComposer> {
                                             color: FloTheme.ink2,
                                           ),
                                         ),
-                                        FloIcons.chevDown(size: 12, color: FloTheme.ink4),
+                                        FloIcons.chevDown(
+                                            size: 12, color: FloTheme.ink4),
                                       ],
                                     ),
                                   ),
                                   if (dictating)
                                     Padding(
-                                      padding: const EdgeInsets.only(left: 6, bottom: 2),
-                                      child: _ListeningPill(busy: _dictation.isBusy),
+                                      padding: const EdgeInsets.only(
+                                          left: 6, bottom: 2),
+                                      child: _ListeningPill(
+                                          busy: _dictation.isBusy),
                                     ),
                                 ],
                               ),
@@ -221,13 +251,13 @@ class _FloComposerState extends State<FloComposer> {
                                   height: 1.5,
                                   color: FloTheme.ink1,
                                 ),
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Ask about sales, stock, customers or tax…',
-                                  hintStyle: TextStyle(color: FloTheme.ink4),
+                                decoration: InputDecoration(
+                                  hintText: context.flipperL10n.floComposerHint,
+                                  hintStyle:
+                                      const TextStyle(color: FloTheme.ink4),
                                   border: InputBorder.none,
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(
+                                  contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 4,
                                     vertical: 9,
                                   ),
@@ -245,16 +275,18 @@ class _FloComposerState extends State<FloComposer> {
                         Semantics(
                           button: true,
                           label: dictating
-                              ? 'Stop dictating'
-                              : 'Dictate — speak and Flo types it',
+                              ? context.flipperL10n.floStopDictating
+                              : context.flipperL10n.floDictate,
                           child: _CompBtn(
                             icon: FloIcons.mic(
                               size: 19,
                               color: dictating ? FloTheme.loss : FloTheme.ink2,
                             ),
-                            background:
-                                dictating ? FloTheme.lossTint : FloTheme.surface2,
-                            borderColor: dictating ? FloTheme.loss : FloTheme.line,
+                            background: dictating
+                                ? FloTheme.lossTint
+                                : FloTheme.surface2,
+                            borderColor:
+                                dictating ? FloTheme.loss : FloTheme.line,
                             onTap: enabled ? _toggleDictation : null,
                           ),
                         ),
@@ -269,14 +301,18 @@ class _FloComposerState extends State<FloComposer> {
                               height: 40,
                               decoration: BoxDecoration(
                                 gradient: canSend ? FloTheme.gradBtn : null,
-                                color: canSend ? null : FloTheme.ink4.withValues(alpha: 0.45),
+                                color: canSend
+                                    ? null
+                                    : FloTheme.ink4.withValues(alpha: 0.45),
                                 borderRadius: BorderRadius.circular(12),
-                                boxShadow: canSend ? const [FloTheme.shBlue] : null,
+                                boxShadow:
+                                    canSend ? const [FloTheme.shBlue] : null,
                               ),
                               child: Center(
                                 child: FloIcons.send(
                                   size: 19,
-                                  color: Colors.white.withValues(alpha: canSend ? 1 : 0.7),
+                                  color: Colors.white
+                                      .withValues(alpha: canSend ? 1 : 0.7),
                                 ),
                               ),
                             ),
@@ -288,16 +324,16 @@ class _FloComposerState extends State<FloComposer> {
                 },
               ),
               const SizedBox(height: 10),
-              const Text.rich(
+              Text.rich(
                 TextSpan(
-                  style: TextStyle(fontSize: 11, color: FloTheme.ink4),
+                  style: const TextStyle(fontSize: 11, color: FloTheme.ink4),
                   children: [
                     TextSpan(
-                      text: 'Flo can make mistakes — check important figures. ',
+                      text: context.flipperL10n.floCanMakeMistakes,
                     ),
                     TextSpan(
-                      text: 'Grounded in MiniData.',
-                      style: TextStyle(
+                      text: context.flipperL10n.floGroundedInMiniData,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         color: FloTheme.ink3,
                       ),
@@ -370,7 +406,9 @@ class _ListeningPill extends StatelessWidget {
           const FloLiveDot(color: FloTheme.loss, glow: FloTheme.lossTint),
           const SizedBox(width: 6),
           Text(
-            busy ? 'Starting…' : 'Listening…',
+            busy
+                ? context.flipperL10n.floStarting
+                : context.flipperL10n.floListening,
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,

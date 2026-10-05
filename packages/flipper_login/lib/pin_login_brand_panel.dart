@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_login/pin_login_signin_motion.dart';
 import 'package:flipper_login/pin_login_signin_text.dart';
 import 'package:flipper_login/signin_tokens.dart';
@@ -38,7 +39,8 @@ class _PinLoginBrandPanelState extends State<PinLoginBrandPanel>
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: SignInTokens.brandPanelGradient),
+      decoration:
+          const BoxDecoration(gradient: SignInTokens.brandPanelGradient),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -88,7 +90,8 @@ class _PinLoginBrandPanelState extends State<PinLoginBrandPanel>
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.14),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.14),
                                       style: BorderStyle.solid,
                                     ),
                                   ),
@@ -174,6 +177,7 @@ class _BrandCopyBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 440),
       child: Column(
@@ -190,7 +194,7 @@ class _BrandCopyBlock extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Your shop, your team, your numbers — all in one place.',
+            l10n.loginBrandHeadline,
             style: context.signInText(
               fontSize: 30,
               fontWeight: FontWeight.w700,
@@ -201,7 +205,7 @@ class _BrandCopyBlock extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Pick up right where you left off. Today’s sales, stock, and reports are ready.',
+            l10n.loginBrandSubhead,
             style: context.signInText(
               fontSize: 15.5,
               height: 1.5,
@@ -211,11 +215,11 @@ class _BrandCopyBlock extends StatelessWidget {
           const SizedBox(height: 26),
           Row(
             children: [
-              _stat(context, '12,400+', 'businesses'),
+              _stat(context, '12,400+', l10n.loginStatBusinesses),
               const SizedBox(width: 28),
-              _stat(context, 'RWF 1.2B', 'processed monthly'),
+              _stat(context, 'RWF 1.2B', l10n.loginStatProcessedMonthly),
               const SizedBox(width: 28),
-              _stat(context, '99.9%', 'uptime'),
+              _stat(context, '99.9%', l10n.loginStatUptime),
             ],
           ),
         ],
@@ -230,9 +234,9 @@ class _BrandCopyBlock extends StatelessWidget {
         Text(
           value,
           style: context.signInPinDigit(fontSize: 24).copyWith(
-            color: Colors.white,
-            letterSpacing: -0.5,
-          ),
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
         ),
         const SizedBox(height: 2),
         Text(
@@ -290,7 +294,7 @@ class _MiniChartCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Revenue · this week',
+                  context.flipperL10n.loginRevenueThisWeek,
                   style: context.signInText(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -304,7 +308,8 @@ class _MiniChartCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.trending_up, size: 11, color: SignInTokens.win),
+                  const Icon(Icons.trending_up,
+                      size: 11, color: SignInTokens.win),
                   Text(
                     '18%',
                     style: context.signInText(
@@ -321,8 +326,8 @@ class _MiniChartCard extends StatelessWidget {
           Text(
             'RWF 248,500',
             style: context.signInPinDigit(fontSize: 19).copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+                  fontWeight: FontWeight.w800,
+                ),
           ),
           const SizedBox(height: 9),
           SizedBox(
@@ -333,7 +338,8 @@ class _MiniChartCard extends StatelessWidget {
                 for (var i = 0; i < bars.length; i++)
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(right: i < bars.length - 1 ? 4 : 0),
+                      padding:
+                          EdgeInsets.only(right: i < bars.length - 1 ? 4 : 0),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
@@ -375,7 +381,8 @@ class _MiniSaleCard extends StatelessWidget {
               color: SignInTokens.winTint,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.check_rounded, color: SignInTokens.win, size: 17),
+            child: const Icon(Icons.check_rounded,
+                color: SignInTokens.win, size: 17),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -383,7 +390,7 @@ class _MiniSaleCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New sale',
+                  context.flipperL10n.loginNewSale,
                   style: context.signInText(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -392,7 +399,7 @@ class _MiniSaleCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Solar Kit · MoMo',
+                  context.flipperL10n.loginSampleSaleDetail,
                   style: context.signInText(
                     fontSize: 11,
                     color: SignInTokens.ink3,
@@ -406,9 +413,9 @@ class _MiniSaleCard extends StatelessWidget {
           Text(
             '+12,000',
             style: context.signInPinDigit(fontSize: 14).copyWith(
-              fontWeight: FontWeight.w800,
-              color: SignInTokens.win,
-            ),
+                  fontWeight: FontWeight.w800,
+                  color: SignInTokens.win,
+                ),
           ),
         ],
       ),
@@ -445,13 +452,13 @@ class _MiniStreakCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '12 days',
+                context.flipperL10n.loginStreakDays(12),
                 style: context.signInPinDigit(fontSize: 16).copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
               Text(
-                'Sales streak',
+                context.flipperL10n.loginSalesStreak,
                 style: context.signInText(
                   fontSize: 11,
                   color: SignInTokens.ink3,

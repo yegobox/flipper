@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flutter/material.dart';
@@ -61,8 +62,8 @@ class PhoneVerificationService {
         verificationFailed: (FirebaseAuthException e) async {
           state.isLoading = false;
           await Sentry.captureException(e, stackTrace: e);
-          showErrorSnackBar(
-              'Verification failed: ${e.message ?? "An unknown error occurred"}');
+          showErrorSnackBar(FlipperL10n.current.phoneAuthVerificationFailed(
+              e.message ?? FlipperL10n.current.phoneAuthUnknownError));
         },
         codeSent: (String verificationId, int? resendToken) {
           state.isLoading = false;
@@ -81,7 +82,7 @@ class PhoneVerificationService {
       );
     } catch (e) {
       state.isLoading = false;
-      showErrorSnackBar('An error occurred: ${e.toString()}');
+      showErrorSnackBar(FlipperL10n.current.phoneAuthErrorOccurred('$e'));
     }
   }
 
@@ -106,8 +107,8 @@ class PhoneVerificationService {
         verificationFailed: (FirebaseAuthException e) async {
           state.isLoading = false;
           await Sentry.captureException(e, stackTrace: e);
-          showErrorSnackBar(
-              'Verification failed: ${e.message ?? "An unknown error occurred"}');
+          showErrorSnackBar(FlipperL10n.current.phoneAuthVerificationFailed(
+              e.message ?? FlipperL10n.current.phoneAuthUnknownError));
         },
         codeSent: (String verificationId, int? resendToken) {
           state.isLoading = false;
@@ -116,8 +117,8 @@ class PhoneVerificationService {
           state.otpExpired = false;
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('New verification code sent'),
+            SnackBar(
+              content: Text(FlipperL10n.current.phoneAuthNewCodeSent),
               backgroundColor: Colors.green,
             ),
           );
@@ -130,7 +131,7 @@ class PhoneVerificationService {
       );
     } catch (e) {
       state.isLoading = false;
-      showErrorSnackBar('An error occurred: ${e.toString()}');
+      showErrorSnackBar(FlipperL10n.current.phoneAuthErrorOccurred('$e'));
     }
   }
 
@@ -138,13 +139,12 @@ class PhoneVerificationService {
   /// Verify OTP code
   Future<void> verifyCode() async {
     if (state.smsCode.length < 6) {
-      showErrorSnackBar('Please enter a valid 6-digit code');
+      showErrorSnackBar(FlipperL10n.current.phoneAuthEnterValidCode);
       return;
     }
 
     if (state.otpExpired) {
-      showErrorSnackBar(
-          'This verification code has expired. Please request a new one.');
+      showErrorSnackBar(FlipperL10n.current.phoneAuthCodeExpired);
       return;
     }
 
@@ -165,10 +165,9 @@ class PhoneVerificationService {
               e.code == 'session-expired')) {
         state.otpExpired = true;
         state.canResend = true;
-        showErrorSnackBar(
-            'Verification code has expired. Please request a new one.');
+        showErrorSnackBar(FlipperL10n.current.phoneAuthCodeExpired);
       } else {
-        showErrorSnackBar('Failed to verify code: ${e.toString()}');
+        showErrorSnackBar(FlipperL10n.current.phoneAuthFailedToVerify('$e'));
       }
     }
   }
@@ -201,7 +200,7 @@ class PhoneVerificationService {
     } catch (e) {
       hideAuthenticationDialog();
       state.isLoading = false;
-      showErrorSnackBar('Authentication failed: ${e.toString()}');
+      showErrorSnackBar(FlipperL10n.current.phoneAuthAuthFailed('$e'));
     }
   }
 
@@ -221,7 +220,7 @@ class PhoneVerificationService {
       builder: (BuildContext context) {
         return AnimatedLoadingDialog(
           key: _dialogKey,
-          message: 'Finalizing authentication...',
+          message: context.flipperL10n.loginFinalizingAuthentication,
           animationDuration: const Duration(milliseconds: 300),
         );
       },

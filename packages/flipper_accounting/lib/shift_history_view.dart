@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flipper_accounting/shift_history_viewmodel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -30,19 +31,27 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     final name = vm.userDisplayName(shift.userId);
     if (name != null && name.isNotEmpty) return name;
     final id = shift.userId;
-    if (id.length <= 14) return 'User: $id';
-    return 'User: ${id.substring(0, 8)}…${id.substring(id.length - 6)}';
+    if (id.length <= 14) return FlipperL10n.current.accountingShiftUser(id);
+    return FlipperL10n.current.accountingShiftUser(
+      '${id.substring(0, 8)}…${id.substring(id.length - 6)}',
+    );
   }
 
   static String _initials(Shift shift, ShiftHistoryViewModel vm) {
     final name = vm.userDisplayName(shift.userId);
     if (name != null && name.trim().isNotEmpty) {
-      final parts =
-          name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+      final parts = name
+          .trim()
+          .split(RegExp(r'\s+'))
+          .where((p) => p.isNotEmpty)
+          .toList();
       if (parts.length >= 2) {
         return '${parts.first[0]}${parts[1][0]}'.toUpperCase();
       }
-      return name.trim().substring(0, name.trim().length >= 2 ? 2 : 1).toUpperCase();
+      return name
+          .trim()
+          .substring(0, name.trim().length >= 2 ? 2 : 1)
+          .toUpperCase();
     }
     final id = shift.userId;
     if (id.length >= 2) return id.substring(0, 2).toUpperCase();
@@ -68,6 +77,9 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     final currencyCode = ProxyService.box.defaultCurrency();
     final theme = Theme.of(context);
     final shifts = viewModel.filteredShifts;
+    // Depend on the localizations so a language switch rebuilds the view;
+    // the helpers below read FlipperL10n.current.
+    context.flipperL10n;
 
     return Scaffold(
       backgroundColor: _kBg,
@@ -75,46 +87,43 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
       body: viewModel.isBusy
           ? _buildLoadingState()
           : shifts.isEmpty
-              ? _buildEmptyState(
-                  viewModel.hasActiveFilters,
-                  viewModel,
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: _SummaryRow(
-                        totalShifts: shifts.length,
-                        totalCashSales: viewModel.filteredTotalCashSales,
-                        openCount: viewModel.filteredOpenCount,
-                        closedCount: viewModel.filteredClosedCount,
-                        currencyCode: currencyCode,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: _SearchBar(viewModel: viewModel),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: _ResultMetaRow(viewModel: viewModel),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                        itemCount: shifts.length,
-                        itemBuilder: (context, index) {
-                          return _ShiftCard(
-                            shift: shifts[index],
-                            viewModel: viewModel,
-                            currencyCode: currencyCode,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+          ? _buildEmptyState(viewModel.hasActiveFilters, viewModel)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _SummaryRow(
+                    totalShifts: shifts.length,
+                    totalCashSales: viewModel.filteredTotalCashSales,
+                    openCount: viewModel.filteredOpenCount,
+                    closedCount: viewModel.filteredClosedCount,
+                    currencyCode: currencyCode,
+                  ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _SearchBar(viewModel: viewModel),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: _ResultMetaRow(viewModel: viewModel),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    itemCount: shifts.length,
+                    itemBuilder: (context, index) {
+                      return _ShiftCard(
+                        shift: shifts[index],
+                        viewModel: viewModel,
+                        currencyCode: currencyCode,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -164,8 +173,9 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
           ),
           const SizedBox(width: 12),
           Text(
-            'Shift History',
-            style: theme.textTheme.titleLarge?.copyWith(
+            context.flipperL10n.accountingShiftHistory,
+            style:
+                theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: _kTextPrimary,
                   fontSize: 20,
@@ -193,30 +203,24 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(_kBlue),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
-            'Loading shift history...',
-            style: TextStyle(
-              color: _kTextMuted,
-              fontSize: 16,
-            ),
+            FlipperL10n.current.accountingLoadingShiftHistory,
+            style: const TextStyle(color: _kTextMuted, fontSize: 16),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState(
-    bool isFiltered,
-    ShiftHistoryViewModel viewModel,
-  ) {
+  Widget _buildEmptyState(bool isFiltered, ShiftHistoryViewModel viewModel) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -235,7 +239,9 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
           ),
           const SizedBox(height: 24),
           Text(
-            isFiltered ? 'No matching shifts' : 'No shifts found',
+            isFiltered
+                ? FlipperL10n.current.accountingNoMatchingShifts
+                : FlipperL10n.current.accountingNoShiftsFound,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -245,20 +251,17 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
           const SizedBox(height: 8),
           Text(
             isFiltered
-                ? 'Try adjusting your filters or search query.'
-                : 'Shift records will appear here once you\nstart managing your shifts.',
+                ? FlipperL10n.current.accountingAdjustFiltersHint
+                : FlipperL10n.current.accountingNoShiftsHint,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: _kTextMuted,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: _kTextMuted, fontSize: 14),
           ),
           if (isFiltered)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
               child: TextButton(
                 onPressed: viewModel.clearFilters,
-                child: const Text('Clear Filters'),
+                child: Text(FlipperL10n.current.accountingClearFilters),
               ),
             ),
         ],
@@ -271,8 +274,9 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     ShiftHistoryViewModel viewModel,
   ) async {
     final currencyCode = ProxyService.box.defaultCurrency();
-    final barrierLabel =
-        MaterialLocalizations.of(context).modalBarrierDismissLabel;
+    final barrierLabel = MaterialLocalizations.of(
+      context,
+    ).modalBarrierDismissLabel;
 
     await showGeneralDialog<void>(
       context: context,
@@ -289,9 +293,7 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
               onTap: () => Navigator.of(dialogContext).pop(),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.32),
-                ),
+                child: ColoredBox(color: Colors.black.withValues(alpha: 0.32)),
               ),
             ),
             Center(
@@ -439,8 +441,10 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final cashLabel =
-        'CASH SALES RANGE (${widget.currencyCode.toUpperCase()})';
+    final l10n = context.flipperL10n;
+    final cashLabel = l10n.accountingCashSalesRange(
+      widget.currencyCode.toUpperCase(),
+    );
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -463,10 +467,10 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                 children: [
                   Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Filter shifts',
-                          style: TextStyle(
+                          l10n.accountingFilterShifts,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
                             color: _kTextPrimary,
@@ -492,14 +496,14 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _sectionLabel('DATE RANGE'),
+                          _sectionLabel(l10n.accountingDateRange),
                           const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: _dateField(
-                                  label: 'From',
+                                  label: l10n.accountingFrom,
                                   date: _from,
                                   onTap: () => _pickDate(isFrom: true),
                                   onClear: () => setState(() => _from = null),
@@ -508,7 +512,7 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _dateField(
-                                  label: 'To',
+                                  label: l10n.accountingTo,
                                   date: _to,
                                   onTap: () => _pickDate(isFrom: false),
                                   onClear: () => setState(() => _to = null),
@@ -517,39 +521,46 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                             ],
                           ),
                           const SizedBox(height: 22),
-                          _sectionLabel('STATUS'),
+                          _sectionLabel(l10n.accountingStatusLabel),
                           const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
                                 child: _statusPill(
-                                  label: 'All shifts',
-                                  selected: _status ==
-                                      ShiftHistoryStatusSegment.all,
-                                  onTap: () => setState(() =>
-                                      _status = ShiftHistoryStatusSegment.all),
+                                  label: l10n.accountingAllShifts,
+                                  selected:
+                                      _status == ShiftHistoryStatusSegment.all,
+                                  onTap: () => setState(
+                                    () =>
+                                        _status = ShiftHistoryStatusSegment.all,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: _statusPill(
-                                  label: 'Open',
-                                  selected: _status ==
-                                      ShiftHistoryStatusSegment.open,
+                                  label: l10n.accountingShiftOpen,
+                                  selected:
+                                      _status == ShiftHistoryStatusSegment.open,
                                   dotColor: _kBlue,
-                                  onTap: () => setState(() =>
-                                      _status = ShiftHistoryStatusSegment.open),
+                                  onTap: () => setState(
+                                    () => _status =
+                                        ShiftHistoryStatusSegment.open,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: _statusPill(
-                                  label: 'Closed',
-                                  selected: _status ==
+                                  label: l10n.accountingShiftClosed,
+                                  selected:
+                                      _status ==
                                       ShiftHistoryStatusSegment.closed,
                                   dotColor: _kGreen,
-                                  onTap: () => setState(() => _status =
-                                      ShiftHistoryStatusSegment.closed),
+                                  onTap: () => setState(
+                                    () => _status =
+                                        ShiftHistoryStatusSegment.closed,
+                                  ),
                                 ),
                               ),
                             ],
@@ -561,7 +572,7 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                             children: [
                               Expanded(
                                 child: _cashField(
-                                  label: 'Minimum',
+                                  label: l10n.accountingMinimum,
                                   controller: _minCash,
                                   hintText: '0',
                                 ),
@@ -569,46 +580,54 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _cashField(
-                                  label: 'Maximum',
+                                  label: l10n.accountingMaximum,
                                   controller: _maxCash,
-                                  hintText: 'No limit',
+                                  hintText: l10n.accountingNoLimit,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 22),
-                          _sectionLabel('SORT BY'),
+                          _sectionLabel(l10n.accountingSortBy),
                           const SizedBox(height: 10),
                           _sortRow(
-                            title: 'Newest first',
+                            title: l10n.accountingNewestFirst,
                             selected:
                                 _sort == ShiftHistorySortOrder.newestFirst,
                             onTap: () => setState(
-                                () => _sort = ShiftHistorySortOrder.newestFirst),
+                              () => _sort = ShiftHistorySortOrder.newestFirst,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           _sortRow(
-                            title: 'Oldest first',
+                            title: l10n.accountingOldestFirst,
                             selected:
                                 _sort == ShiftHistorySortOrder.oldestFirst,
                             onTap: () => setState(
-                                () => _sort = ShiftHistorySortOrder.oldestFirst),
+                              () => _sort = ShiftHistorySortOrder.oldestFirst,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           _sortRow(
-                            title: 'Cash sales — high to low',
-                            selected: _sort ==
+                            title: l10n.accountingCashSalesHighToLow,
+                            selected:
+                                _sort ==
                                 ShiftHistorySortOrder.cashSalesHighToLow,
-                            onTap: () => setState(() => _sort =
-                                ShiftHistorySortOrder.cashSalesHighToLow),
+                            onTap: () => setState(
+                              () => _sort =
+                                  ShiftHistorySortOrder.cashSalesHighToLow,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           _sortRow(
-                            title: 'Cash sales — low to high',
-                            selected: _sort ==
+                            title: l10n.accountingCashSalesLowToHigh,
+                            selected:
+                                _sort ==
                                 ShiftHistorySortOrder.cashSalesLowToHigh,
-                            onTap: () => setState(() => _sort =
-                                ShiftHistorySortOrder.cashSalesLowToHigh),
+                            onTap: () => setState(
+                              () => _sort =
+                                  ShiftHistorySortOrder.cashSalesLowToHigh,
+                            ),
                           ),
                         ],
                       ),
@@ -629,9 +648,9 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                            'Clear all',
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                          child: Text(
+                            l10n.accountingClearAll,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -640,10 +659,14 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                         flex: 3,
                         child: FilledButton.icon(
                           onPressed: _apply,
-                          icon: const Icon(Icons.check, size: 20, color: Colors.white),
-                          label: const Text(
-                            'Apply filters',
-                            style: TextStyle(
+                          icon: const Icon(
+                            Icons.check,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            l10n.accountingApplyFilters,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
@@ -715,7 +738,7 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                     child: Text(
                       date != null
                           ? DateFormat('MM/dd/yyyy').format(date.toLocal())
-                          : 'mm/dd/yyyy',
+                          : FlipperL10n.current.accountingDatePlaceholder,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -763,9 +786,7 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
           decoration: BoxDecoration(
             color: selected ? _kTextPrimary : Colors.white,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: selected ? _kTextPrimary : _kBorder,
-            ),
+            border: Border.all(color: selected ? _kTextPrimary : _kBorder),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -835,8 +856,10 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
             ),
             filled: true,
             fillColor: _fieldFill,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -889,9 +912,7 @@ class _FilterShiftsDialogState extends State<_FilterShiftsDialog> {
                 ),
               ),
               Icon(
-                selected
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_off,
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
                 color: selected ? _kBlue : _kTextMuted,
                 size: 22,
               ),
@@ -924,7 +945,7 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Expanded(
           child: _SummaryCard(
-            label: 'TOTAL SHIFTS',
+            label: context.flipperL10n.accountingTotalShifts,
             child: Text(
               '$totalShifts',
               style: const TextStyle(
@@ -938,7 +959,7 @@ class _SummaryRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _SummaryCard(
-            label: 'TOTAL CASH SALES',
+            label: context.flipperL10n.accountingTotalCashSales,
             child: Text(
               ShiftHistoryView._formatAmount(currencyCode, totalCashSales),
               maxLines: 2,
@@ -954,17 +975,29 @@ class _SummaryRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _SummaryCard(
-            label: 'OPEN / CLOSED',
+            label: context.flipperL10n.accountingOpenClosed,
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
                 children: [
-                  TextSpan(text: '$openCount', style: const TextStyle(color: _kBlue)),
+                  TextSpan(
+                    text: '$openCount',
+                    style: const TextStyle(color: _kBlue),
+                  ),
                   const TextSpan(
                     text: ' / ',
-                    style: TextStyle(color: _kTextMuted, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: _kTextMuted,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  TextSpan(text: '$closedCount', style: const TextStyle(color: _kGreen)),
+                  TextSpan(
+                    text: '$closedCount',
+                    style: const TextStyle(color: _kGreen),
+                  ),
                 ],
               ),
             ),
@@ -1028,10 +1061,9 @@ class _SearchBar extends StatelessWidget {
       controller: viewModel.searchController,
       focusNode: viewModel.searchFocusNode,
       decoration: InputDecoration(
-        hintText: 'Search by user ID or date...',
+        hintText: context.flipperL10n.accountingSearchShiftsHint,
         hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-        prefixIcon:
-            Icon(Icons.search, color: Colors.grey.shade500, size: 22),
+        prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -1061,7 +1093,7 @@ class _ResultMetaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = viewModel.filteredShifts.length;
     return Text(
-      'Showing $n shift${n == 1 ? '' : 's'}',
+      context.flipperL10n.accountingShowingShifts(n),
       style: const TextStyle(
         fontSize: 13,
         color: _kTextMuted,
@@ -1139,7 +1171,11 @@ class _ShiftCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Started ${DateFormat('MMM dd, yyyy • HH:mm').format(shift.startAt.toLocal())}',
+                        context.flipperL10n.accountingStartedAt(
+                          DateFormat(
+                            'MMM dd, yyyy • HH:mm',
+                          ).format(shift.startAt.toLocal()),
+                        ),
                         style: const TextStyle(
                           color: _kTextMuted,
                           fontSize: 12,
@@ -1159,10 +1195,12 @@ class _ShiftCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: _TimeColumn(shift: shift),
+                  Expanded(child: _TimeColumn(shift: shift)),
+                  const VerticalDivider(
+                    width: 24,
+                    thickness: 1,
+                    color: _kBorder,
                   ),
-                  const VerticalDivider(width: 24, thickness: 1, color: _kBorder),
                   Expanded(
                     child: _FinancialColumn(
                       shift: shift,
@@ -1193,18 +1231,29 @@ class _ShiftCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      cashDifference > 0 ? Icons.trending_up : Icons.trending_down,
-                      color: cashDifference > 0 ? _kGreen : const Color(0xFFEF4444),
+                      cashDifference > 0
+                          ? Icons.trending_up
+                          : Icons.trending_down,
+                      color: cashDifference > 0
+                          ? _kGreen
+                          : const Color(0xFFEF4444),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Cash difference: ${ShiftHistoryView._formatAmount(currencyCode, cashDifference)}',
+                        context.flipperL10n.accountingCashDifference(
+                          ShiftHistoryView._formatAmount(
+                            currencyCode,
+                            cashDifference,
+                          ),
+                        ),
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: cashDifference > 0 ? _kGreen : const Color(0xFFEF4444),
+                          color: cashDifference > 0
+                              ? _kGreen
+                              : const Color(0xFFEF4444),
                         ),
                       ),
                     ),
@@ -1226,7 +1275,9 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = isOpen ? 'Open' : 'Closed';
+    final text = isOpen
+        ? context.flipperL10n.accountingShiftOpen
+        : context.flipperL10n.accountingShiftClosed;
     final color = isOpen ? _kBlue : _kGreen;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1259,9 +1310,9 @@ class _TimeColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'TIME PERIOD',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.accountingTimePeriod,
+          style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.6,
@@ -1270,22 +1321,23 @@ class _TimeColumn extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _kvRow(
-          'Start Time',
+          context.flipperL10n.accountingStartTime,
           DateFormat('MMM dd, yyyy • HH:mm').format(shift.startAt.toLocal()),
         ),
         const SizedBox(height: 8),
         _kvRowEnd(
-          'End Time',
+          context.flipperL10n.accountingEndTime,
           isOpen
               ? null
-              : DateFormat('MMM dd, yyyy • HH:mm')
-                  .format(shift.endAt!.toLocal()),
+              : DateFormat(
+                  'MMM dd, yyyy • HH:mm',
+                ).format(shift.endAt!.toLocal()),
           isOpen: isOpen,
         ),
         if (!isOpen && dur.isNotEmpty) ...[
           const SizedBox(height: 6),
           Text(
-            'Duration: $dur',
+            context.flipperL10n.accountingDuration(dur),
             style: const TextStyle(
               fontSize: 12,
               color: _kTextMuted,
@@ -1341,15 +1393,17 @@ class _TimeColumn extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: isOpen
                 ? Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: _kAmber.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(
-                      'In Progress',
-                      style: TextStyle(
+                    child: Text(
+                      FlipperL10n.current.accountingInProgress,
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: _kAmber,
@@ -1390,9 +1444,9 @@ class _FinancialColumn extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Text(
-              'FINANCIAL SUMMARY',
-              style: TextStyle(
+            Text(
+              context.flipperL10n.accountingFinancialSummary,
+              style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.6,
@@ -1400,12 +1454,16 @@ class _FinancialColumn extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.calculate_outlined, size: 14, color: Colors.grey.shade500),
+            Icon(
+              Icons.calculate_outlined,
+              size: 14,
+              color: Colors.grey.shade500,
+            ),
           ],
         ),
         const SizedBox(height: 10),
         _moneyRow(
-          'Opening Balance',
+          context.flipperL10n.accountingOpeningBalance,
           ShiftHistoryView._formatAmount(currencyCode, shift.openingBalance),
           valueStyle: const TextStyle(
             fontSize: 12,
@@ -1415,7 +1473,7 @@ class _FinancialColumn extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _moneyRow(
-          'Cash Sales',
+          context.flipperL10n.accountingCashSales,
           ShiftHistoryView._formatAmount(currencyCode, cashSales),
           valueStyle: TextStyle(
             fontSize: 12,
@@ -1425,11 +1483,8 @@ class _FinancialColumn extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _moneyRow(
-          'Expected Cash',
-          ShiftHistoryView._formatAmount(
-            currencyCode,
-            shift.expectedCash ?? 0,
-          ),
+          context.flipperL10n.accountingExpectedCash,
+          ShiftHistoryView._formatAmount(currencyCode, shift.expectedCash ?? 0),
           valueStyle: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -1438,7 +1493,7 @@ class _FinancialColumn extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _moneyRow(
-          'Closing Balance',
+          context.flipperL10n.accountingClosingBalance,
           ShiftHistoryView._formatAmount(
             currencyCode,
             shift.closingBalance ?? 0,
@@ -1470,11 +1525,7 @@ class _FinancialColumn extends StatelessWidget {
         ),
         Expanded(
           flex: 3,
-          child: Text(
-            formatted,
-            textAlign: TextAlign.right,
-            style: valueStyle,
-          ),
+          child: Text(formatted, textAlign: TextAlign.right, style: valueStyle),
         ),
       ],
     );

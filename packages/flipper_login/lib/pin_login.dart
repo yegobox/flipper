@@ -151,7 +151,7 @@ class _PinLoginState extends State<PinLogin>
   String get _successBusinessLabel {
     final owner = _localPin?.ownerName?.trim();
     if (owner != null && owner.isNotEmpty) return owner;
-    return 'your business';
+    return context.flipperL10n.loginYourBusiness;
   }
 
   void _initializeAnimations() {
@@ -261,24 +261,26 @@ class _PinLoginState extends State<PinLogin>
 
   /// PIN rules for the 6-cell UI (supports 4–6 digit PINs used in the field).
   String? _pinInputError(String pin) {
-    if (pin.isEmpty) return 'PIN is required';
-    if (pin.length < 4) return 'PIN must be at least 4 digits';
+    final l10n = FlipperL10n.current;
+    if (pin.isEmpty) return l10n.loginPinRequired;
+    if (pin.length < 4) return l10n.loginPinTooShort;
     if (pin.length > SignInTokens.pinCellCount) {
-      return 'PIN must be at most ${SignInTokens.pinCellCount} digits';
+      return l10n.loginPinTooLong('${SignInTokens.pinCellCount}');
     }
     return null;
   }
 
   String? _otpInputError(String otp, {required bool isAuthenticator}) {
+    final l10n = FlipperL10n.current;
     if (otp.isEmpty) {
       return isAuthenticator
-          ? 'Authenticator code is required'
-          : 'OTP is required';
+          ? l10n.loginAuthenticatorCodeRequired
+          : l10n.loginOtpRequired;
     }
     if (otp.length != 6 || int.tryParse(otp) == null) {
       return isAuthenticator
-          ? 'Authenticator code must be a 6-digit number.'
-          : 'OTP must be a 6-digit number.';
+          ? l10n.loginAuthenticatorCodeInvalidFormat
+          : l10n.loginOtpInvalidFormat;
     }
     return null;
   }
@@ -329,7 +331,7 @@ class _PinLoginState extends State<PinLogin>
           if (pinRecord == null) {
             setState(() {
               _hasError = true;
-              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              _errorMessage = FlipperL10n.current.loginInvalidPinReenter;
             });
             _pinController.clear();
             _playPinShake();
@@ -350,13 +352,11 @@ class _PinLoginState extends State<PinLogin>
                 _hasError = true;
                 _errorMessage = switch (outcome) {
                   TotpVerifyOutcome.unavailable =>
-                    'Could not reach the server to load your authenticator '
-                        'on this device. Check your connection and try again.',
+                    FlipperL10n.current.loginAuthenticatorUnavailable,
                   TotpVerifyOutcome.notEnrolled =>
-                    'No authenticator is set up for this account. Sign in '
-                        'with SMS, then set one up under Settings.',
+                    FlipperL10n.current.loginAuthenticatorNotEnrolled,
                   TotpVerifyOutcome.invalidCode =>
-                    'Invalid authenticator code. Please try again.',
+                    FlipperL10n.current.loginAuthenticatorInvalidCode,
                   TotpVerifyOutcome.valid => '',
                 };
               });
@@ -374,7 +374,7 @@ class _PinLoginState extends State<PinLogin>
           if (pinRecord == null) {
             setState(() {
               _hasError = true;
-              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              _errorMessage = FlipperL10n.current.loginInvalidPinReenter;
             });
             _pinController.clear();
             _playPinShake();
@@ -407,7 +407,7 @@ class _PinLoginState extends State<PinLogin>
           } else {
             setState(() {
               _hasError = true;
-              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              _errorMessage = FlipperL10n.current.loginInvalidPinReenter;
             });
             _pinController.clear();
             _playPinShake();
@@ -419,7 +419,7 @@ class _PinLoginState extends State<PinLogin>
           if (pinRecord == null) {
             setState(() {
               _hasError = true;
-              _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              _errorMessage = FlipperL10n.current.loginInvalidPinReenter;
             });
             _pinController.clear();
             _playPinShake();
@@ -651,7 +651,7 @@ class _PinLoginState extends State<PinLogin>
         return Semantics(
           key: const Key(LoginMaestroIds.pinScreen),
           identifier: LoginMaestroIds.pinScreen,
-          label: 'PIN login',
+          label: context.flipperL10n.pinLogin,
           child: Scaffold(
             key: const Key('PinLogin'),
             backgroundColor: SignInTokens.surface,
@@ -693,6 +693,7 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Widget _buildSignInFormContent({required bool compact}) {
+    final l10n = context.flipperL10n;
     return ConstrainedBox(
       constraints: const BoxConstraints(
         maxWidth: SignInTokens.formMaxWidth,
@@ -706,7 +707,7 @@ class _PinLoginState extends State<PinLogin>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Welcome back',
+                l10n.welcomeBack,
                 style: context.signInText(
                   fontSize: compact ? 32 : 40,
                   fontWeight: FontWeight.w800,
@@ -715,7 +716,7 @@ class _PinLoginState extends State<PinLogin>
               ),
               const SizedBox(height: 10),
               Text(
-                'Enter your PIN to manage your business securely.',
+                l10n.loginPinSubtitle,
                 style: context.signInText(
                   fontSize: compact ? 15 : 16,
                   height: 1.5,
@@ -735,15 +736,15 @@ class _PinLoginState extends State<PinLogin>
                 key: const Key(LoginMaestroIds.pinSubmit),
                 identifier: LoginMaestroIds.pinSubmit,
                 label: _isDone
-                    ? 'Signed in'
-                    : (_isProcessing ? 'Verifying' : 'Sign in'),
+                    ? l10n.loginSignedIn
+                    : (_isProcessing ? l10n.verifying : l10n.loginSignIn),
                 button: true,
                 enabled: !_isProcessing && !_isDone,
                 child: FlipperGradientButton(
                   key: const Key('pinLoginButton'),
                   text: _isDone
-                      ? 'Signed in ✓'
-                      : (_isProcessing ? 'Verifying…' : 'Sign in'),
+                      ? '${l10n.loginSignedIn} ✓'
+                      : (_isProcessing ? l10n.verifying : l10n.loginSignIn),
                   icon: _isDone ? null : Icons.arrow_outward_rounded,
                   isLoading: false,
                   onPressed: (_isProcessing || _isDone) ? null : _handleLogin,
@@ -754,13 +755,13 @@ class _PinLoginState extends State<PinLogin>
                 child: Semantics(
                   key: const Key(LoginMaestroIds.pinHelp),
                   identifier: LoginMaestroIds.pinHelp,
-                  label: 'Trouble signing in',
+                  label: l10n.troubleSigningIn,
                   button: true,
                   enabled: true,
                   child: TextButton(
                     onPressed: _showHelpDialog,
                     child: Text(
-                      'Trouble signing in?',
+                      l10n.troubleSigningIn,
                       style: context.signInText(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -774,14 +775,14 @@ class _PinLoginState extends State<PinLogin>
                 child: Semantics(
                   key: const Key(LoginMaestroIds.pinCreateAccount),
                   identifier: LoginMaestroIds.pinCreateAccount,
-                  label: 'Create an account',
+                  label: l10n.loginCreateAnAccount,
                   button: true,
                   enabled: !_isProcessing && !_isDone,
                   child: TextButton(
                     onPressed:
                         (_isProcessing || _isDone) ? null : _goToCreateAccount,
                     child: Text(
-                      "New to Flipper? Create an account",
+                      l10n.loginNewToFlipperCreateAccount,
                       style: context.signInText(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -837,6 +838,7 @@ class _PinLoginState extends State<PinLogin>
   }
 
   Widget _buildPinEntrySection({required bool compact}) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -854,7 +856,7 @@ class _PinLoginState extends State<PinLogin>
             Semantics(
               key: const Key(LoginMaestroIds.pinShowToggle),
               identifier: LoginMaestroIds.pinShowToggle,
-              label: _showPinDigits ? 'Hide PIN' : 'Show PIN',
+              label: _showPinDigits ? l10n.loginHidePin : l10n.loginShowPin,
               button: true,
               enabled: true,
               child: TextButton.icon(
@@ -870,7 +872,7 @@ class _PinLoginState extends State<PinLogin>
                   color: SignInTokens.ink3,
                 ),
                 label: Text(
-                  _showPinDigits ? 'Hide' : 'Show',
+                  _showPinDigits ? l10n.loginHide : l10n.loginShow,
                   style: context.signInText(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
@@ -943,7 +945,8 @@ class _PinLoginState extends State<PinLogin>
           label: 'PIN',
           textField: true,
           enabled: !_isProcessing && !_isDone,
-          value: '${_pinController.text.length} digits entered',
+          value: context.flipperL10n
+              .loginPinDigitsEntered(_pinController.text.length),
           child: TextFormField(
             key: const Key('pinField'),
             controller: _pinController,
@@ -984,7 +987,7 @@ class _PinLoginState extends State<PinLogin>
         children: [
           Expanded(
             child: _buildToggleItem(
-              'Authenticator',
+              context.flipperL10n.loginAuthenticator,
               AuthMethod.authenticator,
               compact,
             ),
@@ -1044,11 +1047,12 @@ class _PinLoginState extends State<PinLogin>
 
   Widget _buildOtpField(bool compact) {
     final isAuthenticator = _authMethod == AuthMethod.authenticator;
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isAuthenticator ? 'Authenticator Code' : 'SMS Code',
+          isAuthenticator ? l10n.loginAuthenticatorCode : l10n.loginSmsCode,
           style: context.signInText(
             fontSize: compact ? 13 : 14,
             fontWeight: FontWeight.w700,
@@ -1059,7 +1063,8 @@ class _PinLoginState extends State<PinLogin>
         Semantics(
           key: const Key(LoginMaestroIds.otpField),
           identifier: LoginMaestroIds.otpField,
-          label: isAuthenticator ? 'Authenticator code' : 'SMS code',
+          label:
+              isAuthenticator ? l10n.loginAuthenticatorCode : l10n.loginSmsCode,
           textField: true,
           enabled: true,
           child: TextFormField(
@@ -1096,8 +1101,8 @@ class _PinLoginState extends State<PinLogin>
             validator: (text) {
               if (text == null || text.isEmpty) {
                 return isAuthenticator
-                    ? 'Authenticator code is required'
-                    : 'OTP is required';
+                    ? l10n.loginAuthenticatorCodeRequired
+                    : l10n.loginOtpRequired;
               }
               return null;
             },

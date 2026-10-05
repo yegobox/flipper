@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -72,7 +73,8 @@ void showCustomSnackBarUtil(
         bottom: 20.0,
       ),
       content: Semantics(
-        label: semanticLabel ?? '$message notification',
+        label: semanticLabel ??
+            context.flipperL10n.uiNotificationSemantic(message),
         liveRegion: true,
         child: Row(
           children: [
@@ -217,7 +219,7 @@ void showDeletionConfirmationSnackBar<T>(
         ),
       ),
       content: Semantics(
-        label: 'Delete confirmation for ${items.length} items',
+        label: context.flipperL10n.uiDeleteConfirmSemantic(items.length),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +245,8 @@ void showDeletionConfirmationSnackBar<T>(
                     children: [
                       Text(
                         customTitle ??
-                            'Delete ${items.length} item${items.length == 1 ? '' : 's'}?',
+                            context.flipperL10n
+                                .uiDeleteItemsQuestion(items.length),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -253,7 +256,8 @@ void showDeletionConfirmationSnackBar<T>(
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        customWarning ?? 'This action cannot be undone',
+                        customWarning ??
+                            context.flipperL10n.actionCannotBeUndone,
                         style: TextStyle(
                           color: Colors.grey[400],
                           fontSize: 12,
@@ -313,7 +317,7 @@ void showDeletionConfirmationSnackBar<T>(
                           Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
-                              '+ ${items.length - 3} more item${items.length - 3 == 1 ? '' : 's'}',
+                              context.flipperL10n.uiMoreItems(items.length - 3),
                               style: TextStyle(
                                 color: Colors.grey[400],
                                 fontSize: 12,
@@ -346,8 +350,8 @@ void showDeletionConfirmationSnackBar<T>(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'CANCEL',
+                  child: Text(
+                    context.flipperL10n.cancel.toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
@@ -376,8 +380,8 @@ void showDeletionConfirmationSnackBar<T>(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'DELETE',
+                  child: Text(
+                    context.flipperL10n.delete.toUpperCase(),
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,

@@ -1,3 +1,5 @@
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// Which rail a subscription is billed on.
 ///
 /// Flipper sells one subscription over two rails (`data-connector`:
@@ -38,14 +40,14 @@ enum PaymentRail {
   }
 
   String get label => switch (this) {
-        PaymentRail.mtnMomo => 'Mobile Money',
-        PaymentRail.card => 'Card',
-      };
+    PaymentRail.mtnMomo => FlipperL10n.current.paywallRailMobileMoney,
+    PaymentRail.card => FlipperL10n.current.paywallRailCard,
+  };
 
   String get description => switch (this) {
-        PaymentRail.mtnMomo => 'Approve on your phone with MTN MoMo',
-        PaymentRail.card => 'Pay by Visa or Mastercard',
-      };
+    PaymentRail.mtnMomo => FlipperL10n.current.paywallRailMomoDescription,
+    PaymentRail.card => FlipperL10n.current.paywallRailCardDescription,
+  };
 
   bool get isMomo => this == PaymentRail.mtnMomo;
   bool get isCard => this == PaymentRail.card;

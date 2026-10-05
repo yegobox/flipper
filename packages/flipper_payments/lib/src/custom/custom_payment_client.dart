@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flipper_localize/flipper_localize.dart';
+
 import 'package:flipper_payments/src/custom/custom_payment_models.dart';
 import 'package:flipper_payments/src/dodo/dodo_models.dart' show dodoBuildMode;
 import 'package:flipper_payments/src/http/payments_http_client.dart';
@@ -50,7 +52,7 @@ class CustomPaymentClient {
         'Custom payment $what: no response from $url within ${_timeout.inSeconds}s',
       );
       throw CustomPaymentException(
-        'The payments service did not respond. Check your connection and try again.',
+        FlipperL10n.current.paywallServiceNoResponse,
         gatewayMessage: 'No response from $url after ${_timeout.inSeconds}s.',
       );
     } on CustomPaymentException {
@@ -58,7 +60,7 @@ class CustomPaymentClient {
     } catch (e) {
       payLogError('Custom payment $what: could not reach $url — $e');
       throw CustomPaymentException(
-        'Could not reach the payments service. Check your connection and try again.',
+        FlipperL10n.current.paywallServiceUnreachable,
         gatewayMessage: 'Could not reach $url: $e',
       );
     }
@@ -83,14 +85,16 @@ class CustomPaymentClient {
     String? returnUrl,
   }) async {
     if (businessId.trim().isEmpty) {
-      throw const CustomPaymentException('Choose a business first.');
+      throw CustomPaymentException(
+        FlipperL10n.current.paywallChooseBusinessFirst,
+      );
     }
     if (amount <= 0) {
-      throw const CustomPaymentException('Amount must be greater than zero.');
+      throw CustomPaymentException(FlipperL10n.current.paywallAmountAboveZero);
     }
     if (rail.isMomo && (phoneNumber == null || phoneNumber.trim().isEmpty)) {
-      throw const CustomPaymentException(
-        "The customer's Mobile Money number is required.",
+      throw CustomPaymentException(
+        FlipperL10n.current.paywallCustomerMomoRequired,
       );
     }
 
@@ -119,7 +123,10 @@ class CustomPaymentClient {
       url,
       () => _http.post(url, headers: _headers, body: jsonEncode(body)),
     );
-    final decoded = _requireObject(response, 'start the custom payment');
+    final decoded = _requireObject(
+      response,
+      FlipperL10n.current.paywallActionStartCustomPayment,
+    );
     final view = CustomPaymentView.fromJson(decoded);
     payLogInfo('Custom payment: started $view');
     return view;
@@ -142,7 +149,10 @@ class CustomPaymentClient {
       () => _http.get(url, headers: _headers),
     );
     return CustomPaymentView.fromJson(
-      _requireObject(response, 'read the custom payment'),
+      _requireObject(
+        response,
+        FlipperL10n.current.paywallActionReadCustomPayment,
+      ),
     );
   }
 
@@ -160,7 +170,10 @@ class CustomPaymentClient {
       url,
       () => _http.get(url, headers: _headers),
     );
-    final decoded = _requireObject(response, 'list custom payments');
+    final decoded = _requireObject(
+      response,
+      FlipperL10n.current.paywallActionListCustomPayments,
+    );
     final items = decoded['custom_payments'];
     if (items is! List) return const [];
     return items
@@ -184,7 +197,7 @@ class CustomPaymentClient {
 
     if (status == 401 || status == 403) {
       throw CustomPaymentException(
-        'This account is not authorised for staff payments.',
+        FlipperL10n.current.paywallStaffNotAuthorised,
         statusCode: status,
         gatewayMessage: gateway,
       );
@@ -192,7 +205,7 @@ class CustomPaymentClient {
     if (status == 409) {
       final inFlight = decoded?['in_flight'];
       throw CustomPaymentException(
-        'Something is already collecting from this business.',
+        FlipperL10n.current.paywallAlreadyCollecting,
         statusCode: status,
         gatewayMessage: gateway,
         inFlight: inFlight is Map
@@ -202,21 +215,21 @@ class CustomPaymentClient {
     }
     if (status == 503) {
       throw CustomPaymentException(
-        'Staff payments are not configured on this connector.',
+        FlipperL10n.current.paywallStaffNotConfigured,
         statusCode: status,
         gatewayMessage: gateway,
       );
     }
     if (status < 200 || status >= 300) {
       throw CustomPaymentException(
-        'Could not $what (HTTP $status).',
+        FlipperL10n.current.paywallCouldNotAction(what, '$status'),
         statusCode: status,
         gatewayMessage: gateway,
       );
     }
     if (decoded == null) {
       throw CustomPaymentException(
-        'The billing service sent an unreadable reply (HTTP $status).',
+        FlipperL10n.current.paywallUnreadableReply('$status'),
         statusCode: status,
       );
     }

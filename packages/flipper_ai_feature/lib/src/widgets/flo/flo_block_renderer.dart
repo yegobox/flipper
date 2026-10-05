@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/flo_theme.dart';
@@ -79,16 +80,19 @@ class _Block extends StatelessWidget {
       case 'callout':
         return _CalloutBlock(block: block);
       case 'source':
-        return _SourceBlock(items: (block['items'] as List?)?.cast() ?? const []);
+        return _SourceBlock(
+            items: (block['items'] as List?)?.cast() ?? const []);
       case 'actions':
-        return _ActionsBlock(items: (block['items'] as List?)?.cast() ?? const []);
+        return _ActionsBlock(
+            items: (block['items'] as List?)?.cast() ?? const []);
       case 'followups':
         return _FollowupsBlock(
           items: (block['items'] as List?)?.cast() ?? const [],
           onAsk: onAsk,
         );
       default:
-        return Text(block.toString(), style: const TextStyle(color: FloTheme.ink2));
+        return Text(block.toString(),
+            style: const TextStyle(color: FloTheme.ink2));
     }
   }
 }
@@ -200,7 +204,9 @@ class _MetricsBlock extends StatelessWidget {
                         ? const Color(0xFFF7FAFF)
                         : FloTheme.surface,
                     border: Border.all(
-                      color: item['hl'] == true ? FloTheme.blueTint2 : FloTheme.line,
+                      color: item['hl'] == true
+                          ? FloTheme.blueTint2
+                          : FloTheme.line,
                     ),
                     borderRadius: BorderRadius.circular(FloTheme.radiusMd),
                   ),
@@ -220,14 +226,17 @@ class _MetricsBlock extends StatelessWidget {
                       RichText(
                         text: TextSpan(
                           style: FloTheme.mono(21).copyWith(
-                            color: item['neg'] == true ? FloTheme.lossInk : FloTheme.ink1,
+                            color: item['neg'] == true
+                                ? FloTheme.lossInk
+                                : FloTheme.ink1,
                           ),
                           children: [
                             if (item['unit'] != null)
                               TextSpan(
                                 text: '${item['unit']} ',
-                                style: FloTheme.mono(11, weight: FontWeight.w600)
-                                    .copyWith(color: FloTheme.ink3),
+                                style:
+                                    FloTheme.mono(11, weight: FontWeight.w600)
+                                        .copyWith(color: FloTheme.ink3),
                               ),
                             TextSpan(text: item['v']?.toString() ?? ''),
                           ],
@@ -343,7 +352,8 @@ class _VizBlockState extends State<_VizBlock> {
                         const SizedBox(width: 10),
                         Text(
                           block['sub'].toString(),
-                          style: FloTheme.mono(11.5).copyWith(color: FloTheme.ink3),
+                          style: FloTheme.mono(11.5)
+                              .copyWith(color: FloTheme.ink3),
                         ),
                       ],
                     ],
@@ -351,7 +361,9 @@ class _VizBlockState extends State<_VizBlock> {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: _copied ? 'Copied!' : 'Copy chart',
+                  message: _copied
+                      ? context.flipperL10n.floCopied
+                      : context.flipperL10n.floCopyChart,
                   child: Material(
                     color: FloTheme.surface2,
                     borderRadius: BorderRadius.circular(8),
@@ -428,8 +440,9 @@ class _TableBlock extends StatelessWidget {
                     flex: cols[i]['num'] == true ? 1 : 2,
                     child: Text(
                       (cols[i]['label']?.toString() ?? '').toUpperCase(),
-                      textAlign:
-                          cols[i]['num'] == true ? TextAlign.right : TextAlign.left,
+                      textAlign: cols[i]['num'] == true
+                          ? TextAlign.right
+                          : TextAlign.left,
                       style: const TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
@@ -535,7 +548,8 @@ class _TableCell extends StatelessWidget {
 
   Widget _leadContent(String label, Color? swatch) {
     return Row(
-      mainAxisAlignment: isNum ? MainAxisAlignment.end : MainAxisAlignment.start,
+      mainAxisAlignment:
+          isNum ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         if (swatch != null) ...[
           Container(
@@ -806,9 +820,9 @@ class _FollowupsBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'SUGGESTED FOLLOW-UPS',
-          style: TextStyle(
+        Text(
+          context.flipperL10n.floSuggestedFollowUps,
+          style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.05 * 11,
@@ -829,13 +843,17 @@ class _FollowupsBlock extends StatelessWidget {
                     onTap: onAsk == null
                         ? null
                         : () => onAsk!(
-                              f['q']?.toString() ?? f['label']?.toString() ?? '',
+                              f['q']?.toString() ??
+                                  f['label']?.toString() ??
+                                  '',
                             ),
                     borderRadius: BorderRadius.circular(FloTheme.radiusPill),
                     child: Ink(
-                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 13, vertical: 8),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(FloTheme.radiusPill),
+                        borderRadius:
+                            BorderRadius.circular(FloTheme.radiusPill),
                         border: Border.all(color: FloTheme.lineStrong),
                       ),
                       child: Row(

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_services/proxy.dart';
@@ -57,27 +58,27 @@ class FloLocalBriefingService {
     final now = DateTime.now();
     final dateLabel = DateFormat('d MMM').format(now);
     final txCount = sales.length;
-    final txLabel = txCount == 1 ? '1 transaction' : '$txCount transactions';
+    final l10n = FlipperL10n.current;
+    final txLabel = l10n.floBriefingTransactions(txCount);
     final rev = _formatRwf(revenue);
 
     return FloDailyBriefing(
       dateLabel: dateLabel,
-      headline: 'Sales are coming in today.',
-      bodyHtml:
-          'Revenue reached <b>RWF $rev</b> across <b>$txLabel</b> ($unitCount units) so far today — live from your device.',
+      headline: l10n.floBriefingSalesComingIn,
+      bodyHtml: l10n.floBriefingBody(rev, txLabel, '$unitCount'),
       stats: [
         FloBriefingStat(
-          label: 'Revenue',
+          label: l10n.floStatRevenue,
           unit: 'RWF',
           value: rev,
         ),
-        const FloBriefingStat(
-          label: 'Net profit',
+        FloBriefingStat(
+          label: l10n.floStatNetProfit,
           unit: 'RWF',
           value: '—',
         ),
         FloBriefingStat(
-          label: 'Units sold',
+          label: l10n.floStatUnitsSold,
           value: '$unitCount',
         ),
       ],
@@ -161,7 +162,8 @@ class FloLocalBriefingService {
     // Item-level breakdown so the model answers "what sold?" from real data
     // instead of inventing product names.
     final topItems = await _topItemsSold(branchId, start, end, sales);
-    final units = topItems.fold<num>(0, (s, it) => s + (it['qty'] as num? ?? 0));
+    final units =
+        topItems.fold<num>(0, (s, it) => s + (it['qty'] as num? ?? 0));
 
     return {
       'period_label': period.label,
@@ -218,7 +220,8 @@ class FloLocalBriefingService {
   }
 
   /// Prefer local when revenue matches or beats remote and units are at least as high.
-  static FloDailyBriefing? merge(FloDailyBriefing? remote, FloDailyBriefing? local) {
+  static FloDailyBriefing? merge(
+      FloDailyBriefing? remote, FloDailyBriefing? local) {
     if (remote == null || remote.empty) return local;
     if (local == null || local.empty) return remote;
     final remoteRevenue = _parseStat(remote, 'Revenue');
@@ -289,8 +292,8 @@ class SalesPeriod {
         m.contains('past 7') ||
         m.contains('last week') ||
         m.contains('past week')) {
-      return SalesPeriod(
-          midnight.subtract(const Duration(days: 7)), tomorrow, 'the last 7 days');
+      return SalesPeriod(midnight.subtract(const Duration(days: 7)), tomorrow,
+          'the last 7 days');
     }
     if (m.contains('this week') || m.contains('week')) {
       // Week starting Monday through end of today.
