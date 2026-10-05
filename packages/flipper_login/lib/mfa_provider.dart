@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_mfa/flipper_mfa.dart';
@@ -112,5 +114,14 @@ class MfaProvider {
     required String otp,
   }) async {
     await ProxyService.strategy.verifyOtpAndLogin(otp, pin: pin);
+    cacheSecretAfterOnlineLogin(pin);
+  }
+
+  /// After an online sign-in, cache the authenticator secret so a later
+  /// authenticator sign-in on this device works without the network.
+  void cacheSecretAfterOnlineLogin(IPin pin) {
+    final userId = pin.userId.trim();
+    if (userId.isEmpty) return;
+    unawaited(prefetchSecret(userId: userId, pin: pin.pin));
   }
 }

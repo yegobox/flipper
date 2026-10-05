@@ -89,10 +89,37 @@ void main() {
   );
 
   test('no cached secret and server unreachable: unavailable', () async {
+    final offline = MfaService(
+      remoteSecret: (_) async => throw const SocketException('offline'),
+    );
+    expect(
+      await offline.verifyTotpForUser(userId: userId, code: '123456'),
+      TotpVerifyOutcome.unavailable,
+    );
+  });
+
+  test('server has no secret for the user: notEnrolled', () async {
     remoteValue = null;
     expect(
       await mfa.verifyTotpForUser(userId: userId, code: '123456'),
-      TotpVerifyOutcome.unavailable,
+      TotpVerifyOutcome.notEnrolled,
+    );
+    expect(remoteCalls, 1);
+  });
+
+  test('a later sign-in uses the secret prefetched after SMS', () async {
+    expect(await mfa.prefetchAndCacheSecret(userId: userId, pin: 4321), isTrue);
+    expect(remoteCalls, 1);
+    final offline = MfaService(
+      remoteSecret: (_) async => throw const SocketException('offline'),
+    );
+    expect(
+      await offline.verifyTotpForUser(
+        userId: userId,
+        code: totp.generateTOTPCode(secret),
+        pin: 4321,
+      ),
+      TotpVerifyOutcome.valid,
     );
   });
 

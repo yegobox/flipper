@@ -331,8 +331,11 @@ class _PinLoginState extends State<PinLogin>
                 _hasError = true;
                 _errorMessage = switch (outcome) {
                   TotpVerifyOutcome.unavailable =>
-                    'Could not verify authenticator. Check your connection, '
-                        'or sign in online once so offline MFA can be cached.',
+                    'Could not reach the server to load your authenticator '
+                        'on this device. Check your connection and try again.',
+                  TotpVerifyOutcome.notEnrolled =>
+                    'No authenticator is set up for this account. Sign in '
+                        'with SMS, then set one up under Settings.',
                   TotpVerifyOutcome.invalidCode =>
                     'Invalid authenticator code. Please try again.',
                   TotpVerifyOutcome.valid => '',
@@ -525,6 +528,7 @@ class _PinLoginState extends State<PinLogin>
         flipperHttpClient: ProxyService.http,
       ),
     );
+    if (!forceOffline) _mfa.cacheSecretAfterOnlineLogin(pinRecord);
   }
 
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {
