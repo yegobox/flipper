@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -61,54 +62,62 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         unawaited(
-          _ref.read(productAnalyticsProvider).track(
-            'login_pin_submitted',
-            properties: const {'source': 'auth_repository'},
-          ),
+          _ref
+              .read(productAnalyticsProvider)
+              .track(
+                'login_pin_submitted',
+                properties: const {'source': 'auth_repository'},
+              ),
         );
         return true;
       } else if (response.statusCode == 404) {
         unawaited(
-          _ref.read(productAnalyticsProvider).track(
-            AnalyticsEvents.loginFailed,
-            properties: const {
-              'source': 'auth_repository',
-              'reason': 'pin_not_found',
-            },
-          ),
+          _ref
+              .read(productAnalyticsProvider)
+              .track(
+                AnalyticsEvents.loginFailed,
+                properties: const {
+                  'source': 'auth_repository',
+                  'reason': 'pin_not_found',
+                },
+              ),
         );
-        throw Exception('Pin not found');
+        throw Exception(FlipperL10n.current.webAuthPinNotFound);
       } else if (response.statusCode == 403) {
         unawaited(
-          _ref.read(productAnalyticsProvider).track(
-            AnalyticsEvents.loginFailed,
-            properties: const {
-              'source': 'auth_repository',
-              'reason': 'pin_access_denied',
-            },
-          ),
+          _ref
+              .read(productAnalyticsProvider)
+              .track(
+                AnalyticsEvents.loginFailed,
+                properties: const {
+                  'source': 'auth_repository',
+                  'reason': 'pin_access_denied',
+                },
+              ),
         );
-        throw Exception('Access denied - check authentication');
+        throw Exception(FlipperL10n.current.webAuthAccessDenied);
       } else {
         unawaited(
-          _ref.read(productAnalyticsProvider).track(
-            AnalyticsEvents.loginFailed,
-            properties: {
-              'source': 'auth_repository',
-              'reason': 'pin_invalid_${response.statusCode}',
-            },
-          ),
+          _ref
+              .read(productAnalyticsProvider)
+              .track(
+                AnalyticsEvents.loginFailed,
+                properties: {
+                  'source': 'auth_repository',
+                  'reason': 'pin_invalid_${response.statusCode}',
+                },
+              ),
         );
-        throw Exception('Invalid PIN (${response.statusCode})');
+        throw Exception(
+          FlipperL10n.current.webAuthInvalidPinCode('${response.statusCode}'),
+        );
       }
     } on SocketException catch (e) {
       debugPrint('Socket error: $e');
-      throw Exception(
-        'Network connection failed. Check your internet connection.',
-      );
+      throw Exception(FlipperL10n.current.webAuthNetworkFailed);
     } on TimeoutException catch (e) {
       debugPrint('Timeout error: $e');
-      throw Exception('Request timed out. Please try again.');
+      throw Exception(FlipperL10n.current.webAuthTimedOut);
     } catch (e) {
       debugPrint('Unexpected error: $e');
       rethrow;
@@ -138,9 +147,9 @@ class AuthRepository {
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
       return _completeOtpLogin(responseData);
     } else if (response.statusCode == 404) {
-      throw Exception('OTP not found');
+      throw Exception(FlipperL10n.current.webAuthOtpNotFound);
     } else {
-      throw Exception('Invalid OTP');
+      throw Exception(FlipperL10n.current.webAuthInvalidOtp);
     }
   }
 
@@ -161,9 +170,9 @@ class AuthRepository {
       final responseData = jsonDecode(response.body) as Map<String, dynamic>;
       return _completeOtpLogin(responseData);
     } else if (response.statusCode == 404) {
-      throw Exception('TOTP not found');
+      throw Exception(FlipperL10n.current.webAuthTotpNotFound);
     } else {
-      throw Exception('Invalid TOTP');
+      throw Exception(FlipperL10n.current.webAuthInvalidTotp);
     }
   }
 
@@ -198,10 +207,7 @@ class AuthRepository {
     }
 
     await _supabase.auth.setSession(refreshToken);
-    await _fetchAndSaveUserProfile(
-      loginKey: loginKey,
-      pinUserId: pinUserId,
-    );
+    await _fetchAndSaveUserProfile(loginKey: loginKey, pinUserId: pinUserId);
     final analytics = _ref.read(productAnalyticsProvider);
     final analyticsUserId =
         _supabase.auth.currentUser?.id ?? pinUserId ?? 'unknown_user';
@@ -238,8 +244,7 @@ class AuthRepository {
       clearSessionBusinessSelection(_ref);
       await BusinessSelectionPersistence.clear();
 
-      final resolvedLoginKey =
-          loginKey ?? _ref.read(sessionLoginKeyProvider);
+      final resolvedLoginKey = loginKey ?? _ref.read(sessionLoginKeyProvider);
       final resolvedPinUserId =
           pinUserId ?? _ref.read(sessionApiUserIdProvider);
       final previousApiUserId =

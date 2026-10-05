@@ -1,3 +1,5 @@
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/expense_entry_posting.dart';
@@ -22,8 +24,9 @@ class CreateAccountModalRequest {
   final void Function(Account account)? onCreated;
 }
 
-final createAccountModalProvider =
-    StateProvider<CreateAccountModalRequest?>((ref) => null);
+final createAccountModalProvider = StateProvider<CreateAccountModalRequest?>(
+  (ref) => null,
+);
 
 /// Shell-level host that renders [CreateAccountModal] when requested.
 class CreateAccountModalHost extends ConsumerWidget {
@@ -66,11 +69,11 @@ class CreateAccountModal extends ConsumerStatefulWidget {
 
 class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
   static const _types = [
-    (AccountType.asset, 'Asset'),
-    (AccountType.liability, 'Liability'),
-    (AccountType.equity, 'Equity'),
-    (AccountType.income, 'Income'),
-    (AccountType.expense, 'Expense'),
+    AccountType.asset,
+    AccountType.liability,
+    AccountType.equity,
+    AccountType.income,
+    AccountType.expense,
   ];
 
   late AccountType _type;
@@ -112,7 +115,9 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
   bool get _valid {
     final code = _codeCtrl.text.trim();
     final name = _nameCtrl.text.trim();
-    return code.length == 4 && RegExp(r'^\d{4}$').hasMatch(code) && name.isNotEmpty;
+    return code.length == 4 &&
+        RegExp(r'^\d{4}$').hasMatch(code) &&
+        name.isNotEmpty;
   }
 
   AccountNormal _defaultNormal(AccountType type) {
@@ -120,8 +125,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
       AccountType.asset || AccountType.expense => AccountNormal.debit,
       AccountType.liability ||
       AccountType.equity ||
-      AccountType.income =>
-        AccountNormal.credit,
+      AccountType.income => AccountNormal.credit,
     };
   }
 
@@ -137,8 +141,8 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
       if (mounted) {
         showAccountingToast(
           context,
-          'Code already in use',
-          subtitle: 'Pick a different account code',
+          context.flipperL10n.booksCodeInUse,
+          subtitle: context.flipperL10n.booksPickDifferentCode,
           icon: Icons.warning_amber_rounded,
           tone: AccountingToastTone.warn,
         );
@@ -151,7 +155,9 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
       code: code,
       name: name,
       type: _type,
-      sub: _subCtrl.text.trim().isEmpty ? defaultExpenseSubcategory : _subCtrl.text.trim(),
+      sub: _subCtrl.text.trim().isEmpty
+          ? defaultExpenseSubcategory
+          : _subCtrl.text.trim(),
       normal: _defaultNormal(_type),
       bal: 0,
     );
@@ -163,7 +169,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
       if (mounted) {
         showAccountingToast(
           context,
-          'Account created',
+          context.flipperL10n.booksAccountCreated,
           subtitle: '$code · $name',
           icon: Icons.check,
           tone: AccountingToastTone.success,
@@ -174,7 +180,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
       if (mounted) {
         showAccountingToast(
           context,
-          'Could not create account',
+          context.flipperL10n.booksCouldNotCreateAccount,
           subtitle: e.message,
           icon: Icons.warning_amber_rounded,
           tone: AccountingToastTone.warn,
@@ -187,6 +193,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final lockType = widget.lockType != null;
 
     return Stack(
@@ -218,7 +225,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'New account',
+                                l10n.booksNewAccount,
                                 style: AccountingTokens.sans(
                                   fontSize: 19,
                                   fontWeight: FontWeight.w800,
@@ -226,7 +233,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Add a line to the chart of accounts',
+                                l10n.booksAddLineToCoa,
                                 style: AccountingTokens.sans(
                                   fontSize: 13,
                                   color: AccountingTokens.ink3,
@@ -248,15 +255,17 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (!lockType) ...[
-                          Text('Account type', style: _label),
+                          Text(l10n.booksAccountType, style: _label),
                           const SizedBox(height: 8),
                           Wrap(
                             spacing: 6,
                             runSpacing: 6,
                             children: [
-                              for (final (type, label) in _types)
+                              for (final type in _types)
                                 ChoiceChip(
-                                  label: Text(label),
+                                  label: Text(
+                                    booksAccountTypeLabel(type, l10n),
+                                  ),
                                   selected: _type == type,
                                   onSelected: (_) => setState(() {
                                     _type = type;
@@ -276,7 +285,7 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Code', style: _label),
+                                  Text(l10n.booksCode, style: _label),
                                   const SizedBox(height: 7),
                                   TextField(
                                     controller: _codeCtrl,
@@ -285,7 +294,9 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                                       FilteringTextInputFormatter.digitsOnly,
                                       LengthLimitingTextInputFormatter(4),
                                     ],
-                                    decoration: _inputDecoration(hint: 'e.g. 6060'),
+                                    decoration: _inputDecoration(
+                                      hint: l10n.booksCodeHint,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -295,12 +306,12 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Category', style: _label),
+                                  Text(l10n.category, style: _label),
                                   const SizedBox(height: 7),
                                   TextField(
                                     controller: _subCtrl,
                                     decoration: _inputDecoration(
-                                      hint: 'e.g. Operating expenses',
+                                      hint: l10n.booksCategoryHint,
                                     ),
                                   ),
                                 ],
@@ -309,12 +320,14 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Text('Account name', style: _label),
+                        Text(l10n.booksAccountName, style: _label),
                         const SizedBox(height: 7),
                         TextField(
                           controller: _nameCtrl,
                           autofocus: true,
-                          decoration: _inputDecoration(hint: 'e.g. Office supplies'),
+                          decoration: _inputDecoration(
+                            hint: l10n.booksAccountNameHint,
+                          ),
                           onSubmitted: (_) => _save(),
                         ),
                       ],
@@ -323,15 +336,22 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
                   Container(
                     padding: const EdgeInsets.fromLTRB(24, 14, 24, 20),
                     decoration: const BoxDecoration(
-                      border: Border(top: BorderSide(color: AccountingTokens.line)),
+                      border: Border(
+                        top: BorderSide(color: AccountingTokens.line),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        AccountingButton(label: 'Cancel', onPressed: widget.onClose),
+                        AccountingButton(
+                          label: l10n.cancel,
+                          onPressed: widget.onClose,
+                        ),
                         const SizedBox(width: 10),
                         AccountingButton(
-                          label: _saving ? 'Creating…' : 'Create account',
+                          label: _saving
+                              ? l10n.booksCreating
+                              : l10n.booksCreateAccount,
                           icon: Icons.add,
                           primary: true,
                           enabled: _valid && !_saving,
@@ -370,7 +390,10 @@ class _CreateAccountModalState extends ConsumerState<CreateAccountModal> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(11),
-        borderSide: const BorderSide(color: AccountingTokens.accent, width: 1.5),
+        borderSide: const BorderSide(
+          color: AccountingTokens.accent,
+          width: 1.5,
+        ),
       ),
     );
   }

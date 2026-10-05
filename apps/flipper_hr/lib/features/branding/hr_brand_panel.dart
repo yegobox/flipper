@@ -1,4 +1,5 @@
 import 'package:flipper_web/features/login/signin_styles.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// HR's brand panel for the shared sign-in / sign-up screens.
@@ -202,7 +203,7 @@ class _HrBrandCopy extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Your team, your time, your people — all in one place.',
+            context.flipperL10n.hrBrandTagline,
             style: context.siText(
               fontSize: 30,
               fontWeight: FontWeight.w700,
@@ -213,7 +214,7 @@ class _HrBrandCopy extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Attendance, payroll, and leave are ready the moment you sign in.',
+            context.flipperL10n.hrBrandSubtitle,
             style: context.siText(
               fontSize: 15.5,
               height: 1.5,
@@ -227,9 +228,17 @@ class _HrBrandCopy extends StatelessWidget {
             spacing: 28,
             runSpacing: 16,
             children: [
-              _stat(context, '3,200+', 'employees managed'),
-              _stat(context, 'RWF 480M', 'payroll processed monthly'),
-              _stat(context, '99.9%', 'uptime'),
+              _stat(
+                context,
+                '3,200+',
+                context.flipperL10n.hrBrandStatEmployees,
+              ),
+              _stat(
+                context,
+                'RWF 480M',
+                context.flipperL10n.hrBrandStatPayroll,
+              ),
+              _stat(context, '99.9%', context.flipperL10n.hrBrandStatUptime),
             ],
           ),
         ],
@@ -305,7 +314,7 @@ class _MiniPayrollCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Payroll · this month',
+                  context.flipperL10n.hrBrandPayrollThisMonth,
                   style: context.siText(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -402,7 +411,7 @@ class _MiniHireCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'New hire',
+                  context.flipperL10n.hrBrandNewHire,
                   style: context.siText(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -420,7 +429,7 @@ class _MiniHireCard extends StatelessWidget {
             ),
           ),
           Text(
-            'Day 1',
+            context.flipperL10n.hrBrandDayOne,
             style: context
                 .siPinDigit(fontSize: 13)
                 .copyWith(fontWeight: FontWeight.w800, color: SITokens.win),
@@ -461,7 +470,7 @@ class _MiniStreakCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '45 days',
+                  context.flipperL10n.hrDaysCount(45),
                   style: context
                       .siPinDigit(fontSize: 16)
                       .copyWith(fontWeight: FontWeight.w800),
@@ -469,7 +478,7 @@ class _MiniStreakCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'Attendance streak',
+                  context.flipperL10n.hrBrandAttendanceStreak,
                   style: context.siText(fontSize: 11, color: SITokens.ink3),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

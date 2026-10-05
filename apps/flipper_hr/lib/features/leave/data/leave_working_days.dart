@@ -14,6 +14,8 @@
 library;
 
 import 'package:flipper_hr/features/leave/data/leave_type.dart';
+import 'package:flipper_hr/features/ui/hr_l10n.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// Saturday and Sunday. `DateTime.weekday` is 1 = Monday … 7 = Sunday.
 bool isWeekend(DateTime day) =>
@@ -67,12 +69,7 @@ double leaveDaysFor({
 
 /// `1 day`, `3 days`, `1.5 days` — the trailing `.0` dropped, since whole days
 /// are the normal case and `3.0 days` reads like a measurement.
-String formatLeaveDays(double value) {
-  final text = value == value.roundToDouble()
-      ? value.round().toString()
-      : value.toStringAsFixed(1);
-  return '$text ${value == 1 ? 'day' : 'days'}';
-}
+String formatLeaveDays(double value) => hrDayCount(FlipperL10n.current, value);
 
 /// Adds a day by calendar date, so a DST shift cannot land on the same day twice
 /// or skip one.

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/custom_payment/application/custom_payment_providers.dart';
 import 'package:flipper_web/features/custom_payment/data/custom_payment_api.dart';
@@ -100,36 +101,36 @@ class CustomPaymentController extends Notifier<CustomPaymentState> {
 
     if (api == null) {
       _set(
-        const CustomPaymentState(
+        CustomPaymentState(
           stage: CustomPaymentStage.failed,
-          message: 'This account is not authorised for staff payments.',
+          message: FlipperL10n.current.webPayNotAuthorised,
         ),
       );
       return;
     }
     if (draft.rail.isMomo && !MomoMsisdn.isPlausible(draft.phoneNumber ?? '')) {
       _set(
-        const CustomPaymentState(
+        CustomPaymentState(
           stage: CustomPaymentStage.failed,
-          message: 'Enter a valid Mobile Money number, e.g. 0788123456.',
+          message: FlipperL10n.current.webBillingInvalidMomo,
         ),
       );
       return;
     }
     if (draft.amountRwf <= 0) {
       _set(
-        const CustomPaymentState(
+        CustomPaymentState(
           stage: CustomPaymentStage.failed,
-          message: 'Enter the agreed amount in RWF.',
+          message: FlipperL10n.current.webPayEnterAmount,
         ),
       );
       return;
     }
 
     _set(
-      const CustomPaymentState(
+      CustomPaymentState(
         stage: CustomPaymentStage.submitting,
-        message: 'Starting the payment…',
+        message: FlipperL10n.current.webPayStarting,
       ),
     );
 
@@ -149,7 +150,7 @@ class CustomPaymentController extends Notifier<CustomPaymentState> {
       _set(
         CustomPaymentState(
           stage: CustomPaymentStage.failed,
-          message: 'Could not start the payment: ${_describe(e)}',
+          message: FlipperL10n.current.webPayCouldNotStart(_describe(e)),
         ),
       );
       return;
@@ -184,10 +185,8 @@ class CustomPaymentController extends Notifier<CustomPaymentState> {
         state.copyWith(
           stage: CustomPaymentStage.timedOut,
           message: draft.rail.isCard
-              ? 'No payment yet. Send the link again or check the reference '
-                    'later — a payment made after this closes still counts.'
-              : 'No approval yet. The customer may still approve; check the '
-                    'reference later or start again.',
+              ? FlipperL10n.current.webPayNoPaymentYetCard
+              : FlipperL10n.current.webPayNoApprovalYet,
         ),
       );
     }
@@ -209,30 +208,29 @@ class CustomPaymentController extends Notifier<CustomPaymentState> {
     final (CustomPaymentStage stage, String message) = switch (view.status) {
       CustomPaymentStatus.settled => (
         CustomPaymentStage.settled,
-        'Paid. The plan is active and the negotiated price is now its '
-            'recurring price.',
+        FlipperL10n.current.webPayPaidActive,
       ),
       CustomPaymentStatus.failed => (
         CustomPaymentStage.failed,
-        view.message ?? 'The payment did not go through.',
+        view.message ?? FlipperL10n.current.webPayDidNotGoThrough,
       ),
       CustomPaymentStatus.expired => (
         CustomPaymentStage.failed,
-        view.message ?? 'The payment link expired before it was paid.',
+        view.message ?? FlipperL10n.current.webPayLinkExpired,
       ),
       CustomPaymentStatus.awaitingApproval => (
         CustomPaymentStage.awaitingApproval,
-        'Ask the customer to approve the Mobile Money request on their phone.',
+        FlipperL10n.current.webPayAskCustomerApprove,
       ),
       CustomPaymentStatus.awaitingCheckout => (
         CustomPaymentStage.awaitingCheckout,
-        'Send the customer the payment link and wait for them to pay.',
+        FlipperL10n.current.webPaySendLink,
       ),
       _ => (
         view.rail.isCard
             ? CustomPaymentStage.awaitingCheckout
             : CustomPaymentStage.awaitingApproval,
-        'Waiting for the payment to settle…',
+        FlipperL10n.current.webPayWaitingSettle,
       ),
     };
     _set(CustomPaymentState(stage: stage, view: view, message: message));

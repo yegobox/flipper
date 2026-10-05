@@ -118,8 +118,10 @@ class BooksPalette {
       color.withValues(alpha: (alpha * glowScale).clamp(0.0, 1.0));
 
   /// A drop shadow, damped in light mode.
-  Color shadow(double alpha) => (isDark ? Colors.black : const Color(0xFF0B1220))
-      .withValues(alpha: (alpha * shadowScale).clamp(0.0, 1.0));
+  Color shadow(double alpha) =>
+      (isDark ? Colors.black : const Color(0xFF0B1220)).withValues(
+        alpha: (alpha * shadowScale).clamp(0.0, 1.0),
+      );
 
   static const dark = BooksPalette(
     brightness: Brightness.dark,
@@ -337,11 +339,7 @@ abstract final class AppGrad {
   static const soft = LinearGradient(
     begin: Alignment(-0.9, -0.5),
     end: Alignment(0.9, 0.5),
-    colors: [
-      Color(0x2E3F86FF),
-      Color(0x295B4FE6),
-      Color(0x2E6D5CF0),
-    ],
+    colors: [Color(0x2E3F86FF), Color(0x295B4FE6), Color(0x2E6D5CF0)],
     stops: [0, 0.5, 1],
   );
 
@@ -391,27 +389,27 @@ abstract final class AppSpace {
 
 abstract final class AppShadow {
   static List<BoxShadow> get card => [
-        BoxShadow(
-          color: AppColors.shadow(0.7),
-          blurRadius: 50,
-          spreadRadius: -20,
-          offset: const Offset(0, 18),
-        ),
-        BoxShadow(
-          color: AppColors.shadow(0.4),
-          blurRadius: 14,
-          offset: const Offset(0, 4),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.shadow(0.7),
+      blurRadius: 50,
+      spreadRadius: -20,
+      offset: const Offset(0, 18),
+    ),
+    BoxShadow(
+      color: AppColors.shadow(0.4),
+      blurRadius: 14,
+      offset: const Offset(0, 4),
+    ),
+  ];
 
   static List<BoxShadow> get violetGlow => [
-        BoxShadow(
-          color: AppColors.glow(AppColors.violet, 0.6),
-          blurRadius: 30,
-          spreadRadius: -10,
-          offset: const Offset(0, 12),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.glow(AppColors.violet, 0.6),
+      blurRadius: 30,
+      spreadRadius: -10,
+      offset: const Offset(0, 12),
+    ),
+  ];
 
   /// The brand band is the same saturated blue in both modes, so its shadow is
   /// keyed to the band, not to the page.
@@ -425,22 +423,22 @@ abstract final class AppShadow {
   ];
 
   static List<BoxShadow> get popularGlow => [
-        BoxShadow(
-          color: AppColors.glow(AppColors.green, 0.4),
-          blurRadius: 70,
-          spreadRadius: -30,
-          offset: const Offset(0, 30),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.glow(AppColors.green, 0.4),
+      blurRadius: 70,
+      spreadRadius: -30,
+      offset: const Offset(0, 30),
+    ),
+  ];
 
   static List<BoxShadow> get cyanSuiteGlow => [
-        BoxShadow(
-          color: AppColors.glow(AppColors.cyan, 0.4),
-          blurRadius: 60,
-          spreadRadius: -28,
-          offset: const Offset(0, 24),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.glow(AppColors.cyan, 0.4),
+      blurRadius: 60,
+      spreadRadius: -28,
+      offset: const Offset(0, 24),
+    ),
+  ];
 
   /// Lift under the white cards floating on the brand band.
   static final whiteCard = [
@@ -453,22 +451,22 @@ abstract final class AppShadow {
   ];
 
   static List<BoxShadow> get greenGlow => [
-        BoxShadow(
-          color: AppColors.glow(AppColors.green, 0.35),
-          blurRadius: 32,
-          spreadRadius: -8,
-          offset: const Offset(0, 14),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.glow(AppColors.green, 0.35),
+      blurRadius: 32,
+      spreadRadius: -8,
+      offset: const Offset(0, 14),
+    ),
+  ];
 
   static List<BoxShadow> get cyanGlow => [
-        BoxShadow(
-          color: AppColors.glow(AppColors.cyan, 0.28),
-          blurRadius: 28,
-          spreadRadius: -6,
-          offset: const Offset(0, 10),
-        ),
-      ];
+    BoxShadow(
+      color: AppColors.glow(AppColors.cyan, 0.28),
+      blurRadius: 28,
+      spreadRadius: -6,
+      offset: const Offset(0, 10),
+    ),
+  ];
 }
 
 abstract final class AppCurves {
@@ -488,101 +486,100 @@ abstract final class AppText {
   // palette can change when the viewer switches theme.
 
   static TextStyle h1(double size) => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: size,
-        fontWeight: FontWeight.w700,
-        height: 0.98,
-        letterSpacing: -0.035 * size,
-        color: AppColors.ink0,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    height: 0.98,
+    letterSpacing: -0.035 * size,
+    color: AppColors.ink0,
+  );
 
   static TextStyle h2(double size) => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: size,
-        fontWeight: FontWeight.w700,
-        height: 1.04,
-        letterSpacing: -0.03 * size,
-        color: AppColors.ink0,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    height: 1.04,
+    letterSpacing: -0.03 * size,
+    color: AppColors.ink0,
+  );
 
   static TextStyle get h3 => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 21,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.4,
-        color: AppColors.ink0,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 21,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.4,
+    color: AppColors.ink0,
+  );
 
   static TextStyle get h4 => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 16.5,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.165,
-        height: 1.5,
-        color: AppColors.ink0,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 16.5,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.165,
+    height: 1.5,
+    color: AppColors.ink0,
+  );
 
   static TextStyle get body => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 16.5,
-        height: 1.55,
-        color: AppColors.ink2,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 16.5,
+    height: 1.55,
+    color: AppColors.ink2,
+  );
 
   static TextStyle get lead => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 18,
-        height: 1.55,
-        fontWeight: FontWeight.w400,
-        color: AppColors.ink2,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 18,
+    height: 1.55,
+    fontWeight: FontWeight.w400,
+    color: AppColors.ink2,
+  );
 
   static TextStyle get small => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 13,
-        height: 1.5,
-        color: AppColors.ink3,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 13,
+    height: 1.5,
+    color: AppColors.ink3,
+  );
 
   static TextStyle get eyebrow => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.7,
-        color: AppColors.ink2,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.7,
+    color: AppColors.ink2,
+  );
 
   static TextStyle mono({
     double size = 14,
     FontWeight w = FontWeight.w600,
     Color? c,
-  }) =>
-      TextStyle(
-        fontFamily: _mono,
-        fontFamilyFallback: _fallback,
-        fontSize: size,
-        fontWeight: w,
-        letterSpacing: -0.14,
-        fontFeatures: const [FontFeature.tabularFigures()],
-        color: c ?? AppColors.ink1,
-      );
+  }) => TextStyle(
+    fontFamily: _mono,
+    fontFamilyFallback: _fallback,
+    fontSize: size,
+    fontWeight: w,
+    letterSpacing: -0.14,
+    fontFeatures: const [FontFeature.tabularFigures()],
+    color: c ?? AppColors.ink1,
+  );
 
   static TextStyle get buttonLabel => TextStyle(
-        fontFamily: _sans,
-        fontFamilyFallback: _fallback,
-        fontSize: 15.5,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.01 * 15.5,
-        color: AppColors.ink0,
-      );
+    fontFamily: _sans,
+    fontFamilyFallback: _fallback,
+    fontSize: 15.5,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.01 * 15.5,
+    color: AppColors.ink0,
+  );
 
   /// Handoff `.btn` = 50px; `.btn-sm` (nav) = 42px.
   static const buttonHeightHero = 50.0;
@@ -604,8 +601,11 @@ double booksHomeH2SizeOf(BuildContext context) =>
 double booksHomeGutter(double width) =>
     width < 560 ? AppSpace.gutterMobile : AppSpace.gutter;
 
-int booksHomeCols(double width) =>
-    width > 860 ? 3 : width > 560 ? 2 : 1;
+int booksHomeCols(double width) => width > 860
+    ? 3
+    : width > 560
+    ? 2
+    : 1;
 
 /// Full [ThemeData] for the Books marketing page (handoff § Flutter theme setup).
 abstract final class BooksHomeTheme {
@@ -614,75 +614,76 @@ abstract final class BooksHomeTheme {
   /// Call this before building any marketing-page widget — the tokens on
   /// [AppColors] read the palette it installs.
   static ThemeData of(Brightness brightness) {
-    AppColors.palette =
-        brightness == Brightness.dark ? BooksPalette.dark : BooksPalette.light;
+    AppColors.palette = brightness == Brightness.dark
+        ? BooksPalette.dark
+        : BooksPalette.light;
     return _build(brightness);
   }
 
   static ColorScheme _colorScheme(Brightness brightness) => ColorScheme(
-        brightness: brightness,
-        primary: AppColors.violet,
-        onPrimary: AppColors.onBrand,
-        secondary: AppColors.cyan,
-        onSecondary: AppColors.onBrand,
-        tertiary: AppColors.blue,
-        onTertiary: AppColors.onBrand,
-        error: brightness == Brightness.dark
-            ? const Color(0xFFCF6679)
-            : const Color(0xFFB3261E),
-        onError: AppColors.onBrand,
-        surface: AppColors.panel,
-        onSurface: AppColors.ink1,
-        surfaceContainerHighest: AppColors.panel2,
-        onSurfaceVariant: AppColors.ink2,
-        outline: AppColors.ink4,
-      );
+    brightness: brightness,
+    primary: AppColors.violet,
+    onPrimary: AppColors.onBrand,
+    secondary: AppColors.cyan,
+    onSecondary: AppColors.onBrand,
+    tertiary: AppColors.blue,
+    onTertiary: AppColors.onBrand,
+    error: brightness == Brightness.dark
+        ? const Color(0xFFCF6679)
+        : const Color(0xFFB3261E),
+    onError: AppColors.onBrand,
+    surface: AppColors.panel,
+    onSurface: AppColors.ink1,
+    surfaceContainerHighest: AppColors.panel2,
+    onSurfaceVariant: AppColors.ink2,
+    outline: AppColors.ink4,
+  );
 
   static ThemeData _build(Brightness brightness) => ThemeData(
-        useMaterial3: true,
-        brightness: brightness,
-        fontFamily: 'Geist',
-        scaffoldBackgroundColor: AppColors.bg,
-        canvasColor: AppColors.bg,
-        cardColor: AppColors.panel,
-        dialogTheme: DialogThemeData(backgroundColor: AppColors.panel),
-        dividerColor: AppColors.line,
-        splashColor: AppColors.violet.withValues(alpha: 0.14),
-        highlightColor: AppColors.wash(0.06),
-        hoverColor: AppColors.wash(0.06),
-        colorScheme: _colorScheme(brightness),
-        textTheme: TextTheme(
-          displayLarge: AppText.h1(88),
-          displayMedium: AppText.h2(52),
-          headlineMedium: AppText.h3,
-          titleMedium: AppText.h4,
-          bodyLarge: AppText.body,
-          bodyMedium: AppText.lead,
-          bodySmall: AppText.small,
-          labelSmall: AppText.eyebrow,
-        ),
-        iconTheme: IconThemeData(color: AppColors.ink2, size: 22),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          foregroundColor: AppColors.ink1,
-        ),
-        progressIndicatorTheme: ProgressIndicatorThemeData(
-          color: AppColors.violet,
-          circularTrackColor: AppColors.panel2,
-        ),
-        textSelectionTheme: TextSelectionThemeData(
-          cursorColor: AppColors.blue,
-          selectionColor: AppColors.blue.withValues(alpha: 0.25),
-          selectionHandleColor: AppColors.blue,
-        ),
-        bottomSheetTheme: BottomSheetThemeData(
-          backgroundColor: AppColors.panel,
-          surfaceTintColor: Colors.transparent,
-          modalBackgroundColor: AppColors.panel,
-        ),
-      );
+    useMaterial3: true,
+    brightness: brightness,
+    fontFamily: 'Geist',
+    scaffoldBackgroundColor: AppColors.bg,
+    canvasColor: AppColors.bg,
+    cardColor: AppColors.panel,
+    dialogTheme: DialogThemeData(backgroundColor: AppColors.panel),
+    dividerColor: AppColors.line,
+    splashColor: AppColors.violet.withValues(alpha: 0.14),
+    highlightColor: AppColors.wash(0.06),
+    hoverColor: AppColors.wash(0.06),
+    colorScheme: _colorScheme(brightness),
+    textTheme: TextTheme(
+      displayLarge: AppText.h1(88),
+      displayMedium: AppText.h2(52),
+      headlineMedium: AppText.h3,
+      titleMedium: AppText.h4,
+      bodyLarge: AppText.body,
+      bodyMedium: AppText.lead,
+      bodySmall: AppText.small,
+      labelSmall: AppText.eyebrow,
+    ),
+    iconTheme: IconThemeData(color: AppColors.ink2, size: 22),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      foregroundColor: AppColors.ink1,
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: AppColors.violet,
+      circularTrackColor: AppColors.panel2,
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: AppColors.blue,
+      selectionColor: AppColors.blue.withValues(alpha: 0.25),
+      selectionHandleColor: AppColors.blue,
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: AppColors.panel,
+      surfaceTintColor: Colors.transparent,
+      modalBackgroundColor: AppColors.panel,
+    ),
+  );
 }

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flipper_models/db_model_export.dart';
 
@@ -33,7 +34,7 @@ class AuthScannerActions implements ScannerActions {
       unawaited(_loginHandler.handleLoginScan(code));
     } else {
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      showSimpleNotification('Invalid QR code');
+      showSimpleNotification(FlipperL10n.current.authInvalidQrCode);
       Timer(const Duration(seconds: 2), pop);
     }
   }
@@ -76,11 +77,13 @@ class AuthScannerActions implements ScannerActions {
       await notifier.addAccount(account);
 
       ref.read(scanStatusProvider.notifier).state = ScanStatus.success;
-      showSimpleNotification('Account added successfully');
+      showSimpleNotification(FlipperL10n.current.authAccountAdded);
       Timer(const Duration(seconds: 1), pop);
     } catch (e) {
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-      showSimpleNotification('Failed to add account: ${e.toString()}');
+      showSimpleNotification(
+        FlipperL10n.current.authFailedToAddAccount(e.toString()),
+      );
       Timer(const Duration(seconds: 2), pop);
     }
   }

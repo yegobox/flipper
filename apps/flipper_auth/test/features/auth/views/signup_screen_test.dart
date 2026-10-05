@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_auth/core/providers.dart';
@@ -21,6 +22,8 @@ void main() {
         authServiceProvider.overrideWithValue(authService),
       ],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         routes: {
           '/': (_) => const SignUpScreen(),
           '/home': (_) => const Scaffold(body: Text('Home screen')),
@@ -183,8 +186,8 @@ void main() {
       await tapSignUp(tester);
       await tester.pump();
 
-      final button =
-          tester.widget<FlipperGradientButton>(find.byType(FlipperGradientButton));
+      final button = tester
+          .widget<FlipperGradientButton>(find.byType(FlipperGradientButton));
       expect(button.onPressed, isNull);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 

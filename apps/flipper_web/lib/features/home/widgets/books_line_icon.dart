@@ -36,12 +36,7 @@ enum BooksIcon {
 }
 
 class BooksLineIcon extends StatelessWidget {
-  const BooksLineIcon(
-    this.icon, {
-    super.key,
-    this.size = 16,
-    this.color,
-  });
+  const BooksLineIcon(this.icon, {super.key, this.size = 16, this.color});
 
   final BooksIcon icon;
   final double size;

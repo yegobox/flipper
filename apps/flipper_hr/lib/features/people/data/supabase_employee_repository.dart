@@ -1,6 +1,7 @@
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/people/data/employee_row_mapper.dart';
 import 'package:flipper_hr/features/people/data/employee_repository.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase-backed roster. Table and columns are defined in
@@ -24,12 +25,10 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
           .select()
           .eq('branch_id', branchId)
           .order('first_name');
-      return [
-        for (final row in rows) EmployeeRowMapper.fromRow(row),
-      ];
+      return [for (final row in rows) EmployeeRowMapper.fromRow(row)];
     } catch (e) {
       throw EmployeeRepositoryException(
-        describeBackendError('Could not load the people on this branch.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadPeopleOnBranch, e),
         cause: e,
       );
     }
@@ -42,7 +41,7 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
       return row == null ? null : EmployeeRowMapper.fromRow(row);
     } catch (e) {
       throw EmployeeRepositoryException(
-        describeBackendError('Could not load this person\'s record.', e),
+        describeBackendError(FlipperL10n.current.hrErrorLoadPersonRecord, e),
         cause: e,
       );
     }
@@ -60,7 +59,7 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
     } catch (e) {
       throw EmployeeRepositoryException(
         describeBackendError(
-          'Could not add ${_describe(employee)}.',
+          FlipperL10n.current.hrErrorAddPerson(_describe(employee)),
           e,
           scope: _scopeOf(employee),
         ),
@@ -87,7 +86,7 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
     } catch (e) {
       throw EmployeeRepositoryException(
         describeBackendError(
-          'Could not save changes to ${_describe(employee)}.',
+          FlipperL10n.current.hrErrorSavePerson(_describe(employee)),
           e,
           scope: _scopeOf(employee),
         ),
@@ -114,11 +113,7 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
       return EmployeeRowMapper.fromRow(row);
     } catch (e) {
       throw EmployeeRepositoryException(
-        describeBackendError(
-          'The invite was sent, but this record could not be linked to the new '
-          'account. Their leave will not resolve until it is.',
-          e,
-        ),
+        describeBackendError(FlipperL10n.current.hrErrorLinkAccount, e),
         cause: e,
       );
     }
@@ -148,7 +143,7 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
     } catch (e) {
       throw EmployeeRepositoryException(
         describeBackendError(
-          'Could not change this person to ${status.label.toLowerCase()}.',
+          FlipperL10n.current.hrErrorChangeStatus(status.label.toLowerCase()),
           e,
         ),
         cause: e,
@@ -157,7 +152,7 @@ class SupabaseEmployeeRepository implements EmployeeRepository {
   }
 
   String _describe(Employee e) =>
-      e.fullName.isEmpty ? 'this person' : e.fullName;
+      e.fullName.isEmpty ? FlipperL10n.current.hrThisPerson : e.fullName;
 
   /// The ids RLS is judging the row on.
   String _scopeOf(Employee e) =>

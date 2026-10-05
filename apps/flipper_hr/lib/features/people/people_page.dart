@@ -10,6 +10,7 @@ import 'package:flipper_hr/features/people/widgets/employee_form.dart';
 import 'package:flipper_hr/features/people/widgets/status_chip.dart';
 import 'package:flipper_hr/features/branding/hr_tokens.dart';
 import 'package:flipper_hr/features/ui/hr_ui.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -103,8 +104,8 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     if (saved != null && mounted) {
       _toast(
         employee == null
-            ? '${saved.fullName} was added to the roster.'
-            : 'Saved changes to ${saved.fullName}.',
+            ? context.flipperL10n.hrPersonAddedToRoster(saved.fullName)
+            : context.flipperL10n.hrSavedChangesTo(saved.fullName),
       );
     }
   }
@@ -131,10 +132,9 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     try {
       final HrInvite invite;
       try {
-        invite = await ref.read(peopleActionsProvider).invite(
-          employee: employee,
-          role: role,
-        );
+        invite = await ref
+            .read(peopleActionsProvider)
+            .invite(employee: employee, role: role);
       } finally {
         // Cleared before the PIN dialog opens, not after it closes: the spinner
         // belongs to the network work, and leaving it spinning behind a modal
@@ -153,7 +153,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
       if (mounted) {
         _toast(
           e.step == HrInviteStep.linkEmployee
-              ? 'Invite sent, but not linked. ${e.message}'
+              ? context.flipperL10n.hrInviteSentNotLinked(e.message)
               : e.message,
           isError: true,
         );
@@ -169,15 +169,22 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
       if (confirmed != true) return;
     }
     try {
-      await ref.read(peopleActionsProvider).setStatus(
-        employee: employee,
-        status: status,
-        // The last day is today for a termination and cleared otherwise, so a
-        // reactivated person has no stale end date.
-        endDate: status == EmploymentStatus.terminated ? _today : null,
-      );
+      await ref
+          .read(peopleActionsProvider)
+          .setStatus(
+            employee: employee,
+            status: status,
+            // The last day is today for a termination and cleared otherwise, so a
+            // reactivated person has no stale end date.
+            endDate: status == EmploymentStatus.terminated ? _today : null,
+          );
       if (mounted) {
-        _toast('${employee.fullName} is now ${status.label.toLowerCase()}.');
+        _toast(
+          context.flipperL10n.hrPersonIsNowStatus(
+            employee.fullName,
+            status.label.toLowerCase(),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) _toast(_messageOf(e), isError: true);
@@ -188,20 +195,21 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Terminate ${employee.fullName}?'),
+        title: Text(
+          context.flipperL10n.hrTerminatePersonTitle(employee.fullName),
+        ),
         content: Text(
-          'Their last day will be recorded as ${formatShortDate(_today)}. '
-          'The record stays for payroll history but they leave the roster.',
+          context.flipperL10n.hrTerminatePersonBody(formatShortDate(_today)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
           ),
           FilledButton(
             key: const Key('confirm-terminate'),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Terminate'),
+            child: Text(context.flipperL10n.hrTerminate),
           ),
         ],
       ),
@@ -217,7 +225,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Access diagnostic'),
+        title: Text(context.flipperL10n.hrAccessDiagnostic),
         content: SizedBox(
           width: 520,
           child: FutureBuilder<AccessReport>(
@@ -230,7 +238,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                 );
               }
               final text = snapshot.hasError
-                  ? 'Diagnostic failed: ${snapshot.error}'
+                  ? context.flipperL10n.hrDiagnosticFailed('${snapshot.error}')
                   : snapshot.data!.toReport();
               return SingleChildScrollView(
                 child: SelectableText(
@@ -245,7 +253,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(context.flipperL10n.close),
           ),
         ],
       ),
@@ -257,9 +265,7 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError
-            ? Theme.of(context).colorScheme.error
-            : null,
+        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
       ),
     );
   }
@@ -292,26 +298,28 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
                 ),
               ),
             ),
-        ...roster.when(
-          loading: () => const [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
+            ...roster.when(
+              loading: () => const [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+              error: (error, _) => [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _RosterError(
+                    message: _messageOf(error),
+                    onRetry: () =>
+                        ref.invalidate(rosterProvider(widget.branchId)),
+                    onDiagnose: _showAccessDiagnostic,
+                  ),
+                ),
+              ],
+              data: (people) =>
+                  _rosterSlivers(people: people, query: query, now: now),
             ),
           ],
-          error: (error, _) => [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _RosterError(
-                message: _messageOf(error),
-                onRetry: () => ref.invalidate(rosterProvider(widget.branchId)),
-                onDiagnose: _showAccessDiagnostic,
-              ),
-            ),
-          ],
-          data: (people) => _rosterSlivers(people: people, query: query, now: now),
-        ),
-      ],
         ),
       ),
     );
@@ -374,26 +382,28 @@ class _PeoplePageState extends ConsumerState<PeoplePage> {
               slivers: [
                 if (isTable) const SliverToBoxAdapter(child: _TableHeader()),
                 SliverList.separated(
-            itemCount: visible.length,
-            separatorBuilder: (_, __) => isTable
-                ? const Divider(height: 1, color: HrTokens.line)
-                : const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final person = visible[index];
-              return _RosterRow(
-                key: Key('employee-row-${person.id}'),
-                employee: person,
-                // Resolved against the whole roster, not the filtered list: a
-                // department filter must not blank out someone's manager.
-                manager: approverFor(roster: people, employee: person),
-                asOf: now,
-                isTable: isTable,
-                onEdit: () => _openForm(employee: person),
-                onChangeStatus: (status) => _changeStatus(person, status),
-                onInvite: _invitingId == null ? () => _invite(person) : null,
-                isInviting: _invitingId == person.id,
-              );
-            },
+                  itemCount: visible.length,
+                  separatorBuilder: (_, __) => isTable
+                      ? const Divider(height: 1, color: HrTokens.line)
+                      : const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final person = visible[index];
+                    return _RosterRow(
+                      key: Key('employee-row-${person.id}'),
+                      employee: person,
+                      // Resolved against the whole roster, not the filtered list: a
+                      // department filter must not blank out someone's manager.
+                      manager: approverFor(roster: people, employee: person),
+                      asOf: now,
+                      isTable: isTable,
+                      onEdit: () => _openForm(employee: person),
+                      onChangeStatus: (status) => _changeStatus(person, status),
+                      onInvite: _invitingId == null
+                          ? () => _invite(person)
+                          : null,
+                      isInviting: _invitingId == person.id,
+                    );
+                  },
                 ),
               ],
             ),
@@ -419,6 +429,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -426,12 +437,12 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('People', style: HrType.display),
+              Text(l10n.hrPeople, style: HrType.display),
               const SizedBox(height: 4),
               Text(
                 branchName == null
-                    ? 'Everyone on this branch'
-                    : 'Everyone at $branchName',
+                    ? l10n.hrEveryoneOnThisBranch
+                    : l10n.hrEveryoneAtBranch(branchName!),
                 style: HrType.caption,
               ),
             ],
@@ -442,7 +453,7 @@ class _Header extends StatelessWidget {
           onPressed: onAdd,
           style: hrPrimaryButtonStyle(),
           icon: const Icon(Icons.person_add_alt_1, size: 17),
-          label: const Text('Add person'),
+          label: Text(l10n.hrAddPerson),
         ),
       ],
     );
@@ -456,37 +467,38 @@ class _SummaryTiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
         HrStatTile(
-          label: 'Headcount',
+          label: l10n.hrHeadcount,
           value: '${summary.headcount}',
           icon: Icons.groups_outlined,
         ),
         HrStatTile(
-          label: 'Active',
+          label: l10n.hrStatusActive,
           value: '${summary.active}',
           icon: Icons.check_circle_outline,
           tone: HrTone.positive,
         ),
         HrStatTile(
-          label: 'On leave',
+          label: l10n.hrOnLeave,
           value: '${summary.onLeave}',
           icon: Icons.beach_access_outlined,
           tone: summary.onLeave > 0 ? HrTone.warning : HrTone.neutral,
         ),
         HrStatTile(
-          label: 'New this month',
+          label: l10n.hrNewThisMonth,
           value: '${summary.newThisMonth}',
           icon: Icons.auto_awesome_outlined,
         ),
         HrStatTile(
-          label: 'Monthly payroll',
+          label: l10n.hrMonthlyPayroll,
           value: formatCompactMoney(summary.monthlyPayroll, summary.currency),
           icon: Icons.payments_outlined,
-          hint: 'Estimated',
+          hint: l10n.hrEstimated,
         ),
       ],
     );
@@ -507,6 +519,7 @@ class _Toolbar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(peopleQueryProvider.notifier);
+    final l10n = context.flipperL10n;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
@@ -519,30 +532,29 @@ class _Toolbar extends ConsumerWidget {
             controller: searchController,
             onChanged: controller.setSearch,
             style: const TextStyle(fontSize: 13.5, color: HrTokens.ink1),
-            decoration: _fieldDecoration(
-              hintText: 'Search name, role, phone…',
-            ).copyWith(
-              prefixIcon: const Icon(
-                Icons.search,
-                size: 18,
-                color: HrTokens.ink3,
-              ),
-              prefixIconConstraints: const BoxConstraints(minWidth: 36),
-              suffixIcon: query.search.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: 'Clear search',
-                      icon: const Icon(
-                        Icons.clear,
-                        size: 16,
-                        color: HrTokens.ink3,
-                      ),
-                      onPressed: () {
-                        searchController.clear();
-                        controller.setSearch('');
-                      },
-                    ),
-            ),
+            decoration: _fieldDecoration(hintText: l10n.hrSearchPeopleHint)
+                .copyWith(
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    size: 18,
+                    color: HrTokens.ink3,
+                  ),
+                  prefixIconConstraints: const BoxConstraints(minWidth: 36),
+                  suffixIcon: query.search.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: l10n.clearSearch,
+                          icon: const Icon(
+                            Icons.clear,
+                            size: 16,
+                            color: HrTokens.ink3,
+                          ),
+                          onPressed: () {
+                            searchController.clear();
+                            controller.setSearch('');
+                          },
+                        ),
+                ),
           ),
         ),
         SizedBox(
@@ -554,9 +566,9 @@ class _Toolbar extends ConsumerWidget {
             // Without this the button takes the width of its longest item and
             // overflows the fixed-width box it sits in.
             isExpanded: true,
-            decoration: _fieldDecoration(labelText: 'Status'),
+            decoration: _fieldDecoration(labelText: l10n.hrStatus),
             items: [
-              const DropdownMenuItem(value: null, child: Text('Employed')),
+              DropdownMenuItem(value: null, child: Text(l10n.hrEmployed)),
               for (final s in EmploymentStatus.values)
                 DropdownMenuItem(value: s, child: Text(s.label)),
             ],
@@ -571,11 +583,11 @@ class _Toolbar extends ConsumerWidget {
               initialValue: query.department,
               isDense: true,
               isExpanded: true,
-              decoration: _fieldDecoration(labelText: 'Department'),
+              decoration: _fieldDecoration(labelText: l10n.hrDepartment),
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: null,
-                  child: Text('All departments'),
+                  child: Text(l10n.hrAllDepartments),
                 ),
                 for (final d in departments)
                   DropdownMenuItem(value: d, child: Text(d)),
@@ -590,7 +602,7 @@ class _Toolbar extends ConsumerWidget {
             initialValue: query.sort,
             isDense: true,
             isExpanded: true,
-            decoration: _fieldDecoration(labelText: 'Sort by'),
+            decoration: _fieldDecoration(labelText: l10n.hrSortBy),
             items: [
               for (final s in PeopleSort.values)
                 DropdownMenuItem(value: s, child: Text(s.label)),
@@ -634,6 +646,7 @@ class _TableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const style = HrType.overline;
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
       decoration: const BoxDecoration(
@@ -645,13 +658,31 @@ class _TableHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(flex: 4, child: Text('NAME', style: style)),
-          Expanded(flex: 2, child: Text('DEPARTMENT', style: style)),
-          Expanded(flex: 3, child: Text('REPORTS TO', style: style)),
-          Expanded(flex: 3, child: Text('CONTACT', style: style)),
-          Expanded(flex: 2, child: Text('TENURE', style: style)),
-          Expanded(flex: 3, child: Text('BASE PAY', style: style)),
-          Expanded(flex: 2, child: Text('STATUS', style: style)),
+          Expanded(flex: 4, child: Text(l10n.name.toUpperCase(), style: style)),
+          Expanded(
+            flex: 2,
+            child: Text(l10n.hrDepartment.toUpperCase(), style: style),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(l10n.hrReportsTo.toUpperCase(), style: style),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(l10n.hrContact.toUpperCase(), style: style),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(l10n.hrTenure.toUpperCase(), style: style),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(l10n.hrBasePay.toUpperCase(), style: style),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(l10n.hrStatus.toUpperCase(), style: style),
+          ),
           const SizedBox(width: 48),
         ],
       ),
@@ -708,7 +739,8 @@ class _RosterRow extends StatelessWidget {
           subtitle: Text(
             [
               if (employee.jobTitle.isNotEmpty) employee.jobTitle,
-              if (manager case final manager?) 'Reports to ${manager.fullName}',
+              if (manager case final manager?)
+                context.flipperL10n.hrReportsToName(manager.fullName),
               if (employee.phone.isNotEmpty) employee.phone,
               pay,
             ].join(' · '),
@@ -878,7 +910,7 @@ class _RowMenu extends StatelessWidget {
     final invite = onInvite;
     return PopupMenuButton<RosterRowAction>(
       key: Key('people-menu-${employee.id}'),
-      tooltip: 'Actions',
+      tooltip: context.flipperL10n.actions,
       onSelected: (action) => switch (action) {
         RosterRowInvite() => invite?.call(),
         RosterRowStatus(:final status) => onChangeStatus(status),
@@ -891,32 +923,32 @@ class _RowMenu extends StatelessWidget {
             enabled: invite != null,
             child: Text(
               employee.hasFlipperAccount
-                  ? 'Re-send HR invite'
-                  : 'Invite to HR',
+                  ? context.flipperL10n.hrResendHrInvite
+                  : context.flipperL10n.hrInviteToHr,
             ),
           ),
         if (employee.status.isEmployed) const PopupMenuDivider(),
         if (employee.status != EmploymentStatus.active)
-          const PopupMenuItem(
-            value: RosterRowStatus(EmploymentStatus.active),
-            child: Text('Mark active'),
+          PopupMenuItem(
+            value: const RosterRowStatus(EmploymentStatus.active),
+            child: Text(context.flipperL10n.hrMarkActive),
           ),
         if (employee.status != EmploymentStatus.onLeave &&
             employee.status.isEmployed)
-          const PopupMenuItem(
-            value: RosterRowStatus(EmploymentStatus.onLeave),
-            child: Text('Mark on leave'),
+          PopupMenuItem(
+            value: const RosterRowStatus(EmploymentStatus.onLeave),
+            child: Text(context.flipperL10n.hrMarkOnLeave),
           ),
         if (employee.status != EmploymentStatus.suspended &&
             employee.status.isEmployed)
-          const PopupMenuItem(
-            value: RosterRowStatus(EmploymentStatus.suspended),
-            child: Text('Suspend'),
+          PopupMenuItem(
+            value: const RosterRowStatus(EmploymentStatus.suspended),
+            child: Text(context.flipperL10n.hrSuspend),
           ),
         if (employee.status.isEmployed)
-          const PopupMenuItem(
-            value: RosterRowStatus(EmploymentStatus.terminated),
-            child: Text('Terminate'),
+          PopupMenuItem(
+            value: const RosterRowStatus(EmploymentStatus.terminated),
+            child: Text(context.flipperL10n.hrTerminate),
           ),
       ],
     );
@@ -970,19 +1002,17 @@ class _EmptyRoster extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const HrEmptyState(
+                HrEmptyState(
                   icon: Icons.groups_outlined,
-                  title: 'No one on this branch yet',
-                  message:
-                      'Add your first person to start tracking attendance, '
-                      'leave and payroll.',
+                  title: context.flipperL10n.hrNoOneOnBranchYet,
+                  message: context.flipperL10n.hrNoOneOnBranchYetMessage,
                 ),
                 FilledButton.icon(
                   key: const Key('people-empty-add'),
                   onPressed: onAdd,
                   style: hrPrimaryButtonStyle(),
                   icon: const Icon(Icons.person_add_alt_1, size: 17),
-                  label: const Text('Add person'),
+                  label: Text(context.flipperL10n.hrAddPerson),
                 ),
               ],
             ),
@@ -1003,8 +1033,8 @@ class _NoMatches extends StatelessWidget {
     return Center(
       child: HrEmptyState(
         icon: Icons.search_off,
-        message: 'No one matches these filters',
-        actionLabel: 'Clear filters',
+        message: context.flipperL10n.hrNoOneMatchesFilters,
+        actionLabel: context.flipperL10n.hrClearFilters,
         actionKey: const Key('people-clear-filters'),
         onAction: onClear,
       ),
@@ -1040,16 +1070,14 @@ class _RosterError extends StatelessWidget {
                   key: const Key('people-retry'),
                   onPressed: onRetry,
                   style: hrPrimaryButtonStyle(),
-                  child: const Text('Try again'),
+                  child: Text(context.flipperL10n.hrTryAgain),
                 ),
                 if (onDiagnose != null)
                   TextButton(
                     key: const Key('people-diagnose'),
                     onPressed: onDiagnose,
-                    style: TextButton.styleFrom(
-                      foregroundColor: HrTokens.ink3,
-                    ),
-                    child: const Text('Why was this denied?'),
+                    style: TextButton.styleFrom(foregroundColor: HrTokens.ink3),
+                    child: Text(context.flipperL10n.hrWhyWasThisDenied),
                   ),
               ],
             ),

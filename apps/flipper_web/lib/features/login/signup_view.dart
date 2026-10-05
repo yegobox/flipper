@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 import 'package:flipper_web/features/login/signin_styles.dart';
@@ -35,12 +36,16 @@ class _SignupViewState extends ConsumerState<SignupView> {
       text: localPhonePart(state.phoneNumber ?? ''),
     );
     _phoneController.addListener(() {
-      ref.read(signupFormProvider.notifier).updatePhoneNumber(_phoneController.text);
+      ref
+          .read(signupFormProvider.notifier)
+          .updatePhoneNumber(_phoneController.text);
     });
     _tinController = TextEditingController(text: state.tinNumber);
     _tinController.addListener(() {
       if (_tinController.text != ref.read(signupFormProvider).tinNumber) {
-        ref.read(signupFormProvider.notifier).updateTinNumber(_tinController.text);
+        ref
+            .read(signupFormProvider.notifier)
+            .updateTinNumber(_tinController.text);
       }
     });
     // The notifier verifies as soon as the code is 6 digits long, the way the
@@ -48,7 +53,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
     _otpController = TextEditingController(text: state.otpCode);
     _otpController.addListener(() {
       if (_otpController.text != ref.read(signupFormProvider).otpCode) {
-        ref.read(signupFormProvider.notifier).updateOtpCode(_otpController.text);
+        ref
+            .read(signupFormProvider.notifier)
+            .updateOtpCode(_otpController.text);
       }
     });
   }
@@ -92,7 +99,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
         margin: const EdgeInsets.all(8),
         duration: const Duration(seconds: 8),
         action: SnackBarAction(
-          label: 'Dismiss',
+          label: context.flipperL10n.webSignupDismiss,
           textColor: Colors.white,
           onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
         ),
@@ -132,14 +139,14 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
   @override
   Widget build(BuildContext context) {
-    final formState  = ref.watch(signupFormProvider);
-    final bizTypes   = ref.watch(businessTypesProvider);
-    final countries  = ref.watch(countriesProvider);
+    final formState = ref.watch(signupFormProvider);
+    final bizTypes = ref.watch(businessTypesProvider);
+    final countries = ref.watch(countriesProvider);
 
     final completed = _completedCount(formState);
-    final total     = _totalFields();
-    final progress  = completed / total;
-    final xp        = completed * (100 ~/ total);
+    final total = _totalFields();
+    final progress = completed / total;
+    final xp = completed * (100 ~/ total);
 
     return Scaffold(
       backgroundColor: SITokens.surface2,
@@ -195,7 +202,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
       ),
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: compact ? double.infinity : 460),
+          constraints: BoxConstraints(
+            maxWidth: compact ? double.infinity : 460,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -212,14 +221,14 @@ class _SignupViewState extends ConsumerState<SignupView> {
                         children: [
                           Text(
                             'Flipper',
-                            style:
-                                Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      color: SITokens.ink1,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: SITokens.ink1,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           ),
                           Text(
-                            'Business setup',
+                            context.flipperL10n.webSignupBusinessSetup,
                             style: context.siText(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -239,8 +248,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
                   padding: const EdgeInsets.all(22),
                   children: [
                     Text(
-                      'Create your account',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      context.flipperL10n.webSignupCreateYourAccount,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
                             color: SITokens.ink1,
                             fontWeight: FontWeight.w800,
                             height: 1.1,
@@ -248,7 +258,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Set up your Flipper business account to get started.',
+                      context.flipperL10n.webSignupSubtitle,
                       style: context.siText(
                         fontSize: 14,
                         height: 1.4,
@@ -259,14 +269,14 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     const SizedBox(height: 22),
 
                     // Username
-                    _FieldLabel(label: 'Username'),
+                    _FieldLabel(label: context.flipperL10n.webSignupUsername),
                     _buildUsernameField(formState),
                     const SizedBox(height: 18),
 
                     // Full name
-                    _FieldLabel(label: 'Full name'),
+                    _FieldLabel(label: context.flipperL10n.webSignupFullName),
                     _buildInputField(
-                      hintText: 'Enter your full name',
+                      hintText: context.flipperL10n.webSignupFullNameHint,
                       prefixIcon: Icons.badge_outlined,
                       initialValue: formState.fullName,
                       validator: (v) {
@@ -275,7 +285,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                         // rejected perfectly real single names and gave no hint
                         // that a space was what it wanted.
                         if (v == null || v.trim().isEmpty) {
-                          return 'Full name is required';
+                          return context.flipperL10n.webSignupFullNameRequired;
                         }
                         return null;
                       },
@@ -286,27 +296,31 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     const SizedBox(height: 18),
 
                     // Phone
-                    _FieldLabel(label: 'Phone / Email'),
+                    _FieldLabel(label: context.flipperL10n.webSignupPhoneEmail),
                     _buildPhoneField(formState),
                     _buildOtpSection(formState),
                     const SizedBox(height: 18),
 
                     // Business type
-                    _FieldLabel(label: 'Usage'),
+                    _FieldLabel(label: context.flipperL10n.webSignupUsage),
                     _buildDropdown<BusinessType>(
-                      hintText: 'How you intend to use Flipper',
+                      hintText: context.flipperL10n.webSignupUsageHint,
                       prefixIcon: Icons.business_outlined,
                       value: formState.businessType,
                       items: bizTypes,
-                      itemLabel: (t) => t.typeName,
-                      validator: (v) =>
-                          v == null ? 'Please select a business type' : null,
+                      itemLabel: (t) =>
+                          webSignupBusinessTypeLabel(t, context.flipperL10n),
+                      validator: (v) => v == null
+                          ? context.flipperL10n.webSignupSelectBusinessType
+                          : null,
                       onChanged: (v) {
                         if (v != null) {
                           ref
                               .read(signupFormProvider.notifier)
                               .updateBusinessType(v);
-                          setState(() { _showTinField = v.id != '2'; });
+                          setState(() {
+                            _showTinField = v.id != '2';
+                          });
                         }
                       },
                     ),
@@ -314,13 +328,15 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
                     // TIN (conditional)
                     if (_showTinField) ...[
-                      _FieldLabel(label: 'TIN Number'),
+                      _FieldLabel(label: context.flipperL10n.tinNumber),
                       _buildTinField(formState),
                       if (formState.tinDetails != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
-                            'Business: ${formState.tinDetails!.taxPayerName}',
+                            context.flipperL10n.webSignupTinBusiness(
+                              formState.tinDetails!.taxPayerName,
+                            ),
                             style: context.siText(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -347,7 +363,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
-                            'TIN lookup unavailable — validation skipped.',
+                            context.flipperL10n.webSignupTinUnavailable,
                             style: context.siText(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -359,7 +375,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     ],
 
                     // Country
-                    _FieldLabel(label: 'Country'),
+                    _FieldLabel(label: context.flipperL10n.webSignupCountry),
                     _buildCountryField(
                       countries: countries,
                       selected: formState.country,
@@ -367,7 +383,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     const SizedBox(height: 26),
 
                     FlipperGradientButton(
-                      text: 'Create account',
+                      text: context.flipperL10n.createAccount,
                       icon: Icons.chevron_right_rounded,
                       isLoading: formState.isSubmitting,
                       onPressed: formState.isSubmitting ? null : _handleSubmit,
@@ -384,7 +400,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     }
                   },
                   child: Text(
-                    'Already have an account? Sign in',
+                    context.flipperL10n.webSignupAlreadyHaveAccount,
                     style: context.siText(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
@@ -408,15 +424,13 @@ class _SignupViewState extends ConsumerState<SignupView> {
     if (contact != null && contact.isNotEmpty && !formState.isPhoneVerified) {
       _showError(
         formState.isOtpRequested
-            ? 'Enter the code we sent to $contact to continue.'
-            : 'Verify $contact first — tap "Send code".',
+            ? context.flipperL10n.webSignupEnterCodeSentTo(contact)
+            : context.flipperL10n.webSignupVerifyFirst(contact),
       );
       return;
     }
     if (formState.isUsernameAvailable != true) {
-      _showError(
-        'Please choose a different username. The current one is not available or has not been verified.',
-      );
+      _showError(context.flipperL10n.webSignupChooseDifferentUsername);
       return;
     }
 
@@ -429,15 +443,16 @@ class _SignupViewState extends ConsumerState<SignupView> {
       // no one could ever tap — dispose() cleared the snackbar in the same
       // frame as the navigation it duplicated.
       _handOffSnackBar = true;
-      _showSuccess('Account created successfully!');
+      _showSuccess(context.flipperL10n.webSignupAccountCreated);
       try {
         context.go('/login');
       } catch (_) {
         Navigator.pop(context);
       }
     } else {
-      final msg = ref.read(signupFormProvider).errorMessage ??
-          'Failed to create account. Please try again.';
+      final msg =
+          ref.read(signupFormProvider).errorMessage ??
+          context.flipperL10n.webSignupFailedTryAgain;
       _showError(msg);
     }
   }
@@ -445,17 +460,20 @@ class _SignupViewState extends ConsumerState<SignupView> {
   Widget _buildUsernameField(SignupFormState state) {
     return TextFormField(
       initialValue: state.username,
-      onChanged: (v) =>
-          ref.read(signupFormProvider.notifier).updateUsername(v),
+      onChanged: (v) => ref.read(signupFormProvider.notifier).updateUsername(v),
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (v) {
-        if (v == null || v.isEmpty) return 'Username is required';
-        if (v.length < 4) return 'Username must be at least 4 characters';
-        if (state.isUsernameAvailable == false) return 'Username is not available';
+        if (v == null || v.isEmpty) {
+          return context.flipperL10n.webSignupUsernameRequired;
+        }
+        if (v.length < 4) return context.flipperL10n.webSignupUsernameTooShort;
+        if (state.isUsernameAvailable == false) {
+          return context.flipperL10n.webSignupUsernameNotAvailable;
+        }
         return null;
       },
       decoration: siInputDecoration(
-        hintText: 'Enter your username',
+        hintText: context.flipperL10n.webSignupUsernameHint,
         prefixIcon: Icons.person_outline_rounded,
         suffixIcon: state.username.length >= 3
             ? _usernameIcon(state.isCheckingUsername, state.isUsernameAvailable)
@@ -519,24 +537,27 @@ class _SignupViewState extends ConsumerState<SignupView> {
       keyboardType: TextInputType.text,
       validator: (v) {
         final raw = (v ?? '').trim();
-        if (raw.isEmpty) return 'Phone number or email is required';
+        if (raw.isEmpty) return context.flipperL10n.webSignupContactRequired;
         if (looksLikeEmailContact(raw)) {
           return isEmailContact(raw)
               ? null
-              : 'Please enter a valid email address';
+              : context.flipperL10n.webSignupInvalidEmail;
         }
         if (!isPlausiblePhoneNumber(raw, country: state.country)) {
-          return 'Please enter a valid phone number';
+          return context.flipperL10n.webSignupInvalidPhone;
         }
         return null;
       },
-      decoration: siInputDecoration(
-        hintText: '783054874 or your@email.com',
-        prefixIcon: Icons.phone_outlined,
-        suffixIcon: _buildOtpAction(state),
-      ).copyWith(
-        prefix: isEmail ? null : _DialCodeChip(code: signupDialCode(state.country)),
-      ),
+      decoration:
+          siInputDecoration(
+            hintText: context.flipperL10n.webSignupContactHint,
+            prefixIcon: Icons.phone_outlined,
+            suffixIcon: _buildOtpAction(state),
+          ).copyWith(
+            prefix: isEmail
+                ? null
+                : _DialCodeChip(code: signupDialCode(state.country)),
+          ),
     );
   }
 
@@ -569,7 +590,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
     return TextButton(
       onPressed: canSend ? _handleSendOtp : null,
       child: Text(
-        state.isOtpRequested ? 'Resend' : 'Send code',
+        state.isOtpRequested
+            ? context.flipperL10n.webSignupResend
+            : context.flipperL10n.webSignupSendCode,
         style: context.siText(
           fontSize: 13,
           fontWeight: FontWeight.w800,
@@ -586,7 +609,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
       return Padding(
         padding: const EdgeInsets.only(top: 6),
         child: Text(
-          '${state.phoneNumber} verified.',
+          context.flipperL10n.webSignupContactVerified(state.phoneNumber ?? ''),
           style: context.siText(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -618,20 +641,23 @@ class _SignupViewState extends ConsumerState<SignupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _FieldLabel(label: 'Verification code'),
+          _FieldLabel(label: context.flipperL10n.webSignupVerificationCode),
           TextFormField(
             controller: _otpController,
             keyboardType: TextInputType.number,
             maxLength: 6,
             decoration: siInputDecoration(
-              hintText: 'Enter the 6-digit code',
+              hintText: context.flipperL10n.webSignupEnter6Digit,
               prefixIcon: Icons.lock_outline_rounded,
             ).copyWith(counterText: ''),
           ),
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              state.otpError ?? 'We sent a code to ${state.phoneNumber}.',
+              state.otpError ??
+                  context.flipperL10n.webSignupCodeSentHint(
+                    state.phoneNumber ?? '',
+                  ),
               style: context.siText(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -654,9 +680,13 @@ class _SignupViewState extends ConsumerState<SignupView> {
     if (state.phoneNumber != requestedFor) return;
     if (sent) {
       _otpController.clear();
-      _showSuccess('Code sent to ${state.phoneNumber}');
+      _showSuccess(
+        context.flipperL10n.webSignupCodeSentTo(state.phoneNumber ?? ''),
+      );
     } else {
-      _showError(state.otpError ?? 'Failed to send the code.');
+      _showError(
+        state.otpError ?? context.flipperL10n.webSignupFailedToSendCode,
+      );
     }
   }
 
@@ -686,7 +716,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
     }
 
     return _buildInputField(
-      hintText: 'Enter TIN number',
+      hintText: context.flipperL10n.webSignupEnterTin,
       prefixIcon: Icons.credit_card_outlined,
       controller: _tinController,
       keyboardType: TextInputType.number,
@@ -694,8 +724,10 @@ class _SignupViewState extends ConsumerState<SignupView> {
       suffixIcon: suffix,
       validator: (v) {
         if (_showTinField) {
-          if (v == null || v.isEmpty) return 'TIN number is required';
-          if (v.length < 9) return 'TIN number must be at least 9 digits';
+          if (v == null || v.isEmpty) {
+            return context.flipperL10n.webSignupTinRequired;
+          }
+          if (v.length < 9) return context.flipperL10n.webSignupTinTooShort;
         }
         return null;
       },
@@ -791,16 +823,17 @@ class _SignupViewState extends ConsumerState<SignupView> {
           },
           validator: (v) {
             final typed = (v ?? '').trim();
-            if (typed.isEmpty) return 'Please select a country';
+            if (typed.isEmpty)
+              return context.flipperL10n.webSignupSelectCountry;
             // A half-typed name is not a country, and neither is an alias the
             // list does not show ('USA' offers United States to pick).
             if (!countries.contains(typed)) {
-              return 'Please pick a country from the list';
+              return context.flipperL10n.webSignupPickCountryFromList;
             }
             return null;
           },
           decoration: siInputDecoration(
-            hintText: 'Search your country',
+            hintText: context.flipperL10n.webSignupSearchCountry,
             prefixIcon: Icons.public_outlined,
           ),
         );
@@ -828,14 +861,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
       isExpanded: true,
       menuMaxHeight: 300,
       itemHeight: 48,
-      icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: SITokens.ink3,
-      ),
-      decoration: siInputDecoration(
-        hintText: hintText,
-        prefixIcon: prefixIcon,
-      ),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: SITokens.ink3),
+      decoration: siInputDecoration(hintText: hintText, prefixIcon: prefixIcon),
       items: items
           .map(
             (item) => DropdownMenuItem<T>(

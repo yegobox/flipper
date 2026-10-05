@@ -297,10 +297,18 @@ mixin CapellaBarMixin implements BarInterface {
 
   @override
   Future<void> seedDefaultFloorPlan({required String branchId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
     final existing = await barTables(branchId: branchId);
     if (existing.isNotEmpty) return;
+    // DO NOTHING, never DO UPDATE: default ids are fixed, so an upsert would
+    // overwrite a renamed table that already exists locally and the newer
+    // write would win on every device.
     for (final table in defaultBarFloorPlan(branchId: branchId)) {
-      await saveBarTable(table);
+      await ditto.store.execute(
+        'INSERT INTO bar_tables DOCUMENTS (:doc) ON ID CONFLICT DO NOTHING',
+        arguments: {'doc': table.toJson()},
+      );
     }
   }
 

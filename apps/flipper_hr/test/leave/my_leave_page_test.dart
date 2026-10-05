@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';
 import 'package:flipper_hr/features/people/data/employee.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
@@ -43,7 +44,11 @@ Future<void> _pumpMyLeave(
         ),
         hrClockProvider.overrideWithValue(() => _today),
       ],
-      child: const MaterialApp(home: Scaffold(body: MyLeavePage())),
+      child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(body: MyLeavePage()),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -51,8 +56,9 @@ Future<void> _pumpMyLeave(
 
 void main() {
   group('the balances', () {
-    testWidgets('shows every leave type with the statutory entitlement',
-        (tester) async {
+    testWidgets('shows every leave type with the statutory entitlement', (
+      tester,
+    ) async {
       await _pumpMyLeave(tester);
 
       for (final type in LeaveType.values) {
@@ -106,8 +112,9 @@ void main() {
       expect(find.text('left of 25 days'), findsOneWidget);
     });
 
-    testWidgets('unpaid leave shows what was taken, with no limit',
-        (tester) async {
+    testWidgets('unpaid leave shows what was taken, with no limit', (
+      tester,
+    ) async {
       await _pumpMyLeave(tester);
 
       expect(find.text('taken · no yearly limit'), findsOneWidget);
@@ -115,8 +122,9 @@ void main() {
   });
 
   group('the request list', () {
-    testWidgets('lists the person\'s own requests with their status',
-        (tester) async {
+    testWidgets('lists the person\'s own requests with their status', (
+      tester,
+    ) async {
       await _pumpMyLeave(
         tester,
         leave: FakeLeaveRepository(
@@ -141,8 +149,9 @@ void main() {
       expect(find.text('“Get well”'), findsOneWidget);
     });
 
-    testWidgets('offers a withdrawal only for a pending request',
-        (tester) async {
+    testWidgets('offers a withdrawal only for a pending request', (
+      tester,
+    ) async {
       await _pumpMyLeave(
         tester,
         leave: FakeLeaveRepository(
@@ -177,8 +186,9 @@ void main() {
       expect(find.text('18 days'), findsOneWidget);
     });
 
-    testWidgets('backing out of the confirmation changes nothing',
-        (tester) async {
+    testWidgets('backing out of the confirmation changes nothing', (
+      tester,
+    ) async {
       final repository = FakeLeaveRepository(
         seed: [leaveRequest(id: 'pending')],
       );
@@ -232,60 +242,67 @@ void main() {
       );
     });
 
-    testWidgets('a type that needs a reason blocks the send until there is one',
-        (tester) async {
-      final repository = FakeLeaveRepository();
-      await _pumpMyLeave(tester, leave: repository);
+    testWidgets(
+      'a type that needs a reason blocks the send until there is one',
+      (tester) async {
+        final repository = FakeLeaveRepository();
+        await _pumpMyLeave(tester, leave: repository);
 
-      await tester.tap(find.byKey(const Key('request-leave-button')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('leave-type-field')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Sick leave').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('leave-submit')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('request-leave-button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('leave-type-field')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Sick leave').last);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('leave-submit')));
+        await tester.pumpAndSettle();
 
-      expect(repository.submitCount, 0);
-      expect(find.byKey(const Key('leave-problems')), findsOneWidget);
-      expect(find.textContaining('Say briefly why'), findsOneWidget);
+        expect(repository.submitCount, 0);
+        expect(find.byKey(const Key('leave-problems')), findsOneWidget);
+        expect(find.textContaining('Say briefly why'), findsOneWidget);
 
-      await tester.enterText(find.byKey(const Key('leave-reason-field')), 'Flu');
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('leave-submit')));
-      await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('leave-reason-field')),
+          'Flu',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('leave-submit')));
+        await tester.pumpAndSettle();
 
-      expect(repository.submitCount, 1);
-      expect(repository.requests.single.type, LeaveType.sick);
-      expect(repository.requests.single.reason, 'Flu');
-    });
+        expect(repository.submitCount, 1);
+        expect(repository.requests.single.type, LeaveType.sick);
+        expect(repository.requests.single.reason, 'Flu');
+      },
+    );
 
-    testWidgets('an exhausted balance is refused in the form, not by the server',
-        (tester) async {
-      final repository = FakeLeaveRepository(
-        seed: [
-          leaveRequest(
-            id: 'spent',
-            startDate: DateTime(2026, 3, 2),
-            endDate: DateTime(2026, 3, 27),
-            days: 18,
-            status: LeaveStatus.approved,
-          ),
-        ],
-      );
-      await _pumpMyLeave(tester, leave: repository);
+    testWidgets(
+      'an exhausted balance is refused in the form, not by the server',
+      (tester) async {
+        final repository = FakeLeaveRepository(
+          seed: [
+            leaveRequest(
+              id: 'spent',
+              startDate: DateTime(2026, 3, 2),
+              endDate: DateTime(2026, 3, 27),
+              days: 18,
+              status: LeaveStatus.approved,
+            ),
+          ],
+        );
+        await _pumpMyLeave(tester, leave: repository);
 
-      await tester.tap(find.byKey(const Key('request-leave-button')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('leave-submit')));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('request-leave-button')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('leave-submit')));
+        await tester.pumpAndSettle();
 
-      expect(repository.submitCount, 0);
-      expect(
-        find.textContaining('No annual leave left for 2026'),
-        findsOneWidget,
-      );
-    });
+        expect(repository.submitCount, 0);
+        expect(
+          find.textContaining('No annual leave left for 2026'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('a clash with existing leave is refused', (tester) async {
       final repository = FakeLeaveRepository(
@@ -307,12 +324,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.submitCount, 0);
-      expect(find.textContaining('overlaps leave you already have'),
-          findsOneWidget);
+      expect(
+        find.textContaining('overlaps leave you already have'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('a backend failure keeps the form open with the message',
-        (tester) async {
+    testWidgets('a backend failure keeps the form open with the message', (
+      tester,
+    ) async {
       final repository = FakeLeaveRepository();
       await _pumpMyLeave(tester, leave: repository);
 
@@ -371,36 +391,38 @@ void main() {
   });
 
   group('sessions with nothing to show', () {
-    testWidgets('an account with no record explains how to get one',
-        (tester) async {
+    testWidgets('an account with no record explains how to get one', (
+      tester,
+    ) async {
       await _pumpMyLeave(
         tester,
         session: FakeHrSessionRepository(session: ownerSession()),
       );
 
+      expect(find.text('No employee record for this account'), findsOneWidget);
       expect(
-        find.text('No employee record for this account'),
-        findsOneWidget,
-      );
-      expect(find.textContaining('invite you from the People page'),
-          findsOneWidget);
-    });
-
-    testWidgets('a record the session points at but cannot read is the same state',
-        (tester) async {
-      await _pumpMyLeave(
-        tester,
-        session: FakeHrSessionRepository(
-          session: const HrSession(employeeIds: ['e-missing']),
-        ),
-        people: FakeEmployeeRepository(),
-      );
-
-      expect(
-        find.text('No employee record for this account'),
+        find.textContaining('invite you from the People page'),
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'a record the session points at but cannot read is the same state',
+      (tester) async {
+        await _pumpMyLeave(
+          tester,
+          session: FakeHrSessionRepository(
+            session: const HrSession(employeeIds: ['e-missing']),
+          ),
+          people: FakeEmployeeRepository(),
+        );
+
+        expect(
+          find.text('No employee record for this account'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('a failed session resolve offers a retry', (tester) async {
       final session = FakeHrSessionRepository(

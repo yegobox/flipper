@@ -7,6 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_auth/features/auth/views/login_screen.dart';
 import 'package:flipper_auth/features/totp/views/totp_screen.dart';
 import 'package:flipper_auth/core/secrets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_web/core/localization/locale_provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -19,15 +21,14 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
-  // Change to StatefulWidget
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState(); // Create a State
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   late final StreamSubscription _authSub;
   @override
   void initState() {
@@ -59,6 +60,9 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       title: 'Auth App',
+      locale: ref.watch(localeProvider),
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       initialRoute: initialRoute, // Set initial route dynamically
       routes: {
         '/': (context) => const LoginScreen(),

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
 import 'package:flipper_hr/features/leave/data/leave_type.dart';
@@ -57,6 +58,8 @@ Future<void> _pumpApprovals(
         hrClockProvider.overrideWithValue(() => _today),
       ],
       child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: LeaveApprovalsPage(
             branchId: branchId,
@@ -72,8 +75,9 @@ Future<void> _pumpApprovals(
 
 void main() {
   group('the queue', () {
-    testWidgets('lists pending requests against the person\'s name',
-        (tester) async {
+    testWidgets('lists pending requests against the person\'s name', (
+      tester,
+    ) async {
       await _pumpApprovals(
         tester,
         leave: FakeLeaveRepository(
@@ -107,8 +111,9 @@ void main() {
       );
     });
 
-    testWidgets('puts the soonest start first, not the newest filing',
-        (tester) async {
+    testWidgets('puts the soonest start first, not the newest filing', (
+      tester,
+    ) async {
       await _pumpApprovals(
         tester,
         leave: FakeLeaveRepository(
@@ -163,8 +168,9 @@ void main() {
       expect(find.text('No leave requests yet'), findsOneWidget);
     });
 
-    testWidgets('a request whose person is not on the roster still lists',
-        (tester) async {
+    testWidgets('a request whose person is not on the roster still lists', (
+      tester,
+    ) async {
       // A row nobody can see is a row nobody will ever decide.
       await _pumpApprovals(
         tester,
@@ -178,8 +184,9 @@ void main() {
       expect(find.text('Employee e-unknown'), findsOneWidget);
     });
 
-    testWidgets('a failed roster read degrades to ids, not a blocked queue',
-        (tester) async {
+    testWidgets('a failed roster read degrades to ids, not a blocked queue', (
+      tester,
+    ) async {
       await _pumpApprovals(
         tester,
         leave: FakeLeaveRepository(seed: [leaveRequest(id: 'leave-1')]),
@@ -227,8 +234,9 @@ void main() {
       expect(find.text('Leave approved.'), findsOneWidget);
     });
 
-    testWidgets('rejecting keeps the reason for the person to read',
-        (tester) async {
+    testWidgets('rejecting keeps the reason for the person to read', (
+      tester,
+    ) async {
       final repository = FakeLeaveRepository(
         seed: [leaveRequest(id: 'leave-1')],
       );
@@ -288,15 +296,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('approval-leave-1')), findsNothing);
-      expect(
-        find.text('Nothing waiting on you · Kigali Main'),
-        findsOneWidget,
-      );
+      expect(find.text('Nothing waiting on you · Kigali Main'), findsOneWidget);
       expect(find.text('Decided'), findsOneWidget);
     });
 
-    testWidgets('a failed decision reports it and leaves the row alone',
-        (tester) async {
+    testWidgets('a failed decision reports it and leaves the row alone', (
+      tester,
+    ) async {
       final repository = FakeLeaveRepository(
         seed: [leaveRequest(id: 'leave-1')],
       );
@@ -312,8 +318,9 @@ void main() {
       expect(repository.requests.single.status, LeaveStatus.pending);
     });
 
-    testWidgets('an approver with no profile id can still decide',
-        (tester) async {
+    testWidgets('an approver with no profile id can still decide', (
+      tester,
+    ) async {
       // decided_by is nullable; a missing profile must not block the queue.
       final repository = FakeLeaveRepository(
         seed: [leaveRequest(id: 'leave-1')],
@@ -363,8 +370,9 @@ void main() {
   });
 
   group('the reporting line', () {
-    testWidgets('a line manager sees their team with no branch at all',
-        (tester) async {
+    testWidgets('a line manager sees their team with no branch at all', (
+      tester,
+    ) async {
       // No business scope and no branch selection: the queue is hr_my_report_ids()
       // through teamLeaveProvider, and the row is on a branch this session could
       // not have selected.
@@ -390,8 +398,9 @@ void main() {
       expect(find.byKey(const Key('approve-leave-1')), findsOneWidget);
     });
 
-    testWidgets('an owner sees whose queue a request is really in',
-        (tester) async {
+    testWidgets('an owner sees whose queue a request is really in', (
+      tester,
+    ) async {
       await _pumpApprovals(
         tester,
         leave: FakeLeaveRepository(
@@ -417,8 +426,9 @@ void main() {
       expect(find.byKey(const Key('approve-leave-1')), findsOneWidget);
     });
 
-    testWidgets('someone with no manager waits on whoever runs the business',
-        (tester) async {
+    testWidgets('someone with no manager waits on whoever runs the business', (
+      tester,
+    ) async {
       // The pre-0007 fallback, and the reason an owner's queue does not empty out
       // the day reporting lines are switched on.
       await _pumpApprovals(
@@ -438,8 +448,9 @@ void main() {
       );
     });
 
-    testWidgets('an owner who also runs a team gets their own team first',
-        (tester) async {
+    testWidgets('an owner who also runs a team gets their own team first', (
+      tester,
+    ) async {
       await _pumpApprovals(
         tester,
         session: const HrSession(
@@ -478,8 +489,9 @@ void main() {
       );
     });
 
-    testWidgets('a skip-level request stays under its own manager',
-        (tester) async {
+    testWidgets('a skip-level request stays under its own manager', (
+      tester,
+    ) async {
       // hr_my_report_ids() is recursive, so a manager two levels up may answer —
       // but the request is still the nearer manager's, and the heading says so.
       await _pumpApprovals(
@@ -511,13 +523,16 @@ void main() {
       expect(find.text('Reports to Yves Kamana'), findsOneWidget);
       expect(find.byKey(const Key('approve-leave-2')), findsOneWidget);
       expect(
-        find.text('Nothing waiting on you · 1 with another manager · Your team'),
+        find.text(
+          'Nothing waiting on you · 1 with another manager · Your team',
+        ),
         findsOneWidget,
       );
     });
 
-    testWidgets('an empty team queue says whose requests will land there',
-        (tester) async {
+    testWidgets('an empty team queue says whose requests will land there', (
+      tester,
+    ) async {
       await _pumpApprovals(
         tester,
         branchId: null,

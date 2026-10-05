@@ -1,5 +1,6 @@
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_models/models/claim.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/providers.dart';
@@ -85,7 +86,7 @@ class UserRewardsWidget extends ConsumerWidget {
                     Icon(Icons.card_giftcard, color: Colors.green.shade600),
                     const SizedBox(width: 8),
                     Text(
-                      'Your Rewards',
+                      context.flipperL10n.personalYourRewards,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -100,8 +101,9 @@ class UserRewardsWidget extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) =>
-          Center(child: Text('Error loading rewards: $error')),
+      error: (error, stack) => Center(
+        child: Text(context.flipperL10n.personalErrorLoadingRewards('$error')),
+      ),
     );
   }
 
@@ -129,14 +131,16 @@ class UserRewardsWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Challenge Claimed',
+                  context.flipperL10n.personalChallengeClaimed,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: Colors.green.shade800,
                   ),
                 ),
                 Text(
-                  'Claimed on ${_formatDate(claim.claimedAt)}',
+                  context.flipperL10n.personalClaimedOn(
+                    _formatDate(claim.claimedAt),
+                  ),
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ],

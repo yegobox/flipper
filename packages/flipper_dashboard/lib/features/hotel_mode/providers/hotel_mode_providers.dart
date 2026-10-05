@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -104,7 +105,40 @@ class HotelModeState {
 
 class HotelModeNotifier extends Notifier<HotelModeState> {
   @override
-  HotelModeState build() => const HotelModeState();
+  HotelModeState build() {
+    // activeRoom / activeStay are copies taken when a room or folio was
+    // opened. Follow the live documents so a rename made on another device
+    // shows here too. A room deleted elsewhere keeps its last copy.
+    ref.listen(hotelRoomsProvider, (_, next) {
+      final active = state.activeRoom;
+      final rooms = next.value;
+      if (active == null || rooms == null) return;
+      for (final live in rooms) {
+        if (live.id != active.id) continue;
+        if (!mapEquals(live.toJson(), active.toJson())) {
+          state = state.copyWith(activeRoom: live);
+        }
+        return;
+      }
+    });
+    // Only the room name is taken from the stream: the folio updates the
+    // stay optimistically, and a lagging stream copy must not undo that.
+    ref.listen(hotelStaysProvider, (_, next) {
+      final active = state.activeStay;
+      final stays = next.value;
+      if (active == null || stays == null) return;
+      for (final live in stays) {
+        if (live.id != active.id) continue;
+        if (live.roomName != active.roomName) {
+          state = state.copyWith(
+            activeStay: active.copyWith(roomName: live.roomName),
+          );
+        }
+        return;
+      }
+    });
+    return const HotelModeState();
+  }
 
   /// Resolves the opening screen once branch settings are known.
   ///

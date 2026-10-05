@@ -10,6 +10,7 @@ import 'package:flipper_hr/features/people/data/money_format.dart';
 import 'package:flipper_hr/features/people/data/people_providers.dart';
 import 'package:flipper_hr/features/people/data/person_ref.dart';
 import 'package:flipper_hr/features/session/data/hr_session_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -80,7 +81,7 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
     );
 
     if (sent == true && mounted) {
-      _toast('Leave request sent. You will see it here once it is decided.');
+      _toast(context.flipperL10n.hrLeaveRequestSent);
     }
   }
 
@@ -88,21 +89,22 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Withdraw this request?'),
+        title: Text(context.flipperL10n.hrWithdrawRequestTitle),
         content: Text(
-          'Your leave from ${formatShortDate(request.startDate)} to '
-          '${formatShortDate(request.endDate)} will be cancelled and the days '
-          'go back to your balance.',
+          context.flipperL10n.hrWithdrawRequestBody(
+            formatShortDate(request.startDate),
+            formatShortDate(request.endDate),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Keep it'),
+            child: Text(context.flipperL10n.hrKeepIt),
           ),
           FilledButton(
             key: const Key('confirm-withdraw'),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Withdraw'),
+            child: Text(context.flipperL10n.hrWithdraw),
           ),
         ],
       ),
@@ -111,7 +113,7 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
 
     try {
       await ref.read(leaveActionsProvider).cancel(request);
-      if (mounted) _toast('Request withdrawn.');
+      if (mounted) _toast(context.flipperL10n.hrRequestWithdrawn);
     } catch (e) {
       if (mounted) _toast(_messageOf(e), isError: true);
     }
@@ -142,9 +144,9 @@ class _MyLeavePageState extends ConsumerState<MyLeavePage> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _LeaveMessage(
             icon: Icons.error_outline,
-            title: 'Could not load your record',
+            title: context.flipperL10n.hrCouldNotLoadYourRecord,
             body: _messageOf(error),
-            actionLabel: 'Try again',
+            actionLabel: context.flipperL10n.hrTryAgain,
             onAction: () {
               ref.invalidate(hrSessionProvider);
               ref.invalidate(myEmployeeProvider);
@@ -179,6 +181,7 @@ class _LeaveBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final l10n = context.flipperL10n;
     final requestsAsync = ref.watch(myLeaveProvider);
     final balancesAsync = ref.watch(myLeaveBalancesProvider);
     final year = ref.watch(hrClockProvider)().year;
@@ -193,9 +196,9 @@ class _LeaveBody extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _LeaveMessage(
         icon: Icons.error_outline,
-        title: 'Could not load your leave',
+        title: l10n.hrCouldNotLoadYourLeave,
         body: error.toString().replaceFirst('Exception: ', ''),
-        actionLabel: 'Try again',
+        actionLabel: l10n.hrTryAgain,
         onAction: () => ref.invalidate(employeeLeaveProvider(employee.id)),
       ),
       data: (requests) => CustomScrollView(
@@ -210,10 +213,13 @@ class _LeaveBody extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('My leave', style: theme.textTheme.headlineSmall),
+                        Text(
+                          l10n.hrMyLeave,
+                          style: theme.textTheme.headlineSmall,
+                        ),
                         const SizedBox(height: 4),
                         Text(
-                          '${employee.fullName} · balances for $year',
+                          l10n.hrBalancesFor(employee.fullName, '$year'),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -221,7 +227,7 @@ class _LeaveBody extends ConsumerWidget {
                         if (approver != null) ...[
                           const SizedBox(height: 2),
                           Text(
-                            'Requests go to $approver',
+                            l10n.hrRequestsGoTo(approver),
                             key: const Key('my-leave-approver'),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
@@ -237,7 +243,7 @@ class _LeaveBody extends ConsumerWidget {
                         ? () => onRequest(requests)
                         : null,
                     icon: const Icon(Icons.add),
-                    label: const Text('Request leave'),
+                    label: Text(l10n.hrRequestLeave),
                   ),
                 ],
               ),
@@ -247,10 +253,7 @@ class _LeaveBody extends ConsumerWidget {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               sliver: SliverToBoxAdapter(
-                child: _Notice(
-                  'Your employment has ended, so no new leave can be booked. '
-                  'Your history stays here.',
-                ),
+                child: _Notice(l10n.hrEmploymentEndedNotice),
               ),
             ),
           SliverPadding(
@@ -266,17 +269,14 @@ class _LeaveBody extends ConsumerWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
             sliver: SliverToBoxAdapter(
-              child: Text('Requests', style: theme.textTheme.titleMedium),
+              child: Text(l10n.hrRequests, style: theme.textTheme.titleMedium),
             ),
           ),
           if (requests.isEmpty)
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(24, 8, 24, 24),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               sliver: SliverToBoxAdapter(
-                child: _Notice(
-                  'No leave booked yet. Your balances above are what you have '
-                  'to spend this year.',
-                ),
+                child: _Notice(l10n.hrNoLeaveBookedYet),
               ),
             )
           else
@@ -408,7 +408,7 @@ class _RequestCard extends StatelessWidget {
                 key: Key('withdraw-${request.id}'),
                 onPressed: onWithdraw,
                 icon: const Icon(Icons.undo, size: 16),
-                label: const Text('Withdraw'),
+                label: Text(context.flipperL10n.hrWithdraw),
               ),
             ),
           ],
@@ -429,15 +429,11 @@ class _NoEmployeeRecord extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _LeaveMessage(
+    final l10n = context.flipperL10n;
+    return _LeaveMessage(
       icon: Icons.badge_outlined,
-      title: 'No employee record for this account',
-      body:
-          'Leave is booked against a person on a branch roster, and this '
-          'sign-in does not resolve to one yet. Ask whoever manages your '
-          'roster to invite you from the People page — that is what links your '
-          'record to this account. If they already did, check that the phone '
-          'number on your record is the one you signed in with.',
+      title: l10n.hrNoEmployeeRecordTitle,
+      body: l10n.hrNoEmployeeRecordLeaveBody,
     );
   }
 }

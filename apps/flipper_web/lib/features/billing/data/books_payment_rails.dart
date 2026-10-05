@@ -64,8 +64,8 @@ class FlipperPaymentsRails implements BooksPaymentRails {
   FlipperPaymentsRails({
     PaymentsHttpClient? httpClient,
     DodoLinkOpener? openLink,
-  })  : _http = httpClient ?? defaultPaymentsHttpClient,
-        _openLink = openLink ?? openCheckoutInNewTab;
+  }) : _http = httpClient ?? defaultPaymentsHttpClient,
+       _openLink = openLink ?? openCheckoutInNewTab;
 
   final PaymentsHttpClient _http;
   final DodoLinkOpener _openLink;
@@ -76,10 +76,10 @@ class FlipperPaymentsRails implements BooksPaymentRails {
   /// Opens Dodo's page in a new tab so the paywall tab keeps polling and is
   /// still there to land on when Dodo redirects back.
   static Future<bool> openCheckoutInNewTab(Uri url) => launchUrl(
-        url,
-        mode: LaunchMode.platformDefault,
-        webOnlyWindowName: '_blank',
-      );
+    url,
+    mode: LaunchMode.platformDefault,
+    webOnlyWindowName: '_blank',
+  );
 
   @override
   Future<MomoSubscriptionResult> chargeMomo({

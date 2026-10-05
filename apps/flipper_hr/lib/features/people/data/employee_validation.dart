@@ -1,4 +1,5 @@
 import 'package:flipper_hr/features/people/data/employee.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/signup_countries.dart';
 
 /// Fields the people form can complain about.
@@ -42,26 +43,27 @@ Map<EmployeeField, String> validateEmployee(
   required DateTime today,
 }) {
   final errors = <EmployeeField, String>{};
+  final l10n = FlipperL10n.current;
 
   if (e.firstName.trim().isEmpty) {
-    errors[EmployeeField.firstName] = 'First name is required';
+    errors[EmployeeField.firstName] = l10n.hrFirstNameRequired;
   }
   if (e.lastName.trim().isEmpty) {
-    errors[EmployeeField.lastName] = 'Last name is required';
+    errors[EmployeeField.lastName] = l10n.hrLastNameRequired;
   }
   if (e.jobTitle.trim().isEmpty) {
-    errors[EmployeeField.jobTitle] = 'Job title is required';
+    errors[EmployeeField.jobTitle] = l10n.hrJobTitleRequired;
   }
 
   final phoneDigits = _digits(e.phone);
   if (phoneDigits.isEmpty) {
-    errors[EmployeeField.phone] = 'Phone number is required';
+    errors[EmployeeField.phone] = l10n.hrPhoneNumberRequired;
   } else if (!isPlausiblePhoneNumber(e.phone)) {
-    errors[EmployeeField.phone] = 'Enter a valid phone number';
+    errors[EmployeeField.phone] = l10n.hrEnterValidPhoneNumber;
   }
 
   if (e.email.trim().isNotEmpty && !_looksLikeEmail(e.email.trim())) {
-    errors[EmployeeField.email] = 'Enter a valid email address';
+    errors[EmployeeField.email] = l10n.hrEnterValidEmail;
   }
 
   // Counted over the whole value, not just its digits: plenty of countries
@@ -70,23 +72,24 @@ Map<EmployeeField, String> validateEmployee(
   if (nationalId.isNotEmpty &&
       (nationalId.length < _minNationalIdChars ||
           nationalId.length > _maxNationalIdChars)) {
-    errors[EmployeeField.nationalId] =
-        'A national ID is $_minNationalIdChars to $_maxNationalIdChars characters';
+    errors[EmployeeField.nationalId] = l10n.hrNationalIdLength(
+      '$_minNationalIdChars',
+      '$_maxNationalIdChars',
+    );
   }
 
   final hire = _dateOnly(e.hireDate);
   final now = _dateOnly(today);
   if (hire.isAfter(now.add(const Duration(days: _maxFutureHireDays)))) {
-    errors[EmployeeField.hireDate] =
-        'Start date cannot be more than a year ahead';
+    errors[EmployeeField.hireDate] = l10n.hrStartDateTooFarAhead;
   }
 
   final end = e.endDate == null ? null : _dateOnly(e.endDate!);
   if (e.status == EmploymentStatus.terminated && end == null) {
-    errors[EmployeeField.endDate] = 'A last day is required to terminate';
+    errors[EmployeeField.endDate] = l10n.hrLastDayRequiredToTerminate;
   }
   if (end != null && end.isBefore(hire)) {
-    errors[EmployeeField.endDate] = 'Last day cannot be before the start date';
+    errors[EmployeeField.endDate] = l10n.hrLastDayBeforeStart;
   }
 
   // The database refuses this twice over (the hr_employees_manager_not_self
@@ -94,11 +97,11 @@ Map<EmployeeField, String> validateEmployee(
   // save that then failed would be a worse form than one that says so here.
   // Deeper loops are the dropdown's job — see managerCandidatesFor.
   if (e.managerId != null && e.managerId == e.id && e.id.isNotEmpty) {
-    errors[EmployeeField.managerId] = 'Someone cannot report to themselves';
+    errors[EmployeeField.managerId] = l10n.hrCannotReportToSelf;
   }
 
   if (e.baseSalary < 0) {
-    errors[EmployeeField.baseSalary] = 'Pay cannot be negative';
+    errors[EmployeeField.baseSalary] = l10n.hrPayCannotBeNegative;
   }
 
   // Only checked when set. Blank leaves the statutory 18 working days in force
@@ -108,10 +111,9 @@ Map<EmployeeField, String> validateEmployee(
   final annualLeave = e.annualLeaveDays;
   if (annualLeave != null) {
     if (annualLeave < 0) {
-      errors[EmployeeField.annualLeaveDays] = 'Leave days cannot be negative';
+      errors[EmployeeField.annualLeaveDays] = l10n.hrLeaveDaysCannotBeNegative;
     } else if (annualLeave > _maxAnnualLeaveDays) {
-      errors[EmployeeField.annualLeaveDays] =
-          'That is more than a working year — enter days, not hours';
+      errors[EmployeeField.annualLeaveDays] = l10n.hrLeaveDaysTooMany;
     }
   }
 
@@ -120,16 +122,16 @@ Map<EmployeeField, String> validateEmployee(
       final momo = _digits(e.momoPhone);
       // Falls back to the contact number, which is what payroll will charge.
       if (momo.isEmpty && !isPlausiblePhoneNumber(e.phone)) {
-        errors[EmployeeField.momoPhone] = 'Mobile money number is required';
+        errors[EmployeeField.momoPhone] = l10n.hrMobileMoneyNumberRequired;
       } else if (momo.isNotEmpty && !isPlausiblePhoneNumber(e.momoPhone)) {
-        errors[EmployeeField.momoPhone] = 'Enter a valid mobile money number';
+        errors[EmployeeField.momoPhone] = l10n.hrEnterValidMobileMoneyNumber;
       }
     case PaymentMethod.bankTransfer:
       if (e.bankName.trim().isEmpty) {
-        errors[EmployeeField.bankName] = 'Bank name is required';
+        errors[EmployeeField.bankName] = l10n.hrBankNameRequired;
       }
       if (e.bankAccount.trim().isEmpty) {
-        errors[EmployeeField.bankAccount] = 'Account number is required';
+        errors[EmployeeField.bankAccount] = l10n.hrAccountNumberRequired;
       }
     case PaymentMethod.cash:
       break;

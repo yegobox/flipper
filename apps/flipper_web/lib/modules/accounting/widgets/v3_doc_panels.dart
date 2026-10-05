@@ -1,4 +1,5 @@
 import 'package:flipper_accounting/bill_payments.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
@@ -126,7 +127,8 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
       due: _due,
       status: postedElsewhere ? _storedStatus(original!.status) : status,
       lines: lines,
-      total: postedElsewhere ||
+      total:
+          postedElsewhere ||
               (original != null && _sameLines(original.lines, lines))
           ? original?.total
           : null,
@@ -158,6 +160,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final accounts = ref.watch(accountingAccountsProvider);
     final accountMap = {for (final a in accounts) a.code: a};
     final roles = ChartAccountResolver(accounts);
@@ -174,11 +177,16 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _PanelHeader(
-            title:
-                '${widget.doc == null ? 'New' : 'Edit'} ${_isInvoice ? 'invoice' : 'bill'} · $_id',
+            title: _isInvoice
+                ? (widget.doc == null
+                      ? l10n.booksNewInvoiceTitle(_id)
+                      : l10n.booksEditInvoiceTitle(_id))
+                : (widget.doc == null
+                      ? l10n.booksNewBillTitle(_id)
+                      : l10n.booksEditBillTitle(_id)),
             subtitle: _isInvoice
-                ? 'Bill a customer — Flipper posts the sale and VAT automatically.'
-                : 'Record a supplier bill — Flipper posts the expense and input VAT.',
+                ? l10n.booksInvoiceEditorSubtitle
+                : l10n.booksBillEditorSubtitle,
             onClose: widget.onClose,
           ),
           Expanded(
@@ -193,13 +201,16 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                       Expanded(
                         flex: 14,
                         child: _FieldLabel(
-                          label: _isInvoice ? 'Customer' : 'Supplier',
+                          label: _isInvoice
+                              ? l10n.customer
+                              : l10n.booksSupplier,
                           child: DropdownButtonFormField<String>(
                             initialValue: _who.isEmpty ? null : _who,
                             decoration: _inputDecoration(
                               icon: Icons.business_outlined,
-                              hint:
-                                  'Select ${_isInvoice ? 'customer' : 'supplier'}…',
+                              hint: _isInvoice
+                                  ? l10n.booksSelectCustomer
+                                  : l10n.booksSelectSupplier,
                             ),
                             items: [
                               for (final p in parties)
@@ -215,7 +226,9 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _FieldLabel(
-                          label: _isInvoice ? 'Issue date' : 'Bill date',
+                          label: _isInvoice
+                              ? l10n.booksIssueDate
+                              : l10n.booksBillDate,
                           child: TextFormField(
                             initialValue: _date,
                             decoration: _inputDecoration(
@@ -228,7 +241,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _FieldLabel(
-                          label: 'Due date',
+                          label: l10n.booksDueDateLabel,
                           child: TextFormField(
                             initialValue: _due,
                             decoration: _inputDecoration(
@@ -242,7 +255,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Line items',
+                    l10n.booksLineItems,
                     style: AccountingTokens.sans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -275,7 +288,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                           _lines.add(const DocLine(desc: '', qty: 1, price: 0)),
                     ),
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add line'),
+                    label: Text(l10n.booksAddLine),
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -283,8 +296,9 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                     children: [
                       Expanded(
                         child: _PostPreviewBox(
-                          title:
-                              'This ${_isInvoice ? 'invoice' : 'bill'} will post',
+                          title: _isInvoice
+                              ? l10n.booksInvoiceWillPost
+                              : l10n.booksBillWillPost,
                           lines: postLines,
                           accountMap: accountMap,
                           currency: currency,
@@ -305,7 +319,7 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
           _PanelFooter(
             children: [
               AccountingButton(
-                label: 'Save draft',
+                label: l10n.booksSaveDraft,
                 enabled: _who.isNotEmpty,
                 onPressed: _who.isEmpty
                     ? null
@@ -317,17 +331,20 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
                   padding: EdgeInsets.zero,
                   enabled: _valid,
                   child: AccountingButton(
-                    label: 'Save & send',
+                    label: l10n.booksSaveAndSend,
                     icon: Icons.mail_outline,
                     primary: true,
                     enabled: _valid,
                   ),
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'email', child: Text('Email')),
-                    PopupMenuItem(value: 'whatsapp', child: Text('WhatsApp')),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'email', child: Text(l10n.email)),
+                    const PopupMenuItem(
+                      value: 'whatsapp',
+                      child: Text('WhatsApp'),
+                    ),
                     PopupMenuItem(
                       value: 'pdf',
-                      child: Text('Download PDF only'),
+                      child: Text(l10n.booksDownloadPdfOnly),
                     ),
                   ],
                   onSelected: (_) =>
@@ -336,8 +353,8 @@ class _DocEditorPanelState extends ConsumerState<DocEditorPanel> {
               else
                 AccountingButton(
                   label: _waitingPurchaseDraft
-                      ? 'Approve in Purchases'
-                      : 'Record bill',
+                      ? l10n.booksApproveInPurchases
+                      : l10n.booksRecordBill,
                   icon: Icons.check,
                   primary: true,
                   enabled: _valid && !_waitingPurchaseDraft,
@@ -423,6 +440,7 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final accounts = ref.watch(accountingAccountsProvider);
     final currency = ref.watch(accountingCurrencyProvider);
 
@@ -443,10 +461,10 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _PanelHeader(
-            title:
-                '${widget.schedule == null ? 'New' : 'Edit'} schedule · $_id',
-            subtitle:
-                'Repeating entries post themselves with a balanced journal.',
+            title: widget.schedule == null
+                ? l10n.booksNewScheduleTitle(_id)
+                : l10n.booksEditScheduleTitle(_id),
+            subtitle: l10n.booksScheduleEditorSubtitle,
             onClose: widget.onClose,
           ),
           Expanded(
@@ -456,12 +474,12 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _FieldLabel(
-                    label: 'Schedule name',
+                    label: l10n.booksScheduleName,
                     child: TextFormField(
                       initialValue: _name,
                       decoration: _inputDecoration(
                         icon: Icons.label_outline,
-                        hint: 'e.g. Monthly rent',
+                        hint: l10n.booksScheduleNameHint,
                       ),
                       onChanged: (v) => _name = v,
                     ),
@@ -472,13 +490,16 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                     children: [
                       Expanded(
                         child: _FieldLabel(
-                          label: 'Frequency',
+                          label: l10n.booksFrequency,
                           child: DropdownButtonFormField<String>(
                             initialValue: _freq,
                             decoration: _inputDecoration(icon: Icons.repeat),
                             items: [
                               for (final f in _freqs)
-                                DropdownMenuItem(value: f, child: Text(f)),
+                                DropdownMenuItem(
+                                  value: f,
+                                  child: Text(booksFrequencyLabel(f, l10n)),
+                                ),
                             ],
                             onChanged: (v) =>
                                 setState(() => _freq = v ?? 'Monthly'),
@@ -488,12 +509,12 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _FieldLabel(
-                          label: 'Day',
+                          label: l10n.booksDay,
                           child: TextFormField(
                             initialValue: _day,
                             decoration: _inputDecoration(
                               icon: Icons.calendar_today_outlined,
-                              hint: 'e.g. 1st',
+                              hint: l10n.booksDayHint,
                             ),
                             onChanged: (v) => _day = v,
                           ),
@@ -503,7 +524,7 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                   ),
                   const SizedBox(height: 16),
                   _FieldLabel(
-                    label: 'Amount',
+                    label: l10n.amount,
                     child: TextFormField(
                       initialValue: _amount > 0 ? '$_amount' : '',
                       keyboardType: TextInputType.number,
@@ -515,13 +536,13 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                   ),
                   const SizedBox(height: 16),
                   _FieldLabel(
-                    label: 'Debit account (expense / asset)',
+                    label: l10n.booksDebitAccountLabel,
                     child: DropdownButtonFormField<String>(
                       initialValue: validValue(_debitCode),
                       isExpanded: true,
                       decoration: _inputDecoration(
                         icon: Icons.arrow_downward,
-                        hint: 'Select account…',
+                        hint: l10n.booksSelectAccount,
                       ),
                       items: accountItems(),
                       onChanged: (v) => setState(() => _debitCode = v ?? ''),
@@ -529,13 +550,13 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                   ),
                   const SizedBox(height: 16),
                   _FieldLabel(
-                    label: 'Credit account (funding source)',
+                    label: l10n.booksCreditAccountLabel,
                     child: DropdownButtonFormField<String>(
                       initialValue: validValue(_creditCode),
                       isExpanded: true,
                       decoration: _inputDecoration(
                         icon: Icons.arrow_upward,
-                        hint: 'Select account…',
+                        hint: l10n.booksSelectAccount,
                       ),
                       items: accountItems(),
                       onChanged: (v) => setState(() => _creditCode = v ?? ''),
@@ -544,7 +565,7 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                   if (_debitCode.isNotEmpty && _debitCode == _creditCode) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Debit and credit accounts must differ.',
+                      l10n.booksAccountsMustDiffer,
                       style: AccountingTokens.sans(
                         fontSize: 12,
                         color: AccountingTokens.lossInk,
@@ -560,7 +581,7 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        _active ? 'Active' : 'Paused',
+                        _active ? l10n.booksActive : l10n.booksPausedLabel,
                         style: AccountingTokens.sans(fontSize: 13.5),
                       ),
                     ],
@@ -571,9 +592,9 @@ class _RecurringEditorPanelState extends ConsumerState<RecurringEditorPanel> {
           ),
           _PanelFooter(
             children: [
-              AccountingButton(label: 'Cancel', onPressed: widget.onClose),
+              AccountingButton(label: l10n.cancel, onPressed: widget.onClose),
               AccountingButton(
-                label: 'Save schedule',
+                label: l10n.booksSaveSchedule,
                 icon: Icons.check,
                 primary: true,
                 enabled: _valid,
@@ -637,16 +658,15 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
     try {
       final businessId = ref.read(accountingBusinessIdProvider);
       if (_tracksPayments) {
-        _after = await BillPaymentPoster(
-          ref.read(dittoServiceProvider),
-        ).recordPayment(
-          businessId: businessId,
-          billDocId: widget.doc.uuid!,
-          amount: _amount,
-          paymentAccount: _method,
-          accounts: accounts,
-          fallbackTotal: docGrandTotal(widget.doc),
-        );
+        _after = await BillPaymentPoster(ref.read(dittoServiceProvider))
+            .recordPayment(
+              businessId: businessId,
+              billDocId: widget.doc.uuid!,
+              amount: _amount,
+              paymentAccount: _method,
+              accounts: accounts,
+              fallbackTotal: docGrandTotal(widget.doc),
+            );
       } else {
         final poster = DocumentJournalPoster(
           ref.read(accountingLedgerRepositoryProvider),
@@ -679,22 +699,33 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
       );
       if (mounted) setState(() => _done = true);
     } catch (e) {
-      if (mounted) showAccountingToast(context, 'Payment failed', subtitle: '$e');
+      if (mounted) {
+        showAccountingToast(
+          context,
+          context.flipperL10n.booksPaymentFailed,
+          subtitle: '$e',
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
   String _doneMessage(String currency) {
+    final l10n = context.flipperL10n;
+    final paid = '$currency ${money(_amount)}';
     if (_isInvoice) {
-      return '${widget.doc.who} paid $currency ${money(_amount)}. The invoice is marked paid.';
+      return l10n.booksInvoicePaidMessage(paid, widget.doc.who);
     }
     final after = _after;
     if (after != null && !after.isSettled) {
-      return 'Paid $currency ${money(_amount)} to ${widget.doc.who}. '
-          '$currency ${money(after.balance)} is still owed.';
+      return l10n.booksBillPartPaidMessage(
+        paid,
+        '$currency ${money(after.balance)}',
+        widget.doc.who,
+      );
     }
-    return 'Paid $currency ${money(_amount)} to ${widget.doc.who}. The bill is settled.';
+    return l10n.booksBillSettledMessage(paid, widget.doc.who);
   }
 
   @override
@@ -706,6 +737,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
         ? docGrandTotal(widget.doc)
         : docBalance(widget.doc);
 
+    final l10n = context.flipperL10n;
     final postLines = _isInvoice
         ? [(side: 'dr', ac: _method), (side: 'cr', ac: '1100')]
         : [(side: 'dr', ac: '2010'), (side: 'cr', ac: _method)];
@@ -717,7 +749,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _PanelHeader(
-              title: 'Payment recorded',
+              title: l10n.booksPaymentRecorded,
               subtitle: widget.doc.id,
               onClose: widget.onClose,
               compact: true,
@@ -744,7 +776,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Payment recorded',
+                        l10n.booksPaymentRecorded,
                         style: AccountingTokens.sans(
                           fontSize: 21,
                           fontWeight: FontWeight.w800,
@@ -761,7 +793,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                       ),
                       const SizedBox(height: 20),
                       AccountingButton(
-                        label: 'Done',
+                        label: l10n.done,
                         primary: true,
                         onPressed: () => widget.onPaid(widget.doc),
                       ),
@@ -781,9 +813,12 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _PanelHeader(
-            title: _isInvoice ? 'Record payment' : 'Pay bill',
-            subtitle:
-                '${widget.doc.id} · ${widget.doc.who} · ${money(total)} due',
+            title: _isInvoice ? l10n.booksRecordPayment : l10n.booksPayBill,
+            subtitle: l10n.booksAmountDue(
+              money(total),
+              widget.doc.id,
+              widget.doc.who,
+            ),
             onClose: widget.onClose,
             compact: true,
           ),
@@ -794,7 +829,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _FieldLabel(
-                    label: _isInvoice ? 'Deposit to' : 'Pay from',
+                    label: _isInvoice ? l10n.booksDepositTo : l10n.booksPayFrom,
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -813,7 +848,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                   ),
                   const SizedBox(height: 16),
                   _FieldLabel(
-                    label: 'Amount received',
+                    label: l10n.booksAmountReceived,
                     child: TextFormField(
                       initialValue: money(_amount),
                       keyboardType: TextInputType.number,
@@ -829,7 +864,7 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
                   ),
                   const SizedBox(height: 16),
                   _PostPreviewBox(
-                    title: 'Posts as',
+                    title: l10n.booksPostsAs,
                     lines: [
                       for (final p in postLines)
                         (side: p.side, ac: p.ac, amt: _amount),
@@ -845,9 +880,9 @@ class _PaymentModalPanelState extends ConsumerState<PaymentModalPanel> {
           ),
           _PanelFooter(
             children: [
-              AccountingButton(label: 'Cancel', onPressed: widget.onClose),
+              AccountingButton(label: l10n.cancel, onPressed: widget.onClose),
               AccountingButton(
-                label: _isInvoice ? 'Record payment' : 'Pay bill',
+                label: _isInvoice ? l10n.booksRecordPayment : l10n.booksPayBill,
                 icon: Icons.check,
                 primary: true,
                 enabled: _amount > 0 && !_saving,
@@ -881,6 +916,7 @@ class DocPreviewPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final isInv = kind == DocKind.invoice;
     final totals = docTotals(doc.lines);
     final currency = ref.watch(accountingCurrencyProvider);
@@ -931,7 +967,7 @@ class DocPreviewPanel extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                business?.name ?? 'Business',
+                                business?.name ?? l10n.booksBusinessFallback,
                                 style: AccountingTokens.sans(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
@@ -948,7 +984,7 @@ class DocPreviewPanel extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          isInv ? 'INVOICE' : 'BILL',
+                          isInv ? l10n.booksInvoiceUpper : l10n.booksBillUpper,
                           style: AccountingTokens.sans(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
@@ -966,7 +1002,7 @@ class DocPreviewPanel extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isInv ? 'Bill to' : 'From',
+                                isInv ? l10n.booksBillTo : l10n.booksFrom,
                                 style: AccountingTokens.sans(
                                   fontSize: 11,
                                   color: AccountingTokens.ink3,
@@ -994,12 +1030,17 @@ class DocPreviewPanel extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             _PaperRow(
-                              label: isInv ? 'Issued' : 'Bill date',
+                              label: isInv
+                                  ? l10n.booksIssued
+                                  : l10n.booksBillDate,
                               value: doc.date,
                             ),
-                            _PaperRow(label: 'Due', value: doc.due),
+                            _PaperRow(label: l10n.booksDue, value: doc.due),
                             if (party != null)
-                              _PaperRow(label: 'Terms', value: party.terms),
+                              _PaperRow(
+                                label: l10n.booksTerms,
+                                value: booksTermsLabel(party.terms, l10n),
+                              ),
                           ],
                         ),
                       ],
@@ -1015,10 +1056,10 @@ class DocPreviewPanel extends ConsumerWidget {
                       children: [
                         TableRow(
                           children: [
-                            _Th('Description'),
-                            _Th('Qty', right: true),
-                            _Th('Unit price', right: true),
-                            _Th('Amount', right: true),
+                            _Th(l10n.booksDescription),
+                            _Th(l10n.booksQty, right: true),
+                            _Th(l10n.unitPrice, right: true),
+                            _Th(l10n.amount, right: true),
                           ],
                         ),
                         for (final l in doc.lines)
@@ -1086,19 +1127,19 @@ class DocPreviewPanel extends ConsumerWidget {
                 icon: Icons.download_outlined,
                 onPressed: () => showAccountingToast(
                   context,
-                  'Generating PDF',
+                  l10n.booksGeneratingPdf,
                   subtitle: '${doc.id} · ${doc.who}',
                   icon: Icons.download_outlined,
                 ),
               ),
               AccountingButton(
-                label: 'Edit',
+                label: l10n.edit,
                 icon: Icons.receipt_long_outlined,
                 onPressed: onEdit,
               ),
               if (isInv ? doc.status != DocStatus.paid : billCanBePaid(doc))
                 AccountingButton(
-                  label: isInv ? 'Record payment' : 'Pay bill',
+                  label: isInv ? l10n.booksRecordPayment : l10n.booksPayBill,
                   icon: Icons.account_balance_wallet_outlined,
                   primary: true,
                   onPressed: onPay,
@@ -1306,13 +1347,22 @@ class _LineHeader extends StatelessWidget {
     // Column widths mirror _LineRow so headers line up with each field.
     return Row(
       children: [
-        Expanded(flex: 3, child: _label('Item or service')),
+        Expanded(
+          flex: 3,
+          child: _label(context.flipperL10n.booksItemOrService),
+        ),
         const SizedBox(width: 8),
-        SizedBox(width: 64, child: _label('Qty', align: TextAlign.center)),
+        SizedBox(
+          width: 64,
+          child: _label(context.flipperL10n.booksQty, align: TextAlign.center),
+        ),
         const SizedBox(width: 8),
-        SizedBox(width: 110, child: _label('Unit price')),
+        SizedBox(width: 110, child: _label(context.flipperL10n.unitPrice)),
         const SizedBox(width: 8),
-        SizedBox(width: 90, child: _label('Amount', align: TextAlign.right)),
+        SizedBox(
+          width: 90,
+          child: _label(context.flipperL10n.amount, align: TextAlign.right),
+        ),
         // Reserve space for the per-row delete icon.
         const SizedBox(width: 48),
       ],
@@ -1342,7 +1392,9 @@ class _LineRow extends StatelessWidget {
           flex: 3,
           child: TextFormField(
             initialValue: line.desc,
-            decoration: _inputDecoration(hint: 'Item or service…'),
+            decoration: _inputDecoration(
+              hint: context.flipperL10n.booksItemOrServiceHint,
+            ),
             onChanged: (v) => onChanged(line.copyWith(desc: v)),
           ),
         ),
@@ -1353,7 +1405,7 @@ class _LineRow extends StatelessWidget {
             initialValue: '${line.qty}',
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
-            decoration: _inputDecoration(hint: 'Qty'),
+            decoration: _inputDecoration(hint: context.flipperL10n.booksQty),
             onChanged: (v) =>
                 onChanged(line.copyWith(qty: num.tryParse(v) ?? line.qty)),
           ),
@@ -1364,7 +1416,7 @@ class _LineRow extends StatelessWidget {
           child: TextFormField(
             initialValue: line.price > 0 ? money(line.price.round()) : '',
             keyboardType: TextInputType.number,
-            decoration: _inputDecoration(hint: 'Unit price'),
+            decoration: _inputDecoration(hint: context.flipperL10n.unitPrice),
             onChanged: (v) {
               final n = int.tryParse(v.replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
               onChanged(line.copyWith(price: n));
@@ -1447,7 +1499,10 @@ class _PostPreviewBox extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      p.side.toUpperCase(),
+                      (p.side == 'dr'
+                              ? context.flipperL10n.booksDrShort
+                              : context.flipperL10n.booksCrShort)
+                          .toUpperCase(),
                       style: AccountingTokens.mono(
                         fontSize: 10,
                         color: p.side == 'dr'
@@ -1472,7 +1527,10 @@ class _PostPreviewBox extends StatelessWidget {
             ),
           if (showBalanced)
             Text(
-              'Balanced · $currency ${money(total)} = ${money(total)}',
+              context.flipperL10n.booksBalancedEquation(
+                money(total),
+                '$currency ${money(total)}',
+              ),
               style: AccountingTokens.sans(
                 fontSize: 12,
                 color: AccountingTokens.gainInk,
@@ -1494,11 +1552,17 @@ class _TotalsBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _TotalRow(label: 'Subtotal', value: money(totals.subtotal)),
-        _TotalRow(label: 'VAT (18%)', value: money(totals.vat)),
+        _TotalRow(
+          label: context.flipperL10n.subtotal,
+          value: money(totals.subtotal),
+        ),
+        _TotalRow(
+          label: context.flipperL10n.booksVat18,
+          value: money(totals.vat),
+        ),
         const Divider(),
         _TotalRow(
-          label: 'Total',
+          label: context.flipperL10n.booksTotal,
           value: '$currency ${money(totals.total)}',
           bold: true,
         ),

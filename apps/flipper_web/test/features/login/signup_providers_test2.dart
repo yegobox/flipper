@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,7 +94,11 @@ class TestWrapper extends StatelessWidget {
         ]),
         countriesProvider.overrideWithValue(['Rwanda', 'Kenya', 'Uganda']),
       ],
-      child: MaterialApp(home: child),
+      child: MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: child,
+      ),
     );
   }
 }

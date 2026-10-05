@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_personal/src/personal_home_screen.dart';
 
@@ -8,7 +9,7 @@ class LeaderboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leaderboard'),
+        title: Text(context.flipperL10n.personalLeaderboard),
         backgroundColor: FlipperPalette.primaryGreen,
         elevation: 0,
       ),

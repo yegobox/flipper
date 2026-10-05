@@ -13639,6 +13639,1454 @@
     "ticketCompleteDone": "Ticket completed",
     "ticketCompleteFailed": "Failed to complete ticket",
     "ticketCompleteInProgress": "Completing ticket…",
+    "hrWeekdayMonday": "Monday",
+    "@hrWeekdayMonday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortMon": "Mon",
+    "@hrWeekdayShortMon": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrWeekdayTuesday": "Tuesday",
+    "@hrWeekdayTuesday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortTue": "Tue",
+    "@hrWeekdayShortTue": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrWeekdayWednesday": "Wednesday",
+    "@hrWeekdayWednesday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortWed": "Wed",
+    "@hrWeekdayShortWed": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrWeekdayThursday": "Thursday",
+    "@hrWeekdayThursday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortThu": "Thu",
+    "@hrWeekdayShortThu": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrWeekdayFriday": "Friday",
+    "@hrWeekdayFriday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortFri": "Fri",
+    "@hrWeekdayShortFri": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrWeekdaySaturday": "Saturday",
+    "@hrWeekdaySaturday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortSat": "Sat",
+    "@hrWeekdayShortSat": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrWeekdaySunday": "Sunday",
+    "@hrWeekdaySunday": {
+        "description": "Weekday name"
+    },
+    "hrWeekdayShortSun": "Sun",
+    "@hrWeekdayShortSun": {
+        "description": "Abbreviated weekday name"
+    },
+    "hrMonthJanuary": "January",
+    "@hrMonthJanuary": {
+        "description": "Month name"
+    },
+    "hrMonthShortJan": "Jan",
+    "@hrMonthShortJan": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthFebruary": "February",
+    "@hrMonthFebruary": {
+        "description": "Month name"
+    },
+    "hrMonthShortFeb": "Feb",
+    "@hrMonthShortFeb": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthMarch": "March",
+    "@hrMonthMarch": {
+        "description": "Month name"
+    },
+    "hrMonthShortMar": "Mar",
+    "@hrMonthShortMar": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthApril": "April",
+    "@hrMonthApril": {
+        "description": "Month name"
+    },
+    "hrMonthShortApr": "Apr",
+    "@hrMonthShortApr": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthMay": "May",
+    "@hrMonthMay": {
+        "description": "Month name"
+    },
+    "hrMonthShortMay": "May",
+    "@hrMonthShortMay": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthJune": "June",
+    "@hrMonthJune": {
+        "description": "Month name"
+    },
+    "hrMonthShortJun": "Jun",
+    "@hrMonthShortJun": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthJuly": "July",
+    "@hrMonthJuly": {
+        "description": "Month name"
+    },
+    "hrMonthShortJul": "Jul",
+    "@hrMonthShortJul": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthAugust": "August",
+    "@hrMonthAugust": {
+        "description": "Month name"
+    },
+    "hrMonthShortAug": "Aug",
+    "@hrMonthShortAug": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthSeptember": "September",
+    "@hrMonthSeptember": {
+        "description": "Month name"
+    },
+    "hrMonthShortSep": "Sep",
+    "@hrMonthShortSep": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthOctober": "October",
+    "@hrMonthOctober": {
+        "description": "Month name"
+    },
+    "hrMonthShortOct": "Oct",
+    "@hrMonthShortOct": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthNovember": "November",
+    "@hrMonthNovember": {
+        "description": "Month name"
+    },
+    "hrMonthShortNov": "Nov",
+    "@hrMonthShortNov": {
+        "description": "Abbreviated month name"
+    },
+    "hrMonthDecember": "December",
+    "@hrMonthDecember": {
+        "description": "Month name"
+    },
+    "hrMonthShortDec": "Dec",
+    "@hrMonthShortDec": {
+        "description": "Abbreviated month name"
+    },
+    "hrLongDate": "{weekday}, {day} {month}",
+    "@hrLongDate": {
+        "description": "Long date, e.g. Monday, 17 August",
+        "placeholders": {
+            "weekday": {
+                "type": "String"
+            },
+            "day": {
+                "type": "String"
+            },
+            "month": {
+                "type": "String"
+            }
+        }
+    },
+    "hrDaysCount": "{count, plural, =1{1 day} other{{count} days}}",
+    "@hrDaysCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "hrDaysFractional": "{days} days",
+    "@hrDaysFractional": {
+        "description": "Non-whole day count, e.g. 1.5 days",
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrDurationMinutes": "{minutes}m",
+    "@hrDurationMinutes": {
+        "description": "Worked time, minutes only",
+        "placeholders": {
+            "minutes": {
+                "type": "String"
+            }
+        }
+    },
+    "hrDurationHours": "{hours}h",
+    "@hrDurationHours": {
+        "description": "Worked time, whole hours",
+        "placeholders": {
+            "hours": {
+                "type": "String"
+            }
+        }
+    },
+    "hrDurationHoursMinutes": "{hours}h {minutes}m",
+    "@hrDurationHoursMinutes": {
+        "description": "Worked time, hours and minutes",
+        "placeholders": {
+            "hours": {
+                "type": "String"
+            },
+            "minutes": {
+                "type": "String"
+            }
+        }
+    },
+    "hrGoodMorning": "Good morning",
+    "hrGoodAfternoon": "Good afternoon",
+    "hrGoodEvening": "Good evening",
+    "hrGreetingWithName": "{greeting}, {name}",
+    "@hrGreetingWithName": {
+        "description": "Dashboard greeting",
+        "placeholders": {
+            "greeting": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrAddAPerson": "Add a person",
+    "hrApprovals": "Approvals",
+    "hrReviewRequests": "{count, plural, =1{Review 1 request} other{Review {count} requests}}",
+    "@hrReviewRequests": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "hrAttendanceBoard": "Attendance board",
+    "hrHeadcount": "Headcount",
+    "hrActiveCount": "{count} active",
+    "@hrActiveCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "hrOnLeave": "On leave",
+    "hrWaitingOnYou": "Waiting on you",
+    "hrNeedsADecision": "Needs a decision",
+    "hrAllClear": "All clear",
+    "hrNewThisMonth": "New this month",
+    "hrMonthlyPayroll": "Monthly payroll",
+    "hrEstimated": "Estimated",
+    "hrNeedsYourDecision": "Needs your decision",
+    "hrNeedsYourDecisionSubtitle": "Leave requests nobody has answered yet",
+    "hrOpenQueue": "Open queue",
+    "hrCouldNotLoadApprovalsQueue": "Could not load the approvals queue.",
+    "hrTryAgain": "Try again",
+    "hrNothingWaitingOnYou": "Nothing is waiting on you. Every request has been decided.",
+    "hrMoreWaiting": "{count} more waiting",
+    "@hrMoreWaiting": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "hrEmployeeWithId": "Employee {id}",
+    "@hrEmployeeWithId": {
+        "description": "Fallback name when an employee record is missing",
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "hrOutToday": "Out today",
+    "hrRoster": "Roster",
+    "hrEveryoneIsInToday": "Everyone is in today.",
+    "hrJoinedThisMonth": "Joined this month",
+    "hrNobodyNewThisMonth": "Nobody new this month.",
+    "hrEmploymentFullTime": "Full time",
+    "hrEmploymentPartTime": "Part time",
+    "hrEmploymentContract": "Contract",
+    "hrEmploymentIntern": "Intern",
+    "hrEmploymentCasual": "Casual",
+    "hrStatusActive": "Active",
+    "hrStatusSuspended": "Suspended",
+    "hrStatusTerminated": "Terminated",
+    "hrPayMonthly": "Monthly",
+    "hrPayWeekly": "Weekly",
+    "hrPayDaily": "Daily",
+    "hrPayHourly": "Hourly",
+    "hrPaymentBankTransfer": "Bank transfer",
+    "hrAttendanceNotIn": "Not in",
+    "hrAttendanceClockedIn": "Clocked in",
+    "hrAttendanceClockedOut": "Clocked out",
+    "hrAttendanceSourceSelf": "Self",
+    "@hrAttendanceSourceSelf": {
+        "description": "Attendance punch recorded by the employee themselves"
+    },
+    "hrAttendanceSourceManager": "Recorded by manager",
+    "hrLeaveStatusPending": "Pending",
+    "hrLeaveStatusRejected": "Rejected",
+    "hrLeaveStatusCancelled": "Cancelled",
+    "hrLeaveTypeAnnual": "Annual leave",
+    "hrLeaveTypeSick": "Sick leave",
+    "hrLeaveTypeMaternity": "Maternity leave",
+    "hrLeaveTypePaternity": "Paternity leave",
+    "hrLeaveTypeCompassionate": "Compassionate leave",
+    "hrLeaveTypeUnpaid": "Unpaid leave",
+    "hrPersonAddedToRoster": "{name} was added to the roster.",
+    "@hrPersonAddedToRoster": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSavedChangesTo": "Saved changes to {name}.",
+    "@hrSavedChangesTo": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteSentNotLinked": "Invite sent, but not linked. {message}",
+    "@hrInviteSentNotLinked": {
+        "placeholders": {
+            "message": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPersonIsNowStatus": "{name} is now {status}.",
+    "@hrPersonIsNowStatus": {
+        "description": "Toast after an employment status change; status is the lowercased status label",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTerminatePersonTitle": "Terminate {name}?",
+    "@hrTerminatePersonTitle": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTerminatePersonBody": "Their last day will be recorded as {date}. The record stays for payroll history but they leave the roster.",
+    "@hrTerminatePersonBody": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTerminate": "Terminate",
+    "hrAccessDiagnostic": "Access diagnostic",
+    "hrDiagnosticFailed": "Diagnostic failed: {error}",
+    "@hrDiagnosticFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPeople": "People",
+    "hrEveryoneOnThisBranch": "Everyone on this branch",
+    "hrEveryoneAtBranch": "Everyone at {branch}",
+    "@hrEveryoneAtBranch": {
+        "placeholders": {
+            "branch": {
+                "type": "String"
+            }
+        }
+    },
+    "hrAddPerson": "Add person",
+    "hrSearchPeopleHint": "Search name, role, phone…",
+    "hrStatus": "Status",
+    "hrEmployed": "Employed",
+    "@hrEmployed": {
+        "description": "Filter option: everyone not terminated"
+    },
+    "hrDepartment": "Department",
+    "hrAllDepartments": "All departments",
+    "hrSortBy": "Sort by",
+    "hrReportsTo": "Reports to",
+    "hrContact": "Contact",
+    "hrTenure": "Tenure",
+    "hrBasePay": "Base pay",
+    "hrReportsToName": "Reports to {name}",
+    "@hrReportsToName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrResendHrInvite": "Re-send HR invite",
+    "hrInviteToHr": "Invite to HR",
+    "hrMarkActive": "Mark active",
+    "hrMarkOnLeave": "Mark on leave",
+    "hrSuspend": "Suspend",
+    "hrNoOneOnBranchYet": "No one on this branch yet",
+    "hrNoOneOnBranchYetMessage": "Add your first person to start tracking attendance, leave and payroll.",
+    "hrNoOneMatchesFilters": "No one matches these filters",
+    "hrClearFilters": "Clear filters",
+    "hrWhyWasThisDenied": "Why was this denied?",
+    "hrTenureStarts": "Starts {date}",
+    "@hrTenureStarts": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTenureDays": "{days} d",
+    "@hrTenureDays": {
+        "description": "Tenure under a month, abbreviated",
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTenureMonths": "{months} mo",
+    "@hrTenureMonths": {
+        "description": "Tenure in months, abbreviated",
+        "placeholders": {
+            "months": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTenureYears": "{years} yr",
+    "@hrTenureYears": {
+        "description": "Tenure in whole years, abbreviated",
+        "placeholders": {
+            "years": {
+                "type": "String"
+            }
+        }
+    },
+    "hrTenureYearsMonths": "{years} yr {months} mo",
+    "@hrTenureYearsMonths": {
+        "placeholders": {
+            "years": {
+                "type": "String"
+            },
+            "months": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSortNameAsc": "Name (A–Z)",
+    "hrSortNameDesc": "Name (Z–A)",
+    "hrSortNewestHire": "Newest hire",
+    "hrSortLongestServing": "Longest serving",
+    "hrSortHighestPaid": "Highest paid",
+    "hrEditPerson": "Edit person",
+    "hrSectionIdentity": "Identity",
+    "hrFirstName": "First name",
+    "hrLastName": "Last name",
+    "hrEmailOptional": "Email (optional)",
+    "hrNationalIdOptional": "National ID (optional)",
+    "hrRssbNumberOptional": "RSSB number (optional)",
+    "hrSectionRole": "Role",
+    "hrJobTitle": "Job title",
+    "hrDepartmentOptional": "Department (optional)",
+    "hrEmploymentType": "Employment type",
+    "hrStartDate": "Start date",
+    "hrLastDayOptional": "Last day (optional)",
+    "hrSectionPay": "Pay",
+    "hrBasePayWithCurrency": "Base pay ({currency})",
+    "@hrBasePayWithCurrency": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPayFrequency": "Pay frequency",
+    "hrAnnualLeaveDays": "Annual leave days",
+    "hrAnnualLeaveDaysHelper": "Leave blank for the legal minimum of {days} working days",
+    "@hrAnnualLeaveDaysHelper": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrMobileMoneyNumber": "Mobile money number",
+    "hrMobileMoneyNumberHelper": "Leave blank to pay the contact number above",
+    "hrBank": "Bank",
+    "hrAccountNumber": "Account number",
+    "hrSectionNotes": "Notes",
+    "hrNotesOptional": "Notes (optional)",
+    "hrSaveChanges": "Save changes",
+    "hrManagerNotOnRoster": "Their current manager is not on this branch's roster. Pick someone here to change it.",
+    "hrManagerNobodyToChoose": "Nobody to choose yet — leave requests go to whoever manages the business.",
+    "hrManagerHelper": "Their leave requests go to this person. Leave it unset and they go to whoever manages the business.",
+    "hrNoManager": "No manager",
+    "hrFirstNameRequired": "First name is required",
+    "hrLastNameRequired": "Last name is required",
+    "hrJobTitleRequired": "Job title is required",
+    "hrPhoneNumberRequired": "Phone number is required",
+    "hrEnterValidPhoneNumber": "Enter a valid phone number",
+    "hrEnterValidEmail": "Enter a valid email address",
+    "hrNationalIdLength": "A national ID is {min} to {max} characters",
+    "@hrNationalIdLength": {
+        "placeholders": {
+            "min": {
+                "type": "String"
+            },
+            "max": {
+                "type": "String"
+            }
+        }
+    },
+    "hrStartDateTooFarAhead": "Start date cannot be more than a year ahead",
+    "hrLastDayRequiredToTerminate": "A last day is required to terminate",
+    "hrLastDayBeforeStart": "Last day cannot be before the start date",
+    "hrCannotReportToSelf": "Someone cannot report to themselves",
+    "hrPayCannotBeNegative": "Pay cannot be negative",
+    "hrLeaveDaysCannotBeNegative": "Leave days cannot be negative",
+    "hrLeaveDaysTooMany": "That is more than a working year — enter days, not hours",
+    "hrMobileMoneyNumberRequired": "Mobile money number is required",
+    "hrEnterValidMobileMoneyNumber": "Enter a valid mobile money number",
+    "hrBankNameRequired": "Bank name is required",
+    "hrAccountNumberRequired": "Account number is required",
+    "hrPickFirstDayOfLeave": "Pick the first day of leave.",
+    "hrPickLastDayOfLeave": "Pick the last day of leave.",
+    "hrLastDayBeforeFirstDay": "The last day cannot be before the first day.",
+    "hrLeaveTooFarAhead": "Leave cannot be booked more than a year ahead. Check the year on these dates.",
+    "hrLeaveCannotStartInPast": "Leave cannot start in the past.",
+    "hrLeaveBackdatedTooFar": "This started more than {days} days ago. Ask whoever manages the roster to record it instead.",
+    "@hrLeaveBackdatedTooFar": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeaveReasonRequired": "Say briefly why you need {leaveType}.",
+    "@hrLeaveReasonRequired": {
+        "description": "leaveType is the lowercased leave type, e.g. sick leave",
+        "placeholders": {
+            "leaveType": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPickAtLeastOneDay": "Pick at least one day.",
+    "hrPeriodAllWeekend": "That period is all weekend — pick at least one working day.",
+    "hrLeaveOverlaps": "This overlaps leave you already have from {start} to {end} ({status}).",
+    "@hrLeaveOverlaps": {
+        "placeholders": {
+            "start": {
+                "type": "String"
+            },
+            "end": {
+                "type": "String"
+            },
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "hrNoLeaveLeft": "No {leaveType} left for {year}.",
+    "@hrNoLeaveLeft": {
+        "description": "leaveType is the lowercased leave type",
+        "placeholders": {
+            "leaveType": {
+                "type": "String"
+            },
+            "year": {
+                "type": "String"
+            }
+        }
+    },
+    "hrOnlyLeaveLeft": "Only {left} of {leaveType} left for {year}; this asks for {requested}.",
+    "@hrOnlyLeaveLeft": {
+        "placeholders": {
+            "left": {
+                "type": "String"
+            },
+            "leaveType": {
+                "type": "String"
+            },
+            "year": {
+                "type": "String"
+            },
+            "requested": {
+                "type": "String"
+            }
+        }
+    },
+    "hrRequestLeave": "Request leave",
+    "hrLeaveForName": "Leave for {name}",
+    "@hrLeaveForName": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeaveTypeField": "Type",
+    "@hrLeaveTypeField": {
+        "description": "Leave type field label"
+    },
+    "hrFirstDay": "First day",
+    "hrLastDay": "Last day",
+    "hrNoteOptional": "Note (optional)",
+    "hrReason": "Reason",
+    "hrSending": "Sending…",
+    "hrSendRequest": "Send request",
+    "hrLeaveCostCalendarDays": "{days} (calendar days)",
+    "@hrLeaveCostCalendarDays": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeaveCostWorkingDays": "{days} (working days)",
+    "@hrLeaveCostWorkingDays": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrUnpaidLeaveNoLimit": "unpaid leave has no yearly limit",
+    "hrMoreThanYouHaveLeft": "{days} more than you have left",
+    "@hrMoreThanYouHaveLeft": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeftAfterThis": "{days} left after this",
+    "@hrLeftAfterThis": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeaveTakenNoLimit": "taken · no yearly limit",
+    "hrLeaveLeftOf": "left of {days}",
+    "@hrLeaveLeftOf": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeaveAwaitingApproval": "{days} awaiting approval",
+    "@hrLeaveAwaitingApproval": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrLeaveRequestSent": "Leave request sent. You will see it here once it is decided.",
+    "hrWithdrawRequestTitle": "Withdraw this request?",
+    "hrWithdrawRequestBody": "Your leave from {start} to {end} will be cancelled and the days go back to your balance.",
+    "@hrWithdrawRequestBody": {
+        "placeholders": {
+            "start": {
+                "type": "String"
+            },
+            "end": {
+                "type": "String"
+            }
+        }
+    },
+    "hrKeepIt": "Keep it",
+    "hrWithdraw": "Withdraw",
+    "hrRequestWithdrawn": "Request withdrawn.",
+    "hrCouldNotLoadYourRecord": "Could not load your record",
+    "hrCouldNotLoadYourLeave": "Could not load your leave",
+    "hrMyLeave": "My leave",
+    "hrBalancesFor": "{name} · balances for {year}",
+    "@hrBalancesFor": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "year": {
+                "type": "String"
+            }
+        }
+    },
+    "hrRequestsGoTo": "Requests go to {name}",
+    "@hrRequestsGoTo": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrEmploymentEndedNotice": "Your employment has ended, so no new leave can be booked. Your history stays here.",
+    "hrRequests": "Requests",
+    "hrNoLeaveBookedYet": "No leave booked yet. Your balances above are what you have to spend this year.",
+    "hrNoEmployeeRecordTitle": "No employee record for this account",
+    "hrNoEmployeeRecordLeaveBody": "Leave is booked against a person on a branch roster, and this sign-in does not resolve to one yet. Ask whoever manages your roster to invite you from the People page — that is what links your record to this account. If they already did, check that the phone number on your record is the one you signed in with.",
+    "hrLeaveApproved": "Leave approved.",
+    "hrLeaveRejected": "Leave rejected.",
+    "hrLeave": "Leave",
+    "@hrLeave": {
+        "description": "Leave page title"
+    },
+    "hrWithTheirManager": "With their manager",
+    "hrWithTheirManagerCaption": "Their own manager has not answered yet. Deciding one of these answers it over their head.",
+    "hrDecided": "Decided",
+    "hrNothingWaitingOnYouShort": "Nothing waiting on you",
+    "hrRequestsWaitingOnYou": "{count, plural, =1{1 request waiting on you} other{{count} requests waiting on you}}",
+    "@hrRequestsWaitingOnYou": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "hrWithAnotherManager": "{count} with another manager",
+    "@hrWithAnotherManager": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "hrYourTeam": "Your team",
+    "hrApproveThisLeave": "Approve this leave?",
+    "hrRejectThisLeave": "Reject this leave?",
+    "hrRejectReasonLabel": "Why? (shown to them)",
+    "hrApprove": "Approve",
+    "hrReject": "Reject",
+    "hrOnlyTheirManagerCanAnswer": "Only their manager can answer this one.",
+    "hrNoLeaveRequestsYet": "No leave requests yet",
+    "hrNoLeaveRequestsOwnerHint": "Invite people from the People page and they can book their own leave. Set who each person reports to and their requests go to that manager; anyone with no manager lands here.",
+    "hrNoLeaveRequestsManagerHint": "Requests from anyone who reports to you will appear here for you to approve.",
+    "hrErrorLoadPeopleOnBranch": "Could not load the people on this branch.",
+    "hrErrorLoadPersonRecord": "Could not load this person's record.",
+    "hrErrorAddPerson": "Could not add {name}.",
+    "@hrErrorAddPerson": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrErrorSavePerson": "Could not save changes to {name}.",
+    "@hrErrorSavePerson": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrErrorLinkAccount": "The invite was sent, but this record could not be linked to the new account. Their leave will not resolve until it is.",
+    "hrErrorChangeStatus": "Could not change this person to {status}.",
+    "@hrErrorChangeStatus": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "hrThisPerson": "this person",
+    "hrErrorLoadYourLeave": "Could not load your leave.",
+    "hrErrorLoadBranchLeave": "Could not load leave for this branch.",
+    "hrErrorLoadTeamLeave": "Could not load leave for your team.",
+    "hrErrorSendLeaveRequest": "Could not send this leave request.",
+    "hrErrorWithdrawRequest": "Could not withdraw this request. It may already have been decided.",
+    "hrErrorApproveAlreadyDecided": "Could not approve this request: it has already been decided or withdrawn. Refresh to see where it stands.",
+    "hrErrorRejectAlreadyDecided": "Could not reject this request: it has already been decided or withdrawn. Refresh to see where it stands.",
+    "hrErrorApproveRequest": "Could not approve this request.",
+    "hrErrorRejectRequest": "Could not reject this request.",
+    "hrErrorLoadDayAttendance": "Could not load attendance for this day.",
+    "hrErrorLoadTimesheet": "Could not load this timesheet.",
+    "hrErrorCheckClockedIn": "Could not check whether you are clocked in.",
+    "hrErrorCorrectEntry": "Could not correct this entry.",
+    "hrErrorServerReturnedNothing": "The server accepted the punch but returned nothing to show.",
+    "hrErrorClockInNotAllowed": "You are not allowed to clock in for this person.",
+    "hrErrorClockOutNotAllowed": "You are not allowed to clock out for this person.",
+    "hrErrorClockIn": "Could not clock in.",
+    "hrErrorClockOut": "Could not clock out.",
+    "hrErrorLoadYourTeam": "Could not load your team.",
+    "hrErrorResolveAccess": "Could not work out what you have access to: {error}",
+    "@hrErrorResolveAccess": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrRoleStaffLabel": "Staff — books own leave",
+    "hrRoleManagerLabel": "Manager — roster and approvals",
+    "hrRoleStaff": "Staff",
+    "hrRoleManager": "Manager",
+    "hrInviteTitle": "Invite {name} to HR",
+    "@hrInviteTitle": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteNoContact": "This record has no phone number or email, so there is nowhere to send an invite. Add one first.",
+    "hrInviteWillGetPin": "They will get a PIN to sign in at hr.useflipper.com with, confirmed by a code sent to {contact}.",
+    "@hrInviteWillGetPin": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteEmailNoPhone": "This record has an email but no phone number. Signing in needs a code sent by SMS, so add a phone number before inviting.",
+    "hrInviteAlreadyHasAccount": "They already have an account. Inviting again issues a fresh PIN and updates what they can do — it does not create a second person.",
+    "hrInviteDirectReports": "{count, plural, =1{1 person reports to them, so they will approve that leave whichever role you pick. The roster and everyone else's pay is what the manager role adds.} other{{count} people report to them, so they will approve that leave whichever role you pick. The roster and everyone else's pay is what the manager role adds.}}",
+    "@hrInviteDirectReports": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "hrInviteWhatCanTheyDo": "What can they do?",
+    "hrSendInvite": "Send invite",
+    "hrRoleStaffDescription": "Sees their own record, books leave and checks their balance — plus approves leave for anyone who reports to them.",
+    "hrRoleManagerDescription": "Everything above, plus the branch roster, pay, and approving leave for the whole business.",
+    "hrInviteSent": "Invite sent",
+    "hrInviteCanNowSignIn": "{name} can now sign in at hr.useflipper.com as {role}.",
+    "@hrInviteCanNowSignIn": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "role": {
+                "type": "String"
+            }
+        }
+    },
+    "hrCopyPin": "Copy PIN",
+    "hrPinCopied": "PIN copied.",
+    "hrInvitePinHelp": "Signing in asks for this PIN, then a code sent to {phone}. Pass the PIN on now — it is not shown again, and a lost one is replaced by inviting them a second time.",
+    "@hrInvitePinHelp": {
+        "placeholders": {
+            "phone": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteNeedsContact": "A phone number or email is needed before this person can be invited.",
+    "hrInviteErrorAccount": "Could not find or create a Flipper account for {contact}.",
+    "@hrInviteErrorAccount": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteErrorNoAccountId": "Flipper answered without an account id for {contact}.",
+    "@hrInviteErrorNoAccountId": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteErrorNoMembershipId": "The membership was created but Flipper did not return its id.",
+    "hrInviteErrorGrantAccess": "Could not give {name} access to this business: {error}",
+    "@hrInviteErrorGrantAccess": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteErrorCreatePin": "Could not create a sign-in PIN for {name}.",
+    "@hrInviteErrorCreatePin": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteErrorNoPin": "The PIN was requested but Flipper did not return one.",
+    "hrInviteErrorNoMembership": "The account was created but has no membership for this business, so signing in would land nowhere. Try inviting this person again.",
+    "hrInviteErrorConfirmMembership": "Could not confirm the new membership: {error}",
+    "@hrInviteErrorConfirmMembership": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrInviteErrorTimeout": "Flipper did not answer in time — check the connection and try again.",
+    "hrInviteErrorNotJson": "Flipper answered with something that is not JSON:",
+    "hrEnterValidMomoNumber": "Enter a valid MTN or Airtel number, e.g. 0788123456.",
+    "hrMomoUnreadableReply": "The payment gateway sent an unreadable reply.",
+    "hrMomoNoReference": "The payment started but no reference came back — check your Mobile Money statement before trying again.",
+    "hrMomoMissingReference": "Missing payment reference.",
+    "hrMomoRejectedInvalid": "The payment request was rejected as invalid.",
+    "hrMomoNotAuthorised": "This account is not authorised to take payments.",
+    "hrMomoServiceNotFound": "The payment service could not be found.",
+    "hrMomoAlreadySubmitted": "That payment has already been submitted.",
+    "hrMomoUnavailable": "Mobile Money is unavailable right now. Please try again shortly.",
+    "hrMomoCouldNotStart": "The payment could not be started (HTTP {status}).",
+    "@hrMomoCouldNotStart": {
+        "placeholders": {
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "hrErrorCheckSubscription": "Could not check this business's subscription.",
+    "hrErrorLoadPlanPrice": "Could not load the price of this plan.",
+    "hrErrorStartSubscription": "Could not start the subscription.",
+    "hrErrorSkipPayment": "Could not skip this payment.",
+    "hrPreparingSubscription": "Preparing your subscription…",
+    "hrErrorStartSubscriptionWith": "Could not start the subscription: {error}",
+    "@hrErrorStartSubscriptionWith": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSubscriptionAlreadyActive": "This subscription is already active.",
+    "hrSendingRequestToPhone": "Sending the request to your phone…",
+    "hrPaymentCouldNotStartWith": "The payment could not be started: {error}",
+    "@hrPaymentCouldNotStartWith": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrApproveMomoOnPhone": "Approve the Mobile Money request on your phone.",
+    "hrPaymentReceivedActive": "Payment received. Your subscription is active.",
+    "hrPaymentNotCompleted": "The payment was not completed on your phone.",
+    "hrPaymentNoVerdictYet": "We have not had a verdict from Mobile Money yet. If you approved the request, it will unlock shortly — check again in a moment.",
+    "hrSubscriptionEnded": "Your subscription has ended",
+    "hrThisNeedsSubscription": "This needs a subscription",
+    "hrFeatureNeedsSubscription": "{feature} needs a subscription",
+    "@hrFeatureNeedsSubscription": {
+        "placeholders": {
+            "feature": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSubscriptionEndedBody": "Nothing has been deleted — the roster, leave and attendance records are all still here. Renew the subscription to open them again.",
+    "hrSubscriptionPitch": "Flipper HR is part of the Flipper subscription. Pay for the business once and the roster, leave and attendance open for everyone on it.",
+    "hrPaymentOnItsWay": "A payment is already on its way. If you approved it on your phone, this unlocks as soon as Mobile Money confirms it.",
+    "hrRenewNow": "Renew now",
+    "hrSeeThePlan": "See the plan",
+    "hrSubscriptionCheckFailedOpen": "Could not check this business's subscription, so it is being left open for now.",
+    "hrTestPricingOn": "Test pricing is switched on for this project, so subscriptions are charged at a reduced amount.",
+    "hrSkipEndsSoon": "You're using free access without paying ({used} of {max} skips used). It ends soon.",
+    "@hrSkipEndsSoon": {
+        "placeholders": {
+            "used": {
+                "type": "String"
+            },
+            "max": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSkipEndsToday": "You're using free access without paying ({used} of {max} skips used). It ends today.",
+    "@hrSkipEndsToday": {
+        "placeholders": {
+            "used": {
+                "type": "String"
+            },
+            "max": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSkipEndsInDays": "{days, plural, =1{You're using free access without paying ({used} of {max} skips used). It ends in 1 day.} other{You're using free access without paying ({used} of {max} skips used). It ends in {days} days.}}",
+    "@hrSkipEndsInDays": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            },
+            "used": {
+                "type": "String"
+            },
+            "max": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPayNow": "Pay now",
+    "hrSubscriptionEndsToday": "Your subscription ends today.",
+    "hrSubscriptionEndsTomorrow": "Your subscription ends tomorrow.",
+    "hrSubscriptionEndsInDays": "{days, plural, =1{Your subscription ends in 1 day.} other{Your subscription ends in {days} days.}}",
+    "@hrSubscriptionEndsInDays": {
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "hrRenew": "Renew",
+    "hrFeatureDashboard": "The dashboard",
+    "hrFeatureRoster": "The roster",
+    "hrFeatureAttendanceBoard": "The attendance board",
+    "hrErrorSkipPaymentWith": "Could not skip this payment: {error}",
+    "@hrErrorSkipPaymentWith": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSkipping": "Skipping…",
+    "hrSkipForNow": "Skip for now ({count} left)",
+    "@hrSkipForNow": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSubscribePickBusiness": "Pick the business you are paying for, then the plan and its price appear here.",
+    "hrChooseABusiness": "Choose a business",
+    "hrCouldNotLoadPlan": "Could not load the plan: {error}",
+    "@hrCouldNotLoadPlan": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrRenewYourSubscription": "Renew your subscription",
+    "hrSubscribeToFlipper": "Subscribe to Flipper",
+    "hrPeriodYearly": "Yearly",
+    "hrTestPricingNormally": "Test pricing is on — normally {amount} {period}.",
+    "@hrTestPricingNormally": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "hrWhatBusinessIsUsing": "What this business is using",
+    "hrUsagePosUsers": "POS users",
+    "hrUsageBranches": "Branches",
+    "hrUsageHrEmployees": "HR employees",
+    "hrUsageUnlimited": "{used} · unlimited",
+    "@hrUsageUnlimited": {
+        "placeholders": {
+            "used": {
+                "type": "String"
+            }
+        }
+    },
+    "hrUsageOf": "{used} of {cap}",
+    "@hrUsageOf": {
+        "placeholders": {
+            "used": {
+                "type": "String"
+            },
+            "cap": {
+                "type": "String"
+            }
+        }
+    },
+    "hrMomoNumberLabel": "Mobile Money number",
+    "hrPaymentReceived": "Payment received.",
+    "hrOpenFlipperHr": "Open Flipper HR",
+    "hrPreparing": "Preparing…",
+    "hrWaitingForApproval": "Waiting for your approval…",
+    "hrPayWithMomo": "Pay {amount} with Mobile Money",
+    "@hrPayWithMomo": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "hrMomoPromptNote": "You will get a Mobile Money prompt on this number. Approving it charges {amount}.",
+    "@hrMomoPromptNote": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPerYear": "per year",
+    "hrPerMonth": "per month",
+    "hrExpandMenu": "Expand the menu",
+    "hrCollapseMenu": "Collapse the menu",
+    "hrSearchPeople": "Search people…",
+    "hrSwitchBusinessOrBranch": "Switch business or branch",
+    "hrSigningOut": "Signing out…",
+    "hrNavYou": "You",
+    "@hrNavYou": {
+        "description": "Sidebar heading for self-service pages"
+    },
+    "hrAttendance": "Attendance",
+    "hrMyTime": "My time",
+    "hrPickBranchToContinue": "Pick a branch to continue",
+    "hrPickBranchBody": "HR records belong to a branch, so choose the one you are working on.",
+    "hrChooseBusinessOrBranch": "Choose business or branch",
+    "hrCouldNotCheckSession": "Could not check your session: {error}",
+    "@hrCouldNotCheckSession": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrCouldNotLoadBusinesses": "Could not load your businesses: {error}",
+    "@hrCouldNotLoadBusinesses": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "hrBackToSignIn": "Back to sign in",
+    "hrBrandTagline": "Your team, your time, your people — all in one place.",
+    "hrBrandSubtitle": "Attendance, payroll, and leave are ready the moment you sign in.",
+    "hrBrandStatEmployees": "employees managed",
+    "hrBrandStatPayroll": "payroll processed monthly",
+    "hrBrandStatUptime": "uptime",
+    "hrBrandPayrollThisMonth": "Payroll · this month",
+    "hrBrandNewHire": "New hire",
+    "hrBrandDayOne": "Day 1",
+    "hrBrandAttendanceStreak": "Attendance streak",
+    "hrClockedInToast": "Clocked in.",
+    "hrClockedOutToast": "Clocked out — {worked} today.",
+    "@hrClockedOutToast": {
+        "placeholders": {
+            "worked": {
+                "type": "String"
+            }
+        }
+    },
+    "hrYourHoursForLastDays": "Your hours for the last {days} days.",
+    "@hrYourHoursForLastDays": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrNoRecordNoHours": "You do not have an employee record on this account yet, so there are no hours to track. Ask whoever manages HR to add you.",
+    "hrRecentDays": "Recent days",
+    "hrClockedInAt": "Clocked in at {time}",
+    "@hrClockedInAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "hrNotClockedInToday": "Not clocked in today",
+    "hrLastOutAt": "Last out at {time}",
+    "@hrLastOutAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "hrClockOut": "Clock out",
+    "hrClockIn": "Clock in",
+    "hrWorkedInDays": "{worked} in {days} days",
+    "@hrWorkedInDays": {
+        "placeholders": {
+            "worked": {
+                "type": "String"
+            },
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "hrToday": "Today",
+    "hrOvernight": "overnight",
+    "hrNoHours": "No hours",
+    "hrSessionUntilNow": "{start} – now",
+    "@hrSessionUntilNow": {
+        "placeholders": {
+            "start": {
+                "type": "String"
+            }
+        }
+    },
+    "hrBreakDuration": "{duration} break",
+    "@hrBreakDuration": {
+        "placeholders": {
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPersonClockedIn": "{name} is clocked in.",
+    "@hrPersonClockedIn": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrPersonClockedOut": "{name} is clocked out.",
+    "@hrPersonClockedOut": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "hrAttendanceNoOneOnBranch": "No one is on this branch yet. Add people first, then their hours can be recorded here.",
+    "hrOnRoster": "On roster",
+    "hrRecorded": "Recorded",
+    "hrHours": "Hours",
+    "hrChangeDay": "Change day",
+    "hrNoHoursToday": "No hours today",
+    "hrInAt": "In {time}",
+    "@hrInAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "hrOutAt": "out {time}",
+    "@hrOutAt": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "hrSessionsCount": "{count, plural, =1{1 session} other{{count} sessions}}",
+    "@hrSessionsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "authSignIn": "Sign in",
+    "authToContinueToAccount": "to continue to your account",
+    "authEnterYourEmail": "Enter your email",
+    "authPleaseEnterEmail": "Please enter your email",
+    "authPleaseEnterValidEmail": "Please enter a valid email",
+    "authPassword": "Password",
+    "authEnterYourPassword": "Enter your password",
+    "authPleaseEnterPassword": "Please enter your password",
+    "authPasswordMinLength": "Password must be at least 6 characters",
+    "authKeepMeSignedIn": "Keep me signed in",
+    "authForgotPassword": "Forgot password?",
+    "authNoAccountPrompt": "Don't have an account?",
+    "authCreateOne": "Create one",
+    "authCreateYourAccount": "Create your account",
+    "authSignupSubtitle": "Start with the same secure signup flow, now tuned for a faster mobile setup.",
+    "authFullName": "Full name",
+    "authEnterFullName": "Enter your full name",
+    "authPleaseEnterName": "Please enter your name",
+    "authHidePassword": "Hide password",
+    "authShowPassword": "Show password",
+    "authConfirmPassword": "Confirm password",
+    "authConfirmYourPassword": "Confirm your password",
+    "authPleaseConfirmPassword": "Please confirm your password",
+    "authPasswordsDoNotMatch": "Passwords do not match",
+    "authCreateAccountButton": "Create account",
+    "authAlreadyHaveAccount": "Already have an account? Sign in",
+    "authBusinessSetup": "Business setup",
+    "authAuthenticator": "Authenticator",
+    "authAddAccount": "Add account",
+    "authSomethingWentWrong": "Something went wrong",
+    "authUnexpectedErrorTryAgain": "An unexpected error occurred. Please try again.",
+    "authTryAgain": "Try again",
+    "authNoAccountsAdded": "No accounts added",
+    "authAddFirstAccountHint": "Add your first account to start generating verification codes",
+    "authCodeCopied": "Code copied to clipboard",
+    "authInvalidQrCode": "Invalid QR code",
+    "authAccountAdded": "Account added successfully",
+    "authFailedToAddAccount": "Failed to add account: {error}",
+    "@authFailedToAddAccount": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "personalReadyForAdventure": "Ready for adventure?",
+    "personalDayStreak": "{count, plural, =1{1 day streak!} other{{count} day streak!}}",
+    "@personalDayStreak": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "personalTodaysProgress": "Today's Progress",
+    "personalCompletedOf": "{done}/{total} completed",
+    "@personalCompletedOf": {
+        "placeholders": {
+            "done": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "personalXpProgress": "XP Progress",
+    "personalXpToday": "+{xp} XP today",
+    "@personalXpToday": {
+        "placeholders": {
+            "xp": {
+                "type": "String"
+            }
+        }
+    },
+    "personalFindChallenges": "Find challenges",
+    "personalViewRewards": "View rewards",
+    "personalLeaderboard": "Leaderboard",
+    "personalRecentAchievements": "Recent Achievements",
+    "personalOpeningAchievements": "Opening all achievements!",
+    "personalViewAll": "View all",
+    "personalAchievementFirstSteps": "First Steps",
+    "personalAchievementExplorer": "Explorer",
+    "personalAchievementStreakMaster": "Streak Master",
+    "personalAchievementSocialStar": "Social Star",
+    "personalHowToLevelUp": "How to Level Up",
+    "personalDiscoverQuests": "Discover Hidden Quests",
+    "personalDiscoverQuestsBody": "Visit local businesses to unlock secret challenges and earn bonus XP!",
+    "personalDailyChallenges": "Complete Daily Challenges",
+    "personalDailyChallengesBody": "Maintain your streak and climb the leaderboard with friends!",
+    "personalTeamUp": "Team Up with Friends",
+    "personalTeamUpBody": "Join forces for group challenges and earn multiplier bonuses!",
+    "personalAdventureBegins": "Let the adventure begin! 🚀",
+    "personalStartAdventure": "Start Your Adventure!",
+    "personalSyncingAdventures": "Syncing with nearby adventures...",
+    "personalLoggingOut": "Logging out...",
+    "personalLoggedOut": "Successfully logged out!",
+    "personalLogoutFailed": "Logout failed: {error}",
+    "@personalLogoutFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "personalCouldNotDetermineLocation": "Could not determine your location.",
+    "personalBusinessIdNotFound": "Business ID not found. Please login again.",
+    "personalFailedToFetchChallenges": "Failed to fetch challenges",
+    "personalFailedToFetchChallengesRetry": "Failed to fetch challenges. Please try again.",
+    "personalYourRewards": "Your Rewards",
+    "personalRewardFreeCoffee": "Free Coffee",
+    "personalRewardFreeCoffeeBody": "Get a free coffee from our partner cafes.",
+    "personalRewardDiscount": "10% Discount",
+    "personalRewardDiscountBody": "Enjoy a 10% discount on your next purchase.",
+    "personalRewardEarlyAccess": "Early Access",
+    "personalRewardEarlyAccessBody": "Get early access to new features.",
+    "personalChallengeDiscovered": "Challenge Discovered!",
+    "personalRewardAvailable": "Reward Available!",
+    "personalLater": "Later",
+    "personalClaimReward": "Claim Reward",
+    "personalFailedToClaimReward": "Failed to claim reward. Please try again.",
+    "personalRewardClaimed": "Reward claimed successfully!",
+    "personalErrorLoadingRewards": "Error loading rewards: {error}",
+    "@personalErrorLoadingRewards": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "personalChallengeClaimed": "Challenge Claimed",
+    "personalClaimedOn": "Claimed on {date}",
+    "@personalClaimedOn": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "personalBusinessLabel": "Business: {business}",
+    "@personalBusinessLabel": {
+        "placeholders": {
+            "business": {
+                "type": "String"
+            }
+        }
+    },
+    "personalRewardLabel": "Reward: {reward}",
+    "@personalRewardLabel": {
+        "placeholders": {
+            "reward": {
+                "type": "String"
+            }
+        }
+    },
+    "personalSpecialReward": "Special reward",
+    "personalClaim": "Claim",
+    "personalNoChallengesNearby": "No challenges found nearby. Try moving around!",
+    "personalTapToDiscover": "Tap to discover challenges nearby",
+    "personalTapToSearchAgain": "Tap to search again",
+    "personalSearchingChallenges": "Searching for nearby challenges...",
+    "personalChallengesFound": "Challenges Found!",
+    "personalNearbyRewards": "{count, plural, =1{1 nearby reward} other{{count} nearby rewards}}",
+    "@personalNearbyRewards": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "personalChallengeClaimedToast": "Challenge claimed successfully! 🎉",
+    "personalFailedToClaimChallenge": "Failed to claim challenge: {error}",
+    "@personalFailedToClaimChallenge": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
     "manualPurchaseSellPrice": "Sell price",
     "@manualPurchaseSellPrice": {
         "description": "Manual purchase line column header"
@@ -15246,5 +16694,1840 @@
             }
         }
     },
-    "loginFailed": "Login failed"
+    "loginFailed": "Login failed",
+    "webPricingTitle": "Simple, transparent pricing",
+    "@webPricingTitle": {
+        "description": "Books landing page pricing section title"
+    },
+    "webPlanMobile": "Mobile",
+    "@webPlanMobile": {
+        "description": "Mobile plan name"
+    },
+    "webPlanMobileDesktop": "Mobile + Desktop",
+    "@webPlanMobileDesktop": {
+        "description": "Mobile + Desktop plan name"
+    },
+    "webPlanEnterprise": "Enterprise",
+    "@webPlanEnterprise": {
+        "description": "Enterprise plan name"
+    },
+    "webCurrencyPerMonth": "RWF / month",
+    "@webCurrencyPerMonth": {
+        "description": "Price period suffix on pricing cards"
+    },
+    "webFeatureMobileAppAccess": "Mobile app access",
+    "@webFeatureMobileAppAccess": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureBasicBusinessTools": "Basic business tools",
+    "@webFeatureBasicBusinessTools": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureDataEncryption": "Data encryption",
+    "@webFeatureDataEncryption": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureSingleDevice": "Single device",
+    "@webFeatureSingleDevice": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureTaxReportingAddon": "+ Tax reporting (+30,000 RWF)",
+    "@webFeatureTaxReportingAddon": {
+        "description": "Pricing plan paid add-on"
+    },
+    "webFeatureMobileDesktopAppAccess": "Mobile + Desktop app access",
+    "@webFeatureMobileDesktopAppAccess": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureAdvancedBusinessTools": "Advanced business tools",
+    "@webFeatureAdvancedBusinessTools": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureMilitaryGradeEncryption": "Military-grade encryption",
+    "@webFeatureMilitaryGradeEncryption": {
+        "description": "Pricing plan feature"
+    },
+    "webFeaturePrioritySupport": "Priority support",
+    "@webFeaturePrioritySupport": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureMultipleDevices": "Multiple devices",
+    "@webFeatureMultipleDevices": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureAdvancedAnalytics": "Advanced analytics",
+    "@webFeatureAdvancedAnalytics": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureFullPlatformAccess": "Full platform access",
+    "@webFeatureFullPlatformAccess": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureEnterpriseGradeSecurity": "Enterprise-grade security",
+    "@webFeatureEnterpriseGradeSecurity": {
+        "description": "Pricing plan feature"
+    },
+    "webFeature247DedicatedSupport": "24/7 dedicated support",
+    "@webFeature247DedicatedSupport": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureUnlimitedUsersBranches": "Unlimited users & branches",
+    "@webFeatureUnlimitedUsersBranches": {
+        "description": "Pricing plan feature"
+    },
+    "webFeatureCustomIntegrations": "Custom integrations",
+    "@webFeatureCustomIntegrations": {
+        "description": "Pricing plan feature"
+    },
+    "webFeaturePremiumTaxConsulting": "+ Premium tax consulting (+400,000 RWF)",
+    "@webFeaturePremiumTaxConsulting": {
+        "description": "Pricing plan paid add-on"
+    },
+    "webGetStarted": "Get started",
+    "@webGetStarted": {
+        "description": "Pricing card call to action"
+    },
+    "booksReceivables": "Receivables",
+    "booksBills": "Bills",
+    "booksSuppliers": "Suppliers",
+    "booksPayables": "Payables",
+    "booksJournalEntries": "Journal entries",
+    "booksGeneralLedger": "General ledger",
+    "booksRecurring": "Recurring",
+    "booksBankReconciliation": "Bank reconciliation",
+    "booksFinancialStatements": "Financial statements",
+    "booksTrialBalance": "Trial balance",
+    "booksTaxVat": "Tax & VAT",
+    "booksChartOfAccounts": "Chart of accounts",
+    "booksPeriodClose": "Period close",
+    "booksAuditTrail": "Audit trail",
+    "booksUsersRoles": "Users & roles",
+    "booksOverview": "Overview",
+    "booksDaybook": "Daybook",
+    "booksSetup": "Setup",
+    "booksCompliance": "Compliance",
+    "booksClosingBalance": "Closing {amount}",
+    "@booksClosingBalance": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "booksAccountPostingHistory": "Account-level posting history · {currency}",
+    "@booksAccountPostingHistory": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksReadingStatement": "Reading statement…",
+    "booksStatementImported": "Statement imported",
+    "booksStatementLinesLoaded": "{source} · {count, plural, =1{1 line loaded} other{{count} lines loaded}}",
+    "@booksStatementLinesLoaded": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "source": {
+                "type": "String"
+            }
+        }
+    },
+    "booksImportFailed": "Import failed",
+    "booksMatchDifferentAccountTitle": "Match on a different account?",
+    "booksMatchDifferentAccountBody": "This journal entry moves {amount} on {account} ({code}), not Bank ({bankCode}). Match anyway?",
+    "@booksMatchDifferentAccountBody": {
+        "placeholders": {
+            "account": {
+                "type": "String"
+            },
+            "amount": {
+                "type": "String"
+            },
+            "bankCode": {
+                "type": "String"
+            },
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "booksMatch": "Match",
+    "booksBankLineMatched": "Bank line matched",
+    "booksBankCatSaleIncome": "A sale / income",
+    "booksBankCatSaleIncomeHint": "Money you earned",
+    "booksBankCatCustomerPaid": "A customer paid a debt",
+    "booksBankCatCustomerPaidHint": "They owed you before",
+    "booksBankCatOwnerAdded": "Owner added money",
+    "booksBankCatOwnerAddedHint": "Capital you put in",
+    "booksBankCatLoanReceived": "A loan you received",
+    "booksBankCatLoanReceivedHint": "Borrowed money",
+    "booksBankCatFromCash": "Transfer from cash",
+    "booksBankCatFromCashHint": "Moved from your cash box",
+    "booksBankCatFromMomo": "Transfer from Mobile Money",
+    "booksBankCatFromMomoHint": "Moved from MoMo",
+    "booksBankCatOtherIncome": "Other income",
+    "booksBankCatOtherIncomeHint": "Anything else received",
+    "booksBankCatBankFee": "Bank fee / charge",
+    "booksBankCatBankFeeHint": "Charges the bank took",
+    "booksBankCatPaidSupplier": "Paid a supplier / bought stock",
+    "booksBankCatPaidSupplierHint": "Inventory or goods",
+    "booksBankCatRent": "Rent",
+    "booksBankCatRentHint": "Shop or office rent",
+    "booksBankCatSalaries": "Salaries / wages",
+    "booksBankCatSalariesHint": "Paid staff",
+    "booksBankCatUtilities": "Utilities",
+    "booksBankCatUtilitiesHint": "Electricity, water, internet",
+    "booksBankCatTransport": "Transport / fuel",
+    "booksBankCatTransportHint": "Travel & delivery",
+    "booksBankCatLoanRepayment": "Loan repayment",
+    "booksBankCatLoanRepaymentHint": "Paid back a loan",
+    "booksBankCatOwnerWithdrew": "Owner took money out",
+    "booksBankCatOwnerWithdrewHint": "Personal withdrawal",
+    "booksBankCatToCash": "Transfer to cash",
+    "booksBankCatToCashHint": "Moved to your cash box",
+    "booksBankCatToMomo": "Transfer to Mobile Money",
+    "booksBankCatToMomoHint": "Moved to MoMo",
+    "booksBankCatOtherExpense": "Other expense",
+    "booksBankCatOtherExpenseHint": "Anything else you paid",
+    "booksEntryCreatedMatched": "Entry created & matched",
+    "booksEntryCreatedMatchedDetail": "{category} — {amount} on Bank ({ref})",
+    "@booksEntryCreatedMatchedDetail": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "category": {
+                "type": "String"
+            },
+            "ref": {
+                "type": "String"
+            }
+        }
+    },
+    "booksCouldNotCreateEntry": "Could not create entry",
+    "booksWhereMoneyFrom": "Where did this money come from?",
+    "booksWhatPaymentFor": "What was this payment for?",
+    "booksPickClosestMatch": "Pick the closest match — we'll record it correctly for you.",
+    "booksMatchBankLine": "Match bank line",
+    "booksBank": "Bank",
+    "booksBankRecSubtitle": "Bank · {bank} · statement {period} · {currency}",
+    "@booksBankRecSubtitle": {
+        "placeholders": {
+            "bank": {
+                "type": "String"
+            },
+            "currency": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksImportStatement": "Import statement",
+    "booksReconciled": "Reconciled",
+    "booksFinishReconciliation": "Finish reconciliation",
+    "booksReconciliationComplete": "Reconciliation complete",
+    "booksLinesMatchedOfTotal": "{matched} of {total} lines matched",
+    "@booksLinesMatchedOfTotal": {
+        "placeholders": {
+            "matched": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "booksStatementBalance": "Statement balance",
+    "booksFromImportedStatement": "from imported statement",
+    "booksMatched": "Matched",
+    "booksNoLinesYet": "no lines yet",
+    "booksOfTotal": "of {total}",
+    "@booksOfTotal": {
+        "placeholders": {
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNeedsAttention": "Needs attention",
+    "booksStatementLines": "Statement lines",
+    "booksMatchEachLine": "Match each bank line to a journal entry",
+    "booksNoStatementLines": "No bank statement lines yet. Import a statement to begin.",
+    "booksVatSubtitle": "VAT at {rate}% (Rwanda standard) · period {period}",
+    "@booksVatSubtitle": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            },
+            "rate": {
+                "type": "String"
+            }
+        }
+    },
+    "booksFileWithRra": "File with RRA",
+    "booksVatReturnSubmitted": "VAT return submitted",
+    "booksRraAckRef": "RRA ack · ref {ref}",
+    "@booksRraAckRef": {
+        "placeholders": {
+            "ref": {
+                "type": "String"
+            }
+        }
+    },
+    "booksOutputVatOnSales": "Output VAT (on sales)",
+    "booksInputVatReclaimable": "Input VAT (reclaimable)",
+    "booksNetVatPayable": "Net VAT payable",
+    "booksDueDate": "Due {date}",
+    "@booksDueDate": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "booksVatReturnSummary": "VAT return summary",
+    "booksDraft": "Draft",
+    "booksTotalSalesVatInclusive": "Total sales (VAT-inclusive)",
+    "booksOutputVatCollected": "Output VAT collected",
+    "booksInputVatOnPurchases": "Input VAT on purchases",
+    "booksNetVatDueToRra": "Net VAT due to RRA",
+    "booksPrint": "Print",
+    "booksPreparingPrintLayout": "Preparing print layout",
+    "booksGeneratingPdf": "Generating PDF",
+    "booksStatementPack": "Statement pack · {currency}",
+    "@booksStatementPack": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksIncomeStatement": "Income statement",
+    "booksBalanceSheet": "Balance sheet",
+    "booksCashFlow": "Cash flow",
+    "booksNetRevenue": "Net revenue",
+    "booksCogs": "Cost of goods sold",
+    "booksGrossProfit": "Gross profit",
+    "booksOperatingExpenses": "Operating expenses",
+    "booksTotalAssets": "Total assets",
+    "booksTotalLiabilities": "Total liabilities",
+    "booksTotalEquity": "Total equity",
+    "booksLiabilitiesPlusEquity": "Liabilities + equity",
+    "booksOperatingActivities": "Operating activities",
+    "booksInvestingActivities": "Investing activities",
+    "booksFinancingActivities": "Financing activities",
+    "booksNetChangeInCash": "Net change in cash",
+    "booksBalancedAssetsEqual": "Balanced — assets equal liabilities plus equity",
+    "booksAsOfPeriod": "As of {period} · {currency}",
+    "@booksAsOfPeriod": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksInBalance": "In balance",
+    "booksOutOfBalance": "Out of balance",
+    "booksNoAccountsYet": "No accounts loaded yet.",
+    "booksTotals": "Totals",
+    "booksAssets": "Assets",
+    "booksLiabilities": "Liabilities",
+    "booksEquity": "Equity",
+    "booksIncome": "Income",
+    "booksExpenses": "Expenses",
+    "booksCoaSubtitle": "{count} accounts · numbered ledger structure",
+    "@booksCoaSubtitle": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksFilterByType": "Filter by type",
+    "booksAllTypes": "All types",
+    "booksFilter": "Filter",
+    "booksAddAccount": "Add account",
+    "booksNetIncome": "Net income",
+    "booksNetLoss": "Net loss",
+    "booksOpenOnWiderScreen": "Open on a wider screen for the desktop workspace",
+    "booksFreqMonthly": "Monthly",
+    "booksFreqWeekly": "Weekly",
+    "booksFreqQuarterly": "Quarterly",
+    "booksFreqYearly": "Yearly",
+    "booksRoleOwner": "Owner",
+    "booksRoleOwnerDesc": "Full access — approve, post, file taxes, manage team",
+    "booksRoleBookkeeper": "Bookkeeper",
+    "booksRoleBookkeeperDesc": "Create & edit entries, invoices and bills; cannot approve or file",
+    "booksRoleCashier": "Cashier",
+    "booksRoleCashierDesc": "Record sales and receipts from POS only",
+    "booksRoleViewer": "Viewer",
+    "booksRoleViewerDesc": "Read-only access to reports and statements",
+    "booksCapViewReports": "View reports & statements",
+    "booksCapCreateInvoicesBills": "Create invoices & bills",
+    "booksCapRecordPayments": "Record payments & receipts",
+    "booksCapPostJournal": "Post & edit journal entries",
+    "booksCapApproveEntries": "Approve entries",
+    "booksCapFileVat": "File VAT with RRA",
+    "booksCapClosePeriods": "Close periods & manage team",
+    "booksRecurringEntries": "Recurring entries",
+    "booksRecurringSubtitle": "Rent, salaries and other repeating entries post themselves · {currency}",
+    "@booksRecurringSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNewSchedule": "New schedule",
+    "booksActiveSchedules": "Active schedules",
+    "booksCountOfTotal": "{count} of {total}",
+    "@booksCountOfTotal": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "booksMonthlyCommitted": "Monthly committed",
+    "booksNextRun": "Next run",
+    "booksNoRecurringYet": "No recurring schedules yet. Create one to post rent, salaries or other repeating entries.",
+    "booksSchedule": "Schedule",
+    "booksFrequency": "Frequency",
+    "booksPostsTo": "Posts to",
+    "booksStatus": "Status",
+    "booksPaused": "— paused —",
+    "booksRunNow": "Run now",
+    "booksScheduleResumed": "Schedule resumed",
+    "booksSchedulePaused": "Schedule paused",
+    "booksEntryPosted": "Entry posted",
+    "booksAlreadyPostedThisPeriod": "Already posted this period",
+    "booksCouldNotPostEntry": "Could not post entry",
+    "booksScheduleCreated": "Schedule created",
+    "booksScheduleUpdated": "Schedule updated",
+    "booksPeriodCloseSubtitle": "Lock {period} once the books are final · {currency}",
+    "@booksPeriodCloseSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksPeriodLocked": "{period} locked",
+    "@booksPeriodLocked": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksReopenPeriod": "Reopen period",
+    "booksCouldNotReopenPeriod": "Could not reopen the period",
+    "booksPeriodReopened": "Period reopened",
+    "booksPeriodPostableAgain": "{period} is postable again",
+    "@booksPeriodPostableAgain": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksClosePeriod": "Close period",
+    "booksCouldNotClosePeriod": "Could not close the period",
+    "booksPeriodClosed": "Period closed",
+    "booksPeriodLockedReadOnly": "{period} locked · entries are now read-only",
+    "@booksPeriodLockedReadOnly": {
+        "placeholders": {
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksCloseChecklist": "Close checklist",
+    "booksStepsComplete": "{done} of {total} steps complete",
+    "@booksStepsComplete": {
+        "placeholders": {
+            "done": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "booksReview": "Review",
+    "booksWhatClosingDoes": "What closing does",
+    "booksCloseNoteLocks": "Locks the period. Posted entries become read-only — no edits without re-opening.",
+    "booksCloseNoteRollsForward": "Rolls forward. Net income is moved into retained earnings and balances carry into the next month.",
+    "booksCloseNoteAuditPoint": "Creates an audit point. A snapshot is logged in the audit trail with your name and time.",
+    "booksAllChecksPassed": "All checks passed — ready to close.",
+    "booksFinishChecklist": "Finish every checklist step to enable closing.",
+    "booksAuditSubtitle": "Every change, who made it, and when · immutable",
+    "booksAllUsers": "All users",
+    "booksExport": "Export",
+    "booksExportingAuditLog": "Exporting audit log",
+    "booksEventsCsv": "{count} events · CSV",
+    "@booksEventsCsv": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNoAuditEvents": "No audit events yet.",
+    "booksRolesSubtitle": "Control who can see and change the books",
+    "booksInviteTeammate": "Invite teammate",
+    "booksInviteSent": "Invite sent",
+    "booksInvitationsComingSoon": "Team invitations coming soon",
+    "booksTeamCount": "Team ({count})",
+    "@booksTeamCount": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksOnlyYouHaveAccess": "Only you have access. Invite teammates to collaborate.",
+    "booksYou": "You",
+    "booksRoles": "Roles",
+    "booksCapability": "Capability",
+    "booksActiveNow": "Active now",
+    "booksRoleSystem": "System",
+    "booksTaskAllPosted": "All journal entries posted",
+    "booksTaskPendingApproval": "{count, plural, =1{1 entry still pending approval} other{{count} entries still pending approval}}",
+    "@booksTaskPendingApproval": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksTaskNoPending": "No pending entries",
+    "booksTaskBankReconciled": "Bank accounts reconciled",
+    "booksTaskLinesUnmatched": "{count, plural, =1{1 statement line unmatched} other{{count} statement lines unmatched}}",
+    "@booksTaskLinesUnmatched": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksTaskAllLinesMatched": "All lines matched",
+    "booksTaskReceivablesReviewed": "Receivables reviewed",
+    "booksTaskNoOpenReceivables": "No open receivables",
+    "booksTaskAgingOverdue": "{count, plural, =1{Aging confirmed · 1 overdue invoice} other{Aging confirmed · {count} overdue invoices}}",
+    "@booksTaskAgingOverdue": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksTaskAgingBalances": "{count, plural, =1{Aging confirmed · 1 balance} other{Aging confirmed · {count} balances}}",
+    "@booksTaskAgingBalances": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksTaskPayablesReviewed": "Payables reviewed",
+    "booksTaskNoOpenPayables": "No open payables",
+    "booksTaskAllBillsEntered": "All supplier bills entered",
+    "booksTaskVatPrepared": "VAT return prepared",
+    "booksTaskNoVatActivity": "No VAT activity in period",
+    "booksTaskVatNetPayable": "Net payable {amount} · due {date}",
+    "@booksTaskVatNetPayable": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "booksTaskDepreciationPosted": "Depreciation posted",
+    "booksTaskDepreciationMaybePending": "Pending entries may include depreciation",
+    "booksTaskDepreciationUpToDate": "Depreciation up to date",
+    "booksStatusSent": "Sent",
+    "booksStatusPartPaid": "Part paid",
+    "booksStatusPaid": "Paid",
+    "booksStatusOverdue": "Overdue",
+    "booksSignOutTitle": "Sign out?",
+    "booksSignOutBody": "Ends your session and clears Ditto sync for this tab. Choose “Refresh from cloud” if you only need to reload Books data.",
+    "booksRefreshFromCloud": "Refresh from cloud",
+    "booksResyncDitto": "Re-sync Ditto data",
+    "booksSupplier": "Supplier",
+    "booksAgingCurrent": "Current",
+    "booksAging1to30": "1–30 days",
+    "booksAging31to60": "31–60 days",
+    "booksAging60plus": "60+ days",
+    "booksMoneyIn": "Money in",
+    "booksMoneyOut": "Money out",
+    "booksAccountsReceivable": "Accounts receivable",
+    "booksAccountsPayable": "Accounts payable",
+    "booksArSubtitle": "What customers owe you · aged · {currency}",
+    "@booksArSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksApSubtitle": "What you owe suppliers · aged · {currency}",
+    "@booksApSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSendReminders": "Send reminders",
+    "booksSchedulePayment": "Schedule payment",
+    "booksRemindersSent": "Reminders sent",
+    "booksPaymentScheduled": "Payment scheduled",
+    "booksEmailedCustomers": "Emailed {count} customers with open balances",
+    "@booksEmailedCustomers": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksQueuedSupplierPayments": "Queued {count} supplier payments",
+    "@booksQueuedSupplierPayments": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNewInvoice": "New invoice",
+    "booksNewBill": "New bill",
+    "booksAgingSummary": "Aging summary",
+    "booksReference": "Reference",
+    "booksTotal": "Total",
+    "booksStatementOfAccount": "Statement of account",
+    "booksOutstanding": "{name} · {amount} outstanding",
+    "@booksOutstanding": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "booksJournalSubtitle": "Every transaction as a balanced double entry · {currency}",
+    "@booksJournalSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksFilterBySource": "Filter by source",
+    "booksAllSources": "All sources",
+    "booksRecordExpense": "Record expense",
+    "booksNewJournalEntry": "New journal entry",
+    "booksFilterAll": "All",
+    "booksFilterPosted": "Posted",
+    "booksFilterPending": "Pending",
+    "booksFilterDrafts": "Drafts",
+    "booksEntriesAwaitingApproval": "{count, plural, =1{1 entry awaiting approval} other{{count} entries awaiting approval}}",
+    "@booksEntriesAwaitingApproval": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksNoEntriesMatchFilter": "No entries match this filter.",
+    "booksDrAbbr": "Dr",
+    "booksCrAbbr": "Cr",
+    "booksFinancialOverview": "Financial overview",
+    "booksAtAGlance": "Books at a glance",
+    "booksDashSubtitleEntity": "{entity} · fiscal period {period} · all amounts in {currency}",
+    "@booksDashSubtitleEntity": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "entity": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksDashSubtitle": "Fiscal period {period} · all amounts in {currency}",
+    "@booksDashSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            },
+            "period": {
+                "type": "String"
+            }
+        }
+    },
+    "booksGeneralLedgerLines": "General ledger lines",
+    "booksExportingExcel": "Exporting to Excel",
+    "booksExportingCsv": "Exporting CSV",
+    "booksExcelWorkbook": "Excel workbook (.xlsx)",
+    "booksPdfReport": "PDF report",
+    "booksCsvRawLedger": "CSV (raw ledger)",
+    "booksVsPriorPeriod": "vs prior period",
+    "booksCashAndBank": "Cash & bank",
+    "booksAcrossAccounts": "{count, plural, =1{across 1 account} other{across {count} accounts}}",
+    "@booksAcrossAccounts": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksReceivable": "Receivable",
+    "booksOverdue60": "{amount} overdue 60+",
+    "@booksOverdue60": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNoOverdue60": "no overdue 60+",
+    "booksPayable": "Payable",
+    "booksNoOpenBills": "no open bills",
+    "booksOpenBills": "{count, plural, =1{1 open bill} other{{count} open bills}}",
+    "@booksOpenBills": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksRevenueVsExpenses": "Revenue vs expenses",
+    "booksTrailing6Months": "Trailing 6 months",
+    "booksWhereMoneyWent": "Where money went",
+    "booksOpexBreakdown": "Operating expenses breakdown",
+    "booksOpexShort": "opex",
+    "booksRecentJournalEntries": "Recent journal entries",
+    "booksNoJournalEntriesYet": "No journal entries yet.",
+    "booksProfitLoss": "Profit & loss",
+    "booksDocAlreadyExists": "{id} already exists",
+    "@booksDocAlreadyExists": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksUseAnotherNumber": "Use another number",
+    "booksBillSaved": "Bill saved",
+    "booksDraftSaved": "Draft saved",
+    "booksInvoiceSentPosted": "Invoice sent & posted",
+    "booksBillRecordedPosted": "Bill recorded & posted",
+    "booksPaymentRecorded": "Payment recorded",
+    "booksInvoicesSubtitle": "Bill your customers and get paid · {currency}",
+    "@booksInvoicesSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksBillsSubtitle": "Track what you owe your suppliers · {currency}",
+    "@booksBillsSubtitle": {
+        "placeholders": {
+            "currency": {
+                "type": "String"
+            }
+        }
+    },
+    "booksPdfSummary": "PDF summary",
+    "booksInvoicesCount": "{count, plural, =1{1 invoice} other{{count} invoices}}",
+    "@booksInvoicesCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksBillsCount": "{count, plural, =1{1 bill} other{{count} bills}}",
+    "@booksBillsCount": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "booksOutstandingLabel": "Outstanding",
+    "booksOwedToSuppliers": "Owed to suppliers",
+    "booksDrafts": "Drafts",
+    "booksNoInvoicesYet": "No invoices yet. Create an invoice to get started.",
+    "booksNoBillsYet": "No bills yet. Record a bill to get started.",
+    "booksNoInvoicesInTab": "No invoices in “{tab}”.",
+    "@booksNoInvoicesInTab": {
+        "placeholders": {
+            "tab": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNoBillsInTab": "No bills in “{tab}”.",
+    "@booksNoBillsInTab": {
+        "placeholders": {
+            "tab": {
+                "type": "String"
+            }
+        }
+    },
+    "booksBill": "Bill",
+    "booksDue": "Due",
+    "booksOpenPreview": "Open & preview",
+    "booksRecordPayment": "Record payment",
+    "booksPayThisBill": "Pay this bill",
+    "booksSendReminder": "Send reminder",
+    "booksReminderSent": "Reminder sent",
+    "booksDeleted": "Deleted",
+    "booksCustomerAdded": "Customer added",
+    "booksSupplierAdded": "Supplier added",
+    "booksCustomersSubtitle": "People and businesses you sell to · {count} records",
+    "@booksCustomersSubtitle": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSuppliersSubtitle": "Vendors you buy from · {count} records",
+    "@booksSuppliersSubtitle": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSearchCustomers": "Search customers…",
+    "booksSearchSuppliers": "Search suppliers…",
+    "booksNewCustomer": "New customer",
+    "booksNewSupplier": "New supplier",
+    "booksTotalCustomers": "Total customers",
+    "booksTotalSuppliers": "Total suppliers",
+    "booksWithOpenBalance": "With open balance",
+    "booksWithBillsDue": "With bills due",
+    "booksTotalReceivable": "Total receivable",
+    "booksTotalPayable": "Total payable",
+    "booksNoCustomersYet": "No customers yet.",
+    "booksNoSuppliersYet": "No suppliers yet.",
+    "booksNoMatchesFor": "No matches for “{query}”.",
+    "@booksNoMatchesFor": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "booksContact": "Contact",
+    "booksTerms": "Terms",
+    "booksOwesYou": "Owes you",
+    "booksYouOwe": "You owe",
+    "booksViewRecord": "View record",
+    "booksSendStatement": "Send statement",
+    "booksCallContact": "Call contact",
+    "booksStatementSent": "Statement sent",
+    "booksNoPhoneOnFile": "No phone on file",
+    "booksDeleteNamed": "Delete {name}?",
+    "@booksDeleteNamed": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "booksDeleteSharedContactBody": "This contact is shared with the POS app. Deleting it removes the customer record everywhere; past sales keep their snapshot but lose the link. Delete anyway?",
+    "booksDeleteEverywhere": "Delete everywhere",
+    "booksCustomerSince": "Customer since {date}",
+    "@booksCustomerSince": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "booksSupplierSince": "Supplier since {date}",
+    "@booksSupplierSince": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "booksOutstandingBalance": "Outstanding balance",
+    "booksAmountPayable": "Amount payable",
+    "booksLifetimeBilled": "Lifetime billed",
+    "booksLifetimePurchased": "Lifetime purchased",
+    "booksContactDetails": "CONTACT DETAILS",
+    "booksPrimaryContact": "Primary contact",
+    "booksInvoicesHeader": "INVOICES ({count})",
+    "@booksInvoicesHeader": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksBillsHeader": "BILLS ({count})",
+    "@booksBillsHeader": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNoDocumentsYet": "No documents yet.",
+    "booksAddCustomerToContacts": "Add a customer to your contacts",
+    "booksAddSupplierToContacts": "Add a supplier to your contacts",
+    "booksBusinessCustomerName": "Business / customer name",
+    "booksSupplierName": "Supplier name",
+    "booksExampleBusinessName": "e.g. Karake Retail Group",
+    "booksFullName": "Full name",
+    "booksEmailPlaceholder": "name@email.rw",
+    "booksTaxId": "Tax ID",
+    "booksPaymentTerms": "Payment terms",
+    "booksAddSupplier": "Add supplier",
+    "booksNetDays": "Net {days}",
+    "@booksNetDays": {
+        "placeholders": {
+            "days": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNewInvoiceTitle": "New invoice · {id}",
+    "@booksNewInvoiceTitle": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksEditInvoiceTitle": "Edit invoice · {id}",
+    "@booksEditInvoiceTitle": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNewBillTitle": "New bill · {id}",
+    "@booksNewBillTitle": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksEditBillTitle": "Edit bill · {id}",
+    "@booksEditBillTitle": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksInvoiceEditorSubtitle": "Bill a customer — Flipper posts the sale and VAT automatically.",
+    "booksBillEditorSubtitle": "Record a supplier bill — Flipper posts the expense and input VAT.",
+    "booksSelectCustomer": "Select customer…",
+    "booksSelectSupplier": "Select supplier…",
+    "booksIssueDate": "Issue date",
+    "booksBillDate": "Bill date",
+    "booksDueDateLabel": "Due date",
+    "booksLineItems": "Line items",
+    "booksAddLine": "Add line",
+    "booksInvoiceWillPost": "This invoice will post",
+    "booksBillWillPost": "This bill will post",
+    "booksSaveDraft": "Save draft",
+    "booksSaveAndSend": "Save & send",
+    "booksDownloadPdfOnly": "Download PDF only",
+    "booksApproveInPurchases": "Approve in Purchases",
+    "booksRecordBill": "Record bill",
+    "booksNewScheduleTitle": "New schedule · {id}",
+    "@booksNewScheduleTitle": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksEditScheduleTitle": "Edit schedule · {id}",
+    "@booksEditScheduleTitle": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            }
+        }
+    },
+    "booksScheduleEditorSubtitle": "Repeating entries post themselves with a balanced journal.",
+    "booksScheduleName": "Schedule name",
+    "booksScheduleNameHint": "e.g. Monthly rent",
+    "booksDay": "Day",
+    "booksDayHint": "e.g. 1st",
+    "booksDebitAccountLabel": "Debit account (expense / asset)",
+    "booksCreditAccountLabel": "Credit account (funding source)",
+    "booksSelectAccount": "Select account…",
+    "booksAccountsMustDiffer": "Debit and credit accounts must differ.",
+    "booksActive": "Active",
+    "booksPausedLabel": "Paused",
+    "booksSaveSchedule": "Save schedule",
+    "booksPaymentFailed": "Payment failed",
+    "booksInvoicePaidMessage": "{who} paid {amount}. The invoice is marked paid.",
+    "@booksInvoicePaidMessage": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "who": {
+                "type": "String"
+            }
+        }
+    },
+    "booksBillPartPaidMessage": "Paid {amount} to {who}. {balance} is still owed.",
+    "@booksBillPartPaidMessage": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "balance": {
+                "type": "String"
+            },
+            "who": {
+                "type": "String"
+            }
+        }
+    },
+    "booksBillSettledMessage": "Paid {amount} to {who}. The bill is settled.",
+    "@booksBillSettledMessage": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "who": {
+                "type": "String"
+            }
+        }
+    },
+    "booksPayBill": "Pay bill",
+    "booksAmountDue": "{id} · {who} · {amount} due",
+    "@booksAmountDue": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "id": {
+                "type": "String"
+            },
+            "who": {
+                "type": "String"
+            }
+        }
+    },
+    "booksDepositTo": "Deposit to",
+    "booksPayFrom": "Pay from",
+    "booksAmountReceived": "Amount received",
+    "booksPostsAs": "Posts as",
+    "booksBusinessFallback": "Business",
+    "booksInvoiceUpper": "INVOICE",
+    "booksBillUpper": "BILL",
+    "booksBillTo": "Bill to",
+    "booksFrom": "From",
+    "booksIssued": "Issued",
+    "booksDescription": "Description",
+    "booksQty": "Qty",
+    "booksItemOrService": "Item or service",
+    "booksItemOrServiceHint": "Item or service…",
+    "booksBalancedEquation": "Balanced · {total} = {amount}",
+    "@booksBalancedEquation": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "total": {
+                "type": "String"
+            }
+        }
+    },
+    "booksVat18": "VAT (18%)",
+    "booksPillPosted": "posted",
+    "booksPillPending": "pending",
+    "booksPillDraft": "draft",
+    "booksTypeAsset": "Asset",
+    "booksTypeLiability": "Liability",
+    "booksTypeEquity": "Equity",
+    "booksTypeIncome": "Income",
+    "booksTypeExpense": "Expense",
+    "booksCodeInUse": "Code already in use",
+    "booksPickDifferentCode": "Pick a different account code",
+    "booksAccountCreated": "Account created",
+    "booksCouldNotCreateAccount": "Could not create account",
+    "booksNewAccount": "New account",
+    "booksAddLineToCoa": "Add a line to the chart of accounts",
+    "booksAccountType": "Account type",
+    "booksCode": "Code",
+    "booksCodeHint": "e.g. 6060",
+    "booksCategoryHint": "e.g. Operating expenses",
+    "booksAccountName": "Account name",
+    "booksAccountNameHint": "e.g. Office supplies",
+    "booksCreating": "Creating…",
+    "booksCreateAccount": "Create account",
+    "booksDrShort": "Dr",
+    "booksCrShort": "Cr",
+    "booksEntryMeta": "{date} · {ref} · via {source}",
+    "@booksEntryMeta": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "ref": {
+                "type": "String"
+            },
+            "source": {
+                "type": "String"
+            }
+        }
+    },
+    "booksBalancedDrCr": "Balanced · {dr} = {cr}",
+    "@booksBalancedDrCr": {
+        "placeholders": {
+            "cr": {
+                "type": "String"
+            },
+            "dr": {
+                "type": "String"
+            }
+        }
+    },
+    "booksApprovedPosted": "Approved & posted",
+    "booksSentBackToDrafts": "Sent back to drafts",
+    "booksReject": "Reject",
+    "booksApprove": "Approve",
+    "booksSubmittedForApproval": "Submitted for approval",
+    "booksSubmittedForApprovalBody": "Debits equal credits. Review and approve from the Approvals tab to post to the ledger.",
+    "booksRecordExpenseSubtitle": "Pick a category and how you paid — Flipper posts a balanced entry.",
+    "booksExpenseCategory": "Expense category",
+    "booksAddExpenseAccount": "+ Add expense account",
+    "booksPaidVia": "Paid via",
+    "booksMemoDescription": "Memo / description",
+    "booksExpenseMemoHint": "What was this expense for?",
+    "booksSubmitForApproval": "Submit for approval",
+    "booksJournalPreview": "Journal preview",
+    "booksBalancedAmount": "Balanced · {amount}",
+    "@booksBalancedAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "booksTplRecordSale": "Record a sale",
+    "booksTplPayExpense": "Pay an expense",
+    "booksTplReceivePayment": "Receive payment",
+    "booksTplPayBill": "Pay a bill",
+    "booksDraftKeptInDrafts": "{ref} kept in Drafts",
+    "@booksDraftKeptInDrafts": {
+        "placeholders": {
+            "ref": {
+                "type": "String"
+            }
+        }
+    },
+    "booksCouldNotSaveEntry": "Could not save entry",
+    "booksQuickStart": "Quick start",
+    "booksEntryMemoHint": "What is this entry for?",
+    "booksLines": "Lines",
+    "booksDebitCreditHint": "Every entry has two sides. Money {into} an account is a debit; money {out} is a credit. They must add up to the same total.",
+    "@booksDebitCreditHint": {
+        "placeholders": {
+            "into": {
+                "type": "String"
+            },
+            "out": {
+                "type": "String"
+            }
+        }
+    },
+    "booksMoneyIntoWord": "into",
+    "booksMoneyOutWord": "out",
+    "booksComposerSubtitle": "Pick the accounts and enter amounts — Flipper keeps it balanced.",
+    "booksAccountUpper": "ACCOUNT",
+    "booksDebitUpper": "DEBIT",
+    "booksCreditUpper": "CREDIT",
+    "booksBalanced": "Balanced",
+    "booksEnterAmounts": "Enter amounts",
+    "booksOffBy": "Off by {amount}",
+    "@booksOffBy": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "booksTotalDebits": "Total debits",
+    "booksTotalCredits": "Total credits",
+    "booksSearchAccounts": "Search accounts…",
+    "booksDataRefreshed": "Books data refreshed from cloud",
+    "booksActionFailed": "Action failed: {error}",
+    "@booksActionFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "booksAllCaughtUp": "All caught up",
+    "booksNotificationsMarkedRead": "Notifications marked read",
+    "booksSearchPlaceholder": "Search entries, accounts, invoices…",
+    "booksFiscalPeriod": "Fiscal period",
+    "booksPeriodChanged": "Period changed",
+    "booksFiscalPeriodYear": "Fiscal period {year}",
+    "@booksFiscalPeriodYear": {
+        "placeholders": {
+            "year": {
+                "type": "String"
+            }
+        }
+    },
+    "booksNotifications": "Notifications",
+    "booksMarkAllRead": "Mark all read",
+    "booksEntriesAwaitingApprovalTitle": "Journal entries awaiting approval",
+    "booksReviewPendingPostings": "Review pending double-entry postings",
+    "booksNoNewNotifications": "No new notifications",
+    "booksNoPendingEntries": "No pending journal entries",
+    "booksTabSnapshot": "Snapshot",
+    "booksTabApprovals": "Approvals",
+    "booksCouldNotRestoreBusiness": "Could not restore business context: {error}",
+    "@booksCouldNotRestoreBusiness": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webHomeNavPlatform": "Platform",
+    "webHomeNavFeatures": "Features",
+    "webHomeLogIn": "Log in",
+    "webHomeStartFree": "Start free",
+    "webHomeHeroLine1": "Accounting",
+    "webHomeHeroLine2Lead": "that",
+    "webHomeHeroLine2Accent": "does itself.",
+    "webHomeHeroBody": "Flipper Books is modern accounting for growing businesses. Every sale from Flipper POS posts straight to your ledger — and Flow AI categorizes, reconciles, and files the rest. You just run your business.",
+    "webHomeSeeHowItWorks": "See how it works",
+    "webHomeCheckEbmReady": "RRA / EBM-ready",
+    "webHomeCheckOffline": "Works offline",
+    "webHomeCheckRwf": "RWF-native",
+    "webHomeTrustTagline": "Built for businesses everywhere — and the way money actually moves.",
+    "webHomeTrustTaxIntegration": "tax integration",
+    "webHomeTrustBusinesses": "businesses",
+    "webHomeTrustMomoBank": "MoMo & bank sync",
+    "webHomeTrustRealtimeLedger": "Real-time ledger",
+    "webHomeSuiteEyebrow": "One platform",
+    "webHomeSuiteTitle": "Three apps. One ledger. Zero double-entry.",
+    "webHomeSuiteBody": "Flipper POS, Books, and Flow aren't integrations bolted together — they're one system. Money moves through it once, and your books stay closed.",
+    "webHomeLoopSellOnPos": "Sell on POS →",
+    "webHomeLoopPostsToBooks": "posts to Books",
+    "webHomeLoopFlowReconciles": "Flow reconciles",
+    "webHomeLoopTail": "→ you see profit in real time. One loop, fully automatic.",
+    "webHomePosRole": "Sell",
+    "webHomePosTagline": "The front counter",
+    "webHomePosBody": "Ring up sales on mobile or desktop, scan stock, take cash or MoMo. Works the second you open the shop — online or off.",
+    "webHomeBooksRole": "Account",
+    "webHomeBooksTagline": "The source of truth",
+    "webHomeBooksBody": "Every sale lands as a balanced journal entry. Real-time P&L, cash flow, receivables and EBM-ready tax — no spreadsheets, no month-end scramble.",
+    "webHomeFlowRole": "Automate",
+    "webHomeFlowTagline": "The AI bookkeeper",
+    "webHomeFlowBody": "Flow watches the whole flow — categorizing, reconciling, flagging anomalies and prepping tax. The work that used to take an accountant a week happens in real time.",
+    "webHomeMeetFlow": "Meet Flow AI",
+    "webHomeFlowHeadlineLead": "Your books, kept by an",
+    "webHomeFlowHeadlineAccent": "AI bookkeeper.",
+    "webHomeFlowLead": "Flow turns raw transactions into clean, audit-ready accounting — and asks you only when it genuinely needs a decision. Sleep free from the hassle of accounting tasks.",
+    "webHomeFlowAutoCat": "Auto-categorization",
+    "webHomeFlowAutoCatBody": "Each sale, expense and transfer is coded to the right account the instant it happens.",
+    "webHomeFlowRecon": "Bank & MoMo reconciliation",
+    "webHomeFlowReconBody": "Flow matches your ledger to statements automatically and surfaces only true exceptions.",
+    "webHomeFlowTax": "Tax & VAT, prepared",
+    "webHomeFlowTaxBody": "EBM-ready filings drafted from your live ledger, so RRA deadlines stop being a panic.",
+    "webHomeFlowAnomaly": "Anomaly alerts",
+    "webHomeFlowAnomalyBody": "Duplicate entries, margin dips and unusual spend get flagged before they become a problem.",
+    "webHomeExploreFlow": "Explore Flow AI",
+    "webHomeWatchingLedger": "Watching your ledger",
+    "webHomeChatUser1": "A new sale came in on POS for RWF 12,000, paid by MoMo. Book it.",
+    "webHomeChatBot1": "Done — posted a balanced entry and reconciled it to your MTN MoMo account. Here's the journal entry:",
+    "webHomeChatUser2": "Anything I should look at this week?",
+    "webHomeChatBot2": "VAT for May is ready to file (RWF 318,400) and one supplier was charged twice — I've flagged it in Payables.",
+    "webHomeCapMultiBranch": "Multi-branch",
+    "webHomeCapStatementsBody": "Income statement, balance sheet and cash flow generated live from your general ledger.",
+    "webHomeCapBankRecBody": "Match ledger lines to bank and MoMo statements in one pass, with exceptions surfaced for you.",
+    "webHomeCapArAp": "Receivables & payables",
+    "webHomeCapArApBody": "Track who owes you and what you owe, with aging buckets and gentle automatic reminders.",
+    "webHomeCapTaxBody": "EBM 2.1 integration and VAT computed continuously — filings drafted before the deadline.",
+    "webHomeCapCoaBody": "A numbered, audit-friendly ledger structure that adapts to how your business is organized.",
+    "webHomeCapMultiBranchBody": "Consolidate every shop into one set of books, then drill into any branch on its own.",
+    "webHomeInsideBooks": "INSIDE BOOKS",
+    "webHomeCapTitle": "Everything an accountant does — built in.",
+    "webHomeCapBody": "Double-entry accounting that's serious enough for your auditor and simple enough to run yourself.",
+    "webHomePricingEyebrow": "PRICING",
+    "webHomePricingBody": "Choose the plan that works best for you. Every plan includes the full Flipper suite — POS, Books and Flow.",
+    "webHomeContactSales": "Contact sales",
+    "webHomeBandTitle": "Your shop, your books, all in one place.",
+    "webHomeBandBody": "Start selling on Flipper today and let Flow keep your books — automatically, in real time. Pick up right where you left off.",
+    "webHomeTalkToSales": "Talk to sales",
+    "webHomeStatProcessedMonthly": "processed monthly",
+    "webHomeStatUptime": "uptime",
+    "webHomeRevenueThisWeek": "Revenue · this week",
+    "webHomeNewSale": "New sale",
+    "webHomeDays": "{count, plural, =1{1 day} other{{count} days}}",
+    "@webHomeDays": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "webHomeSalesStreak": "Sales streak",
+    "webHomeFooterTagline": "The connected business platform for Africa — point of sale, accounting and an AI bookkeeper, in one place.",
+    "webHomeCopyright": "© 2026 Flipper. Made for business everywhere.",
+    "webHomePrivacy": "Privacy",
+    "webHomeTerms": "Terms",
+    "webHomeFooterPlatform": "PLATFORM",
+    "webHomeFooterCompany": "COMPANY",
+    "webHomeFooterSupport": "SUPPORT",
+    "webHomeAbout": "About",
+    "webHomeBlog": "Blog",
+    "webHomeCareers": "Careers",
+    "webHomeContact": "Contact",
+    "webHomeHelpCenter": "Help center",
+    "webHomeDownload": "Download",
+    "webHomeStatus": "Status",
+    "webHomeCommunity": "Community",
+    "webHomePoweredBy": "Flipper Books · powered by",
+    "webHomeMostPopular": "Most Popular",
+    "webHomeSwitchToLight": "Switch to light mode",
+    "webHomeSwitchToDark": "Switch to dark mode",
+    "webHomeLightMode": "Light mode",
+    "webHomeDarkMode": "Dark mode",
+    "webHomeMockFinancialOverview": "FINANCIAL OVERVIEW",
+    "webHomeMockCashOnHand": "Cash on hand",
+    "webHomeMockRevenueTrend": "Revenue trend",
+    "webHomeMockLast8Months": "Last 8 months",
+    "webHomeMockCostOfSales": "Cost of sales",
+    "webHomeMockOperatingExp": "Operating exp.",
+    "webHomeMockAutoPosted": "AUTO-POSTED",
+    "webHomeMockToast": "New sale on {pos} — categorized to {account} and reconciled to MoMo.",
+    "@webHomeMockToast": {
+        "placeholders": {
+            "account": {
+                "type": "String"
+            },
+            "pos": {
+                "type": "String"
+            }
+        }
+    },
+    "webHomeMockSalesRevenue": "Sales Revenue",
+    "webHomeMockBalancedSuffix": "· balanced",
+    "webHomeMockPending": "● PENDING",
+    "webHomeMockSearchOrScan": "Search or scan…",
+    "webHomeMockLeft": "{count} left",
+    "@webHomeMockLeft": {
+        "placeholders": {
+            "count": {
+                "type": "String"
+            }
+        }
+    },
+    "webAppsFinance": "Finance",
+    "webAppsSell": "Sell",
+    "webAppsEverything": "Everything in your business",
+    "webAppsComingSoon": "{app} — coming soon",
+    "@webAppsComingSoon": {
+        "placeholders": {
+            "app": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingInvalidMomo": "Enter a valid Mobile Money number, e.g. 0788123456.",
+    "webBillingPreparing": "Preparing your subscription…",
+    "webBillingCouldNotSave": "Could not save the subscription: {error}",
+    "@webBillingCouldNotSave": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingNoPlanIdCharge": "This subscription has no plan id yet, so it cannot be charged safely. Reload and try again.",
+    "webBillingNoPlanIdPay": "This subscription has no plan id yet, so it cannot be paid safely. Reload and try again.",
+    "webBillingSendingRequest": "Sending the request to your phone…",
+    "webBillingApproveOnPhone": "Approve the Mobile Money request on your phone.",
+    "webBillingCouldNotStart": "The payment could not be started: {error}",
+    "@webBillingCouldNotStart": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingConsentDeclined": "Mobile Money consent was declined, so nothing was charged.",
+    "webBillingCouldNotStartPlain": "The payment could not be started.",
+    "webBillingNoReference": "The gateway accepted the payment but returned no reference to track it. Check your phone, then try again.",
+    "webBillingPaymentReceived": "Payment received. Your subscription is active.",
+    "webBillingNotCompletedOnPhone": "The payment was not completed on your phone.",
+    "webBillingMomoNoVerdict": "We have not had a verdict from Mobile Money yet. If you approved the request, Books will open shortly — check again in a moment.",
+    "webBillingCardNeedsEmail": "Card payment needs an email address for the receipt.",
+    "webBillingOpeningPaymentPage": "Opening the payment page…",
+    "webBillingCardCouldNotStart": "The card payment could not be started: {error}",
+    "@webBillingCardCouldNotStart": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingAlreadyActive": "This subscription is already active.",
+    "webBillingCouldNotOpenCardPage": "Could not open the card payment page in this browser.",
+    "webBillingSubscriptionEnded": "This subscription has ended. Choose a plan to start again.",
+    "webBillingFinishOnOpenedPage": "Finish the payment on the page that just opened. Books unlocks here as soon as the card is charged.",
+    "webBillingCheckingCard": "Checking on your card payment…",
+    "webBillingCouldNotCheckCard": "Could not check the card payment: {error}",
+    "@webBillingCouldNotCheckCard": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingCardDeclined": "The card was declined. Open the payment page again to use a different card.",
+    "webBillingCardNoVerdict": "We have not heard back about the card payment yet. If you completed it, Books will open shortly — check again in a moment.",
+    "webBillingCheckingSubscription": "Checking your subscription…",
+    "webBillingEnded": "Your subscription has ended",
+    "webBillingNeedsSubscription": "Flipper Books needs a subscription",
+    "webBillingEndedBody": "Nothing has been deleted — your books, sales and stock are all still here. Renew the subscription to open them again.",
+    "webBillingNeedsBody": "One subscription covers this business on the web, the phone and the desktop app. Pay once and Flipper opens everywhere you use it.",
+    "webBillingAwaitingSettlement": "A payment is already on its way. If you approved it on your phone, this unlocks as soon as Mobile Money confirms it.",
+    "webBillingRenewNow": "Renew now",
+    "webBillingChoosePlan": "Choose a plan",
+    "webBillingSwitchBusiness": "Switch business",
+    "webBillingLoadingBusiness": "Loading your business…",
+    "webBillingPickBusiness": "Pick the business you are paying for, then the plans and their prices appear here.",
+    "webBillingChooseBusiness": "Choose a business",
+    "webBillingRenewTitle": "Renew your subscription",
+    "webBillingSubscribe": "Subscribe",
+    "webBillingTestBadge": "TEST",
+    "webBillingOneMoment": "One moment…",
+    "webBillingIntroSubtitle": "One subscription opens this business on the web, the phone and the desktop app.",
+    "webBillingActiveReady": "Your subscription is active. Books is ready to open.",
+    "webBillingLoadingPlans": "Loading plans…",
+    "webBillingCouldNotLoadPlans": "Could not load the plans: {error}",
+    "@webBillingCouldNotLoadPlans": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingTryAgain": "Try again",
+    "webBillingNoPlans": "No plans are on sale right now.",
+    "webBillingPlan": "Plan",
+    "webBillingAddons": "Add-ons",
+    "webBillingPayWith": "Pay with",
+    "webBillingContinueToCard": "Continue to card payment",
+    "webBillingPayAmount": "Pay {amount} RWF",
+    "@webBillingPayAmount": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "webBillingWaitingApproval": "Waiting for your approval…",
+    "webBillingWaitingCard": "Waiting for the card payment…",
+    "webBillingPreparingShort": "Preparing…",
+    "webBillingCheckAgain": "Check again",
+    "webBillingStartOver": "Start over",
+    "webBillingOpenBooks": "Open Books",
+    "webPayNotAuthorised": "This account is not authorised for staff payments.",
+    "webPayEnterAmount": "Enter the agreed amount in RWF.",
+    "webPayStarting": "Starting the payment…",
+    "webPayCouldNotStart": "Could not start the payment: {error}",
+    "@webPayCouldNotStart": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayNoPaymentYetCard": "No payment yet. Send the link again or check the reference later — a payment made after this closes still counts.",
+    "webPayNoApprovalYet": "No approval yet. The customer may still approve; check the reference later or start again.",
+    "webPayPaidActive": "Paid. The plan is active and the negotiated price is now its recurring price.",
+    "webPayDidNotGoThrough": "The payment did not go through.",
+    "webPayLinkExpired": "The payment link expired before it was paid.",
+    "webPayAskCustomerApprove": "Ask the customer to approve the Mobile Money request on their phone.",
+    "webPaySendLink": "Send the customer the payment link and wait for them to pay.",
+    "webPayWaitingSettle": "Waiting for the payment to settle…",
+    "webPayTitle": "Custom payment",
+    "webPayCheckingAccess": "Checking access…",
+    "webPayCouldNotCheckAccess": "Could not check staff access: {error}",
+    "@webPayCouldNotCheckAccess": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayStaffOnlyBody": "This page is for billing staff. Ask an administrator to add you to the billing staff list.",
+    "webPayPerYear": "/year",
+    "webPayPerMonth": "/month",
+    "webPayNegotiatedPrice": "Negotiated price",
+    "webPayNegotiatedBody": "Charge the amount agreed with the customer. It becomes their recurring price, and whatever they were on before stops billing.",
+    "webPaySignedInAs": "Signed in as {name}.",
+    "@webPaySignedInAs": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "webPaySearchHint": "Search by name, phone, email or id",
+    "webPayAgreedAmount": "Agreed amount",
+    "webPayAmountHint": "Amount in RWF per period",
+    "webPayCustomerPaysWith": "Customer pays with",
+    "webPayLinkCopied": "Link copied",
+    "webPayNoteHint": "Note for the record (optional)",
+    "webPayNotSelected": "Not selected",
+    "webPayBillingPeriod": "Billing period",
+    "webPayPaysWith": "Pays with",
+    "webPayCard": "Card",
+    "webPayPricePerPeriod": "Price per period",
+    "webPayChargedNow": "Charged now, then every period",
+    "webPayCreateCardLink": "Create card payment link",
+    "webPayChargeByMomo": "Charge {amount} RWF by Mobile Money",
+    "@webPayChargeByMomo": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayWaitingCustomerApproval": "Waiting for the customer's approval…",
+    "webPayStartingShort": "Starting…",
+    "webPayConfirmTitle": "Charge this business?",
+    "webPayConfirmSummary": "{amount} RWF · {cadence} · {rail}",
+    "@webPayConfirmSummary": {
+        "placeholders": {
+            "amount": {
+                "type": "String"
+            },
+            "cadence": {
+                "type": "String"
+            },
+            "rail": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayConfirmBodyMomo": "This becomes their recurring price. Any existing card subscription is cancelled immediately.",
+    "webPayConfirmBodyCard": "This becomes their recurring price. Any existing card subscription is cancelled immediately, and their Mobile Money mandate is revoked.",
+    "webPayCharge": "Charge",
+    "webPayStaffOnly": "Staff only",
+    "webPayBackToBooks": "Back to Books",
+    "webPaySearching": "Searching…",
+    "webPaySearchFailed": "Search failed: {error}",
+    "@webPaySearchFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayNoBusinessMatches": "No business matches “{query}”.",
+    "@webPayNoBusinessMatches": {
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayChange": "Change",
+    "webPayCopyLink": "Copy link",
+    "webPayOpen": "Open",
+    "webPayExistingPayment": "Existing payment {id} is {status}",
+    "@webPayExistingPayment": {
+        "placeholders": {
+            "id": {
+                "type": "String"
+            },
+            "status": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayLinkSuffix": "link: {link}",
+    "@webPayLinkSuffix": {
+        "placeholders": {
+            "link": {
+                "type": "String"
+            }
+        }
+    },
+    "webPayReference": "Reference",
+    "webPayRail": "Rail",
+    "webPayPaidThrough": "Paid through",
+    "webPayMomoCharge": "MoMo charge",
+    "webPayMtnTransaction": "MTN transaction",
+    "webPayDodoSubscription": "Dodo subscription",
+    "webPayDodoPayment": "Dodo payment",
+    "webPayCancelledCardSub": "Cancelled card sub",
+    "webPayRevokedMandate": "Revoked MoMo mandate",
+    "webPayPaid": "Paid",
+    "webPaySettledBody": "The negotiated amount is now this business's recurring price. Keep the reference below for support.",
+    "webPayCopyAllIds": "Copy all ids",
+    "webPayCopied": "Copied",
+    "webPayNewPayment": "New payment",
+    "webPinTooShort": "PIN must be at least 4 digits",
+    "webPinInvalid": "Invalid PIN. Please try again.",
+    "webPinOtpRequired": "OTP is required",
+    "webPinAuthCodeRequired": "Authenticator code is required",
+    "webPinOtpInvalid": "Invalid OTP. Please try again.",
+    "webPinAuthCodeInvalid": "Invalid authenticator code. Please try again.",
+    "webPinTroubleTitle": "Trouble signing in?",
+    "webPinTroubleBody": "If you have forgotten your PIN, contact your account administrator or reach out to Flipper support.",
+    "webPinVerifyIdentity": "Verify your identity",
+    "webPinEnterSmsCode": "Enter the code we sent you to continue.",
+    "webPinEnterAuthCode": "Enter the code from your authenticator app to continue.",
+    "webPinEnterPinSubtitle": "Enter your PIN to manage your business securely.",
+    "webPinSignedIn": "Signed in ✓",
+    "webPinVerifying": "Verifying…",
+    "webPinVerify": "Verify",
+    "webPinSignIn": "Sign in",
+    "webPinNoAccountSignUp": "Don't have an account? Sign up",
+    "webPinHide": "Hide",
+    "webPinShow": "Show",
+    "webPinAuthenticator": "Authenticator",
+    "webPinSmsEmail": "SMS / Email",
+    "webPinAuthenticatorCode": "Authenticator Code",
+    "webPinSmsEmailCode": "SMS / Email Code",
+    "webSignupTypeRetailer": "Flipper Retailer",
+    "webSignupTypeIndividual": "Individual",
+    "webSignupTypeEnterprise": "Enterprise",
+    "webSignupUsernameCheckError": "Error checking username availability",
+    "webSignupNoTinData": "No data found for this TIN",
+    "webSignupEnterContactFirst": "Enter a phone number or email first.",
+    "webSignupFailedToSendCode": "Failed to send the code.",
+    "webSignupWrongCode": "That code is not right. Please try again.",
+    "webSignupCouldNotCheckCode": "Could not check that code.",
+    "webSignupUsernameRequired": "Username is required",
+    "webSignupUsernameTooShort": "Username must be at least 4 characters",
+    "webSignupEnterFullName": "Please enter your full name",
+    "webSignupSelectBusinessType": "Please select a business type",
+    "webSignupInvalidTin": "Please enter a valid TIN number (at least 9 characters)",
+    "webSignupSelectCountry": "Please select a country",
+    "webSignupEnterCodeSentTo": "Enter the code we sent to {contact} to continue.",
+    "@webSignupEnterCodeSentTo": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupVerifyFirst": "Verify {contact} first — tap “Send code”.",
+    "@webSignupVerifyFirst": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupUsernameTaken": "Username is not available. Please choose another one.",
+    "webSignupUsernameCheckRetry": "Error checking username availability. Please try again.",
+    "webSignupFillRequired": "Please fill in all required fields correctly",
+    "webSignupNetworkError": "Network error. Please check your connection and try again.",
+    "webSignupTimeout": "Request timed out. Please try again later.",
+    "webSignupFailedCreate": "Failed to create account: {error}",
+    "@webSignupFailedCreate": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupDismiss": "Dismiss",
+    "webSignupBusinessSetup": "Business setup",
+    "webSignupSubtitle": "Set up your Flipper business account to get started.",
+    "webSignupUsername": "Username",
+    "webSignupFullName": "Full name",
+    "webSignupFullNameHint": "Enter your full name",
+    "webSignupFullNameRequired": "Full name is required",
+    "webSignupPhoneEmail": "Phone / Email",
+    "webSignupUsage": "Usage",
+    "webSignupUsageHint": "How you intend to use Flipper",
+    "webSignupTinBusiness": "Business: {name}",
+    "@webSignupTinBusiness": {
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupTinUnavailable": "TIN lookup unavailable — validation skipped.",
+    "webSignupCountry": "Country",
+    "webSignupAlreadyHaveAccount": "Already have an account? Sign in",
+    "webSignupChooseDifferentUsername": "Please choose a different username. The current one is not available or has not been verified.",
+    "webSignupAccountCreated": "Account created successfully!",
+    "webSignupFailedTryAgain": "Failed to create account. Please try again.",
+    "webSignupUsernameNotAvailable": "Username is not available",
+    "webSignupUsernameHint": "Enter your username",
+    "webSignupContactRequired": "Phone number or email is required",
+    "webSignupInvalidEmail": "Please enter a valid email address",
+    "webSignupInvalidPhone": "Please enter a valid phone number",
+    "webSignupContactHint": "783054874 or your@email.com",
+    "webSignupResend": "Resend",
+    "webSignupSendCode": "Send code",
+    "webSignupContactVerified": "{contact} verified.",
+    "@webSignupContactVerified": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupVerificationCode": "Verification code",
+    "webSignupEnter6Digit": "Enter the 6-digit code",
+    "webSignupCodeSentHint": "We sent a code to {contact}.",
+    "@webSignupCodeSentHint": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupCodeSentTo": "Code sent to {contact}",
+    "@webSignupCodeSentTo": {
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupEnterTin": "Enter TIN number",
+    "webSignupTinRequired": "TIN number is required",
+    "webSignupTinTooShort": "TIN number must be at least 9 digits",
+    "webSignupPickCountryFromList": "Please pick a country from the list",
+    "webSignupSearchCountry": "Search your country",
+    "webSignupCreateYourAccount": "Create your account",
+    "webAuthSecuredE2e": "Secured with end-to-end encryption",
+    "webAuthVerifiedOpening": "Verified — opening {target}…",
+    "@webAuthVerifiedOpening": {
+        "placeholders": {
+            "target": {
+                "type": "String"
+            }
+        }
+    },
+    "webAuthYourBusiness": "your business",
+    "webAuthBrandTitle": "Your shop, your team, your numbers — all in one place.",
+    "webAuthBrandBody": "Pick up right where you left off. Today's sales, stock, and reports are ready.",
+    "webAuthErrorCheckingPrefs": "Error checking preferences: {error}",
+    "@webAuthErrorCheckingPrefs": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webBizNoBusinesses": "No businesses available",
+    "webBizChooseBusiness": "Choose a business",
+    "webBizChooseBusinessSubtitle": "Select the business you want to manage.",
+    "webBizNotSeeing": "Not seeing your business? Ask the owner to invite you.",
+    "webBizChooseBranch": "Choose a branch",
+    "webBizChooseBranchSubtitle": "Select the branch you want to access",
+    "webBizCouldNotSet": "Could not set business. Please try again.",
+    "webBizProfileLoadFailed": "Could not load your profile. This may happen if the network is unavailable or your session has expired.",
+    "webBizBackToLogin": "Back to login",
+    "webBizUser": "User",
+    "webBizOwnerBranches": "{count, plural, =1{Owner · 1 branch} other{Owner · {count} branches}}",
+    "@webBizOwnerBranches": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "webBizMemberBranches": "{count, plural, =1{Member · 1 branch} other{Member · {count} branches}}",
+    "@webBizMemberBranches": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "webBizSigningOut": "Signing out…",
+    "webBizDefault": "DEFAULT",
+    "webBizAddBusiness": "Add a business",
+    "webAuthPinNotFound": "PIN not found",
+    "webAuthAccessDenied": "Access denied — check authentication",
+    "webAuthInvalidPinCode": "Invalid PIN ({code})",
+    "@webAuthInvalidPinCode": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "webAuthNetworkFailed": "Network connection failed. Check your internet connection.",
+    "webAuthTimedOut": "Request timed out. Please try again.",
+    "webAuthOtpNotFound": "OTP not found",
+    "webAuthInvalidOtp": "Invalid OTP",
+    "webAuthTotpNotFound": "Authenticator code not found",
+    "webAuthInvalidTotp": "Invalid authenticator code",
+    "webSignupRegistrationFailedStatus": "Registration failed with status code: {code}",
+    "@webSignupRegistrationFailedStatus": {
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupNetworkConnect": "Network error: Unable to connect to server. Please check your internet connection.",
+    "webSignupServerSlow": "Request timed out. The server is taking too long to respond. Please try again later.",
+    "webSignupNetworkIncomplete": "Network error: Unable to complete the request. Please try again later.",
+    "webSignupRegistrationFailed": "Registration failed: {error}",
+    "@webSignupRegistrationFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "webSignupNetworkSendCode": "Network error while sending the code. Please try again.",
+    "webSignupContactExists": "Contact already exists",
+    "webSignupSendOtpFailed": "Failed to send OTP for signup",
+    "webSignupNetworkCheckCode": "Network error while checking the code. Please try again."
 }

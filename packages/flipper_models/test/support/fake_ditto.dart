@@ -143,7 +143,7 @@ class FakeDittoStore {
   }
 
   static final _insertRe = RegExp(
-    r'^INSERT\s+INTO\s+(\w+)\s+DOCUMENTS\s+\(:(\w+)\)(\s+ON\s+ID\s+CONFLICT\s+DO\s+UPDATE)?$',
+    r'^INSERT\s+INTO\s+(\w+)\s+DOCUMENTS\s+\(:(\w+)\)(\s+ON\s+ID\s+CONFLICT\s+DO\s+(UPDATE|NOTHING))?$',
     caseSensitive: false,
   );
 
@@ -153,11 +153,14 @@ class FakeDittoStore {
 
     final collection = m.group(1)!;
     final doc = Map<String, dynamic>.from(args[m.group(2)!] as Map);
-    final upsert = m.group(3) != null;
+    final onConflict = m.group(4)?.toUpperCase();
     final id = (doc['_id'] ?? doc['id']).toString();
 
     final store = collections.putIfAbsent(collection, () => {});
-    if (store.containsKey(id) && !upsert) {
+    if (store.containsKey(id) && onConflict == 'NOTHING') {
+      return FakeDittoResult(const []);
+    }
+    if (store.containsKey(id) && onConflict == null) {
       // Real Ditto rejects a duplicate _id without ON ID CONFLICT.
       throw StateError('duplicate _id $id in $collection');
     }
@@ -264,6 +267,7 @@ abstract final class _Where {
   static final _isNotNull = RegExp(r'^(\w+)\s+IS\s+NOT\s+NULL$', caseSensitive: false);
   static final _inList = RegExp(r"^(\w+)\s+IN\s+\((.*)\)$", caseSensitive: false);
   static final _eq = RegExp(r'^(\w+)\s*=\s*(.+)$');
+  static final _ne = RegExp(r'^(\w+)\s*!=\s*(.+)$');
 
   static bool _term(String clause, Map<String, dynamic> doc, Map<String, dynamic> args) {
     final term = _stripParens(clause.trim());
@@ -280,6 +284,11 @@ abstract final class _Where {
           .map((raw) => value(raw.trim(), args))
           .expand((v) => v is Iterable ? v : [v]);
       return options.any((option) => _same(field, option));
+    }
+
+    final ne = _ne.firstMatch(term);
+    if (ne != null) {
+      return !_same(doc[ne.group(1)!], value(ne.group(2)!.trim(), args));
     }
 
     final eq = _eq.firstMatch(term);

@@ -1,19 +1,30 @@
 import 'package:flipper_hr/features/leave/data/leave_type.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// Where a request stands. One decision per request, recorded on the request
 /// itself — see the table comment in `0004_hr_leave.sql`.
 enum LeaveStatus {
-  pending('pending', 'Pending'),
-  approved('approved', 'Approved'),
-  rejected('rejected', 'Rejected'),
+  pending('pending'),
+  approved('approved'),
+  rejected('rejected'),
 
   /// Withdrawn by the person who asked, before anyone decided.
-  cancelled('cancelled', 'Cancelled');
+  cancelled('cancelled');
 
-  const LeaveStatus(this.wire, this.label);
+  const LeaveStatus(this.wire);
 
   final String wire;
-  final String label;
+
+  /// Display name in the current app language. Never persisted.
+  String get label {
+    final l10n = FlipperL10n.current;
+    return switch (this) {
+      LeaveStatus.pending => l10n.hrLeaveStatusPending,
+      LeaveStatus.approved => l10n.approved,
+      LeaveStatus.rejected => l10n.hrLeaveStatusRejected,
+      LeaveStatus.cancelled => l10n.hrLeaveStatusCancelled,
+    };
+  }
 
   /// True once someone has approved or rejected it. A decided request is
   /// read-only for everybody.

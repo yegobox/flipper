@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_derive.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
@@ -24,16 +25,8 @@ class JournalApprovalCard extends StatelessWidget {
   final bool isApproving;
 
   static const _cardShadow = [
-    BoxShadow(
-      color: Color(0x0F0B1220),
-      blurRadius: 3,
-      offset: Offset(0, 1),
-    ),
-    BoxShadow(
-      color: Color(0x0A0B1220),
-      blurRadius: 2,
-      offset: Offset(0, 1),
-    ),
+    BoxShadow(color: Color(0x0F0B1220), blurRadius: 3, offset: Offset(0, 1)),
+    BoxShadow(color: Color(0x0A0B1220), blurRadius: 2, offset: Offset(0, 1)),
   ];
 
   static const _approveGradient = LinearGradient(
@@ -43,11 +36,7 @@ class JournalApprovalCard extends StatelessWidget {
   );
 
   static const _approveShadow = [
-    BoxShadow(
-      color: Color(0x382563EB),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-    ),
+    BoxShadow(color: Color(0x382563EB), blurRadius: 24, offset: Offset(0, 8)),
   ];
 
   @override
@@ -99,7 +88,11 @@ class JournalApprovalCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '${entry.date} · ${entry.ref} · via ${entry.src}',
+                    context.flipperL10n.booksEntryMeta(
+                      entry.date,
+                      entry.ref,
+                      entry.src,
+                    ),
                     style: AccountingTokens.sans(
                       fontSize: 11.5,
                       color: AccountingTokens.ink3,
@@ -134,7 +127,10 @@ class JournalApprovalCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Balanced · ${money(t.dr)} = ${money(t.cr)}',
+                    context.flipperL10n.booksBalancedDrCr(
+                      money(t.cr),
+                      money(t.dr),
+                    ),
                     style: AccountingTokens.sans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -160,8 +156,8 @@ class JournalApprovalCard extends StatelessWidget {
                     const SizedBox(width: 7),
                     Text(
                       action == ApprovalAction.approve
-                          ? 'Approved & posted'
-                          : 'Sent back to drafts',
+                          ? context.flipperL10n.booksApprovedPosted
+                          : context.flipperL10n.booksSentBackToDrafts,
                       style: AccountingTokens.sans(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -178,7 +174,7 @@ class JournalApprovalCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _ActionButton(
-                        label: 'Reject',
+                        label: context.flipperL10n.booksReject,
                         icon: Icons.close,
                         onPressed: busy ? null : onReject,
                         filled: false,
@@ -187,7 +183,7 @@ class JournalApprovalCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _ActionButton(
-                        label: 'Approve',
+                        label: context.flipperL10n.booksApprove,
                         icon: Icons.check,
                         onPressed: busy ? null : () => onApprove(),
                         filled: true,
@@ -227,7 +223,7 @@ class _PendingPill extends StatelessWidget {
           ),
           const SizedBox(width: 5),
           Text(
-            'pending',
+            context.flipperL10n.booksPillPending,
             style: AccountingTokens.sans(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -275,11 +271,15 @@ class _JournalLineRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  isDr ? 'Dr' : 'Cr',
+                  isDr
+                      ? context.flipperL10n.booksDrShort
+                      : context.flipperL10n.booksCrShort,
                   style: AccountingTokens.sans(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: isDr ? AccountingTokens.drInk : AccountingTokens.crInk,
+                    color: isDr
+                        ? AccountingTokens.drInk
+                        : AccountingTokens.crInk,
                   ),
                 ),
               ),
@@ -379,7 +379,11 @@ class _ActionButton extends StatelessWidget {
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: filled ? 17 : 16, color: filled ? Colors.white : AccountingTokens.ink2),
+              Icon(
+                icon,
+                size: filled ? 17 : 16,
+                color: filled ? Colors.white : AccountingTokens.ink2,
+              ),
               const SizedBox(width: 7),
               Text(
                 label,
@@ -420,10 +424,7 @@ class _ActionButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(AccountingTokens.radiusMd),
-        child: SizedBox(
-          height: 46,
-          child: Center(child: child),
-        ),
+        child: SizedBox(height: 46, child: Center(child: child)),
       ),
     );
   }

@@ -16614,6 +16614,1946 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
   String get ticketCompleteInProgress => 'Inakamilisha tiketi…';
 
   @override
+  String get hrWeekdayMonday => 'Jumatatu';
+
+  @override
+  String get hrWeekdayShortMon => 'Jtt';
+
+  @override
+  String get hrWeekdayTuesday => 'Jumanne';
+
+  @override
+  String get hrWeekdayShortTue => 'Jnn';
+
+  @override
+  String get hrWeekdayWednesday => 'Jumatano';
+
+  @override
+  String get hrWeekdayShortWed => 'Jtn';
+
+  @override
+  String get hrWeekdayThursday => 'Alhamisi';
+
+  @override
+  String get hrWeekdayShortThu => 'Alh';
+
+  @override
+  String get hrWeekdayFriday => 'Ijumaa';
+
+  @override
+  String get hrWeekdayShortFri => 'Ijm';
+
+  @override
+  String get hrWeekdaySaturday => 'Jumamosi';
+
+  @override
+  String get hrWeekdayShortSat => 'Jms';
+
+  @override
+  String get hrWeekdaySunday => 'Jumapili';
+
+  @override
+  String get hrWeekdayShortSun => 'Jpl';
+
+  @override
+  String get hrMonthJanuary => 'Januari';
+
+  @override
+  String get hrMonthShortJan => 'Jan';
+
+  @override
+  String get hrMonthFebruary => 'Februari';
+
+  @override
+  String get hrMonthShortFeb => 'Feb';
+
+  @override
+  String get hrMonthMarch => 'Machi';
+
+  @override
+  String get hrMonthShortMar => 'Mac';
+
+  @override
+  String get hrMonthApril => 'Aprili';
+
+  @override
+  String get hrMonthShortApr => 'Apr';
+
+  @override
+  String get hrMonthMay => 'Mei';
+
+  @override
+  String get hrMonthShortMay => 'Mei';
+
+  @override
+  String get hrMonthJune => 'Juni';
+
+  @override
+  String get hrMonthShortJun => 'Jun';
+
+  @override
+  String get hrMonthJuly => 'Julai';
+
+  @override
+  String get hrMonthShortJul => 'Jul';
+
+  @override
+  String get hrMonthAugust => 'Agosti';
+
+  @override
+  String get hrMonthShortAug => 'Ago';
+
+  @override
+  String get hrMonthSeptember => 'Septemba';
+
+  @override
+  String get hrMonthShortSep => 'Sep';
+
+  @override
+  String get hrMonthOctober => 'Oktoba';
+
+  @override
+  String get hrMonthShortOct => 'Okt';
+
+  @override
+  String get hrMonthNovember => 'Novemba';
+
+  @override
+  String get hrMonthShortNov => 'Nov';
+
+  @override
+  String get hrMonthDecember => 'Desemba';
+
+  @override
+  String get hrMonthShortDec => 'Des';
+
+  @override
+  String hrLongDate(String weekday, String day, String month) {
+    return '$weekday, $day $month';
+  }
+
+  @override
+  String hrDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Siku $count',
+      one: 'Siku 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hrDaysFractional(String days) {
+    return 'Siku $days';
+  }
+
+  @override
+  String hrDurationMinutes(String minutes) {
+    return 'dk $minutes';
+  }
+
+  @override
+  String hrDurationHours(String hours) {
+    return 'saa $hours';
+  }
+
+  @override
+  String hrDurationHoursMinutes(String hours, String minutes) {
+    return 'saa $hours dk $minutes';
+  }
+
+  @override
+  String get hrGoodMorning => 'Habari za asubuhi';
+
+  @override
+  String get hrGoodAfternoon => 'Habari za mchana';
+
+  @override
+  String get hrGoodEvening => 'Habari za jioni';
+
+  @override
+  String hrGreetingWithName(String greeting, String name) {
+    return '$greeting, $name';
+  }
+
+  @override
+  String get hrAddAPerson => 'Ongeza mtu';
+
+  @override
+  String get hrApprovals => 'Idhini';
+
+  @override
+  String hrReviewRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kagua maombi $count',
+      one: 'Kagua ombi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrAttendanceBoard => 'Ubao wa mahudhurio';
+
+  @override
+  String get hrHeadcount => 'Idadi ya wafanyakazi';
+
+  @override
+  String hrActiveCount(String count) {
+    return '$count hai';
+  }
+
+  @override
+  String get hrOnLeave => 'Likizoni';
+
+  @override
+  String get hrWaitingOnYou => 'Vinakusubiri';
+
+  @override
+  String get hrNeedsADecision => 'Inahitaji uamuzi';
+
+  @override
+  String get hrAllClear => 'Hakuna kinachosubiri';
+
+  @override
+  String get hrNewThisMonth => 'Wapya mwezi huu';
+
+  @override
+  String get hrMonthlyPayroll => 'Mishahara ya mwezi';
+
+  @override
+  String get hrEstimated => 'Makadirio';
+
+  @override
+  String get hrNeedsYourDecision => 'Inahitaji uamuzi wako';
+
+  @override
+  String get hrNeedsYourDecisionSubtitle =>
+      'Maombi ya likizo ambayo bado hayajajibiwa';
+
+  @override
+  String get hrOpenQueue => 'Fungua foleni';
+
+  @override
+  String get hrCouldNotLoadApprovalsQueue =>
+      'Imeshindwa kupakia foleni ya idhini.';
+
+  @override
+  String get hrTryAgain => 'Jaribu tena';
+
+  @override
+  String get hrNothingWaitingOnYou =>
+      'Hakuna kinachokusubiri. Maombi yote yameamuliwa.';
+
+  @override
+  String hrMoreWaiting(String count) {
+    return '$count zaidi zinasubiri';
+  }
+
+  @override
+  String hrEmployeeWithId(String id) {
+    return 'Mfanyakazi $id';
+  }
+
+  @override
+  String get hrOutToday => 'Hawapo leo';
+
+  @override
+  String get hrRoster => 'Orodha';
+
+  @override
+  String get hrEveryoneIsInToday => 'Kila mtu yupo leo.';
+
+  @override
+  String get hrJoinedThisMonth => 'Waliojiunga mwezi huu';
+
+  @override
+  String get hrNobodyNewThisMonth => 'Hakuna mpya mwezi huu.';
+
+  @override
+  String get hrEmploymentFullTime => 'Muda wote';
+
+  @override
+  String get hrEmploymentPartTime => 'Muda mfupi';
+
+  @override
+  String get hrEmploymentContract => 'Mkataba';
+
+  @override
+  String get hrEmploymentIntern => 'Mwanafunzi wa mafunzo';
+
+  @override
+  String get hrEmploymentCasual => 'Kibarua';
+
+  @override
+  String get hrStatusActive => 'Hai';
+
+  @override
+  String get hrStatusSuspended => 'Amesimamishwa';
+
+  @override
+  String get hrStatusTerminated => 'Ameachishwa';
+
+  @override
+  String get hrPayMonthly => 'Kila mwezi';
+
+  @override
+  String get hrPayWeekly => 'Kila wiki';
+
+  @override
+  String get hrPayDaily => 'Kila siku';
+
+  @override
+  String get hrPayHourly => 'Kwa saa';
+
+  @override
+  String get hrPaymentBankTransfer => 'Uhamisho wa benki';
+
+  @override
+  String get hrAttendanceNotIn => 'Hayupo';
+
+  @override
+  String get hrAttendanceClockedIn => 'Ameingia';
+
+  @override
+  String get hrAttendanceClockedOut => 'Ametoka';
+
+  @override
+  String get hrAttendanceSourceSelf => 'Mwenyewe';
+
+  @override
+  String get hrAttendanceSourceManager => 'Imerekodiwa na meneja';
+
+  @override
+  String get hrLeaveStatusPending => 'Inasubiri';
+
+  @override
+  String get hrLeaveStatusRejected => 'Imekataliwa';
+
+  @override
+  String get hrLeaveStatusCancelled => 'Imeghairiwa';
+
+  @override
+  String get hrLeaveTypeAnnual => 'Likizo ya mwaka';
+
+  @override
+  String get hrLeaveTypeSick => 'Likizo ya ugonjwa';
+
+  @override
+  String get hrLeaveTypeMaternity => 'Likizo ya uzazi';
+
+  @override
+  String get hrLeaveTypePaternity => 'Likizo ya baba';
+
+  @override
+  String get hrLeaveTypeCompassionate => 'Likizo ya dharura ya kifamilia';
+
+  @override
+  String get hrLeaveTypeUnpaid => 'Likizo bila malipo';
+
+  @override
+  String hrPersonAddedToRoster(String name) {
+    return '$name ameongezwa kwenye orodha.';
+  }
+
+  @override
+  String hrSavedChangesTo(String name) {
+    return 'Mabadiliko ya $name yamehifadhiwa.';
+  }
+
+  @override
+  String hrInviteSentNotLinked(String message) {
+    return 'Mwaliko umetumwa, lakini haujaunganishwa. $message';
+  }
+
+  @override
+  String hrPersonIsNowStatus(String name, String status) {
+    return '$name sasa ni $status.';
+  }
+
+  @override
+  String hrTerminatePersonTitle(String name) {
+    return 'Kumwachisha kazi $name?';
+  }
+
+  @override
+  String hrTerminatePersonBody(String date) {
+    return 'Siku yake ya mwisho itarekodiwa kama $date. Rekodi itabaki kwa historia ya mishahara lakini ataondolewa kwenye orodha.';
+  }
+
+  @override
+  String get hrTerminate => 'Achisha kazi';
+
+  @override
+  String get hrAccessDiagnostic => 'Uchunguzi wa ufikiaji';
+
+  @override
+  String hrDiagnosticFailed(String error) {
+    return 'Uchunguzi umeshindwa: $error';
+  }
+
+  @override
+  String get hrPeople => 'Watu';
+
+  @override
+  String get hrEveryoneOnThisBranch => 'Kila mtu katika tawi hili';
+
+  @override
+  String hrEveryoneAtBranch(String branch) {
+    return 'Kila mtu katika $branch';
+  }
+
+  @override
+  String get hrAddPerson => 'Ongeza mtu';
+
+  @override
+  String get hrSearchPeopleHint => 'Tafuta jina, cheo, simu…';
+
+  @override
+  String get hrStatus => 'Hali';
+
+  @override
+  String get hrEmployed => 'Walioajiriwa';
+
+  @override
+  String get hrDepartment => 'Idara';
+
+  @override
+  String get hrAllDepartments => 'Idara zote';
+
+  @override
+  String get hrSortBy => 'Panga kwa';
+
+  @override
+  String get hrReportsTo => 'Anaripoti kwa';
+
+  @override
+  String get hrContact => 'Mawasiliano';
+
+  @override
+  String get hrTenure => 'Muda kazini';
+
+  @override
+  String get hrBasePay => 'Mshahara wa msingi';
+
+  @override
+  String hrReportsToName(String name) {
+    return 'Anaripoti kwa $name';
+  }
+
+  @override
+  String get hrResendHrInvite => 'Tuma tena mwaliko wa HR';
+
+  @override
+  String get hrInviteToHr => 'Alika kwenye HR';
+
+  @override
+  String get hrMarkActive => 'Weka hai';
+
+  @override
+  String get hrMarkOnLeave => 'Weka likizoni';
+
+  @override
+  String get hrSuspend => 'Simamisha';
+
+  @override
+  String get hrNoOneOnBranchYet => 'Bado hakuna mtu katika tawi hili';
+
+  @override
+  String get hrNoOneOnBranchYetMessage =>
+      'Ongeza mtu wa kwanza ili kuanza kufuatilia mahudhurio, likizo na mishahara.';
+
+  @override
+  String get hrNoOneMatchesFilters => 'Hakuna anayelingana na vichujio hivi';
+
+  @override
+  String get hrClearFilters => 'Futa vichujio';
+
+  @override
+  String get hrWhyWasThisDenied => 'Kwa nini imekataliwa?';
+
+  @override
+  String hrTenureStarts(String date) {
+    return 'Anaanza $date';
+  }
+
+  @override
+  String hrTenureDays(String days) {
+    return 'siku $days';
+  }
+
+  @override
+  String hrTenureMonths(String months) {
+    return 'miezi $months';
+  }
+
+  @override
+  String hrTenureYears(String years) {
+    return 'miaka $years';
+  }
+
+  @override
+  String hrTenureYearsMonths(String years, String months) {
+    return 'miaka $years miezi $months';
+  }
+
+  @override
+  String get hrSortNameAsc => 'Jina (A–Z)';
+
+  @override
+  String get hrSortNameDesc => 'Jina (Z–A)';
+
+  @override
+  String get hrSortNewestHire => 'Aliyeajiriwa karibuni';
+
+  @override
+  String get hrSortLongestServing => 'Aliyehudumu muda mrefu';
+
+  @override
+  String get hrSortHighestPaid => 'Analipwa zaidi';
+
+  @override
+  String get hrEditPerson => 'Hariri mtu';
+
+  @override
+  String get hrSectionIdentity => 'Utambulisho';
+
+  @override
+  String get hrFirstName => 'Jina la kwanza';
+
+  @override
+  String get hrLastName => 'Jina la ukoo';
+
+  @override
+  String get hrEmailOptional => 'Barua pepe (si lazima)';
+
+  @override
+  String get hrNationalIdOptional => 'Kitambulisho cha taifa (si lazima)';
+
+  @override
+  String get hrRssbNumberOptional => 'Namba ya RSSB (si lazima)';
+
+  @override
+  String get hrSectionRole => 'Cheo';
+
+  @override
+  String get hrJobTitle => 'Cheo cha kazi';
+
+  @override
+  String get hrDepartmentOptional => 'Idara (si lazima)';
+
+  @override
+  String get hrEmploymentType => 'Aina ya ajira';
+
+  @override
+  String get hrStartDate => 'Tarehe ya kuanza';
+
+  @override
+  String get hrLastDayOptional => 'Siku ya mwisho (si lazima)';
+
+  @override
+  String get hrSectionPay => 'Malipo';
+
+  @override
+  String hrBasePayWithCurrency(String currency) {
+    return 'Mshahara wa msingi ($currency)';
+  }
+
+  @override
+  String get hrPayFrequency => 'Mzunguko wa malipo';
+
+  @override
+  String get hrAnnualLeaveDays => 'Siku za likizo ya mwaka';
+
+  @override
+  String hrAnnualLeaveDaysHelper(String days) {
+    return 'Acha wazi kwa kiwango cha chini cha kisheria cha siku $days za kazi';
+  }
+
+  @override
+  String get hrMobileMoneyNumber => 'Namba ya pesa kwa simu';
+
+  @override
+  String get hrMobileMoneyNumberHelper =>
+      'Acha wazi ili kulipa namba ya mawasiliano iliyo juu';
+
+  @override
+  String get hrBank => 'Benki';
+
+  @override
+  String get hrAccountNumber => 'Namba ya akaunti';
+
+  @override
+  String get hrSectionNotes => 'Maelezo';
+
+  @override
+  String get hrNotesOptional => 'Maelezo (si lazima)';
+
+  @override
+  String get hrSaveChanges => 'Hifadhi mabadiliko';
+
+  @override
+  String get hrManagerNotOnRoster =>
+      'Meneja wake wa sasa hayupo kwenye orodha ya tawi hili. Chagua mtu hapa ili kubadilisha.';
+
+  @override
+  String get hrManagerNobodyToChoose =>
+      'Bado hakuna wa kuchagua — maombi ya likizo yanaenda kwa anayesimamia biashara.';
+
+  @override
+  String get hrManagerHelper =>
+      'Maombi yake ya likizo yataenda kwa mtu huyu. Ukiacha wazi, yataenda kwa anayesimamia biashara.';
+
+  @override
+  String get hrNoManager => 'Hakuna meneja';
+
+  @override
+  String get hrFirstNameRequired => 'Jina la kwanza linahitajika';
+
+  @override
+  String get hrLastNameRequired => 'Jina la ukoo linahitajika';
+
+  @override
+  String get hrJobTitleRequired => 'Cheo cha kazi kinahitajika';
+
+  @override
+  String get hrPhoneNumberRequired => 'Namba ya simu inahitajika';
+
+  @override
+  String get hrEnterValidPhoneNumber => 'Weka namba sahihi ya simu';
+
+  @override
+  String get hrEnterValidEmail => 'Weka barua pepe sahihi';
+
+  @override
+  String hrNationalIdLength(String min, String max) {
+    return 'Kitambulisho cha taifa kina herufi $min hadi $max';
+  }
+
+  @override
+  String get hrStartDateTooFarAhead =>
+      'Tarehe ya kuanza haiwezi kuzidi mwaka mmoja mbele';
+
+  @override
+  String get hrLastDayRequiredToTerminate =>
+      'Siku ya mwisho inahitajika ili kuachisha kazi';
+
+  @override
+  String get hrLastDayBeforeStart =>
+      'Siku ya mwisho haiwezi kuwa kabla ya tarehe ya kuanza';
+
+  @override
+  String get hrCannotReportToSelf => 'Mtu hawezi kuripoti kwake mwenyewe';
+
+  @override
+  String get hrPayCannotBeNegative => 'Malipo hayawezi kuwa hasi';
+
+  @override
+  String get hrLeaveDaysCannotBeNegative => 'Siku za likizo haziwezi kuwa hasi';
+
+  @override
+  String get hrLeaveDaysTooMany =>
+      'Hiyo ni zaidi ya mwaka wa kazi — weka siku, si saa';
+
+  @override
+  String get hrMobileMoneyNumberRequired =>
+      'Namba ya pesa kwa simu inahitajika';
+
+  @override
+  String get hrEnterValidMobileMoneyNumber =>
+      'Weka namba sahihi ya pesa kwa simu';
+
+  @override
+  String get hrBankNameRequired => 'Jina la benki linahitajika';
+
+  @override
+  String get hrAccountNumberRequired => 'Namba ya akaunti inahitajika';
+
+  @override
+  String get hrPickFirstDayOfLeave => 'Chagua siku ya kwanza ya likizo.';
+
+  @override
+  String get hrPickLastDayOfLeave => 'Chagua siku ya mwisho ya likizo.';
+
+  @override
+  String get hrLastDayBeforeFirstDay =>
+      'Siku ya mwisho haiwezi kuwa kabla ya siku ya kwanza.';
+
+  @override
+  String get hrLeaveTooFarAhead =>
+      'Likizo haiwezi kuombwa zaidi ya mwaka mmoja mbele. Angalia mwaka wa tarehe hizi.';
+
+  @override
+  String get hrLeaveCannotStartInPast =>
+      'Likizo haiwezi kuanza wakati uliopita.';
+
+  @override
+  String hrLeaveBackdatedTooFar(String days) {
+    return 'Hii ilianza zaidi ya siku $days zilizopita. Muombe msimamizi wa orodha airekodi.';
+  }
+
+  @override
+  String hrLeaveReasonRequired(String leaveType) {
+    return 'Eleza kwa ufupi kwa nini unahitaji $leaveType.';
+  }
+
+  @override
+  String get hrPickAtLeastOneDay => 'Chagua angalau siku moja.';
+
+  @override
+  String get hrPeriodAllWeekend =>
+      'Kipindi hicho ni wikendi tu — chagua angalau siku moja ya kazi.';
+
+  @override
+  String hrLeaveOverlaps(String start, String end, String status) {
+    return 'Hii inaingiliana na likizo uliyonayo kuanzia $start hadi $end ($status).';
+  }
+
+  @override
+  String hrNoLeaveLeft(String leaveType, String year) {
+    return 'Hakuna $leaveType iliyobaki kwa $year.';
+  }
+
+  @override
+  String hrOnlyLeaveLeft(
+    String left,
+    String leaveType,
+    String year,
+    String requested,
+  ) {
+    return 'Zimebaki $left tu za $leaveType kwa $year; ombi hili linaomba $requested.';
+  }
+
+  @override
+  String get hrRequestLeave => 'Omba likizo';
+
+  @override
+  String hrLeaveForName(String name) {
+    return 'Likizo ya $name';
+  }
+
+  @override
+  String get hrLeaveTypeField => 'Aina';
+
+  @override
+  String get hrFirstDay => 'Siku ya kwanza';
+
+  @override
+  String get hrLastDay => 'Siku ya mwisho';
+
+  @override
+  String get hrNoteOptional => 'Maelezo (si lazima)';
+
+  @override
+  String get hrReason => 'Sababu';
+
+  @override
+  String get hrSending => 'Inatuma…';
+
+  @override
+  String get hrSendRequest => 'Tuma ombi';
+
+  @override
+  String hrLeaveCostCalendarDays(String days) {
+    return '$days (siku za kalenda)';
+  }
+
+  @override
+  String hrLeaveCostWorkingDays(String days) {
+    return '$days (siku za kazi)';
+  }
+
+  @override
+  String get hrUnpaidLeaveNoLimit =>
+      'likizo bila malipo haina kikomo cha mwaka';
+
+  @override
+  String hrMoreThanYouHaveLeft(String days) {
+    return '$days zaidi ya ulizobaki nazo';
+  }
+
+  @override
+  String hrLeftAfterThis(String days) {
+    return '$days zitabaki baada ya hili';
+  }
+
+  @override
+  String get hrLeaveTakenNoLimit => 'zimechukuliwa · hakuna kikomo cha mwaka';
+
+  @override
+  String hrLeaveLeftOf(String days) {
+    return 'zimebaki kati ya $days';
+  }
+
+  @override
+  String hrLeaveAwaitingApproval(String days) {
+    return '$days zinasubiri idhini';
+  }
+
+  @override
+  String get hrLeaveRequestSent =>
+      'Ombi la likizo limetumwa. Utaliona hapa likishaamuliwa.';
+
+  @override
+  String get hrWithdrawRequestTitle => 'Ondoa ombi hili?';
+
+  @override
+  String hrWithdrawRequestBody(String start, String end) {
+    return 'Likizo yako kuanzia $start hadi $end itaghairiwa na siku zitarudi kwenye salio lako.';
+  }
+
+  @override
+  String get hrKeepIt => 'Iache';
+
+  @override
+  String get hrWithdraw => 'Ondoa';
+
+  @override
+  String get hrRequestWithdrawn => 'Ombi limeondolewa.';
+
+  @override
+  String get hrCouldNotLoadYourRecord => 'Imeshindwa kupakia rekodi yako';
+
+  @override
+  String get hrCouldNotLoadYourLeave => 'Imeshindwa kupakia likizo zako';
+
+  @override
+  String get hrMyLeave => 'Likizo zangu';
+
+  @override
+  String hrBalancesFor(String name, String year) {
+    return '$name · salio za $year';
+  }
+
+  @override
+  String hrRequestsGoTo(String name) {
+    return 'Maombi yanaenda kwa $name';
+  }
+
+  @override
+  String get hrEmploymentEndedNotice =>
+      'Ajira yako imeisha, hivyo hakuna likizo mpya inayoweza kuombwa. Historia yako inabaki hapa.';
+
+  @override
+  String get hrRequests => 'Maombi';
+
+  @override
+  String get hrNoLeaveBookedYet =>
+      'Bado hakuna likizo iliyoombwa. Salio zilizo juu ndizo ulizonazo mwaka huu.';
+
+  @override
+  String get hrNoEmployeeRecordTitle =>
+      'Hakuna rekodi ya mfanyakazi kwa akaunti hii';
+
+  @override
+  String get hrNoEmployeeRecordLeaveBody =>
+      'Likizo huombwa kwa mtu aliye kwenye orodha ya tawi, na kuingia huku bado hakuhusiani na mtu yeyote. Muombe msimamizi wa orodha yako akualike kutoka ukurasa wa Watu — hilo ndilo linaunganisha rekodi yako na akaunti hii. Ikiwa tayari amefanya hivyo, hakikisha namba ya simu kwenye rekodi yako ndiyo uliyotumia kuingia.';
+
+  @override
+  String get hrLeaveApproved => 'Likizo imeidhinishwa.';
+
+  @override
+  String get hrLeaveRejected => 'Likizo imekataliwa.';
+
+  @override
+  String get hrLeave => 'Likizo';
+
+  @override
+  String get hrWithTheirManager => 'Kwa meneja wao';
+
+  @override
+  String get hrWithTheirManagerCaption =>
+      'Meneja wao bado hajajibu. Kuamua hapa ni kuamua badala yake.';
+
+  @override
+  String get hrDecided => 'Zimeamuliwa';
+
+  @override
+  String get hrNothingWaitingOnYouShort => 'Hakuna kinachokusubiri';
+
+  @override
+  String hrRequestsWaitingOnYou(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Maombi $count yanakusubiri',
+      one: 'Ombi 1 linakusubiri',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hrWithAnotherManager(String count) {
+    return '$count kwa meneja mwingine';
+  }
+
+  @override
+  String get hrYourTeam => 'Timu yako';
+
+  @override
+  String get hrApproveThisLeave => 'Idhinisha likizo hii?';
+
+  @override
+  String get hrRejectThisLeave => 'Kataa likizo hii?';
+
+  @override
+  String get hrRejectReasonLabel => 'Kwa nini? (ataona)';
+
+  @override
+  String get hrApprove => 'Idhinisha';
+
+  @override
+  String get hrReject => 'Kataa';
+
+  @override
+  String get hrOnlyTheirManagerCanAnswer =>
+      'Ni meneja wao pekee anayeweza kujibu hili.';
+
+  @override
+  String get hrNoLeaveRequestsYet => 'Bado hakuna maombi ya likizo';
+
+  @override
+  String get hrNoLeaveRequestsOwnerHint =>
+      'Alika watu kutoka ukurasa wa Watu ili waombe likizo wenyewe. Weka meneja wa kila mtu na maombi yake yataenda kwa meneja huyo; wasio na meneja yataletwa hapa.';
+
+  @override
+  String get hrNoLeaveRequestsManagerHint =>
+      'Maombi ya wanaoripoti kwako yataonekana hapa ili uyaidhinishe.';
+
+  @override
+  String get hrErrorLoadPeopleOnBranch =>
+      'Imeshindwa kupakia watu wa tawi hili.';
+
+  @override
+  String get hrErrorLoadPersonRecord =>
+      'Imeshindwa kupakia rekodi ya mtu huyu.';
+
+  @override
+  String hrErrorAddPerson(String name) {
+    return 'Imeshindwa kuongeza $name.';
+  }
+
+  @override
+  String hrErrorSavePerson(String name) {
+    return 'Imeshindwa kuhifadhi mabadiliko ya $name.';
+  }
+
+  @override
+  String get hrErrorLinkAccount =>
+      'Mwaliko umetumwa, lakini rekodi hii haikuweza kuunganishwa na akaunti mpya. Likizo zake hazitafanya kazi hadi iunganishwe.';
+
+  @override
+  String hrErrorChangeStatus(String status) {
+    return 'Imeshindwa kubadilisha mtu huyu kuwa $status.';
+  }
+
+  @override
+  String get hrThisPerson => 'mtu huyu';
+
+  @override
+  String get hrErrorLoadYourLeave => 'Imeshindwa kupakia likizo zako.';
+
+  @override
+  String get hrErrorLoadBranchLeave =>
+      'Imeshindwa kupakia likizo za tawi hili.';
+
+  @override
+  String get hrErrorLoadTeamLeave => 'Imeshindwa kupakia likizo za timu yako.';
+
+  @override
+  String get hrErrorSendLeaveRequest =>
+      'Imeshindwa kutuma ombi hili la likizo.';
+
+  @override
+  String get hrErrorWithdrawRequest =>
+      'Imeshindwa kuondoa ombi hili. Huenda tayari limeamuliwa.';
+
+  @override
+  String get hrErrorApproveAlreadyDecided =>
+      'Imeshindwa kuidhinisha ombi hili: tayari limeamuliwa au limeondolewa. Onyesha upya kuona hali yake.';
+
+  @override
+  String get hrErrorRejectAlreadyDecided =>
+      'Imeshindwa kukataa ombi hili: tayari limeamuliwa au limeondolewa. Onyesha upya kuona hali yake.';
+
+  @override
+  String get hrErrorApproveRequest => 'Imeshindwa kuidhinisha ombi hili.';
+
+  @override
+  String get hrErrorRejectRequest => 'Imeshindwa kukataa ombi hili.';
+
+  @override
+  String get hrErrorLoadDayAttendance =>
+      'Imeshindwa kupakia mahudhurio ya siku hii.';
+
+  @override
+  String get hrErrorLoadTimesheet => 'Imeshindwa kupakia jedwali hili la saa.';
+
+  @override
+  String get hrErrorCheckClockedIn => 'Imeshindwa kuthibitisha kama umeingia.';
+
+  @override
+  String get hrErrorCorrectEntry => 'Imeshindwa kusahihisha ingizo hili.';
+
+  @override
+  String get hrErrorServerReturnedNothing =>
+      'Seva imekubali tukio lakini haijarudisha chochote cha kuonyesha.';
+
+  @override
+  String get hrErrorClockInNotAllowed => 'Huruhusiwi kumwingiza mtu huyu.';
+
+  @override
+  String get hrErrorClockOutNotAllowed => 'Huruhusiwi kumtoa mtu huyu.';
+
+  @override
+  String get hrErrorClockIn => 'Imeshindwa kuingia.';
+
+  @override
+  String get hrErrorClockOut => 'Imeshindwa kutoka.';
+
+  @override
+  String get hrErrorLoadYourTeam => 'Imeshindwa kupakia timu yako.';
+
+  @override
+  String hrErrorResolveAccess(String error) {
+    return 'Imeshindwa kubaini unachoruhusiwa kufikia: $error';
+  }
+
+  @override
+  String get hrRoleStaffLabel => 'Mfanyakazi — huomba likizo yake';
+
+  @override
+  String get hrRoleManagerLabel => 'Meneja — orodha na idhini';
+
+  @override
+  String get hrRoleStaff => 'Mfanyakazi';
+
+  @override
+  String get hrRoleManager => 'Meneja';
+
+  @override
+  String hrInviteTitle(String name) {
+    return 'Alika $name kwenye HR';
+  }
+
+  @override
+  String get hrInviteNoContact =>
+      'Rekodi hii haina namba ya simu wala barua pepe, hivyo hakuna pa kutuma mwaliko. Ongeza kimoja kwanza.';
+
+  @override
+  String hrInviteWillGetPin(String contact) {
+    return 'Atapata PIN ya kuingia kwenye hr.useflipper.com, itakayothibitishwa kwa msimbo uliotumwa kwa $contact.';
+  }
+
+  @override
+  String get hrInviteEmailNoPhone =>
+      'Rekodi hii ina barua pepe lakini haina namba ya simu. Kuingia kunahitaji msimbo kwa SMS, hivyo ongeza namba ya simu kabla ya kualika.';
+
+  @override
+  String get hrInviteAlreadyHasAccount =>
+      'Tayari ana akaunti. Kumwalika tena kunatoa PIN mpya na kusasisha anachoweza kufanya — hakuundi mtu wa pili.';
+
+  @override
+  String hrInviteDirectReports(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Watu $count wanaripoti kwake, hivyo ataidhinisha likizo zao kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
+      one:
+          'Mtu 1 anaripoti kwake, hivyo ataidhinisha likizo yake kwa jukumu lolote utakalochagua. Jukumu la meneja linaongeza orodha na mishahara ya wote.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrInviteWhatCanTheyDo => 'Anaweza kufanya nini?';
+
+  @override
+  String get hrSendInvite => 'Tuma mwaliko';
+
+  @override
+  String get hrRoleStaffDescription =>
+      'Anaona rekodi yake, anaomba likizo na kuangalia salio lake — pamoja na kuidhinisha likizo za wanaoripoti kwake.';
+
+  @override
+  String get hrRoleManagerDescription =>
+      'Yote yaliyo juu, pamoja na orodha ya tawi, mishahara na kuidhinisha likizo za biashara nzima.';
+
+  @override
+  String get hrInviteSent => 'Mwaliko umetumwa';
+
+  @override
+  String hrInviteCanNowSignIn(String name, String role) {
+    return '$name sasa anaweza kuingia kwenye hr.useflipper.com kama $role.';
+  }
+
+  @override
+  String get hrCopyPin => 'Nakili PIN';
+
+  @override
+  String get hrPinCopied => 'PIN imenakiliwa.';
+
+  @override
+  String hrInvitePinHelp(String phone) {
+    return 'Kuingia kunaomba PIN hii, kisha msimbo uliotumwa kwa $phone. Mpatie PIN sasa — haitaonyeshwa tena, na iliyopotea hubadilishwa kwa kumwalika tena.';
+  }
+
+  @override
+  String get hrInviteNeedsContact =>
+      'Namba ya simu au barua pepe inahitajika kabla ya kumwalika mtu huyu.';
+
+  @override
+  String hrInviteErrorAccount(String contact) {
+    return 'Imeshindwa kupata au kuunda akaunti ya Flipper kwa $contact.';
+  }
+
+  @override
+  String hrInviteErrorNoAccountId(String contact) {
+    return 'Flipper imejibu bila kitambulisho cha akaunti kwa $contact.';
+  }
+
+  @override
+  String get hrInviteErrorNoMembershipId =>
+      'Uanachama umeundwa lakini Flipper haijarudisha kitambulisho chake.';
+
+  @override
+  String hrInviteErrorGrantAccess(String name, String error) {
+    return 'Imeshindwa kumpa $name ufikiaji wa biashara hii: $error';
+  }
+
+  @override
+  String hrInviteErrorCreatePin(String name) {
+    return 'Imeshindwa kuunda PIN ya kuingia kwa $name.';
+  }
+
+  @override
+  String get hrInviteErrorNoPin => 'PIN imeombwa lakini Flipper haijairudisha.';
+
+  @override
+  String get hrInviteErrorNoMembership =>
+      'Akaunti imeundwa lakini haina uanachama wa biashara hii, hivyo kuingia hakutafika popote. Jaribu kumwalika mtu huyu tena.';
+
+  @override
+  String hrInviteErrorConfirmMembership(String error) {
+    return 'Imeshindwa kuthibitisha uanachama mpya: $error';
+  }
+
+  @override
+  String get hrInviteErrorTimeout =>
+      'Flipper haijajibu kwa wakati — angalia muunganisho na ujaribu tena.';
+
+  @override
+  String get hrInviteErrorNotJson =>
+      'Flipper imejibu kwa kitu ambacho si JSON:';
+
+  @override
+  String get hrEnterValidMomoNumber =>
+      'Weka namba sahihi ya MTN au Airtel, mfano 0788123456.';
+
+  @override
+  String get hrMomoUnreadableReply =>
+      'Lango la malipo limetuma jibu lisilosomeka.';
+
+  @override
+  String get hrMomoNoReference =>
+      'Malipo yameanza lakini hakuna kumbukumbu iliyorudi — angalia taarifa yako ya Mobile Money kabla ya kujaribu tena.';
+
+  @override
+  String get hrMomoMissingReference => 'Kumbukumbu ya malipo haipo.';
+
+  @override
+  String get hrMomoRejectedInvalid =>
+      'Ombi la malipo limekataliwa kuwa si sahihi.';
+
+  @override
+  String get hrMomoNotAuthorised => 'Akaunti hii haijaruhusiwa kupokea malipo.';
+
+  @override
+  String get hrMomoServiceNotFound => 'Huduma ya malipo haikupatikana.';
+
+  @override
+  String get hrMomoAlreadySubmitted => 'Malipo hayo tayari yamewasilishwa.';
+
+  @override
+  String get hrMomoUnavailable =>
+      'Mobile Money haipatikani kwa sasa. Tafadhali jaribu tena baada ya muda mfupi.';
+
+  @override
+  String hrMomoCouldNotStart(String status) {
+    return 'Malipo hayakuweza kuanza (HTTP $status).';
+  }
+
+  @override
+  String get hrErrorCheckSubscription =>
+      'Imeshindwa kuangalia usajili wa biashara hii.';
+
+  @override
+  String get hrErrorLoadPlanPrice => 'Imeshindwa kupakia bei ya mpango huu.';
+
+  @override
+  String get hrErrorStartSubscription => 'Imeshindwa kuanzisha usajili.';
+
+  @override
+  String get hrErrorSkipPayment => 'Imeshindwa kuruka malipo haya.';
+
+  @override
+  String get hrPreparingSubscription => 'Inaandaa usajili wako…';
+
+  @override
+  String hrErrorStartSubscriptionWith(String error) {
+    return 'Imeshindwa kuanzisha usajili: $error';
+  }
+
+  @override
+  String get hrSubscriptionAlreadyActive => 'Usajili huu tayari uko hai.';
+
+  @override
+  String get hrSendingRequestToPhone => 'Inatuma ombi kwenye simu yako…';
+
+  @override
+  String hrPaymentCouldNotStartWith(String error) {
+    return 'Malipo hayakuweza kuanza: $error';
+  }
+
+  @override
+  String get hrApproveMomoOnPhone =>
+      'Idhinisha ombi la Mobile Money kwenye simu yako.';
+
+  @override
+  String get hrPaymentReceivedActive =>
+      'Malipo yamepokelewa. Usajili wako uko hai.';
+
+  @override
+  String get hrPaymentNotCompleted => 'Malipo hayakukamilika kwenye simu yako.';
+
+  @override
+  String get hrPaymentNoVerdictYet =>
+      'Bado hatujapata jibu kutoka Mobile Money. Ikiwa uliidhinisha ombi, itafunguka hivi karibuni — angalia tena baada ya muda.';
+
+  @override
+  String get hrSubscriptionEnded => 'Usajili wako umeisha';
+
+  @override
+  String get hrThisNeedsSubscription => 'Hiki kinahitaji usajili';
+
+  @override
+  String hrFeatureNeedsSubscription(String feature) {
+    return '$feature kinahitaji usajili';
+  }
+
+  @override
+  String get hrSubscriptionEndedBody =>
+      'Hakuna kilichofutwa — orodha, likizo na mahudhurio bado vipo. Huisha usajili ili kuvifungua tena.';
+
+  @override
+  String get hrSubscriptionPitch =>
+      'Flipper HR ni sehemu ya usajili wa Flipper. Lipia biashara mara moja na orodha, likizo na mahudhurio vitafunguka kwa wote.';
+
+  @override
+  String get hrPaymentOnItsWay =>
+      'Malipo tayari yako njiani. Ikiwa uliyaidhinisha kwenye simu yako, itafunguka mara Mobile Money itakapothibitisha.';
+
+  @override
+  String get hrRenewNow => 'Huisha sasa';
+
+  @override
+  String get hrSeeThePlan => 'Angalia mpango';
+
+  @override
+  String get hrSubscriptionCheckFailedOpen =>
+      'Imeshindwa kuangalia usajili wa biashara hii, hivyo imeachwa wazi kwa sasa.';
+
+  @override
+  String get hrTestPricingOn =>
+      'Bei za majaribio zimewashwa kwa mradi huu, hivyo usajili unatozwa kiasi kilichopunguzwa.';
+
+  @override
+  String hrSkipEndsSoon(String used, String max) {
+    return 'Unatumia ufikiaji wa bure bila kulipa (umetumia $used kati ya $max). Unaisha hivi karibuni.';
+  }
+
+  @override
+  String hrSkipEndsToday(String used, String max) {
+    return 'Unatumia ufikiaji wa bure bila kulipa (umetumia $used kati ya $max). Unaisha leo.';
+  }
+
+  @override
+  String hrSkipEndsInDays(int days, String used, String max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Unatumia ufikiaji wa bure bila kulipa (umetumia $used kati ya $max). Unaisha baada ya siku $days.',
+      one:
+          'Unatumia ufikiaji wa bure bila kulipa (umetumia $used kati ya $max). Unaisha baada ya siku 1.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrPayNow => 'Lipa sasa';
+
+  @override
+  String get hrSubscriptionEndsToday => 'Usajili wako unaisha leo.';
+
+  @override
+  String get hrSubscriptionEndsTomorrow => 'Usajili wako unaisha kesho.';
+
+  @override
+  String hrSubscriptionEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Usajili wako unaisha baada ya siku $days.',
+      one: 'Usajili wako unaisha baada ya siku 1.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrRenew => 'Huisha';
+
+  @override
+  String get hrFeatureDashboard => 'Dashibodi';
+
+  @override
+  String get hrFeatureRoster => 'Orodha ya wafanyakazi';
+
+  @override
+  String get hrFeatureAttendanceBoard => 'Ubao wa mahudhurio';
+
+  @override
+  String hrErrorSkipPaymentWith(String error) {
+    return 'Imeshindwa kuruka malipo haya: $error';
+  }
+
+  @override
+  String get hrSkipping => 'Inaruka…';
+
+  @override
+  String hrSkipForNow(String count) {
+    return 'Ruka kwa sasa (zimebaki $count)';
+  }
+
+  @override
+  String get hrSubscribePickBusiness =>
+      'Chagua biashara unayoilipia, kisha mpango na bei yake vitaonekana hapa.';
+
+  @override
+  String get hrChooseABusiness => 'Chagua biashara';
+
+  @override
+  String hrCouldNotLoadPlan(String error) {
+    return 'Imeshindwa kupakia mpango: $error';
+  }
+
+  @override
+  String get hrRenewYourSubscription => 'Huisha usajili wako';
+
+  @override
+  String get hrSubscribeToFlipper => 'Jisajili kwa Flipper';
+
+  @override
+  String get hrPeriodYearly => 'Kila mwaka';
+
+  @override
+  String hrTestPricingNormally(String amount, String period) {
+    return 'Bei za majaribio zimewashwa — kawaida ni $amount $period.';
+  }
+
+  @override
+  String get hrWhatBusinessIsUsing => 'Kinachotumiwa na biashara hii';
+
+  @override
+  String get hrUsagePosUsers => 'Watumiaji wa POS';
+
+  @override
+  String get hrUsageBranches => 'Matawi';
+
+  @override
+  String get hrUsageHrEmployees => 'Wafanyakazi wa HR';
+
+  @override
+  String hrUsageUnlimited(String used) {
+    return '$used · bila kikomo';
+  }
+
+  @override
+  String hrUsageOf(String used, String cap) {
+    return '$used kati ya $cap';
+  }
+
+  @override
+  String get hrMomoNumberLabel => 'Namba ya Mobile Money';
+
+  @override
+  String get hrPaymentReceived => 'Malipo yamepokelewa.';
+
+  @override
+  String get hrOpenFlipperHr => 'Fungua Flipper HR';
+
+  @override
+  String get hrPreparing => 'Inaandaa…';
+
+  @override
+  String get hrWaitingForApproval => 'Inasubiri idhini yako…';
+
+  @override
+  String hrPayWithMomo(String amount) {
+    return 'Lipa $amount kwa Mobile Money';
+  }
+
+  @override
+  String hrMomoPromptNote(String amount) {
+    return 'Utapokea ombi la Mobile Money kwenye namba hii. Kuliidhinisha kutatoza $amount.';
+  }
+
+  @override
+  String get hrPerYear => 'kwa mwaka';
+
+  @override
+  String get hrPerMonth => 'kwa mwezi';
+
+  @override
+  String get hrExpandMenu => 'Panua menyu';
+
+  @override
+  String get hrCollapseMenu => 'Kunja menyu';
+
+  @override
+  String get hrSearchPeople => 'Tafuta watu…';
+
+  @override
+  String get hrSwitchBusinessOrBranch => 'Badilisha biashara au tawi';
+
+  @override
+  String get hrSigningOut => 'Inatoka…';
+
+  @override
+  String get hrNavYou => 'Wewe';
+
+  @override
+  String get hrAttendance => 'Mahudhurio';
+
+  @override
+  String get hrMyTime => 'Muda wangu';
+
+  @override
+  String get hrPickBranchToContinue => 'Chagua tawi ili kuendelea';
+
+  @override
+  String get hrPickBranchBody =>
+      'Rekodi za HR ni za tawi, hivyo chagua unalofanyia kazi.';
+
+  @override
+  String get hrChooseBusinessOrBranch => 'Chagua biashara au tawi';
+
+  @override
+  String hrCouldNotCheckSession(String error) {
+    return 'Imeshindwa kuthibitisha kipindi chako: $error';
+  }
+
+  @override
+  String hrCouldNotLoadBusinesses(String error) {
+    return 'Imeshindwa kupakia biashara zako: $error';
+  }
+
+  @override
+  String get hrBackToSignIn => 'Rudi kuingia';
+
+  @override
+  String get hrBrandTagline =>
+      'Timu yako, muda wako, watu wako — vyote mahali pamoja.';
+
+  @override
+  String get hrBrandSubtitle =>
+      'Mahudhurio, mishahara na likizo viko tayari mara unapoingia.';
+
+  @override
+  String get hrBrandStatEmployees => 'wafanyakazi wanaosimamiwa';
+
+  @override
+  String get hrBrandStatPayroll => 'mishahara inayoshughulikiwa kila mwezi';
+
+  @override
+  String get hrBrandStatUptime => 'muda wa upatikanaji';
+
+  @override
+  String get hrBrandPayrollThisMonth => 'Mishahara · mwezi huu';
+
+  @override
+  String get hrBrandNewHire => 'Mwajiriwa mpya';
+
+  @override
+  String get hrBrandDayOne => 'Siku 1';
+
+  @override
+  String get hrBrandAttendanceStreak => 'Mfululizo wa mahudhurio';
+
+  @override
+  String get hrClockedInToast => 'Umeingia.';
+
+  @override
+  String hrClockedOutToast(String worked) {
+    return 'Umetoka — $worked leo.';
+  }
+
+  @override
+  String hrYourHoursForLastDays(String days) {
+    return 'Saa zako za siku $days zilizopita.';
+  }
+
+  @override
+  String get hrNoRecordNoHours =>
+      'Bado huna rekodi ya mfanyakazi kwenye akaunti hii, hivyo hakuna saa za kufuatilia. Muombe msimamizi wa HR akuongeze.';
+
+  @override
+  String get hrRecentDays => 'Siku za karibuni';
+
+  @override
+  String hrClockedInAt(String time) {
+    return 'Umeingia saa $time';
+  }
+
+  @override
+  String get hrNotClockedInToday => 'Hujaingia leo';
+
+  @override
+  String hrLastOutAt(String time) {
+    return 'Ulitoka mara ya mwisho saa $time';
+  }
+
+  @override
+  String get hrClockOut => 'Toka';
+
+  @override
+  String get hrClockIn => 'Ingia';
+
+  @override
+  String hrWorkedInDays(String worked, String days) {
+    return '$worked kwa siku $days';
+  }
+
+  @override
+  String get hrToday => 'Leo';
+
+  @override
+  String get hrOvernight => 'usiku kucha';
+
+  @override
+  String get hrNoHours => 'Hakuna saa';
+
+  @override
+  String hrSessionUntilNow(String start) {
+    return '$start – sasa';
+  }
+
+  @override
+  String hrBreakDuration(String duration) {
+    return '$duration za mapumziko';
+  }
+
+  @override
+  String hrPersonClockedIn(String name) {
+    return '$name ameingia.';
+  }
+
+  @override
+  String hrPersonClockedOut(String name) {
+    return '$name ametoka.';
+  }
+
+  @override
+  String get hrAttendanceNoOneOnBranch =>
+      'Bado hakuna mtu katika tawi hili. Ongeza watu kwanza, kisha saa zao zinaweza kurekodiwa hapa.';
+
+  @override
+  String get hrOnRoster => 'Kwenye orodha';
+
+  @override
+  String get hrRecorded => 'Imerekodiwa';
+
+  @override
+  String get hrHours => 'Saa';
+
+  @override
+  String get hrChangeDay => 'Badilisha siku';
+
+  @override
+  String get hrNoHoursToday => 'Hakuna saa leo';
+
+  @override
+  String hrInAt(String time) {
+    return 'Aliingia $time';
+  }
+
+  @override
+  String hrOutAt(String time) {
+    return 'alitoka $time';
+  }
+
+  @override
+  String hrSessionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vipindi $count',
+      one: 'Kipindi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get authSignIn => 'Ingia';
+
+  @override
+  String get authToContinueToAccount => 'ili kuendelea kwenye akaunti yako';
+
+  @override
+  String get authEnterYourEmail => 'Weka barua pepe yako';
+
+  @override
+  String get authPleaseEnterEmail => 'Tafadhali weka barua pepe yako';
+
+  @override
+  String get authPleaseEnterValidEmail => 'Tafadhali weka barua pepe sahihi';
+
+  @override
+  String get authPassword => 'Nenosiri';
+
+  @override
+  String get authEnterYourPassword => 'Weka nenosiri lako';
+
+  @override
+  String get authPleaseEnterPassword => 'Tafadhali weka nenosiri lako';
+
+  @override
+  String get authPasswordMinLength =>
+      'Nenosiri lazima liwe na angalau herufi 6';
+
+  @override
+  String get authKeepMeSignedIn => 'Endelea kuniweka ndani';
+
+  @override
+  String get authForgotPassword => 'Umesahau nenosiri?';
+
+  @override
+  String get authNoAccountPrompt => 'Huna akaunti?';
+
+  @override
+  String get authCreateOne => 'Fungua moja';
+
+  @override
+  String get authCreateYourAccount => 'Fungua akaunti yako';
+
+  @override
+  String get authSignupSubtitle =>
+      'Anza na mchakato ule ule salama wa kujisajili, sasa umeboreshwa kwa usanidi wa haraka kwenye simu.';
+
+  @override
+  String get authFullName => 'Jina kamili';
+
+  @override
+  String get authEnterFullName => 'Weka jina lako kamili';
+
+  @override
+  String get authPleaseEnterName => 'Tafadhali weka jina lako';
+
+  @override
+  String get authHidePassword => 'Ficha nenosiri';
+
+  @override
+  String get authShowPassword => 'Onyesha nenosiri';
+
+  @override
+  String get authConfirmPassword => 'Thibitisha nenosiri';
+
+  @override
+  String get authConfirmYourPassword => 'Thibitisha nenosiri lako';
+
+  @override
+  String get authPleaseConfirmPassword => 'Tafadhali thibitisha nenosiri lako';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Manenosiri hayalingani';
+
+  @override
+  String get authCreateAccountButton => 'Fungua akaunti';
+
+  @override
+  String get authAlreadyHaveAccount => 'Tayari una akaunti? Ingia';
+
+  @override
+  String get authBusinessSetup => 'Usanidi wa biashara';
+
+  @override
+  String get authAuthenticator => 'Kithibitishaji';
+
+  @override
+  String get authAddAccount => 'Ongeza akaunti';
+
+  @override
+  String get authSomethingWentWrong => 'Kuna hitilafu imetokea';
+
+  @override
+  String get authUnexpectedErrorTryAgain =>
+      'Hitilafu isiyotarajiwa imetokea. Tafadhali jaribu tena.';
+
+  @override
+  String get authTryAgain => 'Jaribu tena';
+
+  @override
+  String get authNoAccountsAdded => 'Hakuna akaunti iliyoongezwa';
+
+  @override
+  String get authAddFirstAccountHint =>
+      'Ongeza akaunti yako ya kwanza ili kuanza kutoa misimbo ya uthibitishaji';
+
+  @override
+  String get authCodeCopied => 'Msimbo umenakiliwa';
+
+  @override
+  String get authInvalidQrCode => 'Msimbo wa QR si sahihi';
+
+  @override
+  String get authAccountAdded => 'Akaunti imeongezwa';
+
+  @override
+  String authFailedToAddAccount(String error) {
+    return 'Imeshindwa kuongeza akaunti: $error';
+  }
+
+  @override
+  String get personalReadyForAdventure => 'Uko tayari kwa safari?';
+
+  @override
+  String personalDayStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Siku $count mfululizo!',
+      one: 'Siku 1 mfululizo!',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personalTodaysProgress => 'Maendeleo ya leo';
+
+  @override
+  String personalCompletedOf(String done, String total) {
+    return '$done/$total zimekamilika';
+  }
+
+  @override
+  String get personalXpProgress => 'Maendeleo ya XP';
+
+  @override
+  String personalXpToday(String xp) {
+    return '+$xp XP leo';
+  }
+
+  @override
+  String get personalFindChallenges => 'Tafuta changamoto';
+
+  @override
+  String get personalViewRewards => 'Tazama zawadi';
+
+  @override
+  String get personalLeaderboard => 'Ubao wa viongozi';
+
+  @override
+  String get personalRecentAchievements => 'Mafanikio ya karibuni';
+
+  @override
+  String get personalOpeningAchievements => 'Inafungua mafanikio yote!';
+
+  @override
+  String get personalViewAll => 'Tazama yote';
+
+  @override
+  String get personalAchievementFirstSteps => 'Hatua za kwanza';
+
+  @override
+  String get personalAchievementExplorer => 'Mvumbuzi';
+
+  @override
+  String get personalAchievementStreakMaster => 'Bingwa wa mfululizo';
+
+  @override
+  String get personalAchievementSocialStar => 'Nyota wa kijamii';
+
+  @override
+  String get personalHowToLevelUp => 'Jinsi ya kupanda kiwango';
+
+  @override
+  String get personalDiscoverQuests => 'Gundua changamoto zilizofichwa';
+
+  @override
+  String get personalDiscoverQuestsBody =>
+      'Tembelea biashara za karibu ili kufungua changamoto za siri na kupata XP ya ziada!';
+
+  @override
+  String get personalDailyChallenges => 'Kamilisha changamoto za kila siku';
+
+  @override
+  String get personalDailyChallengesBody =>
+      'Dumisha mfululizo wako na upande kwenye ubao wa viongozi pamoja na marafiki!';
+
+  @override
+  String get personalTeamUp => 'Shirikiana na marafiki';
+
+  @override
+  String get personalTeamUpBody =>
+      'Ungana kwa changamoto za kikundi na upate bonasi za kuzidisha!';
+
+  @override
+  String get personalAdventureBegins => 'Safari ianze! 🚀';
+
+  @override
+  String get personalStartAdventure => 'Anza safari yako!';
+
+  @override
+  String get personalSyncingAdventures => 'Inasawazisha na safari za karibu...';
+
+  @override
+  String get personalLoggingOut => 'Inatoka...';
+
+  @override
+  String get personalLoggedOut => 'Umetoka kikamilifu!';
+
+  @override
+  String personalLogoutFailed(String error) {
+    return 'Kutoka kumeshindwa: $error';
+  }
+
+  @override
+  String get personalCouldNotDetermineLocation =>
+      'Imeshindwa kubaini mahali ulipo.';
+
+  @override
+  String get personalBusinessIdNotFound =>
+      'Kitambulisho cha biashara hakikupatikana. Tafadhali ingia tena.';
+
+  @override
+  String get personalFailedToFetchChallenges => 'Imeshindwa kupata changamoto';
+
+  @override
+  String get personalFailedToFetchChallengesRetry =>
+      'Imeshindwa kupata changamoto. Tafadhali jaribu tena.';
+
+  @override
+  String get personalYourRewards => 'Zawadi zako';
+
+  @override
+  String get personalRewardFreeCoffee => 'Kahawa bure';
+
+  @override
+  String get personalRewardFreeCoffeeBody =>
+      'Pata kahawa bure kutoka mikahawa washirika wetu.';
+
+  @override
+  String get personalRewardDiscount => 'Punguzo la 10%';
+
+  @override
+  String get personalRewardDiscountBody =>
+      'Furahia punguzo la 10% kwenye ununuzi wako ujao.';
+
+  @override
+  String get personalRewardEarlyAccess => 'Ufikiaji wa mapema';
+
+  @override
+  String get personalRewardEarlyAccessBody =>
+      'Pata ufikiaji wa mapema wa vipengele vipya.';
+
+  @override
+  String get personalChallengeDiscovered => 'Changamoto imegunduliwa!';
+
+  @override
+  String get personalRewardAvailable => 'Zawadi inapatikana!';
+
+  @override
+  String get personalLater => 'Baadaye';
+
+  @override
+  String get personalClaimReward => 'Dai zawadi';
+
+  @override
+  String get personalFailedToClaimReward =>
+      'Imeshindwa kudai zawadi. Tafadhali jaribu tena.';
+
+  @override
+  String get personalRewardClaimed => 'Zawadi imedaiwa kikamilifu!';
+
+  @override
+  String personalErrorLoadingRewards(String error) {
+    return 'Hitilafu kupakia zawadi: $error';
+  }
+
+  @override
+  String get personalChallengeClaimed => 'Changamoto imedaiwa';
+
+  @override
+  String personalClaimedOn(String date) {
+    return 'Imedaiwa tarehe $date';
+  }
+
+  @override
+  String personalBusinessLabel(String business) {
+    return 'Biashara: $business';
+  }
+
+  @override
+  String personalRewardLabel(String reward) {
+    return 'Zawadi: $reward';
+  }
+
+  @override
+  String get personalSpecialReward => 'Zawadi maalum';
+
+  @override
+  String get personalClaim => 'Dai';
+
+  @override
+  String get personalNoChallengesNearby =>
+      'Hakuna changamoto karibu. Jaribu kuzunguka!';
+
+  @override
+  String get personalTapToDiscover => 'Gusa ili kugundua changamoto za karibu';
+
+  @override
+  String get personalTapToSearchAgain => 'Gusa ili kutafuta tena';
+
+  @override
+  String get personalSearchingChallenges => 'Inatafuta changamoto za karibu...';
+
+  @override
+  String get personalChallengesFound => 'Changamoto zimepatikana!';
+
+  @override
+  String personalNearbyRewards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Zawadi $count karibu',
+      one: 'Zawadi 1 karibu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personalChallengeClaimedToast =>
+      'Changamoto imedaiwa kikamilifu! 🎉';
+
+  @override
+  String personalFailedToClaimChallenge(String error) {
+    return 'Imeshindwa kudai changamoto: $error';
+  }
+
+  @override
   String get manualPurchaseSellPrice => 'Bei ya kuuza';
 
   @override
@@ -19403,4 +21343,3158 @@ class FlipperAppLocalizationsSw extends FlipperAppLocalizations {
 
   @override
   String get loginFailed => 'Kuingia kumeshindikana';
+
+  @override
+  String get webPricingTitle => 'Bei rahisi na wazi';
+
+  @override
+  String get webPlanMobile => 'Simu';
+
+  @override
+  String get webPlanMobileDesktop => 'Simu + Kompyuta';
+
+  @override
+  String get webPlanEnterprise => 'Biashara Kubwa';
+
+  @override
+  String get webCurrencyPerMonth => 'RWF / mwezi';
+
+  @override
+  String get webFeatureMobileAppAccess => 'Ufikiaji wa programu ya simu';
+
+  @override
+  String get webFeatureBasicBusinessTools => 'Zana za msingi za biashara';
+
+  @override
+  String get webFeatureDataEncryption => 'Usimbaji fiche wa data';
+
+  @override
+  String get webFeatureSingleDevice => 'Kifaa kimoja';
+
+  @override
+  String get webFeatureTaxReportingAddon =>
+      '+ Uwasilishaji wa kodi (+30,000 RWF)';
+
+  @override
+  String get webFeatureMobileDesktopAppAccess =>
+      'Ufikiaji wa programu ya simu na kompyuta';
+
+  @override
+  String get webFeatureAdvancedBusinessTools => 'Zana za kisasa za biashara';
+
+  @override
+  String get webFeatureMilitaryGradeEncryption =>
+      'Usimbaji fiche wa kiwango cha kijeshi';
+
+  @override
+  String get webFeaturePrioritySupport => 'Msaada wa kipaumbele';
+
+  @override
+  String get webFeatureMultipleDevices => 'Vifaa vingi';
+
+  @override
+  String get webFeatureAdvancedAnalytics => 'Uchanganuzi wa kina';
+
+  @override
+  String get webFeatureFullPlatformAccess => 'Ufikiaji kamili wa jukwaa';
+
+  @override
+  String get webFeatureEnterpriseGradeSecurity =>
+      'Usalama wa kiwango cha kampuni';
+
+  @override
+  String get webFeature247DedicatedSupport => 'Msaada maalum 24/7';
+
+  @override
+  String get webFeatureUnlimitedUsersBranches =>
+      'Watumiaji na matawi bila kikomo';
+
+  @override
+  String get webFeatureCustomIntegrations => 'Miunganisho maalum';
+
+  @override
+  String get webFeaturePremiumTaxConsulting =>
+      '+ Ushauri maalum wa kodi (+400,000 RWF)';
+
+  @override
+  String get webGetStarted => 'Anza';
+
+  @override
+  String get booksReceivables => 'Madeni ya wateja';
+
+  @override
+  String get booksBills => 'Bili';
+
+  @override
+  String get booksSuppliers => 'Wasambazaji';
+
+  @override
+  String get booksPayables => 'Madeni ya wasambazaji';
+
+  @override
+  String get booksJournalEntries => 'Maingizo ya jarida';
+
+  @override
+  String get booksGeneralLedger => 'Leja kuu';
+
+  @override
+  String get booksRecurring => 'Zinazojirudia';
+
+  @override
+  String get booksBankReconciliation => 'Usuluhishi wa benki';
+
+  @override
+  String get booksFinancialStatements => 'Taarifa za fedha';
+
+  @override
+  String get booksTrialBalance => 'Mizani ya majaribio';
+
+  @override
+  String get booksTaxVat => 'Kodi na VAT';
+
+  @override
+  String get booksChartOfAccounts => 'Orodha ya akaunti';
+
+  @override
+  String get booksPeriodClose => 'Kufunga kipindi';
+
+  @override
+  String get booksAuditTrail => 'Kumbukumbu za ukaguzi';
+
+  @override
+  String get booksUsersRoles => 'Watumiaji na majukumu';
+
+  @override
+  String get booksOverview => 'Muhtasari';
+
+  @override
+  String get booksDaybook => 'Daftari la kila siku';
+
+  @override
+  String get booksSetup => 'Usanidi';
+
+  @override
+  String get booksCompliance => 'Uzingatiaji';
+
+  @override
+  String booksClosingBalance(String amount) {
+    return 'Salio la mwisho $amount';
+  }
+
+  @override
+  String booksAccountPostingHistory(String currency) {
+    return 'Historia ya maingizo kwa kila akaunti · $currency';
+  }
+
+  @override
+  String get booksReadingStatement => 'Inasoma taarifa…';
+
+  @override
+  String get booksStatementImported => 'Taarifa imeingizwa';
+
+  @override
+  String booksStatementLinesLoaded(int count, String source) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mistari $count imepakiwa',
+      one: 'Mstari 1 umepakiwa',
+    );
+    return '$source · $_temp0';
+  }
+
+  @override
+  String get booksImportFailed => 'Uingizaji umeshindwa';
+
+  @override
+  String get booksMatchDifferentAccountTitle =>
+      'Linganisha kwenye akaunti nyingine?';
+
+  @override
+  String booksMatchDifferentAccountBody(
+    String account,
+    String amount,
+    String bankCode,
+    String code,
+  ) {
+    return 'Ingizo hili linahamisha $amount kwenye $account ($code), si Benki ($bankCode). Linganisha hata hivyo?';
+  }
+
+  @override
+  String get booksMatch => 'Linganisha';
+
+  @override
+  String get booksBankLineMatched => 'Mstari wa benki umelinganishwa';
+
+  @override
+  String get booksBankCatSaleIncome => 'Mauzo / mapato';
+
+  @override
+  String get booksBankCatSaleIncomeHint => 'Pesa uliyopata';
+
+  @override
+  String get booksBankCatCustomerPaid => 'Mteja alilipa deni';
+
+  @override
+  String get booksBankCatCustomerPaidHint => 'Alikuwa anadaiwa nawe';
+
+  @override
+  String get booksBankCatOwnerAdded => 'Mmiliki aliongeza pesa';
+
+  @override
+  String get booksBankCatOwnerAddedHint => 'Mtaji uliouweka';
+
+  @override
+  String get booksBankCatLoanReceived => 'Mkopo uliopokea';
+
+  @override
+  String get booksBankCatLoanReceivedHint => 'Pesa uliyokopa';
+
+  @override
+  String get booksBankCatFromCash => 'Uhamisho kutoka fedha taslimu';
+
+  @override
+  String get booksBankCatFromCashHint =>
+      'Imehamishwa kutoka sanduku lako la fedha';
+
+  @override
+  String get booksBankCatFromMomo => 'Uhamisho kutoka Mobile Money';
+
+  @override
+  String get booksBankCatFromMomoHint => 'Imehamishwa kutoka MoMo';
+
+  @override
+  String get booksBankCatOtherIncome => 'Mapato mengine';
+
+  @override
+  String get booksBankCatOtherIncomeHint => 'Chochote kingine kilichopokelewa';
+
+  @override
+  String get booksBankCatBankFee => 'Ada / gharama ya benki';
+
+  @override
+  String get booksBankCatBankFeeHint => 'Gharama zilizokatwa na benki';
+
+  @override
+  String get booksBankCatPaidSupplier => 'Kumlipa msambazaji / kununua bidhaa';
+
+  @override
+  String get booksBankCatPaidSupplierHint => 'Hisa au bidhaa';
+
+  @override
+  String get booksBankCatRent => 'Kodi ya pango';
+
+  @override
+  String get booksBankCatRentHint => 'Kodi ya duka au ofisi';
+
+  @override
+  String get booksBankCatSalaries => 'Mishahara';
+
+  @override
+  String get booksBankCatSalariesHint => 'Malipo ya wafanyakazi';
+
+  @override
+  String get booksBankCatUtilities => 'Huduma za msingi';
+
+  @override
+  String get booksBankCatUtilitiesHint => 'Umeme, maji, intaneti';
+
+  @override
+  String get booksBankCatTransport => 'Usafiri / mafuta';
+
+  @override
+  String get booksBankCatTransportHint => 'Safari na usafirishaji';
+
+  @override
+  String get booksBankCatLoanRepayment => 'Kulipa mkopo';
+
+  @override
+  String get booksBankCatLoanRepaymentHint => 'Ulirejesha mkopo';
+
+  @override
+  String get booksBankCatOwnerWithdrew => 'Mmiliki alitoa pesa';
+
+  @override
+  String get booksBankCatOwnerWithdrewHint => 'Utoaji wa binafsi';
+
+  @override
+  String get booksBankCatToCash => 'Uhamisho kwenda fedha taslimu';
+
+  @override
+  String get booksBankCatToCashHint => 'Imehamishiwa sanduku lako la fedha';
+
+  @override
+  String get booksBankCatToMomo => 'Uhamisho kwenda Mobile Money';
+
+  @override
+  String get booksBankCatToMomoHint => 'Imehamishiwa MoMo';
+
+  @override
+  String get booksBankCatOtherExpense => 'Matumizi mengine';
+
+  @override
+  String get booksBankCatOtherExpenseHint => 'Chochote kingine ulicholipa';
+
+  @override
+  String get booksEntryCreatedMatched => 'Ingizo limeundwa na kulinganishwa';
+
+  @override
+  String booksEntryCreatedMatchedDetail(
+    String amount,
+    String category,
+    String ref,
+  ) {
+    return '$category — $amount kwenye Benki ($ref)';
+  }
+
+  @override
+  String get booksCouldNotCreateEntry => 'Imeshindwa kuunda ingizo';
+
+  @override
+  String get booksWhereMoneyFrom => 'Pesa hizi zilitoka wapi?';
+
+  @override
+  String get booksWhatPaymentFor => 'Malipo haya yalikuwa ya nini?';
+
+  @override
+  String get booksPickClosestMatch =>
+      'Chagua kinacholingana zaidi — tutakirekodi ipasavyo kwa ajili yako.';
+
+  @override
+  String get booksMatchBankLine => 'Linganisha mstari wa benki';
+
+  @override
+  String get booksBank => 'Benki';
+
+  @override
+  String booksBankRecSubtitle(String bank, String currency, String period) {
+    return 'Benki · $bank · taarifa ya $period · $currency';
+  }
+
+  @override
+  String get booksImportStatement => 'Ingiza taarifa';
+
+  @override
+  String get booksReconciled => 'Imesuluhishwa';
+
+  @override
+  String get booksFinishReconciliation => 'Maliza usuluhishi';
+
+  @override
+  String get booksReconciliationComplete => 'Usuluhishi umekamilika';
+
+  @override
+  String booksLinesMatchedOfTotal(String matched, String total) {
+    return 'Mistari $matched kati ya $total imelinganishwa';
+  }
+
+  @override
+  String get booksStatementBalance => 'Salio la taarifa';
+
+  @override
+  String get booksFromImportedStatement => 'kutoka taarifa iliyoingizwa';
+
+  @override
+  String get booksMatched => 'Zimelinganishwa';
+
+  @override
+  String get booksNoLinesYet => 'bado hakuna mistari';
+
+  @override
+  String booksOfTotal(String total) {
+    return 'kati ya $total';
+  }
+
+  @override
+  String get booksNeedsAttention => 'Inahitaji umakini';
+
+  @override
+  String get booksStatementLines => 'Mistari ya taarifa';
+
+  @override
+  String get booksMatchEachLine =>
+      'Linganisha kila mstari wa benki na ingizo la jarida';
+
+  @override
+  String get booksNoStatementLines =>
+      'Bado hakuna mistari ya taarifa ya benki. Ingiza taarifa ili kuanza.';
+
+  @override
+  String booksVatSubtitle(String period, String rate) {
+    return 'VAT ya $rate% (kiwango cha kawaida Rwanda) · kipindi $period';
+  }
+
+  @override
+  String get booksFileWithRra => 'Wasilisha kwa RRA';
+
+  @override
+  String get booksVatReturnSubmitted => 'Ritani ya VAT imewasilishwa';
+
+  @override
+  String booksRraAckRef(String ref) {
+    return 'Uthibitisho wa RRA · kumb. $ref';
+  }
+
+  @override
+  String get booksOutputVatOnSales => 'VAT ya mauzo';
+
+  @override
+  String get booksInputVatReclaimable => 'VAT ya manunuzi (inayorejeshwa)';
+
+  @override
+  String get booksNetVatPayable => 'VAT halisi inayolipwa';
+
+  @override
+  String booksDueDate(String date) {
+    return 'Tarehe ya mwisho $date';
+  }
+
+  @override
+  String get booksVatReturnSummary => 'Muhtasari wa ritani ya VAT';
+
+  @override
+  String get booksDraft => 'Rasimu';
+
+  @override
+  String get booksTotalSalesVatInclusive => 'Jumla ya mauzo (pamoja na VAT)';
+
+  @override
+  String get booksOutputVatCollected => 'VAT ya mauzo iliyokusanywa';
+
+  @override
+  String get booksInputVatOnPurchases => 'VAT ya manunuzi';
+
+  @override
+  String get booksNetVatDueToRra => 'VAT halisi inayodaiwa na RRA';
+
+  @override
+  String get booksPrint => 'Chapisha';
+
+  @override
+  String get booksPreparingPrintLayout => 'Inaandaa mpangilio wa kuchapisha';
+
+  @override
+  String get booksGeneratingPdf => 'Inatengeneza PDF';
+
+  @override
+  String booksStatementPack(String currency) {
+    return 'Kifurushi cha taarifa · $currency';
+  }
+
+  @override
+  String get booksIncomeStatement => 'Taarifa ya mapato';
+
+  @override
+  String get booksBalanceSheet => 'Mizania';
+
+  @override
+  String get booksCashFlow => 'Mtiririko wa fedha';
+
+  @override
+  String get booksNetRevenue => 'Mapato halisi';
+
+  @override
+  String get booksCogs => 'Gharama ya bidhaa zilizouzwa';
+
+  @override
+  String get booksGrossProfit => 'Faida ghafi';
+
+  @override
+  String get booksOperatingExpenses => 'Gharama za uendeshaji';
+
+  @override
+  String get booksTotalAssets => 'Jumla ya mali';
+
+  @override
+  String get booksTotalLiabilities => 'Jumla ya madeni';
+
+  @override
+  String get booksTotalEquity => 'Jumla ya mtaji';
+
+  @override
+  String get booksLiabilitiesPlusEquity => 'Madeni + mtaji';
+
+  @override
+  String get booksOperatingActivities => 'Shughuli za uendeshaji';
+
+  @override
+  String get booksInvestingActivities => 'Shughuli za uwekezaji';
+
+  @override
+  String get booksFinancingActivities => 'Shughuli za ufadhili';
+
+  @override
+  String get booksNetChangeInCash => 'Mabadiliko halisi ya fedha';
+
+  @override
+  String get booksBalancedAssetsEqual =>
+      'Imesawazishwa — mali ni sawa na madeni pamoja na mtaji';
+
+  @override
+  String booksAsOfPeriod(String currency, String period) {
+    return 'Hadi $period · $currency';
+  }
+
+  @override
+  String get booksInBalance => 'Imesawazishwa';
+
+  @override
+  String get booksOutOfBalance => 'Haijasawazishwa';
+
+  @override
+  String get booksNoAccountsYet => 'Bado hakuna akaunti zilizopakiwa.';
+
+  @override
+  String get booksTotals => 'Jumla';
+
+  @override
+  String get booksAssets => 'Mali';
+
+  @override
+  String get booksLiabilities => 'Madeni';
+
+  @override
+  String get booksEquity => 'Mtaji';
+
+  @override
+  String get booksIncome => 'Mapato';
+
+  @override
+  String get booksExpenses => 'Matumizi';
+
+  @override
+  String booksCoaSubtitle(String count) {
+    return 'Akaunti $count · muundo wa leja wenye nambari';
+  }
+
+  @override
+  String get booksFilterByType => 'Chuja kwa aina';
+
+  @override
+  String get booksAllTypes => 'Aina zote';
+
+  @override
+  String get booksFilter => 'Chuja';
+
+  @override
+  String get booksAddAccount => 'Ongeza akaunti';
+
+  @override
+  String get booksNetIncome => 'Mapato halisi';
+
+  @override
+  String get booksNetLoss => 'Hasara halisi';
+
+  @override
+  String get booksOpenOnWiderScreen =>
+      'Fungua kwenye skrini pana kwa nafasi ya kazi ya kompyuta';
+
+  @override
+  String get booksFreqMonthly => 'Kila mwezi';
+
+  @override
+  String get booksFreqWeekly => 'Kila wiki';
+
+  @override
+  String get booksFreqQuarterly => 'Kila robo mwaka';
+
+  @override
+  String get booksFreqYearly => 'Kila mwaka';
+
+  @override
+  String get booksRoleOwner => 'Mmiliki';
+
+  @override
+  String get booksRoleOwnerDesc =>
+      'Ufikiaji kamili — kuidhinisha, kuingiza, kuwasilisha kodi, kusimamia timu';
+
+  @override
+  String get booksRoleBookkeeper => 'Mtunza hesabu';
+
+  @override
+  String get booksRoleBookkeeperDesc =>
+      'Kuunda na kuhariri maingizo, ankara na bili; hawezi kuidhinisha wala kuwasilisha';
+
+  @override
+  String get booksRoleCashier => 'Keshia';
+
+  @override
+  String get booksRoleCashierDesc =>
+      'Kurekodi mauzo na risiti kutoka POS pekee';
+
+  @override
+  String get booksRoleViewer => 'Mtazamaji';
+
+  @override
+  String get booksRoleViewerDesc =>
+      'Ufikiaji wa kusoma tu kwa ripoti na taarifa';
+
+  @override
+  String get booksCapViewReports => 'Kuona ripoti na taarifa';
+
+  @override
+  String get booksCapCreateInvoicesBills => 'Kuunda ankara na bili';
+
+  @override
+  String get booksCapRecordPayments => 'Kurekodi malipo na risiti';
+
+  @override
+  String get booksCapPostJournal => 'Kuingiza na kuhariri maingizo ya jarida';
+
+  @override
+  String get booksCapApproveEntries => 'Kuidhinisha maingizo';
+
+  @override
+  String get booksCapFileVat => 'Kuwasilisha VAT kwa RRA';
+
+  @override
+  String get booksCapClosePeriods => 'Kufunga vipindi na kusimamia timu';
+
+  @override
+  String get booksRecurringEntries => 'Maingizo yanayojirudia';
+
+  @override
+  String booksRecurringSubtitle(String currency) {
+    return 'Kodi, mishahara na maingizo mengine yanayojirudia hujiingiza yenyewe · $currency';
+  }
+
+  @override
+  String get booksNewSchedule => 'Ratiba mpya';
+
+  @override
+  String get booksActiveSchedules => 'Ratiba zinazotumika';
+
+  @override
+  String booksCountOfTotal(String count, String total) {
+    return '$count kati ya $total';
+  }
+
+  @override
+  String get booksMonthlyCommitted => 'Ahadi ya kila mwezi';
+
+  @override
+  String get booksNextRun => 'Utekelezaji ujao';
+
+  @override
+  String get booksNoRecurringYet =>
+      'Bado hakuna ratiba zinazojirudia. Unda moja ili kuingiza kodi, mishahara au maingizo mengine yanayojirudia.';
+
+  @override
+  String get booksSchedule => 'Ratiba';
+
+  @override
+  String get booksFrequency => 'Marudio';
+
+  @override
+  String get booksPostsTo => 'Inaingizwa kwenye';
+
+  @override
+  String get booksStatus => 'Hali';
+
+  @override
+  String get booksPaused => '— imesitishwa —';
+
+  @override
+  String get booksRunNow => 'Endesha sasa';
+
+  @override
+  String get booksScheduleResumed => 'Ratiba imeendelea';
+
+  @override
+  String get booksSchedulePaused => 'Ratiba imesitishwa';
+
+  @override
+  String get booksEntryPosted => 'Ingizo limeingizwa';
+
+  @override
+  String get booksAlreadyPostedThisPeriod => 'Tayari imeingizwa kipindi hiki';
+
+  @override
+  String get booksCouldNotPostEntry => 'Imeshindwa kuingiza ingizo';
+
+  @override
+  String get booksScheduleCreated => 'Ratiba imeundwa';
+
+  @override
+  String get booksScheduleUpdated => 'Ratiba imesasishwa';
+
+  @override
+  String booksPeriodCloseSubtitle(String currency, String period) {
+    return 'Funga $period hesabu zikishakamilika · $currency';
+  }
+
+  @override
+  String booksPeriodLocked(String period) {
+    return '$period imefungwa';
+  }
+
+  @override
+  String get booksReopenPeriod => 'Fungua kipindi tena';
+
+  @override
+  String get booksCouldNotReopenPeriod => 'Imeshindwa kufungua kipindi tena';
+
+  @override
+  String get booksPeriodReopened => 'Kipindi kimefunguliwa tena';
+
+  @override
+  String booksPeriodPostableAgain(String period) {
+    return '$period inaweza kuingizwa tena';
+  }
+
+  @override
+  String get booksClosePeriod => 'Funga kipindi';
+
+  @override
+  String get booksCouldNotClosePeriod => 'Imeshindwa kufunga kipindi';
+
+  @override
+  String get booksPeriodClosed => 'Kipindi kimefungwa';
+
+  @override
+  String booksPeriodLockedReadOnly(String period) {
+    return '$period imefungwa · maingizo sasa ni ya kusoma tu';
+  }
+
+  @override
+  String get booksCloseChecklist => 'Orodha ya kufunga';
+
+  @override
+  String booksStepsComplete(String done, String total) {
+    return 'Hatua $done kati ya $total zimekamilika';
+  }
+
+  @override
+  String get booksReview => 'Kagua';
+
+  @override
+  String get booksWhatClosingDoes => 'Kufunga hufanya nini';
+
+  @override
+  String get booksCloseNoteLocks =>
+      'Hufunga kipindi. Maingizo yaliyoingizwa yanakuwa ya kusoma tu — hakuna kuhariri bila kufungua tena.';
+
+  @override
+  String get booksCloseNoteRollsForward =>
+      'Husogeza mbele. Mapato halisi huhamishiwa kwenye mapato yaliyobakizwa na salio huendelea mwezi ujao.';
+
+  @override
+  String get booksCloseNoteAuditPoint =>
+      'Huunda kituo cha ukaguzi. Picha ya hali hurekodiwa kwenye kumbukumbu za ukaguzi pamoja na jina lako na muda.';
+
+  @override
+  String get booksAllChecksPassed => 'Ukaguzi wote umepita — tayari kufunga.';
+
+  @override
+  String get booksFinishChecklist =>
+      'Maliza kila hatua ya orodha ili kuwezesha kufunga.';
+
+  @override
+  String get booksAuditSubtitle =>
+      'Kila mabadiliko, aliyeyafanya na lini · haibadiliki';
+
+  @override
+  String get booksAllUsers => 'Watumiaji wote';
+
+  @override
+  String get booksExport => 'Hamisha';
+
+  @override
+  String get booksExportingAuditLog => 'Inahamisha kumbukumbu za ukaguzi';
+
+  @override
+  String booksEventsCsv(String count) {
+    return 'Matukio $count · CSV';
+  }
+
+  @override
+  String get booksNoAuditEvents => 'Bado hakuna matukio ya ukaguzi.';
+
+  @override
+  String get booksRolesSubtitle =>
+      'Dhibiti nani anaweza kuona na kubadilisha hesabu';
+
+  @override
+  String get booksInviteTeammate => 'Mkaribishe mwenzako';
+
+  @override
+  String get booksInviteSent => 'Mwaliko umetumwa';
+
+  @override
+  String get booksInvitationsComingSoon =>
+      'Mialiko ya timu inakuja hivi karibuni';
+
+  @override
+  String booksTeamCount(String count) {
+    return 'Timu ($count)';
+  }
+
+  @override
+  String get booksOnlyYouHaveAccess =>
+      'Ni wewe tu una ufikiaji. Karibisha wenzako mshirikiane.';
+
+  @override
+  String get booksYou => 'Wewe';
+
+  @override
+  String get booksRoles => 'Majukumu';
+
+  @override
+  String get booksCapability => 'Uwezo';
+
+  @override
+  String get booksActiveNow => 'Yuko hai sasa';
+
+  @override
+  String get booksRoleSystem => 'Mfumo';
+
+  @override
+  String get booksTaskAllPosted => 'Maingizo yote ya jarida yameingizwa';
+
+  @override
+  String booksTaskPendingApproval(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Maingizo $count bado yanasubiri idhini',
+      one: 'Ingizo 1 bado linasubiri idhini',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskNoPending => 'Hakuna maingizo yanayosubiri';
+
+  @override
+  String get booksTaskBankReconciled => 'Akaunti za benki zimesuluhishwa';
+
+  @override
+  String booksTaskLinesUnmatched(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mistari $count haijalinganishwa',
+      one: 'Mstari 1 haujalinganishwa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskAllLinesMatched => 'Mistari yote imelinganishwa';
+
+  @override
+  String get booksTaskReceivablesReviewed => 'Madeni ya wateja yamekaguliwa';
+
+  @override
+  String get booksTaskNoOpenReceivables =>
+      'Hakuna madeni ya wateja yaliyo wazi';
+
+  @override
+  String booksTaskAgingOverdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Umri umethibitishwa · ankara $count zimechelewa',
+      one: 'Umri umethibitishwa · ankara 1 imechelewa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String booksTaskAgingBalances(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Umri umethibitishwa · salio $count',
+      one: 'Umri umethibitishwa · salio 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskPayablesReviewed => 'Madeni ya wasambazaji yamekaguliwa';
+
+  @override
+  String get booksTaskNoOpenPayables =>
+      'Hakuna madeni ya wasambazaji yaliyo wazi';
+
+  @override
+  String get booksTaskAllBillsEntered => 'Bili zote za wasambazaji zimeingizwa';
+
+  @override
+  String get booksTaskVatPrepared => 'Ritani ya VAT imeandaliwa';
+
+  @override
+  String get booksTaskNoVatActivity => 'Hakuna shughuli za VAT katika kipindi';
+
+  @override
+  String booksTaskVatNetPayable(String amount, String date) {
+    return 'Halisi inayolipwa $amount · tarehe ya mwisho $date';
+  }
+
+  @override
+  String get booksTaskDepreciationPosted => 'Uchakavu umeingizwa';
+
+  @override
+  String get booksTaskDepreciationMaybePending =>
+      'Maingizo yanayosubiri yanaweza kujumuisha uchakavu';
+
+  @override
+  String get booksTaskDepreciationUpToDate => 'Uchakavu uko sawa';
+
+  @override
+  String get booksStatusSent => 'Imetumwa';
+
+  @override
+  String get booksStatusPartPaid => 'Imelipwa sehemu';
+
+  @override
+  String get booksStatusPaid => 'Imelipwa';
+
+  @override
+  String get booksStatusOverdue => 'Imechelewa';
+
+  @override
+  String get booksSignOutTitle => 'Kutoka?';
+
+  @override
+  String get booksSignOutBody =>
+      'Inamaliza kipindi chako na kufuta usawazishaji wa Ditto kwa kichupo hiki. Chagua “Onyesha upya kutoka wingu” kama unahitaji tu kupakia upya data ya Books.';
+
+  @override
+  String get booksRefreshFromCloud => 'Onyesha upya kutoka wingu';
+
+  @override
+  String get booksResyncDitto => 'Sawazisha upya data ya Ditto';
+
+  @override
+  String get booksSupplier => 'Msambazaji';
+
+  @override
+  String get booksAgingCurrent => 'Ya sasa';
+
+  @override
+  String get booksAging1to30 => 'Siku 1–30';
+
+  @override
+  String get booksAging31to60 => 'Siku 31–60';
+
+  @override
+  String get booksAging60plus => 'Siku 60+';
+
+  @override
+  String get booksMoneyIn => 'Pesa zinazoingia';
+
+  @override
+  String get booksMoneyOut => 'Pesa zinazotoka';
+
+  @override
+  String get booksAccountsReceivable => 'Akaunti zinazodaiwa';
+
+  @override
+  String get booksAccountsPayable => 'Akaunti zinazolipwa';
+
+  @override
+  String booksArSubtitle(String currency) {
+    return 'Wateja wanachokudai · kwa umri · $currency';
+  }
+
+  @override
+  String booksApSubtitle(String currency) {
+    return 'Unachodaiwa na wasambazaji · kwa umri · $currency';
+  }
+
+  @override
+  String get booksSendReminders => 'Tuma vikumbusho';
+
+  @override
+  String get booksSchedulePayment => 'Panga malipo';
+
+  @override
+  String get booksRemindersSent => 'Vikumbusho vimetumwa';
+
+  @override
+  String get booksPaymentScheduled => 'Malipo yamepangwa';
+
+  @override
+  String booksEmailedCustomers(String count) {
+    return 'Wateja $count wenye salio wazi wametumiwa barua pepe';
+  }
+
+  @override
+  String booksQueuedSupplierPayments(String count) {
+    return 'Malipo $count ya wasambazaji yamepangwa foleni';
+  }
+
+  @override
+  String get booksNewInvoice => 'Ankara mpya';
+
+  @override
+  String get booksNewBill => 'Bili mpya';
+
+  @override
+  String get booksAgingSummary => 'Muhtasari wa umri';
+
+  @override
+  String get booksReference => 'Kumbukumbu';
+
+  @override
+  String get booksTotal => 'Jumla';
+
+  @override
+  String get booksStatementOfAccount => 'Taarifa ya akaunti';
+
+  @override
+  String booksOutstanding(String amount, String name) {
+    return '$name · $amount inayodaiwa';
+  }
+
+  @override
+  String booksJournalSubtitle(String currency) {
+    return 'Kila muamala kama ingizo mbili zilizosawazishwa · $currency';
+  }
+
+  @override
+  String get booksFilterBySource => 'Chuja kwa chanzo';
+
+  @override
+  String get booksAllSources => 'Vyanzo vyote';
+
+  @override
+  String get booksRecordExpense => 'Rekodi matumizi';
+
+  @override
+  String get booksNewJournalEntry => 'Ingizo jipya la jarida';
+
+  @override
+  String get booksFilterAll => 'Zote';
+
+  @override
+  String get booksFilterPosted => 'Zilizoingizwa';
+
+  @override
+  String get booksFilterPending => 'Zinazosubiri';
+
+  @override
+  String get booksFilterDrafts => 'Rasimu';
+
+  @override
+  String booksEntriesAwaitingApproval(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Maingizo $count yanasubiri idhini',
+      one: 'Ingizo 1 linasubiri idhini',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksNoEntriesMatchFilter =>
+      'Hakuna maingizo yanayolingana na kichujio hiki.';
+
+  @override
+  String get booksDrAbbr => 'Debiti';
+
+  @override
+  String get booksCrAbbr => 'Krediti';
+
+  @override
+  String get booksFinancialOverview => 'Muhtasari wa fedha';
+
+  @override
+  String get booksAtAGlance => 'Hesabu kwa haraka';
+
+  @override
+  String booksDashSubtitleEntity(
+    String currency,
+    String entity,
+    String period,
+  ) {
+    return '$entity · kipindi cha fedha $period · kiasi chote kwa $currency';
+  }
+
+  @override
+  String booksDashSubtitle(String currency, String period) {
+    return 'Kipindi cha fedha $period · kiasi chote kwa $currency';
+  }
+
+  @override
+  String get booksGeneralLedgerLines => 'Mistari ya leja kuu';
+
+  @override
+  String get booksExportingExcel => 'Inahamisha kwenda Excel';
+
+  @override
+  String get booksExportingCsv => 'Inahamisha CSV';
+
+  @override
+  String get booksExcelWorkbook => 'Kitabu cha Excel (.xlsx)';
+
+  @override
+  String get booksPdfReport => 'Ripoti ya PDF';
+
+  @override
+  String get booksCsvRawLedger => 'CSV (leja ghafi)';
+
+  @override
+  String get booksVsPriorPeriod => 'ikilinganishwa na kipindi kilichopita';
+
+  @override
+  String get booksCashAndBank => 'Fedha taslimu na benki';
+
+  @override
+  String booksAcrossAccounts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'katika akaunti $count',
+      one: 'katika akaunti 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksReceivable => 'Inayodaiwa';
+
+  @override
+  String booksOverdue60(String amount) {
+    return '$amount zimechelewa siku 60+';
+  }
+
+  @override
+  String get booksNoOverdue60 => 'hakuna zilizochelewa siku 60+';
+
+  @override
+  String get booksPayable => 'Inayolipwa';
+
+  @override
+  String get booksNoOpenBills => 'hakuna bili zilizo wazi';
+
+  @override
+  String booksOpenBills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bili $count zilizo wazi',
+      one: 'Bili 1 iliyo wazi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksRevenueVsExpenses => 'Mapato dhidi ya matumizi';
+
+  @override
+  String get booksTrailing6Months => 'Miezi 6 iliyopita';
+
+  @override
+  String get booksWhereMoneyWent => 'Pesa zilikokwenda';
+
+  @override
+  String get booksOpexBreakdown => 'Mgawanyo wa gharama za uendeshaji';
+
+  @override
+  String get booksOpexShort => 'uendeshaji';
+
+  @override
+  String get booksRecentJournalEntries => 'Maingizo ya hivi karibuni';
+
+  @override
+  String get booksNoJournalEntriesYet => 'Bado hakuna maingizo ya jarida.';
+
+  @override
+  String get booksProfitLoss => 'Faida na hasara';
+
+  @override
+  String booksDocAlreadyExists(String id) {
+    return '$id tayari ipo';
+  }
+
+  @override
+  String get booksUseAnotherNumber => 'Tumia nambari nyingine';
+
+  @override
+  String get booksBillSaved => 'Bili imehifadhiwa';
+
+  @override
+  String get booksDraftSaved => 'Rasimu imehifadhiwa';
+
+  @override
+  String get booksInvoiceSentPosted => 'Ankara imetumwa na kuingizwa';
+
+  @override
+  String get booksBillRecordedPosted => 'Bili imerekodiwa na kuingizwa';
+
+  @override
+  String get booksPaymentRecorded => 'Malipo yamerekodiwa';
+
+  @override
+  String booksInvoicesSubtitle(String currency) {
+    return 'Watoze wateja wako ankara na ulipwe · $currency';
+  }
+
+  @override
+  String booksBillsSubtitle(String currency) {
+    return 'Fuatilia unachodaiwa na wasambazaji wako · $currency';
+  }
+
+  @override
+  String get booksPdfSummary => 'Muhtasari wa PDF';
+
+  @override
+  String booksInvoicesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ankara $count',
+      one: 'Ankara 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String booksBillsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bili $count',
+      one: 'Bili 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksOutstandingLabel => 'Inayodaiwa';
+
+  @override
+  String get booksOwedToSuppliers => 'Deni kwa wasambazaji';
+
+  @override
+  String get booksDrafts => 'Rasimu';
+
+  @override
+  String get booksNoInvoicesYet =>
+      'Bado hakuna ankara. Unda ankara ili kuanza.';
+
+  @override
+  String get booksNoBillsYet => 'Bado hakuna bili. Rekodi bili ili kuanza.';
+
+  @override
+  String booksNoInvoicesInTab(String tab) {
+    return 'Hakuna ankara katika “$tab”.';
+  }
+
+  @override
+  String booksNoBillsInTab(String tab) {
+    return 'Hakuna bili katika “$tab”.';
+  }
+
+  @override
+  String get booksBill => 'Bili';
+
+  @override
+  String get booksDue => 'Tarehe ya mwisho';
+
+  @override
+  String get booksOpenPreview => 'Fungua na uhakiki';
+
+  @override
+  String get booksRecordPayment => 'Rekodi malipo';
+
+  @override
+  String get booksPayThisBill => 'Lipa bili hii';
+
+  @override
+  String get booksSendReminder => 'Tuma kikumbusho';
+
+  @override
+  String get booksReminderSent => 'Kikumbusho kimetumwa';
+
+  @override
+  String get booksDeleted => 'Imefutwa';
+
+  @override
+  String get booksCustomerAdded => 'Mteja ameongezwa';
+
+  @override
+  String get booksSupplierAdded => 'Msambazaji ameongezwa';
+
+  @override
+  String booksCustomersSubtitle(String count) {
+    return 'Watu na biashara unaowauzia · rekodi $count';
+  }
+
+  @override
+  String booksSuppliersSubtitle(String count) {
+    return 'Wauzaji unaonunua kutoka kwao · rekodi $count';
+  }
+
+  @override
+  String get booksSearchCustomers => 'Tafuta wateja…';
+
+  @override
+  String get booksSearchSuppliers => 'Tafuta wasambazaji…';
+
+  @override
+  String get booksNewCustomer => 'Mteja mpya';
+
+  @override
+  String get booksNewSupplier => 'Msambazaji mpya';
+
+  @override
+  String get booksTotalCustomers => 'Jumla ya wateja';
+
+  @override
+  String get booksTotalSuppliers => 'Jumla ya wasambazaji';
+
+  @override
+  String get booksWithOpenBalance => 'Wenye salio wazi';
+
+  @override
+  String get booksWithBillsDue => 'Wenye bili zinazodaiwa';
+
+  @override
+  String get booksTotalReceivable => 'Jumla inayodaiwa';
+
+  @override
+  String get booksTotalPayable => 'Jumla inayolipwa';
+
+  @override
+  String get booksNoCustomersYet => 'Bado hakuna wateja.';
+
+  @override
+  String get booksNoSuppliersYet => 'Bado hakuna wasambazaji.';
+
+  @override
+  String booksNoMatchesFor(String query) {
+    return 'Hakuna kinacholingana na “$query”.';
+  }
+
+  @override
+  String get booksContact => 'Mawasiliano';
+
+  @override
+  String get booksTerms => 'Masharti';
+
+  @override
+  String get booksOwesYou => 'Anakudai';
+
+  @override
+  String get booksYouOwe => 'Unadaiwa';
+
+  @override
+  String get booksViewRecord => 'Tazama rekodi';
+
+  @override
+  String get booksSendStatement => 'Tuma taarifa';
+
+  @override
+  String get booksCallContact => 'Piga simu';
+
+  @override
+  String get booksStatementSent => 'Taarifa imetumwa';
+
+  @override
+  String get booksNoPhoneOnFile => 'Hakuna nambari ya simu iliyohifadhiwa';
+
+  @override
+  String booksDeleteNamed(String name) {
+    return 'Futa $name?';
+  }
+
+  @override
+  String get booksDeleteSharedContactBody =>
+      'Mawasiliano haya yanashirikiwa na programu ya POS. Kuyafuta kunaondoa rekodi ya mteja kila mahali; mauzo ya awali yanabaki na nakala yake lakini yanapoteza kiungo. Futa hata hivyo?';
+
+  @override
+  String get booksDeleteEverywhere => 'Futa kila mahali';
+
+  @override
+  String booksCustomerSince(String date) {
+    return 'Mteja tangu $date';
+  }
+
+  @override
+  String booksSupplierSince(String date) {
+    return 'Msambazaji tangu $date';
+  }
+
+  @override
+  String get booksOutstandingBalance => 'Salio linalodaiwa';
+
+  @override
+  String get booksAmountPayable => 'Kiasi kinacholipwa';
+
+  @override
+  String get booksLifetimeBilled => 'Jumla iliyotozwa';
+
+  @override
+  String get booksLifetimePurchased => 'Jumla iliyonunuliwa';
+
+  @override
+  String get booksContactDetails => 'MAELEZO YA MAWASILIANO';
+
+  @override
+  String get booksPrimaryContact => 'Mtu mkuu wa mawasiliano';
+
+  @override
+  String booksInvoicesHeader(String count) {
+    return 'ANKARA ($count)';
+  }
+
+  @override
+  String booksBillsHeader(String count) {
+    return 'BILI ($count)';
+  }
+
+  @override
+  String get booksNoDocumentsYet => 'Bado hakuna nyaraka.';
+
+  @override
+  String get booksAddCustomerToContacts =>
+      'Ongeza mteja kwenye mawasiliano yako';
+
+  @override
+  String get booksAddSupplierToContacts =>
+      'Ongeza msambazaji kwenye mawasiliano yako';
+
+  @override
+  String get booksBusinessCustomerName => 'Jina la biashara / mteja';
+
+  @override
+  String get booksSupplierName => 'Jina la msambazaji';
+
+  @override
+  String get booksExampleBusinessName => 'mf. Karake Retail Group';
+
+  @override
+  String get booksFullName => 'Jina kamili';
+
+  @override
+  String get booksEmailPlaceholder => 'jina@email.rw';
+
+  @override
+  String get booksTaxId => 'Nambari ya kodi';
+
+  @override
+  String get booksPaymentTerms => 'Masharti ya malipo';
+
+  @override
+  String get booksAddSupplier => 'Ongeza msambazaji';
+
+  @override
+  String booksNetDays(String days) {
+    return 'Siku $days';
+  }
+
+  @override
+  String booksNewInvoiceTitle(String id) {
+    return 'Ankara mpya · $id';
+  }
+
+  @override
+  String booksEditInvoiceTitle(String id) {
+    return 'Hariri ankara · $id';
+  }
+
+  @override
+  String booksNewBillTitle(String id) {
+    return 'Bili mpya · $id';
+  }
+
+  @override
+  String booksEditBillTitle(String id) {
+    return 'Hariri bili · $id';
+  }
+
+  @override
+  String get booksInvoiceEditorSubtitle =>
+      'Mtoze mteja ankara — Flipper huingiza mauzo na VAT kiotomatiki.';
+
+  @override
+  String get booksBillEditorSubtitle =>
+      'Rekodi bili ya msambazaji — Flipper huingiza matumizi na VAT ya manunuzi.';
+
+  @override
+  String get booksSelectCustomer => 'Chagua mteja…';
+
+  @override
+  String get booksSelectSupplier => 'Chagua msambazaji…';
+
+  @override
+  String get booksIssueDate => 'Tarehe ya kutolewa';
+
+  @override
+  String get booksBillDate => 'Tarehe ya bili';
+
+  @override
+  String get booksDueDateLabel => 'Tarehe ya mwisho';
+
+  @override
+  String get booksLineItems => 'Vipengee';
+
+  @override
+  String get booksAddLine => 'Ongeza mstari';
+
+  @override
+  String get booksInvoiceWillPost => 'Ankara hii itaingizwa hivi';
+
+  @override
+  String get booksBillWillPost => 'Bili hii itaingizwa hivi';
+
+  @override
+  String get booksSaveDraft => 'Hifadhi rasimu';
+
+  @override
+  String get booksSaveAndSend => 'Hifadhi na utume';
+
+  @override
+  String get booksDownloadPdfOnly => 'Pakua PDF pekee';
+
+  @override
+  String get booksApproveInPurchases => 'Idhinisha katika Manunuzi';
+
+  @override
+  String get booksRecordBill => 'Rekodi bili';
+
+  @override
+  String booksNewScheduleTitle(String id) {
+    return 'Ratiba mpya · $id';
+  }
+
+  @override
+  String booksEditScheduleTitle(String id) {
+    return 'Hariri ratiba · $id';
+  }
+
+  @override
+  String get booksScheduleEditorSubtitle =>
+      'Maingizo yanayojirudia hujiingiza yenyewe kwa jarida lililosawazishwa.';
+
+  @override
+  String get booksScheduleName => 'Jina la ratiba';
+
+  @override
+  String get booksScheduleNameHint => 'mf. Kodi ya kila mwezi';
+
+  @override
+  String get booksDay => 'Siku';
+
+  @override
+  String get booksDayHint => 'mf. 1';
+
+  @override
+  String get booksDebitAccountLabel => 'Akaunti ya debiti (matumizi / mali)';
+
+  @override
+  String get booksCreditAccountLabel => 'Akaunti ya krediti (chanzo cha fedha)';
+
+  @override
+  String get booksSelectAccount => 'Chagua akaunti…';
+
+  @override
+  String get booksAccountsMustDiffer =>
+      'Akaunti za debiti na krediti lazima ziwe tofauti.';
+
+  @override
+  String get booksActive => 'Inatumika';
+
+  @override
+  String get booksPausedLabel => 'Imesitishwa';
+
+  @override
+  String get booksSaveSchedule => 'Hifadhi ratiba';
+
+  @override
+  String get booksPaymentFailed => 'Malipo yameshindwa';
+
+  @override
+  String booksInvoicePaidMessage(String amount, String who) {
+    return '$who amelipa $amount. Ankara imewekwa kama imelipwa.';
+  }
+
+  @override
+  String booksBillPartPaidMessage(String amount, String balance, String who) {
+    return 'Umelipa $amount kwa $who. Bado unadaiwa $balance.';
+  }
+
+  @override
+  String booksBillSettledMessage(String amount, String who) {
+    return 'Umelipa $amount kwa $who. Bili imelipwa kikamilifu.';
+  }
+
+  @override
+  String get booksPayBill => 'Lipa bili';
+
+  @override
+  String booksAmountDue(String amount, String id, String who) {
+    return '$id · $who · $amount inayodaiwa';
+  }
+
+  @override
+  String get booksDepositTo => 'Weka kwenye';
+
+  @override
+  String get booksPayFrom => 'Lipa kutoka';
+
+  @override
+  String get booksAmountReceived => 'Kiasi kilichopokelewa';
+
+  @override
+  String get booksPostsAs => 'Inaingizwa kama';
+
+  @override
+  String get booksBusinessFallback => 'Biashara';
+
+  @override
+  String get booksInvoiceUpper => 'ANKARA';
+
+  @override
+  String get booksBillUpper => 'BILI';
+
+  @override
+  String get booksBillTo => 'Itozwe kwa';
+
+  @override
+  String get booksFrom => 'Kutoka';
+
+  @override
+  String get booksIssued => 'Imetolewa';
+
+  @override
+  String get booksDescription => 'Maelezo';
+
+  @override
+  String get booksQty => 'Idadi';
+
+  @override
+  String get booksItemOrService => 'Bidhaa au huduma';
+
+  @override
+  String get booksItemOrServiceHint => 'Bidhaa au huduma…';
+
+  @override
+  String booksBalancedEquation(String amount, String total) {
+    return 'Imesawazishwa · $total = $amount';
+  }
+
+  @override
+  String get booksVat18 => 'VAT (18%)';
+
+  @override
+  String get booksPillPosted => 'imeingizwa';
+
+  @override
+  String get booksPillPending => 'inasubiri';
+
+  @override
+  String get booksPillDraft => 'rasimu';
+
+  @override
+  String get booksTypeAsset => 'Mali';
+
+  @override
+  String get booksTypeLiability => 'Deni';
+
+  @override
+  String get booksTypeEquity => 'Mtaji';
+
+  @override
+  String get booksTypeIncome => 'Mapato';
+
+  @override
+  String get booksTypeExpense => 'Matumizi';
+
+  @override
+  String get booksCodeInUse => 'Msimbo tayari unatumika';
+
+  @override
+  String get booksPickDifferentCode => 'Chagua msimbo mwingine wa akaunti';
+
+  @override
+  String get booksAccountCreated => 'Akaunti imeundwa';
+
+  @override
+  String get booksCouldNotCreateAccount => 'Imeshindwa kuunda akaunti';
+
+  @override
+  String get booksNewAccount => 'Akaunti mpya';
+
+  @override
+  String get booksAddLineToCoa => 'Ongeza mstari kwenye orodha ya akaunti';
+
+  @override
+  String get booksAccountType => 'Aina ya akaunti';
+
+  @override
+  String get booksCode => 'Msimbo';
+
+  @override
+  String get booksCodeHint => 'mf. 6060';
+
+  @override
+  String get booksCategoryHint => 'mf. Gharama za uendeshaji';
+
+  @override
+  String get booksAccountName => 'Jina la akaunti';
+
+  @override
+  String get booksAccountNameHint => 'mf. Vifaa vya ofisi';
+
+  @override
+  String get booksCreating => 'Inaunda…';
+
+  @override
+  String get booksCreateAccount => 'Unda akaunti';
+
+  @override
+  String get booksDrShort => 'Db';
+
+  @override
+  String get booksCrShort => 'Kr';
+
+  @override
+  String booksEntryMeta(String date, String ref, String source) {
+    return '$date · $ref · kupitia $source';
+  }
+
+  @override
+  String booksBalancedDrCr(String cr, String dr) {
+    return 'Imesawazishwa · $dr = $cr';
+  }
+
+  @override
+  String get booksApprovedPosted => 'Imeidhinishwa na kuingizwa';
+
+  @override
+  String get booksSentBackToDrafts => 'Imerudishwa kwenye rasimu';
+
+  @override
+  String get booksReject => 'Kataa';
+
+  @override
+  String get booksApprove => 'Idhinisha';
+
+  @override
+  String get booksSubmittedForApproval => 'Imewasilishwa kwa idhini';
+
+  @override
+  String get booksSubmittedForApprovalBody =>
+      'Debiti ni sawa na krediti. Kagua na uidhinishe kutoka kichupo cha Idhini ili kuingiza kwenye leja.';
+
+  @override
+  String get booksRecordExpenseSubtitle =>
+      'Chagua kundi na jinsi ulivyolipa — Flipper huingiza ingizo lililosawazishwa.';
+
+  @override
+  String get booksExpenseCategory => 'Kundi la matumizi';
+
+  @override
+  String get booksAddExpenseAccount => '+ Ongeza akaunti ya matumizi';
+
+  @override
+  String get booksPaidVia => 'Imelipwa kupitia';
+
+  @override
+  String get booksMemoDescription => 'Kumbukumbu / maelezo';
+
+  @override
+  String get booksExpenseMemoHint => 'Matumizi haya yalikuwa ya nini?';
+
+  @override
+  String get booksSubmitForApproval => 'Wasilisha kwa idhini';
+
+  @override
+  String get booksJournalPreview => 'Onyesho la jarida';
+
+  @override
+  String booksBalancedAmount(String amount) {
+    return 'Imesawazishwa · $amount';
+  }
+
+  @override
+  String get booksTplRecordSale => 'Rekodi mauzo';
+
+  @override
+  String get booksTplPayExpense => 'Lipa matumizi';
+
+  @override
+  String get booksTplReceivePayment => 'Pokea malipo';
+
+  @override
+  String get booksTplPayBill => 'Lipa bili';
+
+  @override
+  String booksDraftKeptInDrafts(String ref) {
+    return '$ref imehifadhiwa kwenye Rasimu';
+  }
+
+  @override
+  String get booksCouldNotSaveEntry => 'Imeshindwa kuhifadhi ingizo';
+
+  @override
+  String get booksQuickStart => 'Anza haraka';
+
+  @override
+  String get booksEntryMemoHint => 'Ingizo hili ni la nini?';
+
+  @override
+  String get booksLines => 'Mistari';
+
+  @override
+  String booksDebitCreditHint(String into, String out) {
+    return 'Kila ingizo lina pande mbili. Pesa $into kwenye akaunti ni debiti; pesa $out ni krediti. Lazima ziwe na jumla sawa.';
+  }
+
+  @override
+  String get booksMoneyIntoWord => 'zinazoingia';
+
+  @override
+  String get booksMoneyOutWord => 'zinazotoka';
+
+  @override
+  String get booksComposerSubtitle =>
+      'Chagua akaunti na uweke kiasi — Flipper huhakikisha vinasawazishwa.';
+
+  @override
+  String get booksAccountUpper => 'AKAUNTI';
+
+  @override
+  String get booksDebitUpper => 'DEBITI';
+
+  @override
+  String get booksCreditUpper => 'KREDITI';
+
+  @override
+  String get booksBalanced => 'Imesawazishwa';
+
+  @override
+  String get booksEnterAmounts => 'Weka kiasi';
+
+  @override
+  String booksOffBy(String amount) {
+    return 'Tofauti ya $amount';
+  }
+
+  @override
+  String get booksTotalDebits => 'Jumla ya debiti';
+
+  @override
+  String get booksTotalCredits => 'Jumla ya krediti';
+
+  @override
+  String get booksSearchAccounts => 'Tafuta akaunti…';
+
+  @override
+  String get booksDataRefreshed =>
+      'Data ya Books imeonyeshwa upya kutoka wingu';
+
+  @override
+  String booksActionFailed(String error) {
+    return 'Kitendo kimeshindwa: $error';
+  }
+
+  @override
+  String get booksAllCaughtUp => 'Kila kitu kiko sawa';
+
+  @override
+  String get booksNotificationsMarkedRead => 'Arifa zimewekwa kama zimesomwa';
+
+  @override
+  String get booksSearchPlaceholder => 'Tafuta maingizo, akaunti, ankara…';
+
+  @override
+  String get booksFiscalPeriod => 'Kipindi cha fedha';
+
+  @override
+  String get booksPeriodChanged => 'Kipindi kimebadilishwa';
+
+  @override
+  String booksFiscalPeriodYear(String year) {
+    return 'Kipindi cha fedha $year';
+  }
+
+  @override
+  String get booksNotifications => 'Arifa';
+
+  @override
+  String get booksMarkAllRead => 'Weka zote kama zimesomwa';
+
+  @override
+  String get booksEntriesAwaitingApprovalTitle =>
+      'Maingizo ya jarida yanayosubiri idhini';
+
+  @override
+  String get booksReviewPendingPostings => 'Kagua maingizo mawili yanayosubiri';
+
+  @override
+  String get booksNoNewNotifications => 'Hakuna arifa mpya';
+
+  @override
+  String get booksNoPendingEntries => 'Hakuna maingizo ya jarida yanayosubiri';
+
+  @override
+  String get booksTabSnapshot => 'Muhtasari';
+
+  @override
+  String get booksTabApprovals => 'Idhini';
+
+  @override
+  String booksCouldNotRestoreBusiness(String error) {
+    return 'Imeshindwa kurejesha muktadha wa biashara: $error';
+  }
+
+  @override
+  String get webHomeNavPlatform => 'Jukwaa';
+
+  @override
+  String get webHomeNavFeatures => 'Vipengele';
+
+  @override
+  String get webHomeLogIn => 'Ingia';
+
+  @override
+  String get webHomeStartFree => 'Anza bure';
+
+  @override
+  String get webHomeHeroLine1 => 'Uhasibu';
+
+  @override
+  String get webHomeHeroLine2Lead => 'unaojiendesha';
+
+  @override
+  String get webHomeHeroLine2Accent => 'wenyewe.';
+
+  @override
+  String get webHomeHeroBody =>
+      'Flipper Books ni uhasibu wa kisasa kwa biashara zinazokua. Kila mauzo kutoka Flipper POS yanaingia moja kwa moja kwenye leja yako — na Flow AI hupanga, kusuluhisha na kuwasilisha yaliyobaki. Wewe unaendesha biashara yako tu.';
+
+  @override
+  String get webHomeSeeHowItWorks => 'Tazama jinsi inavyofanya kazi';
+
+  @override
+  String get webHomeCheckEbmReady => 'Tayari kwa RRA / EBM';
+
+  @override
+  String get webHomeCheckOffline => 'Inafanya kazi bila mtandao';
+
+  @override
+  String get webHomeCheckRwf => 'Imejengwa kwa RWF';
+
+  @override
+  String get webHomeTrustTagline =>
+      'Imejengwa kwa biashara kila mahali — na jinsi pesa zinavyosonga kwa kweli.';
+
+  @override
+  String get webHomeTrustTaxIntegration => 'muunganisho wa kodi';
+
+  @override
+  String get webHomeTrustBusinesses => 'biashara';
+
+  @override
+  String get webHomeTrustMomoBank => 'Usawazishaji wa MoMo na benki';
+
+  @override
+  String get webHomeTrustRealtimeLedger => 'Leja ya wakati halisi';
+
+  @override
+  String get webHomeSuiteEyebrow => 'Jukwaa moja';
+
+  @override
+  String get webHomeSuiteTitle =>
+      'Programu tatu. Leja moja. Hakuna kuingiza mara mbili.';
+
+  @override
+  String get webHomeSuiteBody =>
+      'Flipper POS, Books na Flow si miunganisho iliyobandikwa pamoja — ni mfumo mmoja. Pesa hupita mara moja, na hesabu zako hubaki zimefungwa.';
+
+  @override
+  String get webHomeLoopSellOnPos => 'Uza kwenye POS →';
+
+  @override
+  String get webHomeLoopPostsToBooks => 'inaingia kwenye Books';
+
+  @override
+  String get webHomeLoopFlowReconciles => 'Flow inasuluhisha';
+
+  @override
+  String get webHomeLoopTail =>
+      '→ unaona faida kwa wakati halisi. Mzunguko mmoja, otomatiki kabisa.';
+
+  @override
+  String get webHomePosRole => 'Uza';
+
+  @override
+  String get webHomePosTagline => 'Kaunta ya mbele';
+
+  @override
+  String get webHomePosBody =>
+      'Rekodi mauzo kwenye simu au kompyuta, changanua bidhaa, pokea fedha taslimu au MoMo. Inafanya kazi mara tu unapofungua duka — mtandaoni au bila mtandao.';
+
+  @override
+  String get webHomeBooksRole => 'Hesabu';
+
+  @override
+  String get webHomeBooksTagline => 'Chanzo cha ukweli';
+
+  @override
+  String get webHomeBooksBody =>
+      'Kila mauzo huingia kama ingizo lililosawazishwa. Faida na hasara, mtiririko wa fedha, madeni na kodi tayari kwa EBM kwa wakati halisi — bila lahajedwali, bila haraka ya mwisho wa mwezi.';
+
+  @override
+  String get webHomeFlowRole => 'Endesha otomatiki';
+
+  @override
+  String get webHomeFlowTagline => 'Mtunza hesabu wa AI';
+
+  @override
+  String get webHomeFlowBody =>
+      'Flow hufuatilia mtiririko wote — kupanga, kusuluhisha, kuashiria hitilafu na kuandaa kodi. Kazi iliyomchukua mhasibu wiki moja inafanyika kwa wakati halisi.';
+
+  @override
+  String get webHomeMeetFlow => 'Kutana na Flow AI';
+
+  @override
+  String get webHomeFlowHeadlineLead => 'Hesabu zako, zinazotunzwa na';
+
+  @override
+  String get webHomeFlowHeadlineAccent => 'mtunza hesabu wa AI.';
+
+  @override
+  String get webHomeFlowLead =>
+      'Flow hugeuza miamala ghafi kuwa uhasibu safi ulio tayari kwa ukaguzi — na hukuuliza tu inapohitaji uamuzi kweli. Lala bila usumbufu wa kazi za uhasibu.';
+
+  @override
+  String get webHomeFlowAutoCat => 'Upangaji otomatiki';
+
+  @override
+  String get webHomeFlowAutoCatBody =>
+      'Kila mauzo, matumizi na uhamisho huwekwa kwenye akaunti sahihi papo hapo.';
+
+  @override
+  String get webHomeFlowRecon => 'Usuluhishi wa benki na MoMo';
+
+  @override
+  String get webHomeFlowReconBody =>
+      'Flow hulinganisha leja yako na taarifa kiotomatiki na kuonyesha tu tofauti halisi.';
+
+  @override
+  String get webHomeFlowTax => 'Kodi na VAT, zimeandaliwa';
+
+  @override
+  String get webHomeFlowTaxBody =>
+      'Mawasilisho tayari kwa EBM yanaandaliwa kutoka leja yako, ili tarehe za mwisho za RRA zisiwe hofu tena.';
+
+  @override
+  String get webHomeFlowAnomaly => 'Arifa za hitilafu';
+
+  @override
+  String get webHomeFlowAnomalyBody =>
+      'Maingizo yaliyorudiwa, kushuka kwa faida na matumizi yasiyo ya kawaida huashiriwa kabla hayajawa tatizo.';
+
+  @override
+  String get webHomeExploreFlow => 'Gundua Flow AI';
+
+  @override
+  String get webHomeWatchingLedger => 'Inafuatilia leja yako';
+
+  @override
+  String get webHomeChatUser1 =>
+      'Mauzo mapya ya RWF 12,000 yameingia kwenye POS, yamelipwa kwa MoMo. Yarekodi.';
+
+  @override
+  String get webHomeChatBot1 =>
+      'Imekamilika — nimeingiza ingizo lililosawazishwa na kulisuluhisha na akaunti yako ya MTN MoMo. Hili ndilo ingizo:';
+
+  @override
+  String get webHomeChatUser2 =>
+      'Kuna chochote ninachopaswa kuangalia wiki hii?';
+
+  @override
+  String get webHomeChatBot2 =>
+      'VAT ya Mei iko tayari kuwasilishwa (RWF 318,400) na msambazaji mmoja alilipwa mara mbili — nimeiashiria kwenye Madeni.';
+
+  @override
+  String get webHomeCapMultiBranch => 'Matawi mengi';
+
+  @override
+  String get webHomeCapStatementsBody =>
+      'Taarifa ya mapato, mizania na mtiririko wa fedha vinatengenezwa moja kwa moja kutoka leja kuu yako.';
+
+  @override
+  String get webHomeCapBankRecBody =>
+      'Linganisha mistari ya leja na taarifa za benki na MoMo kwa mara moja, tofauti zikionyeshwa kwako.';
+
+  @override
+  String get webHomeCapArAp => 'Madeni ya wateja na wasambazaji';
+
+  @override
+  String get webHomeCapArApBody =>
+      'Fuatilia nani anakudai na unachodaiwa, kwa makundi ya umri na vikumbusho otomatiki.';
+
+  @override
+  String get webHomeCapTaxBody =>
+      'Muunganisho wa EBM 2.1 na VAT inayokokotolewa kila mara — mawasilisho yanaandaliwa kabla ya tarehe ya mwisho.';
+
+  @override
+  String get webHomeCapCoaBody =>
+      'Muundo wa leja wenye nambari, rafiki kwa ukaguzi, unaoendana na jinsi biashara yako ilivyopangwa.';
+
+  @override
+  String get webHomeCapMultiBranchBody =>
+      'Unganisha kila duka kwenye seti moja ya hesabu, kisha chunguza tawi lolote peke yake.';
+
+  @override
+  String get webHomeInsideBooks => 'NDANI YA BOOKS';
+
+  @override
+  String get webHomeCapTitle => 'Kila anachofanya mhasibu — kimejengwa ndani.';
+
+  @override
+  String get webHomeCapBody =>
+      'Uhasibu wa pande mbili ulio makini kwa mkaguzi wako na rahisi kuuendesha mwenyewe.';
+
+  @override
+  String get webHomePricingEyebrow => 'BEI';
+
+  @override
+  String get webHomePricingBody =>
+      'Chagua mpango unaokufaa zaidi. Kila mpango unajumuisha Flipper yote — POS, Books na Flow.';
+
+  @override
+  String get webHomeContactSales => 'Wasiliana na mauzo';
+
+  @override
+  String get webHomeBandTitle => 'Duka lako, hesabu zako, mahali pamoja.';
+
+  @override
+  String get webHomeBandBody =>
+      'Anza kuuza kwenye Flipper leo na uache Flow itunze hesabu zako — kiotomatiki, kwa wakati halisi. Endelea pale ulipoishia.';
+
+  @override
+  String get webHomeTalkToSales => 'Ongea na mauzo';
+
+  @override
+  String get webHomeStatProcessedMonthly => 'huchakatwa kila mwezi';
+
+  @override
+  String get webHomeStatUptime => 'muda wa kufanya kazi';
+
+  @override
+  String get webHomeRevenueThisWeek => 'Mapato · wiki hii';
+
+  @override
+  String get webHomeNewSale => 'Mauzo mapya';
+
+  @override
+  String webHomeDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Siku $count',
+      one: 'Siku 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get webHomeSalesStreak => 'Mfululizo wa mauzo';
+
+  @override
+  String get webHomeFooterTagline =>
+      'Jukwaa la biashara lililounganishwa kwa Afrika — mauzo, uhasibu na mtunza hesabu wa AI, mahali pamoja.';
+
+  @override
+  String get webHomeCopyright =>
+      '© 2026 Flipper. Imetengenezwa kwa biashara kila mahali.';
+
+  @override
+  String get webHomePrivacy => 'Faragha';
+
+  @override
+  String get webHomeTerms => 'Masharti';
+
+  @override
+  String get webHomeFooterPlatform => 'JUKWAA';
+
+  @override
+  String get webHomeFooterCompany => 'KAMPUNI';
+
+  @override
+  String get webHomeFooterSupport => 'MSAADA';
+
+  @override
+  String get webHomeAbout => 'Kuhusu';
+
+  @override
+  String get webHomeBlog => 'Blogu';
+
+  @override
+  String get webHomeCareers => 'Ajira';
+
+  @override
+  String get webHomeContact => 'Wasiliana';
+
+  @override
+  String get webHomeHelpCenter => 'Kituo cha msaada';
+
+  @override
+  String get webHomeDownload => 'Pakua';
+
+  @override
+  String get webHomeStatus => 'Hali ya mfumo';
+
+  @override
+  String get webHomeCommunity => 'Jumuiya';
+
+  @override
+  String get webHomePoweredBy => 'Flipper Books · inaendeshwa na';
+
+  @override
+  String get webHomeMostPopular => 'Maarufu zaidi';
+
+  @override
+  String get webHomeSwitchToLight => 'Badilisha kwenda hali ya mwanga';
+
+  @override
+  String get webHomeSwitchToDark => 'Badilisha kwenda hali ya giza';
+
+  @override
+  String get webHomeLightMode => 'Hali ya mwanga';
+
+  @override
+  String get webHomeDarkMode => 'Hali ya giza';
+
+  @override
+  String get webHomeMockFinancialOverview => 'MUHTASARI WA FEDHA';
+
+  @override
+  String get webHomeMockCashOnHand => 'Fedha zilizopo';
+
+  @override
+  String get webHomeMockRevenueTrend => 'Mwenendo wa mapato';
+
+  @override
+  String get webHomeMockLast8Months => 'Miezi 8 iliyopita';
+
+  @override
+  String get webHomeMockCostOfSales => 'Gharama ya mauzo';
+
+  @override
+  String get webHomeMockOperatingExp => 'Gharama za uendeshaji';
+
+  @override
+  String get webHomeMockAutoPosted => 'IMEINGIZWA KIOTOMATIKI';
+
+  @override
+  String webHomeMockToast(String account, String pos) {
+    return 'Mauzo mapya kwenye $pos — yamepangwa kwenye $account na kusuluhishwa na MoMo.';
+  }
+
+  @override
+  String get webHomeMockSalesRevenue => 'Mapato ya mauzo';
+
+  @override
+  String get webHomeMockBalancedSuffix => '· imesawazishwa';
+
+  @override
+  String get webHomeMockPending => '● INASUBIRI';
+
+  @override
+  String get webHomeMockSearchOrScan => 'Tafuta au changanua…';
+
+  @override
+  String webHomeMockLeft(String count) {
+    return '$count zimebaki';
+  }
+
+  @override
+  String get webAppsFinance => 'Fedha';
+
+  @override
+  String get webAppsSell => 'Kuuza';
+
+  @override
+  String get webAppsEverything => 'Kila kitu katika biashara yako';
+
+  @override
+  String webAppsComingSoon(String app) {
+    return '$app — inakuja hivi karibuni';
+  }
+
+  @override
+  String get webBillingInvalidMomo =>
+      'Weka nambari sahihi ya Mobile Money, mf. 0788123456.';
+
+  @override
+  String get webBillingPreparing => 'Tunaandaa usajili wako…';
+
+  @override
+  String webBillingCouldNotSave(String error) {
+    return 'Imeshindwa kuhifadhi usajili: $error';
+  }
+
+  @override
+  String get webBillingNoPlanIdCharge =>
+      'Usajili huu bado hauna kitambulisho cha mpango, hivyo hauwezi kutozwa kwa usalama. Pakia upya na ujaribu tena.';
+
+  @override
+  String get webBillingNoPlanIdPay =>
+      'Usajili huu bado hauna kitambulisho cha mpango, hivyo hauwezi kulipwa kwa usalama. Pakia upya na ujaribu tena.';
+
+  @override
+  String get webBillingSendingRequest => 'Tunatuma ombi kwenye simu yako…';
+
+  @override
+  String get webBillingApproveOnPhone =>
+      'Idhinisha ombi la Mobile Money kwenye simu yako.';
+
+  @override
+  String webBillingCouldNotStart(String error) {
+    return 'Malipo hayakuweza kuanzishwa: $error';
+  }
+
+  @override
+  String get webBillingConsentDeclined =>
+      'Idhini ya Mobile Money ilikataliwa, hivyo hakuna kilichotozwa.';
+
+  @override
+  String get webBillingCouldNotStartPlain => 'Malipo hayakuweza kuanzishwa.';
+
+  @override
+  String get webBillingNoReference =>
+      'Lango lilikubali malipo lakini halikurudisha kumbukumbu ya kuyafuatilia. Angalia simu yako, kisha ujaribu tena.';
+
+  @override
+  String get webBillingPaymentReceived =>
+      'Malipo yamepokelewa. Usajili wako uko hai.';
+
+  @override
+  String get webBillingNotCompletedOnPhone =>
+      'Malipo hayakukamilika kwenye simu yako.';
+
+  @override
+  String get webBillingMomoNoVerdict =>
+      'Bado hatujapata jibu kutoka Mobile Money. Ikiwa uliidhinisha ombi, Books itafunguka hivi karibuni — angalia tena baada ya muda mfupi.';
+
+  @override
+  String get webBillingCardNeedsEmail =>
+      'Malipo ya kadi yanahitaji anwani ya barua pepe kwa risiti.';
+
+  @override
+  String get webBillingOpeningPaymentPage => 'Tunafungua ukurasa wa malipo…';
+
+  @override
+  String webBillingCardCouldNotStart(String error) {
+    return 'Malipo ya kadi hayakuweza kuanzishwa: $error';
+  }
+
+  @override
+  String get webBillingAlreadyActive => 'Usajili huu tayari uko hai.';
+
+  @override
+  String get webBillingCouldNotOpenCardPage =>
+      'Imeshindwa kufungua ukurasa wa malipo ya kadi kwenye kivinjari hiki.';
+
+  @override
+  String get webBillingSubscriptionEnded =>
+      'Usajili huu umekwisha. Chagua mpango ili kuanza tena.';
+
+  @override
+  String get webBillingFinishOnOpenedPage =>
+      'Kamilisha malipo kwenye ukurasa uliofunguka sasa hivi. Books itafunguka hapa mara kadi itakapotozwa.';
+
+  @override
+  String get webBillingCheckingCard => 'Tunakagua malipo yako ya kadi…';
+
+  @override
+  String webBillingCouldNotCheckCard(String error) {
+    return 'Imeshindwa kukagua malipo ya kadi: $error';
+  }
+
+  @override
+  String get webBillingCardDeclined =>
+      'Kadi imekataliwa. Fungua ukurasa wa malipo tena ili kutumia kadi nyingine.';
+
+  @override
+  String get webBillingCardNoVerdict =>
+      'Bado hatujapata taarifa kuhusu malipo ya kadi. Ikiwa uliyakamilisha, Books itafunguka hivi karibuni — angalia tena baada ya muda mfupi.';
+
+  @override
+  String get webBillingCheckingSubscription => 'Tunakagua usajili wako…';
+
+  @override
+  String get webBillingEnded => 'Usajili wako umekwisha';
+
+  @override
+  String get webBillingNeedsSubscription => 'Flipper Books inahitaji usajili';
+
+  @override
+  String get webBillingEndedBody =>
+      'Hakuna kilichofutwa — hesabu zako, mauzo na hisa bado vipo. Fanya upya usajili ili kuvifungua tena.';
+
+  @override
+  String get webBillingNeedsBody =>
+      'Usajili mmoja unahusu biashara hii kwenye wavuti, simu na programu ya kompyuta. Lipa mara moja na Flipper itafunguka kila mahali unapoitumia.';
+
+  @override
+  String get webBillingAwaitingSettlement =>
+      'Malipo tayari yako njiani. Ikiwa uliyaidhinisha kwenye simu yako, hii itafunguka mara Mobile Money itakapoyathibitisha.';
+
+  @override
+  String get webBillingRenewNow => 'Fanya upya sasa';
+
+  @override
+  String get webBillingChoosePlan => 'Chagua mpango';
+
+  @override
+  String get webBillingSwitchBusiness => 'Badilisha biashara';
+
+  @override
+  String get webBillingLoadingBusiness => 'Tunapakia biashara yako…';
+
+  @override
+  String get webBillingPickBusiness =>
+      'Chagua biashara unayoilipia, kisha mipango na bei zake zitaonekana hapa.';
+
+  @override
+  String get webBillingChooseBusiness => 'Chagua biashara';
+
+  @override
+  String get webBillingRenewTitle => 'Fanya upya usajili wako';
+
+  @override
+  String get webBillingSubscribe => 'Jisajili';
+
+  @override
+  String get webBillingTestBadge => 'JARIBIO';
+
+  @override
+  String get webBillingOneMoment => 'Subiri kidogo…';
+
+  @override
+  String get webBillingIntroSubtitle =>
+      'Usajili mmoja unafungua biashara hii kwenye wavuti, simu na programu ya kompyuta.';
+
+  @override
+  String get webBillingActiveReady =>
+      'Usajili wako uko hai. Books iko tayari kufunguliwa.';
+
+  @override
+  String get webBillingLoadingPlans => 'Tunapakia mipango…';
+
+  @override
+  String webBillingCouldNotLoadPlans(String error) {
+    return 'Imeshindwa kupakia mipango: $error';
+  }
+
+  @override
+  String get webBillingTryAgain => 'Jaribu tena';
+
+  @override
+  String get webBillingNoPlans => 'Hakuna mipango inayouzwa kwa sasa.';
+
+  @override
+  String get webBillingPlan => 'Mpango';
+
+  @override
+  String get webBillingAddons => 'Nyongeza';
+
+  @override
+  String get webBillingPayWith => 'Lipa kwa';
+
+  @override
+  String get webBillingContinueToCard => 'Endelea na malipo ya kadi';
+
+  @override
+  String webBillingPayAmount(String amount) {
+    return 'Lipa $amount RWF';
+  }
+
+  @override
+  String get webBillingWaitingApproval => 'Tunasubiri idhini yako…';
+
+  @override
+  String get webBillingWaitingCard => 'Tunasubiri malipo ya kadi…';
+
+  @override
+  String get webBillingPreparingShort => 'Tunaandaa…';
+
+  @override
+  String get webBillingCheckAgain => 'Angalia tena';
+
+  @override
+  String get webBillingStartOver => 'Anza upya';
+
+  @override
+  String get webBillingOpenBooks => 'Fungua Books';
+
+  @override
+  String get webPayNotAuthorised =>
+      'Akaunti hii haijaidhinishwa kwa malipo ya wafanyakazi.';
+
+  @override
+  String get webPayEnterAmount => 'Weka kiasi kilichokubaliwa kwa RWF.';
+
+  @override
+  String get webPayStarting => 'Tunaanzisha malipo…';
+
+  @override
+  String webPayCouldNotStart(String error) {
+    return 'Imeshindwa kuanzisha malipo: $error';
+  }
+
+  @override
+  String get webPayNoPaymentYetCard =>
+      'Bado hakuna malipo. Tuma kiungo tena au angalia kumbukumbu baadaye — malipo yatakayofanywa baada ya hili kufungwa bado yanahesabiwa.';
+
+  @override
+  String get webPayNoApprovalYet =>
+      'Bado haijaidhinishwa. Mteja bado anaweza kuidhinisha; angalia kumbukumbu baadaye au anza upya.';
+
+  @override
+  String get webPayPaidActive =>
+      'Imelipwa. Mpango uko hai na bei iliyojadiliwa sasa ndiyo bei yake ya kujirudia.';
+
+  @override
+  String get webPayDidNotGoThrough => 'Malipo hayakufanikiwa.';
+
+  @override
+  String get webPayLinkExpired =>
+      'Kiungo cha malipo kiliisha muda kabla ya kulipwa.';
+
+  @override
+  String get webPayAskCustomerApprove =>
+      'Mwombe mteja aidhinishe ombi la Mobile Money kwenye simu yake.';
+
+  @override
+  String get webPaySendLink =>
+      'Mtumie mteja kiungo cha malipo na usubiri alipe.';
+
+  @override
+  String get webPayWaitingSettle => 'Tunasubiri malipo yakamilike…';
+
+  @override
+  String get webPayTitle => 'Malipo maalum';
+
+  @override
+  String get webPayCheckingAccess => 'Tunakagua ruhusa…';
+
+  @override
+  String webPayCouldNotCheckAccess(String error) {
+    return 'Imeshindwa kukagua ruhusa ya mfanyakazi: $error';
+  }
+
+  @override
+  String get webPayStaffOnlyBody =>
+      'Ukurasa huu ni wa wafanyakazi wa malipo. Mwombe msimamizi akuongeze kwenye orodha ya wafanyakazi wa malipo.';
+
+  @override
+  String get webPayPerYear => '/mwaka';
+
+  @override
+  String get webPayPerMonth => '/mwezi';
+
+  @override
+  String get webPayNegotiatedPrice => 'Bei iliyojadiliwa';
+
+  @override
+  String get webPayNegotiatedBody =>
+      'Toza kiasi kilichokubaliwa na mteja. Kinakuwa bei yake ya kujirudia, na alichokuwa akilipia awali kinasimama.';
+
+  @override
+  String webPaySignedInAs(String name) {
+    return 'Umeingia kama $name.';
+  }
+
+  @override
+  String get webPaySearchHint =>
+      'Tafuta kwa jina, simu, barua pepe au kitambulisho';
+
+  @override
+  String get webPayAgreedAmount => 'Kiasi kilichokubaliwa';
+
+  @override
+  String get webPayAmountHint => 'Kiasi kwa RWF kwa kila kipindi';
+
+  @override
+  String get webPayCustomerPaysWith => 'Mteja analipa kwa';
+
+  @override
+  String get webPayLinkCopied => 'Kiungo kimenakiliwa';
+
+  @override
+  String get webPayNoteHint => 'Dokezo la kumbukumbu (si lazima)';
+
+  @override
+  String get webPayNotSelected => 'Haijachaguliwa';
+
+  @override
+  String get webPayBillingPeriod => 'Kipindi cha malipo';
+
+  @override
+  String get webPayPaysWith => 'Analipa kwa';
+
+  @override
+  String get webPayCard => 'Kadi';
+
+  @override
+  String get webPayPricePerPeriod => 'Bei kwa kila kipindi';
+
+  @override
+  String get webPayChargedNow => 'Inatozwa sasa, kisha kila kipindi';
+
+  @override
+  String get webPayCreateCardLink => 'Unda kiungo cha malipo ya kadi';
+
+  @override
+  String webPayChargeByMomo(String amount) {
+    return 'Toza $amount RWF kwa Mobile Money';
+  }
+
+  @override
+  String get webPayWaitingCustomerApproval => 'Tunasubiri idhini ya mteja…';
+
+  @override
+  String get webPayStartingShort => 'Inaanza…';
+
+  @override
+  String get webPayConfirmTitle => 'Kutoza biashara hii?';
+
+  @override
+  String webPayConfirmSummary(String amount, String cadence, String rail) {
+    return '$amount RWF · $cadence · $rail';
+  }
+
+  @override
+  String get webPayConfirmBodyMomo =>
+      'Hii inakuwa bei yake ya kujirudia. Usajili wowote wa kadi uliopo unaghairiwa mara moja.';
+
+  @override
+  String get webPayConfirmBodyCard =>
+      'Hii inakuwa bei yake ya kujirudia. Usajili wowote wa kadi uliopo unaghairiwa mara moja, na idhini yake ya Mobile Money inafutwa.';
+
+  @override
+  String get webPayCharge => 'Toza';
+
+  @override
+  String get webPayStaffOnly => 'Wafanyakazi pekee';
+
+  @override
+  String get webPayBackToBooks => 'Rudi kwenye Books';
+
+  @override
+  String get webPaySearching => 'Inatafuta…';
+
+  @override
+  String webPaySearchFailed(String error) {
+    return 'Utafutaji umeshindwa: $error';
+  }
+
+  @override
+  String webPayNoBusinessMatches(String query) {
+    return 'Hakuna biashara inayolingana na “$query”.';
+  }
+
+  @override
+  String get webPayChange => 'Badilisha';
+
+  @override
+  String get webPayCopyLink => 'Nakili kiungo';
+
+  @override
+  String get webPayOpen => 'Fungua';
+
+  @override
+  String webPayExistingPayment(String id, String status) {
+    return 'Malipo yaliyopo $id yako $status';
+  }
+
+  @override
+  String webPayLinkSuffix(String link) {
+    return 'kiungo: $link';
+  }
+
+  @override
+  String get webPayReference => 'Kumbukumbu';
+
+  @override
+  String get webPayRail => 'Njia';
+
+  @override
+  String get webPayPaidThrough => 'Imelipwa hadi';
+
+  @override
+  String get webPayMomoCharge => 'Malipo ya MoMo';
+
+  @override
+  String get webPayMtnTransaction => 'Muamala wa MTN';
+
+  @override
+  String get webPayDodoSubscription => 'Usajili wa Dodo';
+
+  @override
+  String get webPayDodoPayment => 'Malipo ya Dodo';
+
+  @override
+  String get webPayCancelledCardSub => 'Usajili wa kadi ulioghairiwa';
+
+  @override
+  String get webPayRevokedMandate => 'Idhini ya MoMo iliyofutwa';
+
+  @override
+  String get webPayPaid => 'Imelipwa';
+
+  @override
+  String get webPaySettledBody =>
+      'Kiasi kilichojadiliwa sasa ni bei ya kujirudia ya biashara hii. Hifadhi kumbukumbu iliyo hapa chini kwa msaada.';
+
+  @override
+  String get webPayCopyAllIds => 'Nakili vitambulisho vyote';
+
+  @override
+  String get webPayCopied => 'Imenakiliwa';
+
+  @override
+  String get webPayNewPayment => 'Malipo mapya';
+
+  @override
+  String get webPinTooShort => 'PIN lazima iwe na angalau tarakimu 4';
+
+  @override
+  String get webPinInvalid => 'PIN si sahihi. Tafadhali jaribu tena.';
+
+  @override
+  String get webPinOtpRequired => 'OTP inahitajika';
+
+  @override
+  String get webPinAuthCodeRequired => 'Msimbo wa authenticator unahitajika';
+
+  @override
+  String get webPinOtpInvalid => 'OTP si sahihi. Tafadhali jaribu tena.';
+
+  @override
+  String get webPinAuthCodeInvalid =>
+      'Msimbo wa authenticator si sahihi. Tafadhali jaribu tena.';
+
+  @override
+  String get webPinTroubleTitle => 'Una tatizo la kuingia?';
+
+  @override
+  String get webPinTroubleBody =>
+      'Ikiwa umesahau PIN yako, wasiliana na msimamizi wa akaunti yako au msaada wa Flipper.';
+
+  @override
+  String get webPinVerifyIdentity => 'Thibitisha utambulisho wako';
+
+  @override
+  String get webPinEnterSmsCode => 'Weka msimbo tuliokutumia ili kuendelea.';
+
+  @override
+  String get webPinEnterAuthCode =>
+      'Weka msimbo kutoka programu yako ya authenticator ili kuendelea.';
+
+  @override
+  String get webPinEnterPinSubtitle =>
+      'Weka PIN yako ili kusimamia biashara yako kwa usalama.';
+
+  @override
+  String get webPinSignedIn => 'Umeingia ✓';
+
+  @override
+  String get webPinVerifying => 'Tunathibitisha…';
+
+  @override
+  String get webPinVerify => 'Thibitisha';
+
+  @override
+  String get webPinSignIn => 'Ingia';
+
+  @override
+  String get webPinNoAccountSignUp => 'Huna akaunti? Jisajili';
+
+  @override
+  String get webPinHide => 'Ficha';
+
+  @override
+  String get webPinShow => 'Onyesha';
+
+  @override
+  String get webPinAuthenticator => 'Authenticator';
+
+  @override
+  String get webPinSmsEmail => 'SMS / Barua pepe';
+
+  @override
+  String get webPinAuthenticatorCode => 'Msimbo wa Authenticator';
+
+  @override
+  String get webPinSmsEmailCode => 'Msimbo wa SMS / Barua pepe';
+
+  @override
+  String get webSignupTypeRetailer => 'Mfanyabiashara wa Flipper';
+
+  @override
+  String get webSignupTypeIndividual => 'Mtu binafsi';
+
+  @override
+  String get webSignupTypeEnterprise => 'Kampuni';
+
+  @override
+  String get webSignupUsernameCheckError =>
+      'Hitilafu katika kukagua jina la mtumiaji';
+
+  @override
+  String get webSignupNoTinData => 'Hakuna data iliyopatikana kwa TIN hii';
+
+  @override
+  String get webSignupEnterContactFirst =>
+      'Weka kwanza nambari ya simu au barua pepe.';
+
+  @override
+  String get webSignupFailedToSendCode => 'Imeshindwa kutuma msimbo.';
+
+  @override
+  String get webSignupWrongCode =>
+      'Msimbo huo si sahihi. Tafadhali jaribu tena.';
+
+  @override
+  String get webSignupCouldNotCheckCode => 'Imeshindwa kukagua msimbo huo.';
+
+  @override
+  String get webSignupUsernameRequired => 'Jina la mtumiaji linahitajika';
+
+  @override
+  String get webSignupUsernameTooShort =>
+      'Jina la mtumiaji lazima liwe na angalau herufi 4';
+
+  @override
+  String get webSignupEnterFullName => 'Tafadhali weka jina lako kamili';
+
+  @override
+  String get webSignupSelectBusinessType => 'Tafadhali chagua aina ya biashara';
+
+  @override
+  String get webSignupInvalidTin =>
+      'Tafadhali weka nambari sahihi ya TIN (angalau herufi 9)';
+
+  @override
+  String get webSignupSelectCountry => 'Tafadhali chagua nchi';
+
+  @override
+  String webSignupEnterCodeSentTo(String contact) {
+    return 'Weka msimbo tuliotuma kwa $contact ili kuendelea.';
+  }
+
+  @override
+  String webSignupVerifyFirst(String contact) {
+    return 'Thibitisha $contact kwanza — gusa “Tuma msimbo”.';
+  }
+
+  @override
+  String get webSignupUsernameTaken =>
+      'Jina la mtumiaji halipatikani. Tafadhali chagua jingine.';
+
+  @override
+  String get webSignupUsernameCheckRetry =>
+      'Hitilafu katika kukagua jina la mtumiaji. Tafadhali jaribu tena.';
+
+  @override
+  String get webSignupFillRequired =>
+      'Tafadhali jaza sehemu zote zinazohitajika ipasavyo';
+
+  @override
+  String get webSignupNetworkError =>
+      'Hitilafu ya mtandao. Tafadhali angalia muunganisho wako na ujaribu tena.';
+
+  @override
+  String get webSignupTimeout =>
+      'Ombi limechukua muda mrefu. Tafadhali jaribu tena baadaye.';
+
+  @override
+  String webSignupFailedCreate(String error) {
+    return 'Imeshindwa kuunda akaunti: $error';
+  }
+
+  @override
+  String get webSignupDismiss => 'Funga';
+
+  @override
+  String get webSignupBusinessSetup => 'Kuweka biashara';
+
+  @override
+  String get webSignupSubtitle =>
+      'Weka akaunti yako ya biashara ya Flipper ili kuanza.';
+
+  @override
+  String get webSignupUsername => 'Jina la mtumiaji';
+
+  @override
+  String get webSignupFullName => 'Jina kamili';
+
+  @override
+  String get webSignupFullNameHint => 'Weka jina lako kamili';
+
+  @override
+  String get webSignupFullNameRequired => 'Jina kamili linahitajika';
+
+  @override
+  String get webSignupPhoneEmail => 'Simu / Barua pepe';
+
+  @override
+  String get webSignupUsage => 'Matumizi';
+
+  @override
+  String get webSignupUsageHint => 'Jinsi unavyokusudia kutumia Flipper';
+
+  @override
+  String webSignupTinBusiness(String name) {
+    return 'Biashara: $name';
+  }
+
+  @override
+  String get webSignupTinUnavailable =>
+      'Utafutaji wa TIN haupatikani — uthibitishaji umerukwa.';
+
+  @override
+  String get webSignupCountry => 'Nchi';
+
+  @override
+  String get webSignupAlreadyHaveAccount => 'Tayari una akaunti? Ingia';
+
+  @override
+  String get webSignupChooseDifferentUsername =>
+      'Tafadhali chagua jina jingine la mtumiaji. Hili la sasa halipatikani au halijathibitishwa.';
+
+  @override
+  String get webSignupAccountCreated => 'Akaunti imeundwa kwa mafanikio!';
+
+  @override
+  String get webSignupFailedTryAgain =>
+      'Imeshindwa kuunda akaunti. Tafadhali jaribu tena.';
+
+  @override
+  String get webSignupUsernameNotAvailable => 'Jina la mtumiaji halipatikani';
+
+  @override
+  String get webSignupUsernameHint => 'Weka jina lako la mtumiaji';
+
+  @override
+  String get webSignupContactRequired =>
+      'Nambari ya simu au barua pepe inahitajika';
+
+  @override
+  String get webSignupInvalidEmail => 'Tafadhali weka barua pepe sahihi';
+
+  @override
+  String get webSignupInvalidPhone => 'Tafadhali weka nambari sahihi ya simu';
+
+  @override
+  String get webSignupContactHint => '783054874 au barua@pepe.com';
+
+  @override
+  String get webSignupResend => 'Tuma tena';
+
+  @override
+  String get webSignupSendCode => 'Tuma msimbo';
+
+  @override
+  String webSignupContactVerified(String contact) {
+    return '$contact imethibitishwa.';
+  }
+
+  @override
+  String get webSignupVerificationCode => 'Msimbo wa uthibitisho';
+
+  @override
+  String get webSignupEnter6Digit => 'Weka msimbo wa tarakimu 6';
+
+  @override
+  String webSignupCodeSentHint(String contact) {
+    return 'Tumetuma msimbo kwa $contact.';
+  }
+
+  @override
+  String webSignupCodeSentTo(String contact) {
+    return 'Msimbo umetumwa kwa $contact';
+  }
+
+  @override
+  String get webSignupEnterTin => 'Weka nambari ya TIN';
+
+  @override
+  String get webSignupTinRequired => 'Nambari ya TIN inahitajika';
+
+  @override
+  String get webSignupTinTooShort =>
+      'Nambari ya TIN lazima iwe na angalau tarakimu 9';
+
+  @override
+  String get webSignupPickCountryFromList =>
+      'Tafadhali chagua nchi kutoka kwenye orodha';
+
+  @override
+  String get webSignupSearchCountry => 'Tafuta nchi yako';
+
+  @override
+  String get webSignupCreateYourAccount => 'Fungua akaunti yako';
+
+  @override
+  String get webAuthSecuredE2e =>
+      'Imelindwa kwa usimbaji fiche wa mwisho hadi mwisho';
+
+  @override
+  String webAuthVerifiedOpening(String target) {
+    return 'Imethibitishwa — inafungua $target…';
+  }
+
+  @override
+  String get webAuthYourBusiness => 'biashara yako';
+
+  @override
+  String get webAuthBrandTitle =>
+      'Duka lako, timu yako, takwimu zako — mahali pamoja.';
+
+  @override
+  String get webAuthBrandBody =>
+      'Endelea pale ulipoishia. Mauzo, hisa na ripoti za leo ziko tayari.';
+
+  @override
+  String webAuthErrorCheckingPrefs(String error) {
+    return 'Hitilafu katika kukagua mapendeleo: $error';
+  }
+
+  @override
+  String get webBizNoBusinesses => 'Hakuna biashara zinazopatikana';
+
+  @override
+  String get webBizChooseBusiness => 'Chagua biashara';
+
+  @override
+  String get webBizChooseBusinessSubtitle =>
+      'Chagua biashara unayotaka kusimamia.';
+
+  @override
+  String get webBizNotSeeing =>
+      'Huioni biashara yako? Mwombe mmiliki akualike.';
+
+  @override
+  String get webBizChooseBranch => 'Chagua tawi';
+
+  @override
+  String get webBizChooseBranchSubtitle => 'Chagua tawi unalotaka kuingia';
+
+  @override
+  String get webBizCouldNotSet =>
+      'Imeshindwa kuweka biashara. Tafadhali jaribu tena.';
+
+  @override
+  String get webBizProfileLoadFailed =>
+      'Imeshindwa kupakia wasifu wako. Hii inaweza kutokea ikiwa mtandao haupatikani au kipindi chako kimeisha.';
+
+  @override
+  String get webBizBackToLogin => 'Rudi kwenye kuingia';
+
+  @override
+  String get webBizUser => 'Mtumiaji';
+
+  @override
+  String webBizOwnerBranches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mmiliki · matawi $count',
+      one: 'Mmiliki · tawi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String webBizMemberBranches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mwanachama · matawi $count',
+      one: 'Mwanachama · tawi 1',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get webBizSigningOut => 'Tunatoka…';
+
+  @override
+  String get webBizDefault => 'CHAGUO-MSINGI';
+
+  @override
+  String get webBizAddBusiness => 'Ongeza biashara';
+
+  @override
+  String get webAuthPinNotFound => 'PIN haikupatikana';
+
+  @override
+  String get webAuthAccessDenied =>
+      'Ufikiaji umekataliwa — kagua uthibitishaji';
+
+  @override
+  String webAuthInvalidPinCode(String code) {
+    return 'PIN si sahihi ($code)';
+  }
+
+  @override
+  String get webAuthNetworkFailed =>
+      'Muunganisho wa mtandao umeshindwa. Angalia intaneti yako.';
+
+  @override
+  String get webAuthTimedOut =>
+      'Ombi limechukua muda mrefu. Tafadhali jaribu tena.';
+
+  @override
+  String get webAuthOtpNotFound => 'OTP haikupatikana';
+
+  @override
+  String get webAuthInvalidOtp => 'OTP si sahihi';
+
+  @override
+  String get webAuthTotpNotFound => 'Msimbo wa authenticator haukupatikana';
+
+  @override
+  String get webAuthInvalidTotp => 'Msimbo wa authenticator si sahihi';
+
+  @override
+  String webSignupRegistrationFailedStatus(String code) {
+    return 'Usajili umeshindwa, msimbo wa hali: $code';
+  }
+
+  @override
+  String get webSignupNetworkConnect =>
+      'Hitilafu ya mtandao: imeshindwa kuunganisha na seva. Tafadhali angalia intaneti yako.';
+
+  @override
+  String get webSignupServerSlow =>
+      'Ombi limechukua muda mrefu. Seva inachelewa kujibu. Tafadhali jaribu tena baadaye.';
+
+  @override
+  String get webSignupNetworkIncomplete =>
+      'Hitilafu ya mtandao: imeshindwa kukamilisha ombi. Tafadhali jaribu tena baadaye.';
+
+  @override
+  String webSignupRegistrationFailed(String error) {
+    return 'Usajili umeshindwa: $error';
+  }
+
+  @override
+  String get webSignupNetworkSendCode =>
+      'Hitilafu ya mtandao wakati wa kutuma msimbo. Tafadhali jaribu tena.';
+
+  @override
+  String get webSignupContactExists => 'Mawasiliano haya tayari yapo';
+
+  @override
+  String get webSignupSendOtpFailed => 'Imeshindwa kutuma OTP ya usajili';
+
+  @override
+  String get webSignupNetworkCheckCode =>
+      'Hitilafu ya mtandao wakati wa kukagua msimbo. Tafadhali jaribu tena.';
 }

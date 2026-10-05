@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/home/hr_overview_page.dart';
 import 'package:flipper_hr/features/leave/data/leave_providers.dart';
 import 'package:flipper_hr/features/leave/data/leave_request.dart';
@@ -49,13 +50,13 @@ Future<void> _pumpOverview(
         currentUserProfileProvider.overrideWith((ref) async => null),
         hrAccountRepositoryProvider.overrideWithValue(
           FakeHrAccountRepository(
-            row: accountName == null
-                ? null
-                : HrAccountRow(name: accountName),
+            row: accountName == null ? null : HrAccountRow(name: accountName),
           ),
         ),
       ],
       child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: HrOverviewPage(
             businessId: 'biz-1',
@@ -71,8 +72,9 @@ Future<void> _pumpOverview(
 
 void main() {
   group('the dashboard', () {
-    testWidgets('greets by name and names the branch and the day',
-        (tester) async {
+    testWidgets('greets by name and names the branch and the day', (
+      tester,
+    ) async {
       await _pumpOverview(tester, people: [employee(id: 'e-1')]);
 
       expect(find.text('Good morning, Aline'), findsOneWidget);
@@ -138,8 +140,9 @@ void main() {
       expect(find.text('Review 1 request'), findsOneWidget);
     });
 
-    testWidgets('an empty queue is good news, not an empty list',
-        (tester) async {
+    testWidgets('an empty queue is good news, not an empty list', (
+      tester,
+    ) async {
       await _pumpOverview(tester, people: [employee(id: 'e-1')]);
 
       expect(
@@ -153,9 +156,7 @@ void main() {
       await _pumpOverview(
         tester,
         people: [employee(id: 'e-1')],
-        leave: [
-          leaveRequest(id: 'l-1', status: LeaveStatus.approved),
-        ],
+        leave: [leaveRequest(id: 'l-1', status: LeaveStatus.approved)],
       );
 
       expect(
@@ -226,13 +227,17 @@ void main() {
 
   group('formatShortRange', () {
     test('collapses a single day', () {
-      expect(formatShortRange(DateTime(2026, 8, 19), DateTime(2026, 8, 19)),
-          '19 Aug');
+      expect(
+        formatShortRange(DateTime(2026, 8, 19), DateTime(2026, 8, 19)),
+        '19 Aug',
+      );
     });
 
     test('spans two dates', () {
-      expect(formatShortRange(DateTime(2026, 8, 19), DateTime(2026, 9, 2)),
-          '19 Aug – 2 Sep');
+      expect(
+        formatShortRange(DateTime(2026, 8, 19), DateTime(2026, 9, 2)),
+        '19 Aug – 2 Sep',
+      );
     });
   });
 }

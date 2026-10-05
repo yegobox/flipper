@@ -4,14 +4,18 @@
 /// declared dependency of this app, only a transitive one.
 library;
 
+import 'package:flipper_hr/features/ui/hr_l10n.dart';
+import 'package:flipper_localize/flipper_localize.dart';
+
 /// `135` → `2h 15m`, `45` → `45m`, `0` → `0m`, `120` → `2h`.
 String formatWorkedMinutes(int minutes) {
-  if (minutes <= 0) return '0m';
+  final l10n = FlipperL10n.current;
+  if (minutes <= 0) return l10n.hrDurationMinutes('0');
   final hours = minutes ~/ 60;
   final rest = minutes % 60;
-  if (hours == 0) return '${rest}m';
-  if (rest == 0) return '${hours}h';
-  return '${hours}h ${rest}m';
+  if (hours == 0) return l10n.hrDurationMinutes('$rest');
+  if (rest == 0) return l10n.hrDurationHours('$hours');
+  return l10n.hrDurationHoursMinutes('$hours', '$rest');
 }
 
 /// Decimal hours for a payroll column: `135` → `2.25`.
@@ -32,13 +36,9 @@ String formatClockTime(DateTime at) {
   return '$h:$m';
 }
 
-const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
 /// `Mon 17 Aug` — weekday included because a timesheet is scanned for weekends.
 String formatDayLabel(DateTime date) {
-  final months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-  return '${_weekdays[date.weekday - 1]} ${date.day} ${months[date.month - 1]}';
+  final l10n = FlipperL10n.current;
+  return '${hrWeekdayShortName(l10n, date.weekday)} ${date.day} '
+      '${hrMonthShortName(l10n, date.month)}';
 }

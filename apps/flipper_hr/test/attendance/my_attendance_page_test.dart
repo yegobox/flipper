@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_providers.dart';
 import 'package:flipper_hr/features/attendance/data/attendance_repository.dart';
 import 'package:flipper_hr/features/attendance/my_attendance_page.dart';
@@ -38,7 +39,11 @@ Future<void> _pumpMyTime(
         ),
         hrClockProvider.overrideWithValue(() => _now),
       ],
-      child: const MaterialApp(home: Scaffold(body: MyAttendancePage())),
+      child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(body: MyAttendancePage()),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -52,7 +57,10 @@ void main() {
       expect(find.byKey(const Key('my-attendance-clock-in')), findsOneWidget);
       expect(find.byKey(const Key('my-attendance-clock-out')), findsNothing);
       expect(find.text('Not clocked in today'), findsOneWidget);
-      expect(find.byKey(const Key('my-attendance-today-total')), findsOneWidget);
+      expect(
+        find.byKey(const Key('my-attendance-today-total')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows the running total while clocked in', (tester) async {
@@ -68,9 +76,9 @@ void main() {
       expect(find.text('Clocked in at 08:00'), findsOneWidget);
       // 08:00 to 09:30 on the fixed clock.
       expect(
-        tester.widget<Text>(
-          find.byKey(const Key('my-attendance-today-total')),
-        ).data,
+        tester
+            .widget<Text>(find.byKey(const Key('my-attendance-today-total')))
+            .data,
         '1h 30m',
       );
     });
@@ -118,8 +126,9 @@ void main() {
   });
 
   group('the timesheet', () {
-    testWidgets('lists recent days newest first, with today always present',
-        (tester) async {
+    testWidgets('lists recent days newest first, with today always present', (
+      tester,
+    ) async {
       await _pumpMyTime(
         tester,
         attendance: FakeAttendanceRepository(
@@ -135,19 +144,25 @@ void main() {
       );
 
       expect(
-        find.byKey(Key('timesheet-day-${DateTime(2026, 8, 18).toIso8601String()}')),
+        find.byKey(
+          Key('timesheet-day-${DateTime(2026, 8, 18).toIso8601String()}'),
+        ),
         findsOneWidget,
         reason: 'today shows even with no hours yet',
       );
       expect(
-        find.byKey(Key('timesheet-day-${DateTime(2026, 8, 17).toIso8601String()}')),
+        find.byKey(
+          Key('timesheet-day-${DateTime(2026, 8, 17).toIso8601String()}'),
+        ),
         findsOneWidget,
       );
       expect(find.text('Today'), findsOneWidget);
       expect(find.text('8h'), findsOneWidget);
     });
 
-    testWidgets('shows each session and the break between them', (tester) async {
+    testWidgets('shows each session and the break between them', (
+      tester,
+    ) async {
       await _pumpMyTime(
         tester,
         attendance: FakeAttendanceRepository(
@@ -193,8 +208,9 @@ void main() {
   });
 
   group('someone with no record', () {
-    testWidgets('is told what to do instead of seeing an empty clock',
-        (tester) async {
+    testWidgets('is told what to do instead of seeing an empty clock', (
+      tester,
+    ) async {
       await _pumpMyTime(
         tester,
         people: FakeEmployeeRepository(),
@@ -213,7 +229,9 @@ void main() {
     testWidgets('a load failure offers a retry', (tester) async {
       final attendance = FakeAttendanceRepository(
         now: _now,
-        failWith: AttendanceRepositoryException('Could not load this timesheet.'),
+        failWith: AttendanceRepositoryException(
+          'Could not load this timesheet.',
+        ),
       );
       await _pumpMyTime(tester, attendance: attendance);
 

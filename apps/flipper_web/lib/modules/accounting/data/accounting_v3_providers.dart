@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_accounting/audit_trail_recorder.dart';
 import 'package:flipper_accounting/bill_payments.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_backend_config.dart';
@@ -212,8 +213,8 @@ final teamExtraProvider = StateProvider<List<TeamMember>>((ref) => []);
 /// mirror carries it to Postgres as service_role.
 final accountingPeriodsRepositoryProvider =
     Provider<AccountingPeriodsRepository>((ref) {
-  return DittoAccountingPeriodsRepository(ref.watch(dittoServiceProvider));
-});
+      return DittoAccountingPeriodsRepository(ref.watch(dittoServiceProvider));
+    });
 
 /// Every fiscal period recorded for the business.
 final fiscalPeriodsProvider = StreamProvider<List<FiscalPeriod>>((ref) {
@@ -493,8 +494,8 @@ final accountingTeamProvider = Provider<List<TeamMember>>((ref) {
         initials: _initials(userName),
         color: AccountingTokens.accent,
         email: '',
-        role: role.isNotEmpty ? role : 'Owner',
-        last: 'Active now',
+        role: role.isNotEmpty ? role : FlipperL10n.current.booksRoleOwner,
+        last: FlipperL10n.current.booksActiveNow,
         you: true,
       ),
     );
@@ -521,64 +522,70 @@ final periodCloseTasksProvider = Provider<List<CloseTask>>((ref) {
   final currency = ref.watch(accountingCurrencyProvider);
 
   bool done(String id, bool derived) => overrides[id] ?? derived;
+  final l10n = FlipperL10n.current;
 
   return [
     CloseTask(
       id: 'ct1',
-      label: 'All journal entries posted',
+      label: l10n.booksTaskAllPosted,
       detail: pending > 0
-          ? '$pending entries still pending approval'
-          : 'No pending entries',
+          ? l10n.booksTaskPendingApproval(pending)
+          : l10n.booksTaskNoPending,
       done: done('ct1', pending == 0),
       goView: 'journal',
       iconName: 'Receipt',
     ),
     CloseTask(
       id: 'ct2',
-      label: 'Bank accounts reconciled',
+      label: l10n.booksTaskBankReconciled,
       detail: unmatched > 0
-          ? '$unmatched statement lines unmatched'
-          : 'All lines matched',
+          ? l10n.booksTaskLinesUnmatched(unmatched)
+          : l10n.booksTaskAllLinesMatched,
       done: done('ct2', unmatched == 0),
       goView: 'bankrec',
       iconName: 'Refresh',
     ),
     CloseTask(
       id: 'ct3',
-      label: 'Receivables reviewed',
+      label: l10n.booksTaskReceivablesReviewed,
       detail: ar.isEmpty
-          ? 'No open receivables'
+          ? l10n.booksTaskNoOpenReceivables
           : overdueInv > 0
-          ? 'Aging confirmed · $overdueInv overdue invoices'
-          : 'Aging confirmed · ${ar.length} balances',
+          ? l10n.booksTaskAgingOverdue(overdueInv)
+          : l10n.booksTaskAgingBalances(ar.length),
       done: done('ct3', ar.isNotEmpty || invoices.isNotEmpty),
       goView: 'ar',
       iconName: 'ArrowUpRight',
     ),
     CloseTask(
       id: 'ct4',
-      label: 'Payables reviewed',
-      detail: ap.isEmpty ? 'No open payables' : 'All supplier bills entered',
+      label: l10n.booksTaskPayablesReviewed,
+      detail: ap.isEmpty
+          ? l10n.booksTaskNoOpenPayables
+          : l10n.booksTaskAllBillsEntered,
       done: done('ct4', ap.isNotEmpty || bills.isNotEmpty),
       goView: 'ap',
       iconName: 'ArrowDown',
     ),
     CloseTask(
       id: 'ct5',
-      label: 'VAT return prepared',
+      label: l10n.booksTaskVatPrepared,
       detail: vat == null
-          ? 'No VAT activity in period'
-          : 'Net payable $currency ${money(vat.netPayable)} · due ${vat.dueDate}',
+          ? l10n.booksTaskNoVatActivity
+          : l10n.booksTaskVatNetPayable(
+              '$currency ${money(vat.netPayable)}',
+              vat.dueDate,
+            ),
       done: done('ct5', vat != null),
       goView: 'tax',
       iconName: 'ShieldCheck',
     ),
     CloseTask(
       id: 'ct6',
-      label: 'Depreciation posted',
+      label: l10n.booksTaskDepreciationPosted,
       detail: pending > 0
-          ? 'Pending entries may include depreciation'
-          : 'Depreciation up to date',
+          ? l10n.booksTaskDepreciationMaybePending
+          : l10n.booksTaskDepreciationUpToDate,
       done: done('ct6', pending == 0),
       goView: 'journal',
       iconName: 'Stack',

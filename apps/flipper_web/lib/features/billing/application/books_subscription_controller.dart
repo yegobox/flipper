@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/billing/application/books_billing_providers.dart';
 import 'package:flipper_web/features/billing/data/books_payment_rails.dart';
@@ -107,9 +108,9 @@ class BooksPlanSelection {
 
   /// Add-on display names — what mobile stores in `addons.addon_name`.
   List<String> get addonNames => [
-        for (final addon in template.addons)
-          if (addonSlugs.contains(addon.slug)) addon.name,
-      ];
+    for (final addon in template.addons)
+      if (addonSlugs.contains(addon.slug)) addon.name,
+  ];
 
   BooksPlanDraft toDraft({
     required String businessId,
@@ -178,10 +179,10 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
 
     if (!MomoMsisdn.isPlausible(phoneNumber)) {
       _set(
-        const BooksPaymentState(
+        BooksPaymentState(
           stage: BooksPaymentStage.failed,
           rail: PaymentRail.mtnMomo,
-          message: 'Enter a valid Mobile Money number, e.g. 0788123456.',
+          message: FlipperL10n.current.webBillingInvalidMomo,
         ),
       );
       return;
@@ -193,7 +194,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         stage: BooksPaymentStage.preparing,
         rail: PaymentRail.mtnMomo,
         amountRwf: amount,
-        message: 'Preparing your subscription…',
+        message: FlipperL10n.current.webBillingPreparing,
       ),
     );
 
@@ -207,18 +208,18 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     final Plan plan;
     try {
       plan = await repo.savePlan(
-            selection.toDraft(
-              businessId: business.id,
-              branchId: branchId,
-              paymentMethod: PaymentRail.mtnMomo.wireValue,
-              phoneNumber: phoneNumber,
-            ),
-          );
+        selection.toDraft(
+          businessId: business.id,
+          branchId: branchId,
+          paymentMethod: PaymentRail.mtnMomo.wireValue,
+          phoneNumber: phoneNumber,
+        ),
+      );
     } catch (e) {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'Could not save the subscription: ${_describe(e)}',
+          message: FlipperL10n.current.webBillingCouldNotSave(_describe(e)),
         ),
       );
       return;
@@ -229,8 +230,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'This subscription has no plan id yet, so it cannot be '
-              'charged safely. Reload and try again.',
+          message: FlipperL10n.current.webBillingNoPlanIdCharge,
         ),
       );
       return;
@@ -239,29 +239,29 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     _set(
       state.copyWith(
         planId: planId,
-        message: 'Sending the request to your phone…',
+        message: FlipperL10n.current.webBillingSendingRequest,
       ),
     );
 
     final MomoSubscriptionResult result;
     try {
       result = await rails.chargeMomo(
-            phoneNumber: phoneNumber,
-            amount: amount,
-            planId: planId,
-            businessId: business.id,
-            branchId: branchId,
-            validitySeconds: validitySecondsFor(selection.cadence),
-            onMandate: (mandate) {
-              if (mandate.needsPayerAction || mandate.isAwaitingApproval) {
-                _set(
-                  state.copyWith(
-                    message: 'Approve the Mobile Money request on your phone.',
-                  ),
-                );
-              }
-            },
-          );
+        phoneNumber: phoneNumber,
+        amount: amount,
+        planId: planId,
+        businessId: business.id,
+        branchId: branchId,
+        validitySeconds: validitySecondsFor(selection.cadence),
+        onMandate: (mandate) {
+          if (mandate.needsPayerAction || mandate.isAwaitingApproval) {
+            _set(
+              state.copyWith(
+                message: FlipperL10n.current.webBillingApproveOnPhone,
+              ),
+            );
+          }
+        },
+      );
     } on MomoException catch (e) {
       _set(state.copyWith(stage: BooksPaymentStage.failed, message: e.message));
       return;
@@ -272,7 +272,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'The payment could not be started: ${_describe(e)}',
+          message: FlipperL10n.current.webBillingCouldNotStart(_describe(e)),
         ),
       );
       return;
@@ -284,8 +284,8 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         _set(
           state.copyWith(
             stage: BooksPaymentStage.failed,
-            message: result.message ??
-                'Mobile Money consent was declined, so nothing was charged.',
+            message:
+                result.message ?? FlipperL10n.current.webBillingConsentDeclined,
           ),
         );
         return;
@@ -293,7 +293,9 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         _set(
           state.copyWith(
             stage: BooksPaymentStage.failed,
-            message: result.message ?? 'The payment could not be started.',
+            message:
+                result.message ??
+                FlipperL10n.current.webBillingCouldNotStartPlain,
           ),
         );
         return;
@@ -306,8 +308,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'The gateway accepted the payment but returned no '
-              'reference to track it. Check your phone, then try again.',
+          message: FlipperL10n.current.webBillingNoReference,
         ),
       );
       return;
@@ -317,7 +318,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       state.copyWith(
         stage: BooksPaymentStage.awaitingApproval,
         reference: reference,
-        message: 'Approve the Mobile Money request on your phone.',
+        message: FlipperL10n.current.webBillingApproveOnPhone,
       ),
     );
 
@@ -373,7 +374,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         _set(
           state.copyWith(
             stage: BooksPaymentStage.confirmed,
-            message: 'Payment received. Your subscription is active.',
+            message: FlipperL10n.current.webBillingPaymentReceived,
           ),
         );
         return;
@@ -384,7 +385,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
           state.copyWith(
             stage: BooksPaymentStage.failed,
             message: reason == null || reason.isEmpty
-                ? 'The payment was not completed on your phone.'
+                ? FlipperL10n.current.webBillingNotCompletedOnPhone
                 : reason,
           ),
         );
@@ -396,9 +397,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     _set(
       state.copyWith(
         stage: BooksPaymentStage.timedOut,
-        message: 'We have not had a verdict from Mobile Money yet. If you '
-            'approved the request, Books will open shortly — check again in '
-            'a moment.',
+        message: FlipperL10n.current.webBillingMomoNoVerdict,
       ),
     );
   }
@@ -419,10 +418,10 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     final resolvedEmail = email.trim();
     if (resolvedEmail.isEmpty || !resolvedEmail.contains('@')) {
       _set(
-        const BooksPaymentState(
+        BooksPaymentState(
           stage: BooksPaymentStage.failed,
           rail: PaymentRail.card,
-          message: 'Card payment needs an email address for the receipt.',
+          message: FlipperL10n.current.webBillingCardNeedsEmail,
         ),
       );
       return;
@@ -434,7 +433,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         stage: BooksPaymentStage.preparing,
         rail: PaymentRail.card,
         amountRwf: amount,
-        message: 'Preparing your subscription…',
+        message: FlipperL10n.current.webBillingPreparing,
       ),
     );
 
@@ -446,18 +445,18 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     final Plan plan;
     try {
       plan = await repo.savePlan(
-            selection.toDraft(
-              businessId: business.id,
-              branchId: branchId,
-              paymentMethod: PaymentRail.card.wireValue,
-              phoneNumber: phoneNumber,
-            ),
-          );
+        selection.toDraft(
+          businessId: business.id,
+          branchId: branchId,
+          paymentMethod: PaymentRail.card.wireValue,
+          phoneNumber: phoneNumber,
+        ),
+      );
     } catch (e) {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'Could not save the subscription: ${_describe(e)}',
+          message: FlipperL10n.current.webBillingCouldNotSave(_describe(e)),
         ),
       );
       return;
@@ -468,37 +467,43 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'This subscription has no plan id yet, so it cannot be '
-              'paid safely. Reload and try again.',
+          message: FlipperL10n.current.webBillingNoPlanIdPay,
         ),
       );
       return;
     }
 
-    _set(state.copyWith(planId: planId, message: 'Opening the payment page…'));
+    _set(
+      state.copyWith(
+        planId: planId,
+        message: FlipperL10n.current.webBillingOpeningPaymentPage,
+      ),
+    );
 
     final DodoCheckoutResult result;
     try {
       result = await rails.startCard(
-            businessId: business.id,
-            planId: planId,
-            branchId: branchId,
-            planTemplateId: selection.template.id,
-            selectedPlan: selection.template.name,
-            addons: selection.addonNames,
-            isYearlyPlan: selection.cadence.isYearly,
-            email: resolvedEmail,
-            customerName: business.name,
-            phoneNumber: _firstNonEmpty([phoneNumber, business.phoneNumber]),
-            country: _firstNonEmpty([business.country]),
-            additionalDevices: selection.additionalDevices,
-            returnUrl: booksSubscribeReturnUrl(planId),
-          );
+        businessId: business.id,
+        planId: planId,
+        branchId: branchId,
+        planTemplateId: selection.template.id,
+        selectedPlan: selection.template.name,
+        addons: selection.addonNames,
+        isYearlyPlan: selection.cadence.isYearly,
+        email: resolvedEmail,
+        customerName: business.name,
+        phoneNumber: _firstNonEmpty([phoneNumber, business.phoneNumber]),
+        country: _firstNonEmpty([business.country]),
+        additionalDevices: selection.additionalDevices,
+        returnUrl: booksSubscribeReturnUrl(planId),
+      );
     } catch (e) {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'The card payment could not be started: ${_describe(e)}',
+          message: FlipperL10n.current.webBillingCardCouldNotStart(
+            _describe(e),
+          ),
         ),
       );
       return;
@@ -512,7 +517,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         _set(
           state.copyWith(
             stage: BooksPaymentStage.confirmed,
-            message: 'This subscription is already active.',
+            message: FlipperL10n.current.webBillingAlreadyActive,
           ),
         );
         return;
@@ -522,8 +527,9 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
           state.copyWith(
             stage: BooksPaymentStage.failed,
             checkoutLink: link,
-            message: result.message ??
-                'Could not open the card payment page in this browser.',
+            message:
+                result.message ??
+                FlipperL10n.current.webBillingCouldNotOpenCardPage,
           ),
         );
         return;
@@ -531,8 +537,9 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         _set(
           state.copyWith(
             stage: BooksPaymentStage.failed,
-            message: result.message ??
-                'This subscription has ended. Choose a plan to start again.',
+            message:
+                result.message ??
+                FlipperL10n.current.webBillingSubscriptionEnded,
           ),
         );
         return;
@@ -542,8 +549,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
           state.copyWith(
             stage: BooksPaymentStage.awaitingCheckout,
             checkoutLink: link,
-            message: 'Finish the payment on the page that just opened. Books '
-                'unlocks here as soon as the card is charged.',
+            message: FlipperL10n.current.webBillingFinishOnOpenedPage,
           ),
         );
         await _awaitCard(businessId: business.id, planId: planId);
@@ -562,7 +568,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         stage: BooksPaymentStage.awaitingCheckout,
         rail: PaymentRail.card,
         planId: planId,
-        message: 'Checking on your card payment…',
+        message: FlipperL10n.current.webBillingCheckingCard,
       ),
     );
     await _awaitCard(businessId: businessId, planId: planId);
@@ -577,15 +583,17 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
     final DodoSubscriptionStatus? status;
     try {
       status = await rails.awaitCardEntitlement(
-            planId,
-            timeout: timeout,
-            isCancelled: () => _disposed,
-          );
+        planId,
+        timeout: timeout,
+        isCancelled: () => _disposed,
+      );
     } catch (e) {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.failed,
-          message: 'Could not check the card payment: ${_describe(e)}',
+          message: FlipperL10n.current.webBillingCouldNotCheckCard(
+            _describe(e),
+          ),
         ),
       );
       return;
@@ -597,7 +605,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
       _set(
         state.copyWith(
           stage: BooksPaymentStage.confirmed,
-          message: 'Payment received. Your subscription is active.',
+          message: FlipperL10n.current.webBillingPaymentReceived,
         ),
       );
       return;
@@ -609,15 +617,14 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
           state.copyWith(
             stage: BooksPaymentStage.failed,
             checkoutLink: status?.checkout.paymentLink ?? state.checkoutLink,
-            message: 'The card was declined. Open the payment page again to '
-                'use a different card.',
+            message: FlipperL10n.current.webBillingCardDeclined,
           ),
         );
       case DodoCheckoutOutcome.resubscribeRequired:
         _set(
           state.copyWith(
             stage: BooksPaymentStage.failed,
-            message: 'This subscription has ended. Choose a plan to start again.',
+            message: FlipperL10n.current.webBillingSubscriptionEnded,
           ),
         );
       case DodoCheckoutOutcome.entitled:
@@ -626,9 +633,7 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
         _set(
           state.copyWith(
             stage: BooksPaymentStage.timedOut,
-            message: 'We have not heard back about the card payment yet. If '
-                'you completed it, Books will open shortly — check again in '
-                'a moment.',
+            message: FlipperL10n.current.webBillingCardNoVerdict,
           ),
         );
     }
@@ -668,6 +673,6 @@ class BooksSubscriptionController extends Notifier<BooksPaymentState> {
 
 final booksSubscriptionControllerProvider =
     NotifierProvider<BooksSubscriptionController, BooksPaymentState>(
-  BooksSubscriptionController.new,
-  isAutoDispose: true,
-);
+      BooksSubscriptionController.new,
+      isAutoDispose: true,
+    );

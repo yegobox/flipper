@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/core/ditto/accounting_cloud_sync.dart';
 import 'package:flipper_web/core/user_profile_cache.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
@@ -42,22 +43,24 @@ Future<bool> confirmBooksSignOut(BuildContext context) {
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text(
-        'Sign out?',
+        ctx.flipperL10n.booksSignOutTitle,
         style: AccountingTokens.sans(fontWeight: FontWeight.w700),
       ),
       content: Text(
-        'Ends your session and clears Ditto sync for this tab. '
-        'Choose “Refresh from cloud” if you only need to reload Books data.',
-        style: AccountingTokens.sans(fontSize: 14, color: AccountingTokens.ink2),
+        ctx.flipperL10n.booksSignOutBody,
+        style: AccountingTokens.sans(
+          fontSize: 14,
+          color: AccountingTokens.ink2,
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Cancel'),
+          child: Text(ctx.flipperL10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Sign out'),
+          child: Text(ctx.flipperL10n.signOut),
         ),
       ],
     ),
@@ -86,13 +89,13 @@ Future<AccountingAccountMenuAction?> showAccountingAccountMenu(
       position.dx + 1,
       position.dy + 1,
     ),
-    items: const [
+    items: [
       PopupMenuItem(
         value: AccountingAccountMenuAction.refresh,
         child: ListTile(
-          leading: Icon(Icons.cloud_sync_outlined, size: 20),
-          title: Text('Refresh from cloud'),
-          subtitle: Text('Re-sync Ditto data'),
+          leading: const Icon(Icons.cloud_sync_outlined, size: 20),
+          title: Text(context.flipperL10n.booksRefreshFromCloud),
+          subtitle: Text(context.flipperL10n.booksResyncDitto),
           contentPadding: EdgeInsets.zero,
           visualDensity: VisualDensity.compact,
         ),
@@ -100,8 +103,8 @@ Future<AccountingAccountMenuAction?> showAccountingAccountMenu(
       PopupMenuItem(
         value: AccountingAccountMenuAction.signOut,
         child: ListTile(
-          leading: Icon(Icons.logout, size: 20),
-          title: Text('Sign out'),
+          leading: const Icon(Icons.logout, size: 20),
+          title: Text(context.flipperL10n.signOut),
           contentPadding: EdgeInsets.zero,
           visualDensity: VisualDensity.compact,
         ),

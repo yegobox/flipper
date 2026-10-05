@@ -74,23 +74,31 @@ final booksCardPollTimeoutProvider = Provider<Duration>(
 /// rather than refetching invisibly behind a lock.
 final booksAccessStateProvider =
     FutureProvider.family<BooksAccessState, String?>((ref, businessId) async {
-  if (businessId == null || businessId.isEmpty) {
-    return const BooksAccessState.unknown();
-  }
-  final business = ref.watch(selectedBusinessProvider);
-  final plan = await ref.watch(booksPlanRepositoryProvider).fetchPlan(businessId);
-  return evaluateBooksEntitlement(
-    plan,
-    now: DateTime.now(),
-    businessTypeId: business?.id == businessId ? business?.businessTypeId : null,
-    isDefault: business?.id == businessId ? (business?.isDefault ?? false) : false,
-  );
-}, retry: (retryCount, error) => null);
+      if (businessId == null || businessId.isEmpty) {
+        return const BooksAccessState.unknown();
+      }
+      final business = ref.watch(selectedBusinessProvider);
+      final plan = await ref
+          .watch(booksPlanRepositoryProvider)
+          .fetchPlan(businessId);
+      return evaluateBooksEntitlement(
+        plan,
+        now: DateTime.now(),
+        businessTypeId: business?.id == businessId
+            ? business?.businessTypeId
+            : null,
+        isDefault: business?.id == businessId
+            ? (business?.isDefault ?? false)
+            : false,
+      );
+    }, retry: (retryCount, error) => null);
 
 /// The entitlement as a plain value, "unknown" while it loads or after it
 /// fails. Unknown grants access on purpose — see [BooksAccessState.grantsAccess].
-final booksAccessSnapshotProvider =
-    Provider.family<BooksAccessState, String?>((ref, businessId) {
+final booksAccessSnapshotProvider = Provider.family<BooksAccessState, String?>((
+  ref,
+  businessId,
+) {
   return ref.watch(booksAccessStateProvider(businessId)).value ??
       const BooksAccessState.unknown();
 });
@@ -101,8 +109,10 @@ final booksAccessSnapshotProvider =
 /// elsewhere — a phone paying for the same business, data-connector's sweep
 /// landing a MoMo charge — re-reads entitlement and unlocks this tab without
 /// a reload.
-final booksPlanRealtimeProvider =
-    StreamProvider.family<Plan?, String>((ref, businessId) {
+final booksPlanRealtimeProvider = StreamProvider.family<Plan?, String>((
+  ref,
+  businessId,
+) {
   final repo = ref.watch(booksPlanRepositoryProvider);
   // Only a *change* in the row re-reads entitlement. The stream's first
   // emission is the row as it already stands, which the access read has seen.
@@ -112,7 +122,7 @@ final booksPlanRealtimeProvider =
     final signature = plan == null
         ? ''
         : '${plan.paymentCompletedByUser}|${plan.paymentStatus}|'
-            '${plan.nextBillingDate?.toIso8601String()}';
+              '${plan.nextBillingDate?.toIso8601String()}';
     if (seenFirst && signature != lastSignature) {
       ref.invalidate(booksAccessStateProvider(businessId));
     }

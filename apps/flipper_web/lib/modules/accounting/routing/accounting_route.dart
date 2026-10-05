@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/widgets/accounting_icon.dart';
 
 enum AccountingView {
@@ -63,47 +64,58 @@ extension AccountingViewX on AccountingView {
     }
   }
 
-  String get label {
+  /// Localized page / nav label in the last-loaded locale. Prefer
+  /// [localizedLabel] with `context.flipperL10n` inside widgets.
+  String get label => localizedLabel(FlipperL10n.current);
+
+  /// Localized page / nav label.
+  String localizedLabel(FlipperAppLocalizations l10n) {
     switch (this) {
       case AccountingView.dashboard:
-        return 'Dashboard';
+        return l10n.dashboard;
       case AccountingView.invoices:
-        return 'Invoices';
+        return l10n.invoices;
       case AccountingView.customers:
-        return 'Customers';
+        return l10n.customers;
       case AccountingView.ar:
-        return 'Receivables';
+        return l10n.booksReceivables;
       case AccountingView.bills:
-        return 'Bills';
+        return l10n.booksBills;
       case AccountingView.suppliers:
-        return 'Suppliers';
+        return l10n.booksSuppliers;
       case AccountingView.ap:
-        return 'Payables';
+        return l10n.booksPayables;
       case AccountingView.journal:
-        return 'Journal entries';
+        return l10n.booksJournalEntries;
       case AccountingView.ledger:
-        return 'General ledger';
+        return l10n.booksGeneralLedger;
       case AccountingView.recurring:
-        return 'Recurring';
+        return l10n.booksRecurring;
       case AccountingView.bankRec:
-        return 'Bank reconciliation';
+        return l10n.booksBankReconciliation;
       case AccountingView.statements:
-        return 'Financial statements';
+        return l10n.booksFinancialStatements;
       case AccountingView.trial:
-        return 'Trial balance';
+        return l10n.booksTrialBalance;
       case AccountingView.tax:
-        return 'Tax & VAT';
+        return l10n.booksTaxVat;
       case AccountingView.coa:
-        return 'Chart of accounts';
+        return l10n.booksChartOfAccounts;
       case AccountingView.periodClose:
-        return 'Period close';
+        return l10n.booksPeriodClose;
       case AccountingView.audit:
-        return 'Audit trail';
+        return l10n.booksAuditTrail;
       case AccountingView.roles:
-        return 'Users & roles';
+        return l10n.booksUsersRoles;
     }
   }
 
+  /// Localized nav-section label (see [accountingSectionLabel]).
+  String sectionLabel(FlipperAppLocalizations l10n) =>
+      accountingSectionLabel(section, l10n);
+
+  /// Stable nav-section id (`Overview`, `Sales`, …) — not shown to users;
+  /// render it through [accountingSectionLabel].
   String get section {
     switch (this) {
       case AccountingView.dashboard:
@@ -142,6 +154,27 @@ extension AccountingViewX on AccountingView {
   }
 }
 
+/// Display text for a nav-section id from [AccountingViewX.section] /
+/// [accountingNavGroups].
+String accountingSectionLabel(String section, FlipperAppLocalizations l10n) {
+  switch (section) {
+    case 'Overview':
+      return l10n.booksOverview;
+    case 'Sales':
+      return l10n.sales;
+    case 'Purchases':
+      return l10n.purchases;
+    case 'Daybook':
+      return l10n.booksDaybook;
+    case 'Reports':
+      return l10n.reports;
+    case 'Setup':
+      return l10n.booksSetup;
+    default:
+      return section;
+  }
+}
+
 enum AccountingMobileTab { snapshot, approvals, reports, more }
 
 enum JournalFilter { all, posted, pending, draft }
@@ -151,11 +184,7 @@ enum StatementsTab { income, balance, cashFlow }
 enum MobileReportKey { pl, bs, tb, vat }
 
 class AccountingNavItem {
-  const AccountingNavItem({
-    required this.view,
-    required this.icon,
-    this.badge,
-  });
+  const AccountingNavItem({required this.view, required this.icon, this.badge});
 
   final AccountingView view;
   final AccIcon icon;
@@ -166,7 +195,9 @@ class AccountingNavItem {
 const accountingNavGroups = <({String section, List<AccountingNavItem> items})>[
   (
     section: 'Overview',
-    items: [AccountingNavItem(view: AccountingView.dashboard, icon: AccIcon.home)],
+    items: [
+      AccountingNavItem(view: AccountingView.dashboard, icon: AccIcon.home),
+    ],
   ),
   (
     section: 'Sales',

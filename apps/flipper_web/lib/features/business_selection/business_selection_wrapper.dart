@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/business_selection/login_choices_ui.dart';
@@ -36,9 +37,7 @@ class BusinessSelectionWrapper extends ConsumerWidget {
       data: (userProfile) {
         if (userProfile == null) {
           return _ErrorScaffold(
-            message:
-                'Could not load your profile. This may happen if the network '
-                'is unavailable or your session has expired.',
+            message: context.flipperL10n.webBizProfileLoadFailed,
             onRetry: () => ref.refresh(currentUserProfileProvider),
             onBack: () => context.go('/login'),
           );
@@ -92,12 +91,12 @@ class _ErrorScaffold extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
+                    label: Text(context.flipperL10n.retry),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: onBack,
-                    child: const Text('Back to login'),
+                    child: Text(context.flipperL10n.webBizBackToLogin),
                   ),
                 ],
               ),

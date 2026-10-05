@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_document_math.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_models.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_v3_models.dart';
@@ -16,25 +17,29 @@ List<AgingRow> deriveArAging(List<Map<String, dynamic>> transactions) {
     final created = _parseDate(t['created_at'] ?? t['createdAt']) ?? now;
     final days = now.difference(created).inDays;
     final name =
-        (t['customer_name'] ?? t['customerName'] ?? 'Customer').toString();
-    final customerId =
-        (t['customer_id'] ?? t['customerId'])?.toString();
-    final inv = (t['receipt_number'] ??
-            t['receiptNumber'] ??
-            t['reference'] ??
-            t['id'])
-        .toString();
+        (t['customer_name'] ??
+                t['customerName'] ??
+                FlipperL10n.current.customer)
+            .toString();
+    final customerId = (t['customer_id'] ?? t['customerId'])?.toString();
+    final inv =
+        (t['receipt_number'] ?? t['receiptNumber'] ?? t['reference'] ?? t['id'])
+            .toString();
 
     final buckets = _bucketAmount(remaining, days);
-    rows.add(AgingRow(
-      name: name,
-      inv: inv,
-      partyId: (customerId != null && customerId.isNotEmpty) ? customerId : null,
-      current: buckets.$1,
-      d30: buckets.$2,
-      d60: buckets.$3,
-      d90: buckets.$4,
-    ));
+    rows.add(
+      AgingRow(
+        name: name,
+        inv: inv,
+        partyId: (customerId != null && customerId.isNotEmpty)
+            ? customerId
+            : null,
+        current: buckets.$1,
+        d30: buckets.$2,
+        d60: buckets.$3,
+        d90: buckets.$4,
+      ),
+    );
   }
 
   return rows;
@@ -51,20 +56,26 @@ List<AgingRow> deriveApAging(List<Map<String, dynamic>> transactions) {
     final remaining = accountingRemainingBalance(t);
     final created = _parseDate(t['created_at'] ?? t['createdAt']) ?? now;
     final days = now.difference(created).inDays;
-    final name = (t['note'] ?? t['supplier_id'] ?? 'Supplier').toString();
+    final name =
+        (t['note'] ?? t['supplier_id'] ?? FlipperL10n.current.booksSupplier)
+            .toString();
     final supplierId = (t['supplier_id'] ?? t['supplierId'])?.toString();
     final inv = (t['reference'] ?? t['receipt_number'] ?? t['id']).toString();
     final buckets = _bucketAmount(remaining, days);
 
-    rows.add(AgingRow(
-      name: name,
-      inv: inv,
-      partyId: (supplierId != null && supplierId.isNotEmpty) ? supplierId : null,
-      current: buckets.$1,
-      d30: buckets.$2,
-      d60: buckets.$3,
-      d90: buckets.$4,
-    ));
+    rows.add(
+      AgingRow(
+        name: name,
+        inv: inv,
+        partyId: (supplierId != null && supplierId.isNotEmpty)
+            ? supplierId
+            : null,
+        current: buckets.$1,
+        d30: buckets.$2,
+        d60: buckets.$3,
+        d90: buckets.$4,
+      ),
+    );
   }
 
   return rows;
@@ -83,15 +94,17 @@ List<AgingRow> deriveApAgingFromBills(
     if (!docIsOpen(b)) continue;
     final due = _parseDisplayDate(b.due) ?? _parseDisplayDate(b.date) ?? today;
     final buckets = _bucketAmount(docBalance(b), today.difference(due).inDays);
-    rows.add(AgingRow(
-      name: b.who.isEmpty ? 'Supplier' : b.who,
-      inv: b.id,
-      partyId: b.supplierId,
-      current: buckets.$1,
-      d30: buckets.$2,
-      d60: buckets.$3,
-      d90: buckets.$4,
-    ));
+    rows.add(
+      AgingRow(
+        name: b.who.isEmpty ? FlipperL10n.current.booksSupplier : b.who,
+        inv: b.id,
+        partyId: b.supplierId,
+        current: buckets.$1,
+        d30: buckets.$2,
+        d60: buckets.$3,
+        d90: buckets.$4,
+      ),
+    );
   }
   return rows;
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_providers.dart';
 import 'package:flipper_web/modules/accounting/data/accounting_session_actions.dart';
@@ -19,7 +20,8 @@ class AccountingSidebar extends ConsumerWidget {
     final AccountingView view = ref.watch(accountingViewProvider);
     final pending = ref.watch(pendingCountProvider);
     final business = ref.watch(selectedBusinessProvider);
-    final entityName = business?.name ?? 'Business';
+    final entityName =
+        business?.name ?? context.flipperL10n.booksBusinessFallback;
     final fiscalYear = ref.watch(accountingFiscalYearLabelProvider);
     final currency = ref.watch(accountingCurrencyProvider);
 
@@ -96,7 +98,11 @@ class AccountingSidebar extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const Icon(Icons.expand_more, color: AccountingTokens.ink4, size: 18),
+                      const Icon(
+                        Icons.expand_more,
+                        color: AccountingTokens.ink4,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
@@ -112,7 +118,10 @@ class AccountingSidebar extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(10, 14, 10, 8),
                     child: Text(
-                      group.section.toUpperCase(),
+                      accountingSectionLabel(
+                        group.section,
+                        context.flipperL10n,
+                      ).toUpperCase(),
                       style: AccountingTokens.sans(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
@@ -125,8 +134,12 @@ class AccountingSidebar extends ConsumerWidget {
                     _NavButton(
                       item: item,
                       selected: view == item.view,
-                      badge: item.view == AccountingView.journal ? pending : null,
-                      onTap: () => ref.read(accountingViewProvider.notifier).state = item.view,
+                      badge: item.view == AccountingView.journal
+                          ? pending
+                          : null,
+                      onTap: () =>
+                          ref.read(accountingViewProvider.notifier).state =
+                              item.view,
                     ),
                 ],
               ],
@@ -148,7 +161,8 @@ class AccountingAccountFooter extends ConsumerStatefulWidget {
       _AccountingAccountFooterState();
 }
 
-class _AccountingAccountFooterState extends ConsumerState<AccountingAccountFooter> {
+class _AccountingAccountFooterState
+    extends ConsumerState<AccountingAccountFooter> {
   bool _busy = false;
 
   Future<void> _onTap(TapDownDetails details) async {
@@ -166,7 +180,7 @@ class _AccountingAccountFooterState extends ConsumerState<AccountingAccountFoote
           await refreshAccountingFromCloud(ref);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Books data refreshed from cloud')),
+              SnackBar(content: Text(context.flipperL10n.booksDataRefreshed)),
             );
           }
         case AccountingAccountMenuAction.signOut:
@@ -175,7 +189,7 @@ class _AccountingAccountFooterState extends ConsumerState<AccountingAccountFoote
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Action failed: $e')),
+          SnackBar(content: Text(context.flipperL10n.booksActionFailed('$e'))),
         );
       }
     } finally {
@@ -186,7 +200,8 @@ class _AccountingAccountFooterState extends ConsumerState<AccountingAccountFoote
   @override
   Widget build(BuildContext context) {
     final business = ref.watch(selectedBusinessProvider);
-    final entityName = business?.name ?? 'Business';
+    final entityName =
+        business?.name ?? context.flipperL10n.booksBusinessFallback;
     final userName = ref.watch(accountingUserNameProvider);
     final userRole = ref.watch(accountingUserRoleProvider);
 
@@ -285,8 +300,12 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = selected ? AccountingTokens.accent : AccountingTokens.ink3;
-    final labelColor = selected ? AccountingTokens.accent : AccountingTokens.ink2;
+    final iconColor = selected
+        ? AccountingTokens.accent
+        : AccountingTokens.ink3;
+    final labelColor = selected
+        ? AccountingTokens.accent
+        : AccountingTokens.ink2;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
@@ -309,7 +328,7 @@ class _NavButton extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  item.view.label,
+                  item.view.localizedLabel(context.flipperL10n),
                   style: AccountingTokens.sans(
                     fontSize: 14,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
@@ -319,16 +338,23 @@ class _NavButton extends StatelessWidget {
               ),
               if (badge != null && badge! > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: selected ? AccountingTokens.accent : AccountingTokens.warnTint,
+                    color: selected
+                        ? AccountingTokens.accent
+                        : AccountingTokens.warnTint,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     '$badge',
                     style: AccountingTokens.mono(
                       fontSize: 11,
-                      color: selected ? Colors.white : AccountingTokens.warnAmber,
+                      color: selected
+                          ? Colors.white
+                          : AccountingTokens.warnAmber,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

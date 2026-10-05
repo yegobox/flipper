@@ -16783,6 +16783,1969 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   String get ticketCompleteInProgress => 'Finalisation du ticket…';
 
   @override
+  String get hrWeekdayMonday => 'lundi';
+
+  @override
+  String get hrWeekdayShortMon => 'lun.';
+
+  @override
+  String get hrWeekdayTuesday => 'mardi';
+
+  @override
+  String get hrWeekdayShortTue => 'mar.';
+
+  @override
+  String get hrWeekdayWednesday => 'mercredi';
+
+  @override
+  String get hrWeekdayShortWed => 'mer.';
+
+  @override
+  String get hrWeekdayThursday => 'jeudi';
+
+  @override
+  String get hrWeekdayShortThu => 'jeu.';
+
+  @override
+  String get hrWeekdayFriday => 'vendredi';
+
+  @override
+  String get hrWeekdayShortFri => 'ven.';
+
+  @override
+  String get hrWeekdaySaturday => 'samedi';
+
+  @override
+  String get hrWeekdayShortSat => 'sam.';
+
+  @override
+  String get hrWeekdaySunday => 'dimanche';
+
+  @override
+  String get hrWeekdayShortSun => 'dim.';
+
+  @override
+  String get hrMonthJanuary => 'janvier';
+
+  @override
+  String get hrMonthShortJan => 'janv.';
+
+  @override
+  String get hrMonthFebruary => 'février';
+
+  @override
+  String get hrMonthShortFeb => 'févr.';
+
+  @override
+  String get hrMonthMarch => 'mars';
+
+  @override
+  String get hrMonthShortMar => 'mars';
+
+  @override
+  String get hrMonthApril => 'avril';
+
+  @override
+  String get hrMonthShortApr => 'avr.';
+
+  @override
+  String get hrMonthMay => 'mai';
+
+  @override
+  String get hrMonthShortMay => 'mai';
+
+  @override
+  String get hrMonthJune => 'juin';
+
+  @override
+  String get hrMonthShortJun => 'juin';
+
+  @override
+  String get hrMonthJuly => 'juillet';
+
+  @override
+  String get hrMonthShortJul => 'juil.';
+
+  @override
+  String get hrMonthAugust => 'août';
+
+  @override
+  String get hrMonthShortAug => 'août';
+
+  @override
+  String get hrMonthSeptember => 'septembre';
+
+  @override
+  String get hrMonthShortSep => 'sept.';
+
+  @override
+  String get hrMonthOctober => 'octobre';
+
+  @override
+  String get hrMonthShortOct => 'oct.';
+
+  @override
+  String get hrMonthNovember => 'novembre';
+
+  @override
+  String get hrMonthShortNov => 'nov.';
+
+  @override
+  String get hrMonthDecember => 'décembre';
+
+  @override
+  String get hrMonthShortDec => 'déc.';
+
+  @override
+  String hrLongDate(String weekday, String day, String month) {
+    return '$weekday $day $month';
+  }
+
+  @override
+  String hrDaysCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours',
+      one: '1 jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hrDaysFractional(String days) {
+    return '$days jours';
+  }
+
+  @override
+  String hrDurationMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String hrDurationHours(String hours) {
+    return '$hours h';
+  }
+
+  @override
+  String hrDurationHoursMinutes(String hours, String minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get hrGoodMorning => 'Bonjour';
+
+  @override
+  String get hrGoodAfternoon => 'Bon après-midi';
+
+  @override
+  String get hrGoodEvening => 'Bonsoir';
+
+  @override
+  String hrGreetingWithName(String greeting, String name) {
+    return '$greeting, $name';
+  }
+
+  @override
+  String get hrAddAPerson => 'Ajouter une personne';
+
+  @override
+  String get hrApprovals => 'Approbations';
+
+  @override
+  String hrReviewRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Examiner $count demandes',
+      one: 'Examiner 1 demande',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrAttendanceBoard => 'Tableau des présences';
+
+  @override
+  String get hrHeadcount => 'Effectif';
+
+  @override
+  String hrActiveCount(String count) {
+    return '$count actifs';
+  }
+
+  @override
+  String get hrOnLeave => 'En congé';
+
+  @override
+  String get hrWaitingOnYou => 'En attente de vous';
+
+  @override
+  String get hrNeedsADecision => 'Décision requise';
+
+  @override
+  String get hrAllClear => 'Rien en attente';
+
+  @override
+  String get hrNewThisMonth => 'Nouveaux ce mois-ci';
+
+  @override
+  String get hrMonthlyPayroll => 'Masse salariale mensuelle';
+
+  @override
+  String get hrEstimated => 'Estimation';
+
+  @override
+  String get hrNeedsYourDecision => 'Requiert votre décision';
+
+  @override
+  String get hrNeedsYourDecisionSubtitle =>
+      'Demandes de congé encore sans réponse';
+
+  @override
+  String get hrOpenQueue => 'Ouvrir la file';
+
+  @override
+  String get hrCouldNotLoadApprovalsQueue =>
+      'Impossible de charger la file d\'approbation.';
+
+  @override
+  String get hrTryAgain => 'Réessayer';
+
+  @override
+  String get hrNothingWaitingOnYou =>
+      'Rien ne vous attend. Toutes les demandes ont été traitées.';
+
+  @override
+  String hrMoreWaiting(String count) {
+    return '$count autres en attente';
+  }
+
+  @override
+  String hrEmployeeWithId(String id) {
+    return 'Employé $id';
+  }
+
+  @override
+  String get hrOutToday => 'Absents aujourd\'hui';
+
+  @override
+  String get hrRoster => 'Effectif';
+
+  @override
+  String get hrEveryoneIsInToday => 'Tout le monde est présent aujourd\'hui.';
+
+  @override
+  String get hrJoinedThisMonth => 'Arrivés ce mois-ci';
+
+  @override
+  String get hrNobodyNewThisMonth => 'Aucune arrivée ce mois-ci.';
+
+  @override
+  String get hrEmploymentFullTime => 'Temps plein';
+
+  @override
+  String get hrEmploymentPartTime => 'Temps partiel';
+
+  @override
+  String get hrEmploymentContract => 'Contrat';
+
+  @override
+  String get hrEmploymentIntern => 'Stagiaire';
+
+  @override
+  String get hrEmploymentCasual => 'Occasionnel';
+
+  @override
+  String get hrStatusActive => 'Actif';
+
+  @override
+  String get hrStatusSuspended => 'Suspendu';
+
+  @override
+  String get hrStatusTerminated => 'Licencié';
+
+  @override
+  String get hrPayMonthly => 'Mensuel';
+
+  @override
+  String get hrPayWeekly => 'Hebdomadaire';
+
+  @override
+  String get hrPayDaily => 'Journalier';
+
+  @override
+  String get hrPayHourly => 'À l\'heure';
+
+  @override
+  String get hrPaymentBankTransfer => 'Virement bancaire';
+
+  @override
+  String get hrAttendanceNotIn => 'Absent';
+
+  @override
+  String get hrAttendanceClockedIn => 'Pointé à l\'arrivée';
+
+  @override
+  String get hrAttendanceClockedOut => 'Pointé au départ';
+
+  @override
+  String get hrAttendanceSourceSelf => 'Soi-même';
+
+  @override
+  String get hrAttendanceSourceManager => 'Enregistré par le responsable';
+
+  @override
+  String get hrLeaveStatusPending => 'En attente';
+
+  @override
+  String get hrLeaveStatusRejected => 'Refusé';
+
+  @override
+  String get hrLeaveStatusCancelled => 'Annulé';
+
+  @override
+  String get hrLeaveTypeAnnual => 'Congé annuel';
+
+  @override
+  String get hrLeaveTypeSick => 'Congé maladie';
+
+  @override
+  String get hrLeaveTypeMaternity => 'Congé de maternité';
+
+  @override
+  String get hrLeaveTypePaternity => 'Congé de paternité';
+
+  @override
+  String get hrLeaveTypeCompassionate => 'Congé pour événement familial';
+
+  @override
+  String get hrLeaveTypeUnpaid => 'Congé sans solde';
+
+  @override
+  String hrPersonAddedToRoster(String name) {
+    return '$name a été ajouté(e) à l\'effectif.';
+  }
+
+  @override
+  String hrSavedChangesTo(String name) {
+    return 'Modifications de $name enregistrées.';
+  }
+
+  @override
+  String hrInviteSentNotLinked(String message) {
+    return 'Invitation envoyée, mais non liée. $message';
+  }
+
+  @override
+  String hrPersonIsNowStatus(String name, String status) {
+    return '$name est désormais $status.';
+  }
+
+  @override
+  String hrTerminatePersonTitle(String name) {
+    return 'Licencier $name ?';
+  }
+
+  @override
+  String hrTerminatePersonBody(String date) {
+    return 'Son dernier jour sera enregistré au $date. La fiche est conservée pour l\'historique de paie, mais la personne quitte l\'effectif.';
+  }
+
+  @override
+  String get hrTerminate => 'Licencier';
+
+  @override
+  String get hrAccessDiagnostic => 'Diagnostic d\'accès';
+
+  @override
+  String hrDiagnosticFailed(String error) {
+    return 'Échec du diagnostic : $error';
+  }
+
+  @override
+  String get hrPeople => 'Personnel';
+
+  @override
+  String get hrEveryoneOnThisBranch => 'Tout le personnel de cette succursale';
+
+  @override
+  String hrEveryoneAtBranch(String branch) {
+    return 'Tout le personnel de $branch';
+  }
+
+  @override
+  String get hrAddPerson => 'Ajouter une personne';
+
+  @override
+  String get hrSearchPeopleHint => 'Rechercher nom, poste, téléphone…';
+
+  @override
+  String get hrStatus => 'Statut';
+
+  @override
+  String get hrEmployed => 'Employés';
+
+  @override
+  String get hrDepartment => 'Service';
+
+  @override
+  String get hrAllDepartments => 'Tous les services';
+
+  @override
+  String get hrSortBy => 'Trier par';
+
+  @override
+  String get hrReportsTo => 'Responsable';
+
+  @override
+  String get hrContact => 'Contact';
+
+  @override
+  String get hrTenure => 'Ancienneté';
+
+  @override
+  String get hrBasePay => 'Salaire de base';
+
+  @override
+  String hrReportsToName(String name) {
+    return 'Rend compte à $name';
+  }
+
+  @override
+  String get hrResendHrInvite => 'Renvoyer l\'invitation RH';
+
+  @override
+  String get hrInviteToHr => 'Inviter dans RH';
+
+  @override
+  String get hrMarkActive => 'Marquer actif';
+
+  @override
+  String get hrMarkOnLeave => 'Marquer en congé';
+
+  @override
+  String get hrSuspend => 'Suspendre';
+
+  @override
+  String get hrNoOneOnBranchYet =>
+      'Personne dans cette succursale pour l\'instant';
+
+  @override
+  String get hrNoOneOnBranchYetMessage =>
+      'Ajoutez une première personne pour suivre les présences, les congés et la paie.';
+
+  @override
+  String get hrNoOneMatchesFilters => 'Personne ne correspond à ces filtres';
+
+  @override
+  String get hrClearFilters => 'Effacer les filtres';
+
+  @override
+  String get hrWhyWasThisDenied => 'Pourquoi l\'accès a-t-il été refusé ?';
+
+  @override
+  String hrTenureStarts(String date) {
+    return 'Débute le $date';
+  }
+
+  @override
+  String hrTenureDays(String days) {
+    return '$days j';
+  }
+
+  @override
+  String hrTenureMonths(String months) {
+    return '$months mois';
+  }
+
+  @override
+  String hrTenureYears(String years) {
+    return '$years a';
+  }
+
+  @override
+  String hrTenureYearsMonths(String years, String months) {
+    return '$years a $months mois';
+  }
+
+  @override
+  String get hrSortNameAsc => 'Nom (A–Z)';
+
+  @override
+  String get hrSortNameDesc => 'Nom (Z–A)';
+
+  @override
+  String get hrSortNewestHire => 'Embauche la plus récente';
+
+  @override
+  String get hrSortLongestServing => 'Plus ancien';
+
+  @override
+  String get hrSortHighestPaid => 'Mieux payé';
+
+  @override
+  String get hrEditPerson => 'Modifier la personne';
+
+  @override
+  String get hrSectionIdentity => 'Identité';
+
+  @override
+  String get hrFirstName => 'Prénom';
+
+  @override
+  String get hrLastName => 'Nom';
+
+  @override
+  String get hrEmailOptional => 'E-mail (facultatif)';
+
+  @override
+  String get hrNationalIdOptional => 'Pièce d\'identité nationale (facultatif)';
+
+  @override
+  String get hrRssbNumberOptional => 'Numéro RSSB (facultatif)';
+
+  @override
+  String get hrSectionRole => 'Poste';
+
+  @override
+  String get hrJobTitle => 'Intitulé du poste';
+
+  @override
+  String get hrDepartmentOptional => 'Service (facultatif)';
+
+  @override
+  String get hrEmploymentType => 'Type d\'emploi';
+
+  @override
+  String get hrStartDate => 'Date de début';
+
+  @override
+  String get hrLastDayOptional => 'Dernier jour (facultatif)';
+
+  @override
+  String get hrSectionPay => 'Rémunération';
+
+  @override
+  String hrBasePayWithCurrency(String currency) {
+    return 'Salaire de base ($currency)';
+  }
+
+  @override
+  String get hrPayFrequency => 'Fréquence de paie';
+
+  @override
+  String get hrAnnualLeaveDays => 'Jours de congé annuel';
+
+  @override
+  String hrAnnualLeaveDaysHelper(String days) {
+    return 'Laissez vide pour le minimum légal de $days jours ouvrés';
+  }
+
+  @override
+  String get hrMobileMoneyNumber => 'Numéro mobile money';
+
+  @override
+  String get hrMobileMoneyNumberHelper =>
+      'Laissez vide pour payer le numéro de contact ci-dessus';
+
+  @override
+  String get hrBank => 'Banque';
+
+  @override
+  String get hrAccountNumber => 'Numéro de compte';
+
+  @override
+  String get hrSectionNotes => 'Notes';
+
+  @override
+  String get hrNotesOptional => 'Notes (facultatif)';
+
+  @override
+  String get hrSaveChanges => 'Enregistrer les modifications';
+
+  @override
+  String get hrManagerNotOnRoster =>
+      'Son responsable actuel ne fait pas partie de l\'effectif de cette succursale. Choisissez quelqu\'un ici pour le changer.';
+
+  @override
+  String get hrManagerNobodyToChoose =>
+      'Personne à choisir pour l\'instant — les demandes de congé vont au gérant de l\'entreprise.';
+
+  @override
+  String get hrManagerHelper =>
+      'Ses demandes de congé iront à cette personne. Sans choix, elles vont au gérant de l\'entreprise.';
+
+  @override
+  String get hrNoManager => 'Aucun responsable';
+
+  @override
+  String get hrFirstNameRequired => 'Le prénom est obligatoire';
+
+  @override
+  String get hrLastNameRequired => 'Le nom est obligatoire';
+
+  @override
+  String get hrJobTitleRequired => 'L\'intitulé du poste est obligatoire';
+
+  @override
+  String get hrPhoneNumberRequired => 'Le numéro de téléphone est obligatoire';
+
+  @override
+  String get hrEnterValidPhoneNumber =>
+      'Saisissez un numéro de téléphone valide';
+
+  @override
+  String get hrEnterValidEmail => 'Saisissez une adresse e-mail valide';
+
+  @override
+  String hrNationalIdLength(String min, String max) {
+    return 'Une pièce d\'identité nationale compte de $min à $max caractères';
+  }
+
+  @override
+  String get hrStartDateTooFarAhead =>
+      'La date de début ne peut pas dépasser un an';
+
+  @override
+  String get hrLastDayRequiredToTerminate =>
+      'Un dernier jour est requis pour licencier';
+
+  @override
+  String get hrLastDayBeforeStart =>
+      'Le dernier jour ne peut pas précéder la date de début';
+
+  @override
+  String get hrCannotReportToSelf =>
+      'Une personne ne peut pas être son propre responsable';
+
+  @override
+  String get hrPayCannotBeNegative => 'Le salaire ne peut pas être négatif';
+
+  @override
+  String get hrLeaveDaysCannotBeNegative =>
+      'Les jours de congé ne peuvent pas être négatifs';
+
+  @override
+  String get hrLeaveDaysTooMany =>
+      'C\'est plus qu\'une année de travail — saisissez des jours, pas des heures';
+
+  @override
+  String get hrMobileMoneyNumberRequired =>
+      'Le numéro mobile money est obligatoire';
+
+  @override
+  String get hrEnterValidMobileMoneyNumber =>
+      'Saisissez un numéro mobile money valide';
+
+  @override
+  String get hrBankNameRequired => 'Le nom de la banque est obligatoire';
+
+  @override
+  String get hrAccountNumberRequired => 'Le numéro de compte est obligatoire';
+
+  @override
+  String get hrPickFirstDayOfLeave => 'Choisissez le premier jour de congé.';
+
+  @override
+  String get hrPickLastDayOfLeave => 'Choisissez le dernier jour de congé.';
+
+  @override
+  String get hrLastDayBeforeFirstDay =>
+      'Le dernier jour ne peut pas précéder le premier.';
+
+  @override
+  String get hrLeaveTooFarAhead =>
+      'Un congé ne peut pas être réservé plus d\'un an à l\'avance. Vérifiez l\'année de ces dates.';
+
+  @override
+  String get hrLeaveCannotStartInPast =>
+      'Un congé ne peut pas commencer dans le passé.';
+
+  @override
+  String hrLeaveBackdatedTooFar(String days) {
+    return 'Ce congé a commencé il y a plus de $days jours. Demandez au gestionnaire de l\'effectif de l\'enregistrer.';
+  }
+
+  @override
+  String hrLeaveReasonRequired(String leaveType) {
+    return 'Indiquez brièvement pourquoi vous avez besoin de : $leaveType.';
+  }
+
+  @override
+  String get hrPickAtLeastOneDay => 'Choisissez au moins un jour.';
+
+  @override
+  String get hrPeriodAllWeekend =>
+      'Cette période ne contient que des week-ends — choisissez au moins un jour ouvré.';
+
+  @override
+  String hrLeaveOverlaps(String start, String end, String status) {
+    return 'Ce congé chevauche un congé existant du $start au $end ($status).';
+  }
+
+  @override
+  String hrNoLeaveLeft(String leaveType, String year) {
+    return 'Plus de $leaveType disponible pour $year.';
+  }
+
+  @override
+  String hrOnlyLeaveLeft(
+    String left,
+    String leaveType,
+    String year,
+    String requested,
+  ) {
+    return 'Il ne reste que $left de $leaveType pour $year ; cette demande en compte $requested.';
+  }
+
+  @override
+  String get hrRequestLeave => 'Demander un congé';
+
+  @override
+  String hrLeaveForName(String name) {
+    return 'Congé pour $name';
+  }
+
+  @override
+  String get hrLeaveTypeField => 'Type';
+
+  @override
+  String get hrFirstDay => 'Premier jour';
+
+  @override
+  String get hrLastDay => 'Dernier jour';
+
+  @override
+  String get hrNoteOptional => 'Note (facultatif)';
+
+  @override
+  String get hrReason => 'Motif';
+
+  @override
+  String get hrSending => 'Envoi…';
+
+  @override
+  String get hrSendRequest => 'Envoyer la demande';
+
+  @override
+  String hrLeaveCostCalendarDays(String days) {
+    return '$days (jours calendaires)';
+  }
+
+  @override
+  String hrLeaveCostWorkingDays(String days) {
+    return '$days (jours ouvrés)';
+  }
+
+  @override
+  String get hrUnpaidLeaveNoLimit =>
+      'le congé sans solde n\'a pas de limite annuelle';
+
+  @override
+  String hrMoreThanYouHaveLeft(String days) {
+    return '$days de plus que votre solde';
+  }
+
+  @override
+  String hrLeftAfterThis(String days) {
+    return '$days restants ensuite';
+  }
+
+  @override
+  String get hrLeaveTakenNoLimit => 'pris · sans limite annuelle';
+
+  @override
+  String hrLeaveLeftOf(String days) {
+    return 'restants sur $days';
+  }
+
+  @override
+  String hrLeaveAwaitingApproval(String days) {
+    return '$days en attente d\'approbation';
+  }
+
+  @override
+  String get hrLeaveRequestSent =>
+      'Demande de congé envoyée. Elle apparaîtra ici une fois traitée.';
+
+  @override
+  String get hrWithdrawRequestTitle => 'Retirer cette demande ?';
+
+  @override
+  String hrWithdrawRequestBody(String start, String end) {
+    return 'Votre congé du $start au $end sera annulé et les jours seront recrédités sur votre solde.';
+  }
+
+  @override
+  String get hrKeepIt => 'Conserver';
+
+  @override
+  String get hrWithdraw => 'Retirer';
+
+  @override
+  String get hrRequestWithdrawn => 'Demande retirée.';
+
+  @override
+  String get hrCouldNotLoadYourRecord => 'Impossible de charger votre fiche';
+
+  @override
+  String get hrCouldNotLoadYourLeave => 'Impossible de charger vos congés';
+
+  @override
+  String get hrMyLeave => 'Mes congés';
+
+  @override
+  String hrBalancesFor(String name, String year) {
+    return '$name · soldes $year';
+  }
+
+  @override
+  String hrRequestsGoTo(String name) {
+    return 'Les demandes vont à $name';
+  }
+
+  @override
+  String get hrEmploymentEndedNotice =>
+      'Votre contrat a pris fin : aucun nouveau congé ne peut être réservé. Votre historique reste disponible ici.';
+
+  @override
+  String get hrRequests => 'Demandes';
+
+  @override
+  String get hrNoLeaveBookedYet =>
+      'Aucun congé réservé pour l\'instant. Vos soldes ci-dessus sont ce dont vous disposez cette année.';
+
+  @override
+  String get hrNoEmployeeRecordTitle => 'Aucune fiche employé pour ce compte';
+
+  @override
+  String get hrNoEmployeeRecordLeaveBody =>
+      'Les congés sont réservés pour une personne inscrite à l\'effectif d\'une succursale, et cette connexion ne correspond encore à personne. Demandez au gestionnaire de votre effectif de vous inviter depuis la page Personnel — c\'est ce qui lie votre fiche à ce compte. S\'il l\'a déjà fait, vérifiez que le numéro de téléphone de votre fiche est celui utilisé pour vous connecter.';
+
+  @override
+  String get hrLeaveApproved => 'Congé approuvé.';
+
+  @override
+  String get hrLeaveRejected => 'Congé refusé.';
+
+  @override
+  String get hrLeave => 'Congés';
+
+  @override
+  String get hrWithTheirManager => 'Chez leur responsable';
+
+  @override
+  String get hrWithTheirManagerCaption =>
+      'Leur responsable n\'a pas encore répondu. En décider ici revient à trancher à sa place.';
+
+  @override
+  String get hrDecided => 'Traitées';
+
+  @override
+  String get hrNothingWaitingOnYouShort => 'Rien en attente de vous';
+
+  @override
+  String hrRequestsWaitingOnYou(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count demandes vous attendent',
+      one: '1 demande vous attend',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String hrWithAnotherManager(String count) {
+    return '$count chez un autre responsable';
+  }
+
+  @override
+  String get hrYourTeam => 'Votre équipe';
+
+  @override
+  String get hrApproveThisLeave => 'Approuver ce congé ?';
+
+  @override
+  String get hrRejectThisLeave => 'Refuser ce congé ?';
+
+  @override
+  String get hrRejectReasonLabel => 'Pourquoi ? (visible par la personne)';
+
+  @override
+  String get hrApprove => 'Approuver';
+
+  @override
+  String get hrReject => 'Refuser';
+
+  @override
+  String get hrOnlyTheirManagerCanAnswer =>
+      'Seul leur responsable peut répondre à celle-ci.';
+
+  @override
+  String get hrNoLeaveRequestsYet => 'Aucune demande de congé pour l\'instant';
+
+  @override
+  String get hrNoLeaveRequestsOwnerHint =>
+      'Invitez des personnes depuis la page Personnel pour qu\'elles réservent leurs congés. Indiquez le responsable de chacun et ses demandes lui seront adressées ; celles des personnes sans responsable arrivent ici.';
+
+  @override
+  String get hrNoLeaveRequestsManagerHint =>
+      'Les demandes des personnes qui vous rendent compte apparaîtront ici pour approbation.';
+
+  @override
+  String get hrErrorLoadPeopleOnBranch =>
+      'Impossible de charger le personnel de cette succursale.';
+
+  @override
+  String get hrErrorLoadPersonRecord =>
+      'Impossible de charger la fiche de cette personne.';
+
+  @override
+  String hrErrorAddPerson(String name) {
+    return 'Impossible d\'ajouter $name.';
+  }
+
+  @override
+  String hrErrorSavePerson(String name) {
+    return 'Impossible d\'enregistrer les modifications de $name.';
+  }
+
+  @override
+  String get hrErrorLinkAccount =>
+      'L\'invitation a été envoyée, mais cette fiche n\'a pas pu être liée au nouveau compte. Ses congés ne fonctionneront pas tant que ce n\'est pas fait.';
+
+  @override
+  String hrErrorChangeStatus(String status) {
+    return 'Impossible de passer cette personne au statut $status.';
+  }
+
+  @override
+  String get hrThisPerson => 'cette personne';
+
+  @override
+  String get hrErrorLoadYourLeave => 'Impossible de charger vos congés.';
+
+  @override
+  String get hrErrorLoadBranchLeave =>
+      'Impossible de charger les congés de cette succursale.';
+
+  @override
+  String get hrErrorLoadTeamLeave =>
+      'Impossible de charger les congés de votre équipe.';
+
+  @override
+  String get hrErrorSendLeaveRequest =>
+      'Impossible d\'envoyer cette demande de congé.';
+
+  @override
+  String get hrErrorWithdrawRequest =>
+      'Impossible de retirer cette demande. Elle a peut-être déjà été traitée.';
+
+  @override
+  String get hrErrorApproveAlreadyDecided =>
+      'Impossible d\'approuver cette demande : elle a déjà été traitée ou retirée. Actualisez pour voir son état.';
+
+  @override
+  String get hrErrorRejectAlreadyDecided =>
+      'Impossible de refuser cette demande : elle a déjà été traitée ou retirée. Actualisez pour voir son état.';
+
+  @override
+  String get hrErrorApproveRequest => 'Impossible d\'approuver cette demande.';
+
+  @override
+  String get hrErrorRejectRequest => 'Impossible de refuser cette demande.';
+
+  @override
+  String get hrErrorLoadDayAttendance =>
+      'Impossible de charger les présences de ce jour.';
+
+  @override
+  String get hrErrorLoadTimesheet =>
+      'Impossible de charger cette feuille de temps.';
+
+  @override
+  String get hrErrorCheckClockedIn =>
+      'Impossible de vérifier si vous avez pointé.';
+
+  @override
+  String get hrErrorCorrectEntry => 'Impossible de corriger cette entrée.';
+
+  @override
+  String get hrErrorServerReturnedNothing =>
+      'Le serveur a accepté le pointage mais n\'a rien renvoyé à afficher.';
+
+  @override
+  String get hrErrorClockInNotAllowed =>
+      'Vous n\'êtes pas autorisé à pointer l\'arrivée de cette personne.';
+
+  @override
+  String get hrErrorClockOutNotAllowed =>
+      'Vous n\'êtes pas autorisé à pointer le départ de cette personne.';
+
+  @override
+  String get hrErrorClockIn => 'Impossible de pointer l\'arrivée.';
+
+  @override
+  String get hrErrorClockOut => 'Impossible de pointer le départ.';
+
+  @override
+  String get hrErrorLoadYourTeam => 'Impossible de charger votre équipe.';
+
+  @override
+  String hrErrorResolveAccess(String error) {
+    return 'Impossible de déterminer vos accès : $error';
+  }
+
+  @override
+  String get hrRoleStaffLabel => 'Employé — réserve ses propres congés';
+
+  @override
+  String get hrRoleManagerLabel => 'Responsable — effectif et approbations';
+
+  @override
+  String get hrRoleStaff => 'Employé';
+
+  @override
+  String get hrRoleManager => 'Responsable';
+
+  @override
+  String hrInviteTitle(String name) {
+    return 'Inviter $name dans RH';
+  }
+
+  @override
+  String get hrInviteNoContact =>
+      'Cette fiche n\'a ni téléphone ni e-mail : impossible d\'envoyer une invitation. Ajoutez-en un d\'abord.';
+
+  @override
+  String hrInviteWillGetPin(String contact) {
+    return 'La personne recevra un PIN pour se connecter sur hr.useflipper.com, confirmé par un code envoyé à $contact.';
+  }
+
+  @override
+  String get hrInviteEmailNoPhone =>
+      'Cette fiche a un e-mail mais pas de téléphone. La connexion exige un code par SMS : ajoutez un numéro avant d\'inviter.';
+
+  @override
+  String get hrInviteAlreadyHasAccount =>
+      'La personne a déjà un compte. Une nouvelle invitation génère un nouveau PIN et met à jour ses droits — elle ne crée pas de doublon.';
+
+  @override
+  String hrInviteDirectReports(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count personnes lui rendent compte : elle approuvera leurs congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
+      one:
+          '1 personne lui rend compte : elle approuvera ses congés quel que soit le rôle choisi. Le rôle de responsable ajoute l\'effectif et la paie de tous.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrInviteWhatCanTheyDo => 'Que peut faire cette personne ?';
+
+  @override
+  String get hrSendInvite => 'Envoyer l\'invitation';
+
+  @override
+  String get hrRoleStaffDescription =>
+      'Consulte sa fiche, réserve ses congés et vérifie son solde — et approuve les congés des personnes qui lui rendent compte.';
+
+  @override
+  String get hrRoleManagerDescription =>
+      'Tout ce qui précède, plus l\'effectif de la succursale, la paie et l\'approbation des congés pour toute l\'entreprise.';
+
+  @override
+  String get hrInviteSent => 'Invitation envoyée';
+
+  @override
+  String hrInviteCanNowSignIn(String name, String role) {
+    return '$name peut maintenant se connecter sur hr.useflipper.com en tant que $role.';
+  }
+
+  @override
+  String get hrCopyPin => 'Copier le PIN';
+
+  @override
+  String get hrPinCopied => 'PIN copié.';
+
+  @override
+  String hrInvitePinHelp(String phone) {
+    return 'La connexion demande ce PIN, puis un code envoyé au $phone. Transmettez le PIN maintenant — il ne sera plus affiché, et un PIN perdu se remplace en invitant la personne à nouveau.';
+  }
+
+  @override
+  String get hrInviteNeedsContact =>
+      'Un numéro de téléphone ou un e-mail est requis pour inviter cette personne.';
+
+  @override
+  String hrInviteErrorAccount(String contact) {
+    return 'Impossible de trouver ou de créer un compte Flipper pour $contact.';
+  }
+
+  @override
+  String hrInviteErrorNoAccountId(String contact) {
+    return 'Flipper a répondu sans identifiant de compte pour $contact.';
+  }
+
+  @override
+  String get hrInviteErrorNoMembershipId =>
+      'L\'adhésion a été créée mais Flipper n\'a pas renvoyé son identifiant.';
+
+  @override
+  String hrInviteErrorGrantAccess(String name, String error) {
+    return 'Impossible de donner à $name l\'accès à cette entreprise : $error';
+  }
+
+  @override
+  String hrInviteErrorCreatePin(String name) {
+    return 'Impossible de créer un PIN de connexion pour $name.';
+  }
+
+  @override
+  String get hrInviteErrorNoPin =>
+      'Le PIN a été demandé mais Flipper n\'en a renvoyé aucun.';
+
+  @override
+  String get hrInviteErrorNoMembership =>
+      'Le compte a été créé mais n\'a aucune adhésion à cette entreprise : la connexion ne mènerait nulle part. Réessayez d\'inviter cette personne.';
+
+  @override
+  String hrInviteErrorConfirmMembership(String error) {
+    return 'Impossible de confirmer la nouvelle adhésion : $error';
+  }
+
+  @override
+  String get hrInviteErrorTimeout =>
+      'Flipper n\'a pas répondu à temps — vérifiez la connexion et réessayez.';
+
+  @override
+  String get hrInviteErrorNotJson =>
+      'Flipper a répondu avec un contenu qui n\'est pas du JSON :';
+
+  @override
+  String get hrEnterValidMomoNumber =>
+      'Saisissez un numéro MTN ou Airtel valide, p. ex. 0788123456.';
+
+  @override
+  String get hrMomoUnreadableReply =>
+      'La passerelle de paiement a envoyé une réponse illisible.';
+
+  @override
+  String get hrMomoNoReference =>
+      'Le paiement a démarré mais aucune référence n\'a été renvoyée — vérifiez votre relevé Mobile Money avant de réessayer.';
+
+  @override
+  String get hrMomoMissingReference => 'Référence de paiement manquante.';
+
+  @override
+  String get hrMomoRejectedInvalid =>
+      'La demande de paiement a été rejetée comme invalide.';
+
+  @override
+  String get hrMomoNotAuthorised =>
+      'Ce compte n\'est pas autorisé à encaisser des paiements.';
+
+  @override
+  String get hrMomoServiceNotFound => 'Le service de paiement est introuvable.';
+
+  @override
+  String get hrMomoAlreadySubmitted => 'Ce paiement a déjà été soumis.';
+
+  @override
+  String get hrMomoUnavailable =>
+      'Mobile Money est indisponible pour le moment. Réessayez dans un instant.';
+
+  @override
+  String hrMomoCouldNotStart(String status) {
+    return 'Le paiement n\'a pas pu démarrer (HTTP $status).';
+  }
+
+  @override
+  String get hrErrorCheckSubscription =>
+      'Impossible de vérifier l\'abonnement de cette entreprise.';
+
+  @override
+  String get hrErrorLoadPlanPrice =>
+      'Impossible de charger le prix de cette formule.';
+
+  @override
+  String get hrErrorStartSubscription =>
+      'Impossible de démarrer l\'abonnement.';
+
+  @override
+  String get hrErrorSkipPayment => 'Impossible de reporter ce paiement.';
+
+  @override
+  String get hrPreparingSubscription => 'Préparation de votre abonnement…';
+
+  @override
+  String hrErrorStartSubscriptionWith(String error) {
+    return 'Impossible de démarrer l\'abonnement : $error';
+  }
+
+  @override
+  String get hrSubscriptionAlreadyActive => 'Cet abonnement est déjà actif.';
+
+  @override
+  String get hrSendingRequestToPhone =>
+      'Envoi de la demande sur votre téléphone…';
+
+  @override
+  String hrPaymentCouldNotStartWith(String error) {
+    return 'Le paiement n\'a pas pu démarrer : $error';
+  }
+
+  @override
+  String get hrApproveMomoOnPhone =>
+      'Approuvez la demande Mobile Money sur votre téléphone.';
+
+  @override
+  String get hrPaymentReceivedActive =>
+      'Paiement reçu. Votre abonnement est actif.';
+
+  @override
+  String get hrPaymentNotCompleted =>
+      'Le paiement n\'a pas été finalisé sur votre téléphone.';
+
+  @override
+  String get hrPaymentNoVerdictYet =>
+      'Mobile Money n\'a pas encore répondu. Si vous avez approuvé la demande, l\'accès sera débloqué sous peu — revérifiez dans un instant.';
+
+  @override
+  String get hrSubscriptionEnded => 'Votre abonnement a expiré';
+
+  @override
+  String get hrThisNeedsSubscription =>
+      'Cette fonctionnalité nécessite un abonnement';
+
+  @override
+  String hrFeatureNeedsSubscription(String feature) {
+    return '$feature : abonnement requis';
+  }
+
+  @override
+  String get hrSubscriptionEndedBody =>
+      'Rien n\'a été supprimé — l\'effectif, les congés et les présences sont toujours là. Renouvelez l\'abonnement pour y accéder à nouveau.';
+
+  @override
+  String get hrSubscriptionPitch =>
+      'Flipper HR fait partie de l\'abonnement Flipper. Payez une fois pour l\'entreprise et l\'effectif, les congés et les présences s\'ouvrent pour toute l\'équipe.';
+
+  @override
+  String get hrPaymentOnItsWay =>
+      'Un paiement est déjà en cours. Si vous l\'avez approuvé sur votre téléphone, l\'accès sera débloqué dès confirmation par Mobile Money.';
+
+  @override
+  String get hrRenewNow => 'Renouveler maintenant';
+
+  @override
+  String get hrSeeThePlan => 'Voir la formule';
+
+  @override
+  String get hrSubscriptionCheckFailedOpen =>
+      'Impossible de vérifier l\'abonnement de cette entreprise : l\'accès reste ouvert pour l\'instant.';
+
+  @override
+  String get hrTestPricingOn =>
+      'La tarification de test est activée pour ce projet : les abonnements sont facturés à prix réduit.';
+
+  @override
+  String hrSkipEndsSoon(String used, String max) {
+    return 'Vous utilisez un accès gratuit sans payer ($used report(s) sur $max utilisé(s)). Il prend fin bientôt.';
+  }
+
+  @override
+  String hrSkipEndsToday(String used, String max) {
+    return 'Vous utilisez un accès gratuit sans payer ($used report(s) sur $max utilisé(s)). Il prend fin aujourd\'hui.';
+  }
+
+  @override
+  String hrSkipEndsInDays(int days, String used, String max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Vous utilisez un accès gratuit sans payer ($used report(s) sur $max utilisé(s)). Il prend fin dans $days jours.',
+      one:
+          'Vous utilisez un accès gratuit sans payer ($used report(s) sur $max utilisé(s)). Il prend fin dans 1 jour.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrPayNow => 'Payer maintenant';
+
+  @override
+  String get hrSubscriptionEndsToday =>
+      'Votre abonnement prend fin aujourd\'hui.';
+
+  @override
+  String get hrSubscriptionEndsTomorrow => 'Votre abonnement prend fin demain.';
+
+  @override
+  String hrSubscriptionEndsInDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Votre abonnement prend fin dans $days jours.',
+      one: 'Votre abonnement prend fin dans 1 jour.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hrRenew => 'Renouveler';
+
+  @override
+  String get hrFeatureDashboard => 'Le tableau de bord';
+
+  @override
+  String get hrFeatureRoster => 'L\'effectif';
+
+  @override
+  String get hrFeatureAttendanceBoard => 'Le tableau des présences';
+
+  @override
+  String hrErrorSkipPaymentWith(String error) {
+    return 'Impossible de reporter ce paiement : $error';
+  }
+
+  @override
+  String get hrSkipping => 'Report en cours…';
+
+  @override
+  String hrSkipForNow(String count) {
+    return 'Reporter pour l\'instant ($count restant(s))';
+  }
+
+  @override
+  String get hrSubscribePickBusiness =>
+      'Choisissez l\'entreprise pour laquelle vous payez ; la formule et son prix s\'afficheront ici.';
+
+  @override
+  String get hrChooseABusiness => 'Choisir une entreprise';
+
+  @override
+  String hrCouldNotLoadPlan(String error) {
+    return 'Impossible de charger la formule : $error';
+  }
+
+  @override
+  String get hrRenewYourSubscription => 'Renouveler votre abonnement';
+
+  @override
+  String get hrSubscribeToFlipper => 'S\'abonner à Flipper';
+
+  @override
+  String get hrPeriodYearly => 'Annuel';
+
+  @override
+  String hrTestPricingNormally(String amount, String period) {
+    return 'Tarification de test active — normalement $amount $period.';
+  }
+
+  @override
+  String get hrWhatBusinessIsUsing => 'Ce que cette entreprise utilise';
+
+  @override
+  String get hrUsagePosUsers => 'Utilisateurs POS';
+
+  @override
+  String get hrUsageBranches => 'Succursales';
+
+  @override
+  String get hrUsageHrEmployees => 'Employés RH';
+
+  @override
+  String hrUsageUnlimited(String used) {
+    return '$used · illimité';
+  }
+
+  @override
+  String hrUsageOf(String used, String cap) {
+    return '$used sur $cap';
+  }
+
+  @override
+  String get hrMomoNumberLabel => 'Numéro Mobile Money';
+
+  @override
+  String get hrPaymentReceived => 'Paiement reçu.';
+
+  @override
+  String get hrOpenFlipperHr => 'Ouvrir Flipper HR';
+
+  @override
+  String get hrPreparing => 'Préparation…';
+
+  @override
+  String get hrWaitingForApproval => 'En attente de votre approbation…';
+
+  @override
+  String hrPayWithMomo(String amount) {
+    return 'Payer $amount avec Mobile Money';
+  }
+
+  @override
+  String hrMomoPromptNote(String amount) {
+    return 'Vous recevrez une demande Mobile Money sur ce numéro. L\'approuver débite $amount.';
+  }
+
+  @override
+  String get hrPerYear => 'par an';
+
+  @override
+  String get hrPerMonth => 'par mois';
+
+  @override
+  String get hrExpandMenu => 'Développer le menu';
+
+  @override
+  String get hrCollapseMenu => 'Réduire le menu';
+
+  @override
+  String get hrSearchPeople => 'Rechercher des personnes…';
+
+  @override
+  String get hrSwitchBusinessOrBranch =>
+      'Changer d\'entreprise ou de succursale';
+
+  @override
+  String get hrSigningOut => 'Déconnexion…';
+
+  @override
+  String get hrNavYou => 'Vous';
+
+  @override
+  String get hrAttendance => 'Présences';
+
+  @override
+  String get hrMyTime => 'Mon temps';
+
+  @override
+  String get hrPickBranchToContinue =>
+      'Choisissez une succursale pour continuer';
+
+  @override
+  String get hrPickBranchBody =>
+      'Les données RH sont rattachées à une succursale : choisissez celle sur laquelle vous travaillez.';
+
+  @override
+  String get hrChooseBusinessOrBranch =>
+      'Choisir l\'entreprise ou la succursale';
+
+  @override
+  String hrCouldNotCheckSession(String error) {
+    return 'Impossible de vérifier votre session : $error';
+  }
+
+  @override
+  String hrCouldNotLoadBusinesses(String error) {
+    return 'Impossible de charger vos entreprises : $error';
+  }
+
+  @override
+  String get hrBackToSignIn => 'Retour à la connexion';
+
+  @override
+  String get hrBrandTagline =>
+      'Votre équipe, votre temps, votre personnel — tout au même endroit.';
+
+  @override
+  String get hrBrandSubtitle =>
+      'Présences, paie et congés sont prêts dès votre connexion.';
+
+  @override
+  String get hrBrandStatEmployees => 'employés gérés';
+
+  @override
+  String get hrBrandStatPayroll => 'de paie traitée chaque mois';
+
+  @override
+  String get hrBrandStatUptime => 'de disponibilité';
+
+  @override
+  String get hrBrandPayrollThisMonth => 'Paie · ce mois-ci';
+
+  @override
+  String get hrBrandNewHire => 'Nouvelle recrue';
+
+  @override
+  String get hrBrandDayOne => 'Jour 1';
+
+  @override
+  String get hrBrandAttendanceStreak => 'Série de présences';
+
+  @override
+  String get hrClockedInToast => 'Arrivée pointée.';
+
+  @override
+  String hrClockedOutToast(String worked) {
+    return 'Départ pointé — $worked aujourd\'hui.';
+  }
+
+  @override
+  String hrYourHoursForLastDays(String days) {
+    return 'Vos heures des $days derniers jours.';
+  }
+
+  @override
+  String get hrNoRecordNoHours =>
+      'Ce compte n\'a pas encore de fiche employé : aucune heure à suivre. Demandez au responsable RH de vous ajouter.';
+
+  @override
+  String get hrRecentDays => 'Jours récents';
+
+  @override
+  String hrClockedInAt(String time) {
+    return 'Arrivée pointée à $time';
+  }
+
+  @override
+  String get hrNotClockedInToday => 'Pas encore pointé aujourd\'hui';
+
+  @override
+  String hrLastOutAt(String time) {
+    return 'Dernier départ à $time';
+  }
+
+  @override
+  String get hrClockOut => 'Pointer le départ';
+
+  @override
+  String get hrClockIn => 'Pointer l\'arrivée';
+
+  @override
+  String hrWorkedInDays(String worked, String days) {
+    return '$worked en $days jours';
+  }
+
+  @override
+  String get hrToday => 'Aujourd\'hui';
+
+  @override
+  String get hrOvernight => 'de nuit';
+
+  @override
+  String get hrNoHours => 'Aucune heure';
+
+  @override
+  String hrSessionUntilNow(String start) {
+    return '$start – maintenant';
+  }
+
+  @override
+  String hrBreakDuration(String duration) {
+    return '$duration de pause';
+  }
+
+  @override
+  String hrPersonClockedIn(String name) {
+    return 'Arrivée de $name pointée.';
+  }
+
+  @override
+  String hrPersonClockedOut(String name) {
+    return 'Départ de $name pointé.';
+  }
+
+  @override
+  String get hrAttendanceNoOneOnBranch =>
+      'Personne dans cette succursale pour l\'instant. Ajoutez d\'abord des personnes pour enregistrer leurs heures ici.';
+
+  @override
+  String get hrOnRoster => 'À l\'effectif';
+
+  @override
+  String get hrRecorded => 'Enregistrés';
+
+  @override
+  String get hrHours => 'Heures';
+
+  @override
+  String get hrChangeDay => 'Changer de jour';
+
+  @override
+  String get hrNoHoursToday => 'Aucune heure aujourd\'hui';
+
+  @override
+  String hrInAt(String time) {
+    return 'Arrivée $time';
+  }
+
+  @override
+  String hrOutAt(String time) {
+    return 'départ $time';
+  }
+
+  @override
+  String hrSessionsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sessions',
+      one: '1 session',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get authSignIn => 'Se connecter';
+
+  @override
+  String get authToContinueToAccount => 'pour accéder à votre compte';
+
+  @override
+  String get authEnterYourEmail => 'Saisissez votre e-mail';
+
+  @override
+  String get authPleaseEnterEmail => 'Veuillez saisir votre e-mail';
+
+  @override
+  String get authPleaseEnterValidEmail => 'Veuillez saisir un e-mail valide';
+
+  @override
+  String get authPassword => 'Mot de passe';
+
+  @override
+  String get authEnterYourPassword => 'Saisissez votre mot de passe';
+
+  @override
+  String get authPleaseEnterPassword => 'Veuillez saisir votre mot de passe';
+
+  @override
+  String get authPasswordMinLength =>
+      'Le mot de passe doit contenir au moins 6 caractères';
+
+  @override
+  String get authKeepMeSignedIn => 'Rester connecté';
+
+  @override
+  String get authForgotPassword => 'Mot de passe oublié ?';
+
+  @override
+  String get authNoAccountPrompt => 'Pas encore de compte ?';
+
+  @override
+  String get authCreateOne => 'Créer un compte';
+
+  @override
+  String get authCreateYourAccount => 'Créez votre compte';
+
+  @override
+  String get authSignupSubtitle =>
+      'Le même parcours d\'inscription sécurisé, désormais optimisé pour une configuration mobile plus rapide.';
+
+  @override
+  String get authFullName => 'Nom complet';
+
+  @override
+  String get authEnterFullName => 'Saisissez votre nom complet';
+
+  @override
+  String get authPleaseEnterName => 'Veuillez saisir votre nom';
+
+  @override
+  String get authHidePassword => 'Masquer le mot de passe';
+
+  @override
+  String get authShowPassword => 'Afficher le mot de passe';
+
+  @override
+  String get authConfirmPassword => 'Confirmer le mot de passe';
+
+  @override
+  String get authConfirmYourPassword => 'Confirmez votre mot de passe';
+
+  @override
+  String get authPleaseConfirmPassword =>
+      'Veuillez confirmer votre mot de passe';
+
+  @override
+  String get authPasswordsDoNotMatch =>
+      'Les mots de passe ne correspondent pas';
+
+  @override
+  String get authCreateAccountButton => 'Créer un compte';
+
+  @override
+  String get authAlreadyHaveAccount => 'Déjà un compte ? Se connecter';
+
+  @override
+  String get authBusinessSetup => 'Configuration de l\'entreprise';
+
+  @override
+  String get authAuthenticator => 'Authentificateur';
+
+  @override
+  String get authAddAccount => 'Ajouter un compte';
+
+  @override
+  String get authSomethingWentWrong => 'Une erreur est survenue';
+
+  @override
+  String get authUnexpectedErrorTryAgain =>
+      'Une erreur inattendue est survenue. Veuillez réessayer.';
+
+  @override
+  String get authTryAgain => 'Réessayer';
+
+  @override
+  String get authNoAccountsAdded => 'Aucun compte ajouté';
+
+  @override
+  String get authAddFirstAccountHint =>
+      'Ajoutez votre premier compte pour générer des codes de vérification';
+
+  @override
+  String get authCodeCopied => 'Code copié dans le presse-papiers';
+
+  @override
+  String get authInvalidQrCode => 'Code QR invalide';
+
+  @override
+  String get authAccountAdded => 'Compte ajouté avec succès';
+
+  @override
+  String authFailedToAddAccount(String error) {
+    return 'Échec de l\'ajout du compte : $error';
+  }
+
+  @override
+  String get personalReadyForAdventure => 'Prêt pour l\'aventure ?';
+
+  @override
+  String personalDayStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours d\'affilée !',
+      one: '1 jour d\'affilée !',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personalTodaysProgress => 'Progrès du jour';
+
+  @override
+  String personalCompletedOf(String done, String total) {
+    return '$done/$total terminés';
+  }
+
+  @override
+  String get personalXpProgress => 'Progression XP';
+
+  @override
+  String personalXpToday(String xp) {
+    return '+$xp XP aujourd\'hui';
+  }
+
+  @override
+  String get personalFindChallenges => 'Trouver des défis';
+
+  @override
+  String get personalViewRewards => 'Voir les récompenses';
+
+  @override
+  String get personalLeaderboard => 'Classement';
+
+  @override
+  String get personalRecentAchievements => 'Succès récents';
+
+  @override
+  String get personalOpeningAchievements => 'Ouverture de tous les succès !';
+
+  @override
+  String get personalViewAll => 'Tout voir';
+
+  @override
+  String get personalAchievementFirstSteps => 'Premiers pas';
+
+  @override
+  String get personalAchievementExplorer => 'Explorateur';
+
+  @override
+  String get personalAchievementStreakMaster => 'Maître des séries';
+
+  @override
+  String get personalAchievementSocialStar => 'Star sociale';
+
+  @override
+  String get personalHowToLevelUp => 'Comment monter de niveau';
+
+  @override
+  String get personalDiscoverQuests => 'Découvrez des quêtes cachées';
+
+  @override
+  String get personalDiscoverQuestsBody =>
+      'Visitez des commerces locaux pour débloquer des défis secrets et gagner des XP bonus !';
+
+  @override
+  String get personalDailyChallenges => 'Relevez les défis quotidiens';
+
+  @override
+  String get personalDailyChallengesBody =>
+      'Gardez votre série et grimpez dans le classement avec vos amis !';
+
+  @override
+  String get personalTeamUp => 'Faites équipe avec vos amis';
+
+  @override
+  String get personalTeamUpBody =>
+      'Unissez vos forces pour des défis de groupe et gagnez des bonus multiplicateurs !';
+
+  @override
+  String get personalAdventureBegins => 'Que l\'aventure commence ! 🚀';
+
+  @override
+  String get personalStartAdventure => 'Commencez votre aventure !';
+
+  @override
+  String get personalSyncingAdventures =>
+      'Synchronisation avec les aventures à proximité...';
+
+  @override
+  String get personalLoggingOut => 'Déconnexion...';
+
+  @override
+  String get personalLoggedOut => 'Déconnexion réussie !';
+
+  @override
+  String personalLogoutFailed(String error) {
+    return 'Échec de la déconnexion : $error';
+  }
+
+  @override
+  String get personalCouldNotDetermineLocation =>
+      'Impossible de déterminer votre position.';
+
+  @override
+  String get personalBusinessIdNotFound =>
+      'Identifiant d\'entreprise introuvable. Veuillez vous reconnecter.';
+
+  @override
+  String get personalFailedToFetchChallenges =>
+      'Impossible de récupérer les défis';
+
+  @override
+  String get personalFailedToFetchChallengesRetry =>
+      'Impossible de récupérer les défis. Veuillez réessayer.';
+
+  @override
+  String get personalYourRewards => 'Vos récompenses';
+
+  @override
+  String get personalRewardFreeCoffee => 'Café offert';
+
+  @override
+  String get personalRewardFreeCoffeeBody =>
+      'Obtenez un café offert dans nos cafés partenaires.';
+
+  @override
+  String get personalRewardDiscount => '10 % de réduction';
+
+  @override
+  String get personalRewardDiscountBody =>
+      'Profitez de 10 % de réduction sur votre prochain achat.';
+
+  @override
+  String get personalRewardEarlyAccess => 'Accès anticipé';
+
+  @override
+  String get personalRewardEarlyAccessBody =>
+      'Accédez en avant-première aux nouvelles fonctionnalités.';
+
+  @override
+  String get personalChallengeDiscovered => 'Défi découvert !';
+
+  @override
+  String get personalRewardAvailable => 'Récompense disponible !';
+
+  @override
+  String get personalLater => 'Plus tard';
+
+  @override
+  String get personalClaimReward => 'Réclamer la récompense';
+
+  @override
+  String get personalFailedToClaimReward =>
+      'Impossible de réclamer la récompense. Veuillez réessayer.';
+
+  @override
+  String get personalRewardClaimed => 'Récompense réclamée avec succès !';
+
+  @override
+  String personalErrorLoadingRewards(String error) {
+    return 'Erreur de chargement des récompenses : $error';
+  }
+
+  @override
+  String get personalChallengeClaimed => 'Défi réclamé';
+
+  @override
+  String personalClaimedOn(String date) {
+    return 'Réclamé le $date';
+  }
+
+  @override
+  String personalBusinessLabel(String business) {
+    return 'Entreprise : $business';
+  }
+
+  @override
+  String personalRewardLabel(String reward) {
+    return 'Récompense : $reward';
+  }
+
+  @override
+  String get personalSpecialReward => 'Récompense spéciale';
+
+  @override
+  String get personalClaim => 'Réclamer';
+
+  @override
+  String get personalNoChallengesNearby =>
+      'Aucun défi à proximité. Essayez de vous déplacer !';
+
+  @override
+  String get personalTapToDiscover =>
+      'Touchez pour découvrir des défis à proximité';
+
+  @override
+  String get personalTapToSearchAgain => 'Touchez pour relancer la recherche';
+
+  @override
+  String get personalSearchingChallenges => 'Recherche de défis à proximité...';
+
+  @override
+  String get personalChallengesFound => 'Défis trouvés !';
+
+  @override
+  String personalNearbyRewards(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count récompenses à proximité',
+      one: '1 récompense à proximité',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get personalChallengeClaimedToast => 'Défi réclamé avec succès ! 🎉';
+
+  @override
+  String personalFailedToClaimChallenge(String error) {
+    return 'Impossible de réclamer le défi : $error';
+  }
+
+  @override
   String get manualPurchaseSellPrice => 'Prix de vente';
 
   @override
@@ -19601,4 +21564,3178 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
 
   @override
   String get loginFailed => 'Échec de la connexion';
+
+  @override
+  String get webPricingTitle => 'Tarification simple et transparente';
+
+  @override
+  String get webPlanMobile => 'Mobile';
+
+  @override
+  String get webPlanMobileDesktop => 'Mobile + Bureau';
+
+  @override
+  String get webPlanEnterprise => 'Entreprise';
+
+  @override
+  String get webCurrencyPerMonth => 'RWF / mois';
+
+  @override
+  String get webFeatureMobileAppAccess => 'Accès à l\'application mobile';
+
+  @override
+  String get webFeatureBasicBusinessTools => 'Outils de gestion de base';
+
+  @override
+  String get webFeatureDataEncryption => 'Chiffrement des données';
+
+  @override
+  String get webFeatureSingleDevice => 'Appareil unique';
+
+  @override
+  String get webFeatureTaxReportingAddon =>
+      '+ Déclaration fiscale (+30 000 RWF)';
+
+  @override
+  String get webFeatureMobileDesktopAppAccess =>
+      'Accès aux applications mobile et bureau';
+
+  @override
+  String get webFeatureAdvancedBusinessTools => 'Outils de gestion avancés';
+
+  @override
+  String get webFeatureMilitaryGradeEncryption =>
+      'Chiffrement de niveau militaire';
+
+  @override
+  String get webFeaturePrioritySupport => 'Assistance prioritaire';
+
+  @override
+  String get webFeatureMultipleDevices => 'Plusieurs appareils';
+
+  @override
+  String get webFeatureAdvancedAnalytics => 'Analyses avancées';
+
+  @override
+  String get webFeatureFullPlatformAccess => 'Accès complet à la plateforme';
+
+  @override
+  String get webFeatureEnterpriseGradeSecurity =>
+      'Sécurité de niveau entreprise';
+
+  @override
+  String get webFeature247DedicatedSupport => 'Assistance dédiée 24h/24, 7j/7';
+
+  @override
+  String get webFeatureUnlimitedUsersBranches =>
+      'Utilisateurs et succursales illimités';
+
+  @override
+  String get webFeatureCustomIntegrations => 'Intégrations sur mesure';
+
+  @override
+  String get webFeaturePremiumTaxConsulting =>
+      '+ Conseil fiscal premium (+400 000 RWF)';
+
+  @override
+  String get webGetStarted => 'Commencer';
+
+  @override
+  String get booksReceivables => 'Créances clients';
+
+  @override
+  String get booksBills => 'Factures fournisseurs';
+
+  @override
+  String get booksSuppliers => 'Fournisseurs';
+
+  @override
+  String get booksPayables => 'Dettes fournisseurs';
+
+  @override
+  String get booksJournalEntries => 'Écritures comptables';
+
+  @override
+  String get booksGeneralLedger => 'Grand livre';
+
+  @override
+  String get booksRecurring => 'Récurrentes';
+
+  @override
+  String get booksBankReconciliation => 'Rapprochement bancaire';
+
+  @override
+  String get booksFinancialStatements => 'États financiers';
+
+  @override
+  String get booksTrialBalance => 'Balance générale';
+
+  @override
+  String get booksTaxVat => 'Taxes et TVA';
+
+  @override
+  String get booksChartOfAccounts => 'Plan comptable';
+
+  @override
+  String get booksPeriodClose => 'Clôture de période';
+
+  @override
+  String get booksAuditTrail => 'Piste d\'audit';
+
+  @override
+  String get booksUsersRoles => 'Utilisateurs et rôles';
+
+  @override
+  String get booksOverview => 'Vue d\'ensemble';
+
+  @override
+  String get booksDaybook => 'Journal';
+
+  @override
+  String get booksSetup => 'Configuration';
+
+  @override
+  String get booksCompliance => 'Conformité';
+
+  @override
+  String booksClosingBalance(String amount) {
+    return 'Clôture $amount';
+  }
+
+  @override
+  String booksAccountPostingHistory(String currency) {
+    return 'Historique des écritures par compte · $currency';
+  }
+
+  @override
+  String get booksReadingStatement => 'Lecture du relevé…';
+
+  @override
+  String get booksStatementImported => 'Relevé importé';
+
+  @override
+  String booksStatementLinesLoaded(int count, String source) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes chargées',
+      one: '1 ligne chargée',
+    );
+    return '$source · $_temp0';
+  }
+
+  @override
+  String get booksImportFailed => 'Échec de l\'import';
+
+  @override
+  String get booksMatchDifferentAccountTitle =>
+      'Rapprocher sur un autre compte ?';
+
+  @override
+  String booksMatchDifferentAccountBody(
+    String account,
+    String amount,
+    String bankCode,
+    String code,
+  ) {
+    return 'Cette écriture mouvemente $amount sur $account ($code), et non sur Banque ($bankCode). Rapprocher quand même ?';
+  }
+
+  @override
+  String get booksMatch => 'Rapprocher';
+
+  @override
+  String get booksBankLineMatched => 'Ligne bancaire rapprochée';
+
+  @override
+  String get booksBankCatSaleIncome => 'Une vente / un revenu';
+
+  @override
+  String get booksBankCatSaleIncomeHint => 'Argent que vous avez gagné';
+
+  @override
+  String get booksBankCatCustomerPaid => 'Un client a réglé une dette';
+
+  @override
+  String get booksBankCatCustomerPaidHint => 'Il vous devait de l\'argent';
+
+  @override
+  String get booksBankCatOwnerAdded => 'Apport du propriétaire';
+
+  @override
+  String get booksBankCatOwnerAddedHint => 'Capital que vous avez apporté';
+
+  @override
+  String get booksBankCatLoanReceived => 'Un prêt reçu';
+
+  @override
+  String get booksBankCatLoanReceivedHint => 'Argent emprunté';
+
+  @override
+  String get booksBankCatFromCash => 'Virement depuis la caisse';
+
+  @override
+  String get booksBankCatFromCashHint => 'Transféré depuis votre caisse';
+
+  @override
+  String get booksBankCatFromMomo => 'Virement depuis Mobile Money';
+
+  @override
+  String get booksBankCatFromMomoHint => 'Transféré depuis MoMo';
+
+  @override
+  String get booksBankCatOtherIncome => 'Autres revenus';
+
+  @override
+  String get booksBankCatOtherIncomeHint => 'Toute autre rentrée';
+
+  @override
+  String get booksBankCatBankFee => 'Frais bancaires';
+
+  @override
+  String get booksBankCatBankFeeHint => 'Frais prélevés par la banque';
+
+  @override
+  String get booksBankCatPaidSupplier =>
+      'Paiement fournisseur / achat de stock';
+
+  @override
+  String get booksBankCatPaidSupplierHint => 'Stock ou marchandises';
+
+  @override
+  String get booksBankCatRent => 'Loyer';
+
+  @override
+  String get booksBankCatRentHint => 'Loyer du magasin ou du bureau';
+
+  @override
+  String get booksBankCatSalaries => 'Salaires';
+
+  @override
+  String get booksBankCatSalariesHint => 'Personnel payé';
+
+  @override
+  String get booksBankCatUtilities => 'Services publics';
+
+  @override
+  String get booksBankCatUtilitiesHint => 'Électricité, eau, internet';
+
+  @override
+  String get booksBankCatTransport => 'Transport / carburant';
+
+  @override
+  String get booksBankCatTransportHint => 'Déplacements et livraisons';
+
+  @override
+  String get booksBankCatLoanRepayment => 'Remboursement de prêt';
+
+  @override
+  String get booksBankCatLoanRepaymentHint => 'Remboursement d\'un emprunt';
+
+  @override
+  String get booksBankCatOwnerWithdrew => 'Retrait du propriétaire';
+
+  @override
+  String get booksBankCatOwnerWithdrewHint => 'Retrait personnel';
+
+  @override
+  String get booksBankCatToCash => 'Virement vers la caisse';
+
+  @override
+  String get booksBankCatToCashHint => 'Transféré vers votre caisse';
+
+  @override
+  String get booksBankCatToMomo => 'Virement vers Mobile Money';
+
+  @override
+  String get booksBankCatToMomoHint => 'Transféré vers MoMo';
+
+  @override
+  String get booksBankCatOtherExpense => 'Autres dépenses';
+
+  @override
+  String get booksBankCatOtherExpenseHint => 'Toute autre dépense';
+
+  @override
+  String get booksEntryCreatedMatched => 'Écriture créée et rapprochée';
+
+  @override
+  String booksEntryCreatedMatchedDetail(
+    String amount,
+    String category,
+    String ref,
+  ) {
+    return '$category — $amount sur Banque ($ref)';
+  }
+
+  @override
+  String get booksCouldNotCreateEntry => 'Impossible de créer l\'écriture';
+
+  @override
+  String get booksWhereMoneyFrom => 'D\'où vient cet argent ?';
+
+  @override
+  String get booksWhatPaymentFor => 'À quoi correspondait ce paiement ?';
+
+  @override
+  String get booksPickClosestMatch =>
+      'Choisissez l\'option la plus proche — nous l\'enregistrerons correctement pour vous.';
+
+  @override
+  String get booksMatchBankLine => 'Rapprocher la ligne bancaire';
+
+  @override
+  String get booksBank => 'Banque';
+
+  @override
+  String booksBankRecSubtitle(String bank, String currency, String period) {
+    return 'Banque · $bank · relevé $period · $currency';
+  }
+
+  @override
+  String get booksImportStatement => 'Importer un relevé';
+
+  @override
+  String get booksReconciled => 'Rapproché';
+
+  @override
+  String get booksFinishReconciliation => 'Terminer le rapprochement';
+
+  @override
+  String get booksReconciliationComplete => 'Rapprochement terminé';
+
+  @override
+  String booksLinesMatchedOfTotal(String matched, String total) {
+    return '$matched lignes sur $total rapprochées';
+  }
+
+  @override
+  String get booksStatementBalance => 'Solde du relevé';
+
+  @override
+  String get booksFromImportedStatement => 'du relevé importé';
+
+  @override
+  String get booksMatched => 'Rapprochées';
+
+  @override
+  String get booksNoLinesYet => 'aucune ligne';
+
+  @override
+  String booksOfTotal(String total) {
+    return 'sur $total';
+  }
+
+  @override
+  String get booksNeedsAttention => 'À traiter';
+
+  @override
+  String get booksStatementLines => 'Lignes du relevé';
+
+  @override
+  String get booksMatchEachLine =>
+      'Rapprochez chaque ligne bancaire d\'une écriture';
+
+  @override
+  String get booksNoStatementLines =>
+      'Aucune ligne de relevé pour l\'instant. Importez un relevé pour commencer.';
+
+  @override
+  String booksVatSubtitle(String period, String rate) {
+    return 'TVA à $rate % (taux standard Rwanda) · période $period';
+  }
+
+  @override
+  String get booksFileWithRra => 'Déclarer à la RRA';
+
+  @override
+  String get booksVatReturnSubmitted => 'Déclaration de TVA envoyée';
+
+  @override
+  String booksRraAckRef(String ref) {
+    return 'Accusé RRA · réf. $ref';
+  }
+
+  @override
+  String get booksOutputVatOnSales => 'TVA collectée (sur ventes)';
+
+  @override
+  String get booksInputVatReclaimable => 'TVA déductible (récupérable)';
+
+  @override
+  String get booksNetVatPayable => 'TVA nette à payer';
+
+  @override
+  String booksDueDate(String date) {
+    return 'Échéance $date';
+  }
+
+  @override
+  String get booksVatReturnSummary => 'Résumé de la déclaration de TVA';
+
+  @override
+  String get booksDraft => 'Brouillon';
+
+  @override
+  String get booksTotalSalesVatInclusive => 'Total des ventes (TTC)';
+
+  @override
+  String get booksOutputVatCollected => 'TVA collectée';
+
+  @override
+  String get booksInputVatOnPurchases => 'TVA déductible sur achats';
+
+  @override
+  String get booksNetVatDueToRra => 'TVA nette due à la RRA';
+
+  @override
+  String get booksPrint => 'Imprimer';
+
+  @override
+  String get booksPreparingPrintLayout => 'Préparation de la mise en page';
+
+  @override
+  String get booksGeneratingPdf => 'Génération du PDF';
+
+  @override
+  String booksStatementPack(String currency) {
+    return 'Dossier des états · $currency';
+  }
+
+  @override
+  String get booksIncomeStatement => 'Compte de résultat';
+
+  @override
+  String get booksBalanceSheet => 'Bilan';
+
+  @override
+  String get booksCashFlow => 'Flux de trésorerie';
+
+  @override
+  String get booksNetRevenue => 'Chiffre d\'affaires net';
+
+  @override
+  String get booksCogs => 'Coût des marchandises vendues';
+
+  @override
+  String get booksGrossProfit => 'Marge brute';
+
+  @override
+  String get booksOperatingExpenses => 'Charges d\'exploitation';
+
+  @override
+  String get booksTotalAssets => 'Total de l\'actif';
+
+  @override
+  String get booksTotalLiabilities => 'Total du passif';
+
+  @override
+  String get booksTotalEquity => 'Total des capitaux propres';
+
+  @override
+  String get booksLiabilitiesPlusEquity => 'Passif + capitaux propres';
+
+  @override
+  String get booksOperatingActivities => 'Activités d\'exploitation';
+
+  @override
+  String get booksInvestingActivities => 'Activités d\'investissement';
+
+  @override
+  String get booksFinancingActivities => 'Activités de financement';
+
+  @override
+  String get booksNetChangeInCash => 'Variation nette de trésorerie';
+
+  @override
+  String get booksBalancedAssetsEqual =>
+      'Équilibré — l\'actif est égal au passif plus les capitaux propres';
+
+  @override
+  String booksAsOfPeriod(String currency, String period) {
+    return 'Au $period · $currency';
+  }
+
+  @override
+  String get booksInBalance => 'Équilibrée';
+
+  @override
+  String get booksOutOfBalance => 'Déséquilibrée';
+
+  @override
+  String get booksNoAccountsYet => 'Aucun compte chargé pour le moment.';
+
+  @override
+  String get booksTotals => 'Totaux';
+
+  @override
+  String get booksAssets => 'Actifs';
+
+  @override
+  String get booksLiabilities => 'Passifs';
+
+  @override
+  String get booksEquity => 'Capitaux propres';
+
+  @override
+  String get booksIncome => 'Produits';
+
+  @override
+  String get booksExpenses => 'Charges';
+
+  @override
+  String booksCoaSubtitle(String count) {
+    return '$count comptes · structure numérotée du grand livre';
+  }
+
+  @override
+  String get booksFilterByType => 'Filtrer par type';
+
+  @override
+  String get booksAllTypes => 'Tous les types';
+
+  @override
+  String get booksFilter => 'Filtrer';
+
+  @override
+  String get booksAddAccount => 'Ajouter un compte';
+
+  @override
+  String get booksNetIncome => 'Résultat net';
+
+  @override
+  String get booksNetLoss => 'Perte nette';
+
+  @override
+  String get booksOpenOnWiderScreen =>
+      'Ouvrez sur un écran plus large pour l\'espace de travail bureau';
+
+  @override
+  String get booksFreqMonthly => 'Mensuel';
+
+  @override
+  String get booksFreqWeekly => 'Hebdomadaire';
+
+  @override
+  String get booksFreqQuarterly => 'Trimestriel';
+
+  @override
+  String get booksFreqYearly => 'Annuel';
+
+  @override
+  String get booksRoleOwner => 'Propriétaire';
+
+  @override
+  String get booksRoleOwnerDesc =>
+      'Accès complet — approuver, comptabiliser, déclarer les taxes, gérer l\'équipe';
+
+  @override
+  String get booksRoleBookkeeper => 'Aide-comptable';
+
+  @override
+  String get booksRoleBookkeeperDesc =>
+      'Créer et modifier écritures, factures et factures fournisseurs ; ne peut ni approuver ni déclarer';
+
+  @override
+  String get booksRoleCashier => 'Caissier';
+
+  @override
+  String get booksRoleCashierDesc =>
+      'Enregistrer uniquement les ventes et reçus depuis le POS';
+
+  @override
+  String get booksRoleViewer => 'Lecteur';
+
+  @override
+  String get booksRoleViewerDesc =>
+      'Accès en lecture seule aux rapports et états';
+
+  @override
+  String get booksCapViewReports => 'Voir les rapports et états';
+
+  @override
+  String get booksCapCreateInvoicesBills =>
+      'Créer des factures client et fournisseur';
+
+  @override
+  String get booksCapRecordPayments => 'Enregistrer paiements et encaissements';
+
+  @override
+  String get booksCapPostJournal => 'Comptabiliser et modifier les écritures';
+
+  @override
+  String get booksCapApproveEntries => 'Approuver les écritures';
+
+  @override
+  String get booksCapFileVat => 'Déclarer la TVA à la RRA';
+
+  @override
+  String get booksCapClosePeriods => 'Clôturer les périodes et gérer l\'équipe';
+
+  @override
+  String get booksRecurringEntries => 'Écritures récurrentes';
+
+  @override
+  String booksRecurringSubtitle(String currency) {
+    return 'Loyer, salaires et autres écritures répétitives se comptabilisent seuls · $currency';
+  }
+
+  @override
+  String get booksNewSchedule => 'Nouvelle planification';
+
+  @override
+  String get booksActiveSchedules => 'Planifications actives';
+
+  @override
+  String booksCountOfTotal(String count, String total) {
+    return '$count sur $total';
+  }
+
+  @override
+  String get booksMonthlyCommitted => 'Engagement mensuel';
+
+  @override
+  String get booksNextRun => 'Prochaine exécution';
+
+  @override
+  String get booksNoRecurringYet =>
+      'Aucune planification pour l\'instant. Créez-en une pour comptabiliser loyer, salaires ou autres écritures répétitives.';
+
+  @override
+  String get booksSchedule => 'Planification';
+
+  @override
+  String get booksFrequency => 'Fréquence';
+
+  @override
+  String get booksPostsTo => 'Comptabilisé sur';
+
+  @override
+  String get booksStatus => 'Statut';
+
+  @override
+  String get booksPaused => '— en pause —';
+
+  @override
+  String get booksRunNow => 'Exécuter maintenant';
+
+  @override
+  String get booksScheduleResumed => 'Planification reprise';
+
+  @override
+  String get booksSchedulePaused => 'Planification en pause';
+
+  @override
+  String get booksEntryPosted => 'Écriture comptabilisée';
+
+  @override
+  String get booksAlreadyPostedThisPeriod =>
+      'Déjà comptabilisée pour cette période';
+
+  @override
+  String get booksCouldNotPostEntry =>
+      'Impossible de comptabiliser l\'écriture';
+
+  @override
+  String get booksScheduleCreated => 'Planification créée';
+
+  @override
+  String get booksScheduleUpdated => 'Planification mise à jour';
+
+  @override
+  String booksPeriodCloseSubtitle(String currency, String period) {
+    return 'Verrouillez $period une fois les comptes définitifs · $currency';
+  }
+
+  @override
+  String booksPeriodLocked(String period) {
+    return '$period verrouillée';
+  }
+
+  @override
+  String get booksReopenPeriod => 'Rouvrir la période';
+
+  @override
+  String get booksCouldNotReopenPeriod => 'Impossible de rouvrir la période';
+
+  @override
+  String get booksPeriodReopened => 'Période rouverte';
+
+  @override
+  String booksPeriodPostableAgain(String period) {
+    return '$period est à nouveau ouverte aux écritures';
+  }
+
+  @override
+  String get booksClosePeriod => 'Clôturer la période';
+
+  @override
+  String get booksCouldNotClosePeriod => 'Impossible de clôturer la période';
+
+  @override
+  String get booksPeriodClosed => 'Période clôturée';
+
+  @override
+  String booksPeriodLockedReadOnly(String period) {
+    return '$period verrouillée · écritures en lecture seule';
+  }
+
+  @override
+  String get booksCloseChecklist => 'Liste de clôture';
+
+  @override
+  String booksStepsComplete(String done, String total) {
+    return '$done étapes sur $total terminées';
+  }
+
+  @override
+  String get booksReview => 'Vérifier';
+
+  @override
+  String get booksWhatClosingDoes => 'Ce que fait la clôture';
+
+  @override
+  String get booksCloseNoteLocks =>
+      'Verrouille la période. Les écritures comptabilisées passent en lecture seule — aucune modification sans réouverture.';
+
+  @override
+  String get booksCloseNoteRollsForward =>
+      'Report à nouveau. Le résultat net passe en report à nouveau et les soldes sont reportés sur le mois suivant.';
+
+  @override
+  String get booksCloseNoteAuditPoint =>
+      'Crée un point d\'audit. Un instantané est consigné dans la piste d\'audit avec votre nom et l\'heure.';
+
+  @override
+  String get booksAllChecksPassed =>
+      'Tous les contrôles sont validés — prêt pour la clôture.';
+
+  @override
+  String get booksFinishChecklist =>
+      'Terminez chaque étape de la liste pour activer la clôture.';
+
+  @override
+  String get booksAuditSubtitle =>
+      'Chaque modification, son auteur et sa date · immuable';
+
+  @override
+  String get booksAllUsers => 'Tous les utilisateurs';
+
+  @override
+  String get booksExport => 'Exporter';
+
+  @override
+  String get booksExportingAuditLog => 'Export du journal d\'audit';
+
+  @override
+  String booksEventsCsv(String count) {
+    return '$count événements · CSV';
+  }
+
+  @override
+  String get booksNoAuditEvents => 'Aucun événement d\'audit pour l\'instant.';
+
+  @override
+  String get booksRolesSubtitle =>
+      'Contrôlez qui peut voir et modifier la comptabilité';
+
+  @override
+  String get booksInviteTeammate => 'Inviter un collègue';
+
+  @override
+  String get booksInviteSent => 'Invitation envoyée';
+
+  @override
+  String get booksInvitationsComingSoon =>
+      'Invitations d\'équipe bientôt disponibles';
+
+  @override
+  String booksTeamCount(String count) {
+    return 'Équipe ($count)';
+  }
+
+  @override
+  String get booksOnlyYouHaveAccess =>
+      'Vous êtes seul à avoir accès. Invitez des collègues pour collaborer.';
+
+  @override
+  String get booksYou => 'Vous';
+
+  @override
+  String get booksRoles => 'Rôles';
+
+  @override
+  String get booksCapability => 'Autorisation';
+
+  @override
+  String get booksActiveNow => 'Actif maintenant';
+
+  @override
+  String get booksRoleSystem => 'Système';
+
+  @override
+  String get booksTaskAllPosted => 'Toutes les écritures comptabilisées';
+
+  @override
+  String booksTaskPendingApproval(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count écritures en attente d\'approbation',
+      one: '1 écriture en attente d\'approbation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskNoPending => 'Aucune écriture en attente';
+
+  @override
+  String get booksTaskBankReconciled => 'Comptes bancaires rapprochés';
+
+  @override
+  String booksTaskLinesUnmatched(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lignes de relevé non rapprochées',
+      one: '1 ligne de relevé non rapprochée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskAllLinesMatched => 'Toutes les lignes rapprochées';
+
+  @override
+  String get booksTaskReceivablesReviewed => 'Créances vérifiées';
+
+  @override
+  String get booksTaskNoOpenReceivables => 'Aucune créance ouverte';
+
+  @override
+  String booksTaskAgingOverdue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Échéancier confirmé · $count factures en retard',
+      one: 'Échéancier confirmé · 1 facture en retard',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String booksTaskAgingBalances(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Échéancier confirmé · $count soldes',
+      one: 'Échéancier confirmé · 1 solde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksTaskPayablesReviewed => 'Dettes vérifiées';
+
+  @override
+  String get booksTaskNoOpenPayables => 'Aucune dette ouverte';
+
+  @override
+  String get booksTaskAllBillsEntered =>
+      'Toutes les factures fournisseurs saisies';
+
+  @override
+  String get booksTaskVatPrepared => 'Déclaration de TVA préparée';
+
+  @override
+  String get booksTaskNoVatActivity => 'Aucune opération de TVA sur la période';
+
+  @override
+  String booksTaskVatNetPayable(String amount, String date) {
+    return 'Net à payer $amount · échéance $date';
+  }
+
+  @override
+  String get booksTaskDepreciationPosted => 'Amortissements comptabilisés';
+
+  @override
+  String get booksTaskDepreciationMaybePending =>
+      'Les écritures en attente peuvent inclure des amortissements';
+
+  @override
+  String get booksTaskDepreciationUpToDate => 'Amortissements à jour';
+
+  @override
+  String get booksStatusSent => 'Envoyée';
+
+  @override
+  String get booksStatusPartPaid => 'Partiellement payée';
+
+  @override
+  String get booksStatusPaid => 'Payée';
+
+  @override
+  String get booksStatusOverdue => 'En retard';
+
+  @override
+  String get booksSignOutTitle => 'Se déconnecter ?';
+
+  @override
+  String get booksSignOutBody =>
+      'Termine votre session et efface la synchronisation Ditto pour cet onglet. Choisissez « Actualiser depuis le cloud » si vous voulez seulement recharger les données Books.';
+
+  @override
+  String get booksRefreshFromCloud => 'Actualiser depuis le cloud';
+
+  @override
+  String get booksResyncDitto => 'Resynchroniser les données Ditto';
+
+  @override
+  String get booksSupplier => 'Fournisseur';
+
+  @override
+  String get booksAgingCurrent => 'Courant';
+
+  @override
+  String get booksAging1to30 => '1–30 jours';
+
+  @override
+  String get booksAging31to60 => '31–60 jours';
+
+  @override
+  String get booksAging60plus => '60+ jours';
+
+  @override
+  String get booksMoneyIn => 'Entrées';
+
+  @override
+  String get booksMoneyOut => 'Sorties';
+
+  @override
+  String get booksAccountsReceivable => 'Créances clients';
+
+  @override
+  String get booksAccountsPayable => 'Dettes fournisseurs';
+
+  @override
+  String booksArSubtitle(String currency) {
+    return 'Ce que vous doivent les clients · par ancienneté · $currency';
+  }
+
+  @override
+  String booksApSubtitle(String currency) {
+    return 'Ce que vous devez aux fournisseurs · par ancienneté · $currency';
+  }
+
+  @override
+  String get booksSendReminders => 'Envoyer des relances';
+
+  @override
+  String get booksSchedulePayment => 'Planifier un paiement';
+
+  @override
+  String get booksRemindersSent => 'Relances envoyées';
+
+  @override
+  String get booksPaymentScheduled => 'Paiement planifié';
+
+  @override
+  String booksEmailedCustomers(String count) {
+    return '$count clients avec un solde ouvert relancés par e-mail';
+  }
+
+  @override
+  String booksQueuedSupplierPayments(String count) {
+    return '$count paiements fournisseurs en file d\'attente';
+  }
+
+  @override
+  String get booksNewInvoice => 'Nouvelle facture';
+
+  @override
+  String get booksNewBill => 'Nouvelle facture fournisseur';
+
+  @override
+  String get booksAgingSummary => 'Synthèse par ancienneté';
+
+  @override
+  String get booksReference => 'Référence';
+
+  @override
+  String get booksTotal => 'Total';
+
+  @override
+  String get booksStatementOfAccount => 'Relevé de compte';
+
+  @override
+  String booksOutstanding(String amount, String name) {
+    return '$name · $amount restant dû';
+  }
+
+  @override
+  String booksJournalSubtitle(String currency) {
+    return 'Chaque transaction en partie double équilibrée · $currency';
+  }
+
+  @override
+  String get booksFilterBySource => 'Filtrer par origine';
+
+  @override
+  String get booksAllSources => 'Toutes les origines';
+
+  @override
+  String get booksRecordExpense => 'Enregistrer une dépense';
+
+  @override
+  String get booksNewJournalEntry => 'Nouvelle écriture';
+
+  @override
+  String get booksFilterAll => 'Toutes';
+
+  @override
+  String get booksFilterPosted => 'Comptabilisées';
+
+  @override
+  String get booksFilterPending => 'En attente';
+
+  @override
+  String get booksFilterDrafts => 'Brouillons';
+
+  @override
+  String booksEntriesAwaitingApproval(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count écritures en attente d\'approbation',
+      one: '1 écriture en attente d\'approbation',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksNoEntriesMatchFilter =>
+      'Aucune écriture ne correspond à ce filtre.';
+
+  @override
+  String get booksDrAbbr => 'Débit';
+
+  @override
+  String get booksCrAbbr => 'Crédit';
+
+  @override
+  String get booksFinancialOverview => 'Vue financière';
+
+  @override
+  String get booksAtAGlance => 'La comptabilité en un coup d\'œil';
+
+  @override
+  String booksDashSubtitleEntity(
+    String currency,
+    String entity,
+    String period,
+  ) {
+    return '$entity · période fiscale $period · montants en $currency';
+  }
+
+  @override
+  String booksDashSubtitle(String currency, String period) {
+    return 'Période fiscale $period · montants en $currency';
+  }
+
+  @override
+  String get booksGeneralLedgerLines => 'Lignes du grand livre';
+
+  @override
+  String get booksExportingExcel => 'Export vers Excel';
+
+  @override
+  String get booksExportingCsv => 'Export CSV';
+
+  @override
+  String get booksExcelWorkbook => 'Classeur Excel (.xlsx)';
+
+  @override
+  String get booksPdfReport => 'Rapport PDF';
+
+  @override
+  String get booksCsvRawLedger => 'CSV (grand livre brut)';
+
+  @override
+  String get booksVsPriorPeriod => 'vs période précédente';
+
+  @override
+  String get booksCashAndBank => 'Caisse et banque';
+
+  @override
+  String booksAcrossAccounts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'sur $count comptes',
+      one: 'sur 1 compte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksReceivable => 'À recevoir';
+
+  @override
+  String booksOverdue60(String amount) {
+    return '$amount en retard de 60+ jours';
+  }
+
+  @override
+  String get booksNoOverdue60 => 'aucun retard de 60+ jours';
+
+  @override
+  String get booksPayable => 'À payer';
+
+  @override
+  String get booksNoOpenBills => 'aucune facture ouverte';
+
+  @override
+  String booksOpenBills(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count factures ouvertes',
+      one: '1 facture ouverte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksRevenueVsExpenses => 'Revenus vs dépenses';
+
+  @override
+  String get booksTrailing6Months => '6 derniers mois';
+
+  @override
+  String get booksWhereMoneyWent => 'Où va l\'argent';
+
+  @override
+  String get booksOpexBreakdown => 'Répartition des charges d\'exploitation';
+
+  @override
+  String get booksOpexShort => 'charges';
+
+  @override
+  String get booksRecentJournalEntries => 'Écritures récentes';
+
+  @override
+  String get booksNoJournalEntriesYet => 'Aucune écriture pour l\'instant.';
+
+  @override
+  String get booksProfitLoss => 'Compte de résultat';
+
+  @override
+  String booksDocAlreadyExists(String id) {
+    return '$id existe déjà';
+  }
+
+  @override
+  String get booksUseAnotherNumber => 'Utilisez un autre numéro';
+
+  @override
+  String get booksBillSaved => 'Facture fournisseur enregistrée';
+
+  @override
+  String get booksDraftSaved => 'Brouillon enregistré';
+
+  @override
+  String get booksInvoiceSentPosted => 'Facture envoyée et comptabilisée';
+
+  @override
+  String get booksBillRecordedPosted =>
+      'Facture fournisseur enregistrée et comptabilisée';
+
+  @override
+  String get booksPaymentRecorded => 'Paiement enregistré';
+
+  @override
+  String booksInvoicesSubtitle(String currency) {
+    return 'Facturez vos clients et soyez payé · $currency';
+  }
+
+  @override
+  String booksBillsSubtitle(String currency) {
+    return 'Suivez ce que vous devez à vos fournisseurs · $currency';
+  }
+
+  @override
+  String get booksPdfSummary => 'Résumé PDF';
+
+  @override
+  String booksInvoicesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count factures',
+      one: '1 facture',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String booksBillsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count factures fournisseurs',
+      one: '1 facture fournisseur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get booksOutstandingLabel => 'Impayés';
+
+  @override
+  String get booksOwedToSuppliers => 'Dû aux fournisseurs';
+
+  @override
+  String get booksDrafts => 'Brouillons';
+
+  @override
+  String get booksNoInvoicesYet =>
+      'Aucune facture pour l\'instant. Créez une facture pour commencer.';
+
+  @override
+  String get booksNoBillsYet =>
+      'Aucune facture fournisseur pour l\'instant. Enregistrez-en une pour commencer.';
+
+  @override
+  String booksNoInvoicesInTab(String tab) {
+    return 'Aucune facture dans « $tab ».';
+  }
+
+  @override
+  String booksNoBillsInTab(String tab) {
+    return 'Aucune facture fournisseur dans « $tab ».';
+  }
+
+  @override
+  String get booksBill => 'Facture fournisseur';
+
+  @override
+  String get booksDue => 'Échéance';
+
+  @override
+  String get booksOpenPreview => 'Ouvrir et prévisualiser';
+
+  @override
+  String get booksRecordPayment => 'Enregistrer un paiement';
+
+  @override
+  String get booksPayThisBill => 'Payer cette facture';
+
+  @override
+  String get booksSendReminder => 'Envoyer une relance';
+
+  @override
+  String get booksReminderSent => 'Relance envoyée';
+
+  @override
+  String get booksDeleted => 'Supprimé';
+
+  @override
+  String get booksCustomerAdded => 'Client ajouté';
+
+  @override
+  String get booksSupplierAdded => 'Fournisseur ajouté';
+
+  @override
+  String booksCustomersSubtitle(String count) {
+    return 'Personnes et entreprises à qui vous vendez · $count fiches';
+  }
+
+  @override
+  String booksSuppliersSubtitle(String count) {
+    return 'Fournisseurs auprès de qui vous achetez · $count fiches';
+  }
+
+  @override
+  String get booksSearchCustomers => 'Rechercher des clients…';
+
+  @override
+  String get booksSearchSuppliers => 'Rechercher des fournisseurs…';
+
+  @override
+  String get booksNewCustomer => 'Nouveau client';
+
+  @override
+  String get booksNewSupplier => 'Nouveau fournisseur';
+
+  @override
+  String get booksTotalCustomers => 'Total clients';
+
+  @override
+  String get booksTotalSuppliers => 'Total fournisseurs';
+
+  @override
+  String get booksWithOpenBalance => 'Avec solde ouvert';
+
+  @override
+  String get booksWithBillsDue => 'Avec factures dues';
+
+  @override
+  String get booksTotalReceivable => 'Total à recevoir';
+
+  @override
+  String get booksTotalPayable => 'Total à payer';
+
+  @override
+  String get booksNoCustomersYet => 'Aucun client pour l\'instant.';
+
+  @override
+  String get booksNoSuppliersYet => 'Aucun fournisseur pour l\'instant.';
+
+  @override
+  String booksNoMatchesFor(String query) {
+    return 'Aucun résultat pour « $query ».';
+  }
+
+  @override
+  String get booksContact => 'Contact';
+
+  @override
+  String get booksTerms => 'Conditions';
+
+  @override
+  String get booksOwesYou => 'Vous doit';
+
+  @override
+  String get booksYouOwe => 'Vous devez';
+
+  @override
+  String get booksViewRecord => 'Voir la fiche';
+
+  @override
+  String get booksSendStatement => 'Envoyer le relevé';
+
+  @override
+  String get booksCallContact => 'Appeler le contact';
+
+  @override
+  String get booksStatementSent => 'Relevé envoyé';
+
+  @override
+  String get booksNoPhoneOnFile => 'Aucun numéro enregistré';
+
+  @override
+  String booksDeleteNamed(String name) {
+    return 'Supprimer $name ?';
+  }
+
+  @override
+  String get booksDeleteSharedContactBody =>
+      'Ce contact est partagé avec l\'application POS. Le supprimer retire la fiche client partout ; les ventes passées gardent leur copie mais perdent le lien. Supprimer quand même ?';
+
+  @override
+  String get booksDeleteEverywhere => 'Supprimer partout';
+
+  @override
+  String booksCustomerSince(String date) {
+    return 'Client depuis $date';
+  }
+
+  @override
+  String booksSupplierSince(String date) {
+    return 'Fournisseur depuis $date';
+  }
+
+  @override
+  String get booksOutstandingBalance => 'Solde restant dû';
+
+  @override
+  String get booksAmountPayable => 'Montant à payer';
+
+  @override
+  String get booksLifetimeBilled => 'Total facturé';
+
+  @override
+  String get booksLifetimePurchased => 'Total acheté';
+
+  @override
+  String get booksContactDetails => 'COORDONNÉES';
+
+  @override
+  String get booksPrimaryContact => 'Contact principal';
+
+  @override
+  String booksInvoicesHeader(String count) {
+    return 'FACTURES ($count)';
+  }
+
+  @override
+  String booksBillsHeader(String count) {
+    return 'FACTURES FOURNISSEURS ($count)';
+  }
+
+  @override
+  String get booksNoDocumentsYet => 'Aucun document pour l\'instant.';
+
+  @override
+  String get booksAddCustomerToContacts => 'Ajoutez un client à vos contacts';
+
+  @override
+  String get booksAddSupplierToContacts =>
+      'Ajoutez un fournisseur à vos contacts';
+
+  @override
+  String get booksBusinessCustomerName => 'Nom de l\'entreprise / du client';
+
+  @override
+  String get booksSupplierName => 'Nom du fournisseur';
+
+  @override
+  String get booksExampleBusinessName => 'ex. Karake Retail Group';
+
+  @override
+  String get booksFullName => 'Nom complet';
+
+  @override
+  String get booksEmailPlaceholder => 'nom@email.rw';
+
+  @override
+  String get booksTaxId => 'Numéro fiscal';
+
+  @override
+  String get booksPaymentTerms => 'Conditions de paiement';
+
+  @override
+  String get booksAddSupplier => 'Ajouter le fournisseur';
+
+  @override
+  String booksNetDays(String days) {
+    return '$days jours net';
+  }
+
+  @override
+  String booksNewInvoiceTitle(String id) {
+    return 'Nouvelle facture · $id';
+  }
+
+  @override
+  String booksEditInvoiceTitle(String id) {
+    return 'Modifier la facture · $id';
+  }
+
+  @override
+  String booksNewBillTitle(String id) {
+    return 'Nouvelle facture fournisseur · $id';
+  }
+
+  @override
+  String booksEditBillTitle(String id) {
+    return 'Modifier la facture fournisseur · $id';
+  }
+
+  @override
+  String get booksInvoiceEditorSubtitle =>
+      'Facturez un client — Flipper comptabilise automatiquement la vente et la TVA.';
+
+  @override
+  String get booksBillEditorSubtitle =>
+      'Enregistrez une facture fournisseur — Flipper comptabilise la charge et la TVA déductible.';
+
+  @override
+  String get booksSelectCustomer => 'Choisir un client…';
+
+  @override
+  String get booksSelectSupplier => 'Choisir un fournisseur…';
+
+  @override
+  String get booksIssueDate => 'Date d\'émission';
+
+  @override
+  String get booksBillDate => 'Date de facture';
+
+  @override
+  String get booksDueDateLabel => 'Date d\'échéance';
+
+  @override
+  String get booksLineItems => 'Lignes';
+
+  @override
+  String get booksAddLine => 'Ajouter une ligne';
+
+  @override
+  String get booksInvoiceWillPost => 'Cette facture sera comptabilisée ainsi';
+
+  @override
+  String get booksBillWillPost =>
+      'Cette facture fournisseur sera comptabilisée ainsi';
+
+  @override
+  String get booksSaveDraft => 'Enregistrer le brouillon';
+
+  @override
+  String get booksSaveAndSend => 'Enregistrer et envoyer';
+
+  @override
+  String get booksDownloadPdfOnly => 'Télécharger le PDF uniquement';
+
+  @override
+  String get booksApproveInPurchases => 'Approuver dans Achats';
+
+  @override
+  String get booksRecordBill => 'Enregistrer la facture';
+
+  @override
+  String booksNewScheduleTitle(String id) {
+    return 'Nouvelle planification · $id';
+  }
+
+  @override
+  String booksEditScheduleTitle(String id) {
+    return 'Modifier la planification · $id';
+  }
+
+  @override
+  String get booksScheduleEditorSubtitle =>
+      'Les écritures répétitives se comptabilisent seules avec un journal équilibré.';
+
+  @override
+  String get booksScheduleName => 'Nom de la planification';
+
+  @override
+  String get booksScheduleNameHint => 'ex. Loyer mensuel';
+
+  @override
+  String get booksDay => 'Jour';
+
+  @override
+  String get booksDayHint => 'ex. 1er';
+
+  @override
+  String get booksDebitAccountLabel => 'Compte de débit (charge / actif)';
+
+  @override
+  String get booksCreditAccountLabel =>
+      'Compte de crédit (source de financement)';
+
+  @override
+  String get booksSelectAccount => 'Choisir un compte…';
+
+  @override
+  String get booksAccountsMustDiffer =>
+      'Les comptes de débit et de crédit doivent être différents.';
+
+  @override
+  String get booksActive => 'Actif';
+
+  @override
+  String get booksPausedLabel => 'En pause';
+
+  @override
+  String get booksSaveSchedule => 'Enregistrer la planification';
+
+  @override
+  String get booksPaymentFailed => 'Échec du paiement';
+
+  @override
+  String booksInvoicePaidMessage(String amount, String who) {
+    return '$who a payé $amount. La facture est marquée payée.';
+  }
+
+  @override
+  String booksBillPartPaidMessage(String amount, String balance, String who) {
+    return '$amount payé à $who. Il reste $balance à payer.';
+  }
+
+  @override
+  String booksBillSettledMessage(String amount, String who) {
+    return '$amount payé à $who. La facture est soldée.';
+  }
+
+  @override
+  String get booksPayBill => 'Payer la facture';
+
+  @override
+  String booksAmountDue(String amount, String id, String who) {
+    return '$id · $who · $amount dû';
+  }
+
+  @override
+  String get booksDepositTo => 'Déposer sur';
+
+  @override
+  String get booksPayFrom => 'Payer depuis';
+
+  @override
+  String get booksAmountReceived => 'Montant reçu';
+
+  @override
+  String get booksPostsAs => 'Comptabilisé comme';
+
+  @override
+  String get booksBusinessFallback => 'Entreprise';
+
+  @override
+  String get booksInvoiceUpper => 'FACTURE';
+
+  @override
+  String get booksBillUpper => 'FACTURE FOURNISSEUR';
+
+  @override
+  String get booksBillTo => 'Facturer à';
+
+  @override
+  String get booksFrom => 'De';
+
+  @override
+  String get booksIssued => 'Émise le';
+
+  @override
+  String get booksDescription => 'Description';
+
+  @override
+  String get booksQty => 'Qté';
+
+  @override
+  String get booksItemOrService => 'Article ou service';
+
+  @override
+  String get booksItemOrServiceHint => 'Article ou service…';
+
+  @override
+  String booksBalancedEquation(String amount, String total) {
+    return 'Équilibré · $total = $amount';
+  }
+
+  @override
+  String get booksVat18 => 'TVA (18 %)';
+
+  @override
+  String get booksPillPosted => 'comptabilisée';
+
+  @override
+  String get booksPillPending => 'en attente';
+
+  @override
+  String get booksPillDraft => 'brouillon';
+
+  @override
+  String get booksTypeAsset => 'Actif';
+
+  @override
+  String get booksTypeLiability => 'Passif';
+
+  @override
+  String get booksTypeEquity => 'Capitaux propres';
+
+  @override
+  String get booksTypeIncome => 'Produit';
+
+  @override
+  String get booksTypeExpense => 'Charge';
+
+  @override
+  String get booksCodeInUse => 'Code déjà utilisé';
+
+  @override
+  String get booksPickDifferentCode => 'Choisissez un autre code de compte';
+
+  @override
+  String get booksAccountCreated => 'Compte créé';
+
+  @override
+  String get booksCouldNotCreateAccount => 'Impossible de créer le compte';
+
+  @override
+  String get booksNewAccount => 'Nouveau compte';
+
+  @override
+  String get booksAddLineToCoa => 'Ajoutez une ligne au plan comptable';
+
+  @override
+  String get booksAccountType => 'Type de compte';
+
+  @override
+  String get booksCode => 'Code';
+
+  @override
+  String get booksCodeHint => 'ex. 6060';
+
+  @override
+  String get booksCategoryHint => 'ex. Charges d\'exploitation';
+
+  @override
+  String get booksAccountName => 'Nom du compte';
+
+  @override
+  String get booksAccountNameHint => 'ex. Fournitures de bureau';
+
+  @override
+  String get booksCreating => 'Création…';
+
+  @override
+  String get booksCreateAccount => 'Créer le compte';
+
+  @override
+  String get booksDrShort => 'D';
+
+  @override
+  String get booksCrShort => 'C';
+
+  @override
+  String booksEntryMeta(String date, String ref, String source) {
+    return '$date · $ref · via $source';
+  }
+
+  @override
+  String booksBalancedDrCr(String cr, String dr) {
+    return 'Équilibré · $dr = $cr';
+  }
+
+  @override
+  String get booksApprovedPosted => 'Approuvée et comptabilisée';
+
+  @override
+  String get booksSentBackToDrafts => 'Renvoyée aux brouillons';
+
+  @override
+  String get booksReject => 'Rejeter';
+
+  @override
+  String get booksApprove => 'Approuver';
+
+  @override
+  String get booksSubmittedForApproval => 'Soumise pour approbation';
+
+  @override
+  String get booksSubmittedForApprovalBody =>
+      'Débits et crédits sont égaux. Vérifiez et approuvez depuis l\'onglet Approbations pour comptabiliser au grand livre.';
+
+  @override
+  String get booksRecordExpenseSubtitle =>
+      'Choisissez une catégorie et le moyen de paiement — Flipper passe une écriture équilibrée.';
+
+  @override
+  String get booksExpenseCategory => 'Catégorie de dépense';
+
+  @override
+  String get booksAddExpenseAccount => '+ Ajouter un compte de charge';
+
+  @override
+  String get booksPaidVia => 'Payé via';
+
+  @override
+  String get booksMemoDescription => 'Libellé / description';
+
+  @override
+  String get booksExpenseMemoHint => 'À quoi correspondait cette dépense ?';
+
+  @override
+  String get booksSubmitForApproval => 'Soumettre pour approbation';
+
+  @override
+  String get booksJournalPreview => 'Aperçu de l\'écriture';
+
+  @override
+  String booksBalancedAmount(String amount) {
+    return 'Équilibré · $amount';
+  }
+
+  @override
+  String get booksTplRecordSale => 'Enregistrer une vente';
+
+  @override
+  String get booksTplPayExpense => 'Payer une dépense';
+
+  @override
+  String get booksTplReceivePayment => 'Recevoir un paiement';
+
+  @override
+  String get booksTplPayBill => 'Payer une facture';
+
+  @override
+  String booksDraftKeptInDrafts(String ref) {
+    return '$ref conservée dans Brouillons';
+  }
+
+  @override
+  String get booksCouldNotSaveEntry => 'Impossible d\'enregistrer l\'écriture';
+
+  @override
+  String get booksQuickStart => 'Démarrage rapide';
+
+  @override
+  String get booksEntryMemoHint => 'À quoi sert cette écriture ?';
+
+  @override
+  String get booksLines => 'Lignes';
+
+  @override
+  String booksDebitCreditHint(String into, String out) {
+    return 'Chaque écriture a deux côtés. Un montant qui $into sur un compte est un débit ; un montant qui $out est un crédit. Les deux totaux doivent être égaux.';
+  }
+
+  @override
+  String get booksMoneyIntoWord => 'entre';
+
+  @override
+  String get booksMoneyOutWord => 'sort';
+
+  @override
+  String get booksComposerSubtitle =>
+      'Choisissez les comptes et saisissez les montants — Flipper garde l\'équilibre.';
+
+  @override
+  String get booksAccountUpper => 'COMPTE';
+
+  @override
+  String get booksDebitUpper => 'DÉBIT';
+
+  @override
+  String get booksCreditUpper => 'CRÉDIT';
+
+  @override
+  String get booksBalanced => 'Équilibré';
+
+  @override
+  String get booksEnterAmounts => 'Saisissez les montants';
+
+  @override
+  String booksOffBy(String amount) {
+    return 'Écart de $amount';
+  }
+
+  @override
+  String get booksTotalDebits => 'Total des débits';
+
+  @override
+  String get booksTotalCredits => 'Total des crédits';
+
+  @override
+  String get booksSearchAccounts => 'Rechercher des comptes…';
+
+  @override
+  String get booksDataRefreshed => 'Données Books actualisées depuis le cloud';
+
+  @override
+  String booksActionFailed(String error) {
+    return 'Échec de l\'action : $error';
+  }
+
+  @override
+  String get booksAllCaughtUp => 'Tout est à jour';
+
+  @override
+  String get booksNotificationsMarkedRead =>
+      'Notifications marquées comme lues';
+
+  @override
+  String get booksSearchPlaceholder =>
+      'Rechercher écritures, comptes, factures…';
+
+  @override
+  String get booksFiscalPeriod => 'Période fiscale';
+
+  @override
+  String get booksPeriodChanged => 'Période modifiée';
+
+  @override
+  String booksFiscalPeriodYear(String year) {
+    return 'Période fiscale $year';
+  }
+
+  @override
+  String get booksNotifications => 'Notifications';
+
+  @override
+  String get booksMarkAllRead => 'Tout marquer comme lu';
+
+  @override
+  String get booksEntriesAwaitingApprovalTitle =>
+      'Écritures en attente d\'approbation';
+
+  @override
+  String get booksReviewPendingPostings =>
+      'Vérifiez les écritures en partie double en attente';
+
+  @override
+  String get booksNoNewNotifications => 'Aucune nouvelle notification';
+
+  @override
+  String get booksNoPendingEntries => 'Aucune écriture en attente';
+
+  @override
+  String get booksTabSnapshot => 'Aperçu';
+
+  @override
+  String get booksTabApprovals => 'Approbations';
+
+  @override
+  String booksCouldNotRestoreBusiness(String error) {
+    return 'Impossible de restaurer le contexte de l\'entreprise : $error';
+  }
+
+  @override
+  String get webHomeNavPlatform => 'Plateforme';
+
+  @override
+  String get webHomeNavFeatures => 'Fonctionnalités';
+
+  @override
+  String get webHomeLogIn => 'Se connecter';
+
+  @override
+  String get webHomeStartFree => 'Commencer gratuitement';
+
+  @override
+  String get webHomeHeroLine1 => 'La comptabilité';
+
+  @override
+  String get webHomeHeroLine2Lead => 'qui';
+
+  @override
+  String get webHomeHeroLine2Accent => 'se fait toute seule.';
+
+  @override
+  String get webHomeHeroBody =>
+      'Flipper Books est la comptabilité moderne des entreprises en croissance. Chaque vente de Flipper POS arrive directement dans votre grand livre — et Flow AI classe, rapproche et déclare le reste. Vous, vous gérez votre entreprise.';
+
+  @override
+  String get webHomeSeeHowItWorks => 'Voir comment ça marche';
+
+  @override
+  String get webHomeCheckEbmReady => 'Prêt pour RRA / EBM';
+
+  @override
+  String get webHomeCheckOffline => 'Fonctionne hors ligne';
+
+  @override
+  String get webHomeCheckRwf => 'Pensé pour le RWF';
+
+  @override
+  String get webHomeTrustTagline =>
+      'Conçu pour les entreprises du monde entier — et pour la façon dont l\'argent circule vraiment.';
+
+  @override
+  String get webHomeTrustTaxIntegration => 'intégration fiscale';
+
+  @override
+  String get webHomeTrustBusinesses => 'entreprises';
+
+  @override
+  String get webHomeTrustMomoBank => 'Synchro MoMo et banque';
+
+  @override
+  String get webHomeTrustRealtimeLedger => 'Grand livre en temps réel';
+
+  @override
+  String get webHomeSuiteEyebrow => 'Une seule plateforme';
+
+  @override
+  String get webHomeSuiteTitle =>
+      'Trois applications. Un grand livre. Zéro double saisie.';
+
+  @override
+  String get webHomeSuiteBody =>
+      'Flipper POS, Books et Flow ne sont pas des intégrations assemblées tant bien que mal — c\'est un seul système. L\'argent n\'y passe qu\'une fois et vos comptes restent clôturés.';
+
+  @override
+  String get webHomeLoopSellOnPos => 'Vendez sur le POS →';
+
+  @override
+  String get webHomeLoopPostsToBooks => 'comptabilisé dans Books';
+
+  @override
+  String get webHomeLoopFlowReconciles => 'Flow rapproche';
+
+  @override
+  String get webHomeLoopTail =>
+      '→ vous voyez le bénéfice en temps réel. Une boucle, entièrement automatique.';
+
+  @override
+  String get webHomePosRole => 'Vendre';
+
+  @override
+  String get webHomePosTagline => 'Le comptoir';
+
+  @override
+  String get webHomePosBody =>
+      'Encaissez sur mobile ou ordinateur, scannez le stock, acceptez espèces ou MoMo. Fonctionne dès l\'ouverture de la boutique — en ligne ou hors ligne.';
+
+  @override
+  String get webHomeBooksRole => 'Comptabiliser';
+
+  @override
+  String get webHomeBooksTagline => 'La source de vérité';
+
+  @override
+  String get webHomeBooksBody =>
+      'Chaque vente devient une écriture équilibrée. Compte de résultat, trésorerie, créances et taxes prêtes pour l\'EBM en temps réel — sans tableur ni rush de fin de mois.';
+
+  @override
+  String get webHomeFlowRole => 'Automatiser';
+
+  @override
+  String get webHomeFlowTagline => 'Le comptable IA';
+
+  @override
+  String get webHomeFlowBody =>
+      'Flow surveille tout le flux — classement, rapprochement, détection des anomalies et préparation des taxes. Le travail qui prenait une semaine à un comptable se fait en temps réel.';
+
+  @override
+  String get webHomeMeetFlow => 'Découvrez Flow AI';
+
+  @override
+  String get webHomeFlowHeadlineLead => 'Votre comptabilité, tenue par un';
+
+  @override
+  String get webHomeFlowHeadlineAccent => 'comptable IA.';
+
+  @override
+  String get webHomeFlowLead =>
+      'Flow transforme les transactions brutes en une comptabilité propre et prête pour l\'audit — et ne vous sollicite que lorsqu\'une décision est vraiment nécessaire. Dormez tranquille, sans corvées comptables.';
+
+  @override
+  String get webHomeFlowAutoCat => 'Catégorisation automatique';
+
+  @override
+  String get webHomeFlowAutoCatBody =>
+      'Chaque vente, dépense et virement est affecté au bon compte à l\'instant même.';
+
+  @override
+  String get webHomeFlowRecon => 'Rapprochement banque et MoMo';
+
+  @override
+  String get webHomeFlowReconBody =>
+      'Flow rapproche automatiquement votre grand livre des relevés et ne signale que les vraies anomalies.';
+
+  @override
+  String get webHomeFlowTax => 'Taxes et TVA, préparées';
+
+  @override
+  String get webHomeFlowTaxBody =>
+      'Des déclarations prêtes pour l\'EBM rédigées depuis votre grand livre, pour que les échéances RRA ne soient plus une panique.';
+
+  @override
+  String get webHomeFlowAnomaly => 'Alertes d\'anomalies';
+
+  @override
+  String get webHomeFlowAnomalyBody =>
+      'Doublons, baisses de marge et dépenses inhabituelles sont signalés avant de devenir un problème.';
+
+  @override
+  String get webHomeExploreFlow => 'Découvrir Flow AI';
+
+  @override
+  String get webHomeWatchingLedger => 'Surveille votre grand livre';
+
+  @override
+  String get webHomeChatUser1 =>
+      'Une nouvelle vente de 12 000 RWF est arrivée sur le POS, payée par MoMo. Enregistre-la.';
+
+  @override
+  String get webHomeChatBot1 =>
+      'C\'est fait — écriture équilibrée passée et rapprochée de votre compte MTN MoMo. Voici l\'écriture :';
+
+  @override
+  String get webHomeChatUser2 => 'Quelque chose à vérifier cette semaine ?';
+
+  @override
+  String get webHomeChatBot2 =>
+      'La TVA de mai est prête à être déclarée (318 400 RWF) et un fournisseur a été payé deux fois — je l\'ai signalé dans les dettes.';
+
+  @override
+  String get webHomeCapMultiBranch => 'Multi-succursales';
+
+  @override
+  String get webHomeCapStatementsBody =>
+      'Compte de résultat, bilan et flux de trésorerie générés en direct depuis votre grand livre.';
+
+  @override
+  String get webHomeCapBankRecBody =>
+      'Rapprochez les lignes du grand livre des relevés bancaires et MoMo en une seule passe, avec les écarts mis en évidence.';
+
+  @override
+  String get webHomeCapArAp => 'Créances et dettes';
+
+  @override
+  String get webHomeCapArApBody =>
+      'Suivez qui vous doit et ce que vous devez, avec des tranches d\'ancienneté et des relances automatiques.';
+
+  @override
+  String get webHomeCapTaxBody =>
+      'Intégration EBM 2.1 et TVA calculée en continu — déclarations préparées avant l\'échéance.';
+
+  @override
+  String get webHomeCapCoaBody =>
+      'Une structure de grand livre numérotée et adaptée à l\'audit, qui s\'ajuste à l\'organisation de votre entreprise.';
+
+  @override
+  String get webHomeCapMultiBranchBody =>
+      'Consolidez toutes vos boutiques dans une seule comptabilité, puis examinez chaque succursale séparément.';
+
+  @override
+  String get webHomeInsideBooks => 'DANS BOOKS';
+
+  @override
+  String get webHomeCapTitle => 'Tout ce que fait un comptable — intégré.';
+
+  @override
+  String get webHomeCapBody =>
+      'Une comptabilité en partie double assez sérieuse pour votre auditeur et assez simple pour la tenir vous-même.';
+
+  @override
+  String get webHomePricingEyebrow => 'TARIFS';
+
+  @override
+  String get webHomePricingBody =>
+      'Choisissez le forfait qui vous convient. Chaque forfait inclut toute la suite Flipper — POS, Books et Flow.';
+
+  @override
+  String get webHomeContactSales => 'Contacter les ventes';
+
+  @override
+  String get webHomeBandTitle =>
+      'Votre boutique, votre comptabilité, au même endroit.';
+
+  @override
+  String get webHomeBandBody =>
+      'Commencez à vendre sur Flipper dès aujourd\'hui et laissez Flow tenir vos comptes — automatiquement, en temps réel. Reprenez là où vous vous étiez arrêté.';
+
+  @override
+  String get webHomeTalkToSales => 'Parler aux ventes';
+
+  @override
+  String get webHomeStatProcessedMonthly => 'traités chaque mois';
+
+  @override
+  String get webHomeStatUptime => 'disponibilité';
+
+  @override
+  String get webHomeRevenueThisWeek => 'Revenus · cette semaine';
+
+  @override
+  String get webHomeNewSale => 'Nouvelle vente';
+
+  @override
+  String webHomeDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours',
+      one: '1 jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get webHomeSalesStreak => 'Série de ventes';
+
+  @override
+  String get webHomeFooterTagline =>
+      'La plateforme d\'entreprise connectée pour l\'Afrique — caisse, comptabilité et comptable IA, au même endroit.';
+
+  @override
+  String get webHomeCopyright =>
+      '© 2026 Flipper. Conçu pour les entreprises du monde entier.';
+
+  @override
+  String get webHomePrivacy => 'Confidentialité';
+
+  @override
+  String get webHomeTerms => 'Conditions';
+
+  @override
+  String get webHomeFooterPlatform => 'PLATEFORME';
+
+  @override
+  String get webHomeFooterCompany => 'ENTREPRISE';
+
+  @override
+  String get webHomeFooterSupport => 'ASSISTANCE';
+
+  @override
+  String get webHomeAbout => 'À propos';
+
+  @override
+  String get webHomeBlog => 'Blog';
+
+  @override
+  String get webHomeCareers => 'Carrières';
+
+  @override
+  String get webHomeContact => 'Contact';
+
+  @override
+  String get webHomeHelpCenter => 'Centre d\'aide';
+
+  @override
+  String get webHomeDownload => 'Télécharger';
+
+  @override
+  String get webHomeStatus => 'Statut';
+
+  @override
+  String get webHomeCommunity => 'Communauté';
+
+  @override
+  String get webHomePoweredBy => 'Flipper Books · propulsé par';
+
+  @override
+  String get webHomeMostPopular => 'Le plus populaire';
+
+  @override
+  String get webHomeSwitchToLight => 'Passer en mode clair';
+
+  @override
+  String get webHomeSwitchToDark => 'Passer en mode sombre';
+
+  @override
+  String get webHomeLightMode => 'Mode clair';
+
+  @override
+  String get webHomeDarkMode => 'Mode sombre';
+
+  @override
+  String get webHomeMockFinancialOverview => 'VUE FINANCIÈRE';
+
+  @override
+  String get webHomeMockCashOnHand => 'Trésorerie disponible';
+
+  @override
+  String get webHomeMockRevenueTrend => 'Évolution des revenus';
+
+  @override
+  String get webHomeMockLast8Months => '8 derniers mois';
+
+  @override
+  String get webHomeMockCostOfSales => 'Coût des ventes';
+
+  @override
+  String get webHomeMockOperatingExp => 'Charges d\'expl.';
+
+  @override
+  String get webHomeMockAutoPosted => 'COMPTABILISÉ AUTO';
+
+  @override
+  String webHomeMockToast(String account, String pos) {
+    return 'Nouvelle vente sur $pos — classée dans $account et rapprochée de MoMo.';
+  }
+
+  @override
+  String get webHomeMockSalesRevenue => 'Ventes';
+
+  @override
+  String get webHomeMockBalancedSuffix => '· équilibrée';
+
+  @override
+  String get webHomeMockPending => '● EN ATTENTE';
+
+  @override
+  String get webHomeMockSearchOrScan => 'Rechercher ou scanner…';
+
+  @override
+  String webHomeMockLeft(String count) {
+    return '$count restants';
+  }
+
+  @override
+  String get webAppsFinance => 'Finance';
+
+  @override
+  String get webAppsSell => 'Vendre';
+
+  @override
+  String get webAppsEverything => 'Tout votre commerce';
+
+  @override
+  String webAppsComingSoon(String app) {
+    return '$app — bientôt disponible';
+  }
+
+  @override
+  String get webBillingInvalidMomo =>
+      'Saisissez un numéro Mobile Money valide, ex. 0788123456.';
+
+  @override
+  String get webBillingPreparing => 'Préparation de votre abonnement…';
+
+  @override
+  String webBillingCouldNotSave(String error) {
+    return 'Impossible d\'enregistrer l\'abonnement : $error';
+  }
+
+  @override
+  String get webBillingNoPlanIdCharge =>
+      'Cet abonnement n\'a pas encore d\'identifiant de forfait et ne peut donc pas être débité en toute sécurité. Rechargez et réessayez.';
+
+  @override
+  String get webBillingNoPlanIdPay =>
+      'Cet abonnement n\'a pas encore d\'identifiant de forfait et ne peut donc pas être payé en toute sécurité. Rechargez et réessayez.';
+
+  @override
+  String get webBillingSendingRequest =>
+      'Envoi de la demande sur votre téléphone…';
+
+  @override
+  String get webBillingApproveOnPhone =>
+      'Approuvez la demande Mobile Money sur votre téléphone.';
+
+  @override
+  String webBillingCouldNotStart(String error) {
+    return 'Le paiement n\'a pas pu être lancé : $error';
+  }
+
+  @override
+  String get webBillingConsentDeclined =>
+      'Le consentement Mobile Money a été refusé, rien n\'a donc été débité.';
+
+  @override
+  String get webBillingCouldNotStartPlain =>
+      'Le paiement n\'a pas pu être lancé.';
+
+  @override
+  String get webBillingNoReference =>
+      'La passerelle a accepté le paiement mais n\'a renvoyé aucune référence pour le suivre. Vérifiez votre téléphone puis réessayez.';
+
+  @override
+  String get webBillingPaymentReceived =>
+      'Paiement reçu. Votre abonnement est actif.';
+
+  @override
+  String get webBillingNotCompletedOnPhone =>
+      'Le paiement n\'a pas été finalisé sur votre téléphone.';
+
+  @override
+  String get webBillingMomoNoVerdict =>
+      'Mobile Money n\'a pas encore répondu. Si vous avez approuvé la demande, Books s\'ouvrira sous peu — revérifiez dans un instant.';
+
+  @override
+  String get webBillingCardNeedsEmail =>
+      'Le paiement par carte nécessite une adresse e-mail pour le reçu.';
+
+  @override
+  String get webBillingOpeningPaymentPage =>
+      'Ouverture de la page de paiement…';
+
+  @override
+  String webBillingCardCouldNotStart(String error) {
+    return 'Le paiement par carte n\'a pas pu être lancé : $error';
+  }
+
+  @override
+  String get webBillingAlreadyActive => 'Cet abonnement est déjà actif.';
+
+  @override
+  String get webBillingCouldNotOpenCardPage =>
+      'Impossible d\'ouvrir la page de paiement par carte dans ce navigateur.';
+
+  @override
+  String get webBillingSubscriptionEnded =>
+      'Cet abonnement est terminé. Choisissez un forfait pour recommencer.';
+
+  @override
+  String get webBillingFinishOnOpenedPage =>
+      'Finalisez le paiement sur la page qui vient de s\'ouvrir. Books se débloque ici dès que la carte est débitée.';
+
+  @override
+  String get webBillingCheckingCard =>
+      'Vérification de votre paiement par carte…';
+
+  @override
+  String webBillingCouldNotCheckCard(String error) {
+    return 'Impossible de vérifier le paiement par carte : $error';
+  }
+
+  @override
+  String get webBillingCardDeclined =>
+      'La carte a été refusée. Rouvrez la page de paiement pour utiliser une autre carte.';
+
+  @override
+  String get webBillingCardNoVerdict =>
+      'Nous n\'avons pas encore de retour sur le paiement par carte. Si vous l\'avez finalisé, Books s\'ouvrira sous peu — revérifiez dans un instant.';
+
+  @override
+  String get webBillingCheckingSubscription =>
+      'Vérification de votre abonnement…';
+
+  @override
+  String get webBillingEnded => 'Votre abonnement est terminé';
+
+  @override
+  String get webBillingNeedsSubscription =>
+      'Flipper Books nécessite un abonnement';
+
+  @override
+  String get webBillingEndedBody =>
+      'Rien n\'a été supprimé — votre comptabilité, vos ventes et votre stock sont toujours là. Renouvelez l\'abonnement pour y accéder à nouveau.';
+
+  @override
+  String get webBillingNeedsBody =>
+      'Un seul abonnement couvre cette entreprise sur le web, le téléphone et l\'application de bureau. Payez une fois et Flipper s\'ouvre partout où vous l\'utilisez.';
+
+  @override
+  String get webBillingAwaitingSettlement =>
+      'Un paiement est déjà en cours. Si vous l\'avez approuvé sur votre téléphone, l\'accès se débloque dès que Mobile Money le confirme.';
+
+  @override
+  String get webBillingRenewNow => 'Renouveler';
+
+  @override
+  String get webBillingChoosePlan => 'Choisir un forfait';
+
+  @override
+  String get webBillingSwitchBusiness => 'Changer d\'entreprise';
+
+  @override
+  String get webBillingLoadingBusiness => 'Chargement de votre entreprise…';
+
+  @override
+  String get webBillingPickBusiness =>
+      'Choisissez l\'entreprise pour laquelle vous payez, puis les forfaits et leurs prix s\'afficheront ici.';
+
+  @override
+  String get webBillingChooseBusiness => 'Choisir une entreprise';
+
+  @override
+  String get webBillingRenewTitle => 'Renouveler votre abonnement';
+
+  @override
+  String get webBillingSubscribe => 'S\'abonner';
+
+  @override
+  String get webBillingTestBadge => 'TEST';
+
+  @override
+  String get webBillingOneMoment => 'Un instant…';
+
+  @override
+  String get webBillingIntroSubtitle =>
+      'Un seul abonnement ouvre cette entreprise sur le web, le téléphone et l\'application de bureau.';
+
+  @override
+  String get webBillingActiveReady =>
+      'Votre abonnement est actif. Books est prêt à s\'ouvrir.';
+
+  @override
+  String get webBillingLoadingPlans => 'Chargement des forfaits…';
+
+  @override
+  String webBillingCouldNotLoadPlans(String error) {
+    return 'Impossible de charger les forfaits : $error';
+  }
+
+  @override
+  String get webBillingTryAgain => 'Réessayer';
+
+  @override
+  String get webBillingNoPlans =>
+      'Aucun forfait n\'est en vente pour le moment.';
+
+  @override
+  String get webBillingPlan => 'Forfait';
+
+  @override
+  String get webBillingAddons => 'Options';
+
+  @override
+  String get webBillingPayWith => 'Payer avec';
+
+  @override
+  String get webBillingContinueToCard => 'Continuer vers le paiement par carte';
+
+  @override
+  String webBillingPayAmount(String amount) {
+    return 'Payer $amount RWF';
+  }
+
+  @override
+  String get webBillingWaitingApproval => 'En attente de votre approbation…';
+
+  @override
+  String get webBillingWaitingCard => 'En attente du paiement par carte…';
+
+  @override
+  String get webBillingPreparingShort => 'Préparation…';
+
+  @override
+  String get webBillingCheckAgain => 'Vérifier à nouveau';
+
+  @override
+  String get webBillingStartOver => 'Recommencer';
+
+  @override
+  String get webBillingOpenBooks => 'Ouvrir Books';
+
+  @override
+  String get webPayNotAuthorised =>
+      'Ce compte n\'est pas autorisé pour les paiements du personnel.';
+
+  @override
+  String get webPayEnterAmount => 'Saisissez le montant convenu en RWF.';
+
+  @override
+  String get webPayStarting => 'Lancement du paiement…';
+
+  @override
+  String webPayCouldNotStart(String error) {
+    return 'Impossible de lancer le paiement : $error';
+  }
+
+  @override
+  String get webPayNoPaymentYetCard =>
+      'Aucun paiement pour l\'instant. Renvoyez le lien ou vérifiez la référence plus tard — un paiement effectué après la fermeture compte quand même.';
+
+  @override
+  String get webPayNoApprovalYet =>
+      'Pas encore d\'approbation. Le client peut encore approuver ; vérifiez la référence plus tard ou recommencez.';
+
+  @override
+  String get webPayPaidActive =>
+      'Payé. Le forfait est actif et le prix négocié est désormais son prix récurrent.';
+
+  @override
+  String get webPayDidNotGoThrough => 'Le paiement n\'a pas abouti.';
+
+  @override
+  String get webPayLinkExpired =>
+      'Le lien de paiement a expiré avant d\'être payé.';
+
+  @override
+  String get webPayAskCustomerApprove =>
+      'Demandez au client d\'approuver la demande Mobile Money sur son téléphone.';
+
+  @override
+  String get webPaySendLink =>
+      'Envoyez le lien de paiement au client et attendez qu\'il paie.';
+
+  @override
+  String get webPayWaitingSettle => 'En attente du règlement du paiement…';
+
+  @override
+  String get webPayTitle => 'Paiement personnalisé';
+
+  @override
+  String get webPayCheckingAccess => 'Vérification de l\'accès…';
+
+  @override
+  String webPayCouldNotCheckAccess(String error) {
+    return 'Impossible de vérifier l\'accès du personnel : $error';
+  }
+
+  @override
+  String get webPayStaffOnlyBody =>
+      'Cette page est réservée au personnel de facturation. Demandez à un administrateur de vous ajouter à la liste.';
+
+  @override
+  String get webPayPerYear => '/an';
+
+  @override
+  String get webPayPerMonth => '/mois';
+
+  @override
+  String get webPayNegotiatedPrice => 'Prix négocié';
+
+  @override
+  String get webPayNegotiatedBody =>
+      'Facturez le montant convenu avec le client. Il devient son prix récurrent et l\'ancienne facturation s\'arrête.';
+
+  @override
+  String webPaySignedInAs(String name) {
+    return 'Connecté en tant que $name.';
+  }
+
+  @override
+  String get webPaySearchHint =>
+      'Rechercher par nom, téléphone, e-mail ou identifiant';
+
+  @override
+  String get webPayAgreedAmount => 'Montant convenu';
+
+  @override
+  String get webPayAmountHint => 'Montant en RWF par période';
+
+  @override
+  String get webPayCustomerPaysWith => 'Le client paie avec';
+
+  @override
+  String get webPayLinkCopied => 'Lien copié';
+
+  @override
+  String get webPayNoteHint => 'Note pour le dossier (facultatif)';
+
+  @override
+  String get webPayNotSelected => 'Non sélectionné';
+
+  @override
+  String get webPayBillingPeriod => 'Période de facturation';
+
+  @override
+  String get webPayPaysWith => 'Paie avec';
+
+  @override
+  String get webPayCard => 'Carte';
+
+  @override
+  String get webPayPricePerPeriod => 'Prix par période';
+
+  @override
+  String get webPayChargedNow => 'Débité maintenant, puis à chaque période';
+
+  @override
+  String get webPayCreateCardLink => 'Créer un lien de paiement par carte';
+
+  @override
+  String webPayChargeByMomo(String amount) {
+    return 'Débiter $amount RWF par Mobile Money';
+  }
+
+  @override
+  String get webPayWaitingCustomerApproval =>
+      'En attente de l\'approbation du client…';
+
+  @override
+  String get webPayStartingShort => 'Lancement…';
+
+  @override
+  String get webPayConfirmTitle => 'Débiter cette entreprise ?';
+
+  @override
+  String webPayConfirmSummary(String amount, String cadence, String rail) {
+    return '$amount RWF · $cadence · $rail';
+  }
+
+  @override
+  String get webPayConfirmBodyMomo =>
+      'Ce prix devient récurrent. Tout abonnement par carte existant est annulé immédiatement.';
+
+  @override
+  String get webPayConfirmBodyCard =>
+      'Ce prix devient récurrent. Tout abonnement par carte existant est annulé immédiatement et son mandat Mobile Money est révoqué.';
+
+  @override
+  String get webPayCharge => 'Débiter';
+
+  @override
+  String get webPayStaffOnly => 'Réservé au personnel';
+
+  @override
+  String get webPayBackToBooks => 'Retour à Books';
+
+  @override
+  String get webPaySearching => 'Recherche…';
+
+  @override
+  String webPaySearchFailed(String error) {
+    return 'Échec de la recherche : $error';
+  }
+
+  @override
+  String webPayNoBusinessMatches(String query) {
+    return 'Aucune entreprise ne correspond à « $query ».';
+  }
+
+  @override
+  String get webPayChange => 'Modifier';
+
+  @override
+  String get webPayCopyLink => 'Copier le lien';
+
+  @override
+  String get webPayOpen => 'Ouvrir';
+
+  @override
+  String webPayExistingPayment(String id, String status) {
+    return 'Le paiement existant $id est $status';
+  }
+
+  @override
+  String webPayLinkSuffix(String link) {
+    return 'lien : $link';
+  }
+
+  @override
+  String get webPayReference => 'Référence';
+
+  @override
+  String get webPayRail => 'Moyen';
+
+  @override
+  String get webPayPaidThrough => 'Payé jusqu\'au';
+
+  @override
+  String get webPayMomoCharge => 'Débit MoMo';
+
+  @override
+  String get webPayMtnTransaction => 'Transaction MTN';
+
+  @override
+  String get webPayDodoSubscription => 'Abonnement Dodo';
+
+  @override
+  String get webPayDodoPayment => 'Paiement Dodo';
+
+  @override
+  String get webPayCancelledCardSub => 'Abonnement carte annulé';
+
+  @override
+  String get webPayRevokedMandate => 'Mandat MoMo révoqué';
+
+  @override
+  String get webPayPaid => 'Payé';
+
+  @override
+  String get webPaySettledBody =>
+      'Le montant négocié est désormais le prix récurrent de cette entreprise. Conservez la référence ci-dessous pour l\'assistance.';
+
+  @override
+  String get webPayCopyAllIds => 'Copier tous les identifiants';
+
+  @override
+  String get webPayCopied => 'Copié';
+
+  @override
+  String get webPayNewPayment => 'Nouveau paiement';
+
+  @override
+  String get webPinTooShort => 'Le PIN doit comporter au moins 4 chiffres';
+
+  @override
+  String get webPinInvalid => 'PIN invalide. Veuillez réessayer.';
+
+  @override
+  String get webPinOtpRequired => 'Le code OTP est requis';
+
+  @override
+  String get webPinAuthCodeRequired => 'Le code d\'authentification est requis';
+
+  @override
+  String get webPinOtpInvalid => 'Code OTP invalide. Veuillez réessayer.';
+
+  @override
+  String get webPinAuthCodeInvalid =>
+      'Code d\'authentification invalide. Veuillez réessayer.';
+
+  @override
+  String get webPinTroubleTitle => 'Problème de connexion ?';
+
+  @override
+  String get webPinTroubleBody =>
+      'Si vous avez oublié votre PIN, contactez l\'administrateur de votre compte ou l\'assistance Flipper.';
+
+  @override
+  String get webPinVerifyIdentity => 'Vérifiez votre identité';
+
+  @override
+  String get webPinEnterSmsCode =>
+      'Saisissez le code que nous vous avons envoyé pour continuer.';
+
+  @override
+  String get webPinEnterAuthCode =>
+      'Saisissez le code de votre application d\'authentification pour continuer.';
+
+  @override
+  String get webPinEnterPinSubtitle =>
+      'Saisissez votre PIN pour gérer votre entreprise en toute sécurité.';
+
+  @override
+  String get webPinSignedIn => 'Connecté ✓';
+
+  @override
+  String get webPinVerifying => 'Vérification…';
+
+  @override
+  String get webPinVerify => 'Vérifier';
+
+  @override
+  String get webPinSignIn => 'Se connecter';
+
+  @override
+  String get webPinNoAccountSignUp => 'Pas de compte ? Inscrivez-vous';
+
+  @override
+  String get webPinHide => 'Masquer';
+
+  @override
+  String get webPinShow => 'Afficher';
+
+  @override
+  String get webPinAuthenticator => 'Authentificateur';
+
+  @override
+  String get webPinSmsEmail => 'SMS / E-mail';
+
+  @override
+  String get webPinAuthenticatorCode => 'Code d\'authentification';
+
+  @override
+  String get webPinSmsEmailCode => 'Code SMS / e-mail';
+
+  @override
+  String get webSignupTypeRetailer => 'Commerçant Flipper';
+
+  @override
+  String get webSignupTypeIndividual => 'Particulier';
+
+  @override
+  String get webSignupTypeEnterprise => 'Entreprise';
+
+  @override
+  String get webSignupUsernameCheckError =>
+      'Erreur lors de la vérification du nom d\'utilisateur';
+
+  @override
+  String get webSignupNoTinData => 'Aucune donnée trouvée pour ce TIN';
+
+  @override
+  String get webSignupEnterContactFirst =>
+      'Saisissez d\'abord un numéro de téléphone ou un e-mail.';
+
+  @override
+  String get webSignupFailedToSendCode => 'Échec de l\'envoi du code.';
+
+  @override
+  String get webSignupWrongCode => 'Ce code est incorrect. Veuillez réessayer.';
+
+  @override
+  String get webSignupCouldNotCheckCode => 'Impossible de vérifier ce code.';
+
+  @override
+  String get webSignupUsernameRequired => 'Le nom d\'utilisateur est requis';
+
+  @override
+  String get webSignupUsernameTooShort =>
+      'Le nom d\'utilisateur doit comporter au moins 4 caractères';
+
+  @override
+  String get webSignupEnterFullName => 'Veuillez saisir votre nom complet';
+
+  @override
+  String get webSignupSelectBusinessType =>
+      'Veuillez choisir un type d\'entreprise';
+
+  @override
+  String get webSignupInvalidTin =>
+      'Veuillez saisir un numéro TIN valide (au moins 9 caractères)';
+
+  @override
+  String get webSignupSelectCountry => 'Veuillez choisir un pays';
+
+  @override
+  String webSignupEnterCodeSentTo(String contact) {
+    return 'Saisissez le code envoyé à $contact pour continuer.';
+  }
+
+  @override
+  String webSignupVerifyFirst(String contact) {
+    return 'Vérifiez d\'abord $contact — touchez « Envoyer le code ».';
+  }
+
+  @override
+  String get webSignupUsernameTaken =>
+      'Ce nom d\'utilisateur n\'est pas disponible. Veuillez en choisir un autre.';
+
+  @override
+  String get webSignupUsernameCheckRetry =>
+      'Erreur lors de la vérification du nom d\'utilisateur. Veuillez réessayer.';
+
+  @override
+  String get webSignupFillRequired =>
+      'Veuillez remplir correctement tous les champs obligatoires';
+
+  @override
+  String get webSignupNetworkError =>
+      'Erreur réseau. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get webSignupTimeout =>
+      'La requête a expiré. Veuillez réessayer plus tard.';
+
+  @override
+  String webSignupFailedCreate(String error) {
+    return 'Échec de la création du compte : $error';
+  }
+
+  @override
+  String get webSignupDismiss => 'Fermer';
+
+  @override
+  String get webSignupBusinessSetup => 'Configuration de l\'entreprise';
+
+  @override
+  String get webSignupSubtitle =>
+      'Configurez votre compte d\'entreprise Flipper pour commencer.';
+
+  @override
+  String get webSignupUsername => 'Nom d\'utilisateur';
+
+  @override
+  String get webSignupFullName => 'Nom complet';
+
+  @override
+  String get webSignupFullNameHint => 'Saisissez votre nom complet';
+
+  @override
+  String get webSignupFullNameRequired => 'Le nom complet est requis';
+
+  @override
+  String get webSignupPhoneEmail => 'Téléphone / E-mail';
+
+  @override
+  String get webSignupUsage => 'Utilisation';
+
+  @override
+  String get webSignupUsageHint => 'Comment vous comptez utiliser Flipper';
+
+  @override
+  String webSignupTinBusiness(String name) {
+    return 'Entreprise : $name';
+  }
+
+  @override
+  String get webSignupTinUnavailable =>
+      'Recherche TIN indisponible — validation ignorée.';
+
+  @override
+  String get webSignupCountry => 'Pays';
+
+  @override
+  String get webSignupAlreadyHaveAccount =>
+      'Vous avez déjà un compte ? Connectez-vous';
+
+  @override
+  String get webSignupChooseDifferentUsername =>
+      'Veuillez choisir un autre nom d\'utilisateur. Celui-ci n\'est pas disponible ou n\'a pas été vérifié.';
+
+  @override
+  String get webSignupAccountCreated => 'Compte créé avec succès !';
+
+  @override
+  String get webSignupFailedTryAgain =>
+      'Échec de la création du compte. Veuillez réessayer.';
+
+  @override
+  String get webSignupUsernameNotAvailable => 'Nom d\'utilisateur indisponible';
+
+  @override
+  String get webSignupUsernameHint => 'Saisissez votre nom d\'utilisateur';
+
+  @override
+  String get webSignupContactRequired =>
+      'Le numéro de téléphone ou l\'e-mail est requis';
+
+  @override
+  String get webSignupInvalidEmail =>
+      'Veuillez saisir une adresse e-mail valide';
+
+  @override
+  String get webSignupInvalidPhone =>
+      'Veuillez saisir un numéro de téléphone valide';
+
+  @override
+  String get webSignupContactHint => '783054874 ou votre@email.com';
+
+  @override
+  String get webSignupResend => 'Renvoyer';
+
+  @override
+  String get webSignupSendCode => 'Envoyer le code';
+
+  @override
+  String webSignupContactVerified(String contact) {
+    return '$contact vérifié.';
+  }
+
+  @override
+  String get webSignupVerificationCode => 'Code de vérification';
+
+  @override
+  String get webSignupEnter6Digit => 'Saisissez le code à 6 chiffres';
+
+  @override
+  String webSignupCodeSentHint(String contact) {
+    return 'Nous avons envoyé un code à $contact.';
+  }
+
+  @override
+  String webSignupCodeSentTo(String contact) {
+    return 'Code envoyé à $contact';
+  }
+
+  @override
+  String get webSignupEnterTin => 'Saisissez le numéro TIN';
+
+  @override
+  String get webSignupTinRequired => 'Le numéro TIN est requis';
+
+  @override
+  String get webSignupTinTooShort =>
+      'Le numéro TIN doit comporter au moins 9 chiffres';
+
+  @override
+  String get webSignupPickCountryFromList =>
+      'Veuillez choisir un pays dans la liste';
+
+  @override
+  String get webSignupSearchCountry => 'Recherchez votre pays';
+
+  @override
+  String get webSignupCreateYourAccount => 'Créez votre compte';
+
+  @override
+  String get webAuthSecuredE2e => 'Sécurisé par chiffrement de bout en bout';
+
+  @override
+  String webAuthVerifiedOpening(String target) {
+    return 'Vérifié — ouverture de $target…';
+  }
+
+  @override
+  String get webAuthYourBusiness => 'votre entreprise';
+
+  @override
+  String get webAuthBrandTitle =>
+      'Votre boutique, votre équipe, vos chiffres — au même endroit.';
+
+  @override
+  String get webAuthBrandBody =>
+      'Reprenez là où vous vous étiez arrêté. Les ventes, le stock et les rapports du jour sont prêts.';
+
+  @override
+  String webAuthErrorCheckingPrefs(String error) {
+    return 'Erreur lors de la vérification des préférences : $error';
+  }
+
+  @override
+  String get webBizNoBusinesses => 'Aucune entreprise disponible';
+
+  @override
+  String get webBizChooseBusiness => 'Choisissez une entreprise';
+
+  @override
+  String get webBizChooseBusinessSubtitle =>
+      'Sélectionnez l\'entreprise que vous voulez gérer.';
+
+  @override
+  String get webBizNotSeeing =>
+      'Vous ne voyez pas votre entreprise ? Demandez au propriétaire de vous inviter.';
+
+  @override
+  String get webBizChooseBranch => 'Choisissez une succursale';
+
+  @override
+  String get webBizChooseBranchSubtitle =>
+      'Sélectionnez la succursale à laquelle accéder';
+
+  @override
+  String get webBizCouldNotSet =>
+      'Impossible de définir l\'entreprise. Veuillez réessayer.';
+
+  @override
+  String get webBizProfileLoadFailed =>
+      'Impossible de charger votre profil. Cela peut arriver si le réseau est indisponible ou si votre session a expiré.';
+
+  @override
+  String get webBizBackToLogin => 'Retour à la connexion';
+
+  @override
+  String get webBizUser => 'Utilisateur';
+
+  @override
+  String webBizOwnerBranches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Propriétaire · $count succursales',
+      one: 'Propriétaire · 1 succursale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String webBizMemberBranches(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Membre · $count succursales',
+      one: 'Membre · 1 succursale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get webBizSigningOut => 'Déconnexion…';
+
+  @override
+  String get webBizDefault => 'PAR DÉFAUT';
+
+  @override
+  String get webBizAddBusiness => 'Ajouter une entreprise';
+
+  @override
+  String get webAuthPinNotFound => 'PIN introuvable';
+
+  @override
+  String get webAuthAccessDenied =>
+      'Accès refusé — vérifiez l\'authentification';
+
+  @override
+  String webAuthInvalidPinCode(String code) {
+    return 'PIN invalide ($code)';
+  }
+
+  @override
+  String get webAuthNetworkFailed =>
+      'Échec de la connexion réseau. Vérifiez votre connexion internet.';
+
+  @override
+  String get webAuthTimedOut => 'La requête a expiré. Veuillez réessayer.';
+
+  @override
+  String get webAuthOtpNotFound => 'Code OTP introuvable';
+
+  @override
+  String get webAuthInvalidOtp => 'Code OTP invalide';
+
+  @override
+  String get webAuthTotpNotFound => 'Code d\'authentification introuvable';
+
+  @override
+  String get webAuthInvalidTotp => 'Code d\'authentification invalide';
+
+  @override
+  String webSignupRegistrationFailedStatus(String code) {
+    return 'Échec de l\'inscription, code d\'état : $code';
+  }
+
+  @override
+  String get webSignupNetworkConnect =>
+      'Erreur réseau : impossible de joindre le serveur. Vérifiez votre connexion internet.';
+
+  @override
+  String get webSignupServerSlow =>
+      'La requête a expiré. Le serveur met trop de temps à répondre. Veuillez réessayer plus tard.';
+
+  @override
+  String get webSignupNetworkIncomplete =>
+      'Erreur réseau : impossible de terminer la requête. Veuillez réessayer plus tard.';
+
+  @override
+  String webSignupRegistrationFailed(String error) {
+    return 'Échec de l\'inscription : $error';
+  }
+
+  @override
+  String get webSignupNetworkSendCode =>
+      'Erreur réseau lors de l\'envoi du code. Veuillez réessayer.';
+
+  @override
+  String get webSignupContactExists => 'Ce contact existe déjà';
+
+  @override
+  String get webSignupSendOtpFailed =>
+      'Échec de l\'envoi du code d\'inscription';
+
+  @override
+  String get webSignupNetworkCheckCode =>
+      'Erreur réseau lors de la vérification du code. Veuillez réessayer.';
 }

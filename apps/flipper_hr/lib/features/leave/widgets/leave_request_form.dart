@@ -4,6 +4,7 @@ import 'package:flipper_hr/features/leave/data/leave_type.dart';
 import 'package:flipper_hr/features/leave/data/leave_validation.dart';
 import 'package:flipper_hr/features/leave/data/leave_working_days.dart';
 import 'package:flipper_hr/features/people/data/money_format.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// Books leave: type, dates, reason — with the cost and the resulting balance
@@ -85,8 +86,7 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
     if (_problems.isNotEmpty) setState(() => _problems = const []);
   }
 
-  double get _days =>
-      leaveDaysFor(type: _type, start: _start, end: _end);
+  double get _days => leaveDaysFor(type: _type, start: _start, end: _end);
 
   LeaveBalance get _balance => LeaveBalance.of(
     type: _type,
@@ -168,6 +168,7 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
     final balance = _balance;
     final days = _days;
     final remaining = balance.remaining;
+    final l10n = context.flipperL10n;
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -178,17 +179,17 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
           children: [
             Text(
               widget.employeeName == null
-                  ? 'Request leave'
-                  : 'Leave for ${widget.employeeName}',
+                  ? l10n.hrRequestLeave
+                  : l10n.hrLeaveForName(widget.employeeName!),
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 20),
             DropdownButtonFormField<LeaveType>(
               key: const Key('leave-type-field'),
               initialValue: _type,
-              decoration: const InputDecoration(
-                labelText: 'Type',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.hrLeaveTypeField,
+                border: const OutlineInputBorder(),
               ),
               items: [
                 for (final type in LeaveType.bookable)
@@ -205,7 +206,7 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
                 Expanded(
                   child: _DateField(
                     fieldKey: const Key('leave-start-field'),
-                    label: 'First day',
+                    label: l10n.hrFirstDay,
                     value: _start,
                     onTap: () => _pickDate(isStart: true),
                   ),
@@ -214,7 +215,7 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
                 Expanded(
                   child: _DateField(
                     fieldKey: const Key('leave-end-field'),
-                    label: 'Last day',
+                    label: l10n.hrLastDay,
                     value: _end,
                     onTap: () => _pickDate(isStart: false),
                   ),
@@ -235,8 +236,8 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
               maxLines: 4,
               decoration: InputDecoration(
                 labelText: _type == LeaveType.annual
-                    ? 'Note (optional)'
-                    : 'Reason',
+                    ? l10n.hrNoteOptional
+                    : l10n.hrReason,
                 border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
@@ -251,13 +252,15 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
               children: [
                 TextButton(
                   onPressed: _isSubmitting ? null : widget.onCancel,
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 12),
                 FilledButton(
                   key: const Key('leave-submit'),
                   onPressed: _isSubmitting ? null : _submit,
-                  child: Text(_isSubmitting ? 'Sending…' : 'Send request'),
+                  child: Text(
+                    _isSubmitting ? l10n.hrSending : l10n.hrSendRequest,
+                  ),
                 ),
               ],
             ),
@@ -350,7 +353,7 @@ class _CostPreview extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              _text(),
+              _text(context.flipperL10n),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: short
                     ? scheme.onErrorContainer
@@ -363,15 +366,16 @@ class _CostPreview extends StatelessWidget {
     );
   }
 
-  String _text() {
-    final unit = type.countsCalendarDays ? 'calendar days' : 'working days';
-    final cost = '${formatLeaveDays(days)} ($unit)';
+  String _text(FlipperAppLocalizations l10n) {
+    final cost = type.countsCalendarDays
+        ? l10n.hrLeaveCostCalendarDays(formatLeaveDays(days))
+        : l10n.hrLeaveCostWorkingDays(formatLeaveDays(days));
     final left = remainingAfter;
-    if (left == null) return '$cost · unpaid leave has no yearly limit';
+    if (left == null) return '$cost · ${l10n.hrUnpaidLeaveNoLimit}';
     if (left < 0) {
-      return '$cost · ${formatLeaveDays(-left)} more than you have left';
+      return '$cost · ${l10n.hrMoreThanYouHaveLeft(formatLeaveDays(-left))}';
     }
-    return '$cost · ${formatLeaveDays(left)} left after this';
+    return '$cost · ${l10n.hrLeftAfterThis(formatLeaveDays(left))}';
   }
 }
 

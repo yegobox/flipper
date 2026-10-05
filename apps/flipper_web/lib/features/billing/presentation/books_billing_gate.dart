@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_payments/flipper_payments.dart';
 import 'package:flipper_web/features/billing/application/books_billing_providers.dart';
 import 'package:flipper_web/features/billing/data/books_entitlement.dart';
@@ -56,9 +57,11 @@ class _GateLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: PaymentTokens.app,
-      body: PaymentCenterLoading(message: 'Checking your subscription…'),
+      body: PaymentCenterLoading(
+        message: context.flipperL10n.webBillingCheckingSubscription,
+      ),
     );
   }
 }
@@ -66,11 +69,7 @@ class _GateLoading extends StatelessWidget {
 /// The lock itself, split out so it can be laid out and tested without an
 /// entitlement state behind it.
 class BooksPaywallPanel extends StatelessWidget {
-  const BooksPaywallPanel({
-    super.key,
-    required this.access,
-    this.businessId,
-  });
+  const BooksPaywallPanel({super.key, required this.access, this.businessId});
 
   final BooksAccessState access;
   final String? businessId;
@@ -108,8 +107,9 @@ class BooksPaywallPanel extends StatelessWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: PaymentTokens.blueTint,
-                          borderRadius:
-                              BorderRadius.circular(PaymentTokens.rMd),
+                          borderRadius: BorderRadius.circular(
+                            PaymentTokens.rMd,
+                          ),
                         ),
                         child: const Icon(
                           FluentIcons.lock_closed_20_regular,
@@ -120,40 +120,36 @@ class BooksPaywallPanel extends StatelessWidget {
                       const SizedBox(height: 16),
                       Text(
                         lapsed
-                            ? 'Your subscription has ended'
-                            : 'Flipper Books needs a subscription',
+                            ? context.flipperL10n.webBillingEnded
+                            : context.flipperL10n.webBillingNeedsSubscription,
                         style: PaymentTypography.introTitle(),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         lapsed
-                            ? 'Nothing has been deleted — your books, sales '
-                                'and stock are all still here. Renew the '
-                                'subscription to open them again.'
-                            : 'One subscription covers this business on the '
-                                'web, the phone and the desktop app. Pay once '
-                                'and Flipper opens everywhere you use it.',
+                            ? context.flipperL10n.webBillingEndedBody
+                            : context.flipperL10n.webBillingNeedsBody,
                         style: PaymentTypography.body(),
                       ),
                       if (access.isAwaitingSettlement) ...[
                         const SizedBox(height: 12),
                         Text(
-                          'A payment is already on its way. If you approved '
-                          'it on your phone, this unlocks as soon as Mobile '
-                          'Money confirms it.',
+                          context.flipperL10n.webBillingAwaitingSettlement,
                           style: PaymentTypography.hint(),
                         ),
                       ],
                       const SizedBox(height: 20),
                       PaymentPrimaryButton(
                         key: const Key('books-paywall-subscribe'),
-                        label: lapsed ? 'Renew now' : 'Choose a plan',
+                        label: lapsed
+                            ? context.flipperL10n.webBillingRenewNow
+                            : context.flipperL10n.webBillingChoosePlan,
                         icon: FluentIcons.premium_20_regular,
                         onPressed: () => context.go('/subscribe'),
                       ),
                       const SizedBox(height: 8),
                       PaymentSecondaryButton(
-                        label: 'Switch business',
+                        label: context.flipperL10n.webBillingSwitchBusiness,
                         onPressed: () => context.go('/business-selection'),
                       ),
                     ],

@@ -426,6 +426,19 @@ mixin CapellaHotelMixin implements HotelInterface {
       'INSERT INTO hotel_rooms DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
       arguments: {'doc': room.toJson()},
     );
+    // Stays copy the room name when booked. Carry a rename onto the room's
+    // live stays so the folio, dashboard and calendar show it on every
+    // device. Checked-out stays keep the name the guest was billed under.
+    await ditto.store.execute(
+      'UPDATE hotel_stays SET roomName = :name '
+      'WHERE roomId = :roomId AND branchId = :branchId '
+      "AND status IN ('inHouse', 'reserved') AND roomName != :name",
+      arguments: {
+        'name': room.name,
+        'roomId': room.id,
+        'branchId': room.branchId,
+      },
+    );
   }
 
   @override
@@ -443,10 +456,18 @@ mixin CapellaHotelMixin implements HotelInterface {
 
   @override
   Future<void> seedDefaultRooms({required String branchId}) async {
+    final ditto = dittoHandle;
+    if (ditto == null) return;
     final existing = await hotelRooms(branchId: branchId);
     if (existing.isNotEmpty) return;
+    // DO NOTHING, never DO UPDATE: default ids are fixed, so an upsert would
+    // overwrite a renamed room that already exists locally and the newer
+    // write would win on every device.
     for (final room in defaultHotelRoomPlan(branchId: branchId)) {
-      await saveHotelRoom(room);
+      await ditto.store.execute(
+        'INSERT INTO hotel_rooms DOCUMENTS (:doc) ON ID CONFLICT DO NOTHING',
+        arguments: {'doc': room.toJson()},
+      );
     }
   }
 
