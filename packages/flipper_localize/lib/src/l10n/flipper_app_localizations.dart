@@ -40708,6 +40708,162 @@ abstract class FlipperAppLocalizations {
   /// In en, this message translates to:
   /// **'Network error while checking the code. Please try again.'**
   String get webSignupNetworkCheckCode;
+
+  /// Admin Control section for this till's receipt printer and back display
+  ///
+  /// In en, this message translates to:
+  /// **'Printer & customer display'**
+  String get tillHardwareTitle;
+
+  /// No description provided for @tillHardwareSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hardware on this till only. Not shared with other devices.'**
+  String get tillHardwareSubtitle;
+
+  /// No description provided for @receiptPrinterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt printer'**
+  String get receiptPrinterLabel;
+
+  /// No description provided for @receiptPrinterAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts print here automatically after every sale.'**
+  String get receiptPrinterAuto;
+
+  /// Printer dropdown option: use the till's only paper printer, or ask when there are several
+  ///
+  /// In en, this message translates to:
+  /// **'Choose automatically'**
+  String get receiptPrinterAutomatic;
+
+  /// Marks PDF/XPS/OneNote/Fax/AnyDesk printers in the dropdown
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (not a paper printer)'**
+  String receiptPrinterNotPaper(String name);
+
+  /// No description provided for @receiptPrinterNoneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows reports no printers. Install the printer driver, then reopen this page.'**
+  String get receiptPrinterNoneFound;
+
+  /// No description provided for @receiptPrinterTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test print'**
+  String get receiptPrinterTest;
+
+  /// No description provided for @receiptPrinterTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test page sent to {printer}'**
+  String receiptPrinterTestSent(String printer);
+
+  /// No description provided for @receiptPrinterTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{printer} did not accept the test page: {error}'**
+  String receiptPrinterTestFailed(String printer, String error);
+
+  /// The small numeric display on the back of the till, facing the customer
+  ///
+  /// In en, this message translates to:
+  /// **'Customer display'**
+  String get customerDisplayLabel;
+
+  /// No description provided for @customerDisplayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows the total, then the change, on the small display on the back of the till.'**
+  String get customerDisplayHint;
+
+  /// No description provided for @customerDisplayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get customerDisplayOff;
+
+  /// No description provided for @customerDisplaySerial.
+  ///
+  /// In en, this message translates to:
+  /// **'On a COM port'**
+  String get customerDisplaySerial;
+
+  /// No description provided for @customerDisplayPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get customerDisplayPort;
+
+  /// No description provided for @customerDisplayBaud.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed (baud)'**
+  String get customerDisplayBaud;
+
+  /// No description provided for @customerDisplayNoPorts.
+  ///
+  /// In en, this message translates to:
+  /// **'This till reports no COM ports.'**
+  String get customerDisplayNoPorts;
+
+  /// No description provided for @customerDisplayWindowsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer displays are supported on Windows tills.'**
+  String get customerDisplayWindowsOnly;
+
+  /// No description provided for @customerDisplayTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test display'**
+  String get customerDisplayTest;
+
+  /// No description provided for @customerDisplayTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Every segment (8.8.8.8.8.8.8.8) should now be lit on the back display.'**
+  String get customerDisplayTestSent;
+
+  /// No description provided for @customerDisplayFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find automatically'**
+  String get customerDisplayFind;
+
+  /// No description provided for @customerDisplayFindPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Trying {port} at {baud} baud. Does the back display show 8.8.8.8.8.8.8.8?'**
+  String customerDisplayFindPrompt(String port, String baud);
+
+  /// No description provided for @customerDisplayFindYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, it does'**
+  String get customerDisplayFindYes;
+
+  /// No description provided for @customerDisplayFindNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No, try next'**
+  String get customerDisplayFindNo;
+
+  /// No description provided for @customerDisplayFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer display set to {port} at {baud} baud'**
+  String customerDisplayFound(String port, String baud);
+
+  /// No description provided for @customerDisplayNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No setting lit the display. Check its cable, or pick the port and speed by hand.'**
+  String get customerDisplayNotFound;
 }
 
 class _FlipperAppLocalizationsDelegate

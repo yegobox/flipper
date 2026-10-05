@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
 import 'package:printing/printing.dart';
 
 const _kSaveAsPdfKey = '__save_as_pdf__';
@@ -116,6 +117,9 @@ class _PrinterPickerDialogState extends State<_PrinterPickerDialog> {
         }
       }
     }
+    // Prefer a real printer over the OS default, which on Windows is often
+    // "Microsoft Print to PDF".
+    initial ??= pickAutoReceiptPrinter(widget.printers);
     if (initial == null) {
       for (final p in widget.printers) {
         if (p.isDefault) {

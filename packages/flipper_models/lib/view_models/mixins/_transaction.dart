@@ -24,6 +24,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helpers/desktop_pdf_open.dart';
 import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
+import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
 import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -623,22 +624,36 @@ mixin TransactionMixinOld {
             'default exists',
           );
         } catch (e) {
-          talker.warning("Default printer not found in available printers");
+          // Renamed driver or removed printer: forget it so the auto-pick
+          // below can adopt whatever is attached now. Not when the list is
+          // empty — that is usually enumeration timing out (see above), and
+          // the saved printer is still fine.
+          talker.warning(
+            '[receipt_presentation] saved default printer "$savedPrinterName" '
+            'is not among the ${printers.length} listed',
+          );
+          if (printers.isNotEmpty) {
+            ProxyService.box.remove(key: 'defaultPrinter');
+          }
         }
       }
 
       if (!alwaysShowPicker && selectedPrinter == null) {
-        // If only one printer is available, use it by default
-        if (printers.length == 1) {
-          selectedPrinter = printers.first;
+        // Windows always lists software printers (PDF/XPS writers, OneNote,
+        // Fax, AnyDesk) beside the real one, so "exactly one printer" never
+        // held on a till. Ignore those and adopt the one real printer (or the
+        // OS default among several).
+        final auto = pickAutoReceiptPrinter(printers);
+        if (auto != null) {
+          selectedPrinter = auto;
           talker.info(
-            '[receipt_presentation] only one printer attached '
-            '("${selectedPrinter.name}"); adopting it as the default, so no '
-            'picker will be shown for later sales either',
+            '[receipt_presentation] receipt printer "${auto.name}" picked '
+            'automatically from ${printers.length} listed; adopting it as the '
+            'default, so no picker will be shown for later sales either',
           );
           ProxyService.box.writeString(
             key: 'defaultPrinter',
-            value: selectedPrinter.name,
+            value: auto.name,
           );
         }
       }
@@ -942,11 +957,10 @@ mixin TransactionMixinOld {
   Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
     if (Platform.isAndroid || Platform.isIOS) return false;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
-    if (savedPrinterName == null || savedPrinterName.trim().isEmpty) {
-      return false;
-    }
     try {
-      final printers = await Printing.listPrinters();
+      final printers = await Printing.listPrinters().timeout(
+        _printerEnumerateTimeout,
+      );
       Printer? match;
       for (final printer in printers) {
         if (printer.name == savedPrinterName) {
@@ -954,6 +968,7 @@ mixin TransactionMixinOld {
           break;
         }
       }
+      match ??= pickAutoReceiptPrinter(printers);
       if (match == null) return false;
       await Printing.directPrintPdf(
         printer: match,
