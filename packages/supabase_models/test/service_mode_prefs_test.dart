@@ -91,7 +91,22 @@ void main() {
       // Which branch the cached stamp belongs to; without it a branch switch
       // stamps the next property's documents with the previous one's mark.
       'docStampBranchId': 'branch-a',
+      // Till hardware. 'defaultPrinter' was missing for months, so a Windows
+      // POS showed the printer picker on every sale instead of auto-printing.
+      'defaultPrinter': 'POS-58',
+      'customerDisplayType': 'serial',
+      'customerDisplayPort': 'COM2',
     };
+
+    test('customerDisplayBaud is writable', () async {
+      await box.writeInt(key: 'customerDisplayBaud', value: 2400);
+      expect(
+        box.readInt(key: 'customerDisplayBaud'),
+        2400,
+        reason:
+            'customerDisplayBaud is missing from the LocalStorage allowlist',
+      );
+    });
 
     stringKeys.forEach((key, value) {
       test('$key is writable', () async {

@@ -24738,4 +24738,100 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
   @override
   String get webSignupNetworkCheckCode =>
       'Erreur réseau lors de la vérification du code. Veuillez réessayer.';
+
+  @override
+  String get tillHardwareTitle => 'Imprimante et afficheur client';
+
+  @override
+  String get tillHardwareSubtitle =>
+      'Matériel de cette caisse uniquement. Non partagé avec les autres appareils.';
+
+  @override
+  String get receiptPrinterLabel => 'Imprimante de reçus';
+
+  @override
+  String get receiptPrinterAuto =>
+      'Les reçus s\'impriment ici automatiquement après chaque vente.';
+
+  @override
+  String get receiptPrinterAutomatic => 'Choisir automatiquement';
+
+  @override
+  String receiptPrinterNotPaper(String name) {
+    return '$name (pas une imprimante papier)';
+  }
+
+  @override
+  String get receiptPrinterNoneFound =>
+      'Windows ne signale aucune imprimante. Installez le pilote de l\'imprimante, puis rouvrez cette page.';
+
+  @override
+  String get receiptPrinterTest => 'Impression de test';
+
+  @override
+  String receiptPrinterTestSent(String printer) {
+    return 'Page de test envoyée à $printer';
+  }
+
+  @override
+  String receiptPrinterTestFailed(String printer, String error) {
+    return '$printer n\'a pas accepté la page de test : $error';
+  }
+
+  @override
+  String get customerDisplayLabel => 'Afficheur client';
+
+  @override
+  String get customerDisplayHint =>
+      'Affiche le total, puis la monnaie, sur le petit écran à l\'arrière de la caisse.';
+
+  @override
+  String get customerDisplayOff => 'Désactivé';
+
+  @override
+  String get customerDisplaySerial => 'Sur un port COM';
+
+  @override
+  String get customerDisplayPort => 'Port';
+
+  @override
+  String get customerDisplayBaud => 'Vitesse (bauds)';
+
+  @override
+  String get customerDisplayNoPorts =>
+      'Cette caisse ne signale aucun port COM.';
+
+  @override
+  String get customerDisplayWindowsOnly =>
+      'Les afficheurs client sont pris en charge sur les caisses Windows.';
+
+  @override
+  String get customerDisplayTest => 'Tester l\'afficheur';
+
+  @override
+  String get customerDisplayTestSent =>
+      'Tous les segments (8.8.8.8.8.8.8.8) devraient maintenant être allumés sur l\'afficheur arrière.';
+
+  @override
+  String get customerDisplayFind => 'Rechercher automatiquement';
+
+  @override
+  String customerDisplayFindPrompt(String port, String baud) {
+    return 'Essai de $port à $baud bauds. L\'afficheur arrière affiche-t-il 8.8.8.8.8.8.8.8 ?';
+  }
+
+  @override
+  String get customerDisplayFindYes => 'Oui';
+
+  @override
+  String get customerDisplayFindNo => 'Non, essayer le suivant';
+
+  @override
+  String customerDisplayFound(String port, String baud) {
+    return 'Afficheur client configuré sur $port à $baud bauds';
+  }
+
+  @override
+  String get customerDisplayNotFound =>
+      'Aucun réglage n\'a allumé l\'afficheur. Vérifiez son câble ou choisissez le port et la vitesse manuellement.';
 }

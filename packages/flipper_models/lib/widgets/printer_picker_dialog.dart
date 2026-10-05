@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
 import 'package:printing/printing.dart';
 
 const _kSaveAsPdfKey = '__save_as_pdf__';
@@ -60,7 +61,10 @@ Future<PrinterPickerResult?> showPrinterPickerDialog({
       invoiceNumber: invoiceNumber,
     ),
     transitionBuilder: (dialogContext, animation, _, child) {
-      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      );
       return AnimatedBuilder(
         animation: curved,
         child: child,
@@ -116,6 +120,9 @@ class _PrinterPickerDialogState extends State<_PrinterPickerDialog> {
         }
       }
     }
+    // Prefer a real printer over the OS default, which on Windows is often
+    // "Microsoft Print to PDF".
+    initial ??= pickAutoReceiptPrinter(widget.printers);
     if (initial == null) {
       for (final p in widget.printers) {
         if (p.isDefault) {
@@ -154,7 +161,8 @@ class _PrinterPickerDialogState extends State<_PrinterPickerDialog> {
   }
 
   IconData _iconFor(Printer p) {
-    final signature = '${p.model ?? ''} ${p.location ?? ''} ${p.url}'.toLowerCase();
+    final signature = '${p.model ?? ''} ${p.location ?? ''} ${p.url}'
+        .toLowerCase();
     if (signature.contains('bluetooth')) return Icons.bluetooth_rounded;
     if (signature.contains('network') ||
         signature.contains('wifi') ||
@@ -179,7 +187,9 @@ class _PrinterPickerDialogState extends State<_PrinterPickerDialog> {
           subtitle: _statusLabel(p),
           selected: _selectedKey == p.url,
           icon: _iconFor(p),
-          onTap: p.isAvailable ? () => setState(() => _selectedKey = p.url) : null,
+          onTap: p.isAvailable
+              ? () => setState(() => _selectedKey = p.url)
+              : null,
         ),
       _PrinterRow(
         title: 'Save as PDF',
@@ -237,12 +247,13 @@ class _PrinterPickerDialogState extends State<_PrinterPickerDialog> {
                     padding: const EdgeInsets.fromLTRB(26, 20, 26, 10),
                     child: Text(
                       'AVAILABLE PRINTERS',
-                      style: (textTheme.labelSmall ?? const TextStyle()).copyWith(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                        color: _PPColors.ink3,
-                      ),
+                      style: (textTheme.labelSmall ?? const TextStyle())
+                          .copyWith(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.6,
+                            color: _PPColors.ink3,
+                          ),
                     ),
                   ),
                   Flexible(
@@ -257,8 +268,10 @@ class _PrinterPickerDialogState extends State<_PrinterPickerDialog> {
                   _Footer(
                     textTheme: textTheme,
                     copies: _copies,
-                    onMinus: () => setState(() => _copies = (_copies - 1).clamp(1, 9)),
-                    onPlus: () => setState(() => _copies = (_copies + 1).clamp(1, 9)),
+                    onMinus: () =>
+                        setState(() => _copies = (_copies - 1).clamp(1, 9)),
+                    onPlus: () =>
+                        setState(() => _copies = (_copies + 1).clamp(1, 9)),
                     onCancel: _cancel,
                     onPrint: _submit,
                   ),
@@ -299,17 +312,22 @@ class _Header extends StatelessWidget {
                         color: _PPColors.blueTint,
                         borderRadius: BorderRadius.circular(7),
                       ),
-                      child: const Icon(Icons.print_rounded, size: 13, color: _PPColors.blue),
+                      child: const Icon(
+                        Icons.print_rounded,
+                        size: 13,
+                        color: _PPColors.blue,
+                      ),
                     ),
                     const SizedBox(width: 9),
                     Text(
                       'PRINT RECEIPT',
-                      style: (textTheme.labelSmall ?? const TextStyle()).copyWith(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                        color: _PPColors.blue,
-                      ),
+                      style: (textTheme.labelSmall ?? const TextStyle())
+                          .copyWith(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.6,
+                            color: _PPColors.blue,
+                          ),
                     ),
                   ],
                 ),
@@ -344,7 +362,11 @@ class _Header extends StatelessWidget {
               child: const SizedBox(
                 width: 36,
                 height: 36,
-                child: Icon(Icons.close_rounded, size: 16, color: _PPColors.ink2),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 16,
+                  color: _PPColors.ink2,
+                ),
               ),
             ),
           ),
@@ -372,7 +394,9 @@ class _ReceiptChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metaParts = <String>[
-      currency.isNotEmpty ? '$currency ${amount.toStringAsFixed(2)}' : amount.toStringAsFixed(2),
+      currency.isNotEmpty
+          ? '$currency ${amount.toStringAsFixed(2)}'
+          : amount.toStringAsFixed(2),
       if (invoiceNumber != null) 'Invoice No. $invoiceNumber',
     ];
 
@@ -394,7 +418,11 @@ class _ReceiptChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(9),
               border: Border.all(color: _PPColors.line),
             ),
-            child: const Icon(Icons.receipt_long_rounded, size: 17, color: _PPColors.ink2),
+            child: const Icon(
+              Icons.receipt_long_rounded,
+              size: 17,
+              color: _PPColors.ink2,
+            ),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -473,9 +501,15 @@ class _PrinterRow extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: selected ? _PPColors.blue : _PPColors.surface2,
                     borderRadius: BorderRadius.circular(11),
-                    border: Border.all(color: selected ? _PPColors.blue : _PPColors.line),
+                    border: Border.all(
+                      color: selected ? _PPColors.blue : _PPColors.line,
+                    ),
                   ),
-                  child: Icon(icon, size: 19, color: selected ? Colors.white : _PPColors.ink2),
+                  child: Icon(
+                    icon,
+                    size: 19,
+                    color: selected ? Colors.white : _PPColors.ink2,
+                  ),
                 ),
                 const SizedBox(width: 13),
                 Expanded(
@@ -489,30 +523,38 @@ class _PrinterRow extends StatelessWidget {
                               title,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
-                              style: (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.1,
-                                color: _PPColors.ink1,
-                              ),
+                              style: (textTheme.bodyMedium ?? const TextStyle())
+                                  .copyWith(
+                                    fontSize: 14.5,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.1,
+                                    color: _PPColors.ink1,
+                                  ),
                             ),
                           ),
                           if (isDefault) ...[
                             const SizedBox(width: 7),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: _PPColors.blue.withValues(alpha: selected ? 0.18 : 0.12),
+                                color: _PPColors.blue.withValues(
+                                  alpha: selected ? 0.18 : 0.12,
+                                ),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
                                 'DEFAULT',
-                                style: (textTheme.labelSmall ?? const TextStyle()).copyWith(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.4,
-                                  color: _PPColors.blue,
-                                ),
+                                style:
+                                    (textTheme.labelSmall ?? const TextStyle())
+                                        .copyWith(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.4,
+                                          color: _PPColors.blue,
+                                        ),
                               ),
                             ),
                           ],
@@ -526,7 +568,9 @@ class _PrinterRow extends StatelessWidget {
                             height: 6,
                             margin: const EdgeInsets.only(right: 6),
                             decoration: BoxDecoration(
-                              color: available ? _PPColors.gain : _PPColors.ink4,
+                              color: available
+                                  ? _PPColors.gain
+                                  : _PPColors.ink4,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -535,10 +579,13 @@ class _PrinterRow extends StatelessWidget {
                               subtitle,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
-                              style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
-                                fontSize: 12,
-                                color: available ? _PPColors.ink3 : _PPColors.ink4,
-                              ),
+                              style: (textTheme.bodySmall ?? const TextStyle())
+                                  .copyWith(
+                                    fontSize: 12,
+                                    color: available
+                                        ? _PPColors.ink3
+                                        : _PPColors.ink4,
+                                  ),
                             ),
                           ),
                         ],
@@ -551,15 +598,25 @@ class _PrinterRow extends StatelessWidget {
                     ? Container(
                         width: 24,
                         height: 24,
-                        decoration: const BoxDecoration(color: _PPColors.blue, shape: BoxShape.circle),
-                        child: const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+                        decoration: const BoxDecoration(
+                          color: _PPColors.blue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 15,
+                          color: Colors.white,
+                        ),
                       )
                     : Container(
                         width: 22,
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: _PPColors.lineStrong, width: 2),
+                          border: Border.all(
+                            color: _PPColors.lineStrong,
+                            width: 2,
+                          ),
                         ),
                       ),
               ],
@@ -620,11 +677,22 @@ class _Footer extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(flex: 10, child: _GhostButton(textTheme: textTheme, label: 'Cancel', onTap: onCancel)),
+              Expanded(
+                flex: 10,
+                child: _GhostButton(
+                  textTheme: textTheme,
+                  label: 'Cancel',
+                  onTap: onCancel,
+                ),
+              ),
               const SizedBox(width: 11),
               Expanded(
                 flex: 13,
-                child: _PrimaryButton(textTheme: textTheme, label: 'Print receipt', onTap: onPrint),
+                child: _PrimaryButton(
+                  textTheme: textTheme,
+                  label: 'Print receipt',
+                  onTap: onPrint,
+                ),
               ),
             ],
           ),
@@ -684,14 +752,22 @@ class _Stepper extends StatelessWidget {
       color: _PPColors.surface2,
       child: InkWell(
         onTap: onTap,
-        child: SizedBox(width: 36, height: 38, child: Icon(icon, size: 16, color: _PPColors.blue)),
+        child: SizedBox(
+          width: 36,
+          height: 38,
+          child: Icon(icon, size: 16, color: _PPColors.blue),
+        ),
       ),
     );
   }
 }
 
 class _GhostButton extends StatelessWidget {
-  const _GhostButton({required this.textTheme, required this.label, required this.onTap});
+  const _GhostButton({
+    required this.textTheme,
+    required this.label,
+    required this.onTap,
+  });
 
   final TextTheme textTheme;
   final String label;
@@ -728,7 +804,11 @@ class _GhostButton extends StatelessWidget {
 }
 
 class _PrimaryButton extends StatelessWidget {
-  const _PrimaryButton({required this.textTheme, required this.label, required this.onTap});
+  const _PrimaryButton({
+    required this.textTheme,
+    required this.label,
+    required this.onTap,
+  });
 
   final TextTheme textTheme;
   final String label;
