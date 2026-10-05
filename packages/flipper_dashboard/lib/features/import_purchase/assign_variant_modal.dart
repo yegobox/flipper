@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -43,7 +44,8 @@ Future<void> showIpmAssignVariantModal(
   required IpmPurchaseMappingMode initialMode,
   required Future<IpmPurchaseMappingSaveResult> Function(
     IpmPurchaseMappingResult result,
-  ) onSave,
+  )
+  onSave,
   String? initialCatalogVariantId,
   String? initialItemCd,
   Variant? initialCatalogVariant,
@@ -87,11 +89,13 @@ class _AssignVariantModalBody extends StatefulWidget {
   final Variant? initialCatalogVariant;
   final Future<IpmPurchaseMappingSaveResult> Function(
     IpmPurchaseMappingResult result,
-  ) onSave;
+  )
+  onSave;
   final VoidCallback onClose;
 
   @override
-  State<_AssignVariantModalBody> createState() => _AssignVariantModalBodyState();
+  State<_AssignVariantModalBody> createState() =>
+      _AssignVariantModalBodyState();
 }
 
 class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
@@ -178,11 +182,11 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
           retailPrice: double.parse(_retailController.text),
           catalogVariant: _mode == IpmPurchaseMappingMode.mapExisting
               ? (_selectedCatalogVariant ??
-                  Variant(
-                    id: _selectedCatalogVariantId!,
-                    name: _nameController.text.trim(),
-                    branchId: widget.item.branchId,
-                  ))
+                    Variant(
+                      id: _selectedCatalogVariantId!,
+                      name: _nameController.text.trim(),
+                      branchId: widget.item.branchId,
+                    ))
               : null,
         ),
       );
@@ -206,13 +210,17 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
     final code = _displayItemCd;
     if (code == null || code.isEmpty) return;
     Clipboard.setData(ClipboardData(text: code));
-    showImportPurchaseToast(context, 'Item code copied');
+    showImportPurchaseToast(
+      context,
+      context.flipperL10n.importPurchaseItemCodeCopied,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return IpmModalShell(
-      title: 'Map purchase line',
+      title: l10n.importPurchaseMapLineTitle,
       subtitle: widget.item.name,
       icon: Icons.local_offer_outlined,
       maxWidth: 440,
@@ -224,45 +232,46 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_displayItemCd != null && _displayItemCd!.isNotEmpty) ...[
-              const IpmFieldLabel('RRA item code'),
-              IpmCopyableValue(
-                value: _displayItemCd!,
-                onCopy: _copyItemCd,
-              ),
+              IpmFieldLabel(l10n.importPurchaseRraItemCode),
+              IpmCopyableValue(value: _displayItemCd!, onCopy: _copyItemCd),
               const SizedBox(height: 14),
             ],
             IpmChoiceOption(
               selected: _mode == IpmPurchaseMappingMode.createNew,
               icon: Icons.add_circle_outline,
-              title: 'Create new variant',
-              description:
-                  'Creates a catalog item now and maps this purchase line to it.',
-              onTap: () => setState(() => _mode = IpmPurchaseMappingMode.createNew),
+              title: l10n.importPurchaseCreateNewVariant,
+              description: l10n.importPurchaseCreateNewVariantDesc,
+              onTap: () =>
+                  setState(() => _mode = IpmPurchaseMappingMode.createNew),
             ),
             const SizedBox(height: 10),
             IpmChoiceOption(
               selected: _mode == IpmPurchaseMappingMode.mapExisting,
               icon: Icons.merge_type,
-              title: 'Map to existing variant',
-              description: 'Adds this quantity to a variant you already stock.',
-              onTap: () => setState(() => _mode = IpmPurchaseMappingMode.mapExisting),
+              title: l10n.importPurchaseMapExistingVariant,
+              description: l10n.importPurchaseMapExistingVariantDesc,
+              onTap: () =>
+                  setState(() => _mode = IpmPurchaseMappingMode.mapExisting),
             ),
             if (_mode == IpmPurchaseMappingMode.mapExisting) ...[
               const SizedBox(height: 14),
               const Divider(height: 1, color: Color(0xFFE8ECF2)),
               const SizedBox(height: 14),
-              const IpmFieldLabel('Existing variant'),
+              IpmFieldLabel(l10n.importPurchaseExistingVariant),
               IpmVariantCombo(
                 selectedVariantId: _selectedCatalogVariantId,
-                placeholder: 'Select a variant…',
+                placeholder: l10n.importPurchaseSelectVariantEllipsis,
                 onSelected: (catalog) {
                   setState(() => _applyCatalogVariant(catalog));
                 },
               ),
             ],
             const SizedBox(height: 14),
-            const IpmFieldLabel('Name'),
-            IpmTextField(controller: _nameController, onChanged: (_) => setState(() {})),
+            IpmFieldLabel(l10n.name),
+            IpmTextField(
+              controller: _nameController,
+              onChanged: (_) => setState(() {}),
+            ),
             const SizedBox(height: 14),
             Row(
               children: [
@@ -270,7 +279,7 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const IpmFieldLabel('Supply Price'),
+                      IpmFieldLabel(l10n.importPurchaseSupplyPrice),
                       IpmTextField(
                         controller: _supplyController,
                         numeric: true,
@@ -284,7 +293,7 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const IpmFieldLabel('Retail Price'),
+                      IpmFieldLabel(l10n.importPurchaseRetailPrice),
                       IpmTextField(
                         controller: _retailController,
                         numeric: true,
@@ -302,15 +311,15 @@ class _AssignVariantModalBodyState extends State<_AssignVariantModalBody> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           IpmButton(
-            label: 'Cancel',
+            label: l10n.cancel,
             variant: IpmButtonVariant.ghost,
             onPressed: _saving ? null : widget.onClose,
           ),
           const SizedBox(width: 10),
           IpmButton(
             label: _saving
-                ? 'Creating…'
-                : (_showDoneOnly ? 'Done' : 'Save mapping'),
+                ? l10n.importPurchaseCreating
+                : (_showDoneOnly ? l10n.done : l10n.importPurchaseSaveMapping),
             icon: Icons.check,
             onPressed: _showDoneOnly
                 ? widget.onClose

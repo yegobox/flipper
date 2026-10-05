@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
@@ -11,8 +12,9 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/shift.model.dart';
 
 /// Whether the current user has an open shift in Ditto.
-final currentOpenShiftProvider =
-    FutureProvider.autoDispose<Shift?>((ref) async {
+final currentOpenShiftProvider = FutureProvider.autoDispose<Shift?>((
+  ref,
+) async {
   final userId = ProxyService.box.getUserId();
   if (userId == null) return null;
   return shiftSync.getCurrentShift(userId: userId);
@@ -46,7 +48,7 @@ class PosShiftGate extends ConsumerWidget {
     final dialogService = locator<DialogService>();
     final response = await dialogService.showCustomDialog(
       variant: DialogType.startShift,
-      title: 'Start New Shift',
+      title: FlipperL10n.current.startNewShift,
     );
     if (response != null && response.confirmed) {
       ref.invalidate(currentOpenShiftProvider);
@@ -81,7 +83,7 @@ class PosShiftGate extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Could not load shift status',
+                    context.flipperL10n.posShiftLoadFailed,
                     style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
@@ -89,7 +91,7 @@ class PosShiftGate extends ConsumerWidget {
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => ref.invalidate(currentOpenShiftProvider),
-                    child: const Text('Retry'),
+                    child: Text(context.flipperL10n.retry),
                   ),
                 ],
               ),
@@ -113,7 +115,7 @@ class PosShiftGate extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Start a shift to sell',
+                        context.flipperL10n.posShiftStartToSell,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -121,8 +123,7 @@ class PosShiftGate extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Open your cash drawer shift before ringing up sales. '
-                        'You can also open a shift from the sidebar.',
+                        context.flipperL10n.posShiftStartHint,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -132,7 +133,7 @@ class PosShiftGate extends ConsumerWidget {
                       FilledButton.icon(
                         onPressed: () => _openStartShift(ref),
                         icon: const Icon(Icons.play_arrow_rounded),
-                        label: const Text('Open Shift'),
+                        label: Text(context.flipperL10n.openShift),
                       ),
                     ],
                   ),

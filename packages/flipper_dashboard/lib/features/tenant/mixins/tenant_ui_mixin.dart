@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/tickets/widgets/tickets_list.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -17,6 +18,7 @@ class TenantUIMixin {
     String searchQuery,
     void Function(String) onSearchChanged,
   ) {
+    final l10n = context.flipperL10n;
     final q = searchQuery.trim().toLowerCase();
     final filtered = model.tenants.where((t) {
       if (q.isEmpty) return true;
@@ -46,7 +48,7 @@ class TenantUIMixin {
             Row(
               children: [
                 Text(
-                  'CURRENT USERS',
+                  l10n.tenantMgmtCurrentUsers,
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -56,7 +58,10 @@ class TenantUIMixin {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
@@ -74,7 +79,7 @@ class TenantUIMixin {
             ),
             const SizedBox(height: 14),
             TicketSearchBar(
-              hintText: 'Search users...',
+              hintText: l10n.tenantMgmtSearchUsers,
               onChanged: onSearchChanged,
             ),
             const SizedBox(height: 16),
@@ -82,7 +87,9 @@ class TenantUIMixin {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Text(
-                  q.isEmpty ? 'No users yet.' : 'No users match your search.',
+                  q.isEmpty
+                      ? l10n.tenantMgmtNoUsers
+                      : l10n.tenantMgmtNoUsersMatch,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
@@ -108,7 +115,10 @@ class TenantUIMixin {
   static String _tenantInitials(Tenant tenant) {
     final name = (tenant.name ?? '').trim();
     if (name.isEmpty) return '?';
-    final parts = name.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+    final parts = name
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
     if (parts.length >= 2) {
       final a = parts[0].isNotEmpty ? parts[0][0] : '';
       final b = parts[1].isNotEmpty ? parts[1][0] : '';
@@ -136,14 +146,41 @@ class TenantUIMixin {
     }
   }
 
-  static Widget _roleChip(String? type) {
-    final label = (type?.trim().isNotEmpty == true) ? type!.trim() : 'User';
+  /// Display label for a tenant user type; the raw value is what is stored.
+  static String roleLabel(FlipperAppLocalizations l10n, String? type) {
+    final raw = type?.trim() ?? '';
+    switch (raw.toLowerCase()) {
+      case '':
+        return l10n.tenantMgmtRoleUser;
+      case 'admin':
+        return l10n.tenantMgmtRoleAdmin;
+      case 'agent':
+        return l10n.tenantMgmtRoleAgent;
+      case 'cashier':
+        return l10n.tenantMgmtRoleCashier;
+      case 'driver':
+        return l10n.tenantMgmtRoleDriver;
+      case 'viewer':
+        return l10n.tenantMgmtRoleViewer;
+      case 'reviewer':
+        return l10n.tenantMgmtRoleReviewer;
+      case 'stock manager':
+        return l10n.tenantMgmtRoleStockManager;
+      default:
+        return raw;
+    }
+  }
+
+  static Widget _roleChip(BuildContext context, String? type) {
+    final label = roleLabel(context.flipperL10n, type);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: _roleBadgeColor(type).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _roleBadgeColor(type).withValues(alpha: 0.35)),
+        border: Border.all(
+          color: _roleBadgeColor(type).withValues(alpha: 0.35),
+        ),
       ),
       child: Text(
         label,
@@ -187,14 +224,14 @@ class TenantUIMixin {
     FlipperBaseModel model,
     bool isSelected,
     Future<void> Function(Tenant) onTenantSelected,
-    void Function(BuildContext, Tenant, FlipperBaseModel) showDeleteConfirmation,
+    void Function(BuildContext, Tenant, FlipperBaseModel)
+    showDeleteConfirmation,
   ) {
     final currentUser = tenant.userId == ProxyService.box.getUserId();
     final isAdmin = (tenant.type ?? '').trim().toLowerCase() == 'admin';
-    final subtitle =
-        tenant.email?.trim().isNotEmpty == true
-            ? tenant.email!
-            : (tenant.phoneNumber ?? 'No contact');
+    final subtitle = tenant.email?.trim().isNotEmpty == true
+        ? tenant.email!
+        : (tenant.phoneNumber ?? context.flipperL10n.tenantMgmtNoContact);
 
     return Material(
       color: Colors.transparent,
@@ -262,7 +299,7 @@ class TenantUIMixin {
                 ),
               ),
               const SizedBox(width: 8),
-              _roleChip(tenant.type),
+              _roleChip(context, tenant.type),
               const SizedBox(width: 8),
               _squareIconButton(
                 icon: Icons.edit_outlined,
@@ -274,7 +311,8 @@ class TenantUIMixin {
                 _squareIconButton(
                   icon: Icons.delete_outline,
                   iconColor: Colors.red[600]!,
-                  onPressed: () => showDeleteConfirmation(context, tenant, model),
+                  onPressed: () =>
+                      showDeleteConfirmation(context, tenant, model),
                 ),
             ],
           ),
@@ -292,7 +330,7 @@ class TenantUIMixin {
     return asyncBranches.when(
       data: (branches) {
         if (branches.isEmpty) {
-          return Text("No branches available");
+          return Text(context.flipperL10n.tenantMgmtNoBranches);
         }
 
         // selectedBranchProvider is shared app-wide and may hold a branch from
@@ -315,22 +353,26 @@ class TenantUIMixin {
           items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
             return DropdownMenuItem<Branch>(
               value: branch,
-              child: Text(branch.name ?? 'Unnamed Branch'),
+              child: Text(
+                branch.name ?? context.flipperL10n.tenantMgmtUnnamedBranch,
+              ),
             );
           }).toList(),
           decoration: InputDecoration(
-            labelText: "Select Branch",
+            labelText: context.flipperL10n.tenantMgmtSelectBranch,
             labelStyle: TextStyle(color: Colors.grey[600]),
-            prefixIcon: Icon(
-              Icons.business,
-              color: Colors.blueAccent,
-            ),
+            prefixIcon: Icon(Icons.business, color: Colors.blueAccent),
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Colors.blueAccent,
+                width: 1.5,
+              ),
+            ),
             filled: true,
             fillColor: const Color(0xFFF3F4F6),
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -338,7 +380,8 @@ class TenantUIMixin {
         );
       },
       loading: () => Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Text('Error: $error'),
+      error: (error, stackTrace) =>
+          Text(context.flipperL10n.tenantMgmtErrorValue(error.toString())),
     );
   }
 }

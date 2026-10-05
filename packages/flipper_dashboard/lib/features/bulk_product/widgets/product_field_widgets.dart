@@ -2,6 +2,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
@@ -53,10 +54,11 @@ class ProductTypeDropdown extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final model = ref.watch(bulkAddProductViewModelProvider);
+    final l10n = context.flipperL10n;
     final List<Map<String, String>> options = [
-      {"name": "Raw Material", "value": "1"},
-      {"name": "Finished Product", "value": "2"},
-      {"name": "Service without stock", "value": "3"},
+      {"name": l10n.bulkProductTypeRawMaterial, "value": "1"},
+      {"name": l10n.bulkProductTypeFinishedProduct, "value": "2"},
+      {"name": l10n.bulkProductTypeService, "value": "3"},
     ];
 
     // Use the first option's value as default if selectedValue is null
@@ -209,8 +211,9 @@ class ItemClassDropdown extends ConsumerWidget {
           ),
         );
       },
-      loading: () => Text('Loading...'),
-      error: (error, stackTrace) => Text('Error: $error'),
+      loading: () => Text(context.flipperL10n.bulkProductLoading),
+      error: (error, stackTrace) =>
+          Text(context.flipperL10n.errorWithValue('$error')),
     );
   }
 }
@@ -230,6 +233,10 @@ class CategoryDropdown extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final model = ref.watch(bulkAddProductViewModelProvider);
     final categoryAsyncValue = ref.watch(categoryProvider);
+    final l10n = context.flipperL10n;
+    // Placeholder shown when there are no categories; its empty id is never
+    // saved as a category.
+    final placeholder = {'id': '', 'name': l10n.bulkProductSelectCategory};
 
     return categoryAsyncValue.when(
       data: (categories) {
@@ -248,11 +255,11 @@ class CategoryDropdown extends ConsumerWidget {
                         (category) => category['id'] == selectedValue,
                         orElse: () => categoryOptions.isNotEmpty
                             ? categoryOptions.first
-                            : {'id': '', 'name': 'Select Category'},
+                            : placeholder,
                       )
                     : (categoryOptions.isNotEmpty
                           ? categoryOptions.first
-                          : {'id': '', 'name': 'Select Category'}),
+                          : placeholder),
                 compareFn: (item1, item2) => item1['id'] == item2['id'],
                 itemAsString: (Map<String, dynamic> category) =>
                     category['name'],
@@ -283,7 +290,7 @@ class CategoryDropdown extends ConsumerWidget {
                   showSearchBox: true,
                   searchFieldProps: TextFieldProps(
                     decoration: InputDecoration(
-                      hintText: 'Search category',
+                      hintText: l10n.bulkProductSearchCategory,
                       contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
                       border: OutlineInputBorder(),
                     ),
@@ -303,13 +310,13 @@ class CategoryDropdown extends ConsumerWidget {
               onPressed: () async {
                 await showAddCategoryModal(context);
               },
-              tooltip: 'Add New Category',
+              tooltip: l10n.bulkProductAddNewCategory,
             ),
           ],
         );
       },
       loading: () => Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Text('Error: $error'),
+      error: (error, stackTrace) => Text(l10n.errorWithValue('$error')),
     );
   }
 }

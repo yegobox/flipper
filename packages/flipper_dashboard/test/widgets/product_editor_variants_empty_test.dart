@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_variants_empty.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -9,14 +10,17 @@ void main() {
   /// TableVariants renders the placeholder inside a Stack, which passes loose
   /// constraints — so the box has to claim the width itself or it shrink-wraps
   /// its text and stops lining up with the scan field above it.
-  testWidgets('fills the available width under loose constraints',
-      (tester) async {
+  testWidgets('fills the available width under loose constraints', (
+    tester,
+  ) async {
     // Wide enough that the placeholder text cannot wrap — at narrow widths the
     // wrapped text fills the box on its own and hides a missing width.
     const available = 780.0;
 
     await tester.pumpWidget(
       const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: Center(
             child: SizedBox(
@@ -35,15 +39,18 @@ void main() {
     );
   });
 
-  testWidgets('wording differs for a product that already exists',
-      (tester) async {
+  testWidgets('wording differs for a product that already exists', (
+    tester,
+  ) async {
     Future<void> pump(bool isEditMode) => tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: ProductEditorVariantsEmpty(isEditMode: isEditMode),
-            ),
-          ),
-        );
+      MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+        home: Scaffold(
+          body: ProductEditorVariantsEmpty(isEditMode: isEditMode),
+        ),
+      ),
+    );
 
     await pump(false);
     await tester.pumpAndSettle();

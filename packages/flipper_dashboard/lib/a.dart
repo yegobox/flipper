@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,9 @@ class CreditApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Credit Hub',
+      onGenerateTitle: (context) => context.flipperL10n.creditHubTitle,
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF0078D4), // Microsoft blue
@@ -102,7 +105,7 @@ class _CreditHomePageState extends State<CreditHomePage>
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Credit Hub',
+          context.flipperL10n.creditHubTitle,
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         actions: [
@@ -143,7 +146,7 @@ class _CreditHomePageState extends State<CreditHomePage>
                     ),
                     const SizedBox(height: 40),
                     Text(
-                      'Add Credits',
+                      context.flipperL10n.creditHubAddCredits,
                       style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -170,7 +173,8 @@ class _CreditHomePageState extends State<CreditHomePage>
                             keyboardType: TextInputType.number,
                             style: textTheme.bodyLarge,
                             decoration: InputDecoration(
-                              labelText: 'Enter amount',
+                              labelText:
+                                  context.flipperL10n.creditHubEnterAmount,
                               labelStyle: TextStyle(
                                 color: colorScheme.onSurface.withValues(
                                   alpha: 0.6,
@@ -227,9 +231,9 @@ class _CreditHomePageState extends State<CreditHomePage>
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text(
-                                'Add Credits',
-                                style: TextStyle(
+                              child: Text(
+                                context.flipperL10n.creditHubAddCredits,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -251,7 +255,7 @@ class _CreditHomePageState extends State<CreditHomePage>
                     ),
                     const SizedBox(height: 30),
                     Text(
-                      'Use Credits',
+                      context.flipperL10n.creditHubUseCredits,
                       style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -294,14 +298,18 @@ class _CreditHomePageState extends State<CreditHomePage>
                                           context,
                                         ).showSnackBar(
                                           _buildSnackBar(
-                                            'Used 10 credits',
+                                            context.flipperL10n.creditHubUsed(
+                                              10,
+                                            ),
                                             Icons.check_circle,
                                             Colors.blue,
                                           ),
                                         );
                                       }
                                     : null,
-                                child: const Text('Use 10'),
+                                child: Text(
+                                  context.flipperL10n.creditHubUseAmount(10),
+                                ),
                               ),
                               TextButton(
                                 onPressed: creditData.availableCredits >= 50
@@ -311,14 +319,18 @@ class _CreditHomePageState extends State<CreditHomePage>
                                           context,
                                         ).showSnackBar(
                                           _buildSnackBar(
-                                            'Used 50 credits',
+                                            context.flipperL10n.creditHubUsed(
+                                              50,
+                                            ),
                                             Icons.check_circle,
                                             Colors.blue,
                                           ),
                                         );
                                       }
                                     : null,
-                                child: const Text('Use 50'),
+                                child: Text(
+                                  context.flipperL10n.creditHubUseAmount(50),
+                                ),
                               ),
                               TextButton(
                                 onPressed: creditData.availableCredits >= 100
@@ -328,14 +340,18 @@ class _CreditHomePageState extends State<CreditHomePage>
                                           context,
                                         ).showSnackBar(
                                           _buildSnackBar(
-                                            'Used 100 credits',
+                                            context.flipperL10n.creditHubUsed(
+                                              100,
+                                            ),
                                             Icons.check_circle,
                                             Colors.blue,
                                           ),
                                         );
                                       }
                                     : null,
-                                child: const Text('Use 100'),
+                                child: Text(
+                                  context.flipperL10n.creditHubUseAmount(100),
+                                ),
                               ),
                             ],
                           ),
@@ -373,7 +389,7 @@ class _CreditHomePageState extends State<CreditHomePage>
   void _showSuccessSnackBar(BuildContext context, int amount) {
     ScaffoldMessenger.of(context).showSnackBar(
       _buildSnackBar(
-        '$amount credits added successfully',
+        context.flipperL10n.creditHubAdded(amount),
         Icons.check_circle,
         Colors.green.shade600,
       ),
@@ -383,7 +399,7 @@ class _CreditHomePageState extends State<CreditHomePage>
   void _showErrorSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       _buildSnackBar(
-        'Please enter a valid amount',
+        context.flipperL10n.creditHubInvalidAmount,
         Icons.error_outline,
         Colors.red.shade600,
       ),
@@ -440,9 +456,9 @@ class CreditDisplay extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Available Credits',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.creditHubAvailable,
+                style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -473,9 +489,9 @@ class CreditDisplay extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Credits',
-                style: TextStyle(
+              Text(
+                context.flipperL10n.creditHubCredits,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w400,
@@ -501,7 +517,7 @@ class CreditDisplay extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Maximum: $maxCredits',
+            context.flipperL10n.creditHubMaximum(maxCredits),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,
@@ -528,7 +544,7 @@ class QuickAmountsSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Quick Add',
+          context.flipperL10n.creditHubQuickAdd,
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),

@@ -1,4 +1,5 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:developer';
 
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
@@ -48,6 +49,36 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   static const Color _summaryExpenseStroke = Color(0xFFB42318);
 
   bool get _mobileChrome => !widget.isBigScreen;
+
+  /// Display label for a period option; the raw value feeds the providers.
+  String _periodLabel(String period) {
+    final l10n = context.flipperL10n;
+    switch (period) {
+      case 'Today':
+        return l10n.dashViewToday;
+      case 'This Week':
+        return l10n.dashViewThisWeek;
+      case 'This Month':
+        return l10n.dashViewThisMonth;
+      case 'This Year':
+        return l10n.dashViewThisYear;
+      default:
+        return period;
+    }
+  }
+
+  /// Display label for a profit option; the raw value feeds [displayValue].
+  String _profitTypeLabel(String type) {
+    final l10n = context.flipperL10n;
+    switch (type) {
+      case 'Net Profit':
+        return l10n.dashViewNetProfit;
+      case 'Gross Profit':
+        return l10n.dashViewGrossProfit;
+      default:
+        return type;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +142,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: _mobilePeriodChip(
-                      label: period,
+                      label: _periodLabel(period),
                       selected: isSelected,
                       onTap: () => setState(() => transactionPeriod = period),
                     ),
@@ -126,7 +157,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: _mobileProfitChip(
-                    label: type,
+                    label: _profitTypeLabel(type),
                     selected: isSelected,
                     onTap: () => setState(() => profitType = type),
                   ),
@@ -161,7 +192,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: ChoiceChip(
-                    label: Text(period),
+                    label: Text(_periodLabel(period)),
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
@@ -203,7 +234,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),
                   child: ChoiceChip(
-                    label: Text(type),
+                    label: Text(_profitTypeLabel(type)),
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
@@ -311,7 +342,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     return Column(
       children: [
         Text(
-          'FROM YEGOBOX',
+          context.flipperL10n.dashViewFromYegobox,
           style: GoogleFonts.outfit(
             fontSize: 14,
             color: Colors.black87,
@@ -481,8 +512,14 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   children: [
                     Text(
                       count == 0
-                          ? "Today's goal · 0 of $goalTarget sales"
-                          : "Today's goal · $count of $goalTarget sales",
+                          ? context.flipperL10n.dashViewTodaysGoal(
+                              '0',
+                              '$goalTarget',
+                            )
+                          : context.flipperL10n.dashViewTodaysGoal(
+                              '$count',
+                              '$goalTarget',
+                            ),
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -499,15 +536,19 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                         children: [
                           TextSpan(
                             text: count == 0
-                                ? 'Log your first sale to start earning'
+                                ? context.flipperL10n.dashViewLogFirstSale
                                 : remaining == 0
-                                ? 'Goal reached! '
-                                : 'Just $remaining more to ',
+                                ? context.flipperL10n.dashViewGoalReached
+                                : context.flipperL10n.dashViewJustMoreTo(
+                                    '$remaining',
+                                  ),
                           ),
                           if (count > 0 && remaining > 0)
-                            const TextSpan(
-                              text: '+50 pts',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                            TextSpan(
+                              text: context.flipperL10n.dashViewPlusPoints,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                         ],
                       ),
@@ -585,7 +626,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Stock value',
+                    context.flipperL10n.dashViewStockValue,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -651,8 +692,10 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   Expanded(
                     child: Text(
                       analyticsEmpty
-                          ? '0 items low on stock'
-                          : '${summary.needsRestockCount} items low on stock',
+                          ? context.flipperL10n.dashViewItemsLowOnStock(0)
+                          : context.flipperL10n.dashViewItemsLowOnStock(
+                              summary.needsRestockCount,
+                            ),
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -677,7 +720,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'Full report ›',
+                      context.flipperL10n.dashViewFullReport,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -689,7 +732,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
               if (summary.isPossiblyIncomplete) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'Data may be incomplete (partial sync).',
+                  context.flipperL10n.dashViewDataIncomplete,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: Colors.black54,
@@ -704,7 +747,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
         ),
         error: (_, __) => Text(
-          'Unable to load stock value.',
+          context.flipperL10n.dashViewUnableToLoadStock,
           style: GoogleFonts.outfit(fontSize: 14, color: Colors.black54),
         ),
       ),
@@ -730,7 +773,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           child: _summaryStatCard(
             icon: DashboardQuickAccessSvgs.revenueSummaryIcon(),
             iconBackground: const Color(0xFFE6F7EF),
-            label: 'Revenue',
+            label: context.flipperL10n.dashViewRevenue,
             valueText: hasRevenue ? formatNumber(snapshot.revenue) : '0',
             valueColor: hasRevenue
                 ? _summaryRevenueStroke
@@ -744,7 +787,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           child: _summaryStatCard(
             icon: DashboardQuickAccessSvgs.expensesSummaryIcon(),
             iconBackground: const Color(0xFFFDECEC),
-            label: 'Expenses',
+            label: context.flipperL10n.dashViewExpenses,
             valueText: hasExpenses ? formatNumber(snapshot.deductions) : '0',
             valueColor: hasExpenses
                 ? _summaryExpenseStroke
@@ -842,7 +885,13 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                 ),
                 const SizedBox(width: 2),
                 Text(
-                  '${deltaPercent.abs()}% ${isUp ? 'up' : 'up'}',
+                  isUp
+                      ? context.flipperL10n.dashViewDeltaUp(
+                          '${deltaPercent.abs()}',
+                        )
+                      : context.flipperL10n.dashViewDeltaDown(
+                          '${deltaPercent.abs()}',
+                        ),
                   style: FlipperFonts.mono(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/utils/pos_product_tile.dart';
 import 'package:flipper_dashboard/widgets/pos_catalog_grid_card.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
@@ -33,7 +34,7 @@ class BarPosVariantTile extends StatelessWidget {
         (variant.productName?.trim().isNotEmpty == true
             ? variant.productName
             : variant.name) ??
-        'Unnamed Product';
+        context.flipperL10n.barUnnamedProduct;
     final bcd = variant.bcd;
     final bcdLabel = bcd != null && bcd.isNotEmpty ? 'BCD: $bcd' : null;
 

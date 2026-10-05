@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async' show unawaited;
 
@@ -37,7 +38,7 @@ class StockValueReportDesktopScreen extends ConsumerWidget {
               Expanded(
                 child: Center(
                   child: Text(
-                    'Unable to load stock report.',
+                    context.flipperL10n.stockValueLoadError,
                     style: GoogleFonts.outfit(
                       color: Colors.black54,
                       fontSize: 16,
@@ -95,7 +96,7 @@ class _StockValueTopBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Stock Value',
+                  context.flipperL10n.stockValueTitle,
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -175,7 +176,10 @@ class _StockValueLoadingShell extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _StockValueTopBar(onClose: onClose, subtitle: 'Loading products…'),
+          _StockValueTopBar(
+            onClose: onClose,
+            subtitle: context.flipperL10n.stockValueLoadingProducts,
+          ),
           const Divider(height: 1),
           Expanded(
             child: Padding(
@@ -326,7 +330,7 @@ class _StockValueDesktopScaffoldState
             onRestockStub: () {
               showInfoNotification(
                 context,
-                'Use inventory or receive stock to restock items.',
+                context.flipperL10n.stockValueRestockHint,
               );
             },
           ),
@@ -393,22 +397,30 @@ class _StockValueDesktopScaffoldState
     if (rows.isEmpty) {
       showWarningNotification(
         context,
-        'No rows to export for the current filter.',
+        context.flipperL10n.stockValueNoRowsToExport,
       );
       return;
     }
     final buf = StringBuffer();
-    buf.writeln('Product,Category,BCD,Unit price,Stock,Line value,Status');
+    final l10n = context.flipperL10n;
+    buf.writeln(
+      [
+        l10n.stockValueCsvProduct,
+        l10n.category,
+        'BCD',
+        l10n.stockValueCsvUnitPrice,
+        l10n.stockValueCsvStock,
+        l10n.stockValueCsvLineValue,
+        l10n.stockValueCsvStatus,
+      ].map(_csv).join(','),
+    );
     for (final p in rows) {
       buf.writeln(
         '${_csv(p.name)},${_csv(p.categoryName)},${_csv(p.bcd ?? '')},${p.unitPrice},${p.currentStock},${p.lineValue},${p.status.name}',
       );
     }
     unawaited(Clipboard.setData(ClipboardData(text: buf.toString())));
-    showSuccessNotification(
-      context,
-      'Copied ${rows.length} rows as CSV to clipboard.',
-    );
+    showSuccessNotification(context, l10n.stockValueCopiedCsvRows(rows.length));
   }
 
   String _csv(String s) {
@@ -434,8 +446,11 @@ class _StockValueDesktopScaffoldState
   }) {
     return _StockValueTopBar(
       onClose: widget.onClose,
-      subtitle:
-          '${report.productsCount} products across ${report.valueByCategory.length} categories · Last updated today at $timeStr',
+      subtitle: context.flipperL10n.stockValueDesktopSubtitle(
+        report.productsCount,
+        report.valueByCategory.length,
+        timeStr,
+      ),
       actions: [
         SizedBox(
           width: 220,
@@ -449,7 +464,7 @@ class _StockValueDesktopScaffoldState
               fillColor: Colors.white,
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-              hintText: 'Search product or BCD...',
+              hintText: context.flipperL10n.stockValueSearchHint,
               hintStyle: GoogleFonts.outfit(
                 color: Colors.black45,
                 fontSize: 13,
@@ -474,12 +489,18 @@ class _StockValueDesktopScaffoldState
         const SizedBox(width: 8),
         FilledButton.tonal(
           onPressed: onExport,
-          child: Text('Export', style: GoogleFonts.outfit()),
+          child: Text(
+            context.flipperL10n.stockValueExport,
+            style: GoogleFonts.outfit(),
+          ),
         ),
         const SizedBox(width: 8),
         FilledButton(
           onPressed: onRestockStub,
-          child: Text('+ Restock order', style: GoogleFonts.outfit()),
+          child: Text(
+            context.flipperL10n.stockValueRestockOrder,
+            style: GoogleFonts.outfit(),
+          ),
         ),
       ],
     );
@@ -489,6 +510,7 @@ class _StockValueDesktopScaffoldState
     final catPct = report.productsCount <= 0
         ? 0
         : (100 * report.healthyStockCount / report.productsCount).round();
+    final l10n = context.flipperL10n;
     return LayoutBuilder(
       builder: (context, c) {
         final w = c.maxWidth;
@@ -503,35 +525,42 @@ class _StockValueDesktopScaffoldState
           children: [
             _KpiCard(
               borderColor: const Color(0xFF1F6FEB),
-              title: 'Total stock value',
+              title: l10n.stockValueTotalStockValue,
               value: 'RWF ${formatNumber(report.totalValue)}',
-              subtitle: '${report.productsCount} products',
-              badge: 'At retail/supply value',
+              subtitle: l10n.stockValueProductsCount(report.productsCount),
+              badge: l10n.stockValueAtRetailSupply,
             ),
             _KpiCard(
               borderColor: const Color(0xFF16A34A),
-              title: 'Healthy stock',
+              title: l10n.stockValueHealthyStock,
               value: '${report.healthyStockCount}',
-              subtitle: 'products well stocked',
-              badge: '$catPct% of catalogue',
+              subtitle: l10n.stockValueWellStocked,
+              badge: l10n.stockValuePercentOfCatalogue(catPct.toString()),
             ),
             _KpiCard(
               borderColor: const Color(0xFFDC2626),
-              title: 'Critical / low',
+              title: l10n.stockValueCriticalLow,
               value: '${report.needsRestockCount}',
-              subtitle: 'need restocking',
-              badge: 'review alerts →',
+              subtitle: l10n.stockValueNeedRestocking,
+              badge: l10n.stockValueReviewAlerts,
             ),
             _KpiCard(
               borderColor: const Color(0xFFF59E0B),
-              title: 'Highest value item',
+              title: l10n.stockValueHighestValueItem,
               value: report.topByLineValue?.name ?? '—',
               subtitle: report.topByLineValue == null
-                  ? 'No value on hand'
-                  : 'RWF ${formatNumber(report.topByLineValue!.lineValue)} · ${report.topByLineValue!.currentStock.toStringAsFixed(0)} units',
+                  ? l10n.stockValueNoValueOnHand
+                  : l10n.stockValueTopItemDetail(
+                      'RWF ${formatNumber(report.topByLineValue!.lineValue)}',
+                      report.topByLineValue!.currentStock.toStringAsFixed(0),
+                    ),
               badge: report.topByLineValue == null
                   ? '—'
-                  : '${(report.topByLineValue!.lineShareOfTotal * 100).round()}% of total value',
+                  : l10n.stockValuePercentOfTotal(
+                      (report.topByLineValue!.lineShareOfTotal * 100)
+                          .round()
+                          .toString(),
+                    ),
             ),
           ],
         );
@@ -546,6 +575,7 @@ class _StockValueDesktopScaffoldState
     required void Function(_ProductFilter) onFilter,
     required _ProductFilter filter,
   }) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -567,21 +597,36 @@ class _StockValueDesktopScaffoldState
               const Icon(Icons.list_alt_outlined, size: 20),
               const SizedBox(width: 8),
               Text(
-                'All products',
+                l10n.stockValueAllProducts,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const Spacer(),
-              _filterChip('All', _ProductFilter.all, filter, onFilter),
-              const SizedBox(width: 6),
-              _filterChip('OK', _ProductFilter.ok, filter, onFilter),
-              const SizedBox(width: 6),
-              _filterChip('Low', _ProductFilter.low, filter, onFilter),
+              _filterChip(
+                l10n.stockValueFilterAll,
+                _ProductFilter.all,
+                filter,
+                onFilter,
+              ),
               const SizedBox(width: 6),
               _filterChip(
-                'Critical',
+                l10n.stockValueStatusOk,
+                _ProductFilter.ok,
+                filter,
+                onFilter,
+              ),
+              const SizedBox(width: 6),
+              _filterChip(
+                l10n.stockValueStatusLow,
+                _ProductFilter.low,
+                filter,
+                onFilter,
+              ),
+              const SizedBox(width: 6),
+              _filterChip(
+                l10n.stockValueStatusCritical,
                 _ProductFilter.critical,
                 filter,
                 onFilter,
@@ -593,7 +638,7 @@ class _StockValueDesktopScaffoldState
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Data may be incomplete (partial sync).',
+                l10n.stockValuePartialSync,
                 style: GoogleFonts.outfit(fontSize: 12, color: Colors.black54),
               ),
             ),
@@ -602,7 +647,7 @@ class _StockValueDesktopScaffoldState
               padding: const EdgeInsets.all(24),
               child: Center(
                 child: Text(
-                  'No products match the current search or filter.',
+                  l10n.stockValueNoProductsMatch,
                   style: GoogleFonts.outfit(color: Colors.black54),
                 ),
               ),
@@ -722,22 +767,37 @@ class _ProductTableHeader extends StatelessWidget {
       fontWeight: FontWeight.w800,
       color: Colors.black45,
     );
+    final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text('PRODUCT', style: h())),
-          Expanded(child: Text('CATEGORY', style: h())),
+          Expanded(flex: 2, child: Text(l10n.stockValueColProduct, style: h())),
+          Expanded(child: Text(l10n.stockValueColCategory, style: h())),
           SizedBox(width: 80, child: Text('BCD', style: h())),
-          SizedBox(width: 100, child: Text('UNIT PRICE', style: h())),
-          SizedBox(width: 120, child: Text('STOCK', style: h())),
+          SizedBox(
+            width: 100,
+            child: Text(l10n.stockValueColUnitPrice, style: h()),
+          ),
+          SizedBox(
+            width: 120,
+            child: Text(l10n.stockValueColStock, style: h()),
+          ),
           SizedBox(
             width: 110,
-            child: Text('VALUE', textAlign: TextAlign.right, style: h()),
+            child: Text(
+              l10n.stockValueColValue,
+              textAlign: TextAlign.right,
+              style: h(),
+            ),
           ),
           SizedBox(
             width: 88,
-            child: Text('STATUS', textAlign: TextAlign.right, style: h()),
+            child: Text(
+              l10n.stockValueColStatus,
+              textAlign: TextAlign.right,
+              style: h(),
+            ),
           ),
         ],
       ),
@@ -758,17 +818,17 @@ class _ProductDataRow extends StatelessWidget {
     Color bg;
     switch (st) {
       case StockValueLineStatus.ok:
-        label = 'OK';
+        label = context.flipperL10n.stockValueStatusOk;
         fg = const Color(0xFF16A34A);
         bg = const Color(0xFFDCFCE7);
         break;
       case StockValueLineStatus.low:
-        label = 'Low';
+        label = context.flipperL10n.stockValueStatusLow;
         fg = const Color(0xFF92400E);
         bg = const Color(0xFFFEF3C7);
         break;
       case StockValueLineStatus.critical:
-        label = 'Critical';
+        label = context.flipperL10n.stockValueStatusCritical;
         fg = const Color(0xFFB91C1C);
         bg = const Color(0xFFFEE2E2);
     }
@@ -919,7 +979,7 @@ class _ValueByCategoryPie extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          'No category data.',
+          context.flipperL10n.stockValueNoCategoryData,
           style: GoogleFonts.outfit(color: Colors.black54),
         ),
       );
@@ -985,7 +1045,7 @@ class _ValueByCategoryPie extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Value by category',
+            context.flipperL10n.stockValueByCategory,
             style: GoogleFonts.outfit(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -1105,7 +1165,7 @@ class _RestockSidePanel extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Restock alerts',
+                context.flipperL10n.stockValueRestockAlerts,
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -1135,7 +1195,7 @@ class _RestockSidePanel extends StatelessWidget {
           const SizedBox(height: 8),
           if (items.isEmpty)
             Text(
-              'No restock alerts.',
+              context.flipperL10n.stockValueNoRestockAlerts,
               style: GoogleFonts.outfit(color: Colors.black54, fontSize: 13),
             )
           else
@@ -1178,7 +1238,10 @@ class _RestockSidePanel extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${item.currentStock.toStringAsFixed(0)} units, min: ${item.minStock.toStringAsFixed(0)}',
+                            context.flipperL10n.stockValueUnitsMin(
+                              item.currentStock.toStringAsFixed(0),
+                              item.minStock.toStringAsFixed(0),
+                            ),
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               color: const Color(0xFFB91C1C),

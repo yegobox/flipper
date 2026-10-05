@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/states/productListProvider.dart';
@@ -64,8 +65,8 @@ class UnifiedSearchField extends HookConsumerWidget {
           focusNode: focusNode,
           decoration: InputDecoration(
             hintText: selectedSupplier == null
-                ? 'Search suppliers...'
-                : 'Search products...',
+                ? context.flipperL10n.orderingSearchSuppliersEllipsis
+                : context.flipperL10n.searchProducts,
             hintStyle: TextStyle(
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
@@ -79,7 +80,8 @@ class UnifiedSearchField extends HookConsumerWidget {
                         color: colorScheme.onPrimaryContainer,
                       ),
                       label: Text(
-                        selectedSupplier.name ?? 'Unknown',
+                        selectedSupplier.name ??
+                            context.flipperL10n.reportStatusUnknown,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w600,
@@ -95,7 +97,8 @@ class UnifiedSearchField extends HookConsumerWidget {
                         ref
                             .read(selectedSupplierProvider.notifier)
                             .clearSupplier();
-                        ref.read(supplierCatalogSearchProvider.notifier).state = '';
+                        ref.read(supplierCatalogSearchProvider.notifier).state =
+                            '';
                         controller.clear();
                         searchText.value = '';
                       },
@@ -122,9 +125,10 @@ class UnifiedSearchField extends HookConsumerWidget {
                     onPressed: () {
                       controller.clear();
                       searchText.value = '';
-                      ref.read(supplierCatalogSearchProvider.notifier).state = '';
+                      ref.read(supplierCatalogSearchProvider.notifier).state =
+                          '';
                     },
-                    tooltip: 'Clear search',
+                    tooltip: context.flipperL10n.clearSearch,
                   )
                 : null,
             filled: true,
@@ -173,33 +177,34 @@ class UnifiedSearchField extends HookConsumerWidget {
           child: Material(
             color: Colors.transparent,
             child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            leading: Icon(Icons.store, color: colorScheme.primary, size: 20),
-            title: Text(
-              supplier.name ?? 'Unknown Supplier',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              leading: Icon(Icons.store, color: colorScheme.primary, size: 20),
+              title: Text(
+                supplier.name ?? context.flipperL10n.orderingUnknownSupplier,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              subtitle:
+                  supplier.description != null &&
+                      supplier.description!.isNotEmpty
+                  ? Text(
+                      supplier.description!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : null,
+              trailing: Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                size: 20,
               ),
             ),
-            subtitle:
-                supplier.description != null && supplier.description!.isNotEmpty
-                ? Text(
-                    supplier.description!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  )
-                : null,
-            trailing: Icon(
-              Icons.chevron_right,
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              size: 20,
-            ),
-          ),
           ),
         );
       },
@@ -227,7 +232,7 @@ class UnifiedSearchField extends HookConsumerWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'No suppliers found',
+                context.flipperL10n.orderingNoSuppliersFound,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
@@ -235,7 +240,7 @@ class UnifiedSearchField extends HookConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Try a different search term',
+                context.flipperL10n.orderingTryDifferentSearch,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

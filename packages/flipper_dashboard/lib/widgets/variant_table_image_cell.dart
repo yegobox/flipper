@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:io';
 
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
@@ -102,7 +103,7 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
 
   Future<void> _pickAndUpload() async {
     if (widget.productId.isEmpty || widget.variant.id.isEmpty) {
-      toast('Save the product and try again');
+      toast(context.flipperL10n.variantImageSaveProductFirst);
       return;
     }
 
@@ -126,7 +127,7 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
       _applyFileName(fileName);
     } catch (e, st) {
       talker.error('Variant image upload failed: $e', e, st);
-      toast('Could not upload image. Please try again.');
+      toast(FlipperL10n.current.variantImageUploadFailed);
     } finally {
       if (mounted) {
         setState(() => _uploading = false);
@@ -156,7 +157,9 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
     // exactly such a rebuild when the editor's variants arrive.
     return Semantics(
       button: true,
-      label: hasImage ? 'Change variant image' : 'Add variant image',
+      label: hasImage
+          ? context.flipperL10n.variantImageChange
+          : context.flipperL10n.variantImageAdd,
       child: InkWell(
         onTap: _uploading ? null : _pickAndUpload,
         borderRadius: BorderRadius.circular(8),
@@ -174,10 +177,8 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
                     width: 40,
                     height: 40,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.broken_image_outlined,
-                      size: 22,
-                    ),
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.broken_image_outlined, size: 22),
                   ),
                 )
               else if (hasImage)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' show Color;
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helpers/pos_payment_role_tenant.dart';
 import 'package:flipper_models/models/hotel_branch_settings.dart';
@@ -186,7 +187,7 @@ class HotelModeNotifier extends Notifier<HotelModeState> {
     state = state.copyWith(
       activeClerk: manager,
       showManagerModal: false,
-      toastMessage: 'Manager approved — tap Check out to settle',
+      toastMessage: FlipperL10n.current.hotelManagerApprovedToast,
     );
   }
 

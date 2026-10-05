@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_ui/style_widget/button.dart';
@@ -26,30 +27,35 @@ class _AddProductButtonsState extends State<AddProductButtons> {
               Padding(
                 padding: const EdgeInsets.only(top: 62, left: 58, right: 58),
                 child: Container(
-                    color: Colors.white70,
-                    width: double.infinity,
-                    height: 64,
-                    child: FlipperButton(
-                      text: "Add Product",
-                      onPressed: () {
-                        _routerService.navigateTo(AddProductViewRoute());
-                      },
-                    )),
+                  color: Colors.white70,
+                  width: double.infinity,
+                  height: 64,
+                  child: FlipperButton(
+                    text: context.flipperL10n.addProductAction,
+                    onPressed: () {
+                      _routerService.navigateTo(AddProductViewRoute());
+                    },
+                  ),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(
-                    top: 31, left: 58, right: 58, bottom: 20),
+                  top: 31,
+                  left: 58,
+                  right: 58,
+                  bottom: 20,
+                ),
                 child: Container(
                   width: double.infinity,
                   height: 64,
                   child: FlipperButtonFlat(
-                    text: 'Dismiss',
+                    text: context.flipperL10n.dashDismiss,
                     onPressed: () {
                       Navigator.maybePop(context);
                     },
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

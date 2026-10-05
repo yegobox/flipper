@@ -50,9 +50,7 @@ void inviteMembers({required BuildContext context}) {
               children: [
                 ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  title: Row(
-                    children: [Text(context.flipperL10n.invite)],
-                  ),
+                  title: Row(children: [Text(context.flipperL10n.invite)]),
                   trailing: Text(context.flipperL10n.sendRequest),
                 ),
                 SizedBox(
@@ -81,10 +79,7 @@ void preferences({
   required CoreViewModel model,
 }) {
   bottomSheetBuilder(
-    header: header(
-      title: context.flipperL10n.preferences,
-      context: context,
-    ),
+    header: header(title: context.flipperL10n.preferences, context: context),
     context: context,
     body: Column(
       children: [
@@ -172,7 +167,7 @@ void preferences({
                           // model.enableDailyReport((message) {
                           //   if (message == 1) {
                           //     showSimpleNotification(
-                          //       const Text('Added email is not gmail'),
+                          //       Text(context.flipperL10n.qrModeEmailNotGmail),
                           //       background: Colors.red,
                           //       position: NotificationPosition.bottom,
                           //     );
@@ -183,7 +178,7 @@ void preferences({
                           //       context: context,
                           //       body: UpdateEmailSetting(),
                           //       header:
-                          //           header(title: 'Add Email', context: context),
+                          //           header(title: context.flipperL10n.addEmail, context: context),
                           //     );
                           //   }
                           // });
@@ -225,9 +220,7 @@ void preferences({
                           }
                           if (callback == 2) {
                             showSimpleNotification(
-                              Text(
-                                context.flipperL10n.errorRestoringBackup,
-                              ),
+                              Text(context.flipperL10n.errorRestoringBackup),
                               background: Colors.red,
                               position: NotificationPosition.bottom,
                             );
@@ -237,13 +230,13 @@ void preferences({
                     ),
                     ListTile(
                       leading: const Icon(Ionicons.cloud_upload),
-                      title: const Text('Backup now'),
+                      title: Text(context.flipperL10n.backupNow),
                       trailing: const Icon(Ionicons.file_tray),
                       onTap: () {
                         model.backUpNow((message) {
                           if (message == 1) {
                             showSimpleNotification(
-                              const Text('Backup created'),
+                              Text(context.flipperL10n.backupCreated),
                               background: Colors.green,
                               position: NotificationPosition.bottom,
                             );
@@ -259,7 +252,7 @@ void preferences({
         if (ProxyService.remoteConfig.isAnalyticFeatureAvailable())
           ListTile(
             leading: const Icon(Ionicons.analytics),
-            title: const Text('Analytics'),
+            title: Text(context.flipperL10n.sideMenuAnalytics),
             trailing: const Icon(FluentIcons.arrow_forward_20_regular),
             onTap: () {
               // GoRouter.of(context).push(Routes.analytics);
@@ -268,11 +261,14 @@ void preferences({
         if (ProxyService.remoteConfig.isSyncAvailable())
           ListTile(
             leading: const Icon(Ionicons.sync),
-            title: const Text('Sync'),
+            title: Text(context.flipperL10n.syncTitle),
             trailing: const Icon(FluentIcons.arrow_forward_20_regular),
             onTap: () {
               bottomSheetBuilder(
-                header: header(title: 'Sync', context: context),
+                header: header(
+                  title: context.flipperL10n.syncTitle,
+                  context: context,
+                ),
                 context: context,
                 body: ViewModelBuilder<SettingViewModel>.reactive(
                   viewModelBuilder: () => SettingViewModel(),
@@ -281,7 +277,7 @@ void preferences({
                     return Column(
                       children: [
                         SettingsTile.switchTile(
-                          title: Text('Enable Sync'),
+                          title: Text(context.flipperL10n.syncEnable),
                           initialValue: model.getIsSyncSubscribed,
                           onToggle: (bool value) {},
                         ),
@@ -294,11 +290,14 @@ void preferences({
           ),
         ListTile(
           leading: const Icon(Icons.center_focus_weak),
-          title: const Text('QR Code'),
+          title: Text(context.flipperL10n.qrCode),
           trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
             bottomSheetBuilder(
-              header: header(title: 'Qr Mode', context: context),
+              header: header(
+                title: context.flipperL10n.qrMode,
+                context: context,
+              ),
               context: context,
               body: ViewModelBuilder<SettingViewModel>.reactive(
                 viewModelBuilder: () => SettingViewModel(),
@@ -310,13 +309,13 @@ void preferences({
                   return Column(
                     children: [
                       SettingsTile.switchTile(
-                        title: Text('Enable Qr Mode'),
+                        title: Text(context.flipperL10n.qrModeEnable),
                         initialValue: model.kSetting.isAttendanceEnabled,
                         onToggle: (bool value) {
                           model.enableAttendance((message) {
                             if (message == 1) {
                               showSimpleNotification(
-                                const Text('Added email is not gmail'),
+                                Text(context.flipperL10n.qrModeEmailNotGmail),
                                 background: Colors.red,
                                 position: NotificationPosition.bottom,
                               );
@@ -327,7 +326,7 @@ void preferences({
                                 context: context,
                                 body: UpdateEmailSetting(),
                                 header: header(
-                                  title: 'Add Email',
+                                  title: context.flipperL10n.addEmail,
                                   context: context,
                                 ),
                               );
@@ -372,10 +371,7 @@ void addMemberBottomSheet({
   required List<Widget> children,
 }) {
   bottomSheetBuilder(
-    header: header(
-      title: context.flipperL10n.addMembers,
-      context: context,
-    ),
+    header: header(title: context.flipperL10n.addMembers, context: context),
     context: context,
     body: ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
@@ -387,8 +383,8 @@ void addMemberBottomSheet({
             // header
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-              title: Row(children: const [Text('Invite')]),
-              trailing: const Text('Send Request'),
+              title: Row(children: [Text(context.flipperL10n.invite)]),
+              trailing: Text(context.flipperL10n.sendRequest),
             ),
             SizedBox(
               height: 200,
@@ -411,10 +407,7 @@ void addMemberBottomSheet({
 
 void addWorkSpace({required BuildContext context}) {
   bottomSheetBuilder(
-    header: header(
-      title: context.flipperL10n.addWorkSpace,
-      context: context,
-    ),
+    header: header(title: context.flipperL10n.addWorkSpace, context: context),
     context: context,
     body: ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
@@ -424,13 +417,13 @@ void addWorkSpace({required BuildContext context}) {
             if (ProxyService.remoteConfig.isAccessiblityFeatureAvailable())
               ListTile(
                 leading: const Icon(Ionicons.language),
-                title: const Text('Language'),
+                title: Text(context.flipperL10n.language),
                 trailing: const Icon(FluentIcons.arrow_forward_20_regular),
                 onTap: () {},
               ),
             ListTile(
               leading: const Icon(Ionicons.keypad),
-              title: const Text('Enable report'),
+              title: Text(context.flipperL10n.enableReport),
               trailing: const Icon(FluentIcons.arrow_forward_20_regular),
               onTap: () {},
             ),

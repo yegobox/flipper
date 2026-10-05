@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flipper_dashboard/features/delegations/delegation_helpers.dart';
 import 'package:flipper_dashboard/features/delegations/delegation_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
@@ -79,11 +80,12 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
   final _searchFocusNode = FocusNode();
   String _searchQuery = '';
 
-  static const _filters = [
-    ('all', 'All'),
-    ('failed', 'Failed'),
-    ('delegated', 'Delegated'),
-    ('completed', 'Completed'),
+  /// Filter keys are delegation status wire values; labels are display-only.
+  static List<(String, String)> _filters(FlipperAppLocalizations l10n) => [
+    ('all', l10n.delegationFilterAll),
+    ('failed', l10n.delegationStatusFailed),
+    ('delegated', l10n.delegationStatusDelegated),
+    ('completed', l10n.delegationStatusCompleted),
   ];
 
   @override
@@ -100,6 +102,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
   }
 
   Future<void> _retryDelegation(TransactionDelegation delegation) async {
+    final l10n = context.flipperL10n;
     try {
       final updatedDelegation = delegation.copyWith(
         status: 'delegated',
@@ -108,14 +111,11 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
       await repository.upsert<TransactionDelegation>(updatedDelegation);
 
       if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          'Retry queued. If it fails again, re-send the sale from the POS device.',
-        );
+        showCustomSnackBarUtil(context, l10n.delegationRetryQueued);
       }
     } catch (e) {
       if (mounted) {
-        showCustomSnackBarUtil(context, 'Error retrying delegation');
+        showCustomSnackBarUtil(context, l10n.delegationRetryError);
       }
     }
   }
@@ -184,7 +184,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'About Delegations',
+                context.flipperL10n.delegationAboutTitle,
                 style: DelegationHelpers.serif(
                   fontSize: 19,
                   fontWeight: FontWeight.w600,
@@ -195,8 +195,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
           ],
         ),
         content: Text(
-          'Print Delegation allow mobile devices to send print jobs to '
-          'desktop printers. Failed delegations can be retried from this screen.',
+          context.flipperL10n.delegationAboutBody,
           style: DelegationHelpers.sans(
             fontSize: 14,
             height: 1.5,
@@ -207,7 +206,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'Got it',
+              context.flipperL10n.delegationGotIt,
               style: DelegationHelpers.sans(
                 fontWeight: FontWeight.w700,
                 color: DelegationTokens.green,
@@ -227,7 +226,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
         backgroundColor: DelegationTokens.page,
         body: Center(
           child: Text(
-            'No branch selected',
+            context.flipperL10n.noBranchSelected,
             style: DelegationHelpers.sans(color: DelegationTokens.text2),
           ),
         ),
@@ -273,7 +272,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
                       ),
                       const SizedBox(height: 20),
                       _FilterRow(
-                        filters: _filters,
+                        filters: _filters(context.flipperL10n),
                         activeFilter: _filterStatus,
                         countFor: (key) => _countForFilter(bySearch, key),
                         onFilterSelected: (key) =>
@@ -313,7 +312,7 @@ class _DelegationListScreenState extends ConsumerState<DelegationListScreen> {
         ),
         error: (error, stack) => Center(
           child: Text(
-            'Error: $error',
+            context.flipperL10n.errorWithValue(error.toString()),
             style: DelegationHelpers.sans(color: DelegationTokens.red),
           ),
         ),
@@ -330,6 +329,17 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
+    // Split the sentence around the count so the number can be bolded while
+    // translators keep control of word order.
+    const countMarker = '\u0000';
+    final subtitleParts = l10n
+        .delegationHeaderSubtitle(countMarker)
+        .split(countMarker);
+    final subtitleBefore = subtitleParts.first;
+    final subtitleAfter = subtitleParts.length > 1
+        ? subtitleParts.sublist(1).join()
+        : '';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -338,7 +348,7 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Print Delegation',
+                l10n.delegationTitle,
                 style: DelegationHelpers.serif(
                   fontSize: 30,
                   fontWeight: FontWeight.w600,
@@ -355,10 +365,7 @@ class _Header extends StatelessWidget {
                     color: DelegationTokens.text2,
                   ),
                   children: [
-                    const TextSpan(
-                      text:
-                          'Track and manage transactions delegated across your tills — ',
-                    ),
+                    TextSpan(text: subtitleBefore),
                     TextSpan(
                       text: '$visibleCount',
                       style: DelegationHelpers.sans(
@@ -367,7 +374,7 @@ class _Header extends StatelessWidget {
                         color: DelegationTokens.ink,
                       ),
                     ),
-                    const TextSpan(text: ' in view.'),
+                    TextSpan(text: subtitleAfter),
                   ],
                 ),
               ),
@@ -468,7 +475,7 @@ class _SearchField extends StatelessWidget {
           color: DelegationTokens.ink,
         ),
         decoration: InputDecoration(
-          hintText: 'Search delegations, receipt, payment…',
+          hintText: context.flipperL10n.delegationSearchHint,
           hintStyle: DelegationHelpers.sans(
             fontSize: 15,
             fontWeight: FontWeight.w500,
@@ -534,7 +541,7 @@ class _FilterRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              'Filter',
+              context.flipperL10n.delegationFilter,
               style: DelegationHelpers.sans(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
@@ -767,7 +774,7 @@ class _DelegationCardState extends State<_DelegationCard> {
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, size: 20),
                     color: DelegationTokens.green,
-                    tooltip: 'Retry delegation',
+                    tooltip: context.flipperL10n.delegationRetryTooltip,
                     onPressed: widget.onRetry,
                   ),
                 ],
@@ -790,12 +797,12 @@ class _DelegationCardState extends State<_DelegationCard> {
                       final twoColumn = constraints.maxWidth >= 420;
                       final receipt = _DetailRow(
                         icon: Icons.receipt_long_outlined,
-                        label: 'Receipt Type',
+                        label: context.flipperL10n.delegationReceiptType,
                         value: delegation.receiptType,
                       );
                       final payment = _DetailRow(
                         icon: Icons.credit_card_outlined,
-                        label: 'Payment',
+                        label: context.flipperL10n.payment,
                         value: delegation.paymentType,
                       );
 
@@ -827,7 +834,7 @@ class _DelegationCardState extends State<_DelegationCard> {
                     padding: const EdgeInsets.only(top: 12),
                     child: _DetailRow(
                       icon: Icons.payments_outlined,
-                      label: 'Amount',
+                      label: context.flipperL10n.amount,
                       value: DelegationHelpers.formatAmount(
                         delegation.subTotal,
                       ),
@@ -930,7 +937,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No delegations found',
+            context.flipperL10n.delegationEmptyTitle,
             style: DelegationHelpers.serif(
               fontSize: 19,
               fontWeight: FontWeight.w600,
@@ -942,9 +949,8 @@ class _EmptyState extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 340),
             child: Text(
               showDeviceHint
-                  ? 'Delegations sent to this device will appear here. '
-                        'Senders must target this device ID in delegation settings.'
-                  : 'Try a different search term or switch the filter above to see more results.',
+                  ? context.flipperL10n.delegationEmptyDeviceHint
+                  : context.flipperL10n.delegationEmptyFilterHint,
               textAlign: TextAlign.center,
               style: DelegationHelpers.sans(
                 fontSize: 13.5,

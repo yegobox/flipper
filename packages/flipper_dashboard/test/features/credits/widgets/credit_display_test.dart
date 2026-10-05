@@ -1,12 +1,16 @@
 import 'package:flipper_dashboard/features/credits/widgets/credit_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 void main() {
   group('CreditDisplay Tests', () {
     testWidgets('displays credits and max credits correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 75,
@@ -26,6 +30,9 @@ void main() {
     testWidgets('displays zero credits correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 0,
@@ -43,6 +50,9 @@ void main() {
     testWidgets('displays full credits correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 100,
@@ -60,6 +70,9 @@ void main() {
     testWidgets('has correct structure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 50,
@@ -79,6 +92,9 @@ void main() {
     testWidgets('shows progress indicator with correct value', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 30,
@@ -98,6 +114,9 @@ void main() {
     testWidgets('handles edge case with zero max credits', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 10,
@@ -115,6 +134,9 @@ void main() {
     testWidgets('adapts to light theme', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           theme: ThemeData.light(),
           home: Scaffold(
             body: CreditDisplay(
@@ -132,6 +154,9 @@ void main() {
     testWidgets('adapts to dark theme', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           theme: ThemeData.dark(),
           home: Scaffold(
             body: CreditDisplay(
@@ -149,6 +174,9 @@ void main() {
     testWidgets('has gradient decoration', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 50,
@@ -159,9 +187,7 @@ void main() {
         ),
       );
 
-      final container = tester.widget<Container>(
-        find.byType(Container).first,
-      );
+      final container = tester.widget<Container>(find.byType(Container).first);
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.gradient, isA<LinearGradient>());
       expect(decoration.borderRadius, BorderRadius.circular(20));
@@ -170,6 +196,9 @@ void main() {
     testWidgets('shows correct text styles', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
           home: Scaffold(
             body: CreditDisplay(
               credits: 42,

@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/services/pdf_presentation_service.dart';
 import 'package:flipper_dashboard/services/sale_receipt_pdf.dart';
 import 'package:flipper_dashboard/services/stored_receipt_loader.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
@@ -16,10 +17,11 @@ class TransactionReceiptException implements Exception {
 }
 
 /// Builds a receipt PDF for a sale that has no stored EBM PDF.
-typedef SaleReceiptFallbackBuilder = Future<Uint8List> Function(
-  ITransaction transaction,
-  List<TransactionItem>? items,
-);
+typedef SaleReceiptFallbackBuilder =
+    Future<Uint8List> Function(
+      ITransaction transaction,
+      List<TransactionItem>? items,
+    );
 
 /// Share, download, print, and view the receipt for a sale.
 ///
@@ -31,8 +33,8 @@ class TransactionReceiptActionsService {
   TransactionReceiptActionsService({
     StoredReceiptLoader? loader,
     SaleReceiptFallbackBuilder? fallbackBuilder,
-  })  : _loader = loader ?? StoredReceiptLoader(),
-        _fallbackBuilder = fallbackBuilder ?? buildLocalSaleReceiptPdf;
+  }) : _loader = loader ?? StoredReceiptLoader(),
+       _fallbackBuilder = fallbackBuilder ?? buildLocalSaleReceiptPdf;
 
   final StoredReceiptLoader _loader;
   final SaleReceiptFallbackBuilder _fallbackBuilder;
@@ -112,7 +114,7 @@ class TransactionReceiptActionsService {
         _ReceiptPresentationMode.print => PdfPresentationMode.print,
         _ReceiptPresentationMode.view => PdfPresentationMode.view,
       },
-      progressMessage: 'Preparing receipt…',
+      progressMessage: context.flipperL10n.receiptActionsPreparing,
       build: () async {
         validateCanPresent(transaction);
         resolved = await resolveReceipt(transaction, items);
@@ -122,11 +124,13 @@ class TransactionReceiptActionsService {
       // EBM-signed PDF's stored filename, so this can only be answered once
       // `build` has resolved it.
       filename: () => _pdfFilename(transaction, fiscal: resolved!.fiscal),
-      label: 'Receipt',
+      label: context.flipperL10n.receipt,
       shareSubject: mode == _ReceiptPresentationMode.view
-          ? 'Invoice'
-          : 'Receipt · ${_referenceHint(transaction)}',
-      shareBody: 'Thank you for your purchase.',
+          ? context.flipperL10n.invoice
+          : context.flipperL10n.receiptActionsShareSubject(
+              _referenceHint(transaction),
+            ),
+      shareBody: context.flipperL10n.receiptActionsThankYou,
       existingPath: () => resolved?.localPath,
       // validateCanPresent throws messages written for the person holding the
       // device; the generic formatter would replace them with "Something went
@@ -136,7 +140,6 @@ class TransactionReceiptActionsService {
           : _presenter.friendlyError(error),
     );
   }
-
 
   /// Stored EBM PDF when there is one, a locally built copy otherwise.
   @visibleForTesting
@@ -169,9 +172,8 @@ class TransactionReceiptActionsService {
     }
   }
 
-  static const _buildFailedMessage =
-      'Could not prepare a receipt for this sale. Check your connection and '
-      'try again.';
+  static String get _buildFailedMessage =>
+      FlipperL10n.current.receiptActionsBuildFailed;
 
   @visibleForTesting
   void validateCanPresent(ITransaction transaction) {
@@ -180,11 +182,12 @@ class TransactionReceiptActionsService {
     // Ditto carts used to be minted as "TS" regardless of mode, and those
     // sales can only ever produce the local fallback, which is stamped
     // "CUSTOMER COPY ... not an EBM fiscal receipt".
-    final hasStoredFiscalPdf =
-        (transaction.receiptFileName ?? '').trim().isNotEmpty;
+    final hasStoredFiscalPdf = (transaction.receiptFileName ?? '')
+        .trim()
+        .isNotEmpty;
     if (transaction.receiptType == 'TS' && hasStoredFiscalPdf) {
       throw TransactionReceiptException(
-        'Training receipts cannot be shared or printed.',
+        FlipperL10n.current.receiptActionsTrainingBlocked,
       );
     }
   }
@@ -210,7 +213,6 @@ class TransactionReceiptActionsService {
     if (ref != null && ref.isNotEmpty) return ref;
     return transaction.id;
   }
-
 }
 
 /// Default fallback: build the receipt from what this device already knows

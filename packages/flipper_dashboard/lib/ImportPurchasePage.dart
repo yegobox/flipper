@@ -1,4 +1,5 @@
 // ImportPurchasePage.dart
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_import_view.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_purchase_view.dart';
 import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.dart';
@@ -123,7 +124,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           padding: const EdgeInsets.all(24),
           child: IpmEmptyState(
             icon: Icons.error_outline,
-            title: 'Error loading data',
+            title: context.flipperL10n.ipmPageErrorLoading,
             subtitle: state.error!,
           ),
         ),
@@ -146,10 +147,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     List<model.Variant> catalogVariants,
   ) {
     if (state.importItems.isEmpty && !state.isLoading) {
-      return const IpmEmptyState(
+      return IpmEmptyState(
         icon: Icons.inbox_outlined,
-        title: 'No imported items',
-        subtitle: 'Sync from RRA to fetch new import items.',
+        title: context.flipperL10n.ipmPageNoImports,
+        subtitle: context.flipperL10n.ipmPageNoImportsHint,
       );
     }
 
@@ -170,9 +171,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       onRetry: (rowId) async {
         try {
           await notifier.replayRowJob(rowId);
-          _notify('Retry succeeded');
+          _notify(FlipperL10n.current.ipmPageRetrySucceeded);
         } catch (e) {
-          _notify('Retry failed: $e', success: false);
+          _notify(FlipperL10n.current.ipmPageRetryFailed('$e'), success: false);
         }
       },
       acceptAllImport: (variants) async {
@@ -185,10 +186,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                   variant.supplyPrice == null ||
                   variant.retailPrice! <= 0 ||
                   variant.supplyPrice! <= 0)) {
-            _notify(
-              'One of the items to approve is missing required pricing',
-              success: false,
-            );
+            _notify(context.flipperL10n.ipmPageMissingPricing, success: false);
             return;
           }
         }
@@ -197,9 +195,12 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             variants: variants.map(_variantForApprove).toList(),
             variantMap: _variantMap,
           );
-          _notify('Approved ${variants.length} item(s)');
+          _notify(FlipperL10n.current.ipmPageApprovedCount(variants.length));
         } catch (e) {
-          _notify('Could not approve items: $e', success: false);
+          _notify(
+            FlipperL10n.current.ipmPageApproveItemsFailed('$e'),
+            success: false,
+          );
         }
       },
       onApprove: (item, variantMap) async {
@@ -211,7 +212,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                 item.supplyPrice == null ||
                 item.retailPrice! <= 0 ||
                 item.supplyPrice! <= 0)) {
-          _notify('Please set both retail and supply prices', success: false);
+          _notify(context.flipperL10n.ipmPageSetBothPrices, success: false);
           return;
         }
         String? targetId;
@@ -227,17 +228,27 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             variant: prepared,
             targetVariantId: targetId,
           );
-          _notify('Approved "${item.itemNm ?? item.name}"');
+          _notify(
+            FlipperL10n.current.ipmPageApprovedItem(item.itemNm ?? item.name),
+          );
         } catch (e) {
-          _notify('Could not approve item: $e', success: false);
+          _notify(
+            FlipperL10n.current.ipmPageApproveItemFailed('$e'),
+            success: false,
+          );
         }
       },
       onReject: (item, _) async {
         try {
           await notifier.rejectImport(variant: item);
-          _notify('Rejected "${item.itemNm ?? item.name}"');
+          _notify(
+            FlipperL10n.current.ipmPageRejectedItem(item.itemNm ?? item.name),
+          );
         } catch (e) {
-          _notify('Could not reject item: $e', success: false);
+          _notify(
+            FlipperL10n.current.ipmPageRejectItemFailed('$e'),
+            success: false,
+          );
         }
       },
     );
@@ -249,10 +260,10 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     List<model.Variant> catalogVariants,
   ) {
     if (state.purchases.isEmpty && !state.isLoading) {
-      return const IpmEmptyState(
+      return IpmEmptyState(
         icon: Icons.shopping_cart_outlined,
-        title: 'No purchase invoices',
-        subtitle: 'Sync from RRA or record a purchase manually.',
+        title: context.flipperL10n.ipmPageNoPurchases,
+        subtitle: context.flipperL10n.ipmPageNoPurchasesHint,
       );
     }
 
@@ -267,9 +278,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       onRetry: (rowId) async {
         try {
           await notifier.replayRowJob(rowId);
-          _notify('Retry succeeded');
+          _notify(FlipperL10n.current.ipmPageRetrySucceeded);
         } catch (e) {
-          _notify('Retry failed: $e', success: false);
+          _notify(FlipperL10n.current.ipmPageRetryFailed('$e'), success: false);
         }
       },
       onSavePurchaseMapping: savePurchaseMapping,

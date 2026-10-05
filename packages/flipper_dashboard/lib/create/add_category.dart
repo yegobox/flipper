@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -17,7 +18,7 @@ class AddCategory extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () => _routerService.back(),
-            title: 'Create Category',
+            title: context.flipperL10n.createCategoryTitle,
             icon: Icons.arrow_back_ios,
             multi: 3,
             bottomSpacer: 80,
@@ -29,7 +30,7 @@ class AddCategory extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Enter Category Name',
+                    context.flipperL10n.createCategoryEnterName,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 24),
@@ -37,10 +38,11 @@ class AddCategory extends StatelessWidget {
                     style: const TextStyle(color: Colors.black),
                     onChanged: (value) => model.setCategoryName(name: value),
                     decoration: InputDecoration(
-                      hintText: 'Category Name',
+                      hintText: context.flipperL10n.createCategoryNameHint,
                       focusedBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -55,7 +57,7 @@ class AddCategory extends StatelessWidget {
                       await model.createCategory();
                       _routerService.back();
                     },
-                    title: 'Create Category',
+                    title: context.flipperL10n.createCategoryTitle,
                   ),
                 ],
               ),

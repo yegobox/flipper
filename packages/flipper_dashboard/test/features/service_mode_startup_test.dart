@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpoints.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
@@ -18,6 +19,8 @@ Widget _nav({required double windowWidth, bool? hostMobile}) {
   return ProviderScope(
     overrides: [hotelModeProvider.overrideWith(_FixedHotelNotifier.new)],
     child: MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(size: Size(windowWidth, 800)),
         child: Scaffold(

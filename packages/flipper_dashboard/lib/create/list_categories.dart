@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -130,7 +131,8 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
   }
 
   bool _isMobileLayout(BuildContext context) =>
-      MediaQuery.sizeOf(context).width < PosLayoutBreakpoints.mobileLayoutMaxWidth;
+      MediaQuery.sizeOf(context).width <
+      PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
   Widget buildCategoryItem({
     required Category category,
@@ -151,9 +153,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-        trailing: Radio<String>(
-          value: category.id.toString(),
-        ),
+        trailing: Radio<String>(value: category.id.toString()),
         tileColor: isSelected
             ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
             : null,
@@ -226,8 +226,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
     required List<Category> categories,
     required String groupValue,
   }) {
-    final selectedId =
-        groupValue.isEmpty ? null : groupValue;
+    final selectedId = groupValue.isEmpty ? null : groupValue;
     return RadioTheme(
       data: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
@@ -265,8 +264,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
     required List<Category> categories,
     required String groupValue,
   }) {
-    final selectedId =
-        groupValue.isEmpty ? null : groupValue;
+    final selectedId = groupValue.isEmpty ? null : groupValue;
     final primary = Theme.of(context).colorScheme.primary;
     return RadioTheme(
       data: RadioThemeData(
@@ -324,7 +322,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Search categories...',
+              hintText: context.flipperL10n.categoriesSearchHint,
               prefixIcon: Icon(
                 Icons.search,
                 size: 22,
@@ -382,8 +380,8 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      const Text(
-                        'Create new category',
+                      Text(
+                        context.flipperL10n.categoriesCreateNew,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -401,7 +399,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
-            'ALL CATEGORIES',
+            context.flipperL10n.categoriesAll.toUpperCase(),
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
@@ -417,7 +415,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             child: listForListView.isEmpty
                 ? Center(
                     child: Text(
-                      'No categories found',
+                      context.flipperL10n.categoriesNoneFound,
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 15,
@@ -471,7 +469,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
           _routerService.back();
         },
         showActionButton: false,
-        title: 'Categories',
+        title: context.flipperL10n.orderingCategories,
         icon: Icons.arrow_back_ios,
         multi: 3,
         bottomSpacer: 80,
@@ -485,9 +483,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
           .when(
             data: (categories) {
               final withoutCustom = categories
-                  .where(
-                    (c) => (c.name ?? '').toLowerCase() != 'custom',
-                  )
+                  .where((c) => (c.name ?? '').toLowerCase() != 'custom')
                   .toList();
               final groupValue =
                   _selectedCategoryId ??
@@ -514,8 +510,8 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                       margin: const EdgeInsets.all(8),
                       child: ListTile(
                         onTap: () => showAddCategoryModal(context),
-                        title: const Text(
-                          'Create Category',
+                        title: Text(
+                          context.flipperL10n.createCategoryTitle,
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         trailing: const Icon(FluentIcons.add_24_regular),
@@ -531,7 +527,9 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(child: Text('Error: $error')),
+            error: (error, _) => Center(
+              child: Text(context.flipperL10n.errorWithValue(error.toString())),
+            ),
           ),
     );
   }
@@ -557,10 +555,7 @@ class _DashedRRect extends StatelessWidget {
 }
 
 class _DashedRRectPainter extends CustomPainter {
-  _DashedRRectPainter({
-    required this.borderRadius,
-    required this.color,
-  });
+  _DashedRRectPainter({required this.borderRadius, required this.color});
 
   static const double _dash = 5;
   static const double _gap = 4;
@@ -579,9 +574,7 @@ class _DashedRRectPainter extends CustomPainter {
         math.max(0, size.width - _strokeWidth),
         math.max(0, size.height - _strokeWidth),
       ),
-      Radius.circular(
-        math.max(0, borderRadius - _strokeWidth * 0.5),
-      ),
+      Radius.circular(math.max(0, borderRadius - _strokeWidth * 0.5)),
     );
     final path = Path()..addRRect(r);
     final paint = Paint()

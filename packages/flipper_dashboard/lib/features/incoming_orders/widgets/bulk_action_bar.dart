@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -20,6 +21,7 @@ class BulkActionBar extends HookConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -38,7 +40,7 @@ class BulkActionBar extends HookConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                '${selectedIds.length} selected',
+                l10n.incomingOrdersSelectedCount(selectedIds.length),
                 style: OmTokens.text(
                   color: OmTokens.accentStrong,
                   fontWeight: FontWeight.w700,
@@ -51,7 +53,7 @@ class BulkActionBar extends HookConsumerWidget {
                 ref.read(selectionProvider.notifier).deselectAll();
               },
               child: Text(
-                'Cancel',
+                l10n.cancel,
                 style: OmTokens.text(
                   color: OmTokens.ink2,
                   fontWeight: FontWeight.w600,
@@ -64,7 +66,7 @@ class BulkActionBar extends HookConsumerWidget {
                 if (!ref.read(sideMenuShowIncomingOrdersProvider)) {
                   showCustomSnackBarUtil(
                     context,
-                    'You do not have permission to approve orders',
+                    l10n.incomingOrdersNoApprovePermission,
                     backgroundColor: Colors.red,
                   );
                   return;
@@ -88,7 +90,7 @@ class BulkActionBar extends HookConsumerWidget {
                 ),
               ),
               icon: const Icon(Icons.check, size: 18),
-              label: const Text('Approve'),
+              label: Text(l10n.incomingOrdersApprove),
             ),
             const SizedBox(width: 8),
             ElevatedButton.icon(
@@ -112,7 +114,7 @@ class BulkActionBar extends HookConsumerWidget {
                 ),
               ),
               icon: const Icon(Icons.close, size: 18),
-              label: const Text('Reject'),
+              label: Text(l10n.incomingOrdersReject),
             ),
           ],
         ),

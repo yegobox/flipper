@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -12,8 +13,8 @@ class NoNetViewModel extends BaseViewModel {
 
   Future<void> checkInternetConnection() async {
     try {
-      final isConnected =
-          await _internetConnectionService.checkInternetConnectionRequirement();
+      final isConnected = await _internetConnectionService
+          .checkInternetConnectionRequirement();
 
       // If connection is successful, the service will automatically navigate back to the app
       // If not, we stay on this screen
@@ -24,7 +25,7 @@ class NoNetViewModel extends BaseViewModel {
       // Handle connection check errors
       final _snackbarService = locator<SnackbarService>();
       _snackbarService.showSnackbar(
-        message: 'Error checking connection: ${e.toString()}',
+        message: FlipperL10n.current.noNetErrorCheckingConnection(e.toString()),
         duration: const Duration(seconds: 2),
       );
     } finally {
@@ -47,13 +48,12 @@ class NoNet extends StatelessWidget {
       builder: (context, model, child) => Scaffold(
         body: GErrorMessage(
           icon: const Icon(Icons.wifi_off_outlined),
-          title: "No internet",
-          subtitle:
-              "Can't connect to the internet.\nPlease check your internet connection",
-          buttonText: "Check Connection",
+          title: context.flipperL10n.noNetTitle,
+          subtitle: context.flipperL10n.noNetSubtitle,
+          buttonText: context.flipperL10n.noNetCheckConnection,
           isLoading: model.isBusy,
           onPressed: () => model.checkInternetConnection(),
-          secondaryButtonText: "Go to Login",
+          secondaryButtonText: context.flipperL10n.noNetGoToLogin,
           onSecondaryPressed: () => model.goToLogin(),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/import_purchase/import_purchase_ui.da
 import 'package:flipper_dashboard/manual_purchase/manual_purchase_form.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -28,14 +29,19 @@ class ManualPurchasePageView extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: const BoxDecoration(
               color: ImportPurchaseTokens.surface,
-              border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+              border: Border(
+                bottom: BorderSide(color: ImportPurchaseTokens.line),
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: ImportPurchaseTokens.ink2),
-                  tooltip: 'Back to Import & Purchase',
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: ImportPurchaseTokens.ink2,
+                  ),
+                  tooltip: context.flipperL10n.manualPurchaseBackToImport,
                   onPressed: () {
                     ref.read(selectedPageProvider.notifier).state =
                         DashboardPage.purchases;
@@ -60,7 +66,7 @@ class ManualPurchasePageView extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Record Purchase',
+                      context.flipperL10n.manualPurchaseRecordPurchase,
                       style: ImportPurchaseHelpers.text(
                         size: 19,
                         weight: FontWeight.w800,
@@ -68,7 +74,7 @@ class ManualPurchasePageView extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      'Capture a supplier invoice and its line items',
+                      context.flipperL10n.manualPurchasePageSubtitle,
                       style: ImportPurchaseHelpers.text(
                         size: 13,
                         weight: FontWeight.w500,

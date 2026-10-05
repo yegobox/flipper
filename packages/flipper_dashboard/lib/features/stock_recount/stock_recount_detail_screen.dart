@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -157,7 +158,10 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
         curve: Curves.easeInOut,
       );
     }
-    showStockRecountToast(context, '$name is already in this count');
+    showStockRecountToast(
+      context,
+      context.flipperL10n.stockRecountAlreadyInCount(name),
+    );
   }
 
   void _stageVariant(Variant variant) {
@@ -188,10 +192,18 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
         _stagedQty = 0;
       });
       await _reloadItems();
-      showStockRecountToast(context, '${variant.name} added to the count');
+      showStockRecountToast(
+        context,
+        context.flipperL10n.stockRecountAddedToCount(variant.name),
+      );
     } catch (e, st) {
       talker.error('StockRecountDetail: add item failed', e, st);
-      if (mounted) showStockRecountToast(context, 'Could not add item: $e');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountAddItemFailed(e.toString()),
+        );
+      }
     }
   }
 
@@ -205,7 +217,12 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
       await _reloadItems();
     } catch (e, st) {
       talker.error('StockRecountDetail: update count failed', e, st);
-      if (mounted) showStockRecountToast(context, 'Update failed: $e');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountUpdateFailed(e.toString()),
+        );
+      }
     }
   }
 
@@ -213,10 +230,20 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     try {
       await _service.removeItem(itemId);
       await _reloadItems();
-      if (mounted) showStockRecountToast(context, 'Item removed');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountItemRemoved,
+        );
+      }
     } catch (e, st) {
       talker.error('StockRecountDetail: remove failed', e, st);
-      if (mounted) showStockRecountToast(context, 'Remove failed: $e');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountRemoveFailed(e.toString()),
+        );
+      }
     }
   }
 
@@ -229,7 +256,10 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
             final variant = await _service.variantByBarcode(code);
             if (!mounted) return;
             if (variant == null) {
-              showStockRecountToast(context, 'Unknown barcode');
+              showStockRecountToast(
+                context,
+                context.flipperL10n.stockRecountUnknownBarcode,
+              );
               return;
             }
             if (_isVariantInSession(variant.id)) {
@@ -247,7 +277,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
             _flashExistingItem(variant.id, variant.name);
             showStockRecountToast(
               context,
-              'Scanned ${variant.name} — adjust the count if needed',
+              context.flipperL10n.stockRecountScanned(variant.name),
             );
           },
         ),
@@ -280,17 +310,23 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
       final tenant = await ProxyService.strategy.getTenant(
         userId: ProxyService.box.getUserId() ?? '',
       );
-      final branchName =
-          await StockRecountExportContext.resolveBranchName(recount.branchId);
+      final branchName = await StockRecountExportContext.resolveBranchName(
+        recount.branchId,
+      );
       await StockRecountPdfExport.previewAndShare(
         recount: recount,
         items: _items,
-        businessName: tenant?.name ?? 'Business',
+        businessName: tenant?.name ?? FlipperL10n.current.business,
         branchName: branchName,
       );
     } catch (e, st) {
       talker.error('StockRecountDetail: export failed', e, st);
-      if (mounted) showStockRecountToast(context, 'Export failed: $e');
+      if (mounted) {
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountExportFailed(e.toString()),
+        );
+      }
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -311,13 +347,17 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
       final ok = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Submit recount?'),
-          content: const Text(
-            'This updates stock levels from your counted quantities.',
-          ),
+          title: Text(ctx.flipperL10n.stockRecountSubmitTitle),
+          content: Text(ctx.flipperL10n.stockRecountSubmitMessage),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Submit')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(ctx.flipperL10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(ctx.flipperL10n.submit),
+            ),
           ],
         ),
       );
@@ -335,21 +375,21 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
         _recount = updated;
         _submitting = false;
       });
-      showStockRecountToast(context, 'Recount submitted ✓');
+      showStockRecountToast(context, context.flipperL10n.stockRecountSubmitted);
     } catch (e, st) {
       talker.error('StockRecountDetail: submit failed', e, st);
       if (mounted) {
         setState(() => _submitting = false);
-        showStockRecountToast(context, 'Submit failed: $e');
+        showStockRecountToast(
+          context,
+          context.flipperL10n.stockRecountSubmitFailed(e.toString()),
+        );
       }
     }
   }
 
   void _showInfo() {
-    showStockRecountToast(
-      context,
-      'Count physical stock, compare variance, then submit to sync inventory.',
-    );
+    showStockRecountToast(context, context.flipperL10n.stockRecountInfo);
   }
 
   @override
@@ -365,16 +405,20 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
             iconName: 'chevron-left',
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: 'Stock Recount',
+          title: context.flipperL10n.stockRecountTitle,
           subtitle: recount?.deviceName,
           onInfo: _showInfo,
         ),
         body: _error != null
-            ? Center(child: Text('Could not load recount: $_error'))
+            ? Center(
+                child: Text(
+                  context.flipperL10n.stockRecountLoadFailed('$_error'),
+                ),
+              )
             : loading
             ? const Center(child: CircularProgressIndicator())
             : recount == null
-            ? const Center(child: Text('Recount not found'))
+            ? Center(child: Text(context.flipperL10n.stockRecountNotFound))
             : _DetailBody(
                 recount: recount,
                 items: _items,
@@ -464,104 +508,108 @@ class _DetailBody extends StatelessWidget {
     final bottomPad = MediaQuery.paddingOf(context).bottom;
 
     return LayoutBuilder(
-        builder: (context, constraints) {
-          final pad = StockRecountHelpers.horizontalPadding(constraints.maxWidth);
-          final narrow = constraints.maxWidth <= StockRecountTokens.narrowBreakpoint;
-          return Stack(
-            children: [
-              Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: StockRecountTokens.maxContentWidth,
-                  ),
-                  child: ListView(
-                    padding: EdgeInsets.fromLTRB(pad, 16, pad, 140 + bottomPad),
-                    children: [
-                      _SessionHeader(
-                        recount: recount,
-                        noteController: noteController,
-                        editable: editable,
-                        onNoteChanged: onNoteChanged,
-                      ),
+      builder: (context, constraints) {
+        final pad = StockRecountHelpers.horizontalPadding(constraints.maxWidth);
+        final narrow =
+            constraints.maxWidth <= StockRecountTokens.narrowBreakpoint;
+        return Stack(
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: StockRecountTokens.maxContentWidth,
+                ),
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(pad, 16, pad, 140 + bottomPad),
+                  children: [
+                    _SessionHeader(
+                      recount: recount,
+                      noteController: noteController,
+                      editable: editable,
+                      onNoteChanged: onNoteChanged,
+                    ),
+                    const SizedBox(height: 14),
+                    _SummaryStatsGrid(stats: stats, narrow: narrow),
+                    if (editable) ...[
                       const SizedBox(height: 14),
-                      _SummaryStatsGrid(stats: stats, narrow: narrow),
-                      if (editable) ...[
-                        const SizedBox(height: 14),
-                        _AddPanel(
-                          searchController: searchController,
-                          onSearch: onSearch,
-                          searching: searching,
-                          results: searchResults,
-                          staged: stagedVariant,
-                          stagedQty: stagedQty,
-                          onStage: onStage,
-                          onStagedQty: onStagedQty,
-                          onCommit: onCommit,
-                          isInSession: isInSession,
-                          onScan: onScan,
+                      _AddPanel(
+                        searchController: searchController,
+                        onSearch: onSearch,
+                        searching: searching,
+                        results: searchResults,
+                        staged: stagedVariant,
+                        stagedQty: stagedQty,
+                        onStage: onStage,
+                        onStagedQty: onStagedQty,
+                        onCommit: onCommit,
+                        isInSession: isInSession,
+                        onScan: onScan,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text(
+                          context.flipperL10n.stockRecountCountedItems,
+                          style: StockRecountHelpers.text(
+                            size: 16,
+                            weight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          context.flipperL10n.stockRecountItemsNet(
+                            stats.count,
+                            StockRecountHelpers.formatSignedVariance(stats.net),
+                          ),
+                          style: StockRecountHelpers.text(
+                            size: 12.5,
+                            color: StockRecountTokens.ink3,
+                            tabular: true,
+                          ),
                         ),
                       ],
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Text(
-                            'Counted items',
-                            style: StockRecountHelpers.text(
-                              size: 16,
-                              weight: FontWeight.w700,
-                            ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (items.isEmpty)
+                      _ItemsEmptyState(editable: editable)
+                    else
+                      ...items.map((item) {
+                        itemKeys.putIfAbsent(item.variantId, GlobalKey.new);
+                        return Padding(
+                          key: itemKeys[item.variantId],
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _CountItemCard(
+                            item: item,
+                            editable: editable,
+                            narrow: narrow,
+                            onQtyChanged: (q) => onQtyChanged(item, q),
+                            onRemove: () => onRemove(item.id),
                           ),
-                          const Spacer(),
-                          Text(
-                            '${stats.count} items · net ${StockRecountHelpers.formatSignedVariance(stats.net)}',
-                            style: StockRecountHelpers.text(
-                              size: 12.5,
-                              color: StockRecountTokens.ink3,
-                              tabular: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (items.isEmpty)
-                        _ItemsEmptyState(editable: editable)
-                      else
-                        ...items.map((item) {
-                          itemKeys.putIfAbsent(item.variantId, GlobalKey.new);
-                          return Padding(
-                            key: itemKeys[item.variantId],
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _CountItemCard(
-                              item: item,
-                              editable: editable,
-                              narrow: narrow,
-                              onQtyChanged: (q) => onQtyChanged(item, q),
-                              onRemove: () => onRemove(item.id),
-                            ),
-                          );
-                        }),
-                    ],
-                  ),
+                        );
+                      }),
+                  ],
                 ),
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _ActionBar(
-                  editable: editable,
-                  stats: stats,
-                  submitting: submitting,
-                  exporting: exporting,
-                  canSubmit: items.isNotEmpty,
-                  onExport: onExport,
-                  onSubmit: onSubmit,
-                ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _ActionBar(
+                editable: editable,
+                stats: stats,
+                submitting: submitting,
+                exporting: exporting,
+                canSubmit: items.isNotEmpty,
+                onExport: onExport,
+                onSubmit: onSubmit,
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -581,6 +629,7 @@ class _SessionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return stockRecountCard(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -603,11 +652,16 @@ class _SessionHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      recount.deviceName ?? 'Device',
-                      style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
+                      recount.deviceName ?? l10n.stockRecountDevice,
+                      style: StockRecountHelpers.text(
+                        size: 19,
+                        weight: FontWeight.w700,
+                      ),
                     ),
                     Text(
-                      'Created ${StockRecountHelpers.formatDateTime(recount.createdAt)}',
+                      l10n.stockRecountCreatedAt(
+                        StockRecountHelpers.formatDateTime(recount.createdAt),
+                      ),
                       style: StockRecountHelpers.text(
                         size: 12.5,
                         color: StockRecountTokens.ink3,
@@ -630,7 +684,10 @@ class _SessionHeader extends StatelessWidget {
             ),
             child: Row(
               children: [
-                StockRecountIcons.receipt(size: 17, color: StockRecountTokens.ink3),
+                StockRecountIcons.receipt(
+                  size: 17,
+                  color: StockRecountTokens.ink3,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: editable
@@ -638,11 +695,14 @@ class _SessionHeader extends StatelessWidget {
                           controller: noteController,
                           onEditingComplete: onNoteChanged,
                           onTapOutside: (_) => onNoteChanged(),
-                          style: StockRecountHelpers.text(size: 14.5, weight: FontWeight.w500),
+                          style: StockRecountHelpers.text(
+                            size: 14.5,
+                            weight: FontWeight.w500,
+                          ),
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             isDense: true,
-                            hintText: 'Add a note for this recount session…',
+                            hintText: l10n.stockRecountNoteHint,
                             hintStyle: StockRecountHelpers.text(
                               size: 14.5,
                               weight: FontWeight.w400,
@@ -652,7 +712,7 @@ class _SessionHeader extends StatelessWidget {
                         )
                       : Text(
                           noteController.text.isEmpty
-                              ? 'No note'
+                              ? l10n.stockRecountNoNote
                               : noteController.text,
                           style: StockRecountHelpers.text(
                             size: 14.5,
@@ -677,21 +737,29 @@ class _SummaryStatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final cards = [
       _StatCard(
-        label: 'Items counted',
+        label: l10n.stockRecountItemsCounted,
         value: '${stats.count}',
-        leading: StockRecountIcons.stack(size: 13, color: StockRecountTokens.ink3),
+        leading: StockRecountIcons.stack(
+          size: 13,
+          color: StockRecountTokens.ink3,
+        ),
       ),
-      _StatCard(label: 'Matching', value: '${stats.match}', dot: StockRecountTokens.pos),
       _StatCard(
-        label: 'Surplus',
+        label: l10n.stockRecountMatching,
+        value: '${stats.match}',
+        dot: StockRecountTokens.pos,
+      ),
+      _StatCard(
+        label: l10n.stockRecountSurplus,
         value: '${stats.over}',
         dot: StockRecountTokens.pos,
         valueColor: StockRecountTokens.posText,
       ),
       _StatCard(
-        label: 'Short',
+        label: l10n.stockRecountShort,
         value: '${stats.short}',
         dot: StockRecountTokens.neg,
         valueColor: StockRecountTokens.negText,
@@ -818,7 +886,8 @@ class _AddPanelState extends State<_AddPanel> {
   @override
   void didUpdateWidget(covariant _AddPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.results != widget.results || oldWidget.staged != widget.staged) {
+    if (oldWidget.results != widget.results ||
+        oldWidget.staged != widget.staged) {
       _loadSystemQty();
     }
   }
@@ -844,6 +913,7 @@ class _AddPanelState extends State<_AddPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final staged = widget.staged;
     return stockRecountCard(
       child: Column(
@@ -858,12 +928,18 @@ class _AddPanelState extends State<_AddPanel> {
                   color: StockRecountTokens.accentTint,
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child: StockRecountIcons.plus(size: 18, color: StockRecountTokens.accent),
+                child: StockRecountIcons.plus(
+                  size: 18,
+                  color: StockRecountTokens.accent,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
-                'Add a product to count',
-                style: StockRecountHelpers.text(size: 15, weight: FontWeight.w700),
+                l10n.stockRecountAddProduct,
+                style: StockRecountHelpers.text(
+                  size: 15,
+                  weight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -876,7 +952,7 @@ class _AddPanelState extends State<_AddPanel> {
                   children: [
                     StockRecountSearchField(
                       controller: widget.searchController,
-                      hint: 'Search product name, SKU or barcode…',
+                      hint: l10n.stockRecountProductSearchHint,
                       onChanged: widget.onSearch,
                     ),
                     if (widget.searching)
@@ -889,7 +965,9 @@ class _AddPanelState extends State<_AddPanel> {
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
                         child: Text(
-                          'No product matches "${widget.searchController.text.trim()}".',
+                          l10n.stockRecountNoProductMatches(
+                            widget.searchController.text.trim(),
+                          ),
                           textAlign: TextAlign.center,
                           style: StockRecountHelpers.text(
                             size: 13.5,
@@ -904,7 +982,9 @@ class _AddPanelState extends State<_AddPanel> {
                         decoration: BoxDecoration(
                           color: StockRecountTokens.surface,
                           border: Border.all(color: StockRecountTokens.line),
-                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            StockRecountTokens.radiusMd,
+                          ),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x38102040),
@@ -933,11 +1013,15 @@ class _AddPanelState extends State<_AddPanel> {
                                 ),
                                 child: Row(
                                   children: [
-                                    StockRecountItemSwatch(name: v.name, size: 38),
+                                    StockRecountItemSwatch(
+                                      name: v.name,
+                                      size: 38,
+                                    ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             v.name,
@@ -966,7 +1050,7 @@ class _AddPanelState extends State<_AddPanel> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            'Added',
+                                            l10n.stockRecountAdded,
                                             style: StockRecountHelpers.text(
                                               size: 11,
                                               weight: FontWeight.w700,
@@ -977,10 +1061,13 @@ class _AddPanelState extends State<_AddPanel> {
                                       )
                                     else
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            StockRecountHelpers.formatQty(_qtyFor(v.id)),
+                                            StockRecountHelpers.formatQty(
+                                              _qtyFor(v.id),
+                                            ),
                                             style: StockRecountHelpers.text(
                                               size: 12,
                                               weight: FontWeight.w700,
@@ -989,7 +1076,7 @@ class _AddPanelState extends State<_AddPanel> {
                                             ),
                                           ),
                                           Text(
-                                            'in system',
+                                            l10n.stockRecountInSystem,
                                             style: StockRecountHelpers.text(
                                               size: 10.5,
                                               weight: FontWeight.w600,
@@ -1012,12 +1099,19 @@ class _AddPanelState extends State<_AddPanel> {
               Material(
                 color: StockRecountTokens.accentTint,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
-                  side: const BorderSide(color: StockRecountTokens.accentTint2, width: 1.5),
+                  borderRadius: BorderRadius.circular(
+                    StockRecountTokens.radiusMd,
+                  ),
+                  side: const BorderSide(
+                    color: StockRecountTokens.accentTint2,
+                    width: 1.5,
+                  ),
                 ),
                 child: InkWell(
                   onTap: widget.onScan,
-                  borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+                  borderRadius: BorderRadius.circular(
+                    StockRecountTokens.radiusMd,
+                  ),
                   child: SizedBox(
                     width: 52,
                     height: 52,
@@ -1036,8 +1130,13 @@ class _AddPanelState extends State<_AddPanel> {
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
               decoration: BoxDecoration(
                 color: StockRecountTokens.accentTint,
-                border: Border.all(color: StockRecountTokens.accentTint2, width: 1.5),
-                borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+                border: Border.all(
+                  color: StockRecountTokens.accentTint2,
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(
+                  StockRecountTokens.radiusMd,
+                ),
               ),
               child: Row(
                 children: [
@@ -1056,7 +1155,10 @@ class _AddPanelState extends State<_AddPanel> {
                           ),
                         ),
                         Text(
-                          'SKU ${staged.sku ?? '—'} · ${StockRecountHelpers.formatQty(_qtyFor(staged.id))} in system',
+                          l10n.stockRecountStagedLine(
+                            staged.sku ?? '—',
+                            StockRecountHelpers.formatQty(_qtyFor(staged.id)),
+                          ),
                           style: StockRecountHelpers.text(
                             size: 12,
                             color: StockRecountTokens.ink3,
@@ -1073,8 +1175,11 @@ class _AddPanelState extends State<_AddPanel> {
                   SizedBox(
                     width: 100,
                     child: StockRecountPrimaryButton(
-                      label: 'Add',
-                      leading: StockRecountIcons.check(size: 18, color: Colors.white),
+                      label: l10n.add,
+                      leading: StockRecountIcons.check(
+                        size: 18,
+                        color: Colors.white,
+                      ),
                       height: 48,
                       onPressed: widget.onCommit,
                     ),
@@ -1106,6 +1211,7 @@ class _CountItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final diff = item.difference;
     final short = diff < 0;
     return stockRecountCard(
@@ -1126,10 +1232,16 @@ class _CountItemCard extends StatelessWidget {
                   children: [
                     Text(
                       item.productName,
-                      style: StockRecountHelpers.text(size: 15.5, weight: FontWeight.w700),
+                      style: StockRecountHelpers.text(
+                        size: 15.5,
+                        weight: FontWeight.w700,
+                      ),
                     ),
                     Text(
-                      'SKU ${item.variantId} · counted ${StockRecountHelpers.formatTime(item.createdAt)}',
+                      l10n.stockRecountItemLine(
+                        item.variantId,
+                        StockRecountHelpers.formatTime(item.createdAt),
+                      ),
                       style: StockRecountHelpers.text(
                         size: 12,
                         color: StockRecountTokens.ink3,
@@ -1156,8 +1268,12 @@ class _CountItemCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(10, 10, 13, 10),
               decoration: BoxDecoration(
-                color: short ? StockRecountTokens.negTint : StockRecountTokens.posTint,
-                borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+                color: short
+                    ? StockRecountTokens.negTint
+                    : StockRecountTokens.posTint,
+                borderRadius: BorderRadius.circular(
+                  StockRecountTokens.radiusMd,
+                ),
               ),
               child: Row(
                 children: [
@@ -1174,11 +1290,17 @@ class _CountItemCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       short
-                          ? 'Counted ${diff.abs().toStringAsFixed(0)} fewer than the system shows — this will be recorded as shrinkage.'
-                          : 'Counted ${diff.toStringAsFixed(0)} more than the system shows — a surplus will be recorded.',
+                          ? l10n.stockRecountShrinkageNote(
+                              diff.abs().toStringAsFixed(0),
+                            )
+                          : l10n.stockRecountSurplusNote(
+                              diff.toStringAsFixed(0),
+                            ),
                       style: StockRecountHelpers.text(
                         size: 12.5,
-                        color: short ? StockRecountTokens.negText : StockRecountTokens.posText,
+                        color: short
+                            ? StockRecountTokens.negText
+                            : StockRecountTokens.posText,
                       ),
                     ),
                   ),
@@ -1211,9 +1333,13 @@ class _Zones extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final systemZone = _zone(
-      label: 'System',
-      labelIcon: StockRecountIcons.monitor(size: 13, color: StockRecountTokens.ink3),
+      label: l10n.stockRecountSystem,
+      labelIcon: StockRecountIcons.monitor(
+        size: 13,
+        color: StockRecountTokens.ink3,
+      ),
       value: StockRecountHelpers.formatQty(system),
       bg: StockRecountTokens.surface2,
       border: StockRecountTokens.line,
@@ -1221,11 +1347,12 @@ class _Zones extends StatelessWidget {
       valueColor: StockRecountTokens.ink1,
     );
     final countedZone = _zone(
-      label: 'Counted',
-      labelIcon: StockRecountIcons.stack(size: 13, color: StockRecountTokens.accentDeep),
-      value: editable
-          ? null
-          : StockRecountHelpers.formatQty(counted),
+      label: l10n.stockRecountCounted,
+      labelIcon: StockRecountIcons.stack(
+        size: 13,
+        color: StockRecountTokens.accentDeep,
+      ),
+      value: editable ? null : StockRecountHelpers.formatQty(counted),
       bg: StockRecountTokens.accentTint,
       border: StockRecountTokens.accentTint2,
       labelColor: StockRecountTokens.accentDeep,
@@ -1238,12 +1365,18 @@ class _Zones extends StatelessWidget {
             )
           : null,
     );
-    final varianceZone = _varianceZone(variance);
+    final varianceZone = _varianceZone(l10n, variance);
 
     if (narrow) {
       return Column(
         children: [
-          Row(children: [Expanded(child: systemZone), const SizedBox(width: 8), Expanded(child: countedZone)]),
+          Row(
+            children: [
+              Expanded(child: systemZone),
+              const SizedBox(width: 8),
+              Expanded(child: countedZone),
+            ],
+          ),
           const SizedBox(height: 8),
           varianceZone,
         ],
@@ -1254,12 +1387,18 @@ class _Zones extends StatelessWidget {
         Expanded(child: systemZone),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: StockRecountIcons.chevronRight(size: 18, color: StockRecountTokens.ink4),
+          child: StockRecountIcons.chevronRight(
+            size: 18,
+            color: StockRecountTokens.ink4,
+          ),
         ),
         Expanded(child: countedZone),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: StockRecountIcons.chevronRight(size: 18, color: StockRecountTokens.ink4),
+          child: StockRecountIcons.chevronRight(
+            size: 18,
+            color: StockRecountTokens.ink4,
+          ),
         ),
         Expanded(child: varianceZone),
       ],
@@ -1280,7 +1419,10 @@ class _Zones extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
       decoration: BoxDecoration(
         color: bg,
-        border: Border.all(color: border, width: border == StockRecountTokens.accentTint2 ? 1.5 : 1),
+        border: Border.all(
+          color: border,
+          width: border == StockRecountTokens.accentTint2 ? 1.5 : 1,
+        ),
         borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
       ),
       child: Column(
@@ -1288,10 +1430,7 @@ class _Zones extends StatelessWidget {
         children: [
           Row(
             children: [
-              if (labelIcon != null) ...[
-                labelIcon,
-                const SizedBox(width: 5),
-              ],
+              if (labelIcon != null) ...[labelIcon, const SizedBox(width: 5)],
               Text(
                 label,
                 style: StockRecountHelpers.text(
@@ -1322,15 +1461,21 @@ class _Zones extends StatelessWidget {
     );
   }
 
-  Widget _varianceZone(double variance) {
+  Widget _varianceZone(FlipperAppLocalizations l10n, double variance) {
     final pos = variance > 0;
     final neg = variance < 0;
     return _zone(
-      label: 'Variance',
+      label: l10n.stockRecountVariance,
       labelIcon: pos
-          ? StockRecountIcons.trendUp(size: 13, color: StockRecountTokens.posText)
+          ? StockRecountIcons.trendUp(
+              size: 13,
+              color: StockRecountTokens.posText,
+            )
           : neg
-          ? StockRecountIcons.arrowDown(size: 13, color: StockRecountTokens.negText)
+          ? StockRecountIcons.arrowDown(
+              size: 13,
+              color: StockRecountTokens.negText,
+            )
           : StockRecountIcons.check(size: 13, color: StockRecountTokens.ink3),
       value: StockRecountHelpers.formatSignedVariance(variance),
       bg: pos
@@ -1364,6 +1509,7 @@ class _ItemsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Column(
@@ -1380,20 +1526,26 @@ class _ItemsEmptyState extends StatelessWidget {
                 ],
               ),
             ),
-            child: StockRecountIcons.stack(size: 38, color: StockRecountTokens.accent),
+            child: StockRecountIcons.stack(
+              size: 38,
+              color: StockRecountTokens.accent,
+            ),
           ),
           const SizedBox(height: 22),
           Text(
-            'No items yet',
+            l10n.noItemsYet,
             style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
             editable
-                ? 'Search for a product above, or scan a barcode, then enter the quantity you physically counted.'
-                : 'This recount has no counted items.',
+                ? l10n.stockRecountEmptyItemsHint
+                : l10n.stockRecountNoCountedItems,
             textAlign: TextAlign.center,
-            style: StockRecountHelpers.text(size: 14.5, color: StockRecountTokens.ink3),
+            style: StockRecountHelpers.text(
+              size: 14.5,
+              color: StockRecountTokens.ink3,
+            ),
           ),
         ],
       ),
@@ -1422,8 +1574,10 @@ class _ActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final width = MediaQuery.sizeOf(context).width;
-    final hideSummary = width < StockRecountTokens.actionBarHideSummaryBreakpoint;
+    final hideSummary =
+        width < StockRecountTokens.actionBarHideSummaryBreakpoint;
     final netColor = stats.net > 0
         ? StockRecountTokens.posText
         : stats.net < 0
@@ -1442,12 +1596,16 @@ class _ActionBar extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: StockRecountTokens.surface.withValues(alpha: 0.86),
-            border: const Border(top: BorderSide(color: StockRecountTokens.line)),
+            border: const Border(
+              top: BorderSide(color: StockRecountTokens.line),
+            ),
           ),
           child: Align(
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: StockRecountTokens.maxContentWidth),
+              constraints: const BoxConstraints(
+                maxWidth: StockRecountTokens.maxContentWidth,
+              ),
               child: Row(
                 children: [
                   if (!hideSummary)
@@ -1457,14 +1615,21 @@ class _ActionBar extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            editable ? 'Net variance' : 'Recount total',
+                            editable
+                                ? l10n.stockRecountNetVariance
+                                : l10n.stockRecountTotal,
                             style: StockRecountHelpers.text(
                               size: 13,
                               color: StockRecountTokens.ink3,
                             ),
                           ),
                           Text(
-                            '${StockRecountHelpers.formatSignedVariance(stats.net)} · ${stats.count} items',
+                            l10n.stockRecountNetItems(
+                              StockRecountHelpers.formatSignedVariance(
+                                stats.net,
+                              ),
+                              stats.count,
+                            ),
                             style: StockRecountHelpers.text(
                               size: 15,
                               weight: FontWeight.w700,
@@ -1476,7 +1641,7 @@ class _ActionBar extends StatelessWidget {
                       ),
                     ),
                   StockRecountGhostButton(
-                    label: 'Export PDF',
+                    label: l10n.stockRecountExportPdf,
                     leading: StockRecountIcons.download(
                       size: 18,
                       color: StockRecountTokens.ink1,
@@ -1488,8 +1653,11 @@ class _ActionBar extends StatelessWidget {
                   if (editable) ...[
                     const SizedBox(width: 12),
                     StockRecountPrimaryButton(
-                      label: 'Submit',
-                      leading: StockRecountIcons.check(size: 19, color: Colors.white),
+                      label: l10n.submit,
+                      leading: StockRecountIcons.check(
+                        size: 19,
+                        color: Colors.white,
+                      ),
                       enabled: canSubmit,
                       loading: submitting,
                       onPressed: onSubmit,
@@ -1518,6 +1686,7 @@ class _ConfirmShortageSheet {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
+        final l10n = ctx.flipperL10n;
         final bottom = MediaQuery.viewInsetsOf(ctx).bottom;
         final wide = MediaQuery.sizeOf(ctx).width >= 640;
         return Padding(
@@ -1527,8 +1696,15 @@ class _ConfirmShortageSheet {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 540),
               child: Container(
-                margin: wide ? const EdgeInsets.symmetric(horizontal: 16) : null,
-                padding: EdgeInsets.fromLTRB(22, 8, 22, 24 + MediaQuery.paddingOf(ctx).bottom),
+                margin: wide
+                    ? const EdgeInsets.symmetric(horizontal: 16)
+                    : null,
+                padding: EdgeInsets.fromLTRB(
+                  22,
+                  8,
+                  22,
+                  24 + MediaQuery.paddingOf(ctx).bottom,
+                ),
                 decoration: BoxDecoration(
                   color: StockRecountTokens.surface,
                   borderRadius: wide
@@ -1560,12 +1736,18 @@ class _ConfirmShortageSheet {
                       ),
                     ),
                     Text(
-                      'Confirm shortages before submitting',
-                      style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
+                      l10n.stockRecountConfirmShortagesTitle,
+                      style: StockRecountHelpers.text(
+                        size: 19,
+                        weight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '${items.length} item(s) counted lower than the system — recording this submits a net variance of ${StockRecountHelpers.formatSignedVariance(net)}. Add a reason…',
+                      l10n.stockRecountConfirmShortagesBody(
+                        items.length,
+                        StockRecountHelpers.formatSignedVariance(net),
+                      ),
                       style: StockRecountHelpers.text(
                         size: 14,
                         color: StockRecountTokens.ink2,
@@ -1576,11 +1758,18 @@ class _ConfirmShortageSheet {
                       (item) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 11,
+                          ),
                           decoration: BoxDecoration(
                             color: StockRecountTokens.negTint,
-                            border: Border.all(color: StockRecountTokens.negBorder),
-                            borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+                            border: Border.all(
+                              color: StockRecountTokens.negBorder,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              StockRecountTokens.radiusMd,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -1594,7 +1783,9 @@ class _ConfirmShortageSheet {
                                 ),
                               ),
                               Text(
-                                StockRecountHelpers.formatSignedVariance(item.difference),
+                                StockRecountHelpers.formatSignedVariance(
+                                  item.difference,
+                                ),
                                 style: StockRecountHelpers.text(
                                   size: 13,
                                   color: StockRecountTokens.negText,
@@ -1614,16 +1805,25 @@ class _ConfirmShortageSheet {
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: StockRecountTokens.surface2,
-                        hintText:
-                            'Reason for shortage (e.g. damaged units, spoilage, theft)…',
+                        hintText: l10n.stockRecountShortageReasonHint,
                         contentPadding: const EdgeInsets.all(14),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
-                          borderSide: const BorderSide(color: StockRecountTokens.line, width: 1.5),
+                          borderRadius: BorderRadius.circular(
+                            StockRecountTokens.radiusMd,
+                          ),
+                          borderSide: const BorderSide(
+                            color: StockRecountTokens.line,
+                            width: 1.5,
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
-                          borderSide: const BorderSide(color: StockRecountTokens.accent, width: 1.5),
+                          borderRadius: BorderRadius.circular(
+                            StockRecountTokens.radiusMd,
+                          ),
+                          borderSide: const BorderSide(
+                            color: StockRecountTokens.accent,
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
@@ -1632,16 +1832,20 @@ class _ConfirmShortageSheet {
                       children: [
                         Expanded(
                           child: StockRecountGhostButton(
-                            label: 'Keep editing',
+                            label: l10n.stockRecountKeepEditing,
                             onPressed: () => Navigator.pop(ctx),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: StockRecountPrimaryButton(
-                            label: 'Confirm & submit',
-                            leading: StockRecountIcons.check(size: 18, color: Colors.white),
-                            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                            label: l10n.stockRecountConfirmSubmit,
+                            leading: StockRecountIcons.check(
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                            onPressed: () =>
+                                Navigator.pop(ctx, controller.text.trim()),
                           ),
                         ),
                       ],
@@ -1685,11 +1889,7 @@ class _BarcodeScannerPageState extends State<_BarcodeScannerPage> {
               widget.onDetected(raw);
             },
           ),
-          IgnorePointer(
-            child: ColoredBox(
-              color: const Color(0xB3080C16),
-            ),
-          ),
+          IgnorePointer(child: ColoredBox(color: const Color(0xB3080C16))),
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1699,10 +1899,26 @@ class _BarcodeScannerPageState extends State<_BarcodeScannerPage> {
                   height: 170,
                   child: Stack(
                     children: [
-                      Positioned(top: 0, left: 0, child: _scanCorner(topLeft: true)),
-                      Positioned(top: 0, right: 0, child: _scanCorner(topRight: true)),
-                      Positioned(bottom: 0, left: 0, child: _scanCorner(bottomLeft: true)),
-                      Positioned(bottom: 0, right: 0, child: _scanCorner(bottomRight: true)),
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: _scanCorner(topLeft: true),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: _scanCorner(topRight: true),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        child: _scanCorner(bottomLeft: true),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: _scanCorner(bottomRight: true),
+                      ),
                     ],
                   ),
                 ),
@@ -1720,7 +1936,7 @@ class _BarcodeScannerPageState extends State<_BarcodeScannerPage> {
                     ),
                     const SizedBox(width: 9),
                     Text(
-                      'Point camera at barcode',
+                      context.flipperL10n.stockRecountPointCamera,
                       style: StockRecountHelpers.text(
                         size: 15,
                         weight: FontWeight.w600,
@@ -1743,12 +1959,17 @@ class _BarcodeScannerPageState extends State<_BarcodeScannerPage> {
                   foregroundColor: Colors.white70,
                   side: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
+                    borderRadius: BorderRadius.circular(
+                      StockRecountTokens.radiusPill,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
                 ),
                 child: Text(
-                  'Cancel',
+                  context.flipperL10n.cancel,
                   style: StockRecountHelpers.text(
                     size: 14,
                     weight: FontWeight.w600,

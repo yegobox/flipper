@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 Widget buildNoOrdersPlaceholder() {
@@ -19,14 +20,10 @@ Widget buildNoOrdersPlaceholder() {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
           SizedBox(height: 16),
           Text(
-            "No Orders",
+            FlipperL10n.current.ordersNoOrders,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -35,18 +32,12 @@ Widget buildNoOrdersPlaceholder() {
           ),
           SizedBox(height: 8),
           Text(
-            "You don't have any orders at the moment.",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            FlipperL10n.current.ordersNoneAtTheMoment,
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           Text(
-            "Incoming orders will appear here!",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            FlipperL10n.current.ordersIncomingWillAppear,
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),

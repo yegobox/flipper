@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
@@ -29,12 +30,13 @@ class MposTotalsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).textTheme;
+    final l10n = context.flipperL10n;
     return MposCard(
       padding: const EdgeInsets.all(14),
       child: Column(
         children: [
-          _row(context, 'Subtotal', subtotal),
-          _row(context, 'Tax', tax),
+          _row(context, l10n.subtotal, subtotal),
+          _row(context, l10n.mposTax, tax),
           Padding(
             padding: const EdgeInsets.only(top: 7),
             child: Container(
@@ -49,9 +51,9 @@ class MposTotalsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  const Text(
-                    'Total',
-                    style: TextStyle(
+                  Text(
+                    l10n.mposTotal,
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: PosTokens.ink1,
@@ -64,17 +66,27 @@ class MposTotalsCard extends StatelessWidget {
           ),
           if (alreadyPaid > 0) ...[
             const SizedBox(height: 8),
-            _row(context, 'Already paid', alreadyPaid, ink: PosTokens.blue),
+            _row(
+              context,
+              l10n.mposAlreadyPaid,
+              alreadyPaid,
+              ink: PosTokens.blue,
+            ),
           ],
           if (pendingPayment > 0) ...[
             const SizedBox(height: 4),
-            _row(context, 'This payment', pendingPayment, ink: PosTokens.blue),
+            _row(
+              context,
+              l10n.mposThisPayment,
+              pendingPayment,
+              ink: PosTokens.blue,
+            ),
           ],
           if (remainingBalance > 0 && (change == null || change! <= 0)) ...[
             const SizedBox(height: 4),
             _row(
               context,
-              'Remaining balance',
+              l10n.remainingBalance,
               remainingBalance,
               ink: MposTokens.lossInk,
               bold: true,
@@ -84,7 +96,7 @@ class MposTotalsCard extends StatelessWidget {
             const SizedBox(height: 4),
             _row(
               context,
-              'Balance due',
+              l10n.mposBalanceDue,
               balanceDue!,
               ink: MposTokens.lossInk,
               bold: true,
@@ -94,7 +106,7 @@ class MposTotalsCard extends StatelessWidget {
             const SizedBox(height: 4),
             _row(
               context,
-              'Change',
+              l10n.mposChange,
               change!,
               ink: MposTokens.gainInk,
               bold: true,

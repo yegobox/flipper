@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/logout/end_of_shift_summary.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -79,10 +80,8 @@ class _EndOfShiftDialogState extends State<EndOfShiftDialog> {
                     : _EndOfShiftBody(
                         key: const ValueKey('loaded'),
                         summary: summary,
-                        onSignOut: () => Navigator.pop(
-                          context,
-                          EndOfShiftAction.signOut,
-                        ),
+                        onSignOut: () =>
+                            Navigator.pop(context, EndOfShiftAction.signOut),
                         onSwitchBranch: () => Navigator.pop(
                           context,
                           EndOfShiftAction.switchBranch,
@@ -160,7 +159,9 @@ class _EndOfShiftSkeleton extends StatelessWidget {
                     builder: (context, constraints) {
                       return CustomPaint(
                         size: Size(constraints.maxWidth, 1),
-                        painter: _DottedLinePainter(color: PosTokens.lineStrong),
+                        painter: _DottedLinePainter(
+                          color: PosTokens.lineStrong,
+                        ),
                       );
                     },
                   ),
@@ -194,13 +195,7 @@ class _EndOfShiftSkeleton extends StatelessWidget {
           const SizedBox(height: 4),
           Center(child: _SkeletonBox(width: 108, height: 14, radius: 4)),
           const SizedBox(height: 6),
-          Center(
-            child: _SkeletonBox(
-              width: 280,
-              height: 12,
-              radius: 4,
-            ),
-          ),
+          Center(child: _SkeletonBox(width: 280, height: 12, radius: 4)),
         ],
       ),
     );
@@ -259,14 +254,15 @@ class _EndOfShiftBody extends StatelessWidget {
     return '<1m';
   }
 
-  String _shiftDateLabel() {
+  String _shiftDateLabel(FlipperAppLocalizations l10n) {
     final start = summary.shiftStartedAt ?? DateTime.now();
     final day = DateFormat('MMM d').format(start).toUpperCase();
-    return "TODAY'S SHIFT · $day";
+    return l10n.endOfShiftTodaysShift(day).toUpperCase();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final cash = summary.cashDrawer;
     final mobile = summary.mobileMoney;
     final total = summary.totalCollected > 0
@@ -288,7 +284,7 @@ class _EndOfShiftBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'End of shift',
+                      l10n.endOfShiftTitle,
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -339,8 +335,8 @@ class _EndOfShiftBody extends StatelessWidget {
                     Expanded(
                       child: Text(
                         summary.hasOpenShift
-                            ? _shiftDateLabel()
-                            : 'NO OPEN SHIFT',
+                            ? _shiftDateLabel(l10n)
+                            : l10n.endOfShiftNoOpenShift.toUpperCase(),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -384,7 +380,7 @@ class _EndOfShiftBody extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Collected this shift',
+                  l10n.endOfShiftCollected,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -420,9 +416,10 @@ class _EndOfShiftBody extends StatelessWidget {
                           ),
                         if (cashFraction < 1)
                           Expanded(
-                            flex: ((1 - cashFraction) * 1000)
-                                .round()
-                                .clamp(1, 1000),
+                            flex: ((1 - cashFraction) * 1000).round().clamp(
+                              1,
+                              1000,
+                            ),
                             child: ColoredBox(
                               color: total > 0
                                   ? const Color(0xFF7C3AED)
@@ -436,13 +433,13 @@ class _EndOfShiftBody extends StatelessWidget {
                 const SizedBox(height: 12),
                 _PaymentLegendRow(
                   color: const Color(0xFF2563EB),
-                  label: 'Cash drawer',
+                  label: l10n.endOfShiftCashDrawer,
                   amount: _money(cash),
                 ),
                 const SizedBox(height: 8),
                 _PaymentLegendRow(
                   color: const Color(0xFF7C3AED),
-                  label: 'Mobile money',
+                  label: l10n.paymentMobileMoney,
                   amount: _money(mobile),
                 ),
                 Padding(
@@ -451,7 +448,9 @@ class _EndOfShiftBody extends StatelessWidget {
                     builder: (context, constraints) {
                       return CustomPaint(
                         size: Size(constraints.maxWidth, 1),
-                        painter: _DottedLinePainter(color: PosTokens.lineStrong),
+                        painter: _DottedLinePainter(
+                          color: PosTokens.lineStrong,
+                        ),
                       );
                     },
                   ),
@@ -462,7 +461,7 @@ class _EndOfShiftBody extends StatelessWidget {
                       child: _ShiftStat(
                         icon: Icons.receipt_long_outlined,
                         value: '${summary.salesCompleted}',
-                        label: 'Sales completed',
+                        label: l10n.endOfShiftSalesCompleted,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -470,7 +469,7 @@ class _EndOfShiftBody extends StatelessWidget {
                       child: _ShiftStat(
                         icon: Icons.inventory_2_outlined,
                         value: '${summary.itemsSold}',
-                        label: 'Items sold',
+                        label: l10n.endOfShiftItemsSold,
                       ),
                     ),
                   ],
@@ -491,9 +490,9 @@ class _EndOfShiftBody extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.logout_rounded, size: 20),
-            label: const Text(
-              'Close shift & sign out',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            label: Text(
+              l10n.endOfShiftCloseAndSignOut,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(height: 10),
@@ -509,9 +508,9 @@ class _EndOfShiftBody extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.swap_horiz_rounded, size: 20),
-            label: const Text(
-              'Switch branch',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            label: Text(
+              l10n.endOfShiftSwitchBranch,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
           const SizedBox(height: 4),
@@ -521,9 +520,9 @@ class _EndOfShiftBody extends StatelessWidget {
               foregroundColor: PosTokens.ink3,
               padding: const EdgeInsets.symmetric(vertical: 10),
             ),
-            child: const Text(
-              'Stay signed in',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            child: Text(
+              l10n.endOfShiftStaySignedIn,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
           const SizedBox(height: 6),
@@ -538,7 +537,7 @@ class _EndOfShiftBody extends StatelessWidget {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'Your sales are saved — the drawer will be reconciled on close.',
+                  l10n.endOfShiftSalesSaved,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,

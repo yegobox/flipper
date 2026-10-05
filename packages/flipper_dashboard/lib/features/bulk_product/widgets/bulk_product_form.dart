@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -47,7 +48,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
     try {
       if (model.excelData == null || model.excelData!.isEmpty) {
         setState(() {
-          _errorMessage = 'No data to save';
+          _errorMessage = context.flipperL10n.bulkProductNoDataToSave;
         });
         return;
       }
@@ -61,10 +62,9 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
 
       if (!mounted) return;
       if (shouldClose == true && result.success) {
-        ref.read(refreshProvider).performActions(
-          productName: '',
-          scanMode: true,
-        );
+        ref
+            .read(refreshProvider)
+            .performActions(productName: '', scanMode: true);
         Navigator.of(context).pop();
       } else if (!result.success) {
         setState(() {
@@ -113,6 +113,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
   }
 
   Widget _buildBody(BulkAddProductViewModel model) {
+    final l10n = context.flipperL10n;
     if (model.isLoading &&
         model.selectedFile != null &&
         model.excelData == null &&
@@ -125,8 +126,10 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
             const SizedBox(height: 16),
             Text(
               model.estimatedRowCount != null
-                  ? 'Loading full spreadsheet (~${model.estimatedRowCount} rows)…'
-                  : 'Parsing spreadsheet…',
+                  ? l10n.bulkProductLoadingFullSpreadsheet(
+                      '${model.estimatedRowCount}',
+                    )
+                  : l10n.bulkProductParsingSpreadsheet,
               style: TextStyle(
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
@@ -155,8 +158,8 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
       return Center(
         child: Text(
           model.selectedFile != null
-              ? 'Could not load spreadsheet. Use Change to pick another file.'
-              : 'Upload an Excel file to preview products',
+              ? l10n.bulkProductCouldNotLoadSpreadsheet
+              : l10n.bulkProductUploadToPreview,
           style: const TextStyle(
             fontSize: 14,
             fontStyle: FontStyle.italic,
@@ -167,11 +170,11 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
     }
 
     if (model.excelData!.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'No rows in file — upload another spreadsheet or add rows in Excel.',
+          l10n.bulkProductNoRowsInFile,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Colors.black54),
+          style: const TextStyle(fontSize: 14, color: Colors.black54),
         ),
       );
     }

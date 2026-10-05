@@ -7,6 +7,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,6 +53,7 @@ Future<void> showSaleAgentAssignmentSheet({
   required WidgetRef ref,
   required ITransaction transaction,
 }) async {
+  final l10n = context.flipperL10n;
   final List<Tenant> agents =
       await FlipperBaseModel.fetchAgentTenantsFromSupabase();
 
@@ -82,8 +84,8 @@ Future<void> showSaleAgentAssignmentSheet({
       return [
         WoltModalSheetPage(
           isTopBarLayerAlwaysVisible: true,
-          topBarTitle: const ModalSheetTopBarTitle('Assign agent'),
-          pageTitle: const ModalSheetTitle('Assign agent'),
+          topBarTitle: ModalSheetTopBarTitle(l10n.saleAgentAssignTitle),
+          pageTitle: ModalSheetTitle(l10n.saleAgentAssignTitle),
           trailingNavBarWidget: const WoltModalSheetCloseButton(),
           child: StatefulBuilder(
             builder: (context, setModalState) {
@@ -108,20 +110,22 @@ Future<void> showSaleAgentAssignmentSheet({
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _SheetSectionLabel(title: 'AGENTS', count: agents.length),
+                    _SheetSectionLabel(
+                      title: l10n.saleAgentAgentsSection,
+                      count: agents.length,
+                    ),
                     const SizedBox(height: 12),
                     TicketSearchBar(
-                      hintText: 'Search agents...',
+                      hintText: l10n.saleAgentSearchHint,
                       onChanged: filterAgents,
                     ),
                     const SizedBox(height: 14),
                     if (agents.isEmpty)
                       _SheetEmptyMessage(
-                        text:
-                            'No agents found for this business. Add agents in User Management.',
+                        text: l10n.saleAgentNoAgentsForBusiness,
                       )
                     else if (filtered.isEmpty)
-                      _SheetEmptyMessage(text: 'No agents match your search.')
+                      _SheetEmptyMessage(text: l10n.saleAgentNoSearchMatch)
                     else
                       Container(
                         decoration: BoxDecoration(
@@ -160,17 +164,17 @@ Future<void> showSaleAgentAssignmentSheet({
                         ),
                       ),
                     const SizedBox(height: 20),
-                    const _SheetSectionLabel(title: 'COMMISSION'),
+                    _SheetSectionLabel(title: l10n.saleAgentCommissionSection),
                     const SizedBox(height: 12),
                     CustomSegmentedButton<SaleAgentCommissionType>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: SaleAgentCommissionType.fixed,
-                          label: Text('Fixed (RWF)'),
+                          label: Text(l10n.saleAgentFixedRwf),
                         ),
                         ButtonSegment(
                           value: SaleAgentCommissionType.percent,
-                          label: Text('Percent (%)'),
+                          label: Text(l10n.saleAgentPercent),
                         ),
                       ],
                       selected: {commissionType},
@@ -193,11 +197,11 @@ Future<void> showSaleAgentAssignmentSheet({
                       style: GoogleFonts.outfit(fontSize: 15),
                       decoration: _sheetFieldDecoration(
                         label: commissionType == SaleAgentCommissionType.fixed
-                            ? 'Amount (RWF)'
-                            : 'Rate (%)',
+                            ? l10n.saleAgentAmountRwf
+                            : l10n.saleAgentRatePercent,
                         hint: commissionType == SaleAgentCommissionType.fixed
-                            ? 'e.g. 500'
-                            : 'e.g. 5',
+                            ? l10n.saleAgentExample('500')
+                            : l10n.saleAgentExample('5'),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -224,7 +228,7 @@ Future<void> showSaleAgentAssignmentSheet({
                               }
                             },
                             child: Text(
-                              'Clear',
+                              l10n.clear,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -247,7 +251,7 @@ Future<void> showSaleAgentAssignmentSheet({
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Select an agent',
+                                      l10n.saleAgentSelectAgent,
                                       style: GoogleFonts.outfit(),
                                     ),
                                     behavior: SnackBarBehavior.floating,
@@ -261,7 +265,7 @@ Future<void> showSaleAgentAssignmentSheet({
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Enter a valid commission',
+                                      l10n.saleAgentEnterValidCommission,
                                       style: GoogleFonts.outfit(),
                                     ),
                                     behavior: SnackBarBehavior.floating,
@@ -275,7 +279,7 @@ Future<void> showSaleAgentAssignmentSheet({
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'Percent cannot exceed 100',
+                                      l10n.saleAgentPercentMax,
                                       style: GoogleFonts.outfit(),
                                     ),
                                     behavior: SnackBarBehavior.floating,
@@ -295,7 +299,7 @@ Future<void> showSaleAgentAssignmentSheet({
                               }
                             },
                             child: Text(
-                              'Apply',
+                              l10n.saleAgentApply,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -409,7 +413,7 @@ class _AgentSelectTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final subtitle = agent.email?.trim().isNotEmpty == true
         ? agent.email!
-        : (agent.phoneNumber ?? 'No contact');
+        : (agent.phoneNumber ?? context.flipperL10n.saleAgentNoContact);
 
     return Material(
       color: Colors.transparent,
@@ -489,7 +493,7 @@ class _AgentSelectTile extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'Agent',
+                  context.flipperL10n.saleAgentBadge,
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

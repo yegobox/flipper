@@ -21,6 +21,7 @@ import 'package:flipper_models/helperModels/transaction_report_kpi_totals.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -271,7 +272,7 @@ class DataViewState extends ConsumerState<DataView>
         /// so this can never show a figure the grid has no rows for.
         Widget netProfit() {
           return _buildSummaryCard(
-            'Net Profit',
+            context.flipperL10n.reportNetProfit,
             kpi.netProfit,
             loading,
             Colors.purple,
@@ -283,7 +284,7 @@ class DataViewState extends ConsumerState<DataView>
             const SizedBox(width: 12),
             Expanded(
               child: _buildSummaryCard(
-                'Total Sales',
+                context.flipperL10n.reportTotalSales,
                 kpi.pluLineSales,
                 loading,
                 Colors.green,
@@ -309,7 +310,7 @@ class DataViewState extends ConsumerState<DataView>
         /// so this can never show a figure the grid has no rows for.
         Widget netProfit() {
           return _buildSummaryCard(
-            'Net Profit',
+            context.flipperL10n.reportNetProfit,
             kpi.netProfit,
             loading,
             Colors.purple,
@@ -322,7 +323,7 @@ class DataViewState extends ConsumerState<DataView>
             const SizedBox(width: 12),
             Expanded(
               child: _buildSummaryCard(
-                'Total Sales',
+                context.flipperL10n.reportTotalSales,
                 kpi.pluLineSales,
                 loading,
                 Colors.green,
@@ -333,7 +334,7 @@ class DataViewState extends ConsumerState<DataView>
             const SizedBox(width: 12),
             Expanded(
               child: _buildSummaryCard(
-                'Period \u2014 By Hand',
+                context.flipperL10n.reportPeriodByHand,
                 kpi.periodByHand,
                 loading,
                 Colors.teal,
@@ -342,7 +343,7 @@ class DataViewState extends ConsumerState<DataView>
             const SizedBox(width: 12),
             Expanded(
               child: _buildSummaryCard(
-                'Period \u2014 Credit',
+                context.flipperL10n.reportPeriodCredit,
                 kpi.periodCredit,
                 loading,
                 Colors.deepOrange,
@@ -460,7 +461,9 @@ class DataViewState extends ConsumerState<DataView>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Stock count updated successfully for ${data.productName}',
+                        context.flipperL10n.reportStockCountUpdated(
+                          '${data.productName}',
+                        ),
                       ),
                       backgroundColor: Colors.green,
                       duration: const Duration(seconds: 3),
@@ -479,12 +482,14 @@ class DataViewState extends ConsumerState<DataView>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Failed to update stock count: ${e.toString()}',
+                        context.flipperL10n.reportStockCountUpdateFailed(
+                          e.toString(),
+                        ),
                       ),
                       backgroundColor: Colors.red,
                       duration: const Duration(seconds: 5),
                       action: SnackBarAction(
-                        label: 'Dismiss',
+                        label: context.flipperL10n.reportDismiss,
                         textColor: Colors.white,
                         onPressed: () {},
                       ),
@@ -537,7 +542,7 @@ class DataViewState extends ConsumerState<DataView>
                   onExportPressed: () async {
                     setState(() => _isExportingExcel = true);
                     try {
-                      await _export(headerTitle: "Report");
+                      await _export();
                     } finally {
                       if (mounted) {
                         setState(() => _isExportingExcel = false);
@@ -792,7 +797,7 @@ class DataViewState extends ConsumerState<DataView>
       );
       return _stickyFooterRow(
         context,
-        label: 'Total stock (units):',
+        label: context.flipperL10n.reportTotalStockUnits,
         amount: totalUnits,
         isLoading: false,
       );
@@ -820,7 +825,7 @@ class DataViewState extends ConsumerState<DataView>
 
         return _stickyFooterRow(
           context,
-          label: 'Total sales (lines):',
+          label: context.flipperL10n.reportTotalSalesLines,
           amount: total,
           isLoading: loading,
         );
@@ -903,9 +908,9 @@ class DataViewState extends ConsumerState<DataView>
               child: Text.rich(
                 TextSpan(
                   children: [
-                    const TextSpan(
-                      text: 'Total sales: ',
-                      style: TextStyle(
+                    TextSpan(
+                      text: '${context.flipperL10n.reportTotalSalesLabel} ',
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF111827),
                         fontSize: 14,
@@ -920,7 +925,8 @@ class DataViewState extends ConsumerState<DataView>
                       ),
                     ),
                     TextSpan(
-                      text: '   $n transactions',
+                      text:
+                          '   ${context.flipperL10n.reportTransactionsCount(n)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 13,
@@ -935,7 +941,10 @@ class DataViewState extends ConsumerState<DataView>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Page ${pageIndex + 1} of $pageCount',
+                  context.flipperL10n.pageOfPages(
+                    '${pageIndex + 1}',
+                    '$pageCount',
+                  ),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -1186,7 +1195,8 @@ class DataViewState extends ConsumerState<DataView>
     Map<String, TransactionPaymentSums>? fullPaymentSumsByTransactionId,
     List<TransactionItem>? fullDetailTransactionItems,
   }) async {
-    final columnNames = widget.showDetailedReport &&
+    final columnNames =
+        widget.showDetailedReport &&
             (fullDetailTransactionItems != null ||
                 _dataGridSource is TransactionItemDataSource)
         ? kPluDetailedExportColumnNames
@@ -1328,7 +1338,9 @@ class DataViewState extends ConsumerState<DataView>
 
   /// Public method to trigger export from parent widgets.
   /// Exports ALL data in the selected date range (all pages) using manual data path to avoid grid hang.
-  Future<void> triggerExport({String headerTitle = "Report"}) async {
+  Future<void> triggerExport({String? headerTitle}) async {
+    final l10n = FlipperL10n.current;
+    headerTitle ??= l10n.reportTitleReport;
     talker.info(
       'triggerExport: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}',
     );
@@ -1424,11 +1436,13 @@ class DataViewState extends ConsumerState<DataView>
           workBookKey: widget.workBookKey,
           isStockRecount: isStockRecount,
           config: config,
-          headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+          headerTitle: isStockRecount
+              ? l10n.reportTitleStockRecount
+              : headerTitle!,
           expenses: expenses,
           bottomEndOfRowTitle: widget.showDetailedReport
-              ? "Total Gross Profit"
-              : "Closing balance",
+              ? l10n.reportTotalGrossProfit
+              : l10n.reportClosingBalance,
           showProfitCalculations: widget.showDetailedReport,
           manualData: manualData.isNotEmpty ? manualData : null,
           columnNames: manualData.isNotEmpty ? columnNames : null,
@@ -1443,7 +1457,7 @@ class DataViewState extends ConsumerState<DataView>
     }
   }
 
-  Future<void> _export({String headerTitle = "Report"}) async {
+  Future<void> _export({String? headerTitle}) async {
     await triggerExport(headerTitle: headerTitle);
   }
 }

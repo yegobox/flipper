@@ -52,7 +52,7 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
 
                       return counts == 0
                           ? Text(
-                              'No Sale',
+                              context.flipperL10n.saleIndicatorNoSale,
                               style: Theme.of(context).textTheme.headlineMedium!
                                   .copyWith(
                                     fontSize: 16,
@@ -93,7 +93,7 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
                             );
                     },
                     loading: () => Text(
-                      'No Sale',
+                      context.flipperL10n.saleIndicatorNoSale,
                       style: Theme.of(context).textTheme.headlineMedium!
                           .copyWith(
                             fontSize: 16,
@@ -102,7 +102,7 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
                           ),
                     ),
                     error: (_, __) => Text(
-                      'No Sale',
+                      context.flipperL10n.saleIndicatorNoSale,
                       style: Theme.of(context).textTheme.headlineMedium!
                           .copyWith(
                             fontSize: 16,

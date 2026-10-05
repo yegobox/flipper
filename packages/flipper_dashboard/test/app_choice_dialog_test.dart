@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/app_choice_dialog.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
@@ -51,6 +52,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: AppChoiceDialog(
             request: DialogRequest<AppChoiceDialogRequest>(data: request),
             completer: responses.add,
@@ -181,6 +184,8 @@ void main() {
             ),
           ],
           child: MaterialApp(
+            localizationsDelegates: FlipperLocalizationDelegates.delegates,
+            supportedLocales: FlipperLocalizationDelegates.supportedLocales,
             home: AppChoiceDialog(
               request: DialogRequest<AppChoiceDialogRequest>(),
               completer: responses.add,
@@ -213,6 +218,8 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: AppChoiceDialog(
             request: DialogRequest<AppChoiceDialogRequest>(
               // branchName supplied so the chooser does not fall back to

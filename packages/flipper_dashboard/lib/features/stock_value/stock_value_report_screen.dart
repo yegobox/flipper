@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:developer';
 
@@ -16,6 +17,7 @@ class StockValueReportScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reportAsync = ref.watch(stockValueReportProvider);
+    final l10n = context.flipperL10n;
 
     return Scaffold(
       backgroundColor: kStockValuePageBg,
@@ -27,7 +29,7 @@ class StockValueReportScreen extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Stock Values',
+          l10n.stockValueTitleMobile,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         actions: [
@@ -45,7 +47,7 @@ class StockValueReportScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    '${r.productsCount} products',
+                    l10n.stockValueProductsCount(r.productsCount),
                     style: FlipperFonts.mono(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -64,7 +66,7 @@ class StockValueReportScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(
           child: Text(
-            'Unable to load stock report.',
+            l10n.stockValueLoadError,
             style: GoogleFonts.outfit(color: Colors.black54),
           ),
         ),
@@ -150,6 +152,7 @@ class _StockValueReportBodyState extends ConsumerState<_StockValueReportBody> {
   @override
   Widget build(BuildContext context) {
     final report = widget.report;
+    final l10n = context.flipperL10n;
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(stockValueReportProvider);
@@ -165,17 +168,17 @@ class _StockValueReportBodyState extends ConsumerState<_StockValueReportBody> {
               children: [
                 Expanded(
                   child: StockValueSummaryTile(
-                    title: 'TOTAL VALUE',
+                    title: l10n.stockValueTotalValueCaps,
                     value: formatNumber(report.totalValue),
-                    subtitle: 'RWF · ${report.productsCount} items',
+                    subtitle: l10n.stockValueRwfItems(report.productsCount),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: StockValueSummaryTile(
-                    title: 'NEEDS RESTOCK',
+                    title: l10n.stockValueNeedsRestockCaps,
                     value: '${report.needsRestockCount}',
-                    subtitle: 'critical or low',
+                    subtitle: l10n.stockValueCriticalOrLow,
                     valueColor: report.needsRestockCount > 0
                         ? const Color(0xFFB91C1C)
                         : const Color(0xFF16A34A),
@@ -186,7 +189,7 @@ class _StockValueReportBodyState extends ConsumerState<_StockValueReportBody> {
             if (report.isPossiblyIncomplete) ...[
               const SizedBox(height: 10),
               Text(
-                'Data may be incomplete (partial sync).',
+                l10n.stockValuePartialSync,
                 style: GoogleFonts.outfit(fontSize: 12, color: Colors.black54),
               ),
             ],
@@ -208,19 +211,19 @@ class _StockValueReportBodyState extends ConsumerState<_StockValueReportBody> {
               const SizedBox(height: 16),
             ],
             StockValueSectionTitle(
-              'LOW & CRITICAL ITEMS',
+              l10n.stockValueLowCriticalCaps,
               titleKey: _lowCriticalKey,
             ),
             const SizedBox(height: 10),
             if (report.lowAndCriticalItems.isEmpty)
-              const StockValueEmptyCard('No low-stock items in local data.')
+              StockValueEmptyCard(l10n.stockValueNoLowStock)
             else
               StockValueLowCriticalList(items: report.lowAndCriticalItems),
             const SizedBox(height: 18),
-            const StockValueSectionTitle('VALUE BY CATEGORY'),
+            StockValueSectionTitle(l10n.stockValueByCategoryCaps),
             const SizedBox(height: 10),
             if (report.valueByCategory.isEmpty)
-              const StockValueEmptyCard('No category breakdown available.')
+              StockValueEmptyCard(l10n.stockValueNoCategoryBreakdown)
             else
               StockValueCategoryBreakdownList(report: report),
           ],

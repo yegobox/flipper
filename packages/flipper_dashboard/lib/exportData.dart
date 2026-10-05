@@ -1,4 +1,5 @@
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -57,7 +58,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     footerRow.height = 30; // Adjust row height if needed
 
     // Add data to the cells
-    footerRow.cells[0].value = 'Total:';
+    footerRow.cells[0].value = FlipperL10n.current.exportDataTotalLabel;
     footerRow.cells[0].style = PdfGridCellStyle(
       borders: PdfBorders(
         left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
@@ -343,7 +344,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         // Get the worksheet from the workbook
         final excel.Worksheet reportSheet = workbook.worksheets[0];
-        reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
+        reportSheet.name = isStockRecount
+            ? FlipperL10n.current.exportDataSheetStockRecount
+            : FlipperL10n.current.exportDataSheetReport;
 
         // 2. Add business information (trade name and TIN)
         if (business != null) {
@@ -621,7 +624,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           // Add a header row to ensure the workbook has some content
           if (workbook.worksheets[0].getLastRow() < 1) {
             talker.info('Adding basic structure to empty workbook');
-            reportSheet.getRangeByName('A1').setText('Report');
+            reportSheet
+                .getRangeByName('A1')
+                .setText(FlipperL10n.current.exportDataSheetReport);
           }
         }
 
@@ -758,7 +763,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           qtyColumn = col;
         }
       }
-      if (totalSalesColumn != null && priceColumn != null && qtyColumn != null) {
+      if (totalSalesColumn != null &&
+          priceColumn != null &&
+          qtyColumn != null) {
         break;
       }
     }
@@ -828,7 +835,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           : totalSalesColumn;
       sheet
           .getRangeByIndex(totalSalesRowIndex, labelCol)
-          .setText('Total Sales (lines):');
+          .setText(FlipperL10n.current.exportDataTotalSalesLines);
       sheet.getRangeByIndex(totalSalesRowIndex, labelCol).cellStyle =
           totalSalesStyle;
 
@@ -839,9 +846,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
       final grossLinesFormula = priceColumn != null && qtyColumn != null
           ? '=SUMPRODUCT(${_getColumnLetter(priceColumn)}${dataStartRow}:'
-              '${_getColumnLetter(priceColumn)}${dataEndRow},'
-              '${_getColumnLetter(qtyColumn)}${dataStartRow}:'
-              '${_getColumnLetter(qtyColumn)}${dataEndRow})'
+                '${_getColumnLetter(priceColumn)}${dataEndRow},'
+                '${_getColumnLetter(qtyColumn)}${dataStartRow}:'
+                '${_getColumnLetter(qtyColumn)}${dataEndRow})'
           : '=SUM($tsLetter${dataStartRow}:$tsLetter${dataEndRow})';
       totalSalesSumCell.setFormula(grossLinesFormula);
       // Apply style then number format — assigning [cellStyle] clears a prior [numberFormat].
@@ -860,7 +867,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     sheet
         .getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol)
-        .setText('Total Net Profit (Before Expenses):');
+        .setText(FlipperL10n.current.exportDataNetProfitBeforeExpenses);
     sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol).cellStyle =
         summaryStyle;
 
@@ -953,7 +960,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final labelCol = netProfitColumn > 1 ? netProfitColumn - 1 : 1;
       for (var r = totalRowIndex; r >= 1; r--) {
         final label = reportSheet.getRangeByIndex(r, labelCol).getText() ?? '';
-        if (label.contains('Total Net Profit (Before Expenses)')) {
+        if (label.contains(
+          FlipperL10n.current.exportDataNetProfitBeforeExpenses,
+        )) {
           totalRowIndex = r;
           break;
         }
@@ -979,7 +988,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Add 'Final Net Profit (After Expenses):' label
       reportSheet
           .getRangeByIndex(finalNetProfitRowIndex, labelCol)
-          .setText('Final Net Profit (After Expenses):');
+          .setText(FlipperL10n.current.exportDataNetProfitAfterExpenses);
       reportSheet.getRangeByIndex(finalNetProfitRowIndex, labelCol).cellStyle =
           finalNetProfitStyle;
 
@@ -990,7 +999,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
 
       // Find the Expenses sheet which we know exists at this point
-      final expensesSheet = _findWorksheetByName(workbook, 'Expenses');
+      final expensesSheet = _findWorksheetByName(
+        workbook,
+        FlipperL10n.current.exportDataSheetExpenses,
+      );
       if (expensesSheet != null) {
         final lastExpenseRow = expensesSheet.getLastRow();
         final totalExpensesRowIndex = lastExpenseRow;
@@ -1039,7 +1051,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     ExportConfig config,
     ExcelStyler styler,
   ) async {
-    final sheetName = 'Payment Methods';
+    final sheetName = FlipperL10n.current.exportDataSheetPaymentMethods;
 
     try {
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
@@ -1084,10 +1096,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       fontSize: 14,
     );
 
-    sheet.getRangeByIndex(1, 1).setText('Payment Type');
-    sheet.getRangeByIndex(1, 2).setText('Sale amount');
-    sheet.getRangeByIndex(1, 3).setText('Transaction Count');
-    sheet.getRangeByIndex(1, 4).setText('% of Total');
+    final l10n = FlipperL10n.current;
+    sheet.getRangeByIndex(1, 1).setText(l10n.exportDataPaymentType);
+    sheet.getRangeByIndex(1, 2).setText(l10n.exportDataSaleAmount);
+    sheet.getRangeByIndex(1, 3).setText(l10n.exportDataTransactionCount);
+    sheet.getRangeByIndex(1, 4).setText(l10n.exportDataPercentOfTotal);
 
     final headerRange = sheet.getRangeByIndex(1, 1, 1, 4);
     headerRange.cellStyle = headerStyle;
@@ -1154,7 +1167,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     int lastDataRow,
     ExportConfig config,
   ) {
-    sheet.getRangeByIndex(lastDataRow, 1).setText('Total');
+    sheet
+        .getRangeByIndex(lastDataRow, 1)
+        .setText(FlipperL10n.current.exportDataTotal);
 
     final totalCell = sheet.getRangeByIndex(lastDataRow, 2);
     totalCell.setFormula('=SUM(B2:B${lastDataRow - 1})');
@@ -1175,11 +1190,14 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     ExcelStyler styler,
     String currencyFormat,
   ) {
-    final expenseSheet = workbook.worksheets.addWithName('Expenses');
+    final l10n = FlipperL10n.current;
+    final expenseSheet = workbook.worksheets.addWithName(
+      l10n.exportDataSheetExpenses,
+    );
 
     // Add headers without styling
-    expenseSheet.getRangeByIndex(1, 1).setText('Expense');
-    expenseSheet.getRangeByIndex(1, 2).setText('Amount');
+    expenseSheet.getRangeByIndex(1, 1).setText(l10n.exportDataExpense);
+    expenseSheet.getRangeByIndex(1, 2).setText(l10n.amount);
 
     // Add expense data
     for (int i = 0; i < expenses.length; i++) {
@@ -1194,7 +1212,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final lastDataRow = expenseSheet.getLastRow();
 
     // Add total row without styling
-    expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Expenses');
+    expenseSheet
+        .getRangeByIndex(lastDataRow + 1, 1)
+        .setText(l10n.exportDataTotalExpenses);
 
     final totalExpensesCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
     totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
@@ -1280,13 +1300,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final mimeType = _lookupMimeType(filePath);
       await Share.shareXFiles(
         [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
-        subject: 'Report Download - $formattedDate',
+        subject: FlipperL10n.current.exportDataShareSubject(formattedDate),
         sharePositionOrigin: shareOrigin,
       );
     } else {
       await Share.shareXFiles(
         [XFile(filePath)],
-        subject: 'Report Download - $formattedDate',
+        subject: FlipperL10n.current.exportDataShareSubject(formattedDate),
         sharePositionOrigin: shareOrigin,
       );
     }

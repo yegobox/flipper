@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
 import '../models/production_output_models.dart';
@@ -64,8 +65,8 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
           _buildFilterBar(context),
           Expanded(
             child: sortedOrders.isEmpty
-                ? _buildEmptyState()
-                : _buildTable(sortedOrders),
+                ? _buildEmptyState(context)
+                : _buildTable(context, sortedOrders),
           ),
         ],
       ),
@@ -84,14 +85,16 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
           ),
           const SizedBox(width: 8),
           Text(
-            'Work Orders',
+            context.flipperL10n.productionOutputWorkOrders,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           Text(
-            '${widget.workOrders.length} items',
+            context.flipperL10n.productionOutputItemsCount(
+              widget.workOrders.length,
+            ),
             style: TextStyle(fontSize: 12, color: Colors.grey[500]),
           ),
         ],
@@ -100,6 +103,14 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
   }
 
   Widget _buildFilterBar(BuildContext context) {
+    final l10n = context.flipperL10n;
+    // (label, filter value) — the value matches the stored work-order status.
+    final filters = <(String, String?)>[
+      (l10n.productionOutputFilterAll, null),
+      (l10n.productionOutputStatusPlanned, 'planned'),
+      (l10n.productionOutputStatusInProgress, 'in_progress'),
+      (l10n.productionOutputStatusCompleted, 'completed'),
+    ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -112,21 +123,17 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
       child: Row(
         children: [
           Text(
-            'Status:',
+            l10n.productionOutputStatusFilterLabel,
             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
           const SizedBox(width: 8),
-          ...['All', 'Planned', 'In Progress', 'Completed'].map((status) {
-            final filterValue = status == 'All'
-                ? null
-                : status == 'In Progress'
-                ? 'in_progress'
-                : status.toLowerCase();
+          ...filters.map((filter) {
+            final (label, filterValue) = filter;
             final isSelected = _statusFilter == filterValue;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
-                label: Text(status),
+                label: Text(label),
                 selected: isSelected,
                 onSelected: (_) {
                   setState(() {
@@ -150,7 +157,8 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
     );
   }
 
-  Widget _buildTable(List<WorkOrder> orders) {
+  Widget _buildTable(BuildContext context, List<WorkOrder> orders) {
+    final l10n = context.flipperL10n;
     return SingleChildScrollView(
       child: DataTable(
         sortColumnIndex: _getSortColumnIndex(),
@@ -160,33 +168,33 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
         dataRowMaxHeight: 72,
         columns: [
           DataColumn(
-            label: const Text('Product'),
+            label: Text(l10n.productionOutputProduct),
             onSort: (_, __) => _onSort('variantName'),
           ),
           DataColumn(
-            label: const Text('Target Date'),
+            label: Text(l10n.productionOutputTargetDate),
             onSort: (_, __) => _onSort('targetDate'),
           ),
           DataColumn(
-            label: const Text('Planned'),
+            label: Text(l10n.productionOutputPlanned),
             numeric: true,
             onSort: (_, __) => _onSort('plannedQuantity'),
           ),
           DataColumn(
-            label: const Text('Actual'),
+            label: Text(l10n.productionOutputActual),
             numeric: true,
             onSort: (_, __) => _onSort('actualQuantity'),
           ),
-          DataColumn(label: const Text('Variance'), numeric: true),
-          const DataColumn(label: Text('Status')),
-          const DataColumn(label: Text('Actions')),
+          DataColumn(label: Text(l10n.productionOutputVariance), numeric: true),
+          DataColumn(label: Text(l10n.productionOutputStatus)),
+          DataColumn(label: Text(l10n.actions)),
         ],
-        rows: orders.map((order) => _buildDataRow(order)).toList(),
+        rows: orders.map((order) => _buildDataRow(l10n, order)).toList(),
       ),
     );
   }
 
-  DataRow _buildDataRow(WorkOrder order) {
+  DataRow _buildDataRow(FlipperAppLocalizations l10n, WorkOrder order) {
     final status = WorkOrderStatus.fromString(order.status);
     final variance = order.variance;
     final varianceColor = variance >= 0
@@ -204,7 +212,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                order.variantName ?? 'Unknown',
+                order.variantName ?? l10n.productionOutputUnknown,
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
               Text(
@@ -243,7 +251,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
             ],
           ),
         ),
-        DataCell(_buildStatusBadge(status)),
+        DataCell(_buildStatusBadge(l10n, status)),
         DataCell(
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -252,7 +260,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
               if (status == WorkOrderStatus.planned && widget.onStart != null)
                 IconButton(
                   icon: const Icon(Icons.play_arrow, size: 20),
-                  tooltip: 'Start',
+                  tooltip: l10n.productionOutputStart,
                   onPressed: () => widget.onStart!(order),
                   color: Colors.blue[700],
                 ),
@@ -260,7 +268,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
               if (!order.isCompleted && widget.onRecordOutput != null)
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline, size: 20),
-                  tooltip: 'Record Output',
+                  tooltip: l10n.productionOutputRecordOutput,
                   onPressed: () => widget.onRecordOutput!(order),
                   color: Color(VarianceColors.neutral),
                 ),
@@ -269,7 +277,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
                   widget.onComplete != null)
                 IconButton(
                   icon: const Icon(Icons.check_circle_outline, size: 20),
-                  tooltip: 'Complete',
+                  tooltip: l10n.productionOutputComplete,
                   onPressed: () => widget.onComplete!(order),
                   color: Color(VarianceColors.positive),
                 ),
@@ -280,7 +288,10 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
     );
   }
 
-  Widget _buildStatusBadge(WorkOrderStatus status) {
+  Widget _buildStatusBadge(
+    FlipperAppLocalizations l10n,
+    WorkOrderStatus status,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -288,7 +299,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        status.label,
+        status.localizedLabel(l10n),
         style: TextStyle(
           fontSize: 12,
           color: Color(status.color),
@@ -308,7 +319,7 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -332,12 +343,12 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
           ),
           const SizedBox(height: 22),
           Text(
-            'No work orders found',
+            context.flipperL10n.productionOutputNoWorkOrdersFound,
             style: StockRecountHelpers.text(size: 19, weight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
-            'Create a work order to start tracking production',
+            context.flipperL10n.productionOutputTableEmptyHint,
             textAlign: TextAlign.center,
             style: StockRecountHelpers.text(
               size: 14.5,

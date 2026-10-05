@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -9,15 +10,16 @@ import 'package:google_fonts/google_fonts.dart';
 
 class SectionSelectUnit extends StatelessWidget {
   SectionSelectUnit({Key? key, required this.product, required this.type})
-      : super(key: key);
+    : super(key: key);
   final Product product;
   final String type;
   final _routerService = locator<RouterService>();
   Widget unitSelector(Product units) {
-    late Widget text = Flippertext('Select Unit');
+    final selectUnit = FlipperL10n.current.unitsSelectUnit;
+    late Widget text = Flippertext(selectUnit);
 
     if (product.unit != '') {
-      text = Flippertext(product.unit ?? 'Select Unit');
+      text = Flippertext(product.unit ?? selectUnit);
     }
 
     return text;
@@ -37,23 +39,22 @@ class SectionSelectUnit extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.4),
             dense: true,
             leading: Text(
-              'Unit Type',
+              context.flipperL10n.unitsUnitType,
               style: GoogleFonts.outfit(
-                  color: Colors.black,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w400),
+                color: Colors.black,
+                fontSize: 17,
+                fontWeight: FontWeight.w400,
+              ),
             ),
             trailing: Wrap(
               children: [
                 unitSelector(product),
                 Theme(
                   data: ThemeData(
-                    iconTheme: const IconThemeData(
-                      color: Colors.black,
-                    ),
+                    iconTheme: const IconThemeData(color: Colors.black),
                   ),
                   child: const Icon(FluentIcons.arrow_forward_20_regular),
-                )
+                ),
               ],
             ),
           ),

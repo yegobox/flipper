@@ -1,6 +1,7 @@
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/pos_payment_role_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -106,8 +107,8 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
         showCustomSnackBarUtil(
           context,
           allReviewBlocked
-              ? 'Selected tickets have been reviewed and cannot be deleted'
-              : 'Selected tickets cannot be deleted (partial payments or reviewed)',
+              ? context.flipperL10n.ticketsCannotDeleteReviewed
+              : context.flipperL10n.ticketsCannotDeleteSelected,
           backgroundColor: Colors.orange,
         );
       }
@@ -117,7 +118,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
     showDeletionConfirmationSnackBar(
       context,
       deletableTickets,
-      (ticket) => 'Ticket #${ticket.reference ?? ticket.id.substring(0, 8)}',
+      (ticket) => context.flipperL10n.ticketNumberRef(
+        ticket.reference ?? ticket.id.substring(0, 8),
+      ),
       () async {
         try {
           final deletableIds = deletableTickets.map((t) => t.id).toSet();
@@ -129,7 +132,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
             setState(() {});
             showCustomSnackBarUtil(
               context,
-              '${deletableIds.length} ticket${deletableIds.length == 1 ? '' : 's'} deleted successfully',
+              context.flipperL10n.ticketsDeletedSuccess(deletableIds.length),
               backgroundColor: Colors.green,
             );
           }
@@ -138,7 +141,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
             setState(() {});
             showCustomSnackBarUtil(
               context,
-              'Failed to delete selected tickets',
+              context.flipperL10n.ticketsDeleteSelectedFailed,
               backgroundColor: Colors.red,
             );
           }
@@ -148,12 +151,13 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
   }
 
   Widget _buildTicketFilterChips() {
+    final l10n = context.flipperL10n;
     Widget dot(Color c) => Container(
-          margin: const EdgeInsets.only(right: 6),
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-        );
+      margin: const EdgeInsets.only(right: 6),
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+    );
 
     Widget chip(String id, String label, {Color? dotColor}) {
       final selected = ticketKindFilter == id;
@@ -205,8 +209,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color:
-                            selected ? selectedAccent : Colors.grey[400]!,
+                        color: selected ? selectedAccent : Colors.grey[400]!,
                         width: 1.5,
                       ),
                       color: selected ? selectedAccent : Colors.transparent,
@@ -235,10 +238,18 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          chip('all', 'All tickets'),
-          chip('loan', 'Loan', dotColor: _ticketFilterLoanPurple),
-          chip('layaway', 'Layaway', dotColor: _ticketFilterLayawayTeal),
-          chip('regular', 'Regular', dotColor: _ticketFilterRegularGreen),
+          chip('all', l10n.ticketFilterAll),
+          chip('loan', l10n.ticketLoan, dotColor: _ticketFilterLoanPurple),
+          chip(
+            'layaway',
+            l10n.ticketLayaway,
+            dotColor: _ticketFilterLayawayTeal,
+          ),
+          chip(
+            'regular',
+            l10n.ticketRegular,
+            dotColor: _ticketFilterRegularGreen,
+          ),
         ],
       ),
     );
@@ -331,11 +342,11 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Please add items to the transaction before creating a ticket',
+                                  context.flipperL10n.ticketAddItemsFirst,
                                 ),
-                                duration: Duration(seconds: 2),
+                                duration: const Duration(seconds: 2),
                               ),
                             );
                           }
@@ -351,7 +362,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Create Ticket',
+                              context.flipperL10n.ticketCreate,
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: buttonFontSize,
@@ -415,14 +426,17 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   ),
                   title: Consumer(
                     builder: (context, ref, _) {
-                      final canCollect =
-                          ref.watch(canCollectPosPaymentProvider);
+                      final canCollect = ref.watch(
+                        canCollectPosPaymentProvider,
+                      );
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            canCollect ? 'Pending Tickets' : 'My Tickets',
+                            canCollect
+                                ? context.flipperL10n.ticketsPendingTitle
+                                : context.flipperL10n.ticketsMyTitle,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w700,
                               fontSize: titleFontSize,
@@ -431,8 +445,8 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                           ),
                           Text(
                             canCollect
-                                ? 'Orders waiting to be collected at the till'
-                                : "Orders you've sent, and their payment status",
+                                ? context.flipperL10n.ticketsPendingSubtitle
+                                : context.flipperL10n.ticketsMySubtitle,
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w400,
                               fontSize: isMobile ? 11 : 12,
@@ -463,8 +477,10 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                     color: Colors.red,
                                     size: 20,
                                   ),
-                                  tooltip:
-                                      'Delete Selected (${selection.length})',
+                                  tooltip: context.flipperL10n
+                                      .ticketsDeleteSelectedCount(
+                                        '${selection.length}',
+                                      ),
                                 ),
                               ),
                               Padding(
@@ -479,7 +495,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                     color: Colors.grey.shade700,
                                     size: 20,
                                   ),
-                                  tooltip: 'Clear Selection',
+                                  tooltip: context.flipperL10n.clearSelection,
                                 ),
                               ),
                             ],
@@ -487,8 +503,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                     .enableTicketReviewWorkflow &&
                                 ref.watch(
                                   featureAccessProvider(
-                                    userId:
-                                        ProxyService.box.getUserId() ?? '',
+                                    userId: ProxyService.box.getUserId() ?? '',
                                     featureName: AppFeature.TicketReview,
                                   ),
                                 ))
@@ -499,7 +514,8 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                   children: [
                                     IconButton(
                                       style: _headerCircleIconStyle(),
-                                      tooltip: 'Review Queue',
+                                      tooltip:
+                                          context.flipperL10n.ticketReviewQueue,
                                       onPressed: () {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
@@ -513,8 +529,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                         size: 20,
                                       ),
                                     ),
-                                    if (ref.watch(reviewQueueCountProvider) >
-                                        0)
+                                    if (ref.watch(reviewQueueCountProvider) > 0)
                                       Positioned(
                                         right: 2,
                                         top: 2,
@@ -525,8 +540,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                           ),
                                           decoration: BoxDecoration(
                                             color: _kReviewQueueBadge,
-                                            borderRadius:
-                                                BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                           child: Text(
                                             '${ref.watch(reviewQueueCountProvider)}',
@@ -551,14 +567,16 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                     _selectAllTickets(ref);
                                   }
                                 },
-                                itemBuilder: (context) => const [
+                                itemBuilder: (context) => [
                                   PopupMenuItem(
                                     value: 'select_all',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.select_all),
-                                        SizedBox(width: 8),
-                                        Text('Select All'),
+                                        const Icon(Icons.select_all),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          context.flipperL10n.ticketsSelectAll,
+                                        ),
                                       ],
                                     ),
                                   ),

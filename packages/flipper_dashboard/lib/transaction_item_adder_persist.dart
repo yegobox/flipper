@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -37,15 +38,15 @@ DateTime? _lastCartWriteFinishedAt;
 /// having replayed anything back to us.
 Future<void> awaitQueuedCartWrites() => _persistLock.synchronized(() async {});
 
-String? readPendingCartTransactionId(
-  Ref ref, {
-  required bool isExpense,
-}) {
+String? readPendingCartTransactionId(Ref ref, {required bool isExpense}) {
   final pendingProv = pendingTransactionStreamProvider(isExpense: isExpense);
   final fromStream = ref.read(pendingProv).value?.id;
   if (fromStream != null && fromStream.isNotEmpty) return fromStream;
 
-  final fromCache = readCachedPendingCartTransaction(ref, isExpense: isExpense)?.id;
+  final fromCache = readCachedPendingCartTransaction(
+    ref,
+    isExpense: isExpense,
+  )?.id;
   if (fromCache != null && fromCache.isNotEmpty) return fromCache;
 
   return ref.read(optimisticCartProvider).activeTransactionId;
@@ -124,8 +125,8 @@ Future<bool> persistItemToTransaction({
     final currentStock =
         cachedStock?.currentStock ?? variant.stock?.currentStock;
     if (variant.taxTyCd != "D" && variant.itemTyCd != "3") {
-      final allowSellingBelowStock =
-          await locator<SettingsService>().isAllowSellingBelowStock();
+      final allowSellingBelowStock = await locator<SettingsService>()
+          .isAllowSellingBelowStock();
       final inCartQty = ref.read(posCartQtyForVariantProvider(variant.id));
       if (!allowSellingBelowStock &&
           (currentStock == null ||
@@ -140,7 +141,10 @@ Future<bool> persistItemToTransaction({
               );
         }
         if (context.mounted) {
-          showErrorNotification(context, 'You do not have enough stock');
+          showErrorNotification(
+            context,
+            context.flipperL10n.cartNotEnoughStock,
+          );
         }
         return false;
       }
@@ -192,7 +196,8 @@ Future<bool> persistItemToTransaction({
     }
 
     final freshPending = ref.read(pendingProv).value;
-    final streamMatchesTarget = freshPending != null &&
+    final streamMatchesTarget =
+        freshPending != null &&
         freshPending.id == pendingTransaction.id &&
         freshPending.status == PENDING;
 
@@ -212,9 +217,9 @@ Future<bool> persistItemToTransaction({
     final stock = cachedStock;
 
     if (product != null && product.isComposite == true) {
-      final composites = await ProxyService.getStrategy(Strategy.capella).composites(
-        productId: product.id,
-      );
+      final composites = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).composites(productId: product.id);
       final variantIds = composites
           .map((c) => c.variantId)
           .whereType<String>()
@@ -334,15 +339,11 @@ Future<bool> handlePersistFailure({
   var persistedForVariant = false;
   if (txn != null && txn.id.isNotEmpty && variant.id.isNotEmpty) {
     try {
-      final existing = await ProxyService.getStrategy(Strategy.capella)
-          .getTransactionItem(
-            transactionId: txn.id,
-            variantId: variant.id,
-          );
+      final existing = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getTransactionItem(transactionId: txn.id, variantId: variant.id);
       persistedForVariant =
-          existing != null &&
-          existing.active != false &&
-          existing.qty > 0;
+          existing != null && existing.active != false && existing.qty > 0;
     } catch (_) {}
   }
 
@@ -374,7 +375,7 @@ Future<bool> handlePersistFailure({
       'timestamp': DateTime.now().toIso8601String(),
     },
   );
-  showErrorNotification(context, 'Failed to add item to cart');
+  showErrorNotification(context, context.flipperL10n.cartFailedToAddItem);
   return false;
 }
 

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/maestro_semantics.dart';
 import 'package:flipper_dashboard/theme/mpos_tokens.dart';
@@ -34,9 +35,9 @@ class MposCheckoutHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Checkout',
-                  style: TextStyle(
+                Text(
+                  context.flipperL10n.checkoutRecoveryCheckout,
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.01,
@@ -45,7 +46,7 @@ class MposCheckoutHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  '$itemCount ${itemCount == 1 ? 'item' : 'items'} · $timeLabel',
+                  '${context.flipperL10n.cartItemCount(itemCount)} · $timeLabel',
                   style: const TextStyle(
                     fontSize: 12.5,
                     color: PosTokens.ink3,
@@ -71,7 +72,7 @@ class _MposBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaestroSemantics(
       id: MaestroIds.mposCheckoutBack,
-      label: 'Back from checkout',
+      label: context.flipperL10n.mposBackFromCheckout,
       button: true,
       enabled: true,
       child: Material(

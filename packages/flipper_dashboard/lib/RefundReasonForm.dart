@@ -14,6 +14,25 @@ const List<String> kRefundReasonChipLabels = [
   'Other',
 ];
 
+/// Display text for a [kRefundReasonChipLabels] value (the raw label stays the
+/// stable identifier).
+String refundReasonChipText(FlipperAppLocalizations l10n, String label) {
+  switch (label) {
+    case 'Customer request':
+      return l10n.refundReasonCustomerRequest;
+    case 'Wrong item':
+      return l10n.refundReasonWrongItem;
+    case 'Damaged / faulty':
+      return l10n.refundReasonDamaged;
+    case 'Duplicate charge':
+      return l10n.refundReasonDuplicateCharge;
+    case 'Other':
+      return l10n.paymentOther;
+    default:
+      return label;
+  }
+}
+
 abstract final class _ChipColors {
   static const surface = Color(0xFFFFFFFF);
   static const line = Color(0xFFE8ECF4);
@@ -125,7 +144,7 @@ class _RefundReasonChip extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Text(
-              label,
+              refundReasonChipText(context.flipperL10n, label),
               style: GoogleFonts.outfit(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,

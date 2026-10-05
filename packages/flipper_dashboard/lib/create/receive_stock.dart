@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked/stacked.dart';
@@ -7,7 +8,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class ReceiveStock extends StatefulWidget {
   const ReceiveStock({Key? key, required this.variantId, this.existingStock})
-      : super(key: key);
+    : super(key: key);
   final String variantId;
   final String? existingStock;
 
@@ -24,8 +25,9 @@ class _ReceiveStockState extends State<ReceiveStock> {
   void initState() {
     super.initState();
     controller = TextEditingController(text: widget.existingStock);
-    controller.selection =
-        TextSelection.collapsed(offset: controller.text.length);
+    controller.selection = TextSelection.collapsed(
+      offset: controller.text.length,
+    );
   }
 
   @override
@@ -38,7 +40,7 @@ class _ReceiveStockState extends State<ReceiveStock> {
               _routerService.pop();
             },
             disableButton: false,
-            title: 'Receive stock',
+            title: context.flipperL10n.receiveStockTitle,
             onActionButtonClicked: () {
               if (_formKey.currentState!.validate()) {
                 model.updateStock(variantId: widget.variantId);
@@ -46,7 +48,7 @@ class _ReceiveStockState extends State<ReceiveStock> {
               }
             },
             showActionButton: true,
-            rightActionButtonName: 'Save',
+            rightActionButtonName: context.flipperL10n.save,
             icon: Icons.close,
             multi: 3,
             bottomSpacer: 70,
@@ -64,15 +66,16 @@ class _ReceiveStockState extends State<ReceiveStock> {
                     focusNode: _searchFocusNode,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter stock value';
+                        return context.flipperL10n.receiveStockEnterValue;
                       }
                       return null;
                     },
-                    decoration: const InputDecoration(
-                        enabled: true,
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.book),
-                        hintText: 'Add Stock'),
+                    decoration: InputDecoration(
+                      enabled: true,
+                      border: const OutlineInputBorder(),
+                      suffixIcon: const Icon(Icons.book),
+                      hintText: context.flipperL10n.receiveStockAddStock,
+                    ),
                     controller: controller,
                     keyboardType: TextInputType.number,
                     textDirection: TextDirection.rtl,
@@ -86,7 +89,8 @@ class _ReceiveStockState extends State<ReceiveStock> {
                             controller.value = TextEditingValue(
                               text: count.substring(1),
                               selection: TextSelection.collapsed(
-                                  offset: count.length - 1),
+                                offset: count.length - 1,
+                              ),
                             );
                           } else {
                             model.setStockValue(value: parsedValue);
@@ -95,11 +99,8 @@ class _ReceiveStockState extends State<ReceiveStock> {
                       }
                     },
                   ),
-                  Container(
-                    height: 20,
-                  ),
-                  const Text(
-                      'Inventory tracking will be enabled by\n default for items with stock count. To turn \n tracking off, visit your flipper Dashboard')
+                  Container(height: 20),
+                  Text(context.flipperL10n.receiveStockTrackingHint),
                 ],
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/models/inventory_models.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/widgets/expired_items_section.dart';
 import 'package:flipper_models/providers/inventory_provider.dart';
@@ -69,24 +70,29 @@ class _InventoryDashboardScreenState
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final l10n = context.flipperL10n;
         return AlertDialog(
           title: Text(item.name),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('ID: ${item.id}'),
-              Text('Category: ${item.category}'),
-              Text('Quantity: ${item.quantity}'),
-              Text('Location: ${item.location}'),
+              Text(l10n.inventoryDashboardIdValue(item.id)),
+              Text(l10n.inventoryDashboardCategoryValue(item.category)),
               Text(
-                'Expiry Date: ${DateFormat('MMM dd, yyyy').format(item.expiryDate)}',
+                l10n.inventoryDashboardQuantityValue(item.quantity.toString()),
+              ),
+              Text(l10n.inventoryDashboardLocationValue(item.location)),
+              Text(
+                l10n.inventoryDashboardExpiryDateValue(
+                  DateFormat('MMM dd, yyyy').format(item.expiryDate),
+                ),
               ),
             ],
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Close'),
+              child: Text(l10n.close),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -157,7 +163,12 @@ class _InventoryDashboardScreenState
                           loading: () =>
                               const Center(child: CircularProgressIndicator()),
                           error: (error, stackTrace) => Center(
-                            child: Text('Error loading expired items: $error'),
+                            child: Text(
+                              context.flipperL10n
+                                  .inventoryDashboardExpiredLoadError(
+                                    error.toString(),
+                                  ),
+                            ),
                           ),
                         );
                       },
@@ -182,7 +193,10 @@ class _InventoryDashboardScreenState
                             const Center(child: CircularProgressIndicator()),
                         error: (error, stackTrace) => Center(
                           child: Text(
-                            'Error loading near expiry items: $error',
+                            context.flipperL10n
+                                .inventoryDashboardNearExpiryLoadError(
+                                  error.toString(),
+                                ),
                           ),
                         ),
                       );

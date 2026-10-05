@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/notice_provider.dart';
 import 'package:supabase_models/brick/models/notice.model.dart';
@@ -62,9 +63,9 @@ void handleNoticeClick(BuildContext context) {
                     Container(
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .primaryColor
-                            .withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -79,10 +80,8 @@ void handleNoticeClick(BuildContext context) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Notices',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            context.flipperL10n.noticesTitle,
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: -0.5,
@@ -90,11 +89,9 @@ void handleNoticeClick(BuildContext context) {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Stay updated with latest announcements',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey[600],
-                                    ),
+                            context.flipperL10n.noticesSubtitle,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.grey[600]),
                           ),
                         ],
                       ),
@@ -122,7 +119,7 @@ void handleNoticeClick(BuildContext context) {
                     final notices = ref.watch(noticesProvider);
 
                     if (notices.isLoading) {
-                      return _buildLoadingState();
+                      return _buildLoadingState(context);
                     }
 
                     if (notices.hasError) {
@@ -145,7 +142,7 @@ void handleNoticeClick(BuildContext context) {
   );
 }
 
-Widget _buildLoadingState() {
+Widget _buildLoadingState(BuildContext context) {
   return Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -163,7 +160,7 @@ Widget _buildLoadingState() {
         ),
         SizedBox(height: 24),
         Text(
-          'Loading notices...',
+          context.flipperL10n.noticesLoading,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -196,17 +193,17 @@ Widget _buildErrorState(BuildContext context) {
           ),
           SizedBox(height: 24),
           Text(
-            'Unable to load notices',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            context.flipperL10n.noticesUnableToLoad,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 8),
           Text(
-            'Please check your connection and try again',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            context.flipperL10n.noticesCheckConnection,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 24),
@@ -215,7 +212,7 @@ Widget _buildErrorState(BuildContext context) {
               // TODO: Implement retry logic
             },
             icon: Icon(Icons.refresh_rounded),
-            label: Text('Try Again'),
+            label: Text(context.flipperL10n.dashTryAgain),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -250,17 +247,17 @@ Widget _buildEmptyState(BuildContext context) {
           ),
           SizedBox(height: 24),
           Text(
-            'No notices yet',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            context.flipperL10n.noticesEmpty,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 8),
           Text(
-            'New notices and announcements will appear here',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            context.flipperL10n.noticesEmptyHint,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -316,9 +313,9 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                       Container(
                         padding: EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .primaryColor
-                              .withValues(alpha: 0.1),
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -335,10 +332,9 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                             Row(
                               children: [
                                 Text(
-                                  noticeItem.title ?? 'No Title',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
+                                  noticeItem.title ??
+                                      context.flipperL10n.noticesNoTitle,
+                                  style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         height: 1.3,
@@ -348,7 +344,9 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                                   SizedBox(width: 8),
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.blue.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(4),
@@ -381,11 +379,11 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
 
                   // Notice Content
                   Text(
-                    noticeItem.cont ?? 'No content available',
+                    noticeItem.cont ?? context.flipperL10n.noticesNoContent,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          height: 1.5,
-                          color: Colors.grey[700],
-                        ),
+                      height: 1.5,
+                      color: Colors.grey[700],
+                    ),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -398,8 +396,10 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                     children: [
                       if (noticeItem.regrNm != null) ...[
                         Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -415,9 +415,7 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                               SizedBox(width: 4),
                               Text(
                                 noticeItem.regrNm!,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: Colors.green[700],
                                       fontSize: 11,
@@ -433,7 +431,9 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                         children: [
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
@@ -448,10 +448,9 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                                 ),
                                 SizedBox(width: 4),
                                 Text(
-                                  noticeItem.regDt ?? 'No date',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  noticeItem.regDt ??
+                                      context.flipperL10n.noticesNoDate,
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: Colors.grey[600],
                                         fontSize: 11,
@@ -465,15 +464,17 @@ Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
                           if (noticeItem.dtlUrl != null)
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .primaryColor
-                                    .withValues(alpha: 0.1),
+                                color: Theme.of(
+                                  context,
+                                ).primaryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                'Read more',
+                                context.flipperL10n.noticesReadMore,
                                 style: TextStyle(
                                   color: Theme.of(context).primaryColor,
                                   fontSize: 11,

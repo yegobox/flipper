@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
@@ -84,6 +85,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final l10n = context.flipperL10n;
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
@@ -99,16 +101,16 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 _sourceTabs(),
                 const SizedBox(height: 14),
                 _field(
-                  label: 'FULL NAME *',
+                  label: l10n.leadsFullNameRequired.toUpperCase(),
                   controller: _nameCtrl,
-                  hint: 'Full name',
+                  hint: l10n.leadsFullNameHint,
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: _field(
-                        label: 'PHONE NUMBER',
+                        label: l10n.phoneNumber.toUpperCase(),
                         controller: _phoneCtrl,
                         hint: '+250 7xx xxx xxx',
                         keyboardType: TextInputType.phone,
@@ -117,7 +119,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _field(
-                        label: 'EMAIL ADDRESS',
+                        label: l10n.leadsEmailAddress.toUpperCase(),
                         controller: _emailCtrl,
                         hint: 'customer@email.com',
                         keyboardType: TextInputType.emailAddress,
@@ -133,9 +135,9 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 _heatSelector(),
                 const SizedBox(height: 12),
                 _field(
-                  label: 'NOTES (optional)',
+                  label: l10n.leadsNotesOptional,
                   controller: _notesCtrl,
-                  hint: 'What did they ask for?',
+                  hint: l10n.leadsNotesHint,
                   maxLines: 4,
                 ),
                 const SizedBox(height: 14),
@@ -152,7 +154,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                           side: const BorderSide(color: _border),
                         ),
                         child: Text(
-                          'Cancel',
+                          l10n.cancel,
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w700,
                             color: _ink,
@@ -186,7 +188,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                                 ),
                               )
                             : Text(
-                                'Save lead',
+                                l10n.leadsSaveLead,
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w800,
                                   color: Colors.white,
@@ -274,7 +276,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'PRODUCTS INTERESTED IN *',
+          context.flipperL10n.leadsProductsInterestedRequired.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -330,9 +332,13 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
                   onPressed: _openCatalogPicker,
-                  icon: Icon(Icons.inventory_2_outlined, color: _blue, size: 20),
+                  icon: Icon(
+                    Icons.inventory_2_outlined,
+                    color: _blue,
+                    size: 20,
+                  ),
                   label: Text(
-                    'Browse catalogue',
+                    context.flipperL10n.leadsBrowseCatalogue,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w800,
                       color: _blue,
@@ -345,7 +351,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 maxLines: 1,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Or type product name, SKU, BCD…',
+                  hintText: context.flipperL10n.leadsTypeProductHint,
                   hintStyle: GoogleFonts.outfit(color: _ink3),
                   border: InputBorder.none,
                   isDense: true,
@@ -391,7 +397,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Add Lead',
+                  context.flipperL10n.leadsAddLead,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -399,7 +405,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                   ),
                 ),
                 Text(
-                  'Record a new customer or enquiry manually',
+                  context.flipperL10n.leadsAddLeadSubtitle,
                   style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
                 ),
               ],
@@ -432,7 +438,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
             child: _tab(
               selected: _source == LeadSource.walkIn,
               icon: AdminDashboardSvgs.leadsUserSingle,
-              label: 'Walk-in customer',
+              label: context.flipperL10n.leadsWalkInCustomer,
               onTap: () => setState(() => _source = LeadSource.walkIn),
             ),
           ),
@@ -440,7 +446,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
             child: _tab(
               selected: _source == LeadSource.phoneReferral,
               icon: AdminDashboardSvgs.leadsPhoneCall,
-              label: 'Phone / Referral',
+              label: context.flipperL10n.leadsPhoneReferral,
               onTap: () => setState(() => _source = LeadSource.phoneReferral),
             ),
           ),
@@ -500,7 +506,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ESTIMATED VALUE',
+          context.flipperL10n.leadsEstimatedValue.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -551,11 +557,12 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
   }
 
   Widget _heatSelector() {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'LEAD HEAT',
+          l10n.leadsLeadHeat.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -568,7 +575,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
           children: [
             Expanded(
               child: _heatButton(
-                label: 'Hot',
+                label: l10n.leadsHeatHot,
                 emoji: '🔥',
                 selected: _heat == LeadHeat.hot,
                 selectedBg: const Color(0xFFFFE4E6),
@@ -581,7 +588,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
             const SizedBox(width: 10),
             Expanded(
               child: _heatButton(
-                label: 'Warm',
+                label: l10n.leadsHeatWarm,
                 emoji: '☀️',
                 selected: _heat == LeadHeat.warm,
                 selectedBg: const Color(0xFFFFFBEB),
@@ -594,7 +601,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
             const SizedBox(width: 10),
             Expanded(
               child: _heatButton(
-                label: 'Cold',
+                label: l10n.leadsHeatCold,
                 emoji: '🧊',
                 selected: _heat == LeadHeat.cold,
                 selectedBg: const Color(0xFFEFF6FF),
@@ -770,12 +777,15 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      showErrorNotification(context, 'Failed to save lead. $e');
+      showErrorNotification(context, context.flipperL10n.leadsSaveFailed('$e'));
     }
   }
 }
 
-Future<void> _enrichLeadAfterSave(ProviderContainer container, Lead lead) async {
+Future<void> _enrichLeadAfterSave(
+  ProviderContainer container,
+  Lead lead,
+) async {
   try {
     final businessId = lead.businessId;
     if (businessId == null || businessId.isEmpty) {
@@ -823,7 +833,8 @@ class _AddLeadCatalogPickerSheet extends StatefulWidget {
       _AddLeadCatalogPickerSheetState();
 }
 
-class _AddLeadCatalogPickerSheetState extends State<_AddLeadCatalogPickerSheet> {
+class _AddLeadCatalogPickerSheetState
+    extends State<_AddLeadCatalogPickerSheet> {
   final _searchCtrl = TextEditingController();
   Timer? _debounce;
   List<Variant> _results = [];
@@ -895,7 +906,7 @@ class _AddLeadCatalogPickerSheetState extends State<_AddLeadCatalogPickerSheet> 
                 children: [
                   Expanded(
                     child: Text(
-                      'Pick from catalogue',
+                      context.flipperL10n.leadsPickFromCatalogue,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -915,7 +926,7 @@ class _AddLeadCatalogPickerSheetState extends State<_AddLeadCatalogPickerSheet> 
               child: TextField(
                 controller: _searchCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Search name, SKU, BCD…',
+                  hintText: context.flipperL10n.leadsSearchCatalogHint,
                   hintStyle: GoogleFonts.outfit(color: _ink3),
                   prefixIcon: const Icon(Icons.search_rounded, color: _ink3),
                   filled: true,
@@ -938,7 +949,7 @@ class _AddLeadCatalogPickerSheetState extends State<_AddLeadCatalogPickerSheet> 
                   : _results.isEmpty
                   ? Center(
                       child: Text(
-                        'No items found',
+                        context.flipperL10n.leadsNoItemsFound,
                         style: GoogleFonts.outfit(
                           color: _ink3,
                           fontWeight: FontWeight.w600,
@@ -948,8 +959,10 @@ class _AddLeadCatalogPickerSheetState extends State<_AddLeadCatalogPickerSheet> 
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       itemCount: _results.length,
-                      separatorBuilder: (_, __) =>
-                          Divider(height: 1, color: _border.withValues(alpha: 0.8)),
+                      separatorBuilder: (_, __) => Divider(
+                        height: 1,
+                        color: _border.withValues(alpha: 0.8),
+                      ),
                       itemBuilder: (context, i) {
                         final v = _results[i];
                         final sub = [

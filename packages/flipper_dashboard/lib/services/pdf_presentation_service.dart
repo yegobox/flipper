@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
@@ -52,8 +53,8 @@ class PdfPresentationService {
     required String Function() filename,
 
     /// Sentence-case noun for the snackbars — "Receipt", "Quotation".
-    String label = 'Document',
-    String progressMessage = 'Preparing document…',
+    String? label,
+    String? progressMessage,
     String? shareSubject,
     String? shareBody,
 
@@ -72,7 +73,10 @@ class PdfPresentationService {
     _busy = true;
     // Say something immediately: rendering can take seconds, and a button that
     // does nothing for that long reads as broken.
-    showProgress(context, progressMessage);
+    showProgress(
+      context,
+      progressMessage ?? context.flipperL10n.pdfPreparingDocument,
+    );
     try {
       final bytes = await build();
       hideProgress(context);
@@ -91,11 +95,7 @@ class PdfPresentationService {
     } catch (e) {
       hideProgress(context);
       if (context.mounted) {
-        showSnack(
-          context,
-          (errorMessage ?? friendlyError)(e),
-          isError: true,
-        );
+        showSnack(context, (errorMessage ?? friendlyError)(e), isError: true);
       }
     } finally {
       _busy = false;
@@ -109,11 +109,12 @@ class PdfPresentationService {
     required PdfPresentationMode mode,
     required Uint8List bytes,
     required String filename,
-    String label = 'Document',
+    String? label,
     String? shareSubject,
     String? shareBody,
     String? existingPath,
   }) async {
+    label ??= context.flipperL10n.pdfDocument;
     switch (mode) {
       case PdfPresentationMode.share:
         await Printing.sharePdf(
@@ -142,14 +143,14 @@ class PdfPresentationService {
     if (kIsWeb) {
       await Printing.sharePdf(bytes: bytes, filename: filename);
       if (context.mounted) {
-        showSnack(context, '$label ready to save or share.');
+        showSnack(context, context.flipperL10n.pdfReadyToSaveOrShare(label));
       }
       return;
     }
 
     if (UniversalPlatform.isDesktop) {
       final savedPath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save ${label.toLowerCase()} PDF',
+        dialogTitle: context.flipperL10n.pdfSaveLabelPdf(label),
         fileName: filename,
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
@@ -161,7 +162,10 @@ class PdfPresentationService {
       await file.writeAsBytes(bytes, flush: true);
       await OpenFilex.open(savedPath);
       if (context.mounted) {
-        showSnack(context, '$label saved to ${_baseName(savedPath)}.');
+        showSnack(
+          context,
+          context.flipperL10n.pdfSavedTo(label, _baseName(savedPath)),
+        );
       }
       return;
     }
@@ -170,7 +174,7 @@ class PdfPresentationService {
     final result = await OpenFilex.open(path);
     if (result.type == ResultType.done) {
       if (context.mounted) {
-        showSnack(context, '$label saved on this device.');
+        showSnack(context, context.flipperL10n.pdfSavedOnDevice(label));
       }
       return;
     }
@@ -183,7 +187,7 @@ class PdfPresentationService {
       subject: label,
     );
     if (context.mounted) {
-      showSnack(context, '$label ready — choose where to save it.');
+      showSnack(context, context.flipperL10n.pdfReadyChooseWhere(label));
     }
   }
 
@@ -274,7 +278,7 @@ class PdfPresentationService {
     if (idx != -1 && idx < text.length - 2) {
       return text.substring(idx + 2).trim();
     }
-    return 'Something went wrong. Please try again.';
+    return FlipperL10n.current.pdfSomethingWentWrong;
   }
 
   void showProgress(BuildContext context, String message) {
@@ -304,11 +308,7 @@ class PdfPresentationService {
     ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
   }
 
-  void showSnack(
-    BuildContext context,
-    String message, {
-    bool isError = false,
-  }) {
+  void showSnack(BuildContext context, String message, {bool isError = false}) {
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(
         content: Text(message),

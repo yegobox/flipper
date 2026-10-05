@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -304,7 +305,7 @@ class _AppLaunchCurtainState extends State<_AppLaunchCurtain>
                     ),
                     const SizedBox(height: 22),
                     Text(
-                      'Opening ${widget.appLabel}',
+                      context.flipperL10n.appLaunchOpening(widget.appLabel),
                       style: const TextStyle(
                         color: _ink1,
                         fontSize: 22,
@@ -329,13 +330,12 @@ class _AppLaunchCurtainState extends State<_AppLaunchCurtain>
                         curve: Curves.easeOut,
                         builder: (context, value, child) =>
                             Opacity(opacity: value, child: child),
-                        child: const SizedBox(
+                        child: SizedBox(
                           width: 300,
                           child: Text(
-                            'Syncing your business — this can take a moment on '
-                            'a slow connection.',
+                            context.flipperL10n.appLaunchSyncingSlow,
                             textAlign: TextAlign.center,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: _ink3,
                               fontSize: 13,
                               height: 1.35,

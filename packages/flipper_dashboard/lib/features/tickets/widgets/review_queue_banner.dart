@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_models/providers/tickets_provider.dart';
@@ -107,9 +108,7 @@ class ReviewQueueBanner extends HookConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                count == 1
-                    ? '1 ticket waiting to review'
-                    : '$count tickets waiting to review',
+                context.flipperL10n.ticketsWaitingToReview(count),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.outfit(
@@ -131,7 +130,8 @@ class ReviewQueueBanner extends HookConsumerWidget {
   }
 
   Widget _buildRow(BuildContext context, ITransaction ticket) {
-    final label = _ticketLabel(ticket);
+    final l10n = context.flipperL10n;
+    final label = _ticketLabel(ticket, l10n);
     final paid = ticket.cashReceived ?? ticket.subTotal ?? 0.0;
     return InkWell(
       onTap: () => _openReviewQueue(context),
@@ -155,7 +155,7 @@ class ReviewQueueBanner extends HookConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${paid.toCurrencyFormatted()} · ${_relativeTime(ticket.createdAt)}',
+                    '${paid.toCurrencyFormatted()} · ${_relativeTime(ticket.createdAt, l10n)}',
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       color: PosTokens.ink2,
@@ -164,11 +164,7 @@ class ReviewQueueBanner extends HookConsumerWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: PosTokens.ink3,
-            ),
+            const Icon(Icons.chevron_right, size: 18, color: PosTokens.ink3),
           ],
         ),
       ),
@@ -179,7 +175,7 @@ class ReviewQueueBanner extends HookConsumerWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
       child: Text(
-        '+ $remaining more',
+        context.flipperL10n.ticketMoreCount('$remaining'),
         style: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -205,7 +201,7 @@ class ReviewQueueBanner extends HookConsumerWidget {
         ),
         alignment: Alignment.center,
         child: Text(
-          'Open review queue →',
+          context.flipperL10n.ticketOpenReviewQueue,
           style: GoogleFonts.outfit(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -217,25 +213,25 @@ class ReviewQueueBanner extends HookConsumerWidget {
   }
 
   void _openReviewQueue(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ReviewQueueScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ReviewQueueScreen()));
   }
 
-  String _ticketLabel(ITransaction ticket) {
+  String _ticketLabel(ITransaction ticket, FlipperAppLocalizations l10n) {
     final name = (ticket.customerName ?? ticket.ticketName ?? '').trim();
     if (name.isNotEmpty) return name;
     final ref = (ticket.reference ?? '').trim();
-    if (ref.isNotEmpty) return 'Ticket #$ref';
-    return 'Ticket';
+    if (ref.isNotEmpty) return l10n.ticketNumberRef(ref);
+    return l10n.ticketGeneric;
   }
 
-  String _relativeTime(DateTime? when) {
+  String _relativeTime(DateTime? when, FlipperAppLocalizations l10n) {
     if (when == null) return '';
     final diff = DateTime.now().difference(when);
-    if (diff.inMinutes < 1) return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return l10n.ticketJustNow;
+    if (diff.inMinutes < 60) return l10n.ticketMinutesAgo('${diff.inMinutes}');
+    if (diff.inHours < 24) return l10n.ticketHoursAgo('${diff.inHours}');
+    return l10n.ticketDaysAgo('${diff.inDays}');
   }
 }

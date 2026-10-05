@@ -1,4 +1,5 @@
 // OrderingView
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:io';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -78,13 +79,16 @@ class OrderingView extends HookConsumerWidget {
                 return const EmptyProductView();
               }
               // Supplier is selected, show loading indicator
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Loading products...'),
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Builder(
+                      builder: (context) =>
+                          Text(context.flipperL10n.orderingLoadingProducts),
+                    ),
                   ],
                 ),
               );
@@ -111,7 +115,7 @@ class OrderingView extends HookConsumerWidget {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Error loading products',
+                          context.flipperL10n.errorLoadingProducts,
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
@@ -131,7 +135,7 @@ class OrderingView extends HookConsumerWidget {
                           onPressed: () =>
                               ref.refresh(productFromSupplierWrapper),
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
+                          label: Text(context.flipperL10n.retry),
                         ),
                       ],
                     ),

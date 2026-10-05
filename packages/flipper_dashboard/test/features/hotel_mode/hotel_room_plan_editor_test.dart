@@ -5,6 +5,7 @@ import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 HotelRoom _room({
   required String id,
@@ -50,6 +51,9 @@ Future<void> _pump(
         hotelRraSupportedProvider.overrideWith((ref) => rraSupported),
       ],
       child: const MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: SingleChildScrollView(child: HotelRoomPlanEditor()),
         ),
@@ -96,7 +100,10 @@ void main() {
     });
 
     testWidgets('every floor can take another room', (tester) async {
-      await _pump(tester, rooms: [_room(id: 'r1', name: '101')]);
+      await _pump(
+        tester,
+        rooms: [_room(id: 'r1', name: '101')],
+      );
       expect(find.text('Add room'), findsOneWidget);
       expect(find.text('Add a floor or wing'), findsOneWidget);
     });

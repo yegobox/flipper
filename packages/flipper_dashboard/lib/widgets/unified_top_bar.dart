@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/notice.dart';
 import 'package:flipper_dashboard/ribbon.dart';
@@ -23,7 +24,7 @@ class UnifiedTopBar extends ConsumerWidget {
 
     return PosTopCircleIconButton(
       iconName: 'bell',
-      tooltip: 'Notifications',
+      tooltip: context.flipperL10n.topBarNotifications,
       badge: count > 0 ? count.toString() : null,
       onPressed: () => handleNoticeClick(context),
     );

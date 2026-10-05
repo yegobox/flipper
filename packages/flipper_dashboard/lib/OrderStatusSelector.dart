@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
 import 'package:flutter/material.dart';
 
@@ -26,16 +27,16 @@ class OrderStatusSelector extends StatelessWidget {
       ),
       child: SegmentedButton<OrderStatus>(
         style: _getButtonStyle(context),
-        segments: const [
+        segments: [
           ButtonSegment<OrderStatus>(
             value: OrderStatus.pending,
-            label: Text('Pending'),
-            icon: Icon(Icons.hourglass_empty),
+            label: Text(context.flipperL10n.orderStatusPending),
+            icon: const Icon(Icons.hourglass_empty),
           ),
           ButtonSegment<OrderStatus>(
             value: OrderStatus.approved,
-            label: Text('Approved'),
-            icon: Icon(Icons.check_circle_outline),
+            label: Text(context.flipperL10n.approved),
+            icon: const Icon(Icons.check_circle_outline),
           ),
         ],
         selected: {selectedStatus},
@@ -48,29 +49,27 @@ class OrderStatusSelector extends StatelessWidget {
 
   ButtonStyle _getButtonStyle(BuildContext context) {
     return ButtonStyle(
-      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.selected)) {
-            return Theme.of(context).colorScheme.primary;
-          }
-          return Colors.white;
-        },
-      ),
-      foregroundColor: WidgetStateProperty.resolveWith<Color>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.selected)) {
-            return Colors.white;
-          }
+      backgroundColor: WidgetStateProperty.resolveWith<Color>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.selected)) {
           return Theme.of(context).colorScheme.primary;
-        },
-      ),
+        }
+        return Colors.white;
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith<Color>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.selected)) {
+          return Colors.white;
+        }
+        return Theme.of(context).colorScheme.primary;
+      }),
       side: WidgetStateProperty.all(
         BorderSide(color: Theme.of(context).colorScheme.primary),
       ),
       shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-        ),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
       ),
       overlayColor: WidgetStateProperty.all(Colors.transparent),
     );

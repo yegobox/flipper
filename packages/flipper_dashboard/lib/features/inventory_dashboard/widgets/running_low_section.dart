@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_models/services/forecasting_service.dart';
@@ -32,7 +33,7 @@ class RunningLowSection extends ConsumerWidget {
                 Icon(Icons.trending_down, color: Colors.orange, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'Running Low (7-Day Forecast)',
+                  context.flipperL10n.inventoryDashboardRunningLow,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -96,12 +97,16 @@ class RunningLowSection extends ConsumerWidget {
                 Row(
                   children: [
                     Text(
-                      'Stock: ${prediction.currentStock.toStringAsFixed(1)}',
+                      context.flipperL10n.inventoryDashboardStockValue(
+                        prediction.currentStock.toStringAsFixed(1),
+                      ),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                     SizedBox(width: 12),
                     Text(
-                      'Daily Usage: ${prediction.dailyUsage.toStringAsFixed(1)}',
+                      context.flipperL10n.inventoryDashboardDailyUsage(
+                        prediction.dailyUsage.toStringAsFixed(1),
+                      ),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
@@ -119,7 +124,9 @@ class RunningLowSection extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  '${prediction.daysRemaining} days left',
+                  context.flipperL10n.inventoryDashboardDaysLeft(
+                    prediction.daysRemaining,
+                  ),
                   style: TextStyle(
                     color: Colors.orange[800],
                     fontWeight: FontWeight.bold,
@@ -166,7 +173,7 @@ class RunningLowSection extends ConsumerWidget {
                     ),
                   ),
                   child: Text(
-                    'Replenish',
+                    context.flipperL10n.inventoryDashboardReplenish,
                     style: TextStyle(fontSize: 12, color: Colors.white),
                   ),
                 ),

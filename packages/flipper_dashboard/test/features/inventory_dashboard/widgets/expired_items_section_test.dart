@@ -1,8 +1,10 @@
 import 'package:flipper_dashboard/features/inventory_dashboard/widgets/expired_items_section.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/models/inventory_models.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// flutter test test/features/inventory_dashboard/widgets/expired_items_section_test.dart 
+
+// flutter test test/features/inventory_dashboard/widgets/expired_items_section_test.dart
 void main() {
   group('ExpiredItemsSection Tests', () {
     late List<InventoryItem> mockExpiredItems;
@@ -28,6 +30,8 @@ void main() {
     testWidgets('displays title correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: mockExpiredItems,
@@ -44,6 +48,8 @@ void main() {
     testWidgets('shows View All button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: mockExpiredItems,
@@ -60,6 +66,8 @@ void main() {
     testWidgets('displays data table', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: mockExpiredItems,
@@ -76,6 +84,8 @@ void main() {
     testWidgets('displays expired items data', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: mockExpiredItems,
@@ -94,6 +104,8 @@ void main() {
     testWidgets('shows action buttons', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: mockExpiredItems,
@@ -111,6 +123,8 @@ void main() {
     testWidgets('handles empty list', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: [],
@@ -128,6 +142,8 @@ void main() {
     testWidgets('has correct structure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: FlipperLocalizationDelegates.delegates,
+          supportedLocales: FlipperLocalizationDelegates.supportedLocales,
           home: Scaffold(
             body: ExpiredItemsSection(
               expiredItems: mockExpiredItems,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_scanner/qr_login_scan_handler.dart';
@@ -65,7 +66,7 @@ class DashboardScannerActions implements ScannerActions {
       navigateToSellRoute(product);
       return;
     }
-    showSimpleNotification("Product not found");
+    showSimpleNotification(FlipperL10n.current.productNotFound);
     _autoPop?.cancel();
     _autoPop = Timer(const Duration(milliseconds: 100), pop);
   }

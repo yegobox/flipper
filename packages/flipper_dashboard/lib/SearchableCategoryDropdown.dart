@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -95,7 +96,7 @@ class _SearchableCategoryDropdownState
                 fontWeight: FontWeight.w600,
               ),
               children: [
-                TextSpan(text: "Category"),
+                TextSpan(text: context.flipperL10n.category),
                 TextSpan(
                   text: ' *',
                   style: TextStyle(color: Colors.red, fontSize: 16),
@@ -157,7 +158,7 @@ class _SearchableCategoryDropdownState
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      hintText: 'Search categories...',
+                      hintText: context.flipperL10n.categorySearchHint,
                     ),
                   );
                 },
@@ -178,7 +179,7 @@ class _SearchableCategoryDropdownState
                 emptyBuilder: (context) => Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    'No categories found',
+                    context.flipperL10n.categoryNoneFound,
                     style: TextStyle(color: Colors.grey),
                   ),
                 ),
@@ -191,7 +192,7 @@ class _SearchableCategoryDropdownState
                   child: IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: widget.isEnabled ? widget.onAdd : null,
-                    tooltip: 'Add Category',
+                    tooltip: context.flipperL10n.categoryAdd,
                   ),
                 ),
             ],

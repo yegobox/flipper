@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/app_launch_overlay.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,8 @@ void main() {
   Future<void> pumpHost(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         navigatorKey: navigatorKey,
         home: const Scaffold(body: Text('behind the curtain')),
       ),

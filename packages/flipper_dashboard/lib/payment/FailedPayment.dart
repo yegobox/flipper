@@ -24,6 +24,7 @@ import 'package:flipper_dashboard/payment/payment_tokens.dart';
 import 'package:flipper_dashboard/payment/payment_typography.dart';
 import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
@@ -267,9 +268,10 @@ class _FailedPaymentState extends State<FailedPayment>
   /// an unusual but valid address here would block a payment for no reason.
   String? _getEmailError(String value) {
     final email = value.trim();
-    if (email.isEmpty) return 'An email is required for the card receipt';
+    if (email.isEmpty)
+      return context.flipperL10n.failedPaymentCardEmailRequired;
     if (!email.contains('@') || email.startsWith('@') || email.endsWith('@')) {
-      return 'Enter a valid email address';
+      return context.flipperL10n.failedPaymentEnterValidEmail;
     }
     return null;
   }
@@ -567,20 +569,20 @@ class _FailedPaymentState extends State<FailedPayment>
     }
 
     if (!digitsOnly.startsWith('250')) {
-      return 'Phone number must start with 250';
+      return context.flipperL10n.failedPaymentPhoneMustStartWith250;
     }
 
     if (digitsOnly.length < 12) {
-      return 'Phone number must be 12 digits';
+      return context.flipperL10n.failedPaymentPhoneMustBe12Digits;
     }
 
     if (digitsOnly.length > 12) {
-      return 'Phone number cannot exceed 12 digits';
+      return context.flipperL10n.failedPaymentPhoneCannotExceed12Digits;
     }
 
     String prefix = digitsOnly.substring(3, 5);
     if (!['78', '79'].contains(prefix)) {
-      return 'Invalid MTN number prefix (must start with 78 or 79)';
+      return context.flipperL10n.failedPaymentInvalidMtnPrefix;
     }
 
     return null;
@@ -712,8 +714,10 @@ class _FailedPaymentState extends State<FailedPayment>
       if (!_mounted) return;
 
       final message = e is TimeoutException
-          ? 'Loading took too long. Check your connection, refresh the page, or try again.'
-          : 'Error loading plan details: $e';
+          ? context.flipperL10n.failedPaymentLoadingTookTooLong
+          : context.flipperL10n.failedPaymentErrorLoadingPlanDetails(
+              e.toString(),
+            );
 
       setState(() {
         _errorMessage = message;
@@ -725,7 +729,7 @@ class _FailedPaymentState extends State<FailedPayment>
         if (!mounted) return;
         showCustomSnackBarUtil(
           context,
-          'Payment Failed try again',
+          context.flipperL10n.failedPaymentFailedTryAgain,
           backgroundColor: Colors.red,
           showCloseButton: true,
         );
@@ -799,7 +803,8 @@ class _FailedPaymentState extends State<FailedPayment>
     } catch (e) {
       if (mounted) {
         setState(() {
-          _discountError = 'Failed to validate code';
+          _discountError =
+              context.flipperL10n.failedPaymentFailedToValidateCode;
           _discountAmount = 0;
           _discountCode = null;
           _isValidatingCode = false;
@@ -833,9 +838,11 @@ class _FailedPaymentState extends State<FailedPayment>
   @override
   Widget build(BuildContext context) {
     if (_isLoading && _plan == null) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: PaymentTokens.app,
-        body: PaymentCenterLoading(message: 'Loading payment details…'),
+        body: PaymentCenterLoading(
+          message: context.flipperL10n.failedPaymentLoadingDetails,
+        ),
       );
     }
 
@@ -846,7 +853,7 @@ class _FailedPaymentState extends State<FailedPayment>
       // customer stuck on a bare spinner with no way to reopen the link or
       // back out.
       return PaymentScreenShell(
-        title: 'Payment Issue',
+        title: context.flipperL10n.failedPaymentIssueTitle,
         showBack: false,
         actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
         children: [_buildPaymentWaitingContent()],
@@ -854,7 +861,7 @@ class _FailedPaymentState extends State<FailedPayment>
     }
 
     return PaymentScreenShell(
-      title: 'Payment Issue',
+      title: context.flipperL10n.failedPaymentIssueTitle,
       showBack: false,
       actions: kDebugMode ? [_debugPaymentPlanButton()] : null,
       aside: _asideChildren(context),
@@ -918,6 +925,7 @@ class _FailedPaymentState extends State<FailedPayment>
   ];
 
   Widget _buildPaymentWaitingContent() {
+    final l10n = context.flipperL10n;
     return Column(
       children: [
         AnimatedBuilder(
@@ -947,18 +955,16 @@ class _FailedPaymentState extends State<FailedPayment>
         const SizedBox(height: 24),
         Text(
           _rail.isCard
-              ? 'Complete Payment on the Card Page'
-              : 'Complete Payment on Your Phone',
+              ? l10n.failedPaymentCompleteOnCardPage
+              : l10n.failedPaymentCompleteOnPhone,
           style: PaymentTypography.heroHeadline(),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
         Text(
           _rail.isCard
-              ? 'Enter your card details on the page that opened.\n'
-                    'This screen updates on its own once the payment goes through.'
-              : 'A payment request has been sent to your MTN Mobile Money.\n'
-                    'Open your phone and approve the transaction.',
+              ? l10n.failedPaymentCardWaitingBody
+              : l10n.failedPaymentMomoWaitingBody,
           style: PaymentTypography.body(),
           textAlign: TextAlign.center,
         ),
@@ -969,7 +975,7 @@ class _FailedPaymentState extends State<FailedPayment>
           TextButton.icon(
             onPressed: () => _reopenCheckout(_pendingCheckout!.paymentLink!),
             icon: const Icon(Icons.open_in_new, size: 18),
-            label: const Text('Reopen payment page'),
+            label: Text(l10n.failedPaymentReopenPage),
           ),
         ],
         // The waiting screen has no back button, so without this a customer who
@@ -979,7 +985,7 @@ class _FailedPaymentState extends State<FailedPayment>
           const SizedBox(height: 4),
           TextButton(
             onPressed: _stopWaitingForCard,
-            child: const Text('Not now — back to payment options'),
+            child: Text(l10n.failedPaymentNotNowBackToOptions),
           ),
         ],
         const SizedBox(height: 32),
@@ -993,7 +999,7 @@ class _FailedPaymentState extends State<FailedPayment>
           ),
         ),
         const SizedBox(height: 16),
-        Text('Checking payment status…', style: PaymentTypography.hint()),
+        Text(l10n.checkingPaymentStatus, style: PaymentTypography.hint()),
       ],
     );
   }
@@ -1010,10 +1016,9 @@ class _FailedPaymentState extends State<FailedPayment>
                 2,
             0,
           ),
-          child: const PaymentHeroBlock(
-            headline: 'Payment Needs Attention',
-            body:
-                "Don't worry, this happens sometimes.\nLet's get you sorted out quickly.",
+          child: PaymentHeroBlock(
+            headline: context.flipperL10n.failedPaymentNeedsAttention,
+            body: context.flipperL10n.failedPaymentNeedsAttentionBody,
           ),
         );
       },
@@ -1024,11 +1029,12 @@ class _FailedPaymentState extends State<FailedPayment>
     final template = _selectedSwitchTemplate;
     final yearlyDiscount = template?.yearlyDiscountPercent ?? 20;
     final templates = _catalog?.templates ?? const [];
+    final l10n = context.flipperL10n;
 
     return PaymentAccordion(
-      title: 'Switch or upgrade plan',
-      subtitleOpen: 'Tap to collapse',
-      subtitleClosed: 'Choose a different plan before retrying',
+      title: l10n.failedPaymentSwitchOrUpgradePlan,
+      subtitleOpen: l10n.failedPaymentTapToCollapse,
+      subtitleClosed: l10n.failedPaymentChooseDifferentPlan,
       initiallyOpen: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1053,8 +1059,7 @@ class _FailedPaymentState extends State<FailedPayment>
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Your plan is still active. You can upgrade or switch plans below. '
-                      'The new plan will apply from your next billing cycle.',
+                      l10n.failedPaymentPlanStillActive,
                       style: PaymentTypography.hint(),
                     ),
                   ),
@@ -1093,8 +1098,8 @@ class _FailedPaymentState extends State<FailedPayment>
             const SizedBox(height: 12),
             PaymentSectionLabel(
               template.isEnterprise
-                  ? 'Enterprise Services'
-                  : 'Additional Services',
+                  ? l10n.failedPaymentEnterpriseServices
+                  : l10n.failedPaymentAdditionalServices,
             ),
             const SizedBox(height: 8),
             for (final addon in template.addons) ...[
@@ -1120,7 +1125,7 @@ class _FailedPaymentState extends State<FailedPayment>
             ],
           ],
           PaymentTotalCard(
-            label: 'New plan total',
+            label: l10n.failedPaymentNewPlanTotal,
             total: _calculateSwitchPlanPrice(),
             subtitle: template?.name ?? '',
             cadence: _switchPlanCadence,
@@ -1244,9 +1249,7 @@ class _FailedPaymentState extends State<FailedPayment>
     ).openPaymentLink(link);
     if (!_mounted || opened) return;
     setState(() {
-      _errorMessage =
-          'Could not open the payment page on this device. Try Mobile Money, '
-          'or finish the payment on a phone or computer with a browser.';
+      _errorMessage = context.flipperL10n.failedPaymentCouldNotOpenPage;
     });
   }
 
@@ -1298,7 +1301,7 @@ class _FailedPaymentState extends State<FailedPayment>
             _isLoading = false;
             _errorMessage =
                 result.message ??
-                'This subscription has ended. Pick a plan above to start again.';
+                context.flipperL10n.failedPaymentSubscriptionEnded;
           });
           return;
 
@@ -1314,8 +1317,7 @@ class _FailedPaymentState extends State<FailedPayment>
               (startAction == DodoNextAction.openPaymentLink ||
                   startAction == DodoNextAction.updatePaymentMethod)) {
             final message =
-                result.message ??
-                'The payment page is not ready yet. Try again in a moment.';
+                result.message ?? context.flipperL10n.failedPaymentPageNotReady;
             setState(() {
               _isLoading = false;
               _errorMessage = message;
@@ -1347,8 +1349,7 @@ class _FailedPaymentState extends State<FailedPayment>
             _pendingCheckoutCode = result.start?.discount?.code;
             _errorMessage =
                 result.message ??
-                'Could not open the card payment page on this device. Use the '
-                    'link below, or pay with Mobile Money.';
+                context.flipperL10n.failedPaymentCouldNotOpenCardPage;
           });
           _reportCardFailure(context, _errorMessage!);
           return;
@@ -1372,9 +1373,13 @@ class _FailedPaymentState extends State<FailedPayment>
       if (!_mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Card payment could not be started: $e';
+        _errorMessage = context.flipperL10n
+            .failedPaymentCardNotStartedWithError(e.toString());
       });
-      _reportCardFailure(context, 'Card payment could not be started.');
+      _reportCardFailure(
+        context,
+        context.flipperL10n.failedPaymentCardNotStarted,
+      );
     }
   }
 
@@ -1450,21 +1455,24 @@ class _FailedPaymentState extends State<FailedPayment>
     setState(() {
       _waitingForPaymentCompletion = false;
       _errorMessage =
-          status?.lastError ??
-          'The card payment has not come through. Try again, or use Mobile '
-              'Money.';
+          status?.lastError ?? context.flipperL10n.failedPaymentCardNotThrough;
     });
   }
 
   Widget _buildRetryButton(BuildContext context) {
     final retrying = _isLoading && !_waitingForPaymentCompletion;
+    final l10n = context.flipperL10n;
 
     return Column(
       children: [
         PaymentPrimaryButton(
-          label: _rail.isCard ? 'Pay by card' : 'Try Again',
+          label: _rail.isCard
+              ? l10n.failedPaymentPayByCard
+              : l10n.failedPaymentTryAgain,
           loading: retrying,
-          loadingLabel: _rail.isCard ? 'Opening…' : 'Retrying…',
+          loadingLabel: _rail.isCard
+              ? l10n.failedPaymentOpening
+              : l10n.failedPaymentRetrying,
           icon: _rail.isCard
               ? FluentIcons.credit_card_person_20_regular
               : FluentIcons.arrow_sync_20_regular,
@@ -1505,12 +1513,11 @@ class _FailedPaymentState extends State<FailedPayment>
                             _paymentCompletionPollTimer?.cancel();
                             setState(() {
                               _waitingForPaymentCompletion = false;
-                              _errorMessage =
-                                  'Payment timeout. Please try again.';
+                              _errorMessage = l10n.failedPaymentTimeout;
                             });
                             showCustomSnackBarUtil(
                               context,
-                              'Payment timeout. Please try again.',
+                              l10n.failedPaymentTimeout,
                               backgroundColor: PaymentTokens.loss,
                               showCloseButton: true,
                             );
@@ -1544,8 +1551,7 @@ class _FailedPaymentState extends State<FailedPayment>
 
                     showCustomSnackBarUtil(
                       context,
-                      'Nothing was charged. Approve the Mobile Money request on '
-                      'your phone, then try again.',
+                      l10n.failedPaymentNothingChargedApprove,
                       backgroundColor: const Color(0xFF0B1220),
                       showCloseButton: true,
                     );
@@ -1553,7 +1559,9 @@ class _FailedPaymentState extends State<FailedPayment>
                     _paymentTimeoutTimer?.cancel();
                     if (!_mounted) return;
                     setState(() {
-                      _errorMessage = 'Payment failed: $e';
+                      _errorMessage = l10n.failedPaymentFailedWithError(
+                        e.toString(),
+                      );
                       _waitingForPaymentCompletion = false;
                     });
 
@@ -1564,8 +1572,8 @@ class _FailedPaymentState extends State<FailedPayment>
                     showCustomSnackBarUtil(
                       context,
                       _usePhoneNumber
-                          ? 'Payment failed. Try again.'
-                          : 'Payment failed again. Try a different MTN number or plan.',
+                          ? l10n.failedPaymentFailedTryAgainShort
+                          : l10n.failedPaymentFailedAgainTryDifferent,
                       backgroundColor: const Color(0xFF0B1220),
                       showCloseButton: true,
                     );
@@ -1592,7 +1600,7 @@ class _FailedPaymentState extends State<FailedPayment>
                 ),
               ),
               child: Text(
-                'Maximum skip limit reached. Please complete payment to continue.',
+                l10n.failedPaymentMaxSkipReached,
                 style: PaymentTypography.body().copyWith(
                   color: PaymentTokens.loss,
                   fontWeight: FontWeight.w500,
@@ -1601,14 +1609,16 @@ class _FailedPaymentState extends State<FailedPayment>
             )
           else
             Text(
-              'You can skip $_remainingSkips more time${_remainingSkips == 1 ? '' : 's'}',
+              l10n.failedPaymentSkipsRemaining(_remainingSkips),
               style: PaymentTypography.hint(),
               textAlign: TextAlign.center,
             ),
           const SizedBox(height: 8),
         ],
         PaymentSecondaryButton(
-          label: _canSkip ? 'Skip for Now' : 'Skip Limit Reached',
+          label: _canSkip
+              ? l10n.failedPaymentSkipForNow
+              : l10n.failedPaymentSkipLimitReached,
           onPressed: _isLoadingSkipCount || !_canSkip
               ? null
               : () async {
@@ -1622,15 +1632,21 @@ class _FailedPaymentState extends State<FailedPayment>
 
   Widget _buildPlanDetails(Plan plan) {
     final currency = ProxyService.box.defaultCurrency();
-    final priceLabel = _discountAmount > 0 ? 'Total' : 'Price';
+    final l10n = context.flipperL10n;
+    final priceLabel = _discountAmount > 0
+        ? l10n.failedPaymentTotal
+        : l10n.retailPrice;
     final rows = <PaymentSummaryRow>[
       PaymentSummaryRow(
-        label: 'Plan',
-        value: _switchTemplateForPlan(plan)?.name ?? plan.selectedPlan ?? 'N/A',
+        label: l10n.failedPaymentPlan,
+        value:
+            _switchTemplateForPlan(plan)?.name ??
+            plan.selectedPlan ??
+            l10n.dashboardNotApplicable,
       ),
       if (_discountAmount > 0) ...[
         PaymentSummaryRow(
-          label: 'Subtotal',
+          label: l10n.subtotal,
           value: formatPaymentTotal(
             _originalPrice > 0
                 ? _originalPrice
@@ -1640,8 +1656,8 @@ class _FailedPaymentState extends State<FailedPayment>
         ),
         PaymentSummaryRow(
           label: _discountCode != null
-              ? 'Discount ($_discountCode)'
-              : 'Discount',
+              ? l10n.failedPaymentDiscountWithCode(_discountCode!)
+              : l10n.discount,
           value: '- ${formatPaymentRwf(_discountAmount)} $currency',
           mono: true,
           highlight: true,
@@ -1653,12 +1669,12 @@ class _FailedPaymentState extends State<FailedPayment>
         mono: true,
       ),
       PaymentSummaryRow(
-        label: 'Billing',
+        label: l10n.failedPaymentBilling,
         value: BillingCadence.fromWire(plan.rule).label,
       ),
       if (plan.additionalDevices != null && plan.additionalDevices! > 0)
         PaymentSummaryRow(
-          label: 'Additional Devices',
+          label: l10n.failedPaymentAdditionalDevices,
           value: plan.additionalDevices.toString(),
         ),
     ];
@@ -1684,7 +1700,7 @@ class _FailedPaymentState extends State<FailedPayment>
     if (_usePhoneNumber) {
       final phoneValue = (phoneNumber ?? '').trim();
       if (phoneValue.isEmpty) {
-        throw Exception('Please enter your MTN phone number.');
+        throw Exception(context.flipperL10n.failedPaymentEnterMtnNumber);
       }
       final phoneError = _getPhoneNumberError(phoneValue);
       if (phoneError != null) {
@@ -1715,8 +1731,7 @@ class _FailedPaymentState extends State<FailedPayment>
             .trim();
         if (bizPhone == null || bizPhone.isEmpty) {
           throw Exception(
-            'Phone number is required for MTN Mobile Money. '
-            'Please enable "Use different phone number" and enter your MTN number.',
+            context.flipperL10n.failedPaymentPhoneRequiredForMomo,
           );
         }
         // Save business phone to plan in Supabase for future use
@@ -1798,8 +1813,10 @@ class _FailedPaymentState extends State<FailedPayment>
             setState(() {
               _waitingForPaymentCompletion = false;
               _errorMessage = settlement.reason?.trim().isNotEmpty == true
-                  ? '${settlement.reason} Nothing was charged — try again.'
-                  : 'The payment was declined. Nothing was charged — try again.';
+                  ? context.flipperL10n.failedPaymentReasonNothingCharged(
+                      settlement.reason!,
+                    )
+                  : context.flipperL10n.failedPaymentDeclinedNothingCharged;
             });
             return;
           }

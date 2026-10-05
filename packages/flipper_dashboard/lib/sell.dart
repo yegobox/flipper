@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -27,8 +28,9 @@ class Sell extends StatefulHookConsumerWidget {
 class SellState extends ConsumerState<Sell> {
   final _routerService = locator<RouterService>();
 
-  final TextEditingController quantityController =
-      TextEditingController(text: "1");
+  final TextEditingController quantityController = TextEditingController(
+    text: "1",
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -41,38 +43,39 @@ class SellState extends ConsumerState<Sell> {
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final pendingTransaction = ref.watch(pendingTransactionStreamProvider(
-          isExpense: false,
-        ));
+        final pendingTransaction = ref.watch(
+          pendingTransactionStreamProvider(isExpense: false),
+        );
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
             onPop: () {
               _routerService.pop();
             },
-            title: titleWidget(
-              model: model,
-              name: widget.product.name,
-            ),
-            rightActionButtonName: 'Save',
+            title: titleWidget(model: model, name: widget.product.name),
+            rightActionButtonName: context.flipperL10n.save,
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
-              Variant? variant =
-                  await ProxyService.strategy.getVariant(id: model.checked);
+              Variant? variant = await ProxyService.strategy.getVariant(
+                id: model.checked,
+              );
 
               bool saved = await ProxyService.strategy.saveTransactionItem(
-                  partOfComposite: false,
-                  doneWithTransaction: false,
-                  variation: variant!,
-                  ignoreForReport: false,
-                  amountTotal: model.amountTotal,
-                  customItem: false,
-                  currentStock: variant.stock!.currentStock!,
-                  pendingTransaction: pendingTransaction.value!);
+                partOfComposite: false,
+                doneWithTransaction: false,
+                variation: variant!,
+                ignoreForReport: false,
+                amountTotal: model.amountTotal,
+                customItem: false,
+                currentStock: variant.stock!.currentStock!,
+                pendingTransaction: pendingTransaction.value!,
+              );
               if (!saved) {
-                showSimpleNotification(const Text('No item selected'),
-                    background: Colors.red);
+                showSimpleNotification(
+                  Text(context.flipperL10n.sellNoItemSelected),
+                  background: Colors.red,
+                );
               }
 
               /// when we are ordering transaction type is cashOut
@@ -86,61 +89,63 @@ class SellState extends ConsumerState<Sell> {
           ),
           body: Padding(
             padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
-            child: CustomScrollView(slivers: [
-              SliverList(
-                delegate: SliverChildListDelegate([
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            widget.product.name,
-                            style: primaryTextStyle.copyWith(
+            child: CustomScrollView(
+              slivers: [
+                SliverList(
+                  delegate: SliverChildListDelegate([
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              widget.product.name,
+                              style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17,
-                                color: Colors.grey[800]),
-                          ),
-                          const SizedBox(
-                            height: 4,
-                          ),
-                          Text(
-                            '  CHOOSE ONE',
-                            style: primaryTextStyle.copyWith(
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '  ${context.flipperL10n.sellChooseOne}',
+                              style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 18,
-                                color: Colors.grey.shade700),
-                          )
-                        ],
-                      ),
-                      SizedBox(
-                        height: 410,
-                        child: ListView(
-                          physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
-                          ),
-                          shrinkWrap: true,
-                          children: variantsWidget(model: model),
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
                         ),
+                        SizedBox(
+                          height: 410,
+                          child: ListView(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
+                            shrinkWrap: true,
+                            children: variantsWidget(model: model),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]),
+                ),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: quantityWidget(
+                        context: context,
+                        model: model,
+                        quantityController: quantityController,
                       ),
-                    ],
-                  )
-                ]),
-              ),
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: quantityWidget(
-                      context: context,
-                      model: model,
-                      quantityController: quantityController,
                     ),
                   ),
                 ),
-              )
-            ]),
+              ],
+            ),
           ),
         );
       },

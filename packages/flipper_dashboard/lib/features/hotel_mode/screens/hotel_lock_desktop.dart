@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_keypad.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,6 +33,7 @@ class _HotelLockDesktopScreenState
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(hotelStaffProvider);
+    final l10n = context.flipperL10n;
 
     return Container(
       color: HotelTokens.bg,
@@ -43,7 +45,7 @@ class _HotelLockDesktopScreenState
             children: [
               const HotelDeskBrand(),
               Text(
-                'Front desk · Shared register',
+                l10n.hotelFrontDeskSharedRegister,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -73,7 +75,7 @@ class _HotelLockDesktopScreenState
                         child: staffAsync.when(
                           loading: () =>
                               const Center(child: CircularProgressIndicator()),
-                          error: (_, __) => const Text('Could not load staff'),
+                          error: (_, __) => Text(l10n.barCouldNotLoadStaff),
                           data: _peoplePane,
                         ),
                       ),
@@ -85,8 +87,8 @@ class _HotelLockDesktopScreenState
                           enabled: _selected != null,
                           title: _selected?.name ?? '—',
                           hint: _selected == null
-                              ? 'Tap your name on the left, then enter your PIN'
-                              : 'Enter your 6-digit PIN to open the desk',
+                              ? l10n.barLockHintTapLeft
+                              : l10n.hotelLockHintEnterPin,
                           avatarLabel: _selected == null
                               ? null
                               : hotelClerkInitials(_selected!.name),
@@ -127,11 +129,12 @@ class _HotelLockDesktopScreenState
   }
 
   Widget _peoplePane(List<Tenant> staff) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "WHO'S ON THE DESK?",
+          l10n.hotelWhosOnDeskEyebrow,
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -141,7 +144,7 @@ class _HotelLockDesktopScreenState
         ),
         const SizedBox(height: 4),
         Text(
-          'Sign in to reception',
+          l10n.hotelSignInToReception,
           style: GoogleFonts.outfit(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -155,9 +158,7 @@ class _HotelLockDesktopScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'No staff to show. Add users in User Management — they '
-                      'appear here with their PINs. If this device is offline, '
-                      'connect once so staff can sign in offline afterwards.',
+                      l10n.hotelNoStaffToShow,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         color: HotelTokens.ink3,
@@ -166,7 +167,7 @@ class _HotelLockDesktopScreenState
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: () => ref.invalidate(hotelStaffProvider),
-                      child: const Text('Retry'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 )
@@ -233,7 +234,7 @@ class _HotelLockDesktopScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      person.name ?? 'Staff',
+                      person.name ?? context.flipperL10n.barStaffFallback,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(

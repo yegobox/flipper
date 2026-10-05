@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -13,9 +14,9 @@ import 'package:path/path.dart' as path;
 
 class ExportImport {
   Future<void> export(List<Variant> variants) async {
-    final business = await ProxyService.getStrategy(Strategy.capella).getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
@@ -23,17 +24,21 @@ class ExportImport {
 
     // Footer template for logo
     final PdfPageTemplateElement footerTemplate = PdfPageTemplateElement(
-        Rect.fromLTWH(0, 0, pageSize.width, 50)); // Footer area height 50
+      Rect.fromLTWH(0, 0, pageSize.width, 50),
+    ); // Footer area height 50
     try {
-      final ByteData imageData =
-          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final ByteData imageData = await rootBundle.load(
+        'packages/receipt/assets/flipper_logo.png',
+      );
       final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
       const double logoWidth = 25;
       const double logoHeight = 25;
       final double xLogoPosition = (pageSize.width - logoWidth) / 2;
       // Draw logo at the top of the footer area, centered
       footerTemplate.graphics.drawImage(
-          logoImage, Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight));
+        logoImage,
+        Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight),
+      );
     } catch (e) {
       print('Error loading logo for footer: $e');
     }
@@ -49,23 +54,40 @@ class ExportImport {
   }
 
   void _drawHeader(
-      PdfPage page, Size pageSize, List<Variant> variants, Business? business) {
+    PdfPage page,
+    Size pageSize,
+    List<Variant> variants,
+    Business? business,
+  ) {
     final PdfGraphics graphics = page.graphics;
-    final PdfFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
+    final PdfFont titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      20,
+      style: PdfFontStyle.bold,
+    );
     final PdfFont headerFont = PdfStandardFont(PdfFontFamily.helvetica, 12);
 
-    graphics.drawString('Imports Report', titleFont,
-        bounds: Rect.fromLTWH(0, 0, pageSize.width, 30),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center));
+    final l10n = FlipperL10n.current;
+    graphics.drawString(
+      l10n.reportImportsReport,
+      titleFont,
+      bounds: Rect.fromLTWH(0, 0, pageSize.width, 30),
+      format: PdfStringFormat(alignment: PdfTextAlignment.center),
+    );
 
     final businessName = business?.name ?? 'Demo LTD';
     final tin = business?.tinNumber ?? '933000005';
 
-    graphics.drawString(businessName, headerFont,
-        bounds: Rect.fromLTWH(0, 40, pageSize.width, 20));
-    graphics.drawString('TIN: $tin', headerFont,
-        bounds: Rect.fromLTWH(0, 60, pageSize.width, 20));
+    graphics.drawString(
+      businessName,
+      headerFont,
+      bounds: Rect.fromLTWH(0, 40, pageSize.width, 20),
+    );
+    graphics.drawString(
+      'TIN: $tin',
+      headerFont,
+      bounds: Rect.fromLTWH(0, 60, pageSize.width, 20),
+    );
 
     if (variants.isNotEmpty) {
       final dates = variants
@@ -84,8 +106,11 @@ class ExportImport {
         dates.sort();
         // final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
         final endDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        graphics.drawString('Date: $endDate', headerFont,
-            bounds: Rect.fromLTWH(0, 80, pageSize.width, 20));
+        graphics.drawString(
+          l10n.reportDateValue(endDate),
+          headerFont,
+          bounds: Rect.fromLTWH(0, 80, pageSize.width, 20),
+        );
       }
     }
   }
@@ -96,25 +121,32 @@ class ExportImport {
 
     final PdfGridRow header = grid.headers.add(1)[0];
     header.cells[0].value = '#';
-    header.cells[1].value = 'Request Date';
-    header.cells[2].value = 'Declaration Number';
-    header.cells[3].value = 'Item Name';
-    header.cells[4].value = 'Quantity';
-    header.cells[5].value = 'Quantity Unit Code';
-    header.cells[6].value = 'Supplier name';
-    header.cells[7].value = 'Agent name';
-    header.cells[8].value = 'Invoice Foreign\nCurrency Amount';
-    header.cells[9].value = 'Foreign\nCurrency';
+    final l10n = FlipperL10n.current;
+    header.cells[1].value = l10n.reportRequestDate;
+    header.cells[2].value = l10n.reportDeclarationNumber;
+    header.cells[3].value = l10n.manualPurchaseItemName;
+    header.cells[4].value = l10n.quantity;
+    header.cells[5].value = l10n.reportQuantityUnitCode;
+    header.cells[6].value = l10n.manualPurchaseSupplierName;
+    header.cells[7].value = l10n.reportAgentName;
+    header.cells[8].value = l10n.reportInvoiceForeignAmount;
+    header.cells[9].value = l10n.reportForeignCurrency;
 
-    header.style.backgroundBrush =
-        PdfSolidBrush(PdfColor(173, 216, 230)); // Light Blue
+    header.style.backgroundBrush = PdfSolidBrush(
+      PdfColor(173, 216, 230),
+    ); // Light Blue
     header.style.textBrush = PdfBrushes.black; // Black text for better contrast
-    header.style.font =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    header.style.font = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
 
     // Define pens
-    final PdfPen testPen = PdfPen(PdfColor(192, 192, 192),
-        width: 0.75); // Silver, slightly thicker
+    final PdfPen testPen = PdfPen(
+      PdfColor(192, 192, 192),
+      width: 0.75,
+    ); // Silver, slightly thicker
 
     // Apply border to header cells
     for (int i = 0; i < header.cells.count; i++) {
@@ -173,16 +205,23 @@ class ExportImport {
     grid.draw(
       page: page,
       bounds: Rect.fromLTWH(
-          2.5, 120, tableWidth, pageSize.height - 170), // Minimal margins
+        2.5,
+        120,
+        tableWidth,
+        pageSize.height - 170,
+      ), // Minimal margins
     );
   }
 
   Future<void> _saveAndLaunchFile(List<int> bytes, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
-    final String formattedDate =
-        DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
-    final filePath =
-        path.join(directory.path, '${fileName}_$formattedDate.pdf');
+    final String formattedDate = DateFormat(
+      'yyyy-MM-dd_HH-mm',
+    ).format(DateTime.now());
+    final filePath = path.join(
+      directory.path,
+      '${fileName}_$formattedDate.pdf',
+    );
     final file = File(filePath);
     await file.writeAsBytes(bytes, flush: true);
     await OpenFilex.open(filePath);

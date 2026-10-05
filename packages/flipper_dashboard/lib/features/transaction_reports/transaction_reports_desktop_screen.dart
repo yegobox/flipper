@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -23,7 +24,7 @@ class TransactionReportsDesktopScreen extends ConsumerWidget {
       // Shared CustomAppBar so the close button matches the rest of the app
       // (circular outlined AppBarRoundIconButton, e.g. Cash Book).
       appBar: CustomAppBar(
-        title: 'Transaction Reports',
+        title: context.flipperL10n.transactionReportsTitle,
         onPop: () => Navigator.of(context).pop(),
         barBackgroundColor: const Color(0xFFF2F4F7),
         isDividerVisible: false,

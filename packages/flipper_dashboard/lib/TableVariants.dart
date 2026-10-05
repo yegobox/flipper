@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/widgets/variant_table_image_cell.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -145,7 +146,7 @@ class TableVariants extends StatelessWidget {
                 // overflowing the row once the delete action joins it.
                 Flexible(
                   child: Text(
-                    'Select all',
+                    context.flipperL10n.variantsSelectAll,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
                       fontSize: 13,
@@ -161,9 +162,7 @@ class TableVariants extends StatelessWidget {
                 const SizedBox(width: 12),
               ],
               Text(
-                variants.length == 1
-                    ? '1 variant'
-                    : '${variants.length} variants',
+                context.flipperL10n.fuelVariantsCount(variants.length),
                 style: GoogleFonts.outfit(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -193,7 +192,7 @@ class TableVariants extends StatelessWidget {
     if (name.isNotEmpty && name != _tempProductName) return name;
     final barcode = (variant.bcd ?? '').trim();
     if (barcode.isNotEmpty) return barcode;
-    return 'Variant';
+    return FlipperL10n.current.variantsVariant;
   }
 
   String? _variantSubtitle(Variant variant) {
@@ -210,19 +209,24 @@ class TableVariants extends StatelessWidget {
     final discount =
         double.tryParse(discountText) ?? (variant.dcRt ?? 0).toDouble();
     final unit = (variant.unit ?? '').trim();
+    final l10n = FlipperL10n.current;
     final parts = <String>[
-      if (tax.isNotEmpty) 'Tax $tax',
-      discount == 0 ? 'No discount' : '${discount.toStringAsFixed(0)}% off',
+      if (tax.isNotEmpty) l10n.taxSettingsTaxType(tax),
+      discount == 0
+          ? l10n.variantsNoDiscount
+          : l10n.variantsPercentOff(discount.toStringAsFixed(0)),
       if (unit.isNotEmpty) unit,
       variant.expirationDate != null
-          ? 'Expires ${DateFormat('MMM d, yyyy').format(variant.expirationDate!)}'
-          : 'No expiry date',
+          ? l10n.variantsExpires(
+              DateFormat('MMM d, yyyy').format(variant.expirationDate!),
+            )
+          : l10n.variantsNoExpiry,
     ];
     return parts.join(' · ');
   }
 
   Widget _priceField(Variant variant) => _cardField(
-    'Price',
+    FlipperL10n.current.retailPrice,
     PeVariantTextInput(
       controller: model.getPriceController(variant.id),
       prefix: 'RWF',
@@ -237,7 +241,7 @@ class TableVariants extends StatelessWidget {
   );
 
   Widget _quantityField(BuildContext context, Variant variant) => _cardField(
-    'Quantity',
+    context.flipperL10n.quantity,
     PeVariantQtyButton(
       quantity: variant.stock?.currentStock ?? variant.qty,
       onTap: () => showEditQuantityDialog(
@@ -250,7 +254,7 @@ class TableVariants extends StatelessWidget {
   );
 
   Widget _lowStockField(Variant variant) => _cardField(
-    'Low stock',
+    FlipperL10n.current.variantsLowStock,
     PeVariantTextInput(
       controller: model.getLowStockController(variant.id),
       mono: true,
@@ -272,7 +276,7 @@ class TableVariants extends StatelessWidget {
         ? variant.taxTyCd
         : (isEbmEnabled ? "B" : "D");
     return _cardField(
-      'Tax',
+      FlipperL10n.current.variantsTax,
       TaxDropdown(
         isEditMode: isEditMode,
         selectedValue: currentValue,
@@ -283,7 +287,7 @@ class TableVariants extends StatelessWidget {
   }
 
   Widget _discountField(Variant variant) => _cardField(
-    'Discount %',
+    FlipperL10n.current.variantsDiscountPercent,
     PeVariantTextInput(
       controller: model.getDiscountController(variant.id),
       mono: true,
@@ -295,7 +299,7 @@ class TableVariants extends StatelessWidget {
   );
 
   Widget _unitField(Variant variant) => _cardField(
-    'Unit',
+    FlipperL10n.current.variantsUnit,
     UnitOfMeasureDropdown(
       items: units.map((e) => e.name ?? '').toList(),
       selectedItem: variant.unit,
@@ -317,7 +321,7 @@ class TableVariants extends StatelessWidget {
   // Named "RRA item class" to distinguish it from the product-level "Item
   // type" (raw material / finished product / service) in the section above.
   Widget _itemClassField(BuildContext context, Variant variant) => _cardField(
-    'RRA item class',
+    context.flipperL10n.variantsRraItemClass,
     UniversalProductDropdown(
       context: context,
       model: model,
@@ -327,7 +331,7 @@ class TableVariants extends StatelessWidget {
   );
 
   Widget _expirationField(BuildContext context, Variant variant) => _cardField(
-    'Expiration',
+    context.flipperL10n.variantsExpiration,
     PeVariantBox(
       expirationStyle: true,
       onTap: () async {
@@ -349,7 +353,7 @@ class TableVariants extends StatelessWidget {
             child: Text(
               variant.expirationDate != null
                   ? DateFormat('MMM d, yyyy').format(variant.expirationDate!)
-                  : 'Set date',
+                  : context.flipperL10n.variantsSetDate,
               style: GoogleFonts.outfit(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w600,
@@ -400,8 +404,8 @@ class TableVariants extends StatelessWidget {
       final dialogService = locator<DialogService>();
       dialogService.showCustomDialog(
         variant: DialogType.info,
-        title: 'Error',
-        description: 'Cannot delete variant with stock remaining.',
+        title: context.flipperL10n.error,
+        description: context.flipperL10n.cannotDeleteVariantWithStockRemaining,
         data: {'status': InfoDialogStatus.error},
       );
     } else {
@@ -420,7 +424,7 @@ class TableVariants extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           columnSpacing: 12, // Adjust spacing between columns
-          columns: _buildColumns(),
+          columns: _buildColumns(context.flipperL10n),
           rows: model.scannedVariants.reversed.map((variant) {
             return _buildRow(context, model, variant);
           }).toList(),
@@ -467,7 +471,9 @@ class TableVariants extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Price: ${variant.retailPrice?.toStringAsFixed(2) ?? ''}',
+                    context.flipperL10n.variantsPriceLine(
+                      variant.retailPrice?.toStringAsFixed(2) ?? '',
+                    ),
                     style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                   ),
                 ],
@@ -492,8 +498,10 @@ class TableVariants extends StatelessWidget {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
-                    title: 'Error',
-                    description: 'Cannot delete variant with stock remaining.',
+                    title: context.flipperL10n.error,
+                    description: context
+                        .flipperL10n
+                        .cannotDeleteVariantWithStockRemaining,
                     data: {'status': InfoDialogStatus.error},
                   );
                 } else {
@@ -509,7 +517,7 @@ class TableVariants extends StatelessWidget {
             child: Column(
               children: [
                 _buildMobileInfoRow(
-                  'Quantity',
+                  context.flipperL10n.quantity,
                   QuantityCell(
                     quantity: variant.stock?.currentStock ?? variant.qty,
                     onEdit: () {
@@ -522,7 +530,7 @@ class TableVariants extends StatelessWidget {
                   ),
                 ),
                 _buildMobileInfoRow(
-                  'Low stock',
+                  context.flipperL10n.variantsLowStock,
                   TextFormField(
                     controller: model.getLowStockController(variant.id),
                     keyboardType: const TextInputType.numberWithOptions(
@@ -537,13 +545,13 @@ class TableVariants extends StatelessWidget {
                         variant.stock!.lowStock = d;
                       }
                     },
-                    decoration: const InputDecoration(
-                      hintText: 'Reorder at',
+                    decoration: InputDecoration(
+                      hintText: context.flipperL10n.variantsReorderAt,
                     ),
                   ),
                 ),
                 _buildMobileInfoRow(
-                  'Tax',
+                  context.flipperL10n.variantsTax,
                   Consumer(
                     builder: (context, ref, child) {
                       final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
@@ -581,7 +589,7 @@ class TableVariants extends StatelessWidget {
                   ),
                 ),
                 _buildMobileInfoRow(
-                  'Discount',
+                  context.flipperL10n.discount,
                   TextFormField(
                     controller: model.getDiscountController(variant.id),
                     decoration: const InputDecoration(suffixText: '%'),
@@ -590,7 +598,7 @@ class TableVariants extends StatelessWidget {
                   ),
                 ),
                 _buildMobileInfoRow(
-                  'Unit',
+                  context.flipperL10n.variantsUnit,
                   UnitOfMeasureDropdown(
                     items: units.map((e) => e.name ?? '').toList(),
                     selectedItem: variant.unit,
@@ -610,7 +618,7 @@ class TableVariants extends StatelessWidget {
                   ),
                 ),
                 _buildMobileInfoRow(
-                  'Classification',
+                  context.flipperL10n.variantsClassification,
                   UniversalProductDropdown(
                     context: context,
                     model: model,
@@ -619,7 +627,7 @@ class TableVariants extends StatelessWidget {
                   ),
                 ),
                 _buildMobileInfoRow(
-                  'Expiration',
+                  context.flipperL10n.variantsExpiration,
                   TextFormField(
                     controller: model.getDateController(variant.id),
                     decoration: InputDecoration(
@@ -628,7 +636,7 @@ class TableVariants extends StatelessWidget {
                           ? DateFormat(
                               'MMMM dd, yyyy',
                             ).format(variant.expirationDate!)
-                          : 'Select Date',
+                          : context.flipperL10n.dateSelect,
                     ),
                     readOnly: true,
                     onTap: () async {
@@ -667,7 +675,8 @@ class TableVariants extends StatelessWidget {
     );
   }
 
-  List<DataColumn> _buildColumns() {
+  List<DataColumn> _buildColumns(FlipperAppLocalizations l10n) {
+    const bold = TextStyle(fontWeight: FontWeight.bold);
     return [
       DataColumn(
         label: Checkbox(
@@ -676,48 +685,17 @@ class TableVariants extends StatelessWidget {
               model.toggleSelectAll(model.scannedVariants, value ?? false),
         ),
       ),
-      const DataColumn(
-        label: Text('Image', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text(
-          'Low stock',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      const DataColumn(
-        label: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Discount', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Unit', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text(
-          'Classification',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      const DataColumn(
-        label: Text(
-          'Expiration',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      const DataColumn(
-        label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+      DataColumn(label: Text(l10n.variantsImage, style: bold)),
+      DataColumn(label: Text(l10n.name, style: bold)),
+      DataColumn(label: Text(l10n.retailPrice, style: bold)),
+      DataColumn(label: Text(l10n.quantity, style: bold)),
+      DataColumn(label: Text(l10n.variantsLowStock, style: bold)),
+      DataColumn(label: Text(l10n.variantsTax, style: bold)),
+      DataColumn(label: Text(l10n.discount, style: bold)),
+      DataColumn(label: Text(l10n.variantsUnit, style: bold)),
+      DataColumn(label: Text(l10n.variantsClassification, style: bold)),
+      DataColumn(label: Text(l10n.variantsExpiration, style: bold)),
+      DataColumn(label: Text(l10n.variantsAction, style: bold)),
     ];
   }
 
@@ -775,7 +753,10 @@ class TableVariants extends StatelessWidget {
               },
               decoration: const InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 8,
+                ),
               ),
             ),
           ),
@@ -861,7 +842,7 @@ class TableVariants extends StatelessWidget {
               suffixIcon: const Icon(Icons.calendar_today),
               hintText: variant.expirationDate != null
                   ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
-                  : 'Select Date',
+                  : context.flipperL10n.dateSelect,
             ),
             readOnly: true,
             onTap: () async {
@@ -893,8 +874,9 @@ class TableVariants extends StatelessWidget {
                 final dialogService = locator<DialogService>();
                 dialogService.showCustomDialog(
                   variant: DialogType.info,
-                  title: 'Error',
-                  description: 'Cannot delete variant with stock remaining.',
+                  title: context.flipperL10n.error,
+                  description:
+                      context.flipperL10n.cannotDeleteVariantWithStockRemaining,
                   data: {'status': InfoDialogStatus.error},
                 );
               } else {
@@ -915,7 +897,10 @@ class TableVariants extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       ),
-      child: const Text('Delete', style: TextStyle(color: Colors.white)),
+      child: Text(
+        context.flipperL10n.delete,
+        style: const TextStyle(color: Colors.white),
+      ),
     );
   }
 }
@@ -940,7 +925,7 @@ class _DeleteAllVariantsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Delete all variants',
+      label: context.flipperL10n.variantsDeleteAllSemantic,
       child: Material(
         color: ProductEditorTokens.loss.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
@@ -960,7 +945,7 @@ class _DeleteAllVariantsButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Delete all',
+                  context.flipperL10n.deleteAll,
                   style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -980,11 +965,7 @@ class _DeleteAllVariantsButton extends StatelessWidget {
 /// low stock) and the tax/unit/expiry fields they rarely touch. The second group
 /// is collapsed behind a toggle that still summarises its values.
 class _VariantCard extends StatefulWidget {
-  const _VariantCard({
-    super.key,
-    required this.table,
-    required this.variant,
-  });
+  const _VariantCard({super.key, required this.table, required this.variant});
 
   final TableVariants table;
   final Variant variant;
@@ -1184,8 +1165,8 @@ class _MoreDetailsToggle extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 expanded
-                    ? 'Hide tax, unit & expiry'
-                    : 'Tax, unit & expiry',
+                    ? context.flipperL10n.variantsHideMoreDetails
+                    : context.flipperL10n.variantsMoreDetails,
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,

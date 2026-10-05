@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/QuantityCell.dart';
 import 'package:flipper_dashboard/TaxDropdown.dart';
 import 'package:flipper_dashboard/UnitOfMeasureDropdown.dart';
@@ -52,16 +53,14 @@ class TableVariants extends StatelessWidget {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: constraints.maxWidth,
-                  ),
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
                   child: DataTable(
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[300]!, width: 1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     columnSpacing: 12, // Adjust spacing between columns
-                    columns: _buildColumns(),
+                    columns: _buildColumns(context.flipperL10n),
                     rows: model.scannedVariants.reversed.map((variant) {
                       return _buildRow(context, model, variant);
                     }).toList(),
@@ -70,8 +69,9 @@ class TableVariants extends StatelessWidget {
               ),
             ),
             // Show delete button only if at least one item is selected
-            if (model.scannedVariants
-                .any((variant) => model.isSelected(variant.id)))
+            if (model.scannedVariants.any(
+              (variant) => model.isSelected(variant.id),
+            ))
               Positioned(
                 top: 10,
                 right: 10,
@@ -83,7 +83,8 @@ class TableVariants extends StatelessWidget {
     );
   }
 
-  List<DataColumn> _buildColumns() {
+  List<DataColumn> _buildColumns(FlipperAppLocalizations l10n) {
+    const bold = TextStyle(fontWeight: FontWeight.bold);
     return [
       DataColumn(
         label: Checkbox(
@@ -92,84 +93,70 @@ class TableVariants extends StatelessWidget {
               model.toggleSelectAll(model.scannedVariants, value ?? false),
         ),
       ),
-      const DataColumn(
-        label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Discount', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Unit', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Classification',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label:
-            Text('Expiration', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      const DataColumn(
-        label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
+      DataColumn(label: Text(l10n.name, style: bold)),
+      DataColumn(label: Text(l10n.retailPrice, style: bold)),
+      DataColumn(label: Text(l10n.quantity, style: bold)),
+      DataColumn(label: Text(l10n.variantsTax, style: bold)),
+      DataColumn(label: Text(l10n.discount, style: bold)),
+      DataColumn(label: Text(l10n.variantsUnit, style: bold)),
+      DataColumn(label: Text(l10n.variantsClassification, style: bold)),
+      DataColumn(label: Text(l10n.variantsExpiration, style: bold)),
+      DataColumn(label: Text(l10n.variantsAction, style: bold)),
     ];
   }
 
   DataRow _buildRow(
-      BuildContext context, ScannViewModel model, Variant variant) {
+    BuildContext context,
+    ScannViewModel model,
+    Variant variant,
+  ) {
     return DataRow(
       selected: model.isSelected(variant.id),
       cells: [
-        DataCell(Checkbox(
-          value: model.isSelected(variant.id),
-          onChanged: (value) => model.toggleSelect(variant.id),
-        )),
+        DataCell(
+          Checkbox(
+            value: model.isSelected(variant.id),
+            onChanged: (value) => model.toggleSelect(variant.id),
+          ),
+        ),
         DataCell(Text(variant.bcd ?? variant.name)),
         DataCell(Text(variant.retailPrice?.toStringAsFixed(2) ?? '')),
         DataCell(
           QuantityCell(
             quantity: variant.stock?.currentStock,
             onEdit: () {
-              showEditQuantityDialog(
-                context,
-                variant,
-                model,
-                () {
-                  FocusScope.of(context).requestFocus(scannedInputFocusNode);
-                },
-              );
+              showEditQuantityDialog(context, variant, model, () {
+                FocusScope.of(context).requestFocus(scannedInputFocusNode);
+              });
             },
           ),
         ),
-        DataCell(TaxDropdown(
-          selectedValue: variant.taxTyCd,
-          options: ["A", "B", "C", "D"],
-          onChanged: (newValue) => model.updateTax(variant, newValue),
-        )),
-        DataCell(TextFormField(
-          controller: model.getDiscountController(variant.id),
-          decoration: const InputDecoration(suffixText: '%'),
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        )),
-        DataCell(UnitOfMeasureDropdown(
-          items: units.map((e) => e.name ?? '').toList(),
-          selectedItem: variant.unit,
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              onUnitOfMeasureChanged?.call(newValue);
-            }
-          },
-        )),
+        DataCell(
+          TaxDropdown(
+            selectedValue: variant.taxTyCd,
+            options: ["A", "B", "C", "D"],
+            onChanged: (newValue) => model.updateTax(variant, newValue),
+          ),
+        ),
+        DataCell(
+          TextFormField(
+            controller: model.getDiscountController(variant.id),
+            decoration: const InputDecoration(suffixText: '%'),
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+        ),
+        DataCell(
+          UnitOfMeasureDropdown(
+            items: units.map((e) => e.name ?? '').toList(),
+            selectedItem: variant.unit,
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                onUnitOfMeasureChanged?.call(newValue);
+              }
+            },
+          ),
+        ),
         DataCell(
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 150), // Limit width
@@ -181,23 +168,25 @@ class TableVariants extends StatelessWidget {
             ),
           ),
         ),
-        DataCell(TextFormField(
-          controller: model.getDateController(variant.id),
-          decoration: InputDecoration(
-            suffixIcon: const Icon(Icons.calendar_today),
-            hintText: variant.expirationDate != null
-                ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
-                : 'Select Date',
+        DataCell(
+          TextFormField(
+            controller: model.getDateController(variant.id),
+            decoration: InputDecoration(
+              suffixIcon: const Icon(Icons.calendar_today),
+              hintText: variant.expirationDate != null
+                  ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
+                  : context.flipperL10n.dateSelect,
+            ),
+            readOnly: true,
+            onTap: () async {
+              final date = await model.pickDate(context);
+              if (date != null) {
+                onDateChanged(variant.id, date);
+                model.updateDateController(variant.id, date);
+              }
+            },
           ),
-          readOnly: true,
-          onTap: () async {
-            final date = await model.pickDate(context);
-            if (date != null) {
-              onDateChanged(variant.id, date);
-              model.updateDateController(variant.id, date);
-            }
-          },
-        )),
+        ),
         DataCell(
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
@@ -216,7 +205,10 @@ class TableVariants extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       ),
-      child: const Text('Delete', style: TextStyle(color: Colors.white)),
+      child: Text(
+        context.flipperL10n.delete,
+        style: const TextStyle(color: Colors.white),
+      ),
     );
   }
 }

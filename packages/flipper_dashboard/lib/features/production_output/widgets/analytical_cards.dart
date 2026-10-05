@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import '../models/production_output_models.dart';
 
@@ -22,15 +23,16 @@ class AnalyticalCards extends StatelessWidget {
     if (isLoading) {
       return _buildLoadingState();
     }
+    final l10n = context.flipperL10n;
 
     // Use column layout for mobile
     if (isMobile) {
       return Column(
         children: [
           _AnalyticalCard(
-            title: 'Efficiency Rate',
+            title: l10n.productionOutputEfficiencyRate,
             value: '${summary.efficiency.toStringAsFixed(1)}%',
-            subtitle: summary.efficiencyRating,
+            subtitle: summary.localizedEfficiencyRating(l10n),
             trend: summary.efficiency >= 100 ? 'up' : 'down',
             color: _getEfficiencyColor(summary.efficiency),
             microChart: _buildEfficiencyChart(),
@@ -41,7 +43,7 @@ class AnalyticalCards extends StatelessWidget {
             children: [
               Expanded(
                 child: _AnalyticalCard(
-                  title: 'Completion',
+                  title: l10n.productionOutputCompletion,
                   value: '${summary.completionRate.toStringAsFixed(0)}%',
                   subtitle: '${summary.completedOrders}/${summary.totalOrders}',
                   trend: summary.completionRate >= 80 ? 'up' : 'stable',
@@ -68,9 +70,9 @@ class AnalyticalCards extends StatelessWidget {
       children: [
         Expanded(
           child: _AnalyticalCard(
-            title: 'Efficiency Rate',
+            title: l10n.productionOutputEfficiencyRate,
             value: '${summary.efficiency.toStringAsFixed(1)}%',
-            subtitle: summary.efficiencyRating,
+            subtitle: summary.localizedEfficiencyRating(l10n),
             trend: summary.efficiency >= 100 ? 'up' : 'down',
             color: _getEfficiencyColor(summary.efficiency),
             microChart: _buildEfficiencyChart(),
@@ -79,9 +81,12 @@ class AnalyticalCards extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _AnalyticalCard(
-            title: 'Completion Rate',
+            title: l10n.productionOutputCompletionRate,
             value: '${summary.completionRate.toStringAsFixed(1)}%',
-            subtitle: '${summary.completedOrders} of ${summary.totalOrders}',
+            subtitle: l10n.productionOutputCompletedOfTotal(
+              '${summary.completedOrders}',
+              '${summary.totalOrders}',
+            ),
             trend: summary.completionRate >= 80 ? 'up' : 'stable',
             color: _getCompletionColor(summary.completionRate),
             microChart: _buildCompletionChart(),
@@ -308,6 +313,7 @@ class _VarianceReasonCard extends StatelessWidget {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     final total = sortedReasons.fold<double>(0, (sum, e) => sum + e.value);
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: EdgeInsets.all(isCompact ? 12 : 16),
@@ -326,7 +332,7 @@ class _VarianceReasonCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Variance Reasons',
+            l10n.productionOutputVarianceReasons,
             style: TextStyle(
               fontSize: isCompact ? 12 : 14,
               color: Colors.grey[600],
@@ -339,7 +345,7 @@ class _VarianceReasonCard extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(isCompact ? 8 : 16),
                 child: Text(
-                  'No data',
+                  l10n.productionOutputNoData,
                   style: TextStyle(
                     color: Colors.grey[400],
                     fontSize: isCompact ? 12 : 14,
@@ -351,7 +357,7 @@ class _VarianceReasonCard extends StatelessWidget {
             ...sortedReasons.take(isCompact ? 3 : 4).map((entry) {
               final percentage = total > 0 ? (entry.value / total) * 100 : 0.0;
               return _VarianceReasonRow(
-                reason: _formatReasonName(entry.key),
+                reason: _formatReasonName(l10n, entry.key),
                 count: entry.value.toInt(),
                 percentage: percentage.toDouble(),
                 color: _getReasonColor(entry.key),
@@ -363,7 +369,9 @@ class _VarianceReasonCard extends StatelessWidget {
     );
   }
 
-  String _formatReasonName(String reason) {
+  String _formatReasonName(FlipperAppLocalizations l10n, String reason) {
+    final category = VarianceReasonCategory.tryParse(reason);
+    if (category != null) return category.localizedLabel(l10n);
     return reason.substring(0, 1).toUpperCase() + reason.substring(1);
   }
 

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flipper_dashboard/services/pdf_assets.dart';
 import 'package:flipper_dashboard/services/stamp_ink.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/models/hotel_quotation.dart';
 import 'package:intl/intl.dart';
@@ -55,13 +56,12 @@ class DocumentStamp {
   static DocumentStamp _withBytes(
     BranchDocumentSettings settings,
     Uint8List bytes,
-  ) =>
-      DocumentStamp(
-        bytes: bytes,
-        placement: settings.stampPlacement,
-        widthMm: settings.stampWidthMm,
-        aspectRatio: settings.stampAspectRatio,
-      );
+  ) => DocumentStamp(
+    bytes: bytes,
+    placement: settings.stampPlacement,
+    widthMm: settings.stampWidthMm,
+    aspectRatio: settings.stampAspectRatio,
+  );
 
   final Uint8List bytes;
   final DocumentStampPlacement placement;
@@ -126,8 +126,12 @@ abstract final class HotelQuotationPdf {
           ),
         ),
         build: (ctx) => [
-          _header(logoSvg: logoSvg, issuer: issuer, quotation: quotation,
-              issued: issued),
+          _header(
+            logoSvg: logoSvg,
+            issuer: issuer,
+            quotation: quotation,
+            issued: issued,
+          ),
           pw.SizedBox(height: 18),
           _guestBlock(quotation),
           pw.SizedBox(height: 14),
@@ -154,7 +158,8 @@ abstract final class HotelQuotationPdf {
           // Last widget in the list, so the stamp lands once on the final page.
           // A MultiPage footer would repeat it on every page and a header
           // would fight the logo for the same corner.
-          if (stamp != null && stamp.placement != DocumentStampPlacement.besideTotals) ...[
+          if (stamp != null &&
+              stamp.placement != DocumentStampPlacement.besideTotals) ...[
             pw.SizedBox(height: 16),
             _stampWidget(stamp),
           ],
@@ -173,7 +178,8 @@ abstract final class HotelQuotationPdf {
   }) {
     final lines = <String>[
       if ((issuer.branchName ?? '').isNotEmpty) issuer.branchName!,
-      if ((issuer.tin ?? '').isNotEmpty) 'TIN: ${issuer.tin}',
+      if ((issuer.tin ?? '').isNotEmpty)
+        '${FlipperL10n.current.tin}: ${issuer.tin}',
       if ((issuer.address ?? '').isNotEmpty) issuer.address!,
       if ((issuer.phone ?? '').isNotEmpty) issuer.phone!,
       if ((issuer.email ?? '').isNotEmpty) issuer.email!,
@@ -214,7 +220,7 @@ abstract final class HotelQuotationPdf {
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text(
-              'QUOTATION',
+              FlipperL10n.current.hotelQuotationPdfTitle,
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13),
             ),
             pw.Text(
@@ -237,7 +243,7 @@ abstract final class HotelQuotationPdf {
       if ((q.guestEmail ?? '').trim().isNotEmpty) q.guestEmail!.trim(),
     ];
     return _panel(
-      title: 'Prepared for',
+      title: FlipperL10n.current.hotelPreparedFor,
       children: [
         pw.Text(
           q.guestName,
@@ -253,17 +259,18 @@ abstract final class HotelQuotationPdf {
   }
 
   static pw.Widget _stayBlock(HotelQuotation q) {
+    final l10n = FlipperL10n.current;
     final date = DateFormat('EEE dd MMM yyyy');
     final rows = <List<String>>[
-      ['Room', _roomLabel(q)],
-      ['Arrival', date.format(q.checkInAt.toLocal())],
-      ['Departure', date.format(q.checkOutAt.toLocal())],
-      ['Nights', q.nights == 1 ? '1 night' : '${q.nights} nights'],
-      ['Guests', _guestsLabel(q)],
+      [l10n.hotelRoom, _roomLabel(q)],
+      [l10n.hotelArrival, date.format(q.checkInAt.toLocal())],
+      [l10n.hotelDeparture, date.format(q.checkOutAt.toLocal())],
+      [l10n.hotelNights, l10n.hotelNightsCount(q.nights)],
+      [l10n.hotelGuests, _guestsLabel(q)],
     ];
 
     return _panel(
-      title: 'Stay',
+      title: l10n.hotelStay,
       children: [
         pw.Table(
           columnWidths: const {
@@ -306,10 +313,10 @@ abstract final class HotelQuotationPdf {
   }
 
   static String _guestsLabel(HotelQuotation q) {
+    final l10n = FlipperL10n.current;
     final parts = <String>[
-      q.adults == 1 ? '1 adult' : '${q.adults} adults',
-      if (q.children > 0)
-        q.children == 1 ? '1 child' : '${q.children} children',
+      l10n.hotelAdultsCount(q.adults),
+      if (q.children > 0) l10n.hotelChildrenCount(q.children),
     ];
     return parts.join(', ');
   }
@@ -323,15 +330,20 @@ abstract final class HotelQuotationPdf {
     NumberFormat money, {
     DocumentStamp? stamp,
   }) {
+    final l10n = FlipperL10n.current;
     String amount(double v) => '$currency ${money.format(v)}';
 
     final rows = <List<String>>[
       [
-        'Room ${q.roomName} — ${q.nights} × ${money.format(q.nightlyRate)}',
+        l10n.hotelQuotationRoomLine(
+          q.roomName,
+          q.nights.toString(),
+          money.format(q.nightlyRate),
+        ),
         amount(q.roomTotal),
       ],
-      if (q.extrasTotal != 0) ['Extras', amount(q.extrasTotal)],
-      if (q.discount != 0) ['Discount', '- ${amount(q.discount)}'],
+      if (q.extrasTotal != 0) [l10n.hotelExtras, amount(q.extrasTotal)],
+      if (q.discount != 0) [l10n.discount, '- ${amount(q.discount)}'],
     ];
 
     return pw.Column(
@@ -349,16 +361,13 @@ abstract final class HotelQuotationPdf {
             pw.TableRow(
               decoration: const pw.BoxDecoration(color: PdfColors.grey200),
               children: [
-                _cell('Description', bold: true),
-                _cell('Amount', bold: true, alignRight: true),
+                _cell(l10n.hotelDescription, bold: true),
+                _cell(l10n.amount, bold: true, alignRight: true),
               ],
             ),
             for (final row in rows)
               pw.TableRow(
-                children: [
-                  _cell(row[0]),
-                  _cell(row[1], alignRight: true),
-                ],
+                children: [_cell(row[0]), _cell(row[1], alignRight: true)],
               ),
           ],
         ),
@@ -367,12 +376,9 @@ abstract final class HotelQuotationPdf {
           mainAxisAlignment: pw.MainAxisAlignment.end,
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
-            if (stamp != null) ...[
-              _stampImage(stamp),
-              pw.SizedBox(width: 16),
-            ],
+            if (stamp != null) ...[_stampImage(stamp), pw.SizedBox(width: 16)],
             pw.Text(
-              'Total  ',
+              '${l10n.hotelTotal}  ',
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12),
             ),
             pw.Text(
@@ -404,18 +410,20 @@ abstract final class HotelQuotationPdf {
   }
 
   static pw.Widget _validity(HotelQuotation q) {
+    final l10n = FlipperL10n.current;
     final validUntil = q.validUntil;
     if (validUntil == null) {
       return pw.Text(
-        'This quotation holds no room until it is accepted.',
+        l10n.hotelQuotationHoldsNoRoom,
         style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
       );
     }
     final expired = validUntil.isBefore(DateTime.now());
+    final day = DateFormat('dd MMM yyyy').format(validUntil.toLocal());
     return pw.Text(
       expired
-          ? 'Expired ${DateFormat('dd MMM yyyy').format(validUntil.toLocal())}'
-          : 'Valid until ${DateFormat('dd MMM yyyy').format(validUntil.toLocal())}',
+          ? l10n.hotelQuotationExpiredOn(day)
+          : l10n.hotelQuotationValidUntil(day),
       style: pw.TextStyle(
         fontSize: 10,
         fontWeight: pw.FontWeight.bold,
@@ -424,15 +432,14 @@ abstract final class HotelQuotationPdf {
     );
   }
 
-  static pw.Widget _note(String note) =>
-      _panel(title: 'Note', children: [
-        pw.Text(note, style: const pw.TextStyle(fontSize: 10)),
-      ]);
+  static pw.Widget _note(String note) => _panel(
+    title: FlipperL10n.current.hotelNote,
+    children: [pw.Text(note, style: const pw.TextStyle(fontSize: 10))],
+  );
 
   static pw.Widget _terms() {
     return pw.Text(
-      'Rates are per room per night and subject to availability. A quotation '
-      'holds no room until it is accepted and confirmed by the front desk.',
+      FlipperL10n.current.hotelQuotationTerms,
       style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
     );
   }

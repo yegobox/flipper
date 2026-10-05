@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_services/constants.dart';
@@ -17,19 +18,20 @@ Widget customTitleText(String title, {required BuildContext context}) {
   );
 }
 
-Widget heading(String heading,
-    {double horizontalPadding = 10, required BuildContext context}) {
+Widget heading(
+  String heading, {
+  double horizontalPadding = 10,
+  required BuildContext context,
+}) {
   double fontSize = 16;
   fontSize = getDimention(context, 16);
   return Padding(
     padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
     child: Text(
       heading,
-      style: Theme.of(context)
-          .typography
-          .dense
-          .bodyMedium!
-          .copyWith(fontSize: fontSize),
+      style: Theme.of(
+        context,
+      ).typography.dense.bodyMedium!.copyWith(fontSize: fontSize),
     ),
   );
 }
@@ -50,16 +52,18 @@ Widget userImage(String path, {double height = 100}) {
   );
 }
 
-Widget customBottomIcon(BuildContext context,
-    {Image? icon,
-    bool isEnable = false,
-    double size = 18,
-    bool istwitterIcon = true,
-    bool isFontAwesomeRegular = false,
-    bool isFontAwesomeSolid = false,
-    Color? iconColor,
-    double paddingIcon = 0,
-    String text = ''}) {
+Widget customBottomIcon(
+  BuildContext context, {
+  Image? icon,
+  bool isEnable = false,
+  double size = 18,
+  bool istwitterIcon = true,
+  bool isFontAwesomeRegular = false,
+  bool isFontAwesomeSolid = false,
+  Color? iconColor,
+  double paddingIcon = 0,
+  String text = '',
+}) {
   iconColor = iconColor ?? Theme.of(context).textTheme.bodyMedium!.color;
   return Padding(
     padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
@@ -68,9 +72,7 @@ Widget customBottomIcon(BuildContext context,
         Flexible(
           flex: 1,
           fit: FlexFit.loose,
-          child: Container(
-            child: icon,
-          ),
+          child: Container(child: icon),
         ),
         Flexible(
           flex: 1,
@@ -89,17 +91,16 @@ Widget customBottomIcon(BuildContext context,
   );
 }
 
-Widget customText(String? msg,
-    {required TextStyle style,
-    TextAlign textAlign = TextAlign.justify,
-    TextOverflow overflow = TextOverflow.visible,
-    required BuildContext context,
-    bool softwrap = true}) {
+Widget customText(
+  String? msg, {
+  required TextStyle style,
+  TextAlign textAlign = TextAlign.justify,
+  TextOverflow overflow = TextOverflow.visible,
+  required BuildContext context,
+  bool softwrap = true,
+}) {
   if (msg == null) {
-    return SizedBox(
-      height: 0,
-      width: 0,
-    );
+    return SizedBox(height: 0, width: 0);
   } else {
     final double? fontSize =
         style.fontSize ?? Theme.of(context).textTheme.bodySmall!.fontSize;
@@ -145,16 +146,17 @@ double fullHeight(BuildContext context) {
   return MediaQuery.of(context).size.height;
 }
 
-Widget customInkWell(
-    {required Widget child,
-    required BuildContext context,
-    Function(bool, int)? function1,
-    Function? onPressed,
-    bool isEnable = false,
-    int no = 0,
-    Color color = Colors.transparent,
-    Color? splashColor,
-    BorderRadius? radius}) {
+Widget customInkWell({
+  required Widget child,
+  required BuildContext context,
+  Function(bool, int)? function1,
+  Function? onPressed,
+  bool isEnable = false,
+  int no = 0,
+  Color color = Colors.transparent,
+  Color? splashColor,
+  BorderRadius? radius,
+}) {
   splashColor ??= Theme.of(context).primaryColorLight;
   radius ??= BorderRadius.circular(0);
   return Material(
@@ -175,9 +177,7 @@ Widget customInkWell(
 }
 
 SizedBox sizedBox({double height = 5, String? title}) {
-  return SizedBox(
-    height: title == null || title.isEmpty ? 0 : height,
-  );
+  return SizedBox(height: title == null || title.isEmpty ? 0 : height);
 }
 
 Widget customNetworkImage(String path, {BoxFit fit = BoxFit.contain}) {
@@ -186,17 +186,13 @@ Widget customNetworkImage(String path, {BoxFit fit = BoxFit.contain}) {
     imageUrl: path,
     imageBuilder: (BuildContext context, ImageProvider<Object> imageProvider) =>
         Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: imageProvider,
-          fit: fit,
+          decoration: BoxDecoration(
+            image: DecorationImage(image: imageProvider, fit: fit),
+          ),
         ),
-      ),
-    ),
     placeholderFadeInDuration: const Duration(milliseconds: 500),
-    placeholder: (BuildContext context, String url) => Container(
-      color: const Color(0xffeeeeee),
-    ),
+    placeholder: (BuildContext context, String url) =>
+        Container(color: const Color(0xffeeeeee)),
     // ignore: always_specify_types
     errorWidget: (BuildContext context, String url, error) =>
         const Icon(Icons.error),
@@ -204,36 +200,45 @@ Widget customNetworkImage(String path, {BoxFit fit = BoxFit.contain}) {
 }
 
 dynamic customAdvanceNetworkImage(String path) {
-  return CachedNetworkImageProvider(
-    path,
+  return CachedNetworkImageProvider(path);
+}
+
+void showAlert(
+  BuildContext context, {
+  required Function onPressedOk,
+  required String title,
+  String? okText,
+  String? cancelText,
+}) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return customAlert(
+        context,
+        onPressedOk: onPressedOk,
+        title: title,
+        okText: okText,
+        cancelText: cancelText,
+      );
+    },
   );
 }
 
-void showAlert(BuildContext context,
-    {required Function onPressedOk,
-    required String title,
-    String okText = 'OK',
-    String cancelText = 'Cancel'}) async {
-  showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return customAlert(context,
-            onPressedOk: onPressedOk,
-            title: title,
-            okText: okText,
-            cancelText: cancelText);
-      });
-}
-
-Widget customAlert(BuildContext context,
-    {required Function onPressedOk,
-    required String title,
-    String okText = 'OK',
-    String cancelText = 'Cancel'}) {
+Widget customAlert(
+  BuildContext context, {
+  required Function onPressedOk,
+  required String title,
+  String? okText,
+  String? cancelText,
+}) {
   return AlertDialog(
-    title: Text('Alert',
-        style: TextStyle(
-            fontSize: getDimention(context, 25), color: Colors.black54)),
+    title: Text(
+      context.flipperL10n.customAlertTitle,
+      style: TextStyle(
+        fontSize: getDimention(context, 25),
+        color: Colors.black54,
+      ),
+    ),
     content: Text(title, style: const TextStyle(color: Colors.black45)),
     actions: <Widget>[
       TextButton(
@@ -242,7 +247,7 @@ Widget customAlert(BuildContext context,
           Navigator.pop(context);
         },
         child: Text(
-          cancelText,
+          cancelText ?? context.flipperL10n.cancel,
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -252,30 +257,33 @@ Widget customAlert(BuildContext context,
           Navigator.pop(context);
           onPressedOk();
         },
-        child: Text(okText),
-      )
+        child: Text(okText ?? context.flipperL10n.ok),
+      ),
     ],
   );
 }
 
-void customSnackBar(GlobalKey<ScaffoldState> _scaffoldKey, String msg,
-    {double height = 30, Color backgroundColor = Colors.black}) {
+void customSnackBar(
+  GlobalKey<ScaffoldState> _scaffoldKey,
+  String msg, {
+  double height = 30,
+  Color backgroundColor = Colors.black,
+}) {
   if (_scaffoldKey.currentState == null) {
     return;
   }
   SnackBar(
     backgroundColor: backgroundColor,
-    content: Text(
-      msg,
-      style: const TextStyle(
-        color: Colors.white,
-      ),
-    ),
+    content: Text(msg, style: const TextStyle(color: Colors.white)),
   );
 }
 
-Widget emptyListWidget(BuildContext context, String title,
-    {required String subTitle, String image = 'emptyImage.png'}) {
+Widget emptyListWidget(
+  BuildContext context,
+  String title, {
+  required String subTitle,
+  String image = 'emptyImage.png',
+}) {
   return Container(
     color: const Color(0xfffafafa),
     child: Center(
@@ -289,15 +297,13 @@ Widget emptyListWidget(BuildContext context, String title,
               // color: Color(0xfff1f3f6),
               boxShadow: <BoxShadow>[
                 // BoxShadow(blurRadius: 50,offset: Offset(0, 0),color: Color(0xffe2e5ed),spreadRadius:20),
+                BoxShadow(offset: Offset(0, 0), color: Color(0xffe2e5ed)),
                 BoxShadow(
-                  offset: Offset(0, 0),
-                  color: Color(0xffe2e5ed),
+                  blurRadius: 50,
+                  offset: Offset(10, 0),
+                  color: Color(0xffffffff),
+                  spreadRadius: -5,
                 ),
-                BoxShadow(
-                    blurRadius: 50,
-                    offset: Offset(10, 0),
-                    color: Color(0xffffffff),
-                    spreadRadius: -5),
               ],
               shape: BoxShape.circle,
             ),
@@ -306,29 +312,23 @@ Widget emptyListWidget(BuildContext context, String title,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Image.asset('assets/images/$image', height: 170),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               customText(
                 title,
                 context: context,
-                style: Theme.of(context)
-                    .typography
-                    .dense
-                    .bodyMedium!
-                    .copyWith(color: const Color(0xff9da9c7)),
+                style: Theme.of(context).typography.dense.bodyMedium!.copyWith(
+                  color: const Color(0xff9da9c7),
+                ),
               ),
               customText(
                 subTitle,
                 context: context,
-                style: Theme.of(context)
-                    .typography
-                    .dense
-                    .bodyMedium!
-                    .copyWith(color: const Color(0xffabb8d6)),
+                style: Theme.of(context).typography.dense.bodyMedium!.copyWith(
+                  color: const Color(0xffabb8d6),
+                ),
               ),
             ],
-          )
+          ),
         ],
       ),
     ),
@@ -337,9 +337,7 @@ Widget emptyListWidget(BuildContext context, String title,
 
 Widget loader() {
   if (Platform.isIOS) {
-    return const Center(
-      child: CupertinoActivityIndicator(),
-    );
+    return const Center(child: CupertinoActivityIndicator());
   } else {
     return const Center(
       child: CircularProgressIndicator(
@@ -349,8 +347,10 @@ Widget loader() {
   }
 }
 
-Widget customSwitcherWidget(
-    {@required child, Duration duraton = const Duration(milliseconds: 500)}) {
+Widget customSwitcherWidget({
+  @required child,
+  Duration duraton = const Duration(milliseconds: 500),
+}) {
   return AnimatedSwitcher(
     duration: duraton,
     transitionBuilder: (Widget child, Animation<double> animation) {
@@ -377,9 +377,9 @@ openImagePicker(BuildContext context, Function onImageSelected) {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: <Widget>[
-            const Text(
-              'Pick an image',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              context.flipperL10n.imagePickerTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Row(
@@ -387,44 +387,46 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                 Expanded(
                   child: TextButton(
                     style: ButtonStyle(
-                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                          (Set<WidgetState> states) {
+                      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+                        Set<WidgetState> states,
+                      ) {
                         if (states.contains(WidgetState.focused))
                           return Theme.of(context).primaryColor;
-                        return Theme.of(context)
-                            .primaryColor; // Defer to the widget's default.
+                        return Theme.of(
+                          context,
+                        ).primaryColor; // Defer to the widget's default.
                       }),
                     ),
                     child: Text(
-                      'Use Camera',
+                      context.flipperL10n.imagePickerUseCamera,
                       style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                     onPressed: () {},
                   ),
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextButton(
                     style: ButtonStyle(
-                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                          (Set<WidgetState> states) {
+                      overlayColor: WidgetStateProperty.resolveWith<Color?>((
+                        Set<WidgetState> states,
+                      ) {
                         if (states.contains(WidgetState.focused))
                           return Theme.of(context).primaryColor;
-                        return Theme.of(context)
-                            .primaryColor; // Defer to the widget's default.
+                        return Theme.of(
+                          context,
+                        ).primaryColor; // Defer to the widget's default.
                       }),
                     ),
                     child: Text(
-                      'Use Gallery',
+                      context.flipperL10n.imagePickerUseGallery,
                       style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                     onPressed: () {},
                   ),
-                )
+                ),
               ],
-            )
+            ),
           ],
         ),
       );

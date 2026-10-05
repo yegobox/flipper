@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
@@ -56,7 +57,7 @@ class _ScanSectionState extends State<ScanSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Quick Scan",
+              context.flipperL10n.productEntryQuickScan,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -66,7 +67,7 @@ class _ScanSectionState extends State<ScanSection> {
               controller: widget.controller,
               focusNode: widget.focusNode,
               decoration: InputDecoration(
-                labelText: 'Scan or Type Variant Name',
+                labelText: context.flipperL10n.productEntryScanLabel,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),

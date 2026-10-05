@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -7,25 +8,24 @@ import 'package:intl/intl.dart';
 class StatusDeliveryInfo extends StatelessWidget {
   final InventoryRequest request;
 
-  const StatusDeliveryInfo({
-    Key? key,
-    required this.request,
-  }) : super(key: key);
+  const StatusDeliveryInfo({Key? key, required this.request}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final status = request.status ?? RequestStatus.pending;
-    final isApproved = status == RequestStatus.approved ||
+    final isApproved =
+        status == RequestStatus.approved ||
         status == RequestStatus.partiallyApproved ||
         status == RequestStatus.fulfilled;
     final date = request.createdAt ?? DateTime.now();
     final dateLabel = DateFormat('MMM d, yyyy HH:mm').format(date);
+    final l10n = context.flipperL10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'STATUS & DELIVERY',
+          l10n.incomingOrdersStatusDeliveryHeading,
           style: OmTokens.text(
             fontSize: 12,
             fontWeight: FontWeight.w800,
@@ -41,18 +41,16 @@ class StatusDeliveryInfo extends StatelessWidget {
               _MetaTile(
                 icon: Icons.more_horiz,
                 iconBg: isApproved ? OmTokens.greenWash : OmTokens.amberWash,
-                iconColor:
-                    isApproved ? OmTokens.greenStrong : OmTokens.amber,
-                label: 'Status',
-                value: status.toUpperCase(),
-                valueColor:
-                    isApproved ? OmTokens.greenStrong : OmTokens.amber,
+                iconColor: isApproved ? OmTokens.greenStrong : OmTokens.amber,
+                label: l10n.incomingOrdersStatus,
+                value: _statusLabel(l10n, status).toUpperCase(),
+                valueColor: isApproved ? OmTokens.greenStrong : OmTokens.amber,
               ),
               _MetaTile(
                 icon: Icons.calendar_today_outlined,
                 iconBg: OmTokens.dateWash,
                 iconColor: OmTokens.dateIcon,
-                label: 'Requested On',
+                label: l10n.incomingOrdersRequestedOn,
                 value: dateLabel,
                 valueColor: OmTokens.ink,
               ),
@@ -68,16 +66,35 @@ class StatusDeliveryInfo extends StatelessWidget {
               );
             }
             return Column(
-              children: [
-                tiles[0],
-                const SizedBox(height: 10),
-                tiles[1],
-              ],
+              children: [tiles[0], const SizedBox(height: 10), tiles[1]],
             );
           },
         ),
       ],
     );
+  }
+
+  /// Display text for a stored [RequestStatus] value; unknown values fall
+  /// back to the raw status.
+  static String _statusLabel(FlipperAppLocalizations l10n, String status) {
+    switch (status) {
+      case RequestStatus.pending:
+        return l10n.incomingOrdersStatusPending;
+      case RequestStatus.processing:
+        return l10n.incomingOrdersStatusProcessing;
+      case RequestStatus.approved:
+        return l10n.approved;
+      case RequestStatus.partiallyApproved:
+        return l10n.incomingOrdersStatusPartiallyApproved;
+      case RequestStatus.rejected:
+        return l10n.incomingOrdersStatusRejected;
+      case RequestStatus.fulfilled:
+        return l10n.incomingOrdersStatusFulfilled;
+      case RequestStatus.voided:
+        return l10n.incomingOrdersStatusVoided;
+      default:
+        return status;
+    }
   }
 }
 
@@ -134,13 +151,14 @@ class _MetaTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: OmTokens.text(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: valueColor,
-                  ).copyWith(
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+                  style:
+                      OmTokens.text(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: valueColor,
+                      ).copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                 ),
               ],
             ),
@@ -154,10 +172,7 @@ class _MetaTile extends StatelessWidget {
 class OrderNote extends StatelessWidget {
   final InventoryRequest request;
 
-  const OrderNote({
-    Key? key,
-    required this.request,
-  }) : super(key: key);
+  const OrderNote({Key? key, required this.request}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +180,7 @@ class OrderNote extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ORDER NOTE',
+          context.flipperL10n.incomingOrdersOrderNoteHeading,
           style: OmTokens.text(
             fontSize: 12,
             fontWeight: FontWeight.w800,
@@ -184,10 +199,7 @@ class OrderNote extends StatelessWidget {
           ),
           child: Text(
             request.orderNote ?? '',
-            style: OmTokens.text(
-              fontSize: 14,
-              color: OmTokens.ink2,
-            ),
+            style: OmTokens.text(fontSize: 14, color: OmTokens.ink2),
           ),
         ),
       ],

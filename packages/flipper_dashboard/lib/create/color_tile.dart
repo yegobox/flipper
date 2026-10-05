@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_services/abstractions/upload.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -22,18 +23,14 @@ class ColorTileState extends ConsumerState<ColorTile> {
     return ViewModelBuilder<UploadViewModel>.reactive(
       builder: (context, model, child) {
         return Scaffold(
-          appBar: AppBar(
-            title: Text("Colors"),
-          ),
+          appBar: AppBar(title: Text(context.flipperL10n.colorTileColors)),
           body: ListView(
             children: [
               Align(
                 alignment: Alignment.center,
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
                     GestureDetector(
                       onTap: () {},
                       child: Column(
@@ -42,41 +39,46 @@ class ColorTileState extends ConsumerState<ColorTile> {
                             width: 80,
                             height: 80,
                             child: Theme(
-                              data: Theme.of(context)
-                                  .copyWith(splashColor: Colors.transparent),
-                              child: (model.product?.imageUrl == null ||
+                              data: Theme.of(
+                                context,
+                              ).copyWith(splashColor: Colors.transparent),
+                              child:
+                                  (model.product?.imageUrl == null ||
                                       model.product!.imageUrl!.isEmpty)
                                   ? TextField(
                                       maxLines: 4,
                                       autofocus: false,
                                       style: const TextStyle(
-                                          fontSize: 22.0,
-                                          color: Color(0xFFbdc6cf)),
+                                        fontSize: 22.0,
+                                        color: Color(0xFFbdc6cf),
+                                      ),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: HexColor(model.currentColor),
                                         focusedBorder: const OutlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: Colors.white),
+                                          borderSide: BorderSide(
+                                            color: Colors.white,
+                                          ),
                                         ),
                                         enabledBorder:
                                             const UnderlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: Colors.white),
-                                        ),
+                                              borderSide: BorderSide(
+                                                color: Colors.white,
+                                              ),
+                                            ),
                                       ),
                                     )
                                   : CachedNetworkImage(
                                       imageUrl: model.product!.imageUrl!,
                                       imageBuilder: (context, imageProvider) =>
                                           Container(
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                            image: imageProvider,
-                                            fit: BoxFit.cover,
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                image: imageProvider,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
                                       placeholder: (context, url) =>
                                           const CircularProgressIndicator(),
                                       errorWidget: (context, url, error) =>
@@ -84,48 +86,49 @@ class ColorTileState extends ConsumerState<ColorTile> {
                                     ),
                             ),
                           ),
-                          Text('New Item',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.black,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w400))
+                          Text(
+                            context.flipperL10n.colorTileNewItem,
+                            style: GoogleFonts.outfit(
+                              color: Colors.black,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              const ListDivider(
-                height: 10,
-              ),
+              const ListDivider(height: 10),
               Align(
                 alignment: Alignment.topCenter,
-                child: Text('CHOOSE LABEL COLOR',
-                    style: GoogleFonts.outfit(
-                        color: Colors.black,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400)),
+                child: Text(
+                  context.flipperL10n.colorTileChooseLabelColor.toUpperCase(),
+                  style: GoogleFonts.outfit(
+                    color: Colors.black,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
-              const ListDivider(
-                height: 10,
-              ),
+              const ListDivider(height: 10),
               Align(
                 alignment: Alignment.topCenter,
                 child: Wrap(
                   children: colorsStack(context, model.colors, model),
                 ),
               ),
-              const ListDivider(
-                height: 10,
-              ),
+              const ListDivider(height: 10),
               Align(
                 alignment: Alignment.topCenter,
                 child: Text(
-                  'PHOTO LABEL',
+                  context.flipperL10n.colorTilePhotoLabel.toUpperCase(),
                   style: GoogleFonts.outfit(
-                      color: Colors.black,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400),
+                    color: Colors.black,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
               Align(
@@ -141,18 +144,19 @@ class ColorTileState extends ConsumerState<ColorTile> {
                         });
                       },
                     ),
-                    Container(
-                      width: 10,
-                    ),
+                    Container(width: 10),
                     SizedBox(
                       height: 64,
                       width: 180,
                       child: TextButton(
-                        child: Text('Take Photo',
-                            style: GoogleFonts.outfit(
-                                color: Color(0xff006AFE),
-                                fontSize: 19,
-                                fontWeight: FontWeight.w600)),
+                        child: Text(
+                          context.flipperL10n.colorTileTakePhoto,
+                          style: GoogleFonts.outfit(
+                            color: Color(0xff006AFE),
+                            fontSize: 19,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         style: ButtonStyle(
                           overlayColor: WidgetStateProperty.resolveWith<Color?>(
                             (Set<WidgetState> states) {
@@ -174,10 +178,10 @@ class ColorTileState extends ConsumerState<ColorTile> {
                           );
                         },
                       ),
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         );
@@ -191,7 +195,10 @@ class ColorTileState extends ConsumerState<ColorTile> {
   }
 
   List<Widget> colorsStack(
-      BuildContext context, List<PColor> colors, UploadViewModel model) {
+    BuildContext context,
+    List<PColor> colors,
+    UploadViewModel model,
+  ) {
     final List<Widget> stacks = [];
 
     if (colors.isNotEmpty) {
@@ -208,9 +215,7 @@ class ColorTileState extends ConsumerState<ColorTile> {
                     foregroundColor: HexColor(colors[i].name!),
                     backgroundColor: HexColor(colors[i].name!),
                     shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: HexColor(colors[i].name!),
-                      ),
+                      side: BorderSide(color: HexColor(colors[i].name!)),
                     ),
                   ),
                   child: const Text(''),
@@ -226,13 +231,12 @@ class ColorTileState extends ConsumerState<ColorTile> {
                       color: Colors.white,
                       onPressed: () {
                         model.switchColor(
-                            color: colors[i], widgetReference: ref);
+                          color: colors[i],
+                          widgetReference: ref,
+                        );
                       },
                     )
-                  : const Visibility(
-                      visible: false,
-                      child: SizedBox.shrink(),
-                    )
+                  : const Visibility(visible: false, child: SizedBox.shrink()),
             ],
           ),
         );

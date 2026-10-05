@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -61,12 +62,13 @@ class _ImportPurchaseImportViewState
   final Map<String, Stock> _stockMap = {};
   final Set<String> _fetchedStockIds = {};
 
-  static const _filterOptions = [
-    MapEntry('all', 'All'),
-    MapEntry('pending', 'Pending'),
-    MapEntry('approved', 'Approved'),
-    MapEntry('rejected', 'Rejected'),
-  ];
+  List<MapEntry<String, String>> _filterOptions(FlipperAppLocalizations l10n) =>
+      [
+        MapEntry('all', l10n.importPurchaseFilterAll),
+        MapEntry('pending', l10n.importPurchaseStatusPending),
+        MapEntry('approved', l10n.approved),
+        MapEntry('rejected', l10n.importPurchaseStatusRejected),
+      ];
 
   @override
   void initState() {
@@ -106,7 +108,10 @@ class _ImportPurchaseImportViewState
   }
 
   List<Variant> get _filtered => widget.items
-      .where((v) => ImportPurchaseHelpers.matchesImportFilter(v, widget.statusFilter))
+      .where(
+        (v) =>
+            ImportPurchaseHelpers.matchesImportFilter(v, widget.statusFilter),
+      )
       .toList();
 
   String? _catalogNameFor(Variant item) {
@@ -177,7 +182,11 @@ class _ImportPurchaseImportViewState
     await widget.onRetry(item.id);
   }
 
-  List<Widget> _rowActionButtons(Variant item, String statusKey, {double size = 36}) {
+  List<Widget> _rowActionButtons(
+    Variant item,
+    String statusKey, {
+    double size = 36,
+  }) {
     if (widget.isProcessing(item.id)) {
       return [const IpmStatusBadge(statusKey: 'processing')];
     }
@@ -186,7 +195,7 @@ class _ImportPurchaseImportViewState
     if (widget.canRetry(item.id)) {
       actions.add(
         Tooltip(
-          message: 'Retry failed job',
+          message: context.flipperL10n.importPurchaseRetryFailedJob,
           child: IpmIconActionButton(
             icon: Icons.refresh,
             retry: true,
@@ -247,13 +256,13 @@ class _ImportPurchaseImportViewState
             child: filtered.isEmpty
                 ? IpmEmptyState(
                     icon: Icons.inbox_outlined,
-                    title: 'No imported items',
+                    title: context.flipperL10n.importPurchaseNoImportedItems,
                     subtitle:
-                        'Nothing matches this status filter. Switch the filter or import a new batch.',
+                        context.flipperL10n.importPurchaseNoImportedItemsHint,
                   )
                 : isMobile
-                    ? _buildMobileCards(filtered)
-                    : _buildDesktopTable(filtered),
+                ? _buildMobileCards(filtered)
+                : _buildDesktopTable(filtered),
           ),
         ],
       ),
@@ -261,6 +270,7 @@ class _ImportPurchaseImportViewState
   }
 
   Widget _buildEditBar(List<Variant> filtered) {
+    final l10n = context.flipperL10n;
     final selectedIndex = _selectedItem == null
         ? -1
         : filtered.indexWhere((v) => v.id == _selectedItem!.id);
@@ -273,11 +283,14 @@ class _ImportPurchaseImportViewState
           if (_selectedItem == null)
             Row(
               children: [
-                const Icon(Icons.edit_outlined,
-                    size: 16, color: ImportPurchaseTokens.muted),
+                const Icon(
+                  Icons.edit_outlined,
+                  size: 16,
+                  color: ImportPurchaseTokens.muted,
+                ),
                 const SizedBox(width: 8),
                 Text(
-                  'Select a row below to edit its name, prices & variant',
+                  l10n.importPurchaseSelectRowToEdit,
                   style: ImportPurchaseHelpers.text(
                     size: 13,
                     weight: FontWeight.w600,
@@ -290,7 +303,7 @@ class _ImportPurchaseImportViewState
             Row(
               children: [
                 Text(
-                  'Editing ',
+                  '${l10n.importPurchaseEditing} ',
                   style: ImportPurchaseHelpers.text(
                     size: 13,
                     weight: FontWeight.w600,
@@ -298,7 +311,10 @@ class _ImportPurchaseImportViewState
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: ImportPurchaseTokens.accentWash,
                     borderRadius: BorderRadius.circular(6),
@@ -327,7 +343,7 @@ class _ImportPurchaseImportViewState
                 TextButton(
                   onPressed: _clearSelection,
                   child: Text(
-                    'Clear',
+                    l10n.clear,
                     style: ImportPurchaseHelpers.text(
                       size: 14,
                       weight: FontWeight.w700,
@@ -350,10 +366,10 @@ class _ImportPurchaseImportViewState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const IpmFieldLabel('Item name'),
+                        IpmFieldLabel(l10n.importPurchaseItemName),
                         IpmTextField(
                           controller: widget.nameController,
-                          hint: 'Enter a name',
+                          hint: l10n.importPurchaseEnterName,
                         ),
                       ],
                     ),
@@ -363,10 +379,10 @@ class _ImportPurchaseImportViewState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const IpmFieldLabel('Supply price'),
+                        IpmFieldLabel(l10n.importPurchaseSupplyPrice),
                         IpmTextField(
                           controller: widget.supplyPriceController,
-                          hint: 'Enter supply price',
+                          hint: l10n.importPurchaseEnterSupplyPrice,
                           numeric: true,
                         ),
                       ],
@@ -377,10 +393,10 @@ class _ImportPurchaseImportViewState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const IpmFieldLabel('Retail price'),
+                        IpmFieldLabel(l10n.importPurchaseRetailPrice),
                         IpmTextField(
                           controller: widget.retailPriceController,
-                          hint: 'Enter retail price',
+                          hint: l10n.importPurchaseEnterRetailPrice,
                           numeric: true,
                         ),
                       ],
@@ -391,7 +407,7 @@ class _ImportPurchaseImportViewState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const IpmFieldLabel('Variant'),
+                        IpmFieldLabel(l10n.importPurchaseVariant),
                         IpmVariantCombo(
                           selectedVariantId: _selectedItem == null
                               ? null
@@ -410,13 +426,13 @@ class _ImportPurchaseImportViewState
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               IpmButton(
-                label: 'Save Changes',
+                label: l10n.importPurchaseSaveChanges,
                 icon: Icons.check,
                 onPressed: widget.saveChangeMadeOnItem,
               ),
               const SizedBox(width: 12),
               IpmButton(
-                label: 'Accept All',
+                label: l10n.importPurchaseAcceptAll,
                 icon: Icons.check_circle_outline,
                 variant: IpmButtonVariant.green,
                 onPressed: () {
@@ -431,7 +447,7 @@ class _ImportPurchaseImportViewState
                 width: 200,
                 child: IpmStatusFilter(
                   value: widget.statusFilter,
-                  options: _filterOptions,
+                  options: _filterOptions(l10n),
                   onChanged: widget.onStatusFilterChanged,
                 ),
               ),
@@ -443,6 +459,7 @@ class _ImportPurchaseImportViewState
   }
 
   Widget _buildMobileBar() {
+    final l10n = context.flipperL10n;
     return Row(
       children: [
         Expanded(
@@ -451,17 +468,24 @@ class _ImportPurchaseImportViewState
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: ImportPurchaseTokens.surface,
-              borderRadius: BorderRadius.circular(ImportPurchaseTokens.radiusSm),
+              borderRadius: BorderRadius.circular(
+                ImportPurchaseTokens.radiusSm,
+              ),
               border: Border.all(color: ImportPurchaseTokens.line2),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: widget.statusFilter,
                 isExpanded: true,
-                icon: const Icon(Icons.keyboard_arrow_down,
-                    color: ImportPurchaseTokens.muted),
-                items: _filterOptions
-                    .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: ImportPurchaseTokens.muted,
+                ),
+                items: _filterOptions(l10n)
+                    .map(
+                      (e) =>
+                          DropdownMenuItem(value: e.key, child: Text(e.value)),
+                    )
                     .toList(),
                 onChanged: (v) {
                   if (v != null) widget.onStatusFilterChanged(v);
@@ -472,13 +496,14 @@ class _ImportPurchaseImportViewState
         ),
         const SizedBox(width: 10),
         IpmButton(
-          label: 'Accept All',
+          label: l10n.importPurchaseAcceptAll,
           icon: Icons.check_circle_outline,
           variant: IpmButtonVariant.green,
           compact: true,
           onPressed: () {
-            final waiting =
-                widget.items.where((v) => v.imptItemSttsCd == '2').toList();
+            final waiting = widget.items
+                .where((v) => v.imptItemSttsCd == '2')
+                .toList();
             widget.acceptAllImport(waiting);
           },
         ),
@@ -487,6 +512,7 @@ class _ImportPurchaseImportViewState
   }
 
   Widget _buildDesktopTable(List<Variant> filtered) {
+    final l10n = context.flipperL10n;
     return IpmPanel(
       child: Column(
         children: [
@@ -498,28 +524,54 @@ class _ImportPurchaseImportViewState
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(ImportPurchaseTokens.radiusLg),
               ),
-              border: Border(bottom: BorderSide(color: ImportPurchaseTokens.line)),
+              border: Border(
+                bottom: BorderSide(color: ImportPurchaseTokens.line),
+              ),
             ),
             child: Row(
               children: [
-                const SizedBox(width: 46, child: IpmColumnHeader('No.')),
-                const Expanded(flex: 14, child: IpmColumnHeader('Item Name')),
-                const SizedBox(width: 110, child: IpmColumnHeader('HS Code')),
-                const SizedBox(width: 110, child: IpmColumnHeader('Quantity')),
-                const SizedBox(
-                  width: 116,
-                  child: IpmColumnHeader('Retail', align: TextAlign.end),
+                SizedBox(
+                  width: 46,
+                  child: IpmColumnHeader(l10n.importPurchaseColNo),
                 ),
-                const SizedBox(
-                  width: 116,
-                  child: IpmColumnHeader('Supply', align: TextAlign.end),
+                Expanded(
+                  flex: 14,
+                  child: IpmColumnHeader(l10n.importPurchaseItemName),
                 ),
-                const SizedBox(width: 104, child: IpmColumnHeader('Status')),
-                const Expanded(flex: 15, child: IpmColumnHeader('Supplier')),
-                const SizedBox(width: 130, child: IpmColumnHeader('Date')),
-                const SizedBox(
+                SizedBox(
+                  width: 110,
+                  child: IpmColumnHeader(l10n.importPurchaseHsCode),
+                ),
+                SizedBox(width: 110, child: IpmColumnHeader(l10n.quantity)),
+                SizedBox(
+                  width: 116,
+                  child: IpmColumnHeader(
+                    l10n.importPurchaseColRetail,
+                    align: TextAlign.end,
+                  ),
+                ),
+                SizedBox(
+                  width: 116,
+                  child: IpmColumnHeader(
+                    l10n.importPurchaseColSupply,
+                    align: TextAlign.end,
+                  ),
+                ),
+                SizedBox(
+                  width: 104,
+                  child: IpmColumnHeader(l10n.importPurchaseColStatus),
+                ),
+                Expanded(
+                  flex: 15,
+                  child: IpmColumnHeader(l10n.importPurchaseSupplier),
+                ),
+                SizedBox(
+                  width: 130,
+                  child: IpmColumnHeader(l10n.importPurchaseDate),
+                ),
+                SizedBox(
                   width: 100,
-                  child: IpmColumnHeader('Actions', align: TextAlign.end),
+                  child: IpmColumnHeader(l10n.actions, align: TextAlign.end),
                 ),
               ],
             ),
@@ -618,7 +670,9 @@ class _ImportPurchaseImportViewState
                           SizedBox(
                             width: 116,
                             child: Text(
-                              ImportPurchaseHelpers.formatMoney(item.retailPrice),
+                              ImportPurchaseHelpers.formatMoney(
+                                item.retailPrice,
+                              ),
                               textAlign: TextAlign.end,
                               style: ImportPurchaseHelpers.text(
                                 size: 14,
@@ -630,7 +684,9 @@ class _ImportPurchaseImportViewState
                           SizedBox(
                             width: 116,
                             child: Text(
-                              ImportPurchaseHelpers.formatMoney(item.supplyPrice),
+                              ImportPurchaseHelpers.formatMoney(
+                                item.supplyPrice,
+                              ),
                               textAlign: TextAlign.end,
                               style: ImportPurchaseHelpers.text(
                                 size: 14,
@@ -698,6 +754,7 @@ class _ImportPurchaseImportViewState
   }
 
   Widget _buildMobileCards(List<Variant> filtered) {
+    final l10n = context.flipperL10n;
     return ListView.separated(
       itemCount: filtered.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -720,7 +777,9 @@ class _ImportPurchaseImportViewState
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: ImportPurchaseTokens.accent.withValues(alpha: 0.15),
+                      color: ImportPurchaseTokens.accent.withValues(
+                        alpha: 0.15,
+                      ),
                       blurRadius: 0,
                       spreadRadius: 3,
                     ),
@@ -766,8 +825,8 @@ class _ImportPurchaseImportViewState
                         ),
                         Text(
                           vtag != null
-                              ? 'Variant · $vtag'
-                              : 'No variant assigned',
+                              ? l10n.importPurchaseVariantTag(vtag)
+                              : l10n.importPurchaseNoVariantAssigned,
                           style: ImportPurchaseHelpers.text(
                             size: 12.5,
                             weight: FontWeight.w600,
@@ -791,19 +850,22 @@ class _ImportPurchaseImportViewState
                 crossAxisSpacing: 16,
                 childAspectRatio: 2.8,
                 children: [
-                  _mobileGrid('HS Code', item.hsCd?.toString() ?? ''),
-                  _mobileGrid('Quantity', _qtyLabel(item)),
                   _mobileGrid(
-                    'Supply Price',
+                    l10n.importPurchaseHsCode,
+                    item.hsCd?.toString() ?? '',
+                  ),
+                  _mobileGrid(l10n.quantity, _qtyLabel(item)),
+                  _mobileGrid(
+                    l10n.importPurchaseSupplyPrice,
                     ImportPurchaseHelpers.formatMoney(item.supplyPrice),
                   ),
                   _mobileGrid(
-                    'Retail Price',
+                    l10n.importPurchaseRetailPrice,
                     ImportPurchaseHelpers.formatMoney(item.retailPrice),
                   ),
-                  _mobileGrid('Supplier', item.spplrNm ?? ''),
+                  _mobileGrid(l10n.importPurchaseSupplier, item.spplrNm ?? ''),
                   _mobileGrid(
-                    'Date',
+                    l10n.importPurchaseDate,
                     item.lastTouched == null
                         ? ''
                         : timeago.format(
@@ -823,7 +885,7 @@ class _ImportPurchaseImportViewState
                         _showMobileEditSheet(item);
                       },
                       icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Edit'),
+                      label: Text(l10n.edit),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -882,7 +944,7 @@ class _ImportPurchaseImportViewState
           bottom: MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: IpmModalShell(
-          title: 'Edit item',
+          title: context.flipperL10n.importPurchaseEditItem,
           subtitle: item.itemNm ?? item.name,
           icon: Icons.edit_outlined,
           onClose: () => Navigator.of(context).pop(),
@@ -892,18 +954,18 @@ class _ImportPurchaseImportViewState
               children: [
                 IpmTextField(
                   controller: widget.nameController,
-                  hint: 'Enter a name',
+                  hint: context.flipperL10n.importPurchaseEnterName,
                 ),
                 const SizedBox(height: 14),
                 IpmTextField(
                   controller: widget.supplyPriceController,
-                  hint: 'Supply price',
+                  hint: context.flipperL10n.importPurchaseSupplyPrice,
                   numeric: true,
                 ),
                 const SizedBox(height: 14),
                 IpmTextField(
                   controller: widget.retailPriceController,
-                  hint: 'Retail price',
+                  hint: context.flipperL10n.importPurchaseRetailPrice,
                   numeric: true,
                 ),
                 const SizedBox(height: 14),
@@ -918,7 +980,7 @@ class _ImportPurchaseImportViewState
             children: [
               Expanded(
                 child: IpmButton(
-                  label: 'Cancel',
+                  label: context.flipperL10n.cancel,
                   variant: IpmButtonVariant.ghost,
                   block: true,
                   onPressed: () => Navigator.of(context).pop(),
@@ -927,7 +989,7 @@ class _ImportPurchaseImportViewState
               const SizedBox(width: 10),
               Expanded(
                 child: IpmButton(
-                  label: 'Save Changes',
+                  label: context.flipperL10n.importPurchaseSaveChanges,
                   icon: Icons.check,
                   block: true,
                   onPressed: () {

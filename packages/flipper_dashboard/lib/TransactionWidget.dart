@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/tickets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -12,23 +13,26 @@ class TransactionWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(
-      pendingTransactionStreamProvider(isExpense: false)
-          .select((value) => value.when(
-                data: (transaction) {
-                  // Parent (e.g. InventoryApp Row → Expanded) already provides flex
-                  // constraints; do not nest another Expanded here.
-                  return TicketsList(
-                    showAppBar: false,
-                    transaction: transaction,
-                  ).shouldViewTheApp(ref, featureName: AppFeature.Tickets);
-                },
-                error: (error, stackTrace) {
-                  return Center(child: Text('Error: $error'));
-                },
-                loading: () {
-                  return const Center(child: CircularProgressIndicator());
-                },
-              )),
+      pendingTransactionStreamProvider(isExpense: false).select(
+        (value) => value.when(
+          data: (transaction) {
+            // Parent (e.g. InventoryApp Row → Expanded) already provides flex
+            // constraints; do not nest another Expanded here.
+            return TicketsList(
+              showAppBar: false,
+              transaction: transaction,
+            ).shouldViewTheApp(ref, featureName: AppFeature.Tickets);
+          },
+          error: (error, stackTrace) {
+            return Center(
+              child: Text(context.flipperL10n.errorMessage(error.toString())),
+            );
+          },
+          loading: () {
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      ),
     );
   }
 }

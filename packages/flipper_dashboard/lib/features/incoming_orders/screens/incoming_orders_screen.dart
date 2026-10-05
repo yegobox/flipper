@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
@@ -43,8 +44,10 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final branchAsync = ref.watch(activeBranchProvider);
 
     final isIncoming = direction.value == OmDirection.incoming;
-    final requestsAsync =
-        isIncoming ? incomingRequestsAsync : outgoingRequestsAsync;
+    final requestsAsync = isIncoming
+        ? incomingRequestsAsync
+        : outgoingRequestsAsync;
+    final l10n = context.flipperL10n;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -81,10 +84,11 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                               onStatusChanged: (newStatus) {
                                 ref.read(orderStatusProvider.notifier).state =
                                     newStatus;
-                                ref.read(requestStatusProvider.notifier).state =
-                                    newStatus == OrderStatus.approved
-                                        ? RequestStatus.approved
-                                        : RequestStatus.pending;
+                                ref
+                                    .read(requestStatusProvider.notifier)
+                                    .state = newStatus == OrderStatus.approved
+                                    ? RequestStatus.approved
+                                    : RequestStatus.pending;
                               },
                             ),
                             SizedBox(height: compact ? 16 : 22),
@@ -92,15 +96,15 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                               value: direction.value,
                               large: true,
                               onChanged: (v) => direction.value = v,
-                              options: const [
+                              options: [
                                 OmSegOption(
                                   value: OmDirection.incoming,
-                                  label: 'Incoming',
+                                  label: l10n.incomingOrdersIncoming,
                                   icon: Icons.move_to_inbox_outlined,
                                 ),
                                 OmSegOption(
                                   value: OmDirection.outgoing,
-                                  label: 'Outgoing',
+                                  label: l10n.incomingOrdersOutgoing,
                                   icon: Icons.outbox_outlined,
                                 ),
                               ],
@@ -110,6 +114,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                       ),
                       Expanded(
                         child: _buildBody(
+                          l10n: l10n,
                           ref: ref,
                           requestsAsync: requestsAsync,
                           branchAsync: branchAsync,
@@ -139,6 +144,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
   }
 
   Widget _buildBody({
+    required FlipperAppLocalizations l10n,
     required WidgetRef ref,
     required AsyncValue<List<InventoryRequest>> requestsAsync,
     required AsyncValue<Branch?> branchAsync,
@@ -155,41 +161,47 @@ class IncomingOrdersScreen extends HookConsumerWidget {
           data: (currentBranch) {
             if (currentBranch == null) {
               return _OmErrorState(
-                title: 'Branch not found',
-                message: 'Could not load active branch',
+                title: l10n.incomingOrdersBranchNotFound,
+                message: l10n.incomingOrdersBranchLoadFailed,
                 onRetry: () => ref.refresh(activeBranchProvider),
               );
             }
 
             final isPending = status == RequestStatus.pending;
-            final sectionTitle =
-                isIncoming ? 'Received Orders' : 'Sent Orders';
+            final sectionTitle = isIncoming
+                ? l10n.incomingOrdersReceivedOrders
+                : l10n.incomingOrdersSentOrders;
 
-            final listPadding =
-                EdgeInsets.fromLTRB(hPad, compact ? 16 : 22, hPad, 80);
+            final listPadding = EdgeInsets.fromLTRB(
+              hPad,
+              compact ? 16 : 22,
+              hPad,
+              80,
+            );
 
             Widget header() => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (isPending) ...[
-                      _OmStatCard(count: requests.length),
-                      SizedBox(height: compact ? 16 : 22),
-                    ],
-                    Text(
-                      sectionTitle,
-                      style: OmTokens.text(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.01 * 15,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                );
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isPending) ...[
+                  _OmStatCard(count: requests.length),
+                  SizedBox(height: compact ? 16 : 22),
+                ],
+                Text(
+                  sectionTitle,
+                  style: OmTokens.text(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.01 * 15,
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
 
             return NotificationListener<ScrollNotification>(
               onNotification: (scrollInfo) {
-                final atEnd = scrollInfo.metrics.pixels >=
+                final atEnd =
+                    scrollInfo.metrics.pixels >=
                     scrollInfo.metrics.maxScrollExtent - 40;
                 if (atEnd) {
                   if (!loadMoreGate.value) {
@@ -251,7 +263,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => _OmErrorState(
-            title: 'Error loading branch',
+            title: l10n.incomingOrdersErrorLoadingBranch,
             message: err.toString(),
             onRetry: () => ref.refresh(activeBranchProvider),
           ),
@@ -259,7 +271,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => _OmErrorState(
-        title: 'Error loading requests',
+        title: l10n.incomingOrdersErrorLoadingRequests,
         message: err.toString(),
         onRetry: () {
           ref.refresh(
@@ -288,8 +300,9 @@ class _OmHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final title = Text(
-      'Orders Management',
+      l10n.incomingOrdersTitle,
       style: OmTokens.text(
         fontSize: compact ? 22 : 28,
         fontWeight: FontWeight.w800,
@@ -297,7 +310,7 @@ class _OmHeader extends StatelessWidget {
       ),
     );
     final subtitle = Text(
-      'Track and manage incoming and outgoing orders',
+      l10n.incomingOrdersSubtitle,
       style: OmTokens.text(
         fontSize: 14.5,
         fontWeight: FontWeight.w400,
@@ -307,15 +320,15 @@ class _OmHeader extends StatelessWidget {
     final statusSeg = OmSegmented<OrderStatus>(
       value: orderStatus,
       onChanged: onStatusChanged,
-      options: const [
+      options: [
         OmSegOption(
           value: OrderStatus.pending,
-          label: 'Pending',
+          label: l10n.incomingOrdersStatusPending,
           icon: Icons.check_circle_outline,
         ),
         OmSegOption(
           value: OrderStatus.approved,
-          label: 'Approved',
+          label: l10n.approved,
           icon: Icons.check_circle_outline,
         ),
       ],
@@ -342,11 +355,7 @@ class _OmHeader extends StatelessWidget {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              title,
-              const SizedBox(height: 6),
-              subtitle,
-            ],
+            children: [title, const SizedBox(height: 6), subtitle],
           ),
         ),
         const SizedBox(width: 24),
@@ -400,7 +409,7 @@ class _OmStatCard extends StatelessWidget {
               ),
               const SizedBox(height: 3),
               Text(
-                'Pending Requests',
+                context.flipperL10n.incomingOrdersPendingRequests,
                 style: OmTokens.text(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -448,20 +457,14 @@ class _OmEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No $status requests',
-            style: OmTokens.text(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-            ),
+            context.flipperL10n.incomingOrdersNoRequests(status),
+            style: OmTokens.text(fontSize: 16, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
           Text(
-            'Nothing to show here right now.',
+            context.flipperL10n.incomingOrdersNothingToShow,
             textAlign: TextAlign.center,
-            style: OmTokens.text(
-              fontSize: 14,
-              color: OmTokens.muted,
-            ),
+            style: OmTokens.text(fontSize: 14, color: OmTokens.muted),
           ),
         ],
       ),
@@ -503,10 +506,7 @@ class _OmErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: OmTokens.text(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: OmTokens.text(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
@@ -522,7 +522,7 @@ class _OmErrorState extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Try Again'),
+              label: Text(context.flipperL10n.incomingOrdersTryAgain),
               style: TextButton.styleFrom(
                 foregroundColor: OmTokens.accentStrong,
               ),

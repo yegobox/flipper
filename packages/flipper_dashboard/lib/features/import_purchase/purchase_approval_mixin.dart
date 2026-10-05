@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/import_purchase/assign_variant_modal.dart';
 import 'package:flipper_dashboard/features/import_purchase/ipm_purchase_line_defaults.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,6 +21,9 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
 
   /// Shows feedback to the user (toast / snackbar).
   void notifyPurchase(String message, {bool success = true});
+
+  /// Messages are raised across async gaps, so they don't read [context].
+  FlipperAppLocalizations get _l10n => FlipperL10n.current;
 
   /// Lines of [purchase] that still need matching before it can be accepted.
   int unmappedLineCount(model.Purchase purchase) {
@@ -41,19 +45,16 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
   ) async {
     final name = result.name.trim();
     if (name.isEmpty) {
-      notifyPurchase('Name is required', success: false);
+      notifyPurchase(_l10n.importPurchaseNameRequired, success: false);
       return const IpmPurchaseMappingSaveResult(success: false);
     }
     if (result.supplyPrice <= 0 || result.retailPrice <= 0) {
-      notifyPurchase(
-        'Please set both retail and supply prices',
-        success: false,
-      );
+      notifyPurchase(_l10n.importPurchaseSetBothPrices, success: false);
       return const IpmPurchaseMappingSaveResult(success: false);
     }
     if (result.mode == IpmPurchaseMappingMode.mapExisting &&
         result.catalogVariant == null) {
-      notifyPurchase('Select an existing variant', success: false);
+      notifyPurchase(_l10n.importPurchaseSelectExistingVariant, success: false);
       return const IpmPurchaseMappingSaveResult(success: false);
     }
 
@@ -73,7 +74,7 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
       setState(() {
         itemMapper.putIfAbsent(result.catalogVariant!.id, () => []).add(line);
       });
-      notifyPurchase('Mapped to existing variant');
+      notifyPurchase(_l10n.importPurchaseMappedToExisting);
       return const IpmPurchaseMappingSaveResult(success: true);
     }
 
@@ -101,8 +102,8 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
       final itemCd = catalogVariant.itemCd;
       notifyPurchase(
         itemCd != null && itemCd.isNotEmpty
-            ? 'Created variant · $itemCd'
-            : 'Created variant',
+            ? _l10n.importPurchaseCreatedVariantWithCode(itemCd)
+            : _l10n.importPurchaseCreatedVariant,
       );
       return IpmPurchaseMappingSaveResult(
         success: true,
@@ -110,7 +111,10 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
         closeModal: false,
       );
     } catch (e) {
-      notifyPurchase('Could not create variant: $e', success: false);
+      notifyPurchase(
+        _l10n.importPurchaseCouldNotCreateVariant('$e'),
+        success: false,
+      );
       return const IpmPurchaseMappingSaveResult(success: false);
     }
   }
@@ -124,7 +128,10 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
     if (accept) {
       final unmapped = unmappedLineCount(purchase);
       if (unmapped > 0) {
-        notifyPurchase('$unmapped line(s) still need mapping', success: false);
+        notifyPurchase(
+          _l10n.importPurchaseLinesNeedMapping(unmapped),
+          success: false,
+        );
         return false;
       }
     }
@@ -138,11 +145,17 @@ mixin PurchaseApprovalMixin<T extends ConsumerStatefulWidget>
         await notifier.rejectPurchase(purchase: purchase);
       }
       itemMapper.clear();
-      notifyPurchase(accept ? 'Purchase accepted' : 'Purchase declined');
+      notifyPurchase(
+        accept
+            ? _l10n.importPurchasePurchaseAccepted
+            : _l10n.importPurchasePurchaseDeclined,
+      );
       return true;
     } catch (e) {
       notifyPurchase(
-        'Could not ${accept ? 'accept' : 'decline'} purchase: $e',
+        accept
+            ? _l10n.importPurchaseCouldNotAccept('$e')
+            : _l10n.importPurchaseCouldNotDecline('$e'),
         success: false,
       );
       return false;

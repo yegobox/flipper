@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/cashbook_form_rules.dart';
 import 'package:flipper_dashboard/widgets/cashbook_svgs.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_svgs.dart';
@@ -37,10 +38,10 @@ enum CashbookListFilter { all, cashIn, cashOut, sales, momo }
 
 extension on CashbookListFilter {
   String get label => switch (this) {
-    CashbookListFilter.all => 'All',
-    CashbookListFilter.cashIn => 'Cash in',
-    CashbookListFilter.cashOut => 'Cash out',
-    CashbookListFilter.sales => 'Sales',
+    CashbookListFilter.all => FlipperL10n.current.cashbookFilterAll,
+    CashbookListFilter.cashIn => FlipperL10n.current.cashbookCashIn,
+    CashbookListFilter.cashOut => FlipperL10n.current.cashbookCashOut,
+    CashbookListFilter.sales => FlipperL10n.current.sales,
     CashbookListFilter.momo => 'MoMo',
   };
 
@@ -135,11 +136,13 @@ class CashbookListView extends StatelessWidget {
           hasScrollBody: false,
           child: _EmptyState(
             message: entries.isEmpty
-                ? 'No cash movements yet'
-                : 'No ${filter.label.toLowerCase()} entries',
+                ? FlipperL10n.current.cashbookListNoMovements
+                : FlipperL10n.current.cashbookListNoFilterEntries(
+                    filter.label.toLowerCase(),
+                  ),
             hint: entries.isEmpty
-                ? 'Record money coming in or going out with the buttons below.'
-                : 'Nothing matches this filter for $periodLabel.',
+                ? FlipperL10n.current.cashbookListEmptyHint
+                : FlipperL10n.current.cashbookListNothingMatches(periodLabel),
           ),
         )
       else
@@ -243,8 +246,8 @@ class _SummaryCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'View all',
+                      Text(
+                        FlipperL10n.current.cashbookViewAll,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -289,7 +292,7 @@ class _SummaryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _FlowTile(
-                  label: 'Money in',
+                  label: FlipperL10n.current.cashbookMoneyInLabel,
                   amount: totals.moneyIn,
                   currency: currency,
                   glyph: CashbookSvgs.arrowDownLeft(strokeWidth: 2),
@@ -299,7 +302,7 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _FlowTile(
-                  label: 'Money out',
+                  label: FlipperL10n.current.cashbookMoneyOutLabel,
                   amount: totals.moneyOut,
                   currency: currency,
                   glyph: CashbookSvgs.arrowUpRight(strokeWidth: 2),
@@ -788,7 +791,7 @@ class CashbookActionBar extends StatelessWidget {
           children: [
             Expanded(
               child: _ActionButton(
-                label: 'Cash in',
+                label: FlipperL10n.current.cashbookCashIn,
                 glyph: CashbookSvgs.arrowDownLeft(strokeWidth: 2.2),
                 color: _T.gain,
                 onPressed: onCashIn,
@@ -797,7 +800,7 @@ class CashbookActionBar extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _ActionButton(
-                label: 'Cash out',
+                label: FlipperL10n.current.cashbookCashOut,
                 glyph: CashbookSvgs.arrowUpRight(strokeWidth: 2.2),
                 color: _T.loss,
                 onPressed: onCashOut,

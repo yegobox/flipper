@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_localize/flipper_localize.dart';
 
 import 'package:flipper_dashboard/transaction_item_adder.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -22,20 +23,23 @@ class CheckoutScannerActions extends ScannerActions {
     if (barcode.rawValue == null) {
       showCustomSnackBarUtil(
         context,
-        'No barcode value detected.',
+        context.flipperL10n.scannerNoBarcodeValue,
         backgroundColor: Colors.red,
       );
       return;
     }
 
-    showCustomSnackBarUtil(context, 'Processing barcode: ${barcode.rawValue}');
+    showCustomSnackBarUtil(
+      context,
+      context.flipperL10n.scannerProcessingBarcode(barcode.rawValue!),
+    );
 
     try {
       Variant? variant = await ProxyService.strategy.getVariant(
         bcd: barcode.rawValue!,
       );
 
-        if (variant != null) {
+      if (variant != null) {
         final itemAdder = TransactionItemAdder(context, ref);
         await itemAdder.addItemToTransaction(
           variant: variant,
@@ -45,14 +49,16 @@ class CheckoutScannerActions extends ScannerActions {
       } else {
         showCustomSnackBarUtil(
           context,
-          'Product not found for barcode: ${barcode.rawValue}',
+          context.flipperL10n.scannerProductNotFoundForBarcode(
+            barcode.rawValue!,
+          ),
           backgroundColor: Colors.red,
         );
       }
     } catch (e) {
       showCustomSnackBarUtil(
         context,
-        'Error adding product: ${e.toString()}',
+        context.flipperL10n.scannerErrorAddingProduct(e.toString()),
         backgroundColor: Colors.red,
       );
     } finally {

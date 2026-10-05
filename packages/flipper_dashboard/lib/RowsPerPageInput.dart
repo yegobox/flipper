@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -37,7 +38,7 @@ class _RowsPerPageInputState extends ConsumerState<RowsPerPageInput> {
         controller: _controller,
         keyboardType: TextInputType.number,
         decoration: InputDecoration(
-          labelText: 'Rows Per Page',
+          labelText: context.flipperL10n.rowsPerPage,
           labelStyle: TextStyle(color: Colors.grey[700], fontSize: 14),
           filled: true,
           fillColor: Colors.grey[200],
@@ -67,10 +68,10 @@ class _RowsPerPageInputState extends ConsumerState<RowsPerPageInput> {
         style: TextStyle(fontSize: 16.0, color: Colors.black87),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Please enter a number';
+            return context.flipperL10n.pleaseEnterANumber;
           }
           if (int.tryParse(value) == null) {
-            return 'Please enter a valid number';
+            return context.flipperL10n.pleaseEnterValidNumber;
           }
           return null;
         },

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -88,7 +89,7 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
-                    hintText: 'Scan or type variant name…',
+                    hintText: context.flipperL10n.productEditorScanHint,
                     hintStyle: GoogleFonts.outfit(
                       fontSize: 15.5,
                       fontWeight: FontWeight.w500,
@@ -104,7 +105,7 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
                 // attach while an ancestor LayoutBuilder is laying out.
                 Semantics(
                   button: true,
-                  label: 'Scan with camera',
+                  label: context.flipperL10n.productEditorScanWithCamera,
                   child: IconButton(
                     onPressed: widget.onRequestCamera,
                     icon: const Icon(
@@ -139,7 +140,7 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
                         const Icon(Icons.add, size: 16, color: Colors.white),
                         const SizedBox(width: 7),
                         Text(
-                          'Add variant',
+                          context.flipperL10n.productEditorAddVariant,
                           style: GoogleFonts.outfit(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -164,7 +165,7 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
             ),
             const SizedBox(width: 6),
             Text(
-              'Press ',
+              '${context.flipperL10n.productEditorScanTipPress} ',
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 color: ProductEditorTokens.ink3,
@@ -184,7 +185,7 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
                 ),
               ),
               child: Text(
-                'Enter',
+                context.flipperL10n.productEditorScanTipEnterKey,
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 11,
                   color: ProductEditorTokens.ink2,
@@ -192,7 +193,7 @@ class _ProductEditorScanSectionState extends State<ProductEditorScanSection> {
               ),
             ),
             Text(
-              ' or tap Add variant',
+              ' ${context.flipperL10n.productEditorScanTipOrTapAdd}',
               style: GoogleFonts.outfit(
                 fontSize: 12,
                 color: ProductEditorTokens.ink3,

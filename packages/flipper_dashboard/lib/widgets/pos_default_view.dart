@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/payable_view.dart';
@@ -71,7 +72,7 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
     if (!hasCustomerId && !hasCustomerName && !hasCustomerPhone) {
       showErrorNotification(
         context,
-        'Save a customer name or phone number on this ticket before sending it to the till.',
+        context.flipperL10n.posSendToTillNeedsCustomer,
       );
       return;
     }
@@ -112,12 +113,18 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
       ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
 
       if (mounted) {
-        showSuccessNotification(context, 'Sent to till — Ticket #$displayRef');
+        showSuccessNotification(
+          context,
+          context.flipperL10n.sentToTillTicket(displayRef),
+        );
       }
     } catch (e, st) {
       tv_talk.talker.error('Desktop send to till failed: $e', st);
       if (mounted) {
-        showErrorNotification(context, 'Failed to send to till: $e');
+        showErrorNotification(
+          context,
+          context.flipperL10n.failedToSendToTill(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _sendToTillBusy = false);
@@ -199,7 +206,9 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+      error: (error, stack) => Center(
+        child: Text(context.flipperL10n.errorMessage(error.toString())),
+      ),
     );
   }
 
@@ -224,7 +233,7 @@ class _PosDefaultViewState extends ConsumerState<PosDefaultView> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Preparing checkout...',
+                context.flipperL10n.posPreparingCheckout,
                 style: PosTokens.body.copyWith(color: PosTokens.ink3),
               ),
             ],

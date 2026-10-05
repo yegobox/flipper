@@ -2,6 +2,7 @@
 // For new code, please use the modular structure in the 'export' directory
 
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
@@ -52,50 +53,65 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     String? filePath;
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
-      final business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       if (ProxyService.box.exportAsPdf()) {
-        final PdfDocument document =
-            workBookKey.currentState!.exportToPdfDocument(
-          fitAllColumnsInOnePage: true,
-          autoColumnWidth: true,
-          canRepeatHeaders: false,
-          exportStackedHeaders: false,
-          exportTableSummaries: true,
-          headerFooterExport: (headerFooterExport) {
-            PdfUtils.exportToPdf(headerFooterExport, business!, config,
-                headerTitle: headerTitle);
-            PdfUtils.addFooter(headerFooterExport, config: config);
-          },
-        );
+        final PdfDocument document = workBookKey.currentState!
+            .exportToPdfDocument(
+              fitAllColumnsInOnePage: true,
+              autoColumnWidth: true,
+              canRepeatHeaders: false,
+              exportStackedHeaders: false,
+              exportTableSummaries: true,
+              headerFooterExport: (headerFooterExport) {
+                PdfUtils.exportToPdf(
+                  headerFooterExport,
+                  business!,
+                  config,
+                  headerTitle: headerTitle,
+                );
+                PdfUtils.addFooter(headerFooterExport, config: config);
+              },
+            );
 
         filePath = await FileUtils.savePdfFile(document);
         document.dispose();
       } else {
-        final excel.Workbook workbook =
-            workBookKey.currentState!.exportToExcelWorkbook();
+        final excel.Workbook workbook = workBookKey.currentState!
+            .exportToExcelWorkbook();
         final excel.Worksheet reportSheet = workbook.worksheets[0];
-        reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
+        reportSheet.name = isStockRecount
+            ? FlipperL10n.current.exportDataSheetStockRecount
+            : FlipperL10n.current.exportDataSheetReport;
 
         if (!isStockRecount) {
           final styler = new_styler.ExcelStyler(workbook);
 
           await ExcelUtils.addHeaderAndInfoRows(
-              reportSheet: reportSheet,
-              styler: styler,
-              config: config,
-              business: business!,
-              headerTitle: headerTitle);
+            reportSheet: reportSheet,
+            styler: styler,
+            config: config,
+            business: business!,
+            headerTitle: headerTitle,
+          );
 
           ExcelUtils.addClosingBalanceRow(
-              reportSheet, styler, config.currencyFormat,
-              bottomEndOfRowTitle: bottomEndOfRowTitle);
+            reportSheet,
+            styler,
+            config.currencyFormat,
+            bottomEndOfRowTitle: bottomEndOfRowTitle,
+          );
           ExcelUtils.formatColumns(reportSheet);
 
           if (expenses != null && expenses.isNotEmpty) {
             ExcelUtils.addExpensesSheet(
-                workbook, expenses, styler, config.currencyFormat);
+              workbook,
+              expenses,
+              styler,
+              config.currencyFormat,
+            );
           }
           await ExcelUtils.addPaymentMethodSheet(workbook, config, styler);
         }

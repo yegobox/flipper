@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/branch_sms_config.model.dart';
 import '../services/admin_settings_service.dart';
@@ -113,8 +114,7 @@ class AdminController extends ChangeNotifier {
   }) async {
     if (phone != null && phone.isNotEmpty) {
       if (!AdminSettingsService.isValidPhoneNumber(phone)) {
-        _phoneError =
-            'Please enter a valid phone number with country code (e.g., +250783054874)';
+        _phoneError = FlipperL10n.current.adminInvalidSmsPhone;
         notifyListeners();
         return;
       }
@@ -136,7 +136,7 @@ class AdminController extends ChangeNotifier {
       _phoneError = null;
       notifyListeners();
     } catch (e) {
-      _phoneError = 'Failed to update SMS configuration';
+      _phoneError = FlipperL10n.current.adminSmsConfigUpdateFailed;
       notifyListeners();
     }
   }

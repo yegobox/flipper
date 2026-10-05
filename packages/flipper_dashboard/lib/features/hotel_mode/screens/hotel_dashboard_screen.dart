@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_layout_breakpo
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_kpi_card.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_dashboard_metrics.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -12,6 +13,15 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
 final _money = NumberFormat('#,###');
+
+/// Localized "2 nights · 1 adult" line ([hotelStaySummary] stays English).
+String _staySummary(FlipperAppLocalizations l10n, HotelStay stay) {
+  final kids = stay.children > 0
+      ? ' · ${l10n.hotelChildrenCount(stay.children)}'
+      : '';
+  return '${l10n.hotelNightsCount(stay.nights)} · '
+      '${l10n.hotelAdultsCount(stay.adults)}$kids';
+}
 
 /// Everything a hotel manager needs at a glance: how full the property is,
 /// who is arriving and leaving today, and what money is still uncollected.
@@ -24,6 +34,7 @@ class HotelDashboardScreen extends ConsumerWidget {
     final arrivals = ref.watch(hotelArrivalsTodayProvider);
     final departures = ref.watch(hotelDeparturesTodayProvider);
     final overdue = ref.watch(hotelOverdueStaysProvider);
+    final l10n = context.flipperL10n;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -39,14 +50,14 @@ class HotelDashboardScreen extends ConsumerWidget {
           color: HotelTokens.posBg,
           child: Column(
             children: [
-              _header(ref, metrics, compact),
+              _header(l10n, ref, metrics, compact),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.fromLTRB(pad, pad, pad, pad + 12),
                   children: [
-                    _occupancyBand(metrics, compact),
+                    _occupancyBand(l10n, metrics, compact),
                     const SizedBox(height: 18),
-                    _kpiGrid(metrics, columns, compact),
+                    _kpiGrid(l10n, metrics, columns, compact),
                     const SizedBox(height: 22),
                     if (overdue.isNotEmpty) ...[
                       _overdueBanner(context, ref, overdue),
@@ -63,7 +74,12 @@ class HotelDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _header(WidgetRef ref, HotelDeskMetrics metrics, bool compact) {
+  Widget _header(
+    FlipperAppLocalizations l10n,
+    WidgetRef ref,
+    HotelDeskMetrics metrics,
+    bool compact,
+  ) {
     final clerk = ref.watch(hotelModeProvider).activeClerk;
 
     return Container(
@@ -95,8 +111,10 @@ class HotelDashboardScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           Text(
             clerk == null
-                ? 'Today at the property'
-                : 'Good day, ${clerk.name ?? 'there'}',
+                ? l10n.hotelTodayAtProperty
+                : (clerk.name ?? '').trim().isEmpty
+                ? l10n.hotelGoodDay
+                : l10n.hotelGoodDayName(clerk.name!),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
@@ -107,9 +125,11 @@ class HotelDashboardScreen extends ConsumerWidget {
             ),
           ),
           Text(
-            '${metrics.occupied} of ${metrics.sellableRooms} sellable rooms '
-            'occupied · ${metrics.inHouseGuests} guest'
-            '${metrics.inHouseGuests == 1 ? '' : 's'} in house',
+            l10n.hotelOccupancySummary(
+              metrics.occupied,
+              metrics.sellableRooms,
+              metrics.inHouseGuests,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
@@ -123,7 +143,11 @@ class HotelDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _occupancyBand(HotelDeskMetrics metrics, bool compact) {
+  Widget _occupancyBand(
+    FlipperAppLocalizations l10n,
+    HotelDeskMetrics metrics,
+    bool compact,
+  ) {
     final pct = (metrics.occupancyRate * 100).round();
 
     return Container(
@@ -154,7 +178,7 @@ class HotelDashboardScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 5),
                 child: Text(
-                  'occupancy',
+                  l10n.hotelOccupancy,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -175,12 +199,32 @@ class HotelDashboardScreen extends ConsumerWidget {
             spacing: 16,
             runSpacing: 6,
             children: [
-              _legend('Occupied', metrics.occupied, HotelTokens.occupiedInk),
-              _legend('Reserved', metrics.reserved, HotelTokens.reservedInk),
-              _legend('Vacant', metrics.vacant, HotelTokens.vacantInk),
-              _legend('Cleaning', metrics.cleaning, HotelTokens.dirtyInk),
+              _legend(
+                l10n.hotelStateOccupied,
+                metrics.occupied,
+                HotelTokens.occupiedInk,
+              ),
+              _legend(
+                l10n.hotelStateReserved,
+                metrics.reserved,
+                HotelTokens.reservedInk,
+              ),
+              _legend(
+                l10n.hotelStateVacant,
+                metrics.vacant,
+                HotelTokens.vacantInk,
+              ),
+              _legend(
+                l10n.hotelStateCleaning,
+                metrics.cleaning,
+                HotelTokens.dirtyInk,
+              ),
               if (metrics.blocked > 0)
-                _legend('Blocked', metrics.blocked, HotelTokens.blockedInk),
+                _legend(
+                  l10n.hotelLegendBlocked,
+                  metrics.blocked,
+                  HotelTokens.blockedInk,
+                ),
             ],
           ),
           if (compact) ...[
@@ -214,7 +258,10 @@ class HotelDashboardScreen extends ConsumerWidget {
 
     Widget seg(int count, Color color) => count == 0
         ? const SizedBox.shrink()
-        : Expanded(flex: count, child: ColoredBox(color: color));
+        : Expanded(
+            flex: count,
+            child: ColoredBox(color: color),
+          );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
@@ -284,58 +331,64 @@ class HotelDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _kpiGrid(HotelDeskMetrics metrics, int columns, bool compact) {
+  Widget _kpiGrid(
+    FlipperAppLocalizations l10n,
+    HotelDeskMetrics metrics,
+    int columns,
+    bool compact,
+  ) {
     final cards = <Widget>[
       HotelKpiCard(
-        label: 'Arrivals today',
+        label: l10n.hotelArrivalsToday,
         value: '${metrics.arrivalsToday}',
-        caption: '${metrics.arrivalsNextSevenDays} in the next 7 days',
+        caption: l10n.hotelInNextSevenDays(metrics.arrivalsNextSevenDays),
         icon: Icons.login,
         ink: HotelTokens.reservedInk,
         tint: HotelTokens.reservedTint,
       ),
       HotelKpiCard(
-        label: 'Departures today',
+        label: l10n.hotelDeparturesToday,
         value: '${metrics.departuresToday}',
         caption: metrics.dueOut > 0
-            ? '${metrics.dueOut} overdue'
-            : 'none overdue',
+            ? l10n.hotelOverdueCount(metrics.dueOut)
+            : l10n.hotelNoneOverdue,
         emphasiseCaption: metrics.dueOut > 0,
         icon: Icons.logout,
         ink: HotelTokens.dirtyInk,
         tint: HotelTokens.dirtyTint,
       ),
       HotelKpiCard(
-        label: 'Available rooms',
+        label: l10n.hotelAvailableRooms,
         value: '${metrics.vacant}',
-        caption: '${metrics.cleaning} awaiting cleaning',
+        caption: l10n.hotelAwaitingCleaningCount(metrics.cleaning),
         icon: Icons.meeting_room_outlined,
         ink: HotelTokens.vacantInk,
         tint: HotelTokens.vacantTint,
       ),
       HotelKpiCard(
-        label: 'Pending payments',
+        label: l10n.hotelPendingPayments,
         value: 'RWF ${_money.format(metrics.openFolioValue.round())}',
-        caption: '${metrics.openFolioCount} open folio'
-            '${metrics.openFolioCount == 1 ? '' : 's'}',
+        caption: l10n.hotelOpenFoliosCount(metrics.openFolioCount),
         icon: Icons.account_balance_wallet_outlined,
         ink: HotelTokens.occupiedInk,
         tint: HotelTokens.occupiedTint,
         dense: true,
       ),
       HotelKpiCard(
-        label: 'Room revenue tonight',
+        label: l10n.hotelRoomRevenueTonight,
         value: 'RWF ${_money.format(metrics.roomRevenueToday.round())}',
-        caption: 'contracted for in-house stays',
+        caption: l10n.hotelContractedInHouse,
         icon: Icons.trending_up,
         ink: HotelTokens.vacantInk,
         tint: HotelTokens.vacantTint,
         dense: true,
       ),
       HotelKpiCard(
-        label: 'Open quotations',
+        label: l10n.hotelOpenQuotations,
         value: '${metrics.liveQuotes}',
-        caption: 'RWF ${_money.format(metrics.liveQuoteValue.round())} quoted',
+        caption: l10n.hotelAmountQuoted(
+          'RWF ${_money.format(metrics.liveQuoteValue.round())}',
+        ),
         icon: Icons.request_quote_outlined,
         ink: HotelTokens.blockedInk,
         tint: HotelTokens.blockedTint,
@@ -360,6 +413,7 @@ class HotelDashboardScreen extends ConsumerWidget {
     WidgetRef ref,
     List<HotelStay> overdue,
   ) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -369,17 +423,15 @@ class HotelDashboardScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.schedule,
-            size: 20,
-            color: HotelTokens.dirtyInk,
-          ),
+          const Icon(Icons.schedule, size: 20, color: HotelTokens.dirtyInk),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${overdue.length} stay${overdue.length == 1 ? '' : 's'} past '
-              'departure — ${overdue.map((s) => 'Room ${s.roomName}').take(4).join(', ')}'
-              '${overdue.length > 4 ? '…' : ''}',
+              l10n.hotelStaysPastDeparture(
+                overdue.length,
+                '${overdue.map((s) => l10n.hotelRoomNamed(s.roomName)).take(4).join(', ')}'
+                '${overdue.length > 4 ? '…' : ''}',
+              ),
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 height: 1.35,
@@ -389,10 +441,11 @@ class HotelDashboardScreen extends ConsumerWidget {
             ),
           ),
           TextButton(
-            onPressed: () =>
-                ref.read(hotelModeProvider.notifier).setScreen(HotelScreen.rooms),
+            onPressed: () => ref
+                .read(hotelModeProvider.notifier)
+                .setScreen(HotelScreen.rooms),
             child: Text(
-              'Open board',
+              l10n.hotelOpenBoard,
               style: GoogleFonts.outfit(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
@@ -412,30 +465,27 @@ class HotelDashboardScreen extends ConsumerWidget {
     List<HotelStay> departures,
     bool compact,
   ) {
+    final l10n = context.flipperL10n;
     final arrivalsPanel = _stayPanel(
       context,
       ref,
-      title: 'Arriving today',
-      emptyText: 'No arrivals booked for today.',
+      title: l10n.hotelArrivingToday,
+      emptyText: l10n.hotelNoArrivalsToday,
       stays: arrivals,
       isArrival: true,
     );
     final departuresPanel = _stayPanel(
       context,
       ref,
-      title: 'Departing today',
-      emptyText: 'Nobody is due to leave today.',
+      title: l10n.hotelDepartingToday,
+      emptyText: l10n.hotelNoDeparturesToday,
       stays: departures,
       isArrival: false,
     );
 
     if (compact) {
       return Column(
-        children: [
-          arrivalsPanel,
-          const SizedBox(height: 14),
-          departuresPanel,
-        ],
+        children: [arrivalsPanel, const SizedBox(height: 14), departuresPanel],
       );
     }
 
@@ -503,13 +553,19 @@ class HotelDashboardScreen extends ConsumerWidget {
               ),
             )
           else
-            for (final stay in stays) _stayRow(ref, stay, isArrival),
+            for (final stay in stays)
+              _stayRow(context.flipperL10n, ref, stay, isArrival),
         ],
       ),
     );
   }
 
-  Widget _stayRow(WidgetRef ref, HotelStay stay, bool isArrival) {
+  Widget _stayRow(
+    FlipperAppLocalizations l10n,
+    WidgetRef ref,
+    HotelStay stay,
+    bool isArrival,
+  ) {
     final time = isArrival ? stay.checkInAt : stay.expectedCheckOutAt;
     final overdue = !isArrival && hotelStayIsDue(stay);
 
@@ -552,7 +608,7 @@ class HotelDashboardScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  hotelStaySummary(stay),
+                  _staySummary(l10n, stay),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
@@ -567,7 +623,7 @@ class HotelDashboardScreen extends ConsumerWidget {
           const SizedBox(width: 8),
           Text(
             overdue
-                ? 'overdue'
+                ? l10n.hotelOverdue
                 : DateFormat('HH:mm').format(time.toLocal()),
             style: GoogleFonts.jetBrainsMono(
               fontSize: 12,

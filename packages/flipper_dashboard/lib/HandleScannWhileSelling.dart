@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pending_cart_sale_session_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
@@ -77,7 +78,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('No variants found for "$value"'),
+                content: Text(context.flipperL10n.scanNoVariantsFor(value)),
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
               ),
@@ -106,7 +107,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Error searching for variants: ${e.toString()}',
+                context.flipperL10n.scanErrorSearching(e.toString()),
               ),
               duration: const Duration(seconds: 2),
               behavior: SnackBarBehavior.floating,
@@ -176,9 +177,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     // Early return if list is empty
     if (variants.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No variants available'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(context.flipperL10n.scanNoVariantsAvailable),
+          duration: const Duration(seconds: 2),
         ),
       );
       return null;
@@ -246,14 +247,14 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Select Product Variant',
+                              context.flipperL10n.scanSelectVariant,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: () => Navigator.of(context).pop(),
-                              tooltip: 'Close',
+                              tooltip: context.flipperL10n.close,
                             ),
                           ],
                         ),
@@ -263,7 +264,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                         TextField(
                           controller: searchController,
                           decoration: InputDecoration(
-                            hintText: 'Search by name or barcode',
+                            hintText:
+                                context.flipperL10n.scanSearchByNameOrBarcode,
                             prefixIcon: const Icon(Icons.search),
                             suffixIcon: searchController.text.isNotEmpty
                                 ? IconButton(
@@ -287,7 +289,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                           child: filteredVariants.isEmpty
                               ? Center(
                                   child: Text(
-                                    'No matching variants found',
+                                    context.flipperL10n.scanNoMatchingVariants,
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyLarge,
@@ -330,7 +332,12 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                                                   null) ...[
                                                 const SizedBox(height: 8),
                                                 Text(
-                                                  'Retail Price: ${variant.retailPrice?.toCurrencyFormatted()}',
+                                                  context.flipperL10n
+                                                      .scanRetailPrice(
+                                                        variant.retailPrice
+                                                                ?.toCurrencyFormatted() ??
+                                                            '',
+                                                      ),
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodyMedium
@@ -345,7 +352,10 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                                               if (variant.bcd != null) ...[
                                                 const SizedBox(height: 4),
                                                 Text(
-                                                  'Barcode: ${variant.bcd}',
+                                                  context.flipperL10n
+                                                      .scanBarcode(
+                                                        variant.bcd ?? '',
+                                                      ),
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodyMedium
@@ -378,7 +388,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       debugPrint('Error showing variant selection dialog: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error showing variants: ${e.toString()}'),
+          content: Text(context.flipperL10n.scanErrorShowing(e.toString())),
           duration: const Duration(seconds: 3),
         ),
       );

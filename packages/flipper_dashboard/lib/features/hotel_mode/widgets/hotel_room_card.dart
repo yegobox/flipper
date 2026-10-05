@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -98,8 +99,8 @@ class _HotelRoomCardState extends State<HotelRoomCard> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${widget.room.roomType} · ${widget.room.capacity} guest'
-                    '${widget.room.capacity == 1 ? '' : 's'}',
+                    '${widget.room.roomType} · '
+                    '${context.flipperL10n.hotelGuestsCount(widget.room.capacity)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
@@ -122,16 +123,22 @@ class _HotelRoomCardState extends State<HotelRoomCard> {
   /// What a screen reader announces for the card.
   String _semanticLabel(HotelRoomState state) {
     final stay = widget.stay;
-    final base =
-        'Room ${widget.room.name}, ${widget.room.roomType}, '
-        '${hotelRoomStateLabel(state)}';
+    final l10n = context.flipperL10n;
+    final base = l10n.hotelRoomSemantic(
+      widget.room.name,
+      widget.room.roomType,
+      hotelRoomStateText(l10n, state),
+    );
     if (stay != null) return '$base, ${stay.guestName}';
-    if (state == HotelRoomState.vacant) return '$base, tap to check in';
+    if (state == HotelRoomState.vacant) {
+      return '$base, ${l10n.hotelTapToCheckIn}';
+    }
     return base;
   }
 
   Widget _footer(HotelRoomState state, Color ink) {
     final stay = widget.stay;
+    final l10n = context.flipperL10n;
 
     if (stay != null) {
       final due = hotelStayIsDue(stay);
@@ -152,8 +159,13 @@ class _HotelRoomCardState extends State<HotelRoomCard> {
           const SizedBox(height: 2),
           Text(
             due
-                ? 'Due out ${DateFormat('d MMM, HH:mm').format(stay.expectedCheckOutAt.toLocal())}'
-                : 'Out ${DateFormat('d MMM').format(stay.expectedCheckOutAt.toLocal())} · ${hotelStaySummary(stay)}',
+                ? l10n.hotelDueOutAt(
+                    DateFormat(
+                      'd MMM, HH:mm',
+                    ).format(stay.expectedCheckOutAt.toLocal()),
+                  )
+                : '${l10n.hotelOutOn(DateFormat('d MMM').format(stay.expectedCheckOutAt.toLocal()))}'
+                      ' · ${hotelStaySummaryText(l10n, stay)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
@@ -168,10 +180,12 @@ class _HotelRoomCardState extends State<HotelRoomCard> {
 
     return Text(
       state == HotelRoomState.outOfOrder
-          ? 'Blocked for maintenance'
+          ? l10n.hotelBlockedForMaintenance
           : state == HotelRoomState.dirty
-          ? 'Awaiting housekeeping'
-          : 'RWF ${NumberFormat('#,###').format(widget.room.nightlyRate)} / night',
+          ? l10n.hotelAwaitingHousekeeping
+          : l10n.hotelPerNight(
+              'RWF ${NumberFormat('#,###').format(widget.room.nightlyRate)}',
+            ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: GoogleFonts.outfit(

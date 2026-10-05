@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/manual_purchase/purchase_catalog_search.dart';
 import 'package:flipper_dashboard/manual_purchase/supplier_search_field.dart';
 import 'package:flipper_models/sync/capella/manual_purchase_ditto.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -224,10 +225,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
       hintStyle: TextStyle(color: _hintColor, fontSize: 15),
       suffixIcon: suffixIcon,
       isDense: true,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: _fieldBorderColor),
@@ -251,6 +249,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
     ManualPurchaseState state,
     ManualPurchaseNotifier notifier,
   ) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -262,7 +261,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _fieldLabel('Supplier'),
+                  _fieldLabel(l10n.manualPurchaseSupplier),
                   SupplierSearchField(
                     controller: _supplierController,
                     focusNode: _supplierFocus,
@@ -270,10 +269,9 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                     useImportPurchaseTheme: widget.useImportPurchaseTheme,
                     validator: (value) =>
                         (value == null || value.trim().isEmpty)
-                            ? 'Supplier is required'
-                            : null,
-                    onTextChanged: (value) =>
-                        notifier.setSupplier(name: value),
+                        ? l10n.manualPurchaseSupplierRequired
+                        : null,
+                    onTextChanged: (value) => notifier.setSupplier(name: value),
                     onSupplierSelected: (supplier) {
                       notifier.setSupplier(
                         name: supplier.custNm,
@@ -293,16 +291,21 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _fieldLabel('Supplier TIN', suffix: '(optional)'),
+                  _fieldLabel(
+                    l10n.manualPurchaseSupplierTin,
+                    suffix: l10n.manualPurchaseOptionalSuffix,
+                  ),
                   TextFormField(
                     controller: _tinController,
-                    decoration: _fieldDecoration(hint: 'e.g. 100123456'),
+                    decoration: _fieldDecoration(
+                      hint: l10n.manualPurchaseExampleValue('100123456'),
+                    ),
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) return null;
                       return RegExp(r'^\d{9}$').hasMatch(value.trim())
                           ? null
-                          : 'TIN must be 9 digits';
+                          : l10n.manualPurchaseTinMustBe9Digits;
                     },
                     onChanged: (value) => notifier.setSupplier(tin: value),
                   ),
@@ -319,15 +322,17 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _fieldLabel('Invoice No.'),
+                  _fieldLabel(l10n.manualPurchaseInvoiceNo),
                   TextFormField(
                     controller: _invoiceController,
-                    decoration: _fieldDecoration(hint: 'e.g. 4521'),
+                    decoration: _fieldDecoration(
+                      hint: l10n.manualPurchaseExampleValue('4521'),
+                    ),
                     keyboardType: TextInputType.number,
                     validator: (value) =>
                         int.tryParse(value?.trim() ?? '') == null
-                            ? 'Numeric invoice number is required'
-                            : null,
+                        ? l10n.manualPurchaseNumericInvoiceRequired
+                        : null,
                     onChanged: notifier.setInvoiceNo,
                   ),
                 ],
@@ -338,7 +343,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _fieldLabel('Purchase date'),
+                  _fieldLabel(l10n.manualPurchasePurchaseDate),
                   InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () async {
@@ -372,7 +377,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _fieldLabel('Payment type'),
+                  _fieldLabel(l10n.manualPurchasePaymentType),
                   DropdownButtonFormField<String>(
                     initialValue: state.pmtTyCd,
                     decoration: _fieldDecoration(),
@@ -413,6 +418,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   ) {
     final formatter = NumberFormat('#,##0.##');
     final due = state.effectiveDueDate;
+    final l10n = context.flipperL10n;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -420,7 +426,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _fieldLabel('Pay supplier by'),
+              _fieldLabel(l10n.manualPurchasePaySupplierBy),
               InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () async {
@@ -455,20 +461,22 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (state.pmtTyCd == '03') ...[
-                _fieldLabel('Paid now'),
+                _fieldLabel(l10n.manualPurchasePaidNow),
                 TextFormField(
                   initialValue: state.paidUpfront > 0
                       ? formatAmountForEdit(state.paidUpfront)
                       : null,
                   decoration: _fieldDecoration(hint: '0'),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: (v) => notifier.setPaidUpfront(
-                    parseAmount(v),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
                   ),
+                  onChanged: (v) => notifier.setPaidUpfront(parseAmount(v)),
                 ),
               ] else
-                _fieldLabel('Paid now', suffix: '(none — full credit)'),
+                _fieldLabel(
+                  l10n.manualPurchasePaidNow,
+                  suffix: l10n.manualPurchaseNoneFullCredit,
+                ),
             ],
           ),
         ),
@@ -477,7 +485,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _fieldLabel('You will owe'),
+              _fieldLabel(l10n.manualPurchaseYouWillOweLabel),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
@@ -499,13 +507,14 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
     ManualPurchaseState state,
     ManualPurchaseNotifier notifier,
   ) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           children: [
             Text(
-              'LINE ITEMS',
+              l10n.manualPurchaseLineItems.toUpperCase(),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -517,7 +526,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: _accent),
               icon: const Icon(Icons.search, size: 18),
-              label: const Text('Add from catalog'),
+              label: Text(l10n.manualPurchaseAddFromCatalog),
               onPressed: () =>
                   setState(() => _showCatalogSearch = !_showCatalogSearch),
             ),
@@ -525,7 +534,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: _accent),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('New item'),
+              label: Text(l10n.manualPurchaseNewItem),
               onPressed: notifier.addBlankLine,
             ),
           ],
@@ -565,9 +574,12 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
           controller: controller,
           focusNode: focusNode,
           autofocus: true,
-          decoration: _fieldDecoration(hint: 'Search catalog…').copyWith(
-            prefixIcon: Icon(Icons.search, color: _hintColor, size: 20),
-          ),
+          decoration:
+              _fieldDecoration(
+                hint: context.flipperL10n.manualPurchaseSearchCatalogEllipsis,
+              ).copyWith(
+                prefixIcon: Icon(Icons.search, color: _hintColor, size: 20),
+              ),
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
@@ -588,7 +600,10 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                     dense: true,
                     title: Text(variant.name),
                     subtitle: Text(
-                      'Supply: ${variant.supplyPrice ?? '-'} · Tax: ${variant.taxTyCd ?? 'B'}',
+                      context.flipperL10n.manualPurchaseSupplyAndTax(
+                        '${variant.supplyPrice ?? '-'}',
+                        variant.taxTyCd ?? 'B',
+                      ),
                     ),
                     onTap: () => onSelected(variant),
                   );
@@ -603,10 +618,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
 
   Widget _buildEmptyState(ManualPurchaseNotifier notifier) {
     return CustomPaint(
-      painter: _DashedBorderPainter(
-        color: Colors.grey[350]!,
-        radius: 14,
-      ),
+      painter: _DashedBorderPainter(color: Colors.grey[350]!, radius: 14),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
@@ -627,7 +639,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             ),
             const SizedBox(height: 18),
             Text(
-              'No items yet — add from your catalog or create a new line.',
+              context.flipperL10n.manualPurchaseNoItemsHint,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: Colors.grey[700]),
             ),
@@ -648,7 +660,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                     ),
                   ),
                   icon: const Icon(Icons.search, size: 18),
-                  label: const Text('Add from catalog'),
+                  label: Text(context.flipperL10n.manualPurchaseAddFromCatalog),
                   onPressed: () => setState(() => _showCatalogSearch = true),
                 ),
                 const SizedBox(width: 12),
@@ -666,7 +678,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                     ),
                   ),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('New item'),
+                  label: Text(context.flipperL10n.manualPurchaseNewItem),
                   onPressed: notifier.addBlankLine,
                 ),
               ],
@@ -692,12 +704,35 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
-                Expanded(flex: 4, child: _columnLabel('Item')),
-                Expanded(flex: 2, child: _columnLabel('Qty')),
-                Expanded(flex: 2, child: _columnLabel('Unit price')),
-                Expanded(flex: 2, child: _columnLabel('Sell price')),
-                Expanded(flex: 2, child: _columnLabel('Tax')),
-                Expanded(flex: 2, child: _columnLabel('Total', alignEnd: true)),
+                Expanded(
+                  flex: 4,
+                  child: _columnLabel(context.flipperL10n.item),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: _columnLabel(context.flipperL10n.manualPurchaseQty),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: _columnLabel(context.flipperL10n.unitPrice),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: _columnLabel(
+                    context.flipperL10n.manualPurchaseSellPrice,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: _columnLabel(context.flipperL10n.manualPurchaseTax),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: _columnLabel(
+                    context.flipperL10n.failedPaymentTotal,
+                    alignEnd: true,
+                  ),
+                ),
                 const SizedBox(width: 40),
               ],
             ),
@@ -708,22 +743,23 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               key: ValueKey(state.lines[i].uid),
               line: state.lines[i],
               fieldDecoration: _fieldDecoration(),
-              onChanged: ({
-                String? name,
-                double? qty,
-                double? unitPrice,
-                String? taxTyCd,
-                double? sellingPrice,
-              }) {
-                notifier.updateLine(
-                  i,
-                  name: name,
-                  qty: qty,
-                  unitPrice: unitPrice,
-                  taxTyCd: taxTyCd,
-                  sellingPrice: sellingPrice,
-                );
-              },
+              onChanged:
+                  ({
+                    String? name,
+                    double? qty,
+                    double? unitPrice,
+                    String? taxTyCd,
+                    double? sellingPrice,
+                  }) {
+                    notifier.updateLine(
+                      i,
+                      name: name,
+                      qty: qty,
+                      unitPrice: unitPrice,
+                      taxTyCd: taxTyCd,
+                      sellingPrice: sellingPrice,
+                    );
+                  },
               onRemove: () => notifier.removeLine(i),
             ),
         ],
@@ -795,6 +831,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
   Widget _buildTotalsSection(ManualPurchaseState state) {
     final formatter = NumberFormat('#,##0.##');
     final currency = ProxyService.box.defaultCurrency();
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
@@ -806,13 +843,16 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           _totalsItem(
-            'TAXABLE',
+            l10n.manualPurchaseTaxable.toUpperCase(),
             formatter.format(state.taxblAmt('B')),
             chip: 'B',
           ),
-          _totalsItem('VAT 18%', formatter.format(state.taxAmt('B'))),
           _totalsItem(
-            'EXEMPT / ZERO',
+            l10n.manualPurchaseTaxVat18,
+            formatter.format(state.taxAmt('B')),
+          ),
+          _totalsItem(
+            l10n.manualPurchaseExemptZero.toUpperCase(),
             formatter.format(
               state.taxblAmt('A') + state.taxblAmt('C') + state.taxblAmt('D'),
             ),
@@ -823,7 +863,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'TOTAL',
+                l10n.failedPaymentTotal.toUpperCase(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -863,6 +903,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
 
   Widget _buildFooter(ManualPurchaseState state) {
     final canSave = state.isValid && !state.isSaving;
+    final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       child: Row(
@@ -871,29 +912,23 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.black87,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             ),
             onPressed: state.isSaving ? null : _goBackToPurchases,
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           const SizedBox(width: 12),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.black87,
               side: BorderSide(color: _fieldBorderColor),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
             onPressed: canSave ? () => _save(approve: false) : null,
-            child: const Text('Save as Waiting'),
+            child: Text(l10n.manualPurchaseSaveAsWaiting),
           ),
           const SizedBox(width: 12),
           ElevatedButton.icon(
@@ -903,10 +938,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
               disabledBackgroundColor: const Color(0xFFD6DADF),
               disabledForegroundColor: Colors.white,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -921,7 +953,7 @@ class _ManualPurchaseFormState extends ConsumerState<ManualPurchaseForm> {
                     ),
                   )
                 : const Icon(Icons.check, size: 18),
-            label: const Text('Save & Approve'),
+            label: Text(l10n.manualPurchaseSaveAndApprove),
             onPressed: canSave ? () => _save(approve: true) : null,
           ),
         ],
@@ -939,7 +971,8 @@ class _ManualPurchaseLineRow extends StatefulWidget {
     double? unitPrice,
     String? taxTyCd,
     double? sellingPrice,
-  }) onChanged;
+  })
+  onChanged;
   final VoidCallback onRemove;
 
   const _ManualPurchaseLineRow({
@@ -985,11 +1018,8 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
   }
 
   InputDecoration get _cellDecoration => widget.fieldDecoration.copyWith(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 10,
-          vertical: 10,
-        ),
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1011,8 +1041,8 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
                     decoration: _cellDecoration,
                     validator: (value) =>
                         (value == null || value.trim().isEmpty)
-                            ? 'Required'
-                            : null,
+                        ? context.flipperL10n.manualPurchaseRequired
+                        : null,
                     onChanged: (value) => widget.onChanged(name: value),
                   ),
                 ),
@@ -1029,7 +1059,7 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'new',
+                        context.flipperL10n.manualPurchaseNewBadge,
                         style: TextStyle(
                           fontSize: 10,
                           color: _legacyAccent,
@@ -1047,8 +1077,9 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
             child: TextFormField(
               controller: _qtyController,
               decoration: _cellDecoration,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (value) =>
                   ((double.tryParse(value ?? '') ?? 0) <= 0) ? '> 0' : null,
               onChanged: (value) =>
@@ -1061,8 +1092,9 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
             child: TextFormField(
               controller: _priceController,
               decoration: _cellDecoration,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (value) =>
                   ((double.tryParse(value ?? '') ?? -1) < 0) ? '>= 0' : null,
               onChanged: (value) =>
@@ -1083,8 +1115,9 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
                 : TextFormField(
                     controller: _sellingController,
                     decoration: _cellDecoration.copyWith(hintText: 'at cost'),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     onChanged: (value) => widget.onChanged(
                       sellingPrice: double.tryParse(value.trim()) ?? 0,
                     ),
@@ -1125,7 +1158,7 @@ class _ManualPurchaseLineRowState extends State<_ManualPurchaseLineRow> {
                 size: 18,
                 color: Colors.red[300],
               ),
-              tooltip: 'Remove',
+              tooltip: context.flipperL10n.remove,
               onPressed: widget.onRemove,
             ),
           ),
@@ -1157,10 +1190,7 @@ class _DashedBorderPainter extends CustomPainter {
 
     final path = Path()
       ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          Radius.circular(radius),
-        ),
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),
       );
 
     for (final metric in path.computeMetrics()) {

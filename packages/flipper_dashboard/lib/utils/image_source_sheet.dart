@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,9 +13,9 @@ class ImageSourceSheetResult {
     this.browseWithFilePicker = false,
   });
   const ImageSourceSheetResult.gallery()
-      : this._(imageSource: ImageSource.gallery);
+    : this._(imageSource: ImageSource.gallery);
   const ImageSourceSheetResult.camera()
-      : this._(imageSource: ImageSource.camera);
+    : this._(imageSource: ImageSource.camera);
   const ImageSourceSheetResult.browse() : this._(browseWithFilePicker: true);
 
   final ImageSource? imageSource;
@@ -112,10 +113,10 @@ class _ImageSourceSheet extends StatelessWidget {
                     Expanded(
                       child: _ImageOptionTile(
                         icon: Icons.photo_library_outlined,
-                        label: 'Gallery',
-                        onTap: () => Navigator.of(context).pop(
-                          const ImageSourceSheetResult.gallery(),
-                        ),
+                        label: context.flipperL10n.imageSourceGallery,
+                        onTap: () => Navigator.of(
+                          context,
+                        ).pop(const ImageSourceSheetResult.gallery()),
                       ),
                     ),
                     VerticalDivider(
@@ -126,10 +127,10 @@ class _ImageSourceSheet extends StatelessWidget {
                     Expanded(
                       child: _ImageOptionTile(
                         icon: Icons.camera_alt_outlined,
-                        label: 'Camera',
-                        onTap: () => Navigator.of(context).pop(
-                          const ImageSourceSheetResult.camera(),
-                        ),
+                        label: context.flipperL10n.imageSourceCamera,
+                        onTap: () => Navigator.of(
+                          context,
+                        ).pop(const ImageSourceSheetResult.camera()),
                       ),
                     ),
                   ],
@@ -144,9 +145,9 @@ class _ImageSourceSheet extends StatelessWidget {
                   color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
-                    onTap: () => Navigator.of(context).pop(
-                      const ImageSourceSheetResult.browse(),
-                    ),
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pop(const ImageSourceSheetResult.browse()),
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -163,7 +164,7 @@ class _ImageSourceSheet extends StatelessWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Browse files',
+                              context.flipperL10n.imageSourceBrowseFiles,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
 import 'package:flipper_dashboard/DropdownButtonWithLabel.dart';
@@ -45,14 +46,14 @@ class InventorySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Inventory & Categorization",
+              context.flipperL10n.productEntryInventoryTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             DropdownButtonWithLabel(
-              label: "Packaging Unit",
+              label: context.flipperL10n.productEntryPackagingUnit,
               selectedValue: selectedPackageUnitValue,
               options: pkgUnits,
               displayNames: Map.fromEntries(

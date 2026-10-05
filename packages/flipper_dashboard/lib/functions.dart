@@ -1,4 +1,5 @@
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ onWillPop({
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
-          'Confirm',
+          context.flipperL10n.confirm,
           style: GoogleFonts.outfit(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -68,7 +69,7 @@ onWillPop({
                     padding: EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: Text(
-                    'No',
+                    context.flipperL10n.dashNo,
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -92,7 +93,7 @@ onWillPop({
                     padding: EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: Text(
-                    'Yes',
+                    context.flipperL10n.dashYes,
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -110,7 +111,10 @@ onWillPop({
                         value: false,
                       );
                       Navigator.pop(context);
-                      final rootNav = Navigator.of(context, rootNavigator: true);
+                      final rootNav = Navigator.of(
+                        context,
+                        rootNavigator: true,
+                      );
                       // Mobile POS uses stacked [CheckOutRoute] like Inventory tab.
                       if (rootNav.canPop()) {
                         rootNav.pop();

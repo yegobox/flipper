@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
@@ -104,23 +105,29 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   /// ([TransactionReportKpiTotals.netProfit] = in-scope gross − VAT −
   /// in-scope expenses), so it can never report a figure for a period whose
   /// grid is empty.
-  Widget _netProfitCard(AsyncValue<TransactionReportKpiTotals> kpiAsync) {
+  Widget _netProfitCard(
+    AsyncValue<TransactionReportKpiTotals> kpiAsync,
+    FlipperAppLocalizations l10n,
+  ) {
     if (kpiAsync.isLoading && !kpiAsync.hasValue) {
-      return _summaryCard('Net Profit', 0.0, true, Colors.purple);
+      return _summaryCard(l10n.gaugeNetProfit, 0.0, true, Colors.purple);
     }
 
     // asData?.value (not .value) so an AsyncError degrades to zeros instead of
     // rethrowing synchronously and crashing the whole KPI strip.
     final kpi = kpiAsync.asData?.value ?? const TransactionReportKpiTotals();
     return _summaryCard(
-      'Net Profit',
+      l10n.gaugeNetProfit,
       kpi.netProfit,
       kpiAsync.isLoading,
       Colors.purple,
     );
   }
 
-  Widget _twoCardRow(AsyncValue<TransactionReportKpiTotals> kpiAsync) {
+  Widget _twoCardRow(
+    AsyncValue<TransactionReportKpiTotals> kpiAsync,
+    FlipperAppLocalizations l10n,
+  ) {
     final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
     final kpi = kpiAsync.asData?.value;
 
@@ -129,25 +136,29 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
-            'Total Sales',
+            l10n.kpiTotalSales,
             kpi?.periodSubtotal,
             loading,
             Colors.green,
           ),
         ),
         SizedBox(width: metrics.kpiGap),
-        Expanded(child: _netProfitCard(kpiAsync)),
+        Expanded(child: _netProfitCard(kpiAsync, l10n)),
         SizedBox(width: metrics.kpiGap),
       ],
     );
   }
 
-  Widget _fourCardRow(AsyncValue<TransactionReportKpiTotals> kpiAsync) {
+  Widget _fourCardRow(
+    AsyncValue<TransactionReportKpiTotals> kpiAsync,
+    FlipperAppLocalizations l10n,
+  ) {
     final loading = kpiAsync.isLoading && !kpiAsync.hasValue;
     final kpi = kpiAsync.asData?.value;
     // Collected = Total Sales (subTotal) − Owed, so the cards partition exactly.
-    final collected =
-        kpi == null ? null : (kpi.periodSubtotal - kpi.periodOwed);
+    final collected = kpi == null
+        ? null
+        : (kpi.periodSubtotal - kpi.periodOwed);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,18 +166,18 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
-            'Total Sales',
+            l10n.kpiTotalSales,
             kpi?.periodSubtotal,
             loading,
             Colors.green,
           ),
         ),
         SizedBox(width: metrics.kpiGap),
-        Expanded(child: _netProfitCard(kpiAsync)),
+        Expanded(child: _netProfitCard(kpiAsync, l10n)),
         SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
-            'Collected',
+            l10n.kpiCollected,
             collected,
             loading,
             Colors.teal,
@@ -175,7 +186,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
         SizedBox(width: metrics.kpiGap),
         Expanded(
           child: _summaryCard(
-            'Owed',
+            l10n.kpiOwed,
             kpi?.periodOwed,
             loading,
             Colors.brown,
@@ -190,8 +201,8 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kpiAsync = ref.watch(transactionReportKpiTotalsProvider);
     if (showDetailed) {
-      return _twoCardRow(kpiAsync);
+      return _twoCardRow(kpiAsync, context.flipperL10n);
     }
-    return _fourCardRow(kpiAsync);
+    return _fourCardRow(kpiAsync, context.flipperL10n);
   }
 }

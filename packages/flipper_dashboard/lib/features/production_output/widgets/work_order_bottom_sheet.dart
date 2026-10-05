@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
@@ -99,7 +100,9 @@ class WorkOrderBottomSheet {
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              isEdit ? 'Edit Work Order' : 'Create Work Order',
+              isEdit
+                  ? context.flipperL10n.productionOutputEditWorkOrder
+                  : context.flipperL10n.productionOutputCreateWorkOrder,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,

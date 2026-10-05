@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_field.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/pe_select.dart';
 import 'package:flipper_dashboard/features/product_editor/widgets/product_editor_category_picker.dart';
@@ -55,18 +56,13 @@ class _ProductEditorInventorySectionState
   /// collapsed by default with their current values summarised on the toggle.
   bool _showTaxDetails = false;
 
-  static const _productTypes = [
-    (
-      value: '2',
-      label: 'Finished product — ready to sell',
-      short: 'Finished product',
-    ),
-    (
-      value: '1',
-      label: 'Raw material — used to make other products',
-      short: 'Raw material',
-    ),
-    (value: '3', label: 'Service — nothing to keep in stock', short: 'Service'),
+  /// `value` is the stored item-type code; only `label` is localized.
+  static List<({String value, String label})> _productTypes(
+    FlipperAppLocalizations l10n,
+  ) => [
+    (value: '2', label: l10n.productEditorItemTypeFinished),
+    (value: '1', label: l10n.productEditorItemTypeRawMaterial),
+    (value: '3', label: l10n.productEditorItemTypeService),
   ];
 
   String _packagingLabel(String unit) {
@@ -79,6 +75,7 @@ class _ProductEditorInventorySectionState
   @override
   Widget build(BuildContext context) {
     final countriesAsync = ref.watch(countriesProvider);
+    final l10n = context.flipperL10n;
 
     // Resolved here (not inside the collapsible) so the default origin is
     // applied whether or not the field is on screen.
@@ -112,9 +109,9 @@ class _ProductEditorInventorySectionState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PeField(
-          label: 'Category',
+          label: l10n.category,
           required: true,
-          hint: 'Groups this product in reports and on the sell screen.',
+          hint: l10n.productEditorCategoryHint,
           child: ProductEditorCategoryPicker(
             selectedCategoryId: widget.selectedCategoryId,
             selectedCategoryName: widget.selectedCategoryName,
@@ -125,15 +122,15 @@ class _ProductEditorInventorySectionState
         ),
         const SizedBox(height: 18),
         PeField(
-          label: 'Item type',
+          label: l10n.productEditorItemType,
           hint: widget.isEditMode
-              ? 'Locked — this cannot change after the product is created.'
-              : 'Most shop items are a finished product.',
+              ? l10n.productEditorItemTypeLocked
+              : l10n.productEditorItemTypeHint,
           child: PeSelect<String>(
             value: widget.selectedProductType,
             enabled: !widget.isEditMode,
             items: [
-              for (final t in _productTypes)
+              for (final t in _productTypes(l10n))
                 DropdownMenuItem(value: t.value, child: Text(t.label)),
             ],
             onChanged: widget.onProductTypeChanged,
@@ -142,7 +139,7 @@ class _ProductEditorInventorySectionState
         const SizedBox(height: 18),
         _TaxDetailsToggle(
           expanded: _showTaxDetails,
-          summary: _summaryLine(countryValue),
+          summary: _summaryLine(l10n, countryValue),
           onTap: () => setState(() => _showTaxDetails = !_showTaxDetails),
         ),
         if (_showTaxDetails) ...[
@@ -151,7 +148,7 @@ class _ProductEditorInventorySectionState
             builder: (context, constraints) {
               final stack = constraints.maxWidth < 520;
               final packaging = PeField(
-                label: 'Packaging unit',
+                label: l10n.productEditorPackagingUnit,
                 child: PeSelect<String>(
                   value:
                       widget.pkgUnits.contains(widget.selectedPackageUnitValue)
@@ -170,18 +167,19 @@ class _ProductEditorInventorySectionState
                 ),
               );
               final origin = PeField(
-                label: 'Country of origin',
+                label: l10n.productEditorCountryOfOrigin,
                 // The country list comes from the `countries` table via Brick
                 // (awaitRemoteWhenNoneExist). When that table is empty the
                 // dropdown has no items and renders as a dead grey box, so say
                 // what will actually be saved instead.
                 hint: countryList.isEmpty && !countriesAsync.isLoading
-                    ? 'No country list available yet — new products are saved '
-                          'as RW.'
+                    ? l10n.productEditorNoCountryList
                     : null,
                 child: countriesAsync.when(
                   data: (_) => countryList.isEmpty
-                      ? const _UnavailableValueBox(value: 'RW (default)')
+                      ? _UnavailableValueBox(
+                          value: l10n.productEditorCountryDefaultRw,
+                        )
                       : PeSelect<String>(
                           value: countryValue,
                           items: [
@@ -209,7 +207,7 @@ class _ProductEditorInventorySectionState
                     ),
                   ),
                   error: (_, __) => Text(
-                    'Could not load countries',
+                    l10n.productEditorCountriesLoadFailed,
                     style: GoogleFonts.outfit(color: ProductEditorTokens.ink3),
                   ),
                 ),
@@ -236,10 +234,10 @@ class _ProductEditorInventorySectionState
     );
   }
 
-  String _summaryLine(String? countryCode) {
+  String _summaryLine(FlipperAppLocalizations l10n, String? countryCode) {
     final packaging = _packagingLabel(widget.selectedPackageUnitValue);
     final origin = (countryCode == null || countryCode.isEmpty)
-        ? 'origin not set'
+        ? l10n.productEditorOriginNotSet
         : countryCode.toUpperCase();
     return '$packaging · $origin';
   }
@@ -320,7 +318,7 @@ class _TaxDetailsToggle extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Packaging & origin (for tax reporting)',
+                      context.flipperL10n.productEditorTaxDetailsTitle,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -329,7 +327,9 @@ class _TaxDetailsToggle extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      expanded ? 'Tap to hide' : summary,
+                      expanded
+                          ? context.flipperL10n.productEditorTapToHide
+                          : summary,
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: ProductEditorTokens.ink3,

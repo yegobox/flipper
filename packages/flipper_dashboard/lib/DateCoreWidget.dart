@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
@@ -45,14 +46,8 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       height: 1.15,
       letterSpacing: -0.3,
     ),
-    weekdayStyle: const TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-    ),
-    dayStyle: const TextStyle(
-      fontSize: 13,
-      fontWeight: FontWeight.w500,
-    ),
+    weekdayStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+    dayStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
     dayForegroundColor: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.disabled)) {
         return _kTextMuted.withValues(alpha: 0.45);
@@ -85,8 +80,8 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       color: PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.85),
       width: 1,
     ),
-    rangeSelectionBackgroundColor:
-        PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.14),
+    rangeSelectionBackgroundColor: PosLayoutBreakpoints.posAccentBlue
+        .withValues(alpha: 0.14),
     rangeSelectionOverlayColor: WidgetStateProperty.all(
       PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.12),
     ),
@@ -96,9 +91,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       foregroundColor: _kTextMuted,
       textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ),
     confirmButtonStyle: FilledButton.styleFrom(
       backgroundColor: PosLayoutBreakpoints.posAccentBlue,
@@ -106,9 +99,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       elevation: 0,
       textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ),
   );
 
@@ -120,19 +111,20 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         color: PosLayoutBreakpoints.posAccentBlue,
         size: 28,
       ),
-      tooltip: 'Select Date',
+      tooltip: context.flipperL10n.dateSelect,
       splashColor: PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.12),
-      highlightColor: PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.08),
+      highlightColor: PosLayoutBreakpoints.posAccentBlue.withValues(
+        alpha: 0.08,
+      ),
       splashRadius: 24,
       padding: const EdgeInsets.all(8),
     );
   }
 
   void _onDateRangeSelected(DateTimeRange dateRange) {
-    ref.read(dateRangeProvider.notifier).setRange(
-          start: dateRange.start,
-          end: dateRange.end,
-        );
+    ref
+        .read(dateRangeProvider.notifier)
+        .setRange(start: dateRange.start, end: dateRange.end);
   }
 
   /// Compact range picker (not fullscreen on desktop). See mixin doc on
@@ -170,11 +162,11 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 data: Theme.of(dialogContext).copyWith(
                   visualDensity: VisualDensity.standard,
                   colorScheme: Theme.of(dialogContext).colorScheme.copyWith(
-                        primary: PosLayoutBreakpoints.posAccentBlue,
-                        onPrimary: Colors.white,
-                        surface: Colors.white,
-                        onSurface: _kTextPrimary,
-                      ),
+                    primary: PosLayoutBreakpoints.posAccentBlue,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: _kTextPrimary,
+                  ),
                   datePickerTheme: _reportDateRangeTheme,
                 ),
                 child: DateRangePickerDialog(
@@ -183,9 +175,9 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   initialDateRange: initialRange,
                   currentDate: now,
                   initialEntryMode: DatePickerEntryMode.calendarOnly,
-                  helpText: 'REPORT PERIOD',
-                  saveText: 'Apply',
-                  cancelText: 'Cancel',
+                  helpText: context.flipperL10n.dateReportPeriod,
+                  saveText: context.flipperL10n.dateApply,
+                  cancelText: context.flipperL10n.cancel,
                 ),
               ),
             ),
@@ -206,7 +198,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     await Future<void>.delayed(const Duration(milliseconds: 48));
     if (!mounted) return;
 
-    toast('Applying date range…');
+    toast(context.flipperL10n.dateApplyingRange);
     _onDateRangeSelected(picked);
   }
 }

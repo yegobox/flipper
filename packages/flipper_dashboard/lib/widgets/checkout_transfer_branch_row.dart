@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -30,7 +31,7 @@ class CheckoutTransferBranchRow extends ConsumerWidget {
       child: Row(
         children: [
           Text(
-            'To branch',
+            context.flipperL10n.checkoutTransferToBranchLabel,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
               color: PosTokens.ink2,
               fontWeight: FontWeight.w700,
@@ -45,10 +46,10 @@ class CheckoutTransferBranchRow extends ConsumerWidget {
                     .toList(growable: false);
                 if (destinations.isEmpty) {
                   return Text(
-                    'No other branches',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: PosTokens.ink3,
-                    ),
+                    context.flipperL10n.checkoutTransferNoOtherBranches,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: PosTokens.ink3),
                   );
                 }
                 final matched = destinations
@@ -74,7 +75,7 @@ class CheckoutTransferBranchRow extends ConsumerWidget {
                       borderSide: const BorderSide(color: PosTokens.line),
                     ),
                   ),
-                  hint: const Text('Select branch'),
+                  hint: Text(context.flipperL10n.checkoutTransferSelectBranch),
                   items: destinations
                       .map(
                         (b) => DropdownMenuItem<Branch>(
@@ -87,9 +88,7 @@ class CheckoutTransferBranchRow extends ConsumerWidget {
                       )
                       .toList(),
                   onChanged: (branch) {
-                    ref
-                            .read(transferDestinationBranchProvider.notifier)
-                            .state =
+                    ref.read(transferDestinationBranchProvider.notifier).state =
                         branch;
                   },
                 );
@@ -105,10 +104,10 @@ class CheckoutTransferBranchRow extends ConsumerWidget {
                 ),
               ),
               error: (e, _) => Text(
-                'Failed to load branches',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: PosTokens.loss,
-                ),
+                context.flipperL10n.checkoutTransferLoadBranchesFailed,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: PosTokens.loss),
               ),
             ),
           ),

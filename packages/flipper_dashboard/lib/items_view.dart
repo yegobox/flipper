@@ -9,9 +9,7 @@ class InventoryDashboardApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Use the parent context's theme instead of defining a new one
-    return const Material(
-      child: InventoryDashboard(),
-    );
+    return const Material(child: InventoryDashboard());
   }
 }
 
@@ -130,9 +128,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _buildDashboard(),
-    );
+    return Scaffold(body: _buildDashboard());
   }
 
   Widget _buildDashboard() {
@@ -158,15 +154,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 3,
-                  child: _buildRecentOrdersSection(),
-                ),
+                Expanded(flex: 3, child: _buildRecentOrdersSection()),
                 const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: _buildNearExpirySection(),
-                ),
+                Expanded(flex: 2, child: _buildNearExpirySection()),
               ],
             ),
             const SizedBox(height: 16),
@@ -246,20 +236,13 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
-                Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                Icon(icon, color: color, size: 24),
               ],
             ),
             const SizedBox(height: 12),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
@@ -268,12 +251,12 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                   isPositive ? Icons.arrow_upward : Icons.arrow_downward,
                   size: 14,
                   color: isPositive
-                      ? title == 'Expired Items'
-                          ? Colors.red
-                          : Colors.green
-                      : title == 'Expired Items'
-                          ? Colors.green
-                          : Colors.red,
+                      ? title == context.flipperL10n.expiredItems
+                            ? Colors.red
+                            : Colors.green
+                      : title == context.flipperL10n.expiredItems
+                      ? Colors.green
+                      : Colors.red,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -281,17 +264,17 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                   style: TextStyle(
                     fontSize: 12,
                     color: isPositive
-                        ? title == 'Expired Items'
-                            ? Colors.red
-                            : Colors.green
-                        : title == 'Expired Items'
-                            ? Colors.green
-                            : Colors.red,
+                        ? title == context.flipperL10n.expiredItems
+                              ? Colors.red
+                              : Colors.green
+                        : title == context.flipperL10n.expiredItems
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'from last week',
+                  context.flipperL10n.itemsViewFromLastWeek,
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).textTheme.bodySmall?.color,
@@ -316,9 +299,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Expired Items',
-                  style: TextStyle(
+                Text(
+                  context.flipperL10n.expiredItems,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -338,10 +321,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
               child: DataTable(
                 columnSpacing: 20,
                 headingRowColor: WidgetStateProperty.all(
-                  Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.3),
+                  Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 ),
                 columns: [
                   DataColumn(label: Text(context.flipperL10n.idLabel)),
@@ -377,8 +359,10 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.visibility_outlined,
-                                  size: 20),
+                              icon: const Icon(
+                                Icons.visibility_outlined,
+                                size: 20,
+                              ),
                               onPressed: () {
                                 // Handle view action
                                 _showItemDetailsDialog(context, item);
@@ -410,7 +394,10 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                 return ListTile(
                   title: Text(item.name),
                   subtitle: Text(
-                      'Expired on: ${DateFormat('MMM dd, yyyy').format(item.expiryDate)}'),
+                    context.flipperL10n.itemsViewExpiredOn(
+                      DateFormat('MMM dd, yyyy').format(item.expiryDate),
+                    ),
+                  ),
                 );
               }).toList(),
             ),
@@ -438,12 +425,19 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('ID: ${item.id}'),
-              Text('Category: ${item.category}'),
-              Text('Quantity: ${item.quantity}'),
-              Text('Location: ${item.location}'),
+              Text(context.flipperL10n.itemsViewIdValue(item.id)),
+              Text(context.flipperL10n.itemsViewCategoryValue(item.category)),
               Text(
-                  'Expiry Date: ${DateFormat('MMM dd, yyyy').format(item.expiryDate)}'),
+                context.flipperL10n.itemsViewQuantityValue(
+                  item.quantity.toString(),
+                ),
+              ),
+              Text(context.flipperL10n.itemsViewLocationValue(item.location)),
+              Text(
+                context.flipperL10n.itemsViewExpiryDateValue(
+                  DateFormat('MMM dd, yyyy').format(item.expiryDate),
+                ),
+              ),
             ],
           ),
           actions: <Widget>[
@@ -477,9 +471,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Inventory by Category',
-                    style: TextStyle(
+                  Text(
+                    context.flipperL10n.itemsViewInventoryByCategory,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -522,9 +516,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Stock Levels Trend',
-                    style: TextStyle(
+                  Text(
+                    context.flipperL10n.itemsViewStockLevelsTrend,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -552,7 +546,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                                   'Mar',
                                   'Apr',
                                   'May',
-                                  'Jun'
+                                  'Jun',
                                 ];
                                 final int index = value.toInt();
                                 if (index >= 0 && index < titles.length) {
@@ -636,11 +630,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          color: color,
-        ),
+        Container(width: 12, height: 12, color: color),
         const SizedBox(width: 4),
         Text(
           title,
@@ -693,12 +683,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Recent Orders',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              context.flipperL10n.itemsViewRecentOrders,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             ListView.separated(
@@ -710,8 +697,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                 final order = _reorderHistory[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        _getStatusColor(order.status).withValues(alpha: 0.2),
+                    backgroundColor: _getStatusColor(
+                      order.status,
+                    ).withValues(alpha: 0.2),
                     child: Icon(
                       _getStatusIcon(order.status),
                       color: _getStatusColor(order.status),
@@ -719,7 +707,10 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                   ),
                   title: Text(order.itemName),
                   subtitle: Text(
-                    'Order #${order.id} - ${DateFormat('MMM dd, yyyy').format(order.date)}',
+                    context.flipperL10n.itemsViewOrderLine(
+                      order.id,
+                      DateFormat('MMM dd, yyyy').format(order.date),
+                    ),
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -727,8 +718,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          _getStatusColor(order.status).withValues(alpha: 0.1),
+                      color: _getStatusColor(
+                        order.status,
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -756,12 +748,9 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Near Expiry Items',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Text(
+              context.flipperL10n.itemsViewNearExpiryItems,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             ListView.separated(
@@ -771,13 +760,15 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final item = _nearExpiryItems[index];
-                final daysLeft =
-                    item.expiryDate.difference(DateTime.now()).inDays;
+                final daysLeft = item.expiryDate
+                    .difference(DateTime.now())
+                    .inDays;
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        _getExpiryColor(daysLeft).withValues(alpha: 0.2),
+                    backgroundColor: _getExpiryColor(
+                      daysLeft,
+                    ).withValues(alpha: 0.2),
                     child: Icon(
                       Icons.timelapse,
                       color: _getExpiryColor(daysLeft),
@@ -785,7 +776,10 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                   ),
                   title: Text(item.name),
                   subtitle: Text(
-                    '${item.quantity} units - ${item.location}',
+                    context.flipperL10n.itemsViewUnitsAtLocation(
+                      item.quantity,
+                      item.location,
+                    ),
                   ),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(
@@ -797,7 +791,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      '$daysLeft days left',
+                      context.flipperL10n.itemsViewDaysLeft(daysLeft),
                       style: TextStyle(
                         color: _getExpiryColor(daysLeft),
                         fontSize: 12,
@@ -842,13 +836,13 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
   String _getStatusText(OrderStatus status) {
     switch (status) {
       case OrderStatus.delivered:
-        return 'Delivered';
+        return context.flipperL10n.itemsViewStatusDelivered;
       case OrderStatus.inTransit:
-        return 'In Transit';
+        return context.flipperL10n.itemsViewStatusInTransit;
       case OrderStatus.processing:
-        return 'Processing';
+        return context.flipperL10n.itemsViewStatusProcessing;
       case OrderStatus.cancelled:
-        return 'Cancelled';
+        return context.flipperL10n.itemsViewStatusCancelled;
     }
   }
 
@@ -898,9 +892,4 @@ class ReorderHistory {
   });
 }
 
-enum OrderStatus {
-  delivered,
-  inTransit,
-  processing,
-  cancelled,
-}
+enum OrderStatus { delivered, inTransit, processing, cancelled }

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/features/transaction_reports/transaction_report_density.dart';
 import 'package:flipper_dashboard/providers/transaction_report_chart_provider.dart';
@@ -96,7 +97,9 @@ class TransactionListState extends ConsumerState<TransactionList>
   static final DateFormat _rangeFmt = DateFormat('dd/MM/yyyy');
 
   String _formatRange(DateTime? startDate, DateTime? endDate) {
-    if (startDate == null || endDate == null) return 'Select a date range';
+    if (startDate == null || endDate == null) {
+      return context.flipperL10n.txListSelectDateRange;
+    }
     return '${_rangeFmt.format(startDate)} — ${_rangeFmt.format(endDate)}';
   }
 
@@ -110,7 +113,10 @@ class TransactionListState extends ConsumerState<TransactionList>
     if (startDate == null || endDate == null) {
       print('🔴 EXPORT BUTTON: No date range selected');
       if (mounted) {
-        showWarningNotification(context, 'Please select a date range first');
+        showWarningNotification(
+          context,
+          context.flipperL10n.txListSelectDateRangeFirst,
+        );
       }
       return;
     }
@@ -127,7 +133,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         if (mounted) {
           showWarningNotification(
             context,
-            'No data to export. Please wait for data to load.',
+            context.flipperL10n.txListNoDataToExport,
           );
         }
         return;
@@ -149,20 +155,22 @@ class TransactionListState extends ConsumerState<TransactionList>
         if (mounted) {
           showWarningNotification(
             context,
-            'Report data is still loading. Please try again in a moment.',
+            context.flipperL10n.txListReportStillLoading,
           );
         }
         return;
       }
 
-      await dataViewKey.currentState!.triggerExport(headerTitle: 'Report');
+      await dataViewKey.currentState!.triggerExport(
+        headerTitle: context.flipperL10n.exportDataSheetReport,
+      );
       print('🔵 EXPORT BUTTON: triggerExport completed');
     } catch (e) {
       print('🔴 EXPORT BUTTON: Error caught: $e');
       if (mounted) {
         showErrorNotification(
           context,
-          'Export failed: ${e.toString()}',
+          context.flipperL10n.txListExportFailed(e.toString()),
           duration: const Duration(seconds: 5),
         );
       }
@@ -191,7 +199,10 @@ class TransactionListState extends ConsumerState<TransactionList>
     } catch (e) {
       // The grid renders its own error state; just surface it once here.
       if (mounted) {
-        showErrorNotification(context, 'Refresh failed: ${e.toString()}');
+        showErrorNotification(
+          context,
+          context.flipperL10n.txListRefreshFailed(e.toString()),
+        );
       }
     } finally {
       if (mounted) setState(() => _isRefreshing = false);
@@ -212,7 +223,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       if (mounted) {
         showErrorNotification(
           context,
-          'Report failed: ${e.toString()}',
+          context.flipperL10n.txListReportFailed(e.toString()),
           duration: const Duration(seconds: 5),
         );
       }
@@ -502,7 +513,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         SizedBox(width: _metrics.tightGap),
         _buildActionButton(
           icon: Icons.file_download_outlined,
-          tooltip: 'Export',
+          tooltip: context.flipperL10n.importPurchasePageExport,
           onTap: () async {
             setState(() => _isExporting = true);
             try {
@@ -528,7 +539,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             Icons.date_range_outlined,
             size: _metrics.isCompact ? 16 : 18,
           ),
-          label: const Text('Change Date'),
+          label: Text(context.flipperL10n.txListChangeDate),
           style: FilledButton.styleFrom(
             backgroundColor: _kReportPrimary,
             foregroundColor: Colors.white,
@@ -551,14 +562,17 @@ class TransactionListState extends ConsumerState<TransactionList>
   List<Widget> _buildReportButtons(DateTime? startDate, DateTime? endDate) {
     void warnNoRange() {
       if (mounted) {
-        showWarningNotification(context, 'Please select a date range first');
+        showWarningNotification(
+          context,
+          context.flipperL10n.txListSelectDateRangeFirst,
+        );
       }
     }
 
     return [
       _buildActionButton(
         icon: Icons.assessment_outlined,
-        tooltip: 'Z Report',
+        tooltip: context.flipperL10n.txListZReport,
         isLoading: _isZReportLoading,
         onTap: () => _runReport(
           setLoading: (v) => setState(() => _isZReportLoading = v),
@@ -578,7 +592,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       const SizedBox(width: 8),
       _buildActionButton(
         icon: Icons.receipt_long_outlined,
-        tooltip: 'X Report',
+        tooltip: context.flipperL10n.txListXReport,
         isLoading: _isXReportLoading,
         onTap: () => _runReport(
           setLoading: (v) => setState(() => _isXReportLoading = v),
@@ -588,7 +602,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       const SizedBox(width: 8),
       _buildActionButton(
         icon: Icons.analytics_outlined,
-        tooltip: 'Sale Report',
+        tooltip: context.flipperL10n.txListSaleReport,
         isLoading: _isSaleReportLoading,
         onTap: () => _runReport(
           setLoading: (v) => setState(() => _isSaleReportLoading = v),
@@ -607,7 +621,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       const SizedBox(width: 8),
       _buildActionButton(
         icon: Icons.list_alt_rounded,
-        tooltip: 'PLU Report',
+        tooltip: context.flipperL10n.txListPluReport,
         isLoading: _isPluReportLoading,
         onTap: () => _runReport(
           setLoading: (v) => setState(() => _isPluReportLoading = v),
@@ -648,7 +662,7 @@ class TransactionListState extends ConsumerState<TransactionList>
               ),
               const SizedBox(width: 12),
               _buildDropdownFilter(
-                label: 'All statuses',
+                label: context.flipperL10n.txListAllStatuses,
                 value: (filters.status == null || filters.status!.isEmpty)
                     ? null
                     : filters.status,
@@ -670,7 +684,7 @@ class TransactionListState extends ConsumerState<TransactionList>
               ),
               const SizedBox(width: 12),
               _buildDropdownFilter(
-                label: 'All types',
+                label: context.flipperL10n.txListAllTypes,
                 value:
                     (filters.transactionType == null ||
                         filters.transactionType!.isEmpty)
@@ -694,7 +708,7 @@ class TransactionListState extends ConsumerState<TransactionList>
               ),
               const SizedBox(width: 12),
               _buildDropdownFilter<TransactionReportPaymentFilter>(
-                label: 'All payments',
+                label: context.flipperL10n.txListAllPayments,
                 value: filters.payment == TransactionReportPaymentFilter.all
                     ? null
                     : filters.payment,
@@ -703,8 +717,8 @@ class TransactionListState extends ConsumerState<TransactionList>
                   TransactionReportPaymentFilter.credit,
                 ],
                 itemLabel: (p) => p == TransactionReportPaymentFilter.byHand
-                    ? 'By hand'
-                    : 'Credit',
+                    ? context.flipperL10n.txListByHand
+                    : context.flipperL10n.credit,
                 onChanged: (v) => ref
                     .read(transactionReportFiltersProvider.notifier)
                     .setPayment(v ?? TransactionReportPaymentFilter.all),
@@ -814,7 +828,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       controller: _searchController,
       style: TextStyle(fontSize: _metrics.isCompact ? 13 : 14),
       decoration: InputDecoration(
-        hintText: 'Search receipt number...',
+        hintText: context.flipperL10n.txListSearchReceipt,
         hintStyle: TextStyle(
           color: Colors.grey[400],
           fontSize: _metrics.isCompact ? 13 : 14,
@@ -978,7 +992,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
-          'CASHIER',
+          context.flipperL10n.txListCashierHeading,
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -997,7 +1011,7 @@ class TransactionListState extends ConsumerState<TransactionList>
               children: [
                 _reportCashierFilterChip(
                   selected: allSelected,
-                  title: 'All',
+                  title: context.flipperL10n.txListAll,
                   initials: 'AL',
                   avatarBg: _kReportPrimary,
                   onTap: () => ref
@@ -1029,7 +1043,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         ),
         const SizedBox(width: 8),
         Tooltip(
-          message: 'Refresh — pull fresh data from mesh peers or the server',
+          message: context.flipperL10n.txListRefreshTooltip,
           child: Material(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
@@ -1061,7 +1075,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Refresh',
+                      context.flipperL10n.refresh,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.grey.shade700,
@@ -1125,17 +1139,25 @@ class TransactionListState extends ConsumerState<TransactionList>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildSwitchOption('Summarized', !showDetailed, () {
-            if (showDetailed) {
-              ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-            }
-          }),
-          _buildSwitchOption('Detailed', showDetailed, () {
-            if (!showDetailed) {
-              ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-              ref.invalidate(transactionItemListProvider);
-            }
-          }),
+          _buildSwitchOption(
+            context.flipperL10n.txListSummarized,
+            !showDetailed,
+            () {
+              if (showDetailed) {
+                ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+              }
+            },
+          ),
+          _buildSwitchOption(
+            context.flipperL10n.txListDetailed,
+            showDetailed,
+            () {
+              if (!showDetailed) {
+                ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+                ref.invalidate(transactionItemListProvider);
+              }
+            },
+          ),
         ],
       ),
     );
@@ -1205,7 +1227,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No transactions found for the selected period.',
+                        context.flipperL10n.txListNoTransactions,
                         style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                       ),
                     ],
@@ -1284,7 +1306,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           ),
           const SizedBox(height: 24),
           Text(
-            'Preparing your reports...',
+            context.flipperL10n.txListPreparingReports,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -1293,7 +1315,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           ),
           const SizedBox(height: 8),
           Text(
-            'This might take a moment depending on your data',
+            context.flipperL10n.txListMightTakeMoment,
             style: TextStyle(fontSize: 13, color: Colors.grey[500]),
           ),
         ],
@@ -1322,7 +1344,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             ),
             const SizedBox(height: 24),
             Text(
-              'Oops! Something went wrong',
+              context.flipperL10n.txListSomethingWentWrong,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -1356,7 +1378,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                 );
               },
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try Again'),
+              label: Text(context.flipperL10n.dashTryAgain),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[700],
                 foregroundColor: Colors.white,

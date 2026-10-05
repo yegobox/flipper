@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,13 +31,12 @@ class UniversalProductDropdown extends StatelessWidget {
               child: DropdownSearch<String>(
                 items: (a, b) => itemClsCdList,
                 compareFn: (String i, String s) => i == s,
-                selectedItem:
-                    itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
+                selectedItem: itemClsCdList.isNotEmpty
+                    ? itemClsCdList.first
+                    : null,
                 decoratorProps: const DropDownDecoratorProps(
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                    ),
+                    border: OutlineInputBorder(borderSide: BorderSide.none),
                     disabledBorder: OutlineInputBorder(
                       borderSide: BorderSide.none,
                     ),
@@ -67,7 +67,8 @@ class UniversalProductDropdown extends StatelessWidget {
             );
           },
           loading: () => const CircularProgressIndicator(),
-          error: (error, stackTrace) => Text('Error: $error'),
+          error: (error, stackTrace) =>
+              Text(context.flipperL10n.errorMessage(error.toString())),
         ) ??
         const SizedBox.shrink();
   }

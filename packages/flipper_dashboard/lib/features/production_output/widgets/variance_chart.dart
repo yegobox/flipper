@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import '../models/production_output_models.dart';
 
@@ -22,7 +23,7 @@ class VarianceChart extends StatelessWidget {
     }
 
     if (dataPoints.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(context);
     }
 
     return Container(
@@ -43,9 +44,9 @@ class VarianceChart extends StatelessWidget {
         children: [
           _buildHeader(context),
           const SizedBox(height: 8),
-          _buildLegend(),
+          _buildLegend(context),
           const SizedBox(height: 16),
-          Expanded(child: _buildChart()),
+          Expanded(child: _buildChart(context)),
         ],
       ),
     );
@@ -57,33 +58,45 @@ class VarianceChart extends StatelessWidget {
         Icon(Icons.bar_chart, color: Color(VarianceColors.neutral), size: 20),
         const SizedBox(width: 8),
         Text(
-          'Planned vs Actual Output',
+          context.flipperL10n.productionOutputChartTitle,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const Spacer(),
         Text(
-          'Last ${dataPoints.length} days',
+          context.flipperL10n.productionOutputLastDays(dataPoints.length),
           style: TextStyle(fontSize: 12, color: Colors.grey[500]),
         ),
       ],
     );
   }
 
-  Widget _buildLegend() {
+  Widget _buildLegend(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Row(
       children: [
-        _LegendItem(color: Color(VarianceColors.neutral), label: 'Planned'),
+        _LegendItem(
+          color: Color(VarianceColors.neutral),
+          label: l10n.productionOutputPlanned,
+        ),
         const SizedBox(width: 16),
-        _LegendItem(color: Color(VarianceColors.positive), label: 'Actual'),
+        _LegendItem(
+          color: Color(VarianceColors.positive),
+          label: l10n.productionOutputActual,
+        ),
         const SizedBox(width: 16),
-        _LegendItem(color: Colors.orange, label: 'Variance %', isDashed: true),
+        _LegendItem(
+          color: Colors.orange,
+          label: l10n.productionOutputVariancePercent,
+          isDashed: true,
+        ),
       ],
     );
   }
 
-  Widget _buildChart() {
+  Widget _buildChart(BuildContext context) {
+    final l10n = context.flipperL10n;
     // Calculate max value for scaling
     double maxValue = 0;
     for (final point in dataPoints) {
@@ -108,6 +121,7 @@ class VarianceChart extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: dataPoints.map((point) {
                 return _buildBarGroup(
+                  l10n: l10n,
                   point: point,
                   maxValue: maxValue,
                   chartHeight: chartHeight,
@@ -149,6 +163,7 @@ class VarianceChart extends StatelessWidget {
   }
 
   Widget _buildBarGroup({
+    required FlipperAppLocalizations l10n,
     required VarianceDataPoint point,
     required double maxValue,
     required double chartHeight,
@@ -199,7 +214,7 @@ class VarianceChart extends StatelessWidget {
           const SizedBox(height: 4),
           // X-axis label
           Text(
-            _formatDayLabel(point.date),
+            _formatDayLabel(l10n, point.date),
             style: TextStyle(fontSize: 10, color: Colors.grey[600]),
           ),
         ],
@@ -217,7 +232,7 @@ class VarianceChart extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -230,7 +245,7 @@ class VarianceChart extends StatelessWidget {
             Icon(Icons.bar_chart, size: 48, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
-              'No data available',
+              context.flipperL10n.productionOutputNoDataAvailable,
               style: TextStyle(fontSize: 16, color: Colors.grey[500]),
             ),
           ],
@@ -239,8 +254,16 @@ class VarianceChart extends StatelessWidget {
     );
   }
 
-  String _formatDayLabel(DateTime date) {
-    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  String _formatDayLabel(FlipperAppLocalizations l10n, DateTime date) {
+    final weekdays = [
+      l10n.productionOutputDayMon,
+      l10n.productionOutputDayTue,
+      l10n.productionOutputDayWed,
+      l10n.productionOutputDayThu,
+      l10n.productionOutputDayFri,
+      l10n.productionOutputDaySat,
+      l10n.productionOutputDaySun,
+    ];
     return weekdays[date.weekday - 1];
   }
 }

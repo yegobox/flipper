@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_people_st
 import 'package:flipper_dashboard/features/hotel_mode/providers/hotel_mode_providers.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,12 +28,13 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
   @override
   Widget build(BuildContext context) {
     final staffAsync = ref.watch(hotelStaffProvider);
+    final l10n = context.flipperL10n;
 
     return ColoredBox(
       color: HotelTokens.bg,
       child: staffAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Could not load staff')),
+        error: (_, __) => Center(child: Text(l10n.barCouldNotLoadStaff)),
         data: (staff) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
           child: Column(
@@ -41,7 +43,7 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
               const HotelDeskBrand(),
               const SizedBox(height: 14),
               Text(
-                'FRONT DESK · SHARED REGISTER',
+                l10n.hotelFrontDeskSharedRegister.toUpperCase(),
                 style: GoogleFonts.outfit(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
@@ -51,7 +53,7 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
               ),
               const SizedBox(height: 3),
               Text(
-                "Who's on the desk?",
+                l10n.hotelWhosOnDesk,
                 style: GoogleFonts.outfit(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -73,8 +75,8 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
                 enabled: _selected != null,
                 title: _selected?.name ?? '—',
                 hint: _selected == null
-                    ? 'Tap your name above, then enter your PIN'
-                    : 'Enter your 6-digit PIN to open the desk',
+                    ? l10n.barLockHintTapAbove
+                    : l10n.hotelLockHintEnterPin,
                 avatarLabel: _selected == null
                     ? null
                     : hotelClerkInitials(_selected!.name),
@@ -108,7 +110,7 @@ class _HotelLockMobileScreenState extends ConsumerState<HotelLockMobileScreen> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      'Hotel mode configured by admin on the main terminal',
+                      l10n.hotelConfiguredByAdmin,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
                         fontSize: 11.5,

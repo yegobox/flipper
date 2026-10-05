@@ -5,6 +5,7 @@ import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/product_field_widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 class ProductDataTable extends ConsumerStatefulWidget {
   final BulkAddProductViewModel model;
@@ -54,6 +55,7 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -64,9 +66,7 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                'Large import: you can edit prices and options for each page '
-                '(${widget.model.rowCount} products). Use the arrows below the '
-                'grid to load the next or previous 20 rows.',
+                l10n.bulkProductLargeImportBanner('${widget.model.rowCount}'),
                 style: TextStyle(fontSize: 13, color: Colors.blueGrey.shade900),
               ),
             ),
@@ -99,40 +99,40 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
                 columns: [
                   GridColumn(
                     columnName: 'BarCode',
-                    label: _headerLabel('BarCode'),
+                    label: _headerLabel(l10n.bulkProductColBarcode),
                   ),
                   GridColumn(
                     columnName: 'Name',
-                    label: _headerLabel('Name'),
+                    label: _headerLabel(l10n.name),
                   ),
                   GridColumn(
                     columnName: 'Category',
-                    label: _headerLabel('Category'),
+                    label: _headerLabel(l10n.category),
                   ),
                   GridColumn(
                     columnName: 'Price',
-                    label: _headerLabel('Price'),
+                    label: _headerLabel(l10n.retailPrice),
                   ),
                   GridColumn(
                     columnName: 'SupplyPrice',
-                    label: _headerLabel('Supply Price'),
+                    label: _headerLabel(l10n.bulkProductColSupplyPrice),
                   ),
                   GridColumn(
                     columnName: 'Quantity',
-                    label: _headerLabel('Quantity'),
+                    label: _headerLabel(l10n.quantity),
                   ),
                   GridColumn(
                     columnName: 'ItemClass',
-                    label: _headerLabel('Item Class'),
+                    label: _headerLabel(l10n.bulkProductColItemClass),
                   ),
                   GridColumn(
                     columnName: 'TaxType',
                     columnWidthMode: ColumnWidthMode.auto,
-                    label: _headerLabel('Tax'),
+                    label: _headerLabel(l10n.bulkProductColTax),
                   ),
                   GridColumn(
                     columnName: 'ProductType',
-                    label: _headerLabel('Type'),
+                    label: _headerLabel(l10n.bulkProductColType),
                   ),
                   GridColumn(
                     columnName: 'Actions',
@@ -161,10 +161,14 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
                           var end = (page + 1) * kBulkLargeEditPageSize;
                           if (end > total) end = total;
                           return Text(
-                            'Page ${page + 1} of ${widget.model.largeImportPageCount}'
-                            ' — editing rows $start–$end of $total '
-                            '(${widget.model.rowsVisibleInGrid.length} '
-                            'on screen)',
+                            l10n.bulkProductPageStatus(
+                              '${page + 1}',
+                              '${widget.model.largeImportPageCount}',
+                              '$start',
+                              '$end',
+                              '$total',
+                              '${widget.model.rowsVisibleInGrid.length}',
+                            ),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -174,15 +178,14 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Previous page',
-                      onPressed:
-                          widget.model.largeImportPageIndex > 0
+                      tooltip: l10n.bulkProductPreviousPage,
+                      onPressed: widget.model.largeImportPageIndex > 0
                           ? widget.model.prevLargeImportPage
                           : null,
                       icon: const Icon(Icons.chevron_left, size: 28),
                     ),
                     IconButton(
-                      tooltip: 'Next page',
+                      tooltip: l10n.bulkProductNextPage,
                       onPressed:
                           widget.model.largeImportPageIndex <
                               widget.model.largeImportPageCount - 1
@@ -193,7 +196,7 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
                   ],
                 )
               : Text(
-                  'Showing ${widget.model.rowCount} rows',
+                  l10n.bulkProductShowingRows('${widget.model.rowCount}'),
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
         ),
@@ -205,10 +208,7 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }
@@ -219,10 +219,7 @@ class ProductDataGridSource extends DataGridSource {
   List<DataGridRow> _rows = [];
   List<Map<String, dynamic>> _visibleRows = [];
 
-  ProductDataGridSource({
-    required this.model,
-    required this.onDeleteRow,
-  }) {
+  ProductDataGridSource({required this.model, required this.onDeleteRow}) {
     _buildRows();
   }
 
@@ -351,7 +348,7 @@ class ProductDataGridSource extends DataGridSource {
         Container(
           alignment: Alignment.center,
           child: IconButton(
-            tooltip: 'Remove row',
+            tooltip: FlipperL10n.current.bulkProductRemoveRow,
             icon: const Icon(FluentIcons.delete_24_regular, size: 20),
             onPressed: () => onDeleteRow(rowIndex),
           ),

@@ -1,6 +1,10 @@
-/// Pure rules behind the Cash Book entry form. No Flutter or model imports so
-/// they stay unit-testable while the dashboard widget tests cannot load.
+/// Pure rules behind the Cash Book entry form. No model imports so they stay
+/// unit-testable while the dashboard widget tests cannot load. Labels come from
+/// [FlipperL10n.current] (English in tests).
 library;
+
+import 'package:intl/intl.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 /// Payment methods offered on the form, stored as `transaction.paymentType`.
 /// Values match `paymentTypes` in flipper_services constants.
@@ -8,8 +12,8 @@ const String cashbookMethodCash = 'CASH';
 const String cashbookMethodMtn = 'MTN MOMO';
 const String cashbookMethodAirtel = 'AIRTEL MONEY';
 
-const List<({String value, String label})> cashbookPaymentMethods = [
-  (value: cashbookMethodCash, label: 'Cash'),
+List<({String value, String label})> get cashbookPaymentMethods => [
+  (value: cashbookMethodCash, label: FlipperL10n.current.cash),
   (value: cashbookMethodMtn, label: 'MTN MoMo'),
   (value: cashbookMethodAirtel, label: 'Airtel Money'),
 ];
@@ -73,26 +77,33 @@ T? findCashbookCategoryByName<T>(
   return null;
 }
 
-/// Starter names offered in the "New category" sheet, per direction.
-const List<String> cashbookIncomeCategorySuggestions = [
-  'Sales',
-  'Owner deposit',
-  'Loan received',
-  'Debt repayment',
-  'Refund',
-  'Commission',
-];
+/// Starter names offered in the "New category" sheet, per direction, in the
+/// app language (they become the category name when picked).
+List<String> get cashbookIncomeCategorySuggestions {
+  final l10n = FlipperL10n.current;
+  return [
+    l10n.cashbookSuggestSales,
+    l10n.cashbookSuggestOwnerDeposit,
+    l10n.cashbookSuggestLoanReceived,
+    l10n.cashbookSuggestDebtRepayment,
+    l10n.cashbookSuggestRefund,
+    l10n.cashbookSuggestCommission,
+  ];
+}
 
-const List<String> cashbookExpenseCategorySuggestions = [
-  'Transport',
-  'Rent',
-  'Salaries',
-  'Utilities',
-  'Supplies',
-  'Airtime',
-  'Food',
-  'Repairs',
-];
+List<String> get cashbookExpenseCategorySuggestions {
+  final l10n = FlipperL10n.current;
+  return [
+    l10n.cashbookSuggestTransport,
+    l10n.cashbookSuggestRent,
+    l10n.cashbookSuggestSalaries,
+    l10n.cashbookSuggestUtilities,
+    l10n.cashbookSuggestSupplies,
+    l10n.cashbookSuggestAirtime,
+    l10n.cashbookSuggestFood,
+    l10n.cashbookSuggestRepairs,
+  ];
+}
 
 /// Suggestions for the "New category" sheet, minus names the branch already
 /// has (case/space-insensitive) so a quick pick always creates something new.
@@ -221,25 +232,39 @@ String cashbookDayLabel(DateTime day, DateTime now) {
     today.month,
     today.day,
   ).difference(DateTime.utc(d.year, d.month, d.day)).inDays;
-  if (diff == 0) return 'Today';
-  if (diff == 1) return 'Yesterday';
-  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  final base = '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
-  return d.year == today.year ? base : '$base, ${d.year}';
+  final l10n = FlipperL10n.current;
+  if (diff == 0) return l10n.cashbookToday;
+  if (diff == 1) return l10n.cashbookYesterday;
+  // Localized names come from intl's date symbols (loaded by the app's
+  // localizations delegates). intl has no Kinyarwanda, and the symbols are not
+  // loaded in plain unit tests, so fall back to English names there.
+  try {
+    final locale = DateFormat.localeExists(l10n.localeName)
+        ? l10n.localeName
+        : 'en';
+    return DateFormat(
+      d.year == today.year ? 'EEE, MMM d' : 'EEE, MMM d, y',
+      locale,
+    ).format(d);
+  } catch (_) {
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final base = '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
+    return d.year == today.year ? base : '$base, ${d.year}';
+  }
 }
 
 /// Groups items by calendar day, newest day first, keeping each day's order.

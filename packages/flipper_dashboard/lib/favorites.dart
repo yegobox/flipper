@@ -1,4 +1,5 @@
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -67,24 +68,33 @@ class _FavoritesState extends State<Favorites> {
                                 ),
                               ),
                               SizedBox(height: 10),
-                              Text("Arrange your favorites",
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                              SizedBox(height: 10),
-                              Wrap(children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 15),
-                                  child: Text(
-                                    widget.hasBeenPressed
-                                        ? 'Press "Done" when you are finished'
-                                        : "Press and hold anywhere in the grid to begin setting items",
-                                    style: TextStyle(fontSize: 16),
-                                  ),
+                              Text(
+                                context.flipperL10n.favoritesArrange,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ]),
+                              ),
+                              SizedBox(height: 10),
+                              Wrap(
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 15,
+                                    ),
+                                    child: Text(
+                                      widget.hasBeenPressed
+                                          ? context
+                                                .flipperL10n
+                                                .favoritesPressDone
+                                          : context
+                                                .flipperL10n
+                                                .favoritesPressAndHold,
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               SizedBox(height: 8),
                             ],
                           ),
@@ -100,36 +110,53 @@ class _FavoritesState extends State<Favorites> {
                         return Row(
                           children: [
                             Expanded(
-                                child: AnimatedRowItem(
-                              item: _buildItem(
-                                  context, (index.toString()), model),
-                            )),
+                              child: AnimatedRowItem(
+                                item: _buildItem(
+                                  context,
+                                  (index.toString()),
+                                  model,
+                                ),
+                              ),
+                            ),
                             Expanded(
-                                child: AnimatedRowItem(
-                                    item: _buildItem(context,
-                                        ((index + 1).toString()), model))),
+                              child: AnimatedRowItem(
+                                item: _buildItem(
+                                  context,
+                                  ((index + 1).toString()),
+                                  model,
+                                ),
+                              ),
+                            ),
                           ],
                         );
                       } else {
                         return Row(
                           children: [
                             Expanded(
-                                child: AnimatedRowItem(
-                                    item: _buildItem(context,
-                                        ((index - 2).toString()), model))),
+                              child: AnimatedRowItem(
+                                item: _buildItem(
+                                  context,
+                                  ((index - 2).toString()),
+                                  model,
+                                ),
+                              ),
+                            ),
                             Expanded(
-                                child: AnimatedRowItem(
-                                    item: _buildItem(context,
-                                        ((index - 1).toString()), model))),
+                              child: AnimatedRowItem(
+                                item: _buildItem(
+                                  context,
+                                  ((index - 1).toString()),
+                                  model,
+                                ),
+                              ),
+                            ),
                           ],
                         );
                       }
                     }
                   }
                   // Return an empty container for odd indices to keep the layout
-                  return AnimatedContainer(
-                    duration: Duration(microseconds: 1),
-                  );
+                  return AnimatedContainer(duration: Duration(microseconds: 1));
                 },
               ),
               widget.hasBeenPressed
@@ -142,11 +169,15 @@ class _FavoritesState extends State<Favorites> {
                           width: double.infinity,
                           child: OutlinedButton(
                             child: MediaQuery(
-                              data: MediaQuery.of(context)
-                                  .copyWith(textScaler: TextScaler.linear(1.0)),
-                              child: Text('Done',
-                                  style: primaryTextStyle.copyWith(
-                                      color: Colors.white)),
+                              data: MediaQuery.of(
+                                context,
+                              ).copyWith(textScaler: TextScaler.linear(1.0)),
+                              child: Text(
+                                context.flipperL10n.done,
+                                style: primaryTextStyle.copyWith(
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                             style: primaryButtonStyle.copyWith(
                               shape: WidgetStateProperty.all(
@@ -172,7 +203,7 @@ class _FavoritesState extends State<Favorites> {
     );
   }
 
-//Function to transform color from hex string to Color
+  //Function to transform color from hex string to Color
   Color getColorFromHex(String hexColor) {
     hexColor = hexColor.replaceAll("#", "");
     if (hexColor.length == 6) {
@@ -181,7 +212,7 @@ class _FavoritesState extends State<Favorites> {
     return Color(int.parse(hexColor, radix: 16));
   }
 
-//Function to build an empty grid item
+  //Function to build an empty grid item
   Widget _favoriteEmpty(String favIndex) {
     return GestureDetector(
       onLongPress: () {
@@ -196,8 +227,12 @@ class _FavoritesState extends State<Favorites> {
           // Launch the page where the item will be added to favorites.
           // It contains a modified ProductView widget.
           final _routerService = locator<RouterService>();
-          _routerService.navigateTo(AddToFavoritesRoute(
-              favoriteIndex: favIndex, existingFavs: favoriteProdIds));
+          _routerService.navigateTo(
+            AddToFavoritesRoute(
+              favoriteIndex: favIndex,
+              existingFavs: favoriteProdIds,
+            ),
+          );
         }
       },
       child: Container(
@@ -212,16 +247,19 @@ class _FavoritesState extends State<Favorites> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (widget.hasBeenPressed)
-              Icon(FluentIcons.add_20_regular, color: Colors.blue[400])
+              Icon(FluentIcons.add_20_regular, color: Colors.blue[400]),
           ],
         ),
       ),
     );
   }
 
-//Function to build a populated grid item
+  //Function to build a populated grid item
   Widget _favoritePopulated(
-      String favIndex, Product favProd, FavoriteViewModel model) {
+    String favIndex,
+    Product favProd,
+    FavoriteViewModel model,
+  ) {
     if (!favoriteProdIds.contains(favProd.id)) {
       favoriteProdIds.add(favProd.id);
     }
@@ -236,8 +274,12 @@ class _FavoritesState extends State<Favorites> {
       onTap: () {
         if (widget.hasBeenPressed) {
           final _routerService = locator<RouterService>();
-          _routerService.navigateTo(AddToFavoritesRoute(
-              favoriteIndex: favIndex, existingFavs: favoriteProdIds));
+          _routerService.navigateTo(
+            AddToFavoritesRoute(
+              favoriteIndex: favIndex,
+              existingFavs: favoriteProdIds,
+            ),
+          );
         } else {
           final _routerService = locator<RouterService>();
           _routerService.navigateTo(SellRoute(product: favProd));
@@ -269,10 +311,12 @@ class _FavoritesState extends State<Favorites> {
                     favProd.imageUrl != null && !favProd.imageUrl!.isEmpty
                         ? ''
                         : favProd.name.length > 1
-                            ? favProd.name.substring(0, 2)
-                            : favProd.name.toUpperCase(),
-                    style:
-                        GoogleFonts.outfit(fontSize: 36, color: Colors.white),
+                        ? favProd.name.substring(0, 2)
+                        : favProd.name.toUpperCase(),
+                    style: GoogleFonts.outfit(
+                      fontSize: 36,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 if (widget.hasBeenPressed)
@@ -293,31 +337,29 @@ class _FavoritesState extends State<Favorites> {
                           color: Colors.blue[400],
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 16,
-                        ),
+                        child: Icon(Icons.close, color: Colors.white, size: 16),
                       ),
                     ),
                   ),
               ],
             ),
           ),
-          Center(
-            child: Text(favProd.name),
-          ),
+          Center(child: Text(favProd.name)),
         ],
       ),
     );
   }
 
   Widget _buildItemContent(
-      BuildContext context, String adjustedIndex, FavoriteViewModel model) {
+    BuildContext context,
+    String adjustedIndex,
+    FavoriteViewModel model,
+  ) {
     return StreamBuilder<Favorite?>(
       initialData: null,
-      stream: ProxyService.strategy
-          .getFavoriteByIndexStream(favIndex: adjustedIndex),
+      stream: ProxyService.strategy.getFavoriteByIndexStream(
+        favIndex: adjustedIndex,
+      ),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _favoriteEmpty(adjustedIndex);
@@ -329,7 +371,9 @@ class _FavoritesState extends State<Favorites> {
             stream: ProxyService.strategy.productStreams(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                return Text(
+                  context.flipperL10n.errorMessage('${snapshot.error}'),
+                );
               } else if (snapshot.hasData) {
                 Product favProduct = snapshot.data!.first;
                 return _favoritePopulated(adjustedIndex, favProduct, model);
@@ -345,7 +389,10 @@ class _FavoritesState extends State<Favorites> {
 
   // Builds an item widget with the given label and favorite status
   Widget _buildItem(
-      BuildContext context, String favIndex, FavoriteViewModel model) {
+    BuildContext context,
+    String favIndex,
+    FavoriteViewModel model,
+  ) {
     // Calculate the adjusted index based on the hasBeenPressed state
     String adjustedIndex = favIndex;
 

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_interac
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_desk_nav.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_card.dart';
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_shared_widgets.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
@@ -47,6 +48,7 @@ class _DesktopHeader extends ConsumerWidget {
       hotelModeProvider.select((state) => state.activeClerk),
     );
     final counts = ref.watch(hotelOccupancyProvider);
+    final l10n = context.flipperL10n;
 
     return Container(
       height: 76,
@@ -80,7 +82,7 @@ class _DesktopHeader extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Front Desk',
+                      l10n.hotelFrontDeskTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.outfit(
@@ -92,8 +94,9 @@ class _DesktopHeader extends ConsumerWidget {
                     ),
                     if (showSubtitle)
                       Text(
-                        '${counts.occupied}/${counts.total} occupied · '
-                        'tap a room to check in or open its folio',
+                        l10n.hotelBoardSubtitle(
+                          '${counts.occupied}/${counts.total}',
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
@@ -110,21 +113,21 @@ class _DesktopHeader extends ConsumerWidget {
               const Spacer(),
               if (showStats) ...[
                 HotelStatChip(
-                  label: 'Vacant',
+                  label: l10n.hotelStateVacant,
                   value: counts.vacant,
                   ink: HotelTokens.vacantInk,
                   tint: HotelTokens.vacantTint,
                 ),
                 const SizedBox(width: 8),
                 HotelStatChip(
-                  label: 'Occupied',
+                  label: l10n.hotelStateOccupied,
                   value: counts.occupied,
                   ink: HotelTokens.occupiedInk,
                   tint: HotelTokens.occupiedTint,
                 ),
                 const SizedBox(width: 8),
                 HotelStatChip(
-                  label: 'Cleaning',
+                  label: l10n.hotelStateCleaning,
                   value: counts.dirty,
                   ink: HotelTokens.dirtyInk,
                   tint: HotelTokens.dirtyTint,
@@ -133,8 +136,8 @@ class _DesktopHeader extends ConsumerWidget {
               if (clerk != null && showClerk) ...[
                 const SizedBox(width: 18),
                 HotelClerkChip(
-                  name: clerk.name ?? 'Front desk',
-                  role: '${clerk.type ?? 'Reception'} · on duty',
+                  name: clerk.name ?? l10n.serviceModeFrontDesk,
+                  role: l10n.hotelRoleOnDuty(clerk.type ?? l10n.hotelReception),
                   color: HotelTokens.occupiedInk,
                 ),
               ],
@@ -142,16 +145,15 @@ class _DesktopHeader extends ConsumerWidget {
                 const SizedBox(width: 12),
                 _outlineButton(
                   icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  onTap: () => locator<RouterService>().navigateTo(
-                    AdminControlRoute(),
-                  ),
+                  label: l10n.hotelSettings,
+                  onTap: () =>
+                      locator<RouterService>().navigateTo(AdminControlRoute()),
                 ),
               ],
               const SizedBox(width: 12),
               _outlineButton(
                 icon: Icons.logout,
-                label: 'Hand over',
+                label: l10n.hotelHandOver,
                 borderColor: HotelTokens.dangerBorder,
                 foreground: HotelTokens.lossInk,
                 onTap: () => ref.read(hotelModeProvider.notifier).logout(),
@@ -244,7 +246,6 @@ class _DesktopFloorBar extends ConsumerWidget {
       ),
     );
   }
-
 }
 
 /// The cards themselves, grouped by floor.
@@ -277,7 +278,7 @@ class _DesktopBoard extends ConsumerWidget {
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Text(
-        'Could not load the board.\n$error',
+        FlipperL10n.current.hotelCouldNotLoadBoard('$error'),
         textAlign: TextAlign.center,
         style: GoogleFonts.outfit(
           fontSize: 13.5,
@@ -293,7 +294,7 @@ class _DesktopBoard extends ConsumerWidget {
     if (grouped.isEmpty) {
       return Center(
         child: Text(
-          'No rooms on this branch yet.',
+          context.flipperL10n.hotelNoRoomsYet,
           style: GoogleFonts.outfit(
             fontSize: 14.5,
             fontWeight: FontWeight.w600,
@@ -384,7 +385,9 @@ class _DesktopBoard extends ConsumerWidget {
           Expanded(child: Container(height: 1, color: HotelTokens.line)),
           const SizedBox(width: 12),
           Text(
-            '$occupied/${rooms.length} occupied',
+            FlipperL10n.current.hotelOccupiedFraction(
+              '$occupied/${rooms.length}',
+            ),
             style: GoogleFonts.jetBrainsMono(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,

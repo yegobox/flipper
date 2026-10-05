@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/utils/branch_transfer_stock.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -56,7 +57,10 @@ mixin StockRequestApprovalLogic {
 
       if (items.isEmpty) {
         loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
-        _showSnackBar(message: 'No items found in request', context: context);
+        _showSnackBar(
+          message: context.flipperL10n.stockApprovalNoItems,
+          context: context,
+        );
         return false;
       }
 
@@ -115,7 +119,7 @@ mixin StockRequestApprovalLogic {
           !_atLeastOneItemApproved(approvedItems) &&
           !_atLeastOneItemApproved(items)) {
         _showSnackBar(
-          message: 'At least one item must be approved',
+          message: context.flipperL10n.stockApprovalAtLeastOne,
           context: context,
           isError: true,
         );
@@ -143,7 +147,7 @@ mixin StockRequestApprovalLogic {
       _dismissLoadingIfShown(context, loadingVisible);
       if (context.mounted) {
         _showSnackBar(
-          message: 'An error occurred while processing the request',
+          message: context.flipperL10n.stockApprovalProcessError,
           context: context,
           isError: true,
         );
@@ -171,7 +175,7 @@ mixin StockRequestApprovalLogic {
       if (context.mounted) {
         Navigator.of(context).pop();
         _showSnackBar(
-          message: 'Quantity updated successfully',
+          message: context.flipperL10n.stockApprovalQuantityUpdated,
           context: context,
         );
       }
@@ -180,7 +184,7 @@ mixin StockRequestApprovalLogic {
       if (context.mounted) {
         Navigator.of(context).pop();
         _showSnackBar(
-          message: 'Failed to update quantity',
+          message: context.flipperL10n.stockApprovalQuantityUpdateFailed,
           context: context,
           isError: true,
         );
@@ -200,16 +204,16 @@ mixin StockRequestApprovalLogic {
       loadingVisible = true;
 
       // Resolve once and reuse for the eligibility check and the approval.
-      final Variant? variant = await _capella.getVariant(
-        id: item.variantId!,
-      );
+      final Variant? variant = await _capella.getVariant(id: item.variantId!);
 
       final canApprove = await _canApproveItem(item: item, variant: variant);
       if (!canApprove) {
         loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         if (context.mounted) {
           _showSnackBar(
-            message: 'Insufficient stock for ${item.name}',
+            message: context.flipperL10n.stockApprovalInsufficientFor(
+              item.name,
+            ),
             context: context,
             isError: true,
           );
@@ -221,7 +225,9 @@ mixin StockRequestApprovalLogic {
         loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
         if (context.mounted) {
           _showSnackBar(
-            message: 'Variant not found for ${item.name}',
+            message: context.flipperL10n.stockApprovalVariantNotFoundFor(
+              item.name,
+            ),
             context: context,
             isError: true,
           );
@@ -238,7 +244,11 @@ mixin StockRequestApprovalLogic {
         if (approvedQuantity > availableStock) {
           approvedQuantity = availableStock.toInt();
           if (context.mounted) {
-            toast('Quantity adjusted to available stock: $approvedQuantity');
+            toast(
+              context.flipperL10n.stockApprovalAdjustedToAvailable(
+                approvedQuantity.toString(),
+              ),
+            );
           }
         }
       } else {
@@ -275,7 +285,7 @@ mixin StockRequestApprovalLogic {
       loadingVisible = _dismissLoadingIfShown(context, loadingVisible);
       if (context.mounted) {
         _showSnackBar(
-          message: '${item.name} has been approved',
+          message: context.flipperL10n.stockApprovalItemApproved(item.name),
           context: context,
         );
       }
@@ -284,7 +294,7 @@ mixin StockRequestApprovalLogic {
       _dismissLoadingIfShown(context, loadingVisible);
       if (context.mounted) {
         _showSnackBar(
-          message: 'An error occurred while approving the item',
+          message: context.flipperL10n.stockApprovalItemError,
           context: context,
           isError: true,
         );
@@ -303,9 +313,8 @@ mixin StockRequestApprovalLogic {
     required TransactionItem item,
     Variant? variant,
   }) async {
-    final Variant? v = variant ?? await _capella.getVariant(
-      id: item.variantId!,
-    );
+    final Variant? v =
+        variant ?? await _capella.getVariant(id: item.variantId!);
 
     final availableStock = v?.stock?.currentStock;
     if (v == null ||
@@ -376,9 +385,8 @@ mixin StockRequestApprovalLogic {
     Variant? variant,
   }) async {
     try {
-      final Variant? v = variant ?? await _capella.getVariant(
-        id: item.variantId!,
-      );
+      final Variant? v =
+          variant ?? await _capella.getVariant(id: item.variantId!);
       if (v == null) {
         throw Exception('Variant not found');
       }
@@ -437,7 +445,7 @@ mixin StockRequestApprovalLogic {
 
     if (!partialApprovalResult) {
       _showSnackBar(
-        message: 'Approval cancelled',
+        message: context.flipperL10n.stockApprovalCancelled,
         context: context,
         isError: true,
       );
@@ -500,8 +508,13 @@ mixin StockRequestApprovalLogic {
           if (phone != null && phone.isNotEmpty) {
             await SmsNotificationService.sendOrderRequestNotification(
               receiverBranchId: requesterBranchId,
-              orderDetails:
-                  'Your stock request #${request.id.substring(0, 5)} has been ${isFullyApproved ? 'approved' : 'partially approved'}.',
+              orderDetails: isFullyApproved
+                  ? FlipperL10n.current.stockApprovalSmsApproved(
+                      request.id.substring(0, 5),
+                    )
+                  : FlipperL10n.current.stockApprovalSmsPartiallyApproved(
+                      request.id.substring(0, 5),
+                    ),
               requesterPhone: phone,
             );
           }
@@ -528,8 +541,9 @@ mixin StockRequestApprovalLogic {
 
       if (!suppressCompletionSnackbars && context.mounted) {
         _showSnackBar(
-          message:
-              'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
+          message: isFullyApproved
+              ? context.flipperL10n.stockApprovalRequestApproved
+              : context.flipperL10n.stockApprovalRequestPartiallyApproved,
           context: context,
         );
       }
@@ -537,7 +551,7 @@ mixin StockRequestApprovalLogic {
       talker.error('Error in finalizeApproval', e, s);
       if (context.mounted) {
         _showSnackBar(
-          message: 'Failed to finalize approval',
+          message: context.flipperL10n.stockApprovalFinalizeFailed,
           context: context,
           isError: true,
         );
@@ -572,7 +586,7 @@ mixin StockRequestApprovalLogic {
               const CircularProgressIndicator(),
               const SizedBox(height: 20),
               Text(
-                'Processing Request...',
+                context.flipperL10n.stockApprovalProcessing,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
@@ -599,7 +613,7 @@ mixin StockRequestApprovalLogic {
             Icon(Icons.warning_amber_rounded, color: Colors.amber),
             SizedBox(width: 8),
             Text(
-              'Partial Approval',
+              context.flipperL10n.stockApprovalPartialTitle,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -610,7 +624,7 @@ mixin StockRequestApprovalLogic {
         ),
         actions: [
           TextButton(
-            child: Text('Cancel'),
+            child: Text(context.flipperL10n.cancel),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           FilledButton(
@@ -628,7 +642,7 @@ mixin StockRequestApprovalLogic {
               outLines: outLines,
             ),
             child: Text(
-              'Approve',
+              context.flipperL10n.stockApprovalApprove,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -651,7 +665,7 @@ mixin StockRequestApprovalLogic {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Some items have insufficient stock. Please adjust the approved quantities:',
+            FlipperL10n.current.stockApprovalInsufficientHint,
             style: TextStyle(fontSize: 16),
           ),
           SizedBox(height: 20),
@@ -667,10 +681,12 @@ mixin StockRequestApprovalLogic {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return CircularProgressIndicator(); // Or some loading indicator
                     } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}'); // Handle error
+                      return Text(
+                        FlipperL10n.current.errorMessage('${snapshot.error}'),
+                      ); // Handle error
                     } else if (!snapshot.hasData || snapshot.data == null) {
                       return Text(
-                        'Variant not found',
+                        FlipperL10n.current.stockApprovalVariantNotFound,
                       ); // Handle variant not found
                     } else {
                       final Variant variant = snapshot.data!;
@@ -733,7 +749,7 @@ mixin StockRequestApprovalLogic {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                labelText: 'Approve Quantity',
+                labelText: FlipperL10n.current.stockApprovalApproveQuantity,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -765,19 +781,19 @@ mixin StockRequestApprovalLogic {
     return Row(
       children: [
         _buildInfoChip(
-          label: 'Requested',
+          label: FlipperL10n.current.stockApprovalRequested,
           value: requested.toString(),
           color: Colors.blue.shade100,
         ),
         SizedBox(width: 8),
         _buildInfoChip(
-          label: 'Approved',
+          label: FlipperL10n.current.approved,
           value: approved.toString(),
           color: Colors.green.shade100,
         ),
         SizedBox(width: 8),
         _buildInfoChip(
-          label: 'Available',
+          label: FlipperL10n.current.stockApprovalAvailable,
           value: available.toString(),
           color: Colors.orange.shade100,
         ),
@@ -796,7 +812,10 @@ mixin StockRequestApprovalLogic {
         color: color,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text('$label: $value', style: TextStyle(fontSize: 12)),
+      child: Text(
+        FlipperL10n.current.stockApprovalChipValue(label, value),
+        style: TextStyle(fontSize: 12),
+      ),
     );
   }
 
@@ -828,7 +847,7 @@ mixin StockRequestApprovalLogic {
   }) async {
     try {
       if (!approvedQuantities.any((qty) => qty != null && qty > 0)) {
-        toast('Please approve at least one item');
+        toast(context.flipperL10n.stockApprovalPleaseApproveOne);
         return;
       }
 
@@ -858,7 +877,7 @@ mixin StockRequestApprovalLogic {
       if (context.mounted) {
         Navigator.of(context).pop(); // Dismiss loading dialog
         _showSnackBar(
-          message: 'Failed to process approval',
+          message: context.flipperL10n.stockApprovalProcessFailed,
           context: context,
           isError: true,
         );
@@ -875,9 +894,8 @@ mixin StockRequestApprovalLogic {
     Variant? requestedVariant,
   }) async {
     try {
-      final Variant? reqVariant = requestedVariant ?? await _capella.getVariant(
-        id: item.variantId!,
-      );
+      final Variant? reqVariant =
+          requestedVariant ?? await _capella.getVariant(id: item.variantId!);
 
       if (reqVariant == null) {
         talker.error('Variant not found for ID: ${item.variantId!}');
@@ -922,12 +940,8 @@ mixin StockRequestApprovalLogic {
 
       // Post-mutation reads: must reflect the stock deduction above, so these
       // are intentionally fresh (not reused from the resolved variant).
-      final sourceVariant = await _capella.getVariant(
-        id: reqVariant.id,
-      );
-      final destFresh = await _capella.getVariant(
-        id: destVariant.id,
-      );
+      final sourceVariant = await _capella.getVariant(id: reqVariant.id);
+      final destFresh = await _capella.getVariant(id: destVariant.id);
       if (sourceVariant == null || destFresh == null) return null;
 
       return BranchTransferApprovedLine(
@@ -969,11 +983,10 @@ mixin StockRequestApprovalLogic {
     final bool destVatEnabled = destEbm?.vatEnabled ?? false;
 
     // Check if this variant has already been ordered by this branch
-    VariantBranch? existingVariantBranch = await _capella
-        .variantBranch(
-          variantId: variant.id,
-          destinationBranchId: request.subBranchId!,
-        );
+    VariantBranch? existingVariantBranch = await _capella.variantBranch(
+      variantId: variant.id,
+      destinationBranchId: request.subBranchId!,
+    );
 
     if (existingVariantBranch != null) {
       // Variant already exists for this branch, use the existing one
@@ -1053,9 +1066,7 @@ mixin StockRequestApprovalLogic {
     // same on-hand.
     detachInheritedStockLink(newVariant);
 
-    final createdVariant = await _capella.create<Variant>(
-      data: newVariant,
-    );
+    final createdVariant = await _capella.create<Variant>(data: newVariant);
     if (createdVariant == null) {
       throw Exception('Failed to create new variant');
     }
@@ -1107,12 +1118,9 @@ mixin StockRequestApprovalLogic {
     Variant? variant,
   }) async {
     try {
-      final Variant? v = variant ?? await _capella.getVariant(
-        id: variantId,
-      );
+      final Variant? v = variant ?? await _capella.getVariant(id: variantId);
 
-      if (v?.stock == null ||
-          v!.stock!.branchId.trim().isEmpty) {
+      if (v?.stock == null || v!.stock!.branchId.trim().isEmpty) {
         talker.error('Stock not found for variant: $variantId');
         throw Exception('Stock not found');
       }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/transaction_item_adder_persist.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/cached_pending_cart_transaction_provider.dart';
 import 'package:flipper_models/providers/optimistic_cart_provider.dart';
@@ -15,7 +16,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Grid / scanner: tap → instant cart ([posCartDisplayItemsProvider]), Ditto in background.
-final posCartAddServiceProvider = Provider<PosCartAddService>(PosCartAddService.new);
+final posCartAddServiceProvider = Provider<PosCartAddService>(
+  PosCartAddService.new,
+);
 
 class PosCartAddService {
   PosCartAddService(this.ref);
@@ -38,7 +41,7 @@ class PosCartAddService {
     if (!ref.read(canSellProvider)) {
       showErrorNotification(
         context,
-        'View-only access — you cannot add items to a sale.',
+        context.flipperL10n.posCartViewOnlyCannotAdd,
       );
       return;
     }
@@ -51,8 +54,10 @@ class PosCartAddService {
 
     final isExpense = isOrdering;
     // Cache is warmed when checkout opens; avoid sync work on every grid tap.
-    final resolvedTxnId =
-        readPosCartTransactionIdFast(ref, isExpense: isExpense);
+    final resolvedTxnId = readPosCartTransactionIdFast(
+      ref,
+      isExpense: isExpense,
+    );
 
     final cartOptimismApplied = !isOrdering;
     if (cartOptimismApplied) {
@@ -112,9 +117,7 @@ class PosCartAddService {
     required bool cartOptimismApplied,
   }) async {
     if (!ref.mounted) return;
-    final pendingProv = pendingTransactionStreamProvider(
-      isExpense: isOrdering,
-    );
+    final pendingProv = pendingTransactionStreamProvider(isExpense: isOrdering);
     final sessionAtStart = ref.read(pendingCartSaleSessionProvider);
 
     try {
@@ -134,7 +137,10 @@ class PosCartAddService {
           }
         }
         if (context.mounted) {
-          showErrorNotification(context, 'No active sale cart. Try again.');
+          showErrorNotification(
+            context,
+            context.flipperL10n.posCartNoActiveCart,
+          );
         }
         return;
       }
@@ -180,9 +186,7 @@ class PosCartAddService {
     } finally {
       if (ref.mounted) {
         if (cartOptimismApplied) {
-          ref
-              .read(optimisticCartProvider.notifier)
-              .noteAddSettled(variant.id);
+          ref.read(optimisticCartProvider.notifier).noteAddSettled(variant.id);
         }
       }
     }

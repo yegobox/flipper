@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.da
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 
 void main() {
   group('barStaffDeleteAllowed', () {
@@ -60,9 +61,10 @@ void main() {
   testWidgets('BarDeleteButton shows spinner while loading', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(
-          body: BarDeleteButton(onPressed: null, isLoading: true),
-        ),
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
+        home: Scaffold(body: BarDeleteButton(onPressed: null, isLoading: true)),
       ),
     );
 
@@ -73,6 +75,9 @@ void main() {
   testWidgets('BarDeleteButton shows trash icon when idle', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+
         home: Scaffold(
           body: BarDeleteButton(onPressed: () {}, isLoading: false),
         ),

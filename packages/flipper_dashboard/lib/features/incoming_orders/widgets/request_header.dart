@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -19,10 +20,10 @@ class RequestHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fromName = request.branch?.name ?? 'Unknown';
-    final lineCount = request.transactionItems?.length ??
-        request.itemCounts?.toInt() ??
-        0;
+    final l10n = context.flipperL10n;
+    final fromName = request.branch?.name ?? l10n.incomingOrdersUnknown;
+    final lineCount =
+        request.transactionItems?.length ?? request.itemCounts?.toInt() ?? 0;
     final items = request.transactionItems ?? const <TransactionItem>[];
     final isOutgoingPending =
         !isIncoming && request.status == RequestStatus.pending;
@@ -53,9 +54,9 @@ class RequestHeader extends StatelessWidget {
                 letterSpacing: -0.01 * 16,
               ),
               children: [
-                TextSpan(text: 'Request From $fromName '),
+                TextSpan(text: '${l10n.incomingOrdersRequestFrom(fromName)} '),
                 TextSpan(
-                  text: '($lineCount item${lineCount == 1 ? '' : 's'})',
+                  text: l10n.incomingOrdersLineCount(lineCount),
                   style: OmTokens.text(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -102,9 +103,10 @@ class _QtyPill extends StatelessWidget {
       0,
       (sum, item) => sum + (item.quantityApproved ?? 0),
     );
+    final l10n = context.flipperL10n;
     final label = showRatio
-        ? '$approved/$requested Item${requested == 1 ? '' : 's'}'
-        : '$requested Item${requested == 1 ? '' : 's'}';
+        ? l10n.incomingOrdersQtyRatio(requested, '$approved')
+        : l10n.incomingOrdersQtyItems(requested);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),

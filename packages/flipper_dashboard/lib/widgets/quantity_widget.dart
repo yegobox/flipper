@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,9 +13,7 @@ Widget quantityWidget({
       padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
       child: Column(
         children: [
-          Divider(
-            color: Colors.grey.shade300,
-          ),
+          Divider(color: Colors.grey.shade300),
           Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -22,7 +21,7 @@ Widget quantityWidget({
               Expanded(
                 flex: 1,
                 child: Text(
-                  'QUANTITY',
+                  context.flipperL10n.quantity.toUpperCase(),
                   style: GoogleFonts.outfit(
                     textStyle: TextStyle(
                       fontWeight: FontWeight.w900,
@@ -49,8 +48,9 @@ Widget quantityWidget({
                         ),
                         onPressed: () {
                           model.decreaseQty((quantity) {
-                            quantityController.text =
-                                model.quantity!.toInt().toString();
+                            quantityController.text = model.quantity!
+                                .toInt()
+                                .toString();
                           });
                         },
                       )
@@ -62,76 +62,68 @@ Widget quantityWidget({
                         ),
                         onPressed: () {
                           model.decreaseQty((quantity) {
-                            quantityController.text =
-                                model.quantity!.toInt().toString();
+                            quantityController.text = model.quantity!
+                                .toInt()
+                                .toString();
                           });
                         },
                       ),
               ),
-              Container(
-                width: 1,
-                height: 50,
-                color: Colors.grey.shade300,
-              ),
+              Container(width: 1, height: 50, color: Colors.grey.shade300),
               Expanded(
-                  flex: 2,
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 50, right: 50),
-                    child: TextFormField(
-                      controller: quantityController,
-                      onChanged: (quantity) {
-                        if (quantity.isNotEmpty) {
-                          model.customQtyIncrease(double.parse(quantity));
-                        }
-                      },
-                      decoration: InputDecoration(
-                        // Set the underline color for both unfocused and focused states
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Colors.grey.shade400), // Change this color
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Colors.grey.shade400), // Change this color
-                        ),
+                flex: 2,
+                child: Container(
+                  margin: const EdgeInsets.only(left: 50, right: 50),
+                  child: TextFormField(
+                    controller: quantityController,
+                    onChanged: (quantity) {
+                      if (quantity.isNotEmpty) {
+                        model.customQtyIncrease(double.parse(quantity));
+                      }
+                    },
+                    decoration: InputDecoration(
+                      // Set the underline color for both unfocused and focused states
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                        ), // Change this color
                       ),
-                      style: TextStyle(
-                        color: Theme.of(context)
-                            .copyWith(canvasColor: Colors.grey.shade900)
-                            .canvasColor,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade400,
+                        ), // Change this color
                       ),
-                      key: Key(model.quantity.toInt().toString()),
-                      textAlign: TextAlign.center,
-                      cursorColor: Theme.of(context)
-                          .copyWith(canvasColor: const Color(0x3B000000))
-                          .canvasColor,
                     ),
-                  )),
-              Container(
-                width: 1,
-                height: 50,
-                color: Colors.grey.shade300,
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.add,
-                  color: Color(0xC9000000),
-                  size: 25,
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).copyWith(canvasColor: Colors.grey.shade900).canvasColor,
+                    ),
+                    key: Key(model.quantity.toInt().toString()),
+                    textAlign: TextAlign.center,
+                    cursorColor: Theme.of(context)
+                        .copyWith(canvasColor: const Color(0x3B000000))
+                        .canvasColor,
+                  ),
                 ),
+              ),
+              Container(width: 1, height: 50, color: Colors.grey.shade300),
+              IconButton(
+                icon: const Icon(Icons.add, color: Color(0xC9000000), size: 25),
                 onPressed: () {
                   model.increaseQty(
-                      callback: (quantity) {
-                        quantityController.text =
-                            model.quantity!.toInt().toString();
-                      },
-                      custom: false);
+                    callback: (quantity) {
+                      quantityController.text = model.quantity!
+                          .toInt()
+                          .toString();
+                    },
+                    custom: false,
+                  );
                 },
               ),
             ],
           ),
-          Divider(
-            color: Colors.grey.shade300,
-          ),
+          Divider(color: Colors.grey.shade300),
         ],
       ),
     ),

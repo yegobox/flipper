@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/hotel_mode/theme/hotel_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/hotel_room.dart';
 import 'package:flipper_models/sync/utils/hotel_mode_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -121,22 +122,25 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
   );
 
   void _submit() {
+    final l10n = context.flipperL10n;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      setState(() => _nameError = 'Guest name is required');
+      setState(() => _nameError = l10n.hotelGuestNameRequired);
       return;
     }
     if (_adults + _children > widget.room.capacity) {
       setState(
-        () => _nameError =
-            'Room ${widget.room.name} sleeps ${widget.room.capacity}',
+        () => _nameError = l10n.hotelRoomMaxCapacity(
+          widget.room.name,
+          '${widget.room.capacity}',
+        ),
       );
       return;
     }
 
     final email = hotelNormalizeEmail(_emailController.text);
     if (email != null && !hotelIsPlausibleEmail(email)) {
-      setState(() => _emailError = 'That email does not look right');
+      setState(() => _emailError = l10n.hotelEmailInvalid);
       return;
     }
 
@@ -159,6 +163,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
       decoration: const BoxDecoration(
@@ -172,7 +177,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Check in · Room ${widget.room.name}',
+            l10n.hotelCheckInTitle(widget.room.name),
             style: GoogleFonts.outfit(
               fontSize: 19,
               fontWeight: FontWeight.w800,
@@ -182,7 +187,10 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           ),
           const SizedBox(height: 3),
           Text(
-            '${widget.room.roomType} · sleeps ${widget.room.capacity}',
+            l10n.hotelRoomTypeSleeps(
+              widget.room.roomType,
+              '${widget.room.capacity}',
+            ),
             style: GoogleFonts.outfit(
               fontSize: 12.5,
               fontWeight: FontWeight.w500,
@@ -191,9 +199,9 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           ),
           const SizedBox(height: 18),
           _field(
-            label: 'Guest name',
+            label: l10n.hotelGuestName,
             controller: _nameController,
-            hint: 'e.g. Aline Uwase',
+            hint: l10n.hotelGuestNameHint,
             errorText: _nameError,
             onChanged: (_) {
               if (_nameError != null) setState(() => _nameError = null);
@@ -201,16 +209,16 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           ),
           const SizedBox(height: 12),
           _field(
-            label: 'Phone (optional)',
+            label: l10n.hotelPhoneOptional,
             controller: _phoneController,
             hint: '07…',
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 12),
           _field(
-            label: 'Email (optional)',
+            label: l10n.hotelEmailOptional,
             controller: _emailController,
-            hint: 'Sends the confirmation',
+            hint: l10n.hotelSendsConfirmationHint,
             keyboardType: TextInputType.emailAddress,
             errorText: _emailError,
             onChanged: (_) {
@@ -221,19 +229,19 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           Row(
             children: [
               Expanded(
-                child: _stepper('Nights', _nights, 1, 60, (v) {
+                child: _stepper(l10n.hotelNights, _nights, 1, 60, (v) {
                   setState(() => _nights = v);
                 }),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _stepper('Adults', _adults, 1, 10, (v) {
+                child: _stepper(l10n.hotelAdults, _adults, 1, 10, (v) {
                   setState(() => _adults = v);
                 }),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _stepper('Children', _children, 0, 10, (v) {
+                child: _stepper(l10n.hotelChildren, _children, 0, 10, (v) {
                   setState(() => _children = v);
                 }),
               ),
@@ -241,7 +249,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
           ),
           const SizedBox(height: 12),
           _field(
-            label: 'Rate per night (RWF)',
+            label: l10n.hotelRatePerNightRwf,
             controller: _rateController,
             hint: '0',
             keyboardType: TextInputType.number,
@@ -269,7 +277,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
                     ),
                   ),
                   child: Text(
-                    'Cancel',
+                    l10n.cancel,
                     style: GoogleFonts.outfit(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -294,7 +302,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
                       ),
                     ),
                     child: Text(
-                      'Check in guest',
+                      l10n.hotelCheckInGuest,
                       style: GoogleFonts.outfit(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w800,
@@ -312,6 +320,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
   }
 
   Widget _summaryRow() {
+    final l10n = context.flipperL10n;
     final total = _rate * _nights;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -327,7 +336,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Departure',
+                  l10n.hotelDeparture,
                   style: GoogleFonts.outfit(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
@@ -349,7 +358,7 @@ class _HotelCheckInSheetState extends State<HotelCheckInSheet> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Room charge',
+                l10n.hotelRoomCharge,
                 style: GoogleFonts.outfit(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,

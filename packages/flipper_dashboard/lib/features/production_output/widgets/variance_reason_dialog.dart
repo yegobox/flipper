@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import '../models/production_output_models.dart';
 
@@ -62,6 +63,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -77,7 +79,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Variance Reason',
+                l10n.productionOutputVarianceReason,
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
@@ -93,7 +95,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Select the primary reason for production variance',
+            l10n.productionOutputVarianceReasonHint,
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 20),
@@ -117,8 +119,8 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
             controller: _notesController,
             maxLines: 2,
             decoration: InputDecoration(
-              labelText: 'Additional Notes',
-              hintText: 'Provide details about the variance...',
+              labelText: l10n.productionOutputAdditionalNotes,
+              hintText: l10n.productionOutputVarianceNotesHint,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -131,10 +133,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(
-                onPressed: widget.onCancel,
-                child: const Text('Cancel'),
-              ),
+              TextButton(onPressed: widget.onCancel, child: Text(l10n.cancel)),
               const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: _selectedReason != null
@@ -151,7 +150,7 @@ class _VarianceReasonDialogState extends State<VarianceReasonDialog> {
                   backgroundColor: Color(VarianceColors.neutral),
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Confirm'),
+                child: Text(l10n.confirm),
               ),
             ],
           ),
@@ -177,6 +176,7 @@ class _ReasonTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _getReasonColor(reason);
+    final l10n = context.flipperL10n;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -210,7 +210,7 @@ class _ReasonTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      reason.label,
+                      reason.localizedLabel(l10n),
                       style: TextStyle(
                         fontWeight: isSelected
                             ? FontWeight.w600
@@ -219,7 +219,7 @@ class _ReasonTile extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      reason.description,
+                      reason.localizedDescription(l10n),
                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],

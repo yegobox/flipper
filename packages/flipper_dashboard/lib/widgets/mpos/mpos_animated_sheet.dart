@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/theme/mpos_motion.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +12,7 @@ Future<T?> showMposAnimatedSheet<T>({
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: isDismissible,
-    barrierLabel: 'Dismiss',
+    barrierLabel: context.flipperL10n.mposDismiss,
     barrierColor: Colors.transparent,
     transitionDuration: reduced ? MposMotion.scrimFade : MposMotion.sheetSlide,
     pageBuilder: (ctx, animation, secondaryAnimation) {

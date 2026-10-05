@@ -2,6 +2,7 @@ import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/features/leads/widgets/add_lead_sheet.dart';
 import 'package:flipper_dashboard/features/leads/widgets/lead_detail_dialog.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
 import 'package:flipper_services/utils.dart';
@@ -54,6 +55,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     final statsAsync = ref.watch(leadsStatsProvider);
     final leadsAsync = ref.watch(leadsStreamProvider);
 
@@ -89,11 +91,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
         toolbarHeight: 64,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: Colors.grey.shade200,
-          ),
+          child: Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
         ),
         leading: IconButton(
           style: _headerCircleIconStyle(),
@@ -105,7 +103,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Leads',
+              l10n.leads,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
@@ -113,7 +111,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
               ),
             ),
             Text(
-              'Track customers, enquiries and pipeline value',
+              l10n.leadsSubtitle,
               style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
             ),
           ],
@@ -129,7 +127,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           const SizedBox(width: 8),
           _topBarButton(
             icon: AdminDashboardSvgs.leadsFilter,
-            label: 'Filter',
+            label: l10n.leadsFilter,
             onTap: () => _showFilterSheet(context),
           ),
           const SizedBox(width: 8),
@@ -182,7 +180,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           height: 18,
         ),
         label: Text(
-          'Add lead',
+          l10n.leadsAddLead,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
       ),
@@ -213,7 +211,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            '$text emails need review',
+            context.flipperL10n.leadsEmailsNeedReview(text),
             style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -263,6 +261,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
 
   Widget _statsCard(AsyncValue<LeadsStats> statsAsync) {
     final stats = statsAsync.asData?.value;
+    final l10n = context.flipperL10n;
 
     return Column(
       children: [
@@ -270,18 +269,18 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           children: [
             Expanded(
               child: _statTile(
-                title: 'TOTAL LEADS',
+                title: l10n.leadsStatTotalLeads.toUpperCase(),
                 value: '${stats?.totalLeads ?? 0}',
-                subtitle: 'All sources',
+                subtitle: l10n.leadsStatAllSources,
                 accent: const Color(0xFF2563EB),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _statTile(
-                title: 'PIPELINE VALUE',
+                title: l10n.leadsStatPipelineValue.toUpperCase(),
                 value: 'RWF ${formatNumber(stats?.pipelineValue ?? 0.0)}',
-                subtitle: 'Active leads',
+                subtitle: l10n.leadsStatActiveLeads,
                 accent: const Color(0xFF7C3AED),
               ),
             ),
@@ -292,28 +291,28 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           children: [
             Expanded(
               child: _statTile(
-                title: 'CONVERTED',
+                title: l10n.leadsStatusConverted.toUpperCase(),
                 value: '${stats?.converted ?? 0}',
-                subtitle: 'Completed sales',
+                subtitle: l10n.leadsStatCompletedSales,
                 accent: const Color(0xFF16A34A),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _statTile(
-                title: 'FROM GMAIL',
+                title: l10n.leadsStatFromGmail.toUpperCase(),
                 value: '${stats?.fromGmail ?? 0}',
-                subtitle: 'Email enquiries',
+                subtitle: l10n.leadsStatEmailEnquiries,
                 accent: const Color(0xFFDC2626),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _statTile(
-                title: 'CONVERSION RATE',
+                title: l10n.leadsStatConversionRate.toUpperCase(),
                 value:
                     '${((stats?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
-                subtitle: 'This month',
+                subtitle: l10n.leadsStatThisMonth,
                 accent: const Color(0xFFD97706),
               ),
             ),
@@ -392,7 +391,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Gmail - AI flagged these as potential leads.',
+                      context.flipperL10n.leadsGmailAiFlagged,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -411,7 +410,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                       border: Border.all(color: const Color(0xFFF3D2D7)),
                     ),
                     child: Text(
-                      '0 pending',
+                      context.flipperL10n.leadsPendingCount('0'),
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
@@ -423,7 +422,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Gmail ingestion will be enabled later. For now, add leads manually.',
+                context.flipperL10n.leadsGmailIngestionLater,
                 style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
               ),
             ],
@@ -449,7 +448,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'All Leads',
+            context.flipperL10n.leadsAllLeads,
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.w800,
@@ -467,7 +466,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   child: Text(
-                    'No leads yet.',
+                    context.flipperL10n.leadsNoLeadsYet,
                     style: GoogleFonts.outfit(color: _ink3),
                     textAlign: TextAlign.center,
                   ),
@@ -494,7 +493,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
             error: (_, __) => Padding(
               padding: const EdgeInsets.all(18),
               child: Text(
-                'Unable to load leads.',
+                context.flipperL10n.leadsUnableToLoad,
                 style: GoogleFonts.outfit(color: _ink3),
               ),
             ),
@@ -514,7 +513,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
       child: TextField(
         onChanged: (v) => setState(() => _search = v),
         decoration: InputDecoration(
-          hintText: 'Search name, email, product…',
+          hintText: context.flipperL10n.leadsSearchHint,
           hintStyle: GoogleFonts.outfit(color: _ink3),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -544,7 +543,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
-              label: Text(c),
+              label: Text(leadFilterLabel(context.flipperL10n, c)),
               selected: selected,
               onSelected: (_) => setState(() => _filter = c),
               selectedColor: const Color(0xFFEEF2FF),
@@ -588,7 +587,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           )
         : _badge(
             icon: AdminDashboardSvgs.leadsUserSingle,
-            text: 'Walk-in',
+            text: context.flipperL10n.leadsSourceWalkIn,
             bg: const Color(0xFFEFFDFB),
             fg: const Color(0xFF0D9488),
           );
@@ -643,10 +642,10 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                         ),
                         _pill(
                           text: lead.heat == LeadHeat.hot
-                              ? 'Hot lead'
+                              ? context.flipperL10n.leadsHotLead
                               : lead.heat == LeadHeat.warm
-                              ? 'Warm lead'
-                              : 'Cold lead',
+                              ? context.flipperL10n.leadsWarmLead
+                              : context.flipperL10n.leadsColdLead,
                           bg: heatColors.$1,
                           fg: heatColors.$2,
                         ),
@@ -671,7 +670,10 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    lead.status.toUpperCase(),
+                    leadStatusLabel(
+                      context.flipperL10n,
+                      lead.status,
+                    ).toUpperCase(),
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -778,7 +780,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Filter leads',
+                  context.flipperL10n.leadsFilterLeads,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -796,7 +798,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                       color: _filter == filter ? _blue : _ink3,
                     ),
                     title: Text(
-                      filter,
+                      leadFilterLabel(context.flipperL10n, filter),
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w700,
                         color: _ink2,
@@ -817,6 +819,9 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
   }
 
   void _showEmailLeadsComingSoon(BuildContext context) {
-    showInfoNotification(context, 'Email lead review is coming soon.');
+    showInfoNotification(
+      context,
+      context.flipperL10n.leadsEmailReviewComingSoon,
+    );
   }
 }

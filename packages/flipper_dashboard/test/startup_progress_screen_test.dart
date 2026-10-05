@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/startup_progress_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,7 +15,11 @@ int _shownPercent(WidgetTester tester) {
 
 Future<void> _pumpScreen(WidgetTester tester, double progress) {
   return tester.pumpWidget(
-    MaterialApp(home: StartupProgressScreen(progress: progress)),
+    MaterialApp(
+      localizationsDelegates: FlipperLocalizationDelegates.delegates,
+      supportedLocales: FlipperLocalizationDelegates.supportedLocales,
+      home: StartupProgressScreen(progress: progress),
+    ),
   );
 }
 

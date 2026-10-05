@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
 import 'package:flipper_dashboard/theme/pos_tokens.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -72,9 +73,8 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
   @override
   void initState() {
     super.initState();
-    _baseStock =
-        (widget.variant.stock?.currentStock ?? widget.variant.qty ?? 0)
-            .toDouble();
+    _baseStock = (widget.variant.stock?.currentStock ?? widget.variant.qty ?? 0)
+        .toDouble();
     _floor = widget.variant.ebmSynced == true ? _baseStock : 0.0;
     _controller = TextEditingController(text: _fmt(_baseStock));
     // Pre-select so the first keystroke replaces the value instead of appending.
@@ -98,11 +98,10 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
   String? get _error {
     if (_isService) return null;
     final value = _value;
-    if (value == null) return 'Enter a number';
-    if (value < 0) return 'Quantity cannot be negative';
+    if (value == null) return context.flipperL10n.pleaseEnterANumber;
+    if (value < 0) return context.flipperL10n.editQtyCannotBeNegative;
     if (value < _floor) {
-      return 'Stock reported to RRA can only be increased here. '
-          'Use a stock adjustment to go below ${_fmt(_floor)}.';
+      return context.flipperL10n.editQtyRraFloor(_fmt(_floor));
     }
     return null;
   }
@@ -163,7 +162,7 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
           const SizedBox(height: 18),
           if (_isService)
             _notice(
-              'Services do not carry stock. Saving keeps this variant at 0.',
+              context.flipperL10n.editQtyServiceNotice,
               ProductEditorTokens.blue,
               ProductEditorTokens.blueTint,
               Icons.info_outline,
@@ -172,7 +171,7 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
             Row(
               children: [
                 Text(
-                  'QUANTITY',
+                  context.flipperL10n.quantity.toUpperCase(),
                   style: GoogleFonts.outfit(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
@@ -192,8 +191,8 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
                   color: ProductEditorTokens.loss,
                   onPressed: _canDecrement ? () => _step(-1) : null,
                   semanticLabel: _canDecrement
-                      ? 'Decrease by 1'
-                      : 'Cannot go below ${_fmt(_floor)}',
+                      ? context.flipperL10n.decreaseQuantityByOne
+                      : context.flipperL10n.editQtyCannotGoBelow(_fmt(_floor)),
                 ),
                 Expanded(
                   child: Padding(
@@ -205,7 +204,7 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
                   icon: Icons.add,
                   color: ProductEditorTokens.gain,
                   onPressed: () => _step(1),
-                  semanticLabel: 'Increase by 1',
+                  semanticLabel: context.flipperL10n.increaseQuantityByOne,
                 ),
               ],
             ),
@@ -220,8 +219,8 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
             else if (delta != 0)
               _notice(
                 delta > 0
-                    ? 'Adds ${_fmt(delta)} to current stock.'
-                    : 'Removes ${_fmt(-delta)} from current stock.',
+                    ? context.flipperL10n.editQtyAdds(_fmt(delta))
+                    : context.flipperL10n.editQtyRemoves(_fmt(-delta)),
                 delta > 0 ? ProductEditorTokens.gain : ProductEditorTokens.ink2,
                 delta > 0
                     ? ProductEditorTokens.winTint
@@ -230,7 +229,7 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
               )
             else
               _notice(
-                'Stock stays at ${_fmt(_baseStock)}.',
+                context.flipperL10n.editQtyStays(_fmt(_baseStock)),
                 ProductEditorTokens.ink3,
                 ProductEditorTokens.surface2,
                 Icons.inventory_outlined,
@@ -240,13 +239,18 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
           Row(
             children: [
               Expanded(
-                child: _GhostAction(label: 'Cancel', onPressed: _close),
+                child: _GhostAction(
+                  label: context.flipperL10n.cancel,
+                  onPressed: _close,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 flex: 2,
                 child: _PrimaryAction(
-                  label: _isService ? 'Got it' : 'Update stock',
+                  label: _isService
+                      ? context.flipperL10n.editQtyGotIt
+                      : context.flipperL10n.editQtyUpdateStock,
                   onPressed: error == null ? _submit : null,
                 ),
               ),
@@ -279,7 +283,7 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Edit quantity',
+                context.flipperL10n.editQtyTitle,
                 style: GoogleFonts.outfit(
                   fontSize: 18.5,
                   fontWeight: FontWeight.w800,
@@ -335,7 +339,7 @@ class _EditQuantitySheetState extends State<_EditQuantitySheet> {
         border: Border.all(color: ProductEditorTokens.line, width: 1.5),
       ),
       child: Text(
-        'ON HAND ${_fmt(_baseStock)}',
+        context.flipperL10n.editQtyOnHand(_fmt(_baseStock)).toUpperCase(),
         style: GoogleFonts.jetBrainsMono(
           fontSize: 11,
           fontWeight: FontWeight.w700,

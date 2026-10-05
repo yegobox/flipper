@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -76,7 +77,7 @@ class _MarginBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Profit per unit',
+                context.flipperL10n.productEditorProfitPerUnit,
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -100,7 +101,7 @@ class _MarginBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Margin',
+                context.flipperL10n.productEditorMargin,
                 style: GoogleFonts.outfit(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -122,7 +123,7 @@ class _MarginBody extends StatelessWidget {
           if (isComposite) ...[
             const SizedBox(height: 6),
             Text(
-              'Supply price calculated from components',
+              context.flipperL10n.productEditorSupplyFromComponents,
               style: GoogleFonts.outfit(
                 fontSize: 11.5,
                 color: ProductEditorTokens.ink3,

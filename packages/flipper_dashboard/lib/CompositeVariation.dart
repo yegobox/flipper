@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -173,7 +174,7 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
                       recalculateTotalCost();
                     },
                     decoration: InputDecoration(
-                      labelText: 'Quantity',
+                      labelText: context.flipperL10n.quantity,
                       border: OutlineInputBorder(),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 8.0,
@@ -188,7 +189,7 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
                     readOnly: true,
                     controller: costController,
                     decoration: InputDecoration(
-                      labelText: 'Cost',
+                      labelText: context.flipperL10n.compositeCost,
                       border: OutlineInputBorder(),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 8.0,

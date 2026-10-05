@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/payment/payment_typography.dart';
 import 'package:flipper_dashboard/payment/widgets/payment_widgets.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/exceptions.dart' show FailedPaymentException;
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/subscription_plan_template.dart';
 import 'package:flipper_payments/flipper_payments.dart' show BillingCadence;
@@ -16,7 +17,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class PaymentPlanUI extends StatefulWidget {
   const PaymentPlanUI({Key? key, this.skipPaymentStatusCheck = false})
-      : super(key: key);
+    : super(key: key);
 
   /// Debug-only: skip auto-redirect when previewing this screen manually.
   final bool skipPaymentStatusCheck;
@@ -59,7 +60,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         _selectedTemplateId = catalog.firstOrNull?.id;
         _isLoadingCatalog = false;
         _catalogError = catalog.templates.isEmpty
-            ? 'No subscription plans are available.'
+            ? context.flipperL10n.paymentPlanNoPlansAvailable
             : null;
         _calculatePrice();
       });
@@ -68,7 +69,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       if (!mounted) return;
       setState(() {
         _isLoadingCatalog = false;
-        _catalogError = 'Could not load subscription plans. Please try again.';
+        _catalogError = context.flipperL10n.paymentPlanCouldNotLoadPlans;
       });
     }
   }
@@ -179,7 +180,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       if (mounted) {
         ErrorHandler.showErrorSnackBar(
           context,
-          'An error occurred. Please try again.',
+          context.flipperL10n.paymentPlanErrorOccurred,
         );
       }
     } finally {
@@ -203,7 +204,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             ),
             const SizedBox(height: 16),
             PaymentPrimaryButton(
-              label: 'Retry',
+              label: context.flipperL10n.retry,
               icon: null,
               onPressed: () {
                 setState(() {
@@ -223,12 +224,14 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     final template = _selectedTemplate;
     final yearlyDiscount = template?.yearlyDiscountPercent ?? 20;
     final templates = _catalog?.templates ?? const [];
+    final l10n = context.flipperL10n;
 
     return [
       PaymentIntroBlock(
-        title: 'Select the plan that works for you',
-        subtitle:
-            'Switch between plans anytime. Yearly billing saves you ${yearlyDiscount.round()}%.',
+        title: l10n.paymentPlanSelectTitle,
+        subtitle: l10n.paymentPlanSelectSubtitle(
+          yearlyDiscount.round().toString(),
+        ),
       ),
       PaymentCadenceSegment(
         cadence: _cadence,
@@ -266,7 +269,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       ),
       if (template != null && template.addons.isNotEmpty) ...[
         PaymentSectionLabel(
-          template.isEnterprise ? 'Enterprise Services' : 'Additional Services',
+          template.isEnterprise
+              ? l10n.failedPaymentEnterpriseServices
+              : l10n.failedPaymentAdditionalServices,
         ),
         for (var i = 0; i < template.addons.length; i++) ...[
           if (i > 0) const SizedBox(height: 8),
@@ -330,9 +335,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PaymentPrimaryButton(
-            label: 'Proceed to Payment',
+            label: context.flipperL10n.paymentPlanProceedToPayment,
             loading: _isProceeding,
-            loadingLabel: 'Setting up your plan…',
+            loadingLabel: context.flipperL10n.paymentPlanSettingUp,
             onPressed: template != null && !_isLoadingCatalog ? _proceed : null,
           ),
           const SizedBox(height: 10),
@@ -345,9 +350,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   @override
   Widget build(BuildContext context) {
     if (_isLoadingCatalog) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: PaymentTokens.app,
-        body: PaymentCenterLoading(message: 'Loading plans…'),
+        body: PaymentCenterLoading(
+          message: context.flipperL10n.paymentPlanLoadingPlans,
+        ),
       );
     }
 
@@ -359,10 +366,12 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     }
 
     return PaymentScreenShell(
-      title: 'Payment Plan',
+      title: context.flipperL10n.paymentPlanTitle,
       showBack: false,
       overlay: _isProceeding
-          ? const PaymentLoadingOverlay(message: 'Setting up your plan…')
+          ? PaymentLoadingOverlay(
+              message: context.flipperL10n.paymentPlanSettingUp,
+            )
           : null,
       aside: _buildAsideChildren(),
       children: _buildContentChildren(),

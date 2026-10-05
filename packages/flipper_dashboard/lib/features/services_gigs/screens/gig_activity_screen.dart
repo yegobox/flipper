@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/gig_request_detail_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
@@ -27,6 +28,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
   }
 
   Future<void> _load() async {
+    final l10n = context.flipperL10n;
     setState(() => _loading = true);
     final out = await _requestRepo.listOutgoingForCustomer();
     final inc = await _requestRepo.listIncomingForProvider();
@@ -44,23 +46,23 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
     for (final r in out) {
       if (!seen.add(r.id)) continue;
       final other = await nameFor(r.providerUserId);
-      rows.add(_ActivityRow(
-        request: r,
-        asCustomer: true,
-        otherPartyLabel: other ?? 'Provider',
-      ));
+      rows.add(
+        _ActivityRow(
+          request: r,
+          asCustomer: true,
+          otherPartyLabel: other ?? l10n.gigsProvider,
+        ),
+      );
     }
     for (final r in inc) {
       if (!seen.add(r.id)) continue;
       final persisted = r.customerDisplayName?.trim();
       final other = (persisted != null && persisted.isNotEmpty)
           ? persisted
-          : 'Customer';
-      rows.add(_ActivityRow(
-        request: r,
-        asCustomer: false,
-        otherPartyLabel: other,
-      ));
+          : l10n.customer;
+      rows.add(
+        _ActivityRow(request: r, asCustomer: false, otherPartyLabel: other),
+      );
     }
     rows.sort((a, b) => b.request.updatedAt.compareTo(a.request.updatedAt));
 
@@ -78,9 +80,8 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
           requestId: row.request.id,
           headline: row.asCustomer
               ? row.otherPartyLabel
-              : 'Request from ${row.otherPartyLabel}',
-          paymentRecipientLabel:
-              row.asCustomer ? row.otherPartyLabel : null,
+              : context.flipperL10n.gigsRequestFrom(row.otherPartyLabel),
+          paymentRecipientLabel: row.asCustomer ? row.otherPartyLabel : null,
         ),
       ),
     );
@@ -95,7 +96,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Notifications',
+          context.flipperL10n.gigsNotifications,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
@@ -114,88 +115,96 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
                 ],
               )
             : _rows.isEmpty
-                ? ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      Icon(Icons.notifications_none_outlined,
-                          size: 56, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No activity yet',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'When you send or receive service requests, updates appear here. '
-                        'Pull down to refresh.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          height: 1.4,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _rows.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) {
-                      final row = _rows[i];
-                      final r = row.request;
-                      return Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        child: InkWell(
-                          onTap: () => _open(row),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  row.asCustomer
-                                      ? 'Request to ${row.otherPartyLabel}'
-                                      : 'Request from ${row.otherPartyLabel}',
-                                  style: GoogleFonts.outfit(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  r.statusLabel,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(r.statusColor),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Updated ${df.format(r.updatedAt.toLocal())}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                children: [
+                  Icon(
+                    Icons.notifications_none_outlined,
+                    size: 56,
+                    color: Colors.grey.shade400,
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    context.flipperL10n.gigsNoActivityYet,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.flipperL10n.gigsActivityEmptyHint,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      height: 1.4,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: _rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, i) {
+                  final row = _rows[i];
+                  final r = row.request;
+                  return Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: InkWell(
+                      onTap: () => _open(row),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              row.asCustomer
+                                  ? context.flipperL10n.gigsRequestTo(
+                                      row.otherPartyLabel,
+                                    )
+                                  : context.flipperL10n.gigsRequestFrom(
+                                      row.otherPartyLabel,
+                                    ),
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              r.statusLabel,
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Color(r.statusColor),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              context.flipperL10n.gigsUpdatedAt(
+                                df.format(r.updatedAt.toLocal()),
+                              ),
+                              style: GoogleFonts.outfit(
+                                fontSize: 11,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

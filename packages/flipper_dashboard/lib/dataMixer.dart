@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/itemRow.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/product_entry/product_entry_navigation.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -87,7 +88,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       // Only owned (not shared) variants can be deleted.
       if (variant == null || variant.isShared != false) {
-        toast("Can't be deleted or has been deleted.");
+        toast(FlipperL10n.current.dataMixerCannotDelete);
         return;
       }
 
@@ -108,7 +109,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         flipperHttpClient: ProxyService.http,
       );
       if (!deleted) {
-        toast('Could not delete this item. Please try again.');
+        toast(FlipperL10n.current.dataMixerCouldNotDelete);
         return;
       }
 
@@ -162,7 +163,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       }
     } catch (e) {
       talker.error('Error deleting variant: $e');
-      toast('Could not delete this item. Please try again.');
+      toast(FlipperL10n.current.dataMixerCouldNotDelete);
     }
   }
 
@@ -218,7 +219,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       model: model,
       variant: variant,
       product: product,
-      productName: variant.productName ?? "Unknown Product",
+      productName:
+          variant.productName ?? context.flipperL10n.dataMixerUnknownProduct,
       variantName: variant.name,
       imageUrl: variantImage ?? assetName,
       isComposite: !isOrdering ? (product?.isComposite ?? false) : false,

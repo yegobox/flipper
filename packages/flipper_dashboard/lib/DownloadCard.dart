@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -39,11 +40,8 @@ class _DownloadCardState extends State<DownloadCard> {
 
     try {
       // Assuming `ProxyService.strategy.downloadAssetSave` returns a stream of download progress
-      Stream<double> progressStream =
-          await ProxyService.strategy.downloadAssetSave(
-        assetName: widget.filename,
-        subPath: "reports",
-      );
+      Stream<double> progressStream = await ProxyService.strategy
+          .downloadAssetSave(assetName: widget.filename, subPath: "reports");
 
       final dir = await getApplicationSupportDirectory();
       final filePath = '${dir.path}/${widget.filename}';
@@ -68,8 +66,10 @@ class _DownloadCardState extends State<DownloadCard> {
         _filePath = filePath;
       });
 
-      await ProxyService.strategy
-          .updateReport(reportId: widget.report.id, downloaded: true);
+      await ProxyService.strategy.updateReport(
+        reportId: widget.report.id,
+        downloaded: true,
+      );
     } catch (e) {
       setState(() {
         _downloading = false;
@@ -131,7 +131,7 @@ class _DownloadCardState extends State<DownloadCard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Excel Spreadsheet',
+                        context.flipperL10n.downloadExcelSpreadsheet,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -150,8 +150,10 @@ class _DownloadCardState extends State<DownloadCard> {
                 children: [
                   Text(
                     widget.downloaded
-                        ? 'Downloaded'
-                        : 'Downloading: ${(_progress * 100).toStringAsFixed(1)}%',
+                        ? context.flipperL10n.downloadDownloaded
+                        : context.flipperL10n.downloadProgress(
+                            (_progress * 100).toStringAsFixed(1),
+                          ),
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black87,
@@ -162,19 +164,20 @@ class _DownloadCardState extends State<DownloadCard> {
                   LinearProgressIndicator(
                     value: widget.downloaded ? 1.0 : _progress,
                     backgroundColor: Colors.grey[200],
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Colors.green[700]!),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.green[700]!,
+                    ),
                   ),
                 ],
               )
             else if (_error != null)
               Text(
-                'Error: $_error',
+                context.flipperL10n.errorMessage('$_error'),
                 style: TextStyle(fontSize: 14, color: Colors.red[700]),
               )
             else if (_filePath != null)
               Text(
-                'Downloaded to: $_filePath',
+                context.flipperL10n.downloadSavedTo(_filePath!),
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
@@ -183,7 +186,7 @@ class _DownloadCardState extends State<DownloadCard> {
               )
             else
               Text(
-                'Click to download',
+                context.flipperL10n.downloadClickToDownload,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.green[700],

@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/features/incoming_orders/om_tokens.dart';
 import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_orders_provider.dart';
@@ -19,20 +20,21 @@ class ItemsList extends HookConsumerWidget
   final bool isIncoming;
 
   const ItemsList({Key? key, required this.request, this.isIncoming = true})
-      : super(key: key);
+    : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync =
         request.transactionItems != null && request.transactionItems!.isNotEmpty
-            ? AsyncValue.data(request.transactionItems!)
-            : ref.watch(transactionItemsProvider(request.id));
+        ? AsyncValue.data(request.transactionItems!)
+        : ref.watch(transactionItemsProvider(request.id));
+    final l10n = context.flipperL10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ITEMS',
+          l10n.incomingOrdersItemsHeading,
           style: OmTokens.text(
             fontSize: 12,
             fontWeight: FontWeight.w800,
@@ -47,7 +49,7 @@ class ItemsList extends HookConsumerWidget
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  'No items in this request',
+                  l10n.incomingOrdersNoItems,
                   style: OmTokens.text(color: OmTokens.muted),
                 ),
               );
@@ -74,7 +76,7 @@ class ItemsList extends HookConsumerWidget
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
           error: (error, _) => Text(
-            'Error loading items: $error',
+            l10n.incomingOrdersErrorLoadingItems('$error'),
             style: OmTokens.text(color: OmTokens.red),
           ),
         ),
@@ -110,7 +112,7 @@ class ItemsList extends HookConsumerWidget
     } catch (e) {
       showCustomSnackBar(
         context,
-        'Failed to update item: ${e.toString()}',
+        context.flipperL10n.incomingOrdersUpdateItemFailed(e.toString()),
         backgroundColor: OmTokens.red,
       );
     }
@@ -132,13 +134,10 @@ class _ItemRow extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isBulkMode = ref.watch(
-      selectionProvider.select((s) => s.isNotEmpty),
-    );
+    final isBulkMode = ref.watch(selectionProvider.select((s) => s.isNotEmpty));
     final isEditing = useState(false);
-    final canEditOutgoing = !isIncoming &&
-        request.status == RequestStatus.pending &&
-        !isBulkMode;
+    final canEditOutgoing =
+        !isIncoming && request.status == RequestStatus.pending && !isBulkMode;
     final quantityController = useTextEditingController(
       text: '${item.quantityRequested ?? 0}',
     );
@@ -153,6 +152,7 @@ class _ItemRow extends HookConsumerWidget {
     // Pending requests (incoming or outgoing) show the requested qty; only
     // approved/partial requests show the approved-vs-requested split.
     final isPending = request.status == RequestStatus.pending;
+    final l10n = context.flipperL10n;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
@@ -179,7 +179,7 @@ class _ItemRow extends HookConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        'Update Qty: ',
+                        '${l10n.incomingOrdersUpdateQtyLabel} ',
                         style: OmTokens.text(
                           fontSize: 13,
                           color: OmTokens.muted,
@@ -201,10 +201,12 @@ class _ItemRow extends HookConsumerWidget {
                               vertical: 8,
                             ),
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(OmTokens.radiusXs),
-                              borderSide:
-                                  const BorderSide(color: OmTokens.line2),
+                              borderRadius: BorderRadius.circular(
+                                OmTokens.radiusXs,
+                              ),
+                              borderSide: const BorderSide(
+                                color: OmTokens.line2,
+                              ),
                             ),
                           ),
                         ),
@@ -214,13 +216,12 @@ class _ItemRow extends HookConsumerWidget {
                 else
                   Text.rich(
                     TextSpan(
-                      style: OmTokens.text(
-                        fontSize: 13,
-                        color: OmTokens.muted,
-                      ),
+                      style: OmTokens.text(fontSize: 13, color: OmTokens.muted),
                       children: isPending
                           ? [
-                              const TextSpan(text: 'Requested: '),
+                              TextSpan(
+                                text: '${l10n.incomingOrdersRequestedLabel} ',
+                              ),
                               TextSpan(
                                 text: '${item.quantityRequested ?? 0}',
                                 style: OmTokens.text(
@@ -231,7 +232,9 @@ class _ItemRow extends HookConsumerWidget {
                               ),
                             ]
                           : [
-                              const TextSpan(text: 'Approved: '),
+                              TextSpan(
+                                text: '${l10n.incomingOrdersApprovedLabel} ',
+                              ),
                               TextSpan(
                                 text:
                                     '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}',
@@ -278,7 +281,7 @@ class _ItemRow extends HookConsumerWidget {
               },
               icon: const Icon(Icons.save_outlined, size: 17),
               label: Text(
-                'Update',
+                l10n.incomingOrdersUpdate,
                 style: OmTokens.text(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -287,8 +290,10 @@ class _ItemRow extends HookConsumerWidget {
               ),
               style: TextButton.styleFrom(
                 foregroundColor: OmTokens.accentStrong,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
               ),
             ),
           ],

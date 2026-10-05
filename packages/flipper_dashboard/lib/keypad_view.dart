@@ -139,8 +139,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           children: [
             Text(
               widget.transactionType == TransactionType.cashIn
-                  ? 'Cash in for'
-                  : 'Cash out for',
+                  ? context.flipperL10n.keypadCashInFor
+                  : context.flipperL10n.keypadCashOutFor,
               style: GoogleFonts.outfit(
                 fontSize: 18 * textScaleFactor,
                 fontWeight: FontWeight.w500,

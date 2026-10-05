@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +30,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
       if (branchId == null) {
         setState(() {
           _isInitializing = false;
-          _errorMessage = 'No active branch found';
+          _errorMessage = context.flipperL10n.ebmNoActiveBranch;
         });
         return;
       }
@@ -88,7 +89,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                       Icon(Icons.refresh, color: theme.colorScheme.primary),
                       const SizedBox(width: 12),
                       Text(
-                        "Re-initialize EBM",
+                        context.flipperL10n.reinitializeEbm,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -104,8 +105,9 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                           controller: _tinController,
                           labelText: 'TIN',
                           prefixIcon: Icons.numbers,
-                          validator: (value) =>
-                              value?.isEmpty ?? true ? 'TIN is required' : null,
+                          validator: (value) => value?.isEmpty ?? true
+                              ? context.flipperL10n.ebmTinRequired
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
@@ -113,16 +115,16 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                           labelText: 'BHF ID',
                           prefixIcon: Icons.business,
                           validator: (value) => value?.isEmpty ?? true
-                              ? 'BHF ID is required'
+                              ? context.flipperL10n.ebmBhfIdRequired
                               : null,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
                           controller: _dvcSrlNoController,
-                          labelText: 'Device Serial Number',
+                          labelText: context.flipperL10n.ebmDeviceSerial,
                           prefixIcon: Icons.devices,
                           validator: (value) => value?.isEmpty ?? true
-                              ? 'Device Serial Number is required'
+                              ? context.flipperL10n.ebmDeviceSerialRequired
                               : null,
                         ),
                       ],
@@ -169,7 +171,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                                 Navigator.of(context).pop();
                               },
                         child: Text(
-                          'Cancel',
+                          context.flipperL10n.cancel,
                           style: TextStyle(
                             color: theme.colorScheme.onSurface.withValues(
                               alpha: 0.7,
@@ -202,10 +204,10 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  const Text('Processing...'),
+                                  Text(context.flipperL10n.ebmProcessing),
                                 ],
                               )
-                            : const Text('Re-initialize'),
+                            : Text(context.flipperL10n.ebmReinitialize),
                       ),
                     ],
                   ),
@@ -280,7 +282,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
         final errorMessage = e.toString();
         _errorMessage = errorMessage.startsWith('Exception: ')
             ? errorMessage.substring('Exception: '.length)
-            : 'Failed to initialize EBM: $errorMessage';
+            : context.flipperL10n.ebmInitFailed(errorMessage);
       });
     }
   }
@@ -324,7 +326,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
             ),
             const SizedBox(height: 16),
             Text(
-              "EBM Initialized Successfully",
+              context.flipperL10n.ebmInitSuccess,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.primary,
@@ -342,14 +344,14 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                 children: [
                   _buildInfoRow(
                     context,
-                    label: "Taxpayer Name",
+                    label: context.flipperL10n.ebmTaxpayerName,
                     value: businessInfo.taxprNm,
                     icon: Icons.person_outline,
                   ),
                   const Divider(height: 24),
                   _buildInfoRow(
                     context,
-                    label: "Branch Name",
+                    label: context.flipperL10n.branchesName,
                     value: businessInfo.bhfNm,
                     icon: Icons.store_outlined,
                   ),
@@ -374,7 +376,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
-                child: const Text('Done'),
+                child: Text(context.flipperL10n.done),
               ),
             ),
           ],

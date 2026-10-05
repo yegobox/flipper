@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/widgets/transaction_detail_sheets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -27,6 +28,8 @@ void main() {
   testWidgets('refund row is disabled when already refunded', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: FlipperLocalizationDelegates.delegates,
+        supportedLocales: FlipperLocalizationDelegates.supportedLocales,
         home: Scaffold(
           body: Builder(
             builder: (context) => Center(

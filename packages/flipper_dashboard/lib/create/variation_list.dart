@@ -1,6 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -44,8 +45,10 @@ class VariationList extends StatelessWidget {
                       child: Text(
                         variant.stock == null ||
                                 variant.stock!.currentStock == 0.0
-                            ? 'Receive Stock'
-                            : '${variant.stock!.currentStock} in stock',
+                            ? FlipperL10n.current.receiveStockButton
+                            : FlipperL10n.current.inStockCount(
+                                '${variant.stock!.currentStock}',
+                              ),
                         style: GoogleFonts.outfit(
                           color: Colors.black,
                           fontSize: 17,
@@ -56,12 +59,12 @@ class VariationList extends StatelessWidget {
                         _routerService.navigateTo(
                           ReceiveStockRoute(
                             variantId: variant.id,
-                            existingStock:
-                                variant.stock!.currentStock.toString(),
+                            existingStock: variant.stock!.currentStock
+                                .toString(),
                           ),
                         );
                       },
-                    )
+                    ),
                   ],
                 ),
                 dense: true,
@@ -86,7 +89,7 @@ class VariationList extends StatelessWidget {
           backgroundColor: const Color(0xFFFE4A49),
           foregroundColor: Colors.white,
           icon: FluentIcons.delete_20_regular,
-          label: 'Delete',
+          label: FlipperL10n.current.delete,
         ),
       ],
     );

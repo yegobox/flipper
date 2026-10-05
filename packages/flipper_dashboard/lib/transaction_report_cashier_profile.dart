@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 
 /// A staff member shown on Transaction Reports (from Supabase `accesses` + `users`).
@@ -28,7 +29,7 @@ class TransactionReportCashierProfile {
         return local.replaceAll(RegExp(r'[._-]+'), ' ');
       }
     }
-    return 'User';
+    return FlipperL10n.current.dashUserFallback;
   }
 
   static String initialsFromUserRow({

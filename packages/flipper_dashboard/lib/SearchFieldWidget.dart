@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,8 @@ class SearchFieldWidget extends ConsumerWidget {
         showIncomingButton: showIncomingButton,
         showOrderButton: showOrderButton,
         showNoticesButton: showNoticesButton,
-        hintText: hintText ?? 'Search products, transactions...',
+        hintText:
+            hintText ?? context.flipperL10n.searchProductsTransactionsHint,
         showTrailingToolbar: showTrailingToolbar,
       ),
     );

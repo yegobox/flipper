@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:collection/collection.dart';
 import 'package:flipper_dashboard/create/retail_price.dart';
 import 'package:flipper_dashboard/functions.dart';
@@ -58,10 +59,10 @@ class AddProductViewState extends ConsumerState<AddProductView> {
           },
           child: Scaffold(
             appBar: AppBar(
-              title: Text("Create Product"),
+              title: Text(context.flipperL10n.productCreate),
               actions: [
                 FlipperButton(
-                  text: "Save",
+                  text: context.flipperL10n.save,
                   onPressed: () {
                     if (!model.lock &&
                         (_formKey.currentState?.validate() ?? false)) {
@@ -179,7 +180,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
             product: ref.read(unsavedProductProvider),
           ),
         Text(
-          'Product',
+          context.flipperL10n.productLabel,
           style: GoogleFonts.outfit(
             color: Colors.black,
             fontSize: 17,
@@ -194,9 +195,9 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: TextFormField(
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          hintText: "Product Name",
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          hintText: context.flipperL10n.productNameHint,
         ),
         controller: productForm.productNameController,
         onChanged: (value) => model.setProductName(name: value),
@@ -212,7 +213,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
           padding: EdgeInsets.symmetric(horizontal: 18),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Flippertext('PRICE AND INVENTORY'),
+            child: Flippertext(context.flipperL10n.productPriceAndInventory),
           ),
         ),
       ],
@@ -288,9 +289,13 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   String _getExpiryDateText() {
     final product = ref.read(unsavedProductProvider);
     if (product == null || product.expiryDate == null) {
-      return 'Expiry Date';
+      return context.flipperL10n.productExpiryDate;
     }
-    return 'Expires at ${formatter.format(DateTime.tryParse(product.expiryDate!) ?? DateTime.now())}';
+    return context.flipperL10n.productExpiresAt(
+      formatter.format(
+        DateTime.tryParse(product.expiryDate!) ?? DateTime.now(),
+      ),
+    );
   }
 
   void _showDatePicker(ProductViewModel model) {
@@ -343,7 +348,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
         height: 50,
         width: double.infinity,
         child: FlipperButton(
-          text: 'Add Variation',
+          text: context.flipperL10n.productAddVariation,
           onPressed: () => model.navigateAddVariation(
             context: context,
             productId: ref.read(unsavedProductProvider)!.id,
@@ -374,7 +379,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               enabled: false,
               controller: productForm.barCodeController,
               trailing: const Icon(Icons.center_focus_weak, color: primary),
-              placeholder: 'BarCode',
+              placeholder: context.flipperL10n.compositeBarcode,
             ),
           ),
         );
@@ -384,7 +389,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
   Future<void> _saveProduct(ProductViewModel model) async {
     if (model.kProductName == " ") {
-      showErrorNotification(context, 'Provide name for the product');
+      showErrorNotification(context, context.flipperL10n.productProvideName);
       return;
     }
 
@@ -424,7 +429,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     onWillPop(
       context: context,
       navigationPurpose: NavigationPurpose.back,
-      message: 'You have unsaved product, do you want to discard?',
+      message: context.flipperL10n.productUnsavedDiscard,
     );
   }
 }

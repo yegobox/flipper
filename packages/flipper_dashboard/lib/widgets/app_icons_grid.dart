@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'dart:async';
 
 import 'package:flipper_dashboard/CreditIcon.dart';
@@ -34,55 +35,56 @@ class AppIconsGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final List<Map<String, dynamic>> rippleApps = [
       if (!isBigScreen)
         {
           'icon': FluentIcons.handshake_24_regular,
           'color': const Color(0xFF0D9488),
           'page': "ServicesGigs",
-          'label': "Services hub",
+          'label': l10n.servicesHub,
           'feature': 'ServicesGigs',
         },
       {
         'icon': FluentIcons.calculator_24_regular,
         'color': const Color(0xff006AFE),
         'page': "POS",
-        'label': "Point of Sale",
+        'label': l10n.dashboardAppPointOfSale,
         'feature': 'Sales',
       },
       {
         'icon': FluentIcons.book_48_regular,
         'color': const Color(0xFF66AAFF),
         'page': "Cashbook",
-        'label': "Cash Book",
+        'label': l10n.dashboardAppCashBook,
         'feature': 'Cashbook',
       },
       {
         'icon': FluentIcons.savings_24_regular,
         'color': const Color(0xFF7C3AED),
         'page': "PersonalGoals",
-        'label': "Personal goals",
+        'label': l10n.personalGoals,
         'feature': 'Cashbook',
       },
       {
         'icon': FluentIcons.arrow_swap_20_regular,
         'color': const Color(0xFFFF0331),
         'page': "Transactions",
-        'label': "Transactions",
+        'label': l10n.dashboardAppTransactions,
         'feature': 'Transactions',
       },
       {
         'icon': FluentIcons.people_32_regular,
         'color': Colors.cyan,
         'page': "Contacts",
-        'label': "Contacts",
+        'label': l10n.dashboardAppContacts,
         'feature': 'Contacts',
       },
       {
         'icon': FluentIcons.people_32_regular,
         'color': const Color(0xFF2563EB),
         'page': "Leads",
-        'label': "Leads",
+        'label': l10n.leads,
         'feature': AppFeature.Leads,
         'svg': AdminDashboardSvgs.leadsUsersMultiple,
         'svgBg': const Color(0xFFEFF2FF),
@@ -91,21 +93,21 @@ class AppIconsGrid extends ConsumerWidget {
         'icon': Icons.support_agent,
         'color': const Color(0xFF6B4EA2),
         'page': 'AgentCommission',
-        'label': 'Commission',
+        'label': l10n.dashboardAppCommission,
         'feature': 'AgentCommission',
       },
       {
         'icon': Icons.call,
         'color': Colors.lightBlue,
         'page': "Support",
-        'label': "Support",
+        'label': l10n.dashboardAppSupport,
         'feature': 'Support',
       },
       {
         'icon': Icons.credit_card,
         'color': Colors.orange,
         'page': "Credits",
-        'label': "Credits",
+        'label': l10n.dashboardAppCredits,
         'feature': 'Credits',
         'isSpecial': true,
       },
@@ -113,21 +115,21 @@ class AppIconsGrid extends ConsumerWidget {
         'icon': FluentIcons.chat_24_regular,
         'color': Colors.purple,
         'page': "Chat",
-        'label': "AI Chat",
+        'label': l10n.aiChat,
         'feature': 'Chat',
       },
       {
         'icon': FluentIcons.settings_24_regular,
         'color': const Color(0xFF64748B),
         'page': "Settings",
-        'label': "Settings",
+        'label': l10n.settings,
         'feature': 'Settings',
       },
       {
         'icon': Icons.factory_outlined,
         'color': const Color(0xFF0078D4), // SAP Fiori blue
         'page': "ProductionOutput",
-        'label': "Production",
+        'label': l10n.production,
         'feature': 'ProductionOutput',
       },
       if (!isBigScreen) ...[
@@ -135,14 +137,14 @@ class AppIconsGrid extends ConsumerWidget {
           'icon': FluentIcons.clipboard_text_edit_24_regular,
           'color': const Color(0xFF006AFE),
           'page': "Tickets",
-          'label': "Tickets",
+          'label': l10n.tickets,
           'feature': 'Tickets',
         },
         {
           'icon': FluentIcons.clipboard_letter_24_regular,
           'color': Colors.blue,
           'page': "Orders",
-          'label': "Orders",
+          'label': l10n.dashboardAppOrders,
           'feature': 'Orders',
         },
       ],
@@ -169,7 +171,10 @@ class AppIconsGrid extends ConsumerWidget {
       // Tickets write.
       if (feature == 'Tickets') {
         return ref.watch(
-              featureAccessProvider(userId: uid, featureName: AppFeature.Tickets),
+              featureAccessProvider(
+                userId: uid,
+                featureName: AppFeature.Tickets,
+              ),
             ) ||
             ref.watch(
               featureAccessProvider(
@@ -251,7 +256,7 @@ class AppIconsGrid extends ConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  'QUICK ACCESS',
+                  l10n.dashboardQuickAccess,
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -269,7 +274,7 @@ class AppIconsGrid extends ConsumerWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
-                      'See all',
+                      l10n.dashboardSeeAll,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -317,7 +322,8 @@ class AppIconsGrid extends ConsumerWidget {
     }
 
     final page = app['page'] as String;
-    final useMobileSvg = !isBigScreen && DashboardQuickAccessSvgs.hasSvgTile(page);
+    final useMobileSvg =
+        !isBigScreen && DashboardQuickAccessSvgs.hasSvgTile(page);
 
     final isServicesHub = page == 'ServicesGigs';
     final baseColor = app['color'] as Color;
@@ -326,9 +332,10 @@ class AppIconsGrid extends ConsumerWidget {
     if (useMobileSvg) {
       effectiveColor = baseColor;
     } else if (isServicesHub && userId.isNotEmpty) {
-      effectiveColor = ref.watch(servicesGigAdminProvider(userId)).when(
-            data: (isAdmin) =>
-                isAdmin ? const Color(0xFFDC2626) : baseColor,
+      effectiveColor = ref
+          .watch(servicesGigAdminProvider(userId))
+          .when(
+            data: (isAdmin) => isAdmin ? const Color(0xFFDC2626) : baseColor,
             loading: () => baseColor,
             error: (_, __) => baseColor,
           );
@@ -338,9 +345,7 @@ class AppIconsGrid extends ConsumerWidget {
 
     final Widget iconArea;
     if (useMobileSvg) {
-      iconArea = Center(
-        child: DashboardQuickAccessSvgs.mobileTileIcon(page),
-      );
+      iconArea = Center(child: DashboardQuickAccessSvgs.mobileTileIcon(page));
     } else if (app['svg'] != null) {
       iconArea = Center(
         child: SvgPicture.string(
@@ -368,7 +373,7 @@ class AppIconsGrid extends ConsumerWidget {
             color: useMobileSvg
                 ? DashboardQuickAccessSvgs.mobileTileBackground(page)
                 : (app['svgBg'] as Color?) ??
-                    effectiveColor.withValues(alpha: 0.1),
+                      effectiveColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: iconArea,
@@ -378,7 +383,7 @@ class AppIconsGrid extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
             app['label'],
-                      style: GoogleFonts.outfit(
+            style: GoogleFonts.outfit(
               fontSize: isBigScreen ? 12 : 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey[800],
@@ -401,7 +406,8 @@ class AppIconsGrid extends ConsumerWidget {
           onAppSelected: onAppSelected,
         );
       },
-      onLongPress: shortcutsEnabled &&
+      onLongPress:
+          shortcutsEnabled &&
               UniversalPlatform.isAndroid &&
               dashboardAppPageSupportsLauncherShortcut(page)
           ? () => unawaited(_offerPinnedShortcut(context: context, app: app))
@@ -442,12 +448,11 @@ Future<void> _offerPinnedShortcut({
   if (!dashboardAppPageSupportsLauncherShortcut(page)) return;
 
   final messenger = ScaffoldMessenger.maybeOf(context);
+  final l10n = context.flipperL10n;
   final supported = await AppShortcutsPlatform.isPinShortcutSupported();
   if (!supported) {
     messenger?.showSnackBar(
-      const SnackBar(
-        content: Text('Pinned shortcuts are not supported on this device.'),
-      ),
+      SnackBar(content: Text(l10n.dashboardShortcutUnsupported)),
     );
     return;
   }
@@ -463,15 +468,15 @@ Future<void> _offerPinnedShortcut({
 
   if (result.ok) {
     messenger?.showSnackBar(
-      SnackBar(content: Text('Add "$label" to your home screen when prompted.')),
+      SnackBar(content: Text(l10n.dashboardShortcutAddPrompt(label))),
     );
   } else {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(
           result.reason == 'launcher_unsupported'
-              ? 'Your launcher does not support pinned shortcuts.'
-              : 'Could not create shortcut.',
+              ? l10n.dashboardShortcutLauncherUnsupported
+              : l10n.dashboardShortcutFailed,
         ),
       ),
     );
@@ -516,9 +521,8 @@ class _CreditsAppCard extends ConsumerWidget {
           child: Center(
             child: !isBigScreen
                 ? creditAsyncValue.when(
-                    data: (_) => DashboardQuickAccessSvgs.mobileTileIcon(
-                      'Credits',
-                    ),
+                    data: (_) =>
+                        DashboardQuickAccessSvgs.mobileTileIcon('Credits'),
                     loading: () => SizedBox(
                       width: 24,
                       height: 24,
@@ -527,11 +531,8 @@ class _CreditsAppCard extends ConsumerWidget {
                         color: Colors.orange.shade700,
                       ),
                     ),
-                    error: (_, __) => const Icon(
-                      Icons.error,
-                      color: Colors.red,
-                      size: 28,
-                    ),
+                    error: (_, __) =>
+                        const Icon(Icons.error, color: Colors.red, size: 28),
                   )
                 : creditAsyncValue.when(
                     data: (credit) {
@@ -547,11 +548,8 @@ class _CreditsAppCard extends ConsumerWidget {
                       height: 24,
                       child: const CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    error: (error, stack) => const Icon(
-                      Icons.error,
-                      color: Colors.red,
-                      size: 28,
-                    ),
+                    error: (error, stack) =>
+                        const Icon(Icons.error, color: Colors.red, size: 28),
                   ),
           ),
         ),
@@ -560,7 +558,7 @@ class _CreditsAppCard extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Text(
             app['label'],
-                      style: GoogleFonts.outfit(
+            style: GoogleFonts.outfit(
               fontSize: isBigScreen ? 12 : 12,
               fontWeight: FontWeight.w500,
               color: Colors.grey[800],
@@ -592,7 +590,10 @@ class _CreditsAppCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
                 child: inner,
               ),
             )

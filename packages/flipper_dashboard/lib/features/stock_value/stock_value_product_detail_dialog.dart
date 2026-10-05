@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'dart:async' show unawaited;
 import 'dart:math' as math;
@@ -64,7 +65,8 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
       if (branchId == null || branchId.isEmpty) {
         setState(() {
           _loading = false;
-          _error = 'No branch selected.';
+          // Runs from initState: no inherited lookups allowed yet.
+          _error = FlipperL10n.current.noBranchSelected;
         });
         return;
       }
@@ -87,7 +89,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'Could not load sales data.';
+        _error = FlipperL10n.current.stockValueSalesLoadError;
       });
     }
   }
@@ -178,7 +180,10 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
                       const SizedBox(height: 16),
                       FilledButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: Text('Close', style: GoogleFonts.outfit()),
+                        child: Text(
+                          context.flipperL10n.close,
+                          style: GoogleFonts.outfit(),
+                        ),
                       ),
                     ],
                   ),
@@ -284,9 +289,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
-                    line.bcd == null || line.bcd!.isEmpty
-                        ? 'BCD: —'
-                        : 'BCD: ${line.bcd}',
+                    'BCD: ${line.bcd == null || line.bcd!.isEmpty ? '—' : line.bcd}',
                     style: GoogleFonts.outfit(
                       color: Colors.black54,
                       fontSize: 13,
@@ -314,7 +317,9 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${line.currentStock.toStringAsFixed(0)} in stock',
+                        context.flipperL10n.stockValueInStock(
+                          line.currentStock.toStringAsFixed(0),
+                        ),
                         style: GoogleFonts.outfit(
                           color: const Color(0xFF16A34A),
                           fontSize: 13,
@@ -325,7 +330,9 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
                   ),
                   Text('·', style: GoogleFonts.outfit(color: Colors.black38)),
                   Text(
-                    'RWF ${formatNumber(line.unitPrice)} / unit',
+                    context.flipperL10n.stockValuePerUnit(
+                      'RWF ${formatNumber(line.unitPrice)}',
+                    ),
                     style: GoogleFonts.outfit(
                       color: const Color(0xFF0D9488),
                       fontSize: 13,
@@ -357,32 +364,37 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
     return LayoutBuilder(
       builder: (context, c) {
         final twoCol = c.maxWidth < 640;
+        final l10n = context.flipperL10n;
         final children = [
           _statCard(
             icon: Icons.layers_outlined,
             iconColor: const Color(0xFF1F6FEB),
-            label: 'STOCK VALUE',
+            label: l10n.stockValueStockValueCaps,
             valueText: 'RWF ${_formatCompact(stockValue)}',
             valueColor: const Color(0xFF1F6FEB),
-            caption:
-                '${line.currentStock.toStringAsFixed(0)} units × RWF ${formatNumber(unit)}',
+            caption: l10n.stockValueUnitsTimesPrice(
+              line.currentStock.toStringAsFixed(0),
+              'RWF ${formatNumber(unit)}',
+            ),
           ),
           _statCard(
             icon: Icons.trending_up,
             iconColor: const Color(0xFF16A34A),
-            label: 'TOTAL SALES',
+            label: l10n.stockValueTotalSalesCaps,
             valueText: 'RWF ${_formatCompact(totalRev)}',
             valueColor: const Color(0xFF16A34A),
-            caption: '${totalQty.toStringAsFixed(0)} units sold (period)',
+            caption: l10n.stockValueUnitsSoldPeriod(
+              totalQty.toStringAsFixed(0),
+            ),
           ),
           _statCard(
             icon: Icons.attach_money,
             iconColor: const Color(0xFFDC2626),
-            label: 'PROFIT',
+            label: l10n.stockValueProfitCaps,
             valueText:
                 '${totalProfit >= 0 ? '+' : ''}RWF ${_formatCompact(totalProfit)}',
             valueColor: const Color(0xFF16A34A),
-            caption: '${marginPct.toStringAsFixed(0)}% margin (est.)',
+            caption: l10n.stockValueMarginEst(marginPct.toStringAsFixed(0)),
           ),
         ];
         if (twoCol) {
@@ -474,18 +486,27 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
               const Icon(Icons.show_chart, size: 20, color: Color(0xFF1F6FEB)),
               const SizedBox(width: 8),
               Text(
-                'Stock Performance',
+                context.flipperL10n.stockValueStockPerformance,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const Spacer(),
-              _rangeChip('7D', _SalesRange.d7),
+              _rangeChip(
+                context.flipperL10n.stockValueRangeDays(7),
+                _SalesRange.d7,
+              ),
               const SizedBox(width: 6),
-              _rangeChip('30D', _SalesRange.d30),
+              _rangeChip(
+                context.flipperL10n.stockValueRangeDays(30),
+                _SalesRange.d30,
+              ),
               const SizedBox(width: 6),
-              _rangeChip('90D', _SalesRange.d90),
+              _rangeChip(
+                context.flipperL10n.stockValueRangeDays(90),
+                _SalesRange.d90,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -494,7 +515,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
             child: spots.isEmpty
                 ? Center(
                     child: Text(
-                      'No sales volume in this period.',
+                      context.flipperL10n.stockValueNoSalesVolume,
                       style: GoogleFonts.outfit(color: Colors.black54),
                     ),
                   )
@@ -547,7 +568,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
               ),
               const SizedBox(width: 6),
               Text(
-                'Sales volume',
+                context.flipperL10n.stockValueSalesVolume,
                 style: GoogleFonts.outfit(fontSize: 12, color: Colors.black54),
               ),
             ],
@@ -584,7 +605,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
             const Icon(Icons.analytics_outlined, size: 20),
             const SizedBox(width: 8),
             Text(
-              'Detailed metrics',
+              context.flipperL10n.stockValueDetailedMetrics,
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -596,41 +617,42 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
         LayoutBuilder(
           builder: (context, c) {
             final oneCol = c.maxWidth < 520;
+            final l10n = context.flipperL10n;
             final a = _miniMetric(
               icon: Icons.autorenew,
               color: const Color(0xFF7C3AED),
-              title: 'INVENTORY TURNOVER',
+              title: l10n.stockValueTurnoverCaps,
               value: '${turnover.toStringAsFixed(1)}x',
               bar: 0.35,
               barColor: const Color(0xFF7C3AED),
-              footer: 'Relative to on-hand stock in this period.',
+              footer: l10n.stockValueTurnoverFooter,
             );
             final b = _miniMetric(
               icon: Icons.wb_sunny_outlined,
               color: const Color(0xFFEA580C),
-              title: 'GROSS MARGIN',
+              title: l10n.stockValueGrossMarginCaps,
               value: '+${marginPct.toStringAsFixed(0)}%',
               bar: (marginPct.clamp(0, 100)) / 100.0,
               barColor: const Color(0xFF16A34A),
-              footer: 'Estimated from retail vs supply on sold units.',
+              footer: l10n.stockValueGrossMarginFooter,
             );
             final c1 = _miniMetric(
               icon: Icons.credit_card,
               color: const Color(0xFF16A34A),
-              title: 'AVG. TRANSACTION',
+              title: l10n.stockValueAvgTransactionCaps,
               value: 'RWF ${formatNumber(avgTx)}',
               bar: null,
               barColor: Colors.transparent,
-              footer: 'Revenue / distinct transactions in range.',
+              footer: l10n.stockValueAvgTransactionFooter,
             );
             final d = _miniMetric(
               icon: Icons.person_outline,
               color: const Color(0xFF1F6FEB),
-              title: 'UNITS SOLD',
+              title: l10n.stockValueUnitsSoldCaps,
               value: unitsSold.toStringAsFixed(0),
               bar: (unitsSold / 500).clamp(0.0, 1.0),
               barColor: const Color(0xFF1F6FEB),
-              footer: 'Total units in the selected range.',
+              footer: l10n.stockValueUnitsSoldFooter,
             );
             if (oneCol) {
               return Column(
@@ -743,7 +765,10 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
         OutlinedButton.icon(
           onPressed: _exportOne,
           icon: const Icon(Icons.download_outlined, size: 18),
-          label: Text('Export', style: GoogleFonts.outfit()),
+          label: Text(
+            context.flipperL10n.stockValueExport,
+            style: GoogleFonts.outfit(),
+          ),
         ),
         const SizedBox(width: 8),
         FilledButton.tonal(
@@ -754,7 +779,7 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
           onPressed: () {
             showInfoNotification(
               context,
-              'Delete product from inventory is not available here.',
+              context.flipperL10n.stockValueDeleteUnavailable,
             );
           },
           child: Row(
@@ -762,14 +787,14 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
             children: [
               const Icon(Icons.delete_outline, size: 18),
               const SizedBox(width: 6),
-              Text('Delete', style: GoogleFonts.outfit()),
+              Text(context.flipperL10n.delete, style: GoogleFonts.outfit()),
             ],
           ),
         ),
         const Spacer(),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel', style: GoogleFonts.outfit()),
+          child: Text(context.flipperL10n.cancel, style: GoogleFonts.outfit()),
         ),
         const SizedBox(width: 8),
         FilledButton.icon(
@@ -781,21 +806,25 @@ class _ProductDetailDialogBodyState extends State<_ProductDetailDialogBody> {
                   openProductEntryScreen(context, productId: id);
                 },
           icon: const Icon(Icons.edit, size: 18),
-          label: Text('Edit product', style: GoogleFonts.outfit()),
+          label: Text(
+            context.flipperL10n.stockValueEditProduct,
+            style: GoogleFonts.outfit(),
+          ),
         ),
       ],
     );
   }
 
   void _exportOne() {
+    final l10n = context.flipperL10n;
     final buf = StringBuffer()
-      ..writeln('Product,${line.name}')
+      ..writeln('${l10n.stockValueCsvProduct},${line.name}')
       ..writeln('BCD,${line.bcd ?? ''}')
-      ..writeln('Category,${line.categoryName}')
-      ..writeln('Stock,${line.currentStock}')
-      ..writeln('Line value,${line.lineValue}');
+      ..writeln('${l10n.category},${line.categoryName}')
+      ..writeln('${l10n.stockValueCsvStock},${line.currentStock}')
+      ..writeln('${l10n.stockValueCsvLineValue},${line.lineValue}');
     unawaited(Clipboard.setData(ClipboardData(text: buf.toString())));
-    showSuccessNotification(context, 'Copied summary to clipboard.');
+    showSuccessNotification(context, l10n.stockValueCopiedSummary);
   }
 
   String _initials(String name) {

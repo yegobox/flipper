@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_charge_
 import 'package:flipper_dashboard/features/hotel_mode/widgets/hotel_room_plan_editor.dart';
 import 'package:flipper_dashboard/services/stamp_ink.dart';
 import 'package:flipper_dashboard/utils/pick_image_base64.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/models/branch_document_settings.dart';
 import 'package:flipper_models/services/branch_document_settings_service.dart';
@@ -50,7 +51,9 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
   bool _notifyGuestEmail = true;
   bool _notifyOnReserve = true;
   bool _notifyOnCheckIn = true;
-  BranchDocumentSettings _documents = const BranchDocumentSettings(branchId: '');
+  BranchDocumentSettings _documents = const BranchDocumentSettings(
+    branchId: '',
+  );
   bool _updatingStamp = false;
 
   @override
@@ -129,7 +132,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     if (BarModeSettings.enabled && mounted) {
       showCustomSnackBarUtil(
         context,
-        'Hotel Mode on alongside Bar Mode — pick what this device runs below.',
+        context.flipperL10n.hotelModeAlongsideBar,
       );
     }
 
@@ -159,7 +162,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
       context: context,
       builder: (dialogContext) => SimpleDialog(
         title: Text(
-          'House checkout time',
+          dialogContext.flipperL10n.hotelHouseCheckoutTime,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         children: [
@@ -193,10 +196,11 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const BarAdminEyebrow(label: 'Lodging'),
+        BarAdminEyebrow(label: l10n.hotelAdminLodging),
         _heroCard(),
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
@@ -208,9 +212,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   BarSubRow(
                     showTopBorder: false,
                     icon: Icons.receipt_long_outlined,
-                    title: 'Post the room charge at check-in',
-                    subtitle:
-                        'Bills nights × rate to the folio as soon as the guest takes the key.',
+                    title: l10n.hotelAutoPostTitle,
+                    subtitle: l10n.hotelAutoPostSubtitle,
                     value: _autoPostRoomCharge,
                     onChanged: (v) {
                       setState(() => _autoPostRoomCharge = v);
@@ -219,9 +222,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   ),
                   BarSubRow(
                     icon: Icons.lock_outline,
-                    title: 'Require PIN to switch clerk',
-                    subtitle:
-                        'Shared register: the desk opens on a PIN lock and any staff member can sign in.',
+                    title: l10n.hotelRequirePinTitle,
+                    subtitle: l10n.hotelRequirePinSubtitle,
                     value: _requirePin,
                     onChanged: (v) {
                       setState(() => _requirePin = v);
@@ -230,9 +232,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   ),
                   BarSubRow(
                     icon: Icons.shield_outlined,
-                    title: 'Manager required to settle a folio',
-                    subtitle:
-                        'Only a manager can take payment and release the room at checkout.',
+                    title: l10n.hotelManagerCheckoutTitle,
+                    subtitle: l10n.hotelManagerCheckoutSubtitle,
                     value: _managerCheckout,
                     onChanged: (v) {
                       setState(() => _managerCheckout = v);
@@ -241,9 +242,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   ),
                   BarSubRow(
                     icon: Icons.logout,
-                    title: 'Hand the desk back after checkout',
-                    subtitle:
-                        'Returns to the PIN lock once a guest is checked out.',
+                    title: l10n.hotelAutoLogoutTitle,
+                    subtitle: l10n.hotelAutoLogoutSubtitle,
                     value: _autoLogout,
                     onChanged: (v) {
                       setState(() => _autoLogout = v);
@@ -261,11 +261,11 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
         ),
         if (_enabled) ...[
           const SizedBox(height: 22),
-          const BarAdminEyebrow(label: 'Rooms & floors'),
+          BarAdminEyebrow(label: l10n.hotelAdminRoomsFloors),
           const HotelRoomPlanEditor(),
           const SizedBox(height: 22),
-          const BarAdminEyebrow(
-            label: 'Rates & billing',
+          BarAdminEyebrow(
+            label: l10n.hotelAdminRatesBilling,
             accent: HotelTokens.reservedInk,
           ),
           BarCard(
@@ -273,35 +273,36 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
               children: [
                 _actionRow(
                   icon: Icons.sell_outlined,
-                  title: 'Room charge product',
-                  subtitle: _roomChargeSubtitle(),
+                  title: l10n.hotelRoomChargeProduct,
+                  subtitle: _roomChargeSubtitle(l10n),
                   warn: _roomChargeVariantId == null,
                   showTopBorder: false,
                   onTap: _pickRoomChargeProduct,
                 ),
                 _actionRow(
                   icon: Icons.schedule,
-                  title: 'House checkout time',
-                  subtitle:
-                      'Departure defaults to ${_checkOutHour.toString().padLeft(2, '0')}:00 on the last night.',
+                  title: l10n.hotelHouseCheckoutTime,
+                  subtitle: l10n.hotelCheckoutDefaultSubtitle(
+                    '${_checkOutHour.toString().padLeft(2, '0')}:00',
+                  ),
                   onTap: _pickCheckOutHour,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 22),
-          const BarAdminEyebrow(label: 'Guest notifications'),
-          _guestNotificationsCard(),
+          BarAdminEyebrow(label: l10n.hotelAdminGuestNotifications),
+          _guestNotificationsCard(l10n),
           const SizedBox(height: 22),
-          const BarAdminEyebrow(label: 'Company stamp'),
-          _stampCard(),
+          BarAdminEyebrow(label: l10n.hotelAdminCompanyStamp),
+          _stampCard(l10n),
         ],
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             BarPrimaryButton(
-              label: 'Open the front desk',
+              label: l10n.hotelOpenFrontDesk,
               onPressed: _enabled
                   ? () {
                       HotelModeSettings.setLaunchOnStart(true);
@@ -315,28 +316,29 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     );
   }
 
-  String _roomChargeSubtitle() {
-    if (_loadingVariant) return 'Loading…';
+  String _roomChargeSubtitle(FlipperAppLocalizations l10n) {
+    if (_loadingVariant) return l10n.hotelLoading;
     final variant = _roomChargeVariant;
-    if (_roomChargeVariantId == null) {
-      return 'Not set — room charges cannot be posted until you pick a registered product.';
+    final variantId = _roomChargeVariantId;
+    if (variantId == null) {
+      return l10n.hotelRoomChargeNotSet;
     }
     if (variant == null) {
-      return 'Product $_roomChargeVariantId is no longer on this branch. Pick another.';
+      return l10n.hotelRoomChargeMissing(variantId);
     }
     return '${variant.name} · RWF '
         '${NumberFormat('#,###').format(variant.retailPrice ?? 0)}';
   }
 
-  Widget _guestNotificationsCard() {
+  Widget _guestNotificationsCard(FlipperAppLocalizations l10n) {
     return BarCard(
       child: Column(
         children: [
           BarSubRow(
             showTopBorder: false,
             icon: Icons.mail_outline,
-            title: 'Email the guest a confirmation',
-            subtitle: 'Free. Sent whenever the guest gave an email address.',
+            title: l10n.hotelNotifyEmailTitle,
+            subtitle: l10n.hotelNotifyEmailSubtitle,
             value: _notifyGuestEmail,
             onChanged: (v) {
               setState(() => _notifyGuestEmail = v);
@@ -345,9 +347,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
           ),
           BarSubRow(
             icon: Icons.sms_outlined,
-            title: 'Text the guest a confirmation',
-            subtitle:
-                'Costs 30 credits per message. Off until you turn it on.',
+            title: l10n.hotelNotifySmsTitle,
+            subtitle: l10n.hotelNotifySmsSubtitle,
             value: _notifyGuestSms,
             onChanged: (v) {
               setState(() => _notifyGuestSms = v);
@@ -356,8 +357,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
           ),
           BarSubRow(
             icon: Icons.event_available_outlined,
-            title: 'Confirm when a room is held',
-            subtitle: 'Sent at the moment a future arrival is booked in.',
+            title: l10n.hotelNotifyReserveTitle,
+            subtitle: l10n.hotelNotifyReserveSubtitle,
             value: _notifyOnReserve,
             onChanged: (v) {
               setState(() => _notifyOnReserve = v);
@@ -366,8 +367,8 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
           ),
           BarSubRow(
             icon: Icons.login,
-            title: 'Welcome the guest at check-in',
-            subtitle: 'Sent when the guest actually takes the key.',
+            title: l10n.hotelNotifyCheckInTitle,
+            subtitle: l10n.hotelNotifyCheckInSubtitle,
             value: _notifyOnCheckIn,
             onChanged: (v) {
               setState(() => _notifyOnCheckIn = v);
@@ -379,7 +380,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     );
   }
 
-  Widget _stampCard() {
+  Widget _stampCard(FlipperAppLocalizations l10n) {
     final stampBytes = _decodedStamp();
 
     return BarCard(
@@ -388,14 +389,13 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
           BarSubRow(
             showTopBorder: false,
             icon: Icons.approval_outlined,
-            title: 'Stamp quotations and proformas',
+            title: l10n.hotelStampTitle,
             subtitle: stampBytes == null
-                ? 'Upload a stamp below, then turn this on.'
-                : 'Drawn on the last page of every generated document.',
+                ? l10n.hotelStampUploadFirst
+                : l10n.hotelStampDrawnOn,
             value: _documents.stampEnabled,
-            onChanged: (v) => _persistDocuments(
-              _documents.copyWith(stampEnabled: v),
-            ),
+            onChanged: (v) =>
+                _persistDocuments(_documents.copyWith(stampEnabled: v)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -417,7 +417,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                       alignment: Alignment.center,
                       child: stampBytes == null
                           ? Text(
-                              'No stamp',
+                              l10n.hotelNoStamp,
                               style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -432,7 +432,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                                 // A stamp that will not decode must not take
                                 // the whole settings page down with it.
                                 errorBuilder: (_, __, ___) => Text(
-                                  'Unreadable',
+                                  l10n.hotelStampUnreadable,
                                   style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     color: HotelTokens.lossInk,
@@ -447,9 +447,9 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'PNG or JPEG under '
-                            '${BranchDocumentSettings.maxStampBytes ~/ 1024}KB. '
-                            'A transparent PNG looks best.',
+                            l10n.hotelStampSizeHint(
+                              '${BranchDocumentSettings.maxStampBytes ~/ 1024}',
+                            ),
                             style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w500,
@@ -462,7 +462,9 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                               TextButton(
                                 onPressed: _updatingStamp ? null : _pickStamp,
                                 child: Text(
-                                  stampBytes == null ? 'Upload' : 'Replace',
+                                  stampBytes == null
+                                      ? l10n.hotelUpload
+                                      : l10n.hotelReplace,
                                   style: GoogleFonts.outfit(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w700,
@@ -471,10 +473,11 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                               ),
                               if (stampBytes != null)
                                 TextButton(
-                                  onPressed:
-                                      _updatingStamp ? null : _removeStamp,
+                                  onPressed: _updatingStamp
+                                      ? null
+                                      : _removeStamp,
                                   child: Text(
-                                    'Remove',
+                                    l10n.remove,
                                     style: GoogleFonts.outfit(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.w700,
@@ -491,9 +494,9 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                 ),
                 if (stampBytes != null) ...[
                   const SizedBox(height: 12),
-                  _stampPlacementRow(),
+                  _stampPlacementRow(l10n),
                   const SizedBox(height: 8),
-                  _stampWidthRow(),
+                  _stampWidthRow(l10n),
                 ],
               ],
             ),
@@ -503,18 +506,18 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     );
   }
 
-  Widget _stampPlacementRow() {
-    const labels = {
-      DocumentStampPlacement.bottomRight: 'Bottom right',
-      DocumentStampPlacement.bottomLeft: 'Bottom left',
-      DocumentStampPlacement.bottomCentre: 'Bottom centre',
-      DocumentStampPlacement.besideTotals: 'Beside the total',
+  Widget _stampPlacementRow(FlipperAppLocalizations l10n) {
+    final labels = {
+      DocumentStampPlacement.bottomRight: l10n.hotelStampBottomRight,
+      DocumentStampPlacement.bottomLeft: l10n.hotelStampBottomLeft,
+      DocumentStampPlacement.bottomCentre: l10n.hotelStampBottomCentre,
+      DocumentStampPlacement.besideTotals: l10n.hotelStampBesideTotal,
     };
 
     return Row(
       children: [
         Text(
-          'Position',
+          l10n.hotelStampPosition,
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -543,11 +546,11 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     );
   }
 
-  Widget _stampWidthRow() {
+  Widget _stampWidthRow(FlipperAppLocalizations l10n) {
     return Row(
       children: [
         Text(
-          'Width',
+          l10n.hotelStampWidth,
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -623,15 +626,20 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
 
       if (!mounted) return;
       if (ok) {
-        showSuccessNotification(context, 'Company stamp updated.');
+        showSuccessNotification(context, context.flipperL10n.hotelStampUpdated);
       } else {
         showErrorNotification(
           context,
-          'Stamp saved on this device only — other terminals will not use it.',
+          context.flipperL10n.hotelStampSavedLocalOnly,
         );
       }
     } catch (e) {
-      if (mounted) showErrorNotification(context, 'Failed to set stamp: $e');
+      if (mounted) {
+        showErrorNotification(
+          context,
+          context.flipperL10n.hotelStampSetFailed('$e'),
+        );
+      }
     } finally {
       if (mounted) setState(() => _updatingStamp = false);
     }
@@ -646,11 +654,11 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
       );
       if (!mounted) return;
       if (ok) {
-        showSuccessNotification(context, 'Company stamp removed.');
+        showSuccessNotification(context, context.flipperL10n.hotelStampRemoved);
       } else {
         showErrorNotification(
           context,
-          'Stamp removed on this device only — other terminals still have it.',
+          context.flipperL10n.hotelStampRemovedLocalOnly,
         );
       }
     } finally {
@@ -671,7 +679,10 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
     setState(() => _documents = withBranch);
     final ok = await BranchDocumentSettingsService.persist(withBranch);
     if (!ok && mounted && notify) {
-      showErrorNotification(context, 'Stamp saved on this device only.');
+      showErrorNotification(
+        context,
+        context.flipperL10n.hotelStampSavedDeviceOnly,
+      );
     }
     return ok;
   }
@@ -726,11 +737,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
               ),
             ),
             const SizedBox(width: 10),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: HotelTokens.ink3,
-            ),
+            const Icon(Icons.chevron_right, size: 20, color: HotelTokens.ink3),
           ],
         ),
       ),
@@ -738,6 +745,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
   }
 
   Widget _heroCard() {
+    final l10n = context.flipperL10n;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       padding: const EdgeInsets.fromLTRB(24, 22, 24, 22),
@@ -784,7 +792,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                   children: [
                     Flexible(
                       child: Text(
-                        'Hotel Mode (Front Desk)',
+                        l10n.hotelModeTitle,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w800,
                           fontSize: 18,
@@ -805,7 +813,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          'ON',
+                          l10n.hotelOnBadge,
                           style: GoogleFonts.outfit(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -819,12 +827,7 @@ class _HotelModeAdminSectionState extends State<HotelModeAdminSection> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Turns the register into a front desk: a board of rooms by floor, '
-                  'check-in with guest and dates, a running folio per stay that the '
-                  'bar and restaurant can charge to, and settlement at checkout. '
-                  'Replaces Bar Mode and standard retail checkout on this branch. '
-                  'On a keyboard, $serviceModeHotkeyLabel cycles '
-                  'Bar → Hotel → POS without coming back here.',
+                  l10n.hotelModeDescription(serviceModeHotkeyLabel),
                   style: GoogleFonts.outfit(
                     fontSize: 13.5,
                     color: HotelTokens.ink2,

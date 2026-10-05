@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -140,7 +141,9 @@ class StockRecountFab extends StatelessWidget {
                   StockRecountTokens.accentDeep,
                 ],
               ),
-              borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
+              borderRadius: BorderRadius.circular(
+                StockRecountTokens.radiusPill,
+              ),
               boxShadow: const [StockRecountTokens.primaryButtonShadow],
             ),
             child: Padding(
@@ -151,7 +154,7 @@ class StockRecountFab extends StatelessWidget {
                   StockRecountIcons.plus(size: 20, color: Colors.white),
                   const SizedBox(width: 9),
                   Text(
-                    'New recount',
+                    context.flipperL10n.stockRecountNew,
                     style: StockRecountHelpers.text(
                       size: 15.5,
                       weight: FontWeight.w700,
@@ -168,7 +171,8 @@ class StockRecountFab extends StatelessWidget {
   }
 }
 
-class StockRecountBlurredAppBar extends StatelessWidget implements PreferredSizeWidget {
+class StockRecountBlurredAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   const StockRecountBlurredAppBar({
     super.key,
     this.leading,
@@ -215,10 +219,7 @@ class StockRecountBlurredAppBar extends StatelessWidget implements PreferredSize
               if (leading == null)
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: StockRecountIcons.svg(
-                    'flipper-logo',
-                    size: 34,
-                  ),
+                  child: StockRecountIcons.svg('flipper-logo', size: 34),
                 ),
               Expanded(
                 child: Column(
@@ -278,7 +279,8 @@ class StockRecountSearchField extends StatefulWidget {
   final double height;
 
   @override
-  State<StockRecountSearchField> createState() => _StockRecountSearchFieldState();
+  State<StockRecountSearchField> createState() =>
+      _StockRecountSearchFieldState();
 }
 
 class _StockRecountSearchFieldState extends State<StockRecountSearchField> {
@@ -329,7 +331,9 @@ class _StockRecountSearchFieldState extends State<StockRecountSearchField> {
         children: [
           StockRecountIcons.search(
             size: 19,
-            color: focused ? StockRecountTokens.accent : StockRecountTokens.ink3,
+            color: focused
+                ? StockRecountTokens.accent
+                : StockRecountTokens.ink3,
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -337,7 +341,10 @@ class _StockRecountSearchFieldState extends State<StockRecountSearchField> {
               controller: widget.controller,
               focusNode: _focusNode,
               onChanged: widget.onChanged,
-              style: StockRecountHelpers.text(size: 15.5, weight: FontWeight.w500),
+              style: StockRecountHelpers.text(
+                size: 15.5,
+                weight: FontWeight.w500,
+              ),
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
@@ -356,7 +363,10 @@ class _StockRecountSearchFieldState extends State<StockRecountSearchField> {
               borderRadius: BorderRadius.circular(999),
               child: Padding(
                 padding: const EdgeInsets.all(4),
-                child: StockRecountIcons.x(size: 16, color: StockRecountTokens.ink3),
+                child: StockRecountIcons.x(
+                  size: 16,
+                  color: StockRecountTokens.ink3,
+                ),
               ),
             ),
         ],
@@ -379,7 +389,10 @@ class StockRecountStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(StockRecountTokens.radiusPill),
       ),
       child: Text(
-        status.toUpperCase(),
+        StockRecountHelpers.statusLabel(
+          context.flipperL10n,
+          status,
+        ).toUpperCase(),
         style: StockRecountHelpers.text(
           size: 10.5,
           weight: FontWeight.w700,
@@ -415,7 +428,11 @@ class StockRecountItemSwatch extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: iconName != null
-          ? StockRecountIcons.svg(iconName!, size: size * 0.45, color: Colors.white)
+          ? StockRecountIcons.svg(
+              iconName!,
+              size: size * 0.45,
+              color: Colors.white,
+            )
           : Text(
               StockRecountHelpers.initials(name),
               style: StockRecountHelpers.text(
@@ -435,13 +452,14 @@ class StockRecountNetPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     if (net == 0) {
       return _pill(
         bg: StockRecountTokens.surface,
         border: StockRecountTokens.line,
         fg: StockRecountTokens.ink3,
         icon: StockRecountIcons.check(size: 13, color: StockRecountTokens.ink3),
-        label: 'Balanced',
+        label: l10n.stockRecountBalanced,
       );
     }
     if (net > 0) {
@@ -449,16 +467,26 @@ class StockRecountNetPill extends StatelessWidget {
         bg: StockRecountTokens.posTint,
         border: StockRecountTokens.posBorder,
         fg: StockRecountTokens.posText,
-        icon: StockRecountIcons.arrowUp(size: 13, color: StockRecountTokens.posText),
-        label: '+${StockRecountHelpers.formatQty(net)} net',
+        icon: StockRecountIcons.arrowUp(
+          size: 13,
+          color: StockRecountTokens.posText,
+        ),
+        label: l10n.stockRecountNetValue(
+          '+${StockRecountHelpers.formatQty(net)}',
+        ),
       );
     }
     return _pill(
       bg: StockRecountTokens.negTint,
       border: StockRecountTokens.negBorder,
       fg: StockRecountTokens.negText,
-      icon: StockRecountIcons.arrowDown(size: 13, color: StockRecountTokens.negText),
-      label: '${StockRecountHelpers.formatSignedVariance(net)} net',
+      icon: StockRecountIcons.arrowDown(
+        size: 13,
+        color: StockRecountTokens.negText,
+      ),
+      label: l10n.stockRecountNetValue(
+        StockRecountHelpers.formatSignedVariance(net),
+      ),
     );
   }
 
@@ -525,7 +553,8 @@ class _StockRecountQtyStepperState extends State<StockRecountQtyStepper> {
   @override
   void didUpdateWidget(covariant StockRecountQtyStepper oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value && _controller.text != '${widget.value}') {
+    if (oldWidget.value != widget.value &&
+        _controller.text != '${widget.value}') {
       _controller.text = '${widget.value}';
     }
   }
@@ -540,8 +569,9 @@ class _StockRecountQtyStepperState extends State<StockRecountQtyStepper> {
   Widget build(BuildContext context) {
     final minusW = widget.compact ? 36.0 : 40.0;
     final minusH = widget.compact ? 40.0 : 48.0;
-    final borderColor =
-        widget.compact ? StockRecountTokens.accentTint2 : StockRecountTokens.line;
+    final borderColor = widget.compact
+        ? StockRecountTokens.accentTint2
+        : StockRecountTokens.line;
 
     return Container(
       width: widget.compact ? double.infinity : null,
@@ -602,9 +632,13 @@ class _StockRecountQtyStepperState extends State<StockRecountQtyStepper> {
             height: minusH,
             icon: StockRecountIcons.plus(
               size: widget.compact ? 17 : 18,
-              color: widget.enabled ? StockRecountTokens.ink2 : StockRecountTokens.ink4,
+              color: widget.enabled
+                  ? StockRecountTokens.ink2
+                  : StockRecountTokens.ink4,
             ),
-            onTap: widget.enabled ? () => widget.onChanged(widget.value + 1) : null,
+            onTap: widget.enabled
+                ? () => widget.onChanged(widget.value + 1)
+                : null,
           ),
         ],
       ),
@@ -667,8 +701,12 @@ class StockRecountPrimaryButton extends StatelessWidget {
                 ],
               )
             : null,
-        color: active ? null : StockRecountTokens.accent.withValues(alpha: 0.45),
-        boxShadow: active ? const [StockRecountTokens.primaryButtonShadow] : null,
+        color: active
+            ? null
+            : StockRecountTokens.accent.withValues(alpha: 0.45),
+        boxShadow: active
+            ? const [StockRecountTokens.primaryButtonShadow]
+            : null,
       ),
       child: Material(
         color: Colors.transparent,
@@ -743,45 +781,45 @@ class StockRecountGhostButton extends StatelessWidget {
         boxShadow: StockRecountTokens.cardShadows,
       ),
       child: Material(
-      color: Colors.transparent,
-      elevation: 0,
-      child: InkWell(
-        onTap: loading ? null : onPressed,
-        borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          child: SizedBox(
-            height: 52,
-            child: Center(
-              child: loading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (leading != null) ...[
-                          leading!,
-                          const SizedBox(width: 9),
-                        ],
-                        Text(
-                          label,
-                          style: StockRecountHelpers.text(
-                            size: 15.5,
-                            weight: FontWeight.w700,
-                            color: StockRecountTokens.ink1,
-                            letterSpacing: -0.24,
+        color: Colors.transparent,
+        elevation: 0,
+        child: InkWell(
+          onTap: loading ? null : onPressed,
+          borderRadius: BorderRadius.circular(StockRecountTokens.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            child: SizedBox(
+              height: 52,
+              child: Center(
+                child: loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (leading != null) ...[
+                            leading!,
+                            const SizedBox(width: 9),
+                          ],
+                          Text(
+                            label,
+                            style: StockRecountHelpers.text(
+                              size: 15.5,
+                              weight: FontWeight.w700,
+                              color: StockRecountTokens.ink1,
+                              letterSpacing: -0.24,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
     return expanded ? Expanded(child: child) : child;
   }
@@ -801,7 +839,7 @@ class StockRecountDeleteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltip ?? 'Delete',
+      message: tooltip ?? context.flipperL10n.delete,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -811,7 +849,10 @@ class StockRecountDeleteButton extends StatelessWidget {
             width: 34,
             height: 34,
             child: Center(
-              child: StockRecountIcons.trash(size: 17, color: StockRecountTokens.ink3),
+              child: StockRecountIcons.trash(
+                size: 17,
+                color: StockRecountTokens.ink3,
+              ),
             ),
           ),
         ),
@@ -848,10 +889,15 @@ class StockRecountExportLink extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             else
-              StockRecountIcons.download(size: 15, color: StockRecountTokens.accent),
+              StockRecountIcons.download(
+                size: 15,
+                color: StockRecountTokens.accent,
+              ),
             const SizedBox(width: 7),
             Text(
-              loading ? 'Exporting…' : 'Export PDF',
+              loading
+                  ? context.flipperL10n.stockRecountExporting
+                  : context.flipperL10n.stockRecountExportPdf,
               style: StockRecountHelpers.text(
                 size: 13,
                 weight: FontWeight.w700,

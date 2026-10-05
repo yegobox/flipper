@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/ordering/ordering_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -135,18 +136,14 @@ class OrderingCheckbox extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: value
-                      ? OrderingTokens.blue
-                      : OrderingTokens.surface,
+                  color: value ? OrderingTokens.blue : OrderingTokens.surface,
                   borderRadius: const BorderRadius.all(
                     Radius.circular(OrderingTokens.rSm),
                   ),
                   border: Border.all(
                     color: value
                         ? OrderingTokens.blue
-                        : (hovered
-                              ? OrderingTokens.ink6
-                              : OrderingTokens.ink8),
+                        : (hovered ? OrderingTokens.ink6 : OrderingTokens.ink8),
                     width: 1.5,
                   ),
                 ),
@@ -212,9 +209,7 @@ class OrderingIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: hovered ? hoverBackground : background,
             borderRadius: BorderRadius.all(Radius.circular(radius)),
-            border: bordered
-                ? Border.all(color: OrderingTokens.line)
-                : null,
+            border: bordered ? Border.all(color: OrderingTokens.line) : null,
           ),
           child: Icon(
             icon,
@@ -255,9 +250,7 @@ class OrderingPrimaryButton extends StatelessWidget {
     final enabled = onPressed != null;
     return OrderingHover(
       enabled: enabled,
-      cursor: enabled
-          ? SystemMouseCursors.click
-          : SystemMouseCursors.forbidden,
+      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.forbidden,
       builder: (context, hovered) => GestureDetector(
         onTap: onPressed,
         child: AnimatedContainer(
@@ -325,16 +318,12 @@ class OrderingSecondaryButton extends StatelessWidget {
           height: height,
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           decoration: BoxDecoration(
-            color: hovered
-                ? OrderingTokens.blueRow
-                : OrderingTokens.surface,
+            color: hovered ? OrderingTokens.blueRow : OrderingTokens.surface,
             borderRadius: const BorderRadius.all(
               Radius.circular(OrderingTokens.rStepper),
             ),
             border: Border.all(
-              color: hovered
-                  ? OrderingTokens.blue
-                  : OrderingTokens.lineStrong,
+              color: hovered ? OrderingTokens.blue : OrderingTokens.lineStrong,
               width: 1.5,
             ),
           ),
@@ -449,9 +438,7 @@ class OrderingEmptyState extends StatelessWidget {
             Text(
               hint!,
               textAlign: TextAlign.center,
-              style: OrderingTokens.body.copyWith(
-                color: OrderingTokens.ink4,
-              ),
+              style: OrderingTokens.body.copyWith(color: OrderingTokens.ink4),
             ),
           ],
         ],
@@ -523,9 +510,7 @@ class OrderingSearchField extends StatelessWidget {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: verticalPadding,
-                ),
+                contentPadding: EdgeInsets.symmetric(vertical: verticalPadding),
                 hintText: hintText,
                 hintStyle: TextStyle(
                   fontFamily: OrderingTokens.sans,
@@ -548,7 +533,7 @@ class OrderingSearchField extends StatelessWidget {
               hoverBackground: const Color(0xFFC9D1DD),
               foreground: const Color(0xFF5B6674),
               hoverForeground: const Color(0xFF5B6674),
-              tooltip: 'Clear search',
+              tooltip: context.flipperL10n.clearSearch,
               onPressed: onClear,
             ),
           ],

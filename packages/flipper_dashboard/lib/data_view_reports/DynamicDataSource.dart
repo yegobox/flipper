@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -48,10 +49,12 @@ String transactionReportCustomerLabel(ITransaction t) {
 
 String _transactionReportStatusLabel(ITransaction tx) {
   final s = (tx.status ?? '').toLowerCase();
-  if (s == PARKED) return 'Parked';
-  if (s == COMPLETE || s.contains('complete')) return 'Completed';
-  if (s.contains('cancel')) return 'Cancelled';
-  if (s == PENDING || s.contains('pending')) return 'Pending';
+  final l10n = FlipperL10n.current;
+  if (s == PARKED) return l10n.reportStatusParked;
+  if (s == COMPLETE || s.contains('complete'))
+    return l10n.reportStatusCompleted;
+  if (s.contains('cancel')) return l10n.reportStatusCancelled;
+  if (s == PENDING || s.contains('pending')) return l10n.reportStatusPending;
   return tx.status ?? '—';
 }
 
@@ -342,17 +345,11 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   DataGridRow _buildTransactionItemRow(TransactionItem transactionItem) {
     final taxRate = TransactionItemPluMetrics.taxRatePercent(transactionItem);
-    final row = pluDetailedReportRow(
-      transactionItem,
-      taxRatePercent: taxRate,
-    );
+    final row = pluDetailedReportRow(transactionItem, taxRatePercent: taxRate);
     return DataGridRow(
       cells: [
         for (final name in kPluDetailedExportColumnNames)
-          DataGridCell<dynamic>(
-            columnName: name,
-            value: row[name],
-          ),
+          DataGridCell<dynamic>(columnName: name, value: row[name]),
       ],
     );
   }
@@ -643,7 +640,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       }
       if (name == 'Status') {
         final label = e.value?.toString() ?? '';
-        final (badgeBg, badgeFg) = _statusBadgeColors(label);
+        // Colour from the raw status: the label is localized.
+        final (badgeBg, badgeFg) = _statusBadgeColors(tx?.status ?? label);
         return Container(
           color: rowBg,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -746,7 +744,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
                 children: [
                   actionPillButton(
                     icon: Icons.visibility_outlined,
-                    tooltip: 'View',
+                    tooltip: ctx.flipperL10n.reportView,
                     onTap: () {
                       showDialog<void>(
                         barrierDismissible: true,
@@ -765,7 +763,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
                   const SizedBox(width: 6),
                   actionPillButton(
                     icon: Icons.print_outlined,
-                    tooltip: 'Print',
+                    tooltip: ctx.flipperL10n.reportPrint,
                     onTap: () => _receiptActions.printReceipt(ctx, tx),
                   ),
                 ],

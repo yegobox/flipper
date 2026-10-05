@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/product_editor/product_editor_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -26,7 +27,8 @@ class ProductEditorFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = totalCount == 0 ? 0.0 : doneCount / totalCount;
     final allDone = doneCount >= totalCount && totalCount > 0;
-    final narrow = MediaQuery.sizeOf(context).width <= ProductEditorTokens.breakpointStack;
+    final narrow =
+        MediaQuery.sizeOf(context).width <= ProductEditorTokens.breakpointStack;
 
     return Container(
       height: ProductEditorTokens.footerHeight,
@@ -66,8 +68,11 @@ class ProductEditorFooter extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     allDone
-                        ? 'Ready to save'
-                        : '$doneCount of $totalCount sections complete',
+                        ? context.flipperL10n.productEditorReadyToSave
+                        : context.flipperL10n.productEditorSectionsComplete(
+                            doneCount.toString(),
+                            totalCount.toString(),
+                          ),
                     style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
@@ -82,13 +87,13 @@ class ProductEditorFooter extends StatelessWidget {
           ),
           if (!hideClose) ...[
             _GhostButton(
-              label: 'Close',
+              label: context.flipperL10n.close,
               onPressed: isSaving ? null : onClose,
             ),
             const SizedBox(width: 12),
           ],
           _PrimaryButton(
-            label: 'Save product',
+            label: context.flipperL10n.productEditorSaveProduct,
             onPressed: (canSave && !isSaving) ? onSave : null,
             isSaving: isSaving,
           ),
@@ -117,7 +122,10 @@ class _GhostButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 22),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: ProductEditorTokens.lineStrong, width: 1.5),
+            border: Border.all(
+              color: ProductEditorTokens.lineStrong,
+              width: 1.5,
+            ),
             boxShadow: ProductEditorTokens.surface == Colors.white
                 ? const [
                     BoxShadow(
@@ -168,7 +176,9 @@ class _PrimaryButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             gradient: enabled ? ProductEditorTokens.gradBtn : null,
-            color: enabled ? null : ProductEditorTokens.blue.withValues(alpha: 0.45),
+            color: enabled
+                ? null
+                : ProductEditorTokens.blue.withValues(alpha: 0.45),
             boxShadow: enabled
                 ? const [
                     BoxShadow(

@@ -1,3 +1,4 @@
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -67,7 +68,7 @@ class _CreditHomePageState extends State<CreditHomePage>
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Credit Hub',
+          context.flipperL10n.creditsHubTitle,
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         actions: [
@@ -108,7 +109,7 @@ class _CreditHomePageState extends State<CreditHomePage>
                     ),
                     const SizedBox(height: 40),
                     Text(
-                      'Add Credits',
+                      context.flipperL10n.creditsAddCredits,
                       style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),

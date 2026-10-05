@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/features/kitchen_display/kitchen_stage.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/transaction_items_provider.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_services/constants.dart';
@@ -35,6 +36,7 @@ class OrderCard extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.flipperL10n;
     final ticket = view.ticket;
     final dueDate = view.order.dueDate;
     final isExpanded = useState(false);
@@ -58,7 +60,7 @@ class OrderCard extends HookConsumerWidget {
     // When it reached the kitchen, not when the cart was opened.
     final sentAt = view.order.sentAt ?? ticket?.createdAt;
     final sentAtLabel = sentAt == null
-        ? 'Unknown'
+        ? l10n.ticketUnknown
         : DateFormat('HH:mm').format(sentAt.toLocal());
 
     final canSetDueDate =
@@ -98,7 +100,7 @@ class OrderCard extends HookConsumerWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Order #${_orderNumber(view)}',
+                      l10n.kitchenOrderNumber(_orderNumber(view)),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -123,8 +125,10 @@ class OrderCard extends HookConsumerWidget {
                           minutesRemaining.value == null
                               ? ''
                               : minutesRemaining.value! < 0
-                              ? 'Overdue'
-                              : '${minutesRemaining.value!} min left',
+                              ? l10n.ticketOverdue
+                              : l10n.ticketMinutesLeft(
+                                  '${minutesRemaining.value!}',
+                                ),
                           style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 13,
@@ -148,7 +152,7 @@ class OrderCard extends HookConsumerWidget {
                           Icons.edit_calendar,
                           color: Colors.blue,
                         ),
-                        tooltip: 'Set Due Date',
+                        tooltip: l10n.kitchenSetDueDate,
                         onPressed: () async {
                           final picked = await showDialog<Duration>(
                             context: context,
@@ -164,11 +168,11 @@ class OrderCard extends HookConsumerWidget {
               ),
 
               if (ticket == null)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    'Ticket not found — it may have been deleted.',
-                    style: TextStyle(
+                    l10n.kitchenTicketNotFound,
+                    style: const TextStyle(
                       fontStyle: FontStyle.italic,
                       color: Colors.grey,
                     ),
@@ -179,7 +183,7 @@ class OrderCard extends HookConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
-                    'Ticket: $name',
+                    l10n.kitchenTicketName(name),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -191,13 +195,17 @@ class OrderCard extends HookConsumerWidget {
               if (ticket != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  'Customer: ${ticket.customerName ?? 'Walk-in Customer'}',
+                  l10n.kitchenCustomerLine(
+                    ticket.customerName ?? l10n.ticketWalkInCustomer,
+                  ),
                   style: const TextStyle(fontSize: 14),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Total: ${ticket.subTotal?.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+                  l10n.kitchenTotalLine(
+                    '${ticket.subTotal?.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+                  ),
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
@@ -219,9 +227,9 @@ class OrderCard extends HookConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Note:',
-                          style: TextStyle(
+                        Text(
+                          l10n.kitchenNoteLabel,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -243,7 +251,7 @@ class OrderCard extends HookConsumerWidget {
               Row(
                 children: [
                   _Tag(
-                    label: stage.label,
+                    label: stage.labelOf(l10n),
                     foreground: borderColor,
                     background: borderColor.withValues(alpha: 0.2),
                     bold: true,
@@ -251,7 +259,7 @@ class OrderCard extends HookConsumerWidget {
                   if (isPaid) ...[
                     const SizedBox(width: 8),
                     _Tag(
-                      label: 'Paid',
+                      label: l10n.ticketStatusPaid,
                       foreground: Colors.green.shade800,
                       background: Colors.green.withValues(alpha: 0.15),
                       bold: true,
@@ -286,7 +294,7 @@ class OrderCard extends HookConsumerWidget {
                       ),
                       onPressed: onServed,
                       icon: const Icon(Icons.check, size: 18),
-                      label: const Text('Served'),
+                      label: Text(l10n.kitchenStageServed),
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.green.shade700,
                       ),
@@ -301,11 +309,11 @@ class OrderCard extends HookConsumerWidget {
                     .when(
                       data: (items) {
                         if (items.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.only(top: 8.0),
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
-                              'No items found',
-                              style: TextStyle(
+                              l10n.kitchenNoItemsFound,
+                              style: const TextStyle(
                                 fontStyle: FontStyle.italic,
                                 color: Colors.grey,
                               ),
@@ -317,11 +325,15 @@ class OrderCard extends HookConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Divider(),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 4.0),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
+                              ),
                               child: Text(
-                                'Items:',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                l10n.kitchenItemsLabel,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             for (final item in items)
@@ -369,7 +381,7 @@ class OrderCard extends HookConsumerWidget {
                       error: (error, stack) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
-                          'Error loading items: $error',
+                          l10n.kitchenErrorLoadingItems(error.toString()),
                           style: const TextStyle(color: Colors.red),
                         ),
                       ),
@@ -436,6 +448,7 @@ class _DueInDialogState extends State<_DueInDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -445,22 +458,22 @@ class _DueInDialogState extends State<_DueInDialog> {
             min: 5,
             max: 240,
             divisions: 47,
-            label: '${_selected.inMinutes} minutes',
+            label: l10n.kitchenMinutesCount(_selected.inMinutes),
             onChanged: (val) {
               setState(() => _selected = Duration(minutes: val.round()));
             },
           ),
-          Text('Due in ${_selected.inMinutes} minutes'),
+          Text(l10n.kitchenDueInMinutes(_selected.inMinutes)),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(_selected),
-          child: const Text('Set'),
+          child: Text(l10n.kitchenSetAction),
         ),
       ],
     );

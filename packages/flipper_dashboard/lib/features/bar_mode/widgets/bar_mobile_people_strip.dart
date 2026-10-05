@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/features/bar_mode/providers/bar_mode_providers.dart';
 import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_shared_widgets.dart';
 import 'package:flipper_models/sync/utils/bar_mode_utils.dart';
@@ -32,7 +33,10 @@ class BarMobilePeopleStrip extends StatelessWidget {
           final person = staff[i];
           final isOn = selected?.id == person.id;
           final color = barColorForTenant(person.id, staff);
-          final firstName = barFirstName(person.name) ?? person.name ?? 'Staff';
+          final firstName =
+              barFirstName(person.name) ??
+              person.name ??
+              context.flipperL10n.barStaffFallback;
 
           return GestureDetector(
             onTap: () => onSelect(person),

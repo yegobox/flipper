@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/features/bar_mode/theme/bar_tokens.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_mobile_shell.dart';
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_room_charge_tile.dart';
 import 'package:flipper_dashboard/utils/sale_receipt_settlement.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/models/hotel_stay.dart';
@@ -79,8 +80,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
   String _receiptPhoneDigits() =>
       _receiptPhoneController.text.replaceAll(RegExp(r'\D'), '');
 
-  bool _receiptPhoneIsValid() =>
-      _rwMobilePhone.hasMatch(_receiptPhoneDigits());
+  bool _receiptPhoneIsValid() => _rwMobilePhone.hasMatch(_receiptPhoneDigits());
 
   void _onReceiptPhoneChanged(String value, ITransaction tab) {
     final digits = value.replaceAll(RegExp(r'\D'), '');
@@ -102,6 +102,13 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
       );
     });
   }
+
+  /// Display label for [_method]; the raw value is what gets persisted.
+  String _methodLabel(FlipperAppLocalizations l10n) => switch (_method) {
+    'Cash' => l10n.cash,
+    'Mobile Money' => l10n.barMobileMoney,
+    _ => _method,
+  };
 
   void _setTender(double value) {
     final v = value < 0 ? 0.0 : value;
@@ -136,17 +143,20 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
 
     final isRoomCharge = _method == BarRoomCharge.method;
     final canChargeRoom = BarRoomCharge.isAvailable(ref);
-    final canConfirm = !_settling &&
+    final canConfirm =
+        !_settling &&
         (isRoomCharge
             ? _roomStay != null
             : _receiptPhoneIsValid() &&
-                (_method == 'Mobile Money' || _tender >= total - 0.01));
+                  (_method == 'Mobile Money' || _tender >= total - 0.01));
     final buttonLooksEnabled = canConfirm || _settling;
     final openedAt = tab.createdAt ?? DateTime.now();
-    final openedTime = MaterialLocalizations.of(context).formatTimeOfDay(
-      TimeOfDay.fromDateTime(openedAt),
-    );
+    final openedTime = MaterialLocalizations.of(
+      context,
+    ).formatTimeOfDay(TimeOfDay.fromDateTime(openedAt));
     final elapsed = barFormatDuration(DateTime.now().difference(openedAt));
+    final l10n = context.flipperL10n;
+    final totalLabel = 'RWF ${NumberFormat('#,###').format(total)}';
 
     return BarMobileShell(
       header: _SettleMobileTopBar(
@@ -162,7 +172,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
           children: [
             _BillSummaryCard(
               tableName: table.name,
-              openedLabel: 'Opened $openedTime • $elapsed',
+              openedLabel: l10n.barOpenedAtElapsed(openedTime, elapsed),
               grouped: grouped,
               staff: staff,
               vat: vat,
@@ -170,7 +180,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Payment',
+              l10n.payment,
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -180,25 +190,22 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
             const SizedBox(height: 4),
             Text(
               isRoomCharge
-                  ? 'The tab moves onto the guest folio and is invoiced at check-out.'
-                  : 'Choose method and take payment to close the table.',
-              style: GoogleFonts.outfit(
-                fontSize: 13,
-                color: BarTokens.ink3,
-              ),
+                  ? l10n.barSettleRoomChargeSubtitle
+                  : l10n.barSettleChooseMethod,
+              style: GoogleFonts.outfit(fontSize: 13, color: BarTokens.ink3),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 _PaymentMethodCard(
-                  label: 'Cash',
+                  label: l10n.cash,
                   icon: Icons.account_balance_wallet_outlined,
                   selected: _method == 'Cash',
                   onTap: () => setState(() => _method = 'Cash'),
                 ),
                 const SizedBox(width: 10),
                 _PaymentMethodCard(
-                  label: 'Mobile Money',
+                  label: l10n.barMobileMoney,
                   icon: Icons.smartphone_outlined,
                   selected: _method == 'Mobile Money',
                   onTap: () => setState(() => _method = 'Mobile Money'),
@@ -233,10 +240,10 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                 ),
                 child: Text(
                   _roomStay == null
-                      ? 'Pick the guest whose folio picks up this bill.'
-                      : 'No money changes hands now: these lines join '
-                            '${hotelRoomChargeTarget(_roomStay!)} and are '
-                            'receipted when the guest checks out.',
+                      ? l10n.barPickGuestForBill
+                      : l10n.barRoomChargeNoMoney(
+                          hotelRoomChargeTarget(_roomStay!),
+                        ),
                   style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     color: BarTokens.ink2,
@@ -249,7 +256,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
               Row(
                 children: [
                   Text(
-                    'ENTER AMOUNT TENDERED',
+                    l10n.barEnterAmountTendered.toUpperCase(),
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -259,7 +266,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                   ),
                   const Spacer(),
                   Text(
-                    'RWF ${NumberFormat('#,###').format(total)} due',
+                    l10n.barAmountDue(totalLabel),
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -270,7 +277,10 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
               ),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: BarTokens.surface,
                   borderRadius: BorderRadius.circular(14),
@@ -298,8 +308,9 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                           contentPadding: EdgeInsets.zero,
                         ),
                         onChanged: (raw) {
-                          final parsed =
-                              double.tryParse(raw.replaceAll(',', ''));
+                          final parsed = double.tryParse(
+                            raw.replaceAll(',', ''),
+                          );
                           setState(() => _tender = parsed ?? 0);
                         },
                       ),
@@ -321,7 +332,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                 runSpacing: 8,
                 children: [
                   for (final chip in [
-                    (label: 'Exact', value: total),
+                    (label: l10n.exact, value: total),
                     (label: '20,000', value: 20000.0),
                     (label: '50,000', value: 50000.0),
                     (label: '100,000', value: 100000.0),
@@ -342,7 +353,7 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                   border: Border.all(color: BarTokens.line),
                 ),
                 child: Text(
-                  'A push request will be sent to the guest device.',
+                  l10n.barMomoPushNotice,
                   style: GoogleFonts.outfit(
                     fontSize: 12.5,
                     color: BarTokens.ink2,
@@ -408,8 +419,13 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
                         const SizedBox(width: 10),
                         Text(
                           isRoomCharge
-                              ? 'Charge ${_roomStay == null ? 'to room' : 'Room ${_roomStay!.roomName}'} · RWF ${NumberFormat('#,###').format(total)}'
-                              : 'Confirm · RWF ${NumberFormat('#,###').format(total)}',
+                              ? (_roomStay == null
+                                    ? l10n.barChargeToRoomTotalShort(totalLabel)
+                                    : l10n.barChargeRoomTotalShort(
+                                        _roomStay!.roomName,
+                                        totalLabel,
+                                      ))
+                              : l10n.barConfirmTotalShort(totalLabel),
                           style: GoogleFonts.outfit(
                             color: buttonLooksEnabled
                                 ? Colors.white
@@ -475,13 +491,12 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
       await _chargeRoom(ref, tab);
       return;
     }
+    final l10n = context.flipperL10n;
     if (!_receiptPhoneIsValid()) {
       setState(() => _phoneShowError = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Enter a valid 9-digit receipt phone number.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.barInvalidReceiptPhone)));
       _receiptPhoneFocus.requestFocus();
       return;
     }
@@ -525,10 +540,15 @@ class _BarSettleMobileScreenState extends ConsumerState<BarSettleMobileScreen> {
 
       if (!mounted) return;
       final tableName = ref.read(barModeProvider).activeTable?.name ?? '';
-      ref.read(barModeProvider.notifier).afterSettle(
+      ref
+          .read(barModeProvider.notifier)
+          .afterSettle(
             tableName: tableName,
-            message:
-                '$tableName settled · RWF ${NumberFormat('#,###').format(total)} $_method',
+            message: l10n.barSettledToast(
+              tableName,
+              'RWF ${NumberFormat('#,###').format(total)}',
+              _methodLabel(l10n),
+            ),
           );
     } catch (e) {
       if (!mounted) return;
@@ -599,7 +619,7 @@ class _SettleMobileTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 9),
           Text(
-            'Settle · $zoneName',
+            context.flipperL10n.barSettleZone(zoneName),
             style: GoogleFonts.outfit(
               fontWeight: FontWeight.w800,
               fontSize: 18,
@@ -630,6 +650,7 @@ class _BillSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Container(
       padding: EdgeInsets.fromLTRB(
         compact ? 18 : 24,
@@ -651,7 +672,7 @@ class _BillSummaryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Table $tableName — running tab',
+                  l10n.barTableRunningTab(tableName),
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
@@ -682,7 +703,9 @@ class _BillSummaryCard extends StatelessWidget {
               }
             }
             final fullName =
-                tenant?.name ?? entry.value.first.loggedByName ?? 'Staff';
+                tenant?.name ??
+                entry.value.first.loggedByName ??
+                l10n.barStaffFallback;
             final serverLabel = _serverLabel(fullName);
             final initials = barTenantInitials(fullName);
             final color = barColorForTenant(entry.key, staff);
@@ -715,7 +738,7 @@ class _BillSummaryCard extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          '$serverLabel · Server',
+                          l10n.barServerName(serverLabel),
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -735,7 +758,8 @@ class _BillSummaryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   ...entry.value.map((line) {
-                    final lineTotal = line.price.toDouble() * line.qty.toDouble();
+                    final lineTotal =
+                        line.price.toDouble() * line.qty.toDouble();
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Row(
@@ -770,17 +794,14 @@ class _BillSummaryCard extends StatelessWidget {
           }),
           const Divider(height: 1, color: BarTokens.line),
           const SizedBox(height: 14),
-          _TotalsRow(
-            label: 'Subtotal (excl. VAT)',
-            amount: vat.subtotal,
-          ),
+          _TotalsRow(label: l10n.barSubtotalExclVat, amount: vat.subtotal),
           const SizedBox(height: 8),
-          _TotalsRow(label: 'VAT 18%', amount: vat.vat),
+          _TotalsRow(label: l10n.barVat18, amount: vat.vat),
           const SizedBox(height: 12),
           const Divider(height: 1, color: BarTokens.line),
           const SizedBox(height: 12),
           _TotalsRow(
-            label: 'Total due',
+            label: l10n.barTotalDue,
             amount: vat.total,
             emphasize: true,
           ),
@@ -908,11 +929,12 @@ class _ReceiptPhoneField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.flipperL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'RECEIPT PHONE NUMBER *',
+          l10n.barReceiptPhoneNumber.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -922,7 +944,7 @@ class _ReceiptPhoneField extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Required — printed on the RRA receipt (TEL).',
+          l10n.barReceiptPhoneRequired,
           style: GoogleFonts.outfit(
             fontSize: 12.5,
             fontWeight: FontWeight.w500,
@@ -1007,7 +1029,7 @@ class _ReceiptPhoneField extends StatelessWidget {
         if (showError) ...[
           const SizedBox(height: 6),
           Text(
-            'Enter a valid 9-digit mobile number (e.g. 783054874).',
+            l10n.barInvalidMobileNumber,
             style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.w600,

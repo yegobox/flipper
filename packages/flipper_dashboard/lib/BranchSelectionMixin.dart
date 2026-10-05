@@ -210,7 +210,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         ScaffoldMessenger.of(context).clearSnackBars();
         showCustomSnackBarUtil(
           context,
-          'Branch switched. Refreshing data...',
+          context.flipperL10n.branchSwitchedRefreshing,
           duration: const Duration(seconds: 2),
         );
       }
@@ -355,7 +355,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                         if (branch.isDefault ?? false) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'Default Branch',
+                            context.flipperL10n.branchDefault,
                             style: TextStyle(
                               fontSize: 12,
                               color: Theme.of(context).primaryColor,
@@ -418,9 +418,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                "We are logging you out...",
-                style: TextStyle(
+              Text(
+                context.flipperL10n.branchLoggingOut,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
@@ -494,7 +494,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         ScaffoldMessenger.of(context).clearSnackBars();
         showCustomSnackBarUtil(
           context,
-          'Branch switched. Refreshing data...',
+          context.flipperL10n.branchSwitchedRefreshing,
           duration: const Duration(seconds: 2),
         );
       }
@@ -618,11 +618,12 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
       return;
     }
 
-    final branchName = branch.name ?? 'branch';
+    final branchName = branch.name ?? context.flipperL10n.branch;
+    final switchedMessage = context.flipperL10n.branchSwitchedTo(branchName);
     setState(() {
       _isSwitching = true;
       _loadingBranchId = branch.id.toString();
-      _switchStatusMessage = 'Switching to $branchName…';
+      _switchStatusMessage = context.flipperL10n.branchSwitchingTo(branchName);
     });
 
     await widget.handleBranchSelection(
@@ -645,7 +646,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
 
         showCustomSnackBarUtil(
           context,
-          'Switched to $branchName',
+          switchedMessage,
           duration: const Duration(seconds: 2),
         );
 
@@ -688,7 +689,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
               size: 26,
             ),
             const SizedBox(width: 10),
-            Text('Switch Branch', style: _titleStyle),
+            Text(context.flipperL10n.branchSwitchTitle, style: _titleStyle),
           ],
         ),
         if (showLogout)
@@ -700,7 +701,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
               color: Theme.of(context).colorScheme.error,
             ),
             label: Text(
-              'Logout',
+              context.flipperL10n.logOut,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.error,
                 fontWeight: FontWeight.w500,
@@ -812,7 +813,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                       if (isActive) ...[
                         const SizedBox(height: 2),
                         Text(
-                          'Active branch',
+                          context.flipperL10n.branchActive,
                           style: TextStyle(
                             fontSize: 12,
                             color: theme.primaryColor,
@@ -875,7 +876,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
                   Text(
-                    'Loading branches…',
+                    context.flipperL10n.branchLoading,
                     style: TextStyle(
                       fontSize: 15,
                       color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -897,7 +898,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
           _buildHeader(),
           const SizedBox(height: 36),
           Text(
-            'No branches available',
+            context.flipperL10n.branchNoneAvailable,
             style: TextStyle(
               fontSize: 15,
               color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -928,7 +929,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
             controller: _searchController,
             onChanged: _onSearchChanged,
             decoration: InputDecoration(
-              hintText: 'Search branches…',
+              hintText: context.flipperL10n.branchSearchHint,
               border: InputBorder.none,
               icon: Icon(Icons.search, color: Theme.of(context).hintColor),
               suffixIcon: ValueListenableBuilder<String>(
@@ -974,7 +975,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'No branches found',
+                        context.flipperL10n.branchesNoneFound,
                         style: TextStyle(
                           color: Theme.of(context).hintColor,
                           fontSize: 15,

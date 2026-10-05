@@ -1,6 +1,7 @@
 import 'package:flipper_design_system/flipper_design_system.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_dashboard/features/leads/widgets/proforma_invoice_screen.dart';
+import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/leads/lead_ui_utils.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
@@ -11,6 +12,32 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+
+/// Localized label for a lead pipeline [status] wire value.
+String leadStatusLabel(FlipperAppLocalizations l10n, String status) {
+  final normalized = status.toLowerCase();
+  return switch (normalized) {
+    LeadStatus.newLead => l10n.leadsStatusNew,
+    LeadStatus.contacted => l10n.leadsStatusContacted,
+    LeadStatus.quoted => l10n.leadsStatusQuoted,
+    LeadStatus.converted => l10n.leadsStatusConverted,
+    LeadStatus.lost => l10n.leadsStatusLost,
+    _ => normalized,
+  };
+}
+
+/// Localized label for a leads list filter value: `All` or a status name.
+String leadFilterLabel(FlipperAppLocalizations l10n, String filter) =>
+    filter == 'All' ? l10n.leadsFilterAll : leadStatusLabel(l10n, filter);
+
+/// Localized label for a lead [heat] wire value (unknown values read as cold).
+String leadHeatLabel(FlipperAppLocalizations l10n, String heat) {
+  return switch (heat.toLowerCase()) {
+    LeadHeat.hot => l10n.leadsHeatHot,
+    LeadHeat.warm => l10n.leadsHeatWarm,
+    _ => l10n.leadsHeatCold,
+  };
+}
 
 class LeadDetailDialog extends ConsumerStatefulWidget {
   final Lead lead;
@@ -163,6 +190,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
 
   Widget _contactDetails() {
     final lead = widget.lead;
+    final l10n = context.flipperL10n;
     Widget row(String label, String value, {Widget? trailing}) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -215,7 +243,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             child: Text(
-              'CONTACT DETAILS',
+              l10n.leadsContactDetails.toUpperCase(),
               style: GoogleFonts.outfit(
                 fontSize: 11,
                 fontWeight: FontWeight.w900,
@@ -224,10 +252,10 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
               ),
             ),
           ),
-          row('Email', lead.emailAddress ?? ''),
-          row('Phone', lead.phoneNumber ?? ''),
+          row(l10n.email, lead.emailAddress ?? ''),
+          row(l10n.phone, lead.phoneNumber ?? ''),
           row(
-            'Est. value',
+            l10n.leadsEstValue,
             '',
             trailing: lead.estimatedValue == null
                 ? Text(
@@ -246,7 +274,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
                     ),
                   ),
           ),
-          row('Notes', lead.notes ?? ''),
+          row(l10n.leadsNotes, lead.notes ?? ''),
         ],
       ),
     );
@@ -278,7 +306,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'AI extracted items of interest',
+                  context.flipperL10n.leadsAiExtractedItems,
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w900,
                     color: const Color(0xFF5B21B6),
@@ -297,7 +325,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
   Widget _aiRow(LeadItemRow row) {
     final qtyLabel = row.quantity == 1 ? '×1' : '×${row.quantity}';
     final matchLabel = row.matchPercent != null
-        ? '${row.matchPercent!.round()}% match'
+        ? context.flipperL10n.leadsMatchPercent('${row.matchPercent!.round()}')
         : null;
 
     return Padding(
@@ -344,6 +372,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
 
   Widget _timeline() {
     final lead = widget.lead;
+    final l10n = context.flipperL10n;
     const connectorColor = Color(0xFFEAECF0);
     Widget dot(Color c) => Container(
       width: 10,
@@ -412,14 +441,15 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
 
     final model = lead.aiExtracted?['model']?.toString();
     final d = DateFormat('MMM d').format(lead.createdAt.toLocal());
-    final aiSubtitle =
-        (model != null && model.isNotEmpty) ? '$d · $model' : '$d · AI';
+    final aiSubtitle = (model != null && model.isNotEmpty)
+        ? '$d · $model'
+        : '$d · AI';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'ACTIVITY TIMELINE',
+          l10n.leadsActivityTimeline.toUpperCase(),
           style: GoogleFonts.outfit(
             fontSize: 11,
             fontWeight: FontWeight.w900,
@@ -431,21 +461,21 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
         entry(
           const Color(0xFF2563EB),
           lead.source == LeadSource.gmail
-              ? 'Lead created — from Gmail email'
-              : 'Lead created — manual entry',
-          DateFormat('MMM d').format(lead.createdAt.toLocal()) + ' · Auto',
+              ? l10n.leadsCreatedFromGmail
+              : l10n.leadsCreatedManual,
+          '$d · ${l10n.leadsTimelineAuto}',
           isLast: false,
         ),
         entry(
           const Color(0xFF7C3AED),
-          'AI extracted ${parseLeadItemRows(lead).length} product(s) of interest',
+          l10n.leadsAiExtractedProducts(parseLeadItemRows(lead).length),
           aiSubtitle,
           isLast: false,
         ),
         entry(
           const Color(0xFFD97706),
-          'Proforma draft ready for review',
-          DateFormat('MMM d').format(lead.createdAt.toLocal()) + ' · Pending',
+          l10n.leadsProformaDraftReady,
+          '$d · ${l10n.leadsTimelinePending}',
           isLast: true,
         ),
       ],
@@ -453,6 +483,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
   }
 
   Widget _bottomActions(BuildContext context) {
+    final l10n = context.flipperL10n;
     final narrow = MediaQuery.sizeOf(context).width < 520;
 
     final closeButton = SizedBox(
@@ -469,7 +500,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
           padding: const EdgeInsets.symmetric(horizontal: 18),
         ),
         child: Text(
-          'Close',
+          l10n.close,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w900,
             color: _ink2,
@@ -505,17 +536,11 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
           AdminDashboardSvgs.leadsDocumentProforma,
           width: 18,
           height: 18,
-          colorFilter: const ColorFilter.mode(
-            Colors.white,
-            BlendMode.srcIn,
-          ),
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
         ),
         label: Text(
-          'Review proforma',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w900,
-            fontSize: 14,
-          ),
+          l10n.leadsReviewProforma,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w900, fontSize: 14),
         ),
       ),
     );
@@ -551,11 +576,8 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
                 ),
               ),
         label: Text(
-          _isConverting ? 'Converting…' : 'Convert to sale',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w900,
-            fontSize: 14,
-          ),
+          _isConverting ? l10n.leadsConverting : l10n.leadsConvertToSale,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w900, fontSize: 14),
         ),
       ),
     );
@@ -587,9 +609,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
                     child: closeButton,
                   ),
                 ),
-                Expanded(
-                  child: Center(child: reviewProformaButton),
-                ),
+                Expanded(child: Center(child: reviewProformaButton)),
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerRight,
@@ -620,13 +640,16 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isConverting = false);
-      showErrorNotification(context, 'Failed to convert lead. $e');
+      showErrorNotification(
+        context,
+        context.flipperL10n.leadsConvertFailed('$e'),
+      );
     }
   }
 
   Widget _sourceMini(bool isGmail) {
     return Text(
-      isGmail ? 'Gmail' : 'Walk-in',
+      isGmail ? 'Gmail' : context.flipperL10n.leadsSourceWalkIn,
       style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: _ink3),
     );
   }
@@ -637,27 +660,27 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
       LeadStatus.newLead => (
         const Color(0xFFEFF6FF),
         const Color(0xFF1D4ED8),
-        'New',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.contacted => (
         const Color(0xFFF5F3FF),
         const Color(0xFF6D28D9),
-        'Contacted',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.quoted => (
         const Color(0xFFFFFBEB),
         const Color(0xFFB45309),
-        'Quoted',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.converted => (
         const Color(0xFFECFDF3),
         const Color(0xFF047857),
-        'Converted',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       LeadStatus.lost => (
         const Color(0xFFFFF1F2),
         const Color(0xFFBE123C),
-        'Lost',
+        leadStatusLabel(context.flipperL10n, normalized),
       ),
       _ => (const Color(0xFFF3F4F6), const Color(0xFF374151), normalized),
     };
@@ -667,13 +690,21 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
   Widget _heatPill(String heat) {
     final normalized = heat.toLowerCase();
     final (bg, fg, label) = switch (normalized) {
-      LeadHeat.hot => (const Color(0xFFFEE2E2), const Color(0xFFDC2626), 'Hot'),
+      LeadHeat.hot => (
+        const Color(0xFFFEE2E2),
+        const Color(0xFFDC2626),
+        context.flipperL10n.leadsHeatHot,
+      ),
       LeadHeat.warm => (
         const Color(0xFFFEF3C7),
         const Color(0xFFD97706),
-        'Warm',
+        context.flipperL10n.leadsHeatWarm,
       ),
-      _ => (const Color(0xFFF3F4F6), const Color(0xFF6B7280), 'Cold'),
+      _ => (
+        const Color(0xFFF3F4F6),
+        const Color(0xFF6B7280),
+        context.flipperL10n.leadsHeatCold,
+      ),
     };
     return _pillText(label, fg, bg: bg);
   }
@@ -697,4 +728,3 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
     );
   }
 }
-
