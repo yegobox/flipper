@@ -116,8 +116,16 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       notifyListeners();
 
       debugPrint('🚀 [StartupViewModel] Checking requirements...');
-      await _requirementsMeetsWithRetry();
-      debugPrint('🚀 [StartupViewModel] Requirements met');
+      try {
+        await _requirementsMeetsWithRetry();
+        debugPrint('🚀 [StartupViewModel] Requirements met');
+      } catch (e) {
+        if (!await _keepsCachedSessionAfter(e)) rethrow;
+        talker.warning(
+          'Startup requirements could not be verified offline ($e); '
+          'continuing with the cached session',
+        );
+      }
       _progress = 0.4;
       notifyListeners();
 
@@ -330,6 +338,13 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       }
       return;
     } else {
+      if (await _keepsCachedSessionAfter(e)) {
+        talker.warning(
+          'Startup failed offline ($e); entering with the cached session',
+        );
+        await _handleInitialPaymentVerification();
+        return;
+      }
       try {
         logOut();
         _routerService.navigateTo(LoginRoute());
@@ -343,6 +358,49 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   bool isTestEnvironment() {
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  }
+
+  /// Whether startup may carry on with the session already on this device
+  /// after [error], instead of logging out.
+  ///
+  /// The requirement checks look the business and branch up locally, then
+  /// online. Ditto never replicates `branches` down, so on a device with no
+  /// network the online step finds nothing and the check used to throw —
+  /// which fell through to `logOut()` and the login screen, although the user
+  /// never signed out. Being offline says nothing about whether the session is
+  /// valid, so a device holding one keeps it. Errors that do say the session
+  /// is bad still log out, and online behaviour is unchanged.
+  @visibleForTesting
+  static bool keepsCachedSessionAfter(
+    Object error, {
+    required bool hasCachedSession,
+    required bool online,
+  }) {
+    if (!hasCachedSession || online) return false;
+    return error is! SessionException &&
+        error is! PinError &&
+        error is! LoginChoicesException;
+  }
+
+  /// A signed-in user with a business and branch picked — everything the last
+  /// login wrote and the app needs to open without a network. QR login's
+  /// temporary `login-` identity is not a session.
+  static bool _hasCachedSession() {
+    bool present(String? value) => value != null && value.trim().isNotEmpty;
+    final userId = ProxyService.box.getUserId();
+    return present(userId) &&
+        !userId!.startsWith('login-') &&
+        present(ProxyService.box.getBusinessId()) &&
+        present(ProxyService.box.getBranchId());
+  }
+
+  Future<bool> _keepsCachedSessionAfter(Object error) async {
+    if (!_hasCachedSession()) return false;
+    return keepsCachedSessionAfter(
+      error,
+      hasCachedSession: true,
+      online: await ProxyService.status.isInternetAvailable(),
+    );
   }
 
   Future<void> _requirementsMeetsWithRetry() async {
