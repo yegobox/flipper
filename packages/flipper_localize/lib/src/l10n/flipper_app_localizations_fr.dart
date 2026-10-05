@@ -24740,97 +24740,98 @@ class FlipperAppLocalizationsFr extends FlipperAppLocalizations {
       'Erreur réseau lors de la vérification du code. Veuillez réessayer.';
 
   @override
-  String get tillHardwareTitle => 'Printer & customer display';
+  String get tillHardwareTitle => 'Imprimante et afficheur client';
 
   @override
   String get tillHardwareSubtitle =>
-      'Hardware on this till only. Not shared with other devices.';
+      'Matériel de cette caisse uniquement. Non partagé avec les autres appareils.';
 
   @override
-  String get receiptPrinterLabel => 'Receipt printer';
+  String get receiptPrinterLabel => 'Imprimante de reçus';
 
   @override
   String get receiptPrinterAuto =>
-      'Receipts print here automatically after every sale.';
+      'Les reçus s\'impriment ici automatiquement après chaque vente.';
 
   @override
-  String get receiptPrinterAutomatic => 'Choose automatically';
+  String get receiptPrinterAutomatic => 'Choisir automatiquement';
 
   @override
   String receiptPrinterNotPaper(String name) {
-    return '$name (not a paper printer)';
+    return '$name (pas une imprimante papier)';
   }
 
   @override
   String get receiptPrinterNoneFound =>
-      'Windows reports no printers. Install the printer driver, then reopen this page.';
+      'Windows ne signale aucune imprimante. Installez le pilote de l\'imprimante, puis rouvrez cette page.';
 
   @override
-  String get receiptPrinterTest => 'Test print';
+  String get receiptPrinterTest => 'Impression de test';
 
   @override
   String receiptPrinterTestSent(String printer) {
-    return 'Test page sent to $printer';
+    return 'Page de test envoyée à $printer';
   }
 
   @override
   String receiptPrinterTestFailed(String printer, String error) {
-    return '$printer did not accept the test page: $error';
+    return '$printer n\'a pas accepté la page de test : $error';
   }
 
   @override
-  String get customerDisplayLabel => 'Customer display';
+  String get customerDisplayLabel => 'Afficheur client';
 
   @override
   String get customerDisplayHint =>
-      'Shows the total, then the change, on the small display on the back of the till.';
+      'Affiche le total, puis la monnaie, sur le petit écran à l\'arrière de la caisse.';
 
   @override
-  String get customerDisplayOff => 'Off';
+  String get customerDisplayOff => 'Désactivé';
 
   @override
-  String get customerDisplaySerial => 'On a COM port';
+  String get customerDisplaySerial => 'Sur un port COM';
 
   @override
   String get customerDisplayPort => 'Port';
 
   @override
-  String get customerDisplayBaud => 'Speed (baud)';
+  String get customerDisplayBaud => 'Vitesse (bauds)';
 
   @override
-  String get customerDisplayNoPorts => 'This till reports no COM ports.';
+  String get customerDisplayNoPorts =>
+      'Cette caisse ne signale aucun port COM.';
 
   @override
   String get customerDisplayWindowsOnly =>
-      'Customer displays are supported on Windows tills.';
+      'Les afficheurs client sont pris en charge sur les caisses Windows.';
 
   @override
-  String get customerDisplayTest => 'Test display';
+  String get customerDisplayTest => 'Tester l\'afficheur';
 
   @override
   String get customerDisplayTestSent =>
-      'Every segment (8.8.8.8.8.8.8.8) should now be lit on the back display.';
+      'Tous les segments (8.8.8.8.8.8.8.8) devraient maintenant être allumés sur l\'afficheur arrière.';
 
   @override
-  String get customerDisplayFind => 'Find automatically';
+  String get customerDisplayFind => 'Rechercher automatiquement';
 
   @override
   String customerDisplayFindPrompt(String port, String baud) {
-    return 'Trying $port at $baud baud. Does the back display show 8.8.8.8.8.8.8.8?';
+    return 'Essai de $port à $baud bauds. L\'afficheur arrière affiche-t-il 8.8.8.8.8.8.8.8 ?';
   }
 
   @override
-  String get customerDisplayFindYes => 'Yes, it does';
+  String get customerDisplayFindYes => 'Oui';
 
   @override
-  String get customerDisplayFindNo => 'No, try next';
+  String get customerDisplayFindNo => 'Non, essayer le suivant';
 
   @override
   String customerDisplayFound(String port, String baud) {
-    return 'Customer display set to $port at $baud baud';
+    return 'Afficheur client configuré sur $port à $baud bauds';
   }
 
   @override
   String get customerDisplayNotFound =>
-      'No setting lit the display. Check its cable, or pick the port and speed by hand.';
+      'Aucun réglage n\'a allumé l\'afficheur. Vérifiez son câble ou choisissez le port et la vitesse manuellement.';
 }

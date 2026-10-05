@@ -24590,97 +24590,98 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
       'Ikibazo cy\'umuyoboro mu kugenzura kode. Ongera ugerageze.';
 
   @override
-  String get tillHardwareTitle => 'Printer & customer display';
+  String get tillHardwareTitle => 'Icapiro n\'icyerekana cy\'umukiriya';
 
   @override
   String get tillHardwareSubtitle =>
-      'Hardware on this till only. Not shared with other devices.';
+      'Ibikoresho by\'iyi mashini yo kwishyuriraho gusa. Ntibisangizwa ibindi bikoresho.';
 
   @override
-  String get receiptPrinterLabel => 'Receipt printer';
+  String get receiptPrinterLabel => 'Icapiro ry\'inyemezabwishyu';
 
   @override
   String get receiptPrinterAuto =>
-      'Receipts print here automatically after every sale.';
+      'Inyemezabwishyu zisohokera hano ubwazo nyuma ya buri gicuruzwa.';
 
   @override
-  String get receiptPrinterAutomatic => 'Choose automatically';
+  String get receiptPrinterAutomatic => 'Hitamo mu buryo bwikora';
 
   @override
   String receiptPrinterNotPaper(String name) {
-    return '$name (not a paper printer)';
+    return '$name (si icapiro ry\'impapuro)';
   }
 
   @override
   String get receiptPrinterNoneFound =>
-      'Windows reports no printers. Install the printer driver, then reopen this page.';
+      'Windows ntigaragaza icapiro na rimwe. Shyiramo porogaramu y\'icapiro, hanyuma wongere ufungure iyi paji.';
 
   @override
-  String get receiptPrinterTest => 'Test print';
+  String get receiptPrinterTest => 'Gerageza gucapa';
 
   @override
   String receiptPrinterTestSent(String printer) {
-    return 'Test page sent to $printer';
+    return 'Paji y\'igerageza yoherejwe kuri $printer';
   }
 
   @override
   String receiptPrinterTestFailed(String printer, String error) {
-    return '$printer did not accept the test page: $error';
+    return '$printer ntiyakiriye paji y\'igerageza: $error';
   }
 
   @override
-  String get customerDisplayLabel => 'Customer display';
+  String get customerDisplayLabel => 'Icyerekana cy\'umukiriya';
 
   @override
   String get customerDisplayHint =>
-      'Shows the total, then the change, on the small display on the back of the till.';
+      'Yerekana igiteranyo, hanyuma amafaranga yo kugarura, ku cyerekana gito kiri inyuma y\'imashini.';
 
   @override
-  String get customerDisplayOff => 'Off';
+  String get customerDisplayOff => 'Kizimije';
 
   @override
-  String get customerDisplaySerial => 'On a COM port';
+  String get customerDisplaySerial => 'Kuri porte ya COM';
 
   @override
-  String get customerDisplayPort => 'Port';
+  String get customerDisplayPort => 'Porte';
 
   @override
-  String get customerDisplayBaud => 'Speed (baud)';
+  String get customerDisplayBaud => 'Umuvuduko (baud)';
 
   @override
-  String get customerDisplayNoPorts => 'This till reports no COM ports.';
+  String get customerDisplayNoPorts =>
+      'Iyi mashini ntigaragaza porte ya COM na imwe.';
 
   @override
   String get customerDisplayWindowsOnly =>
-      'Customer displays are supported on Windows tills.';
+      'Ibyerekana by\'umukiriya bikora ku mashini za Windows.';
 
   @override
-  String get customerDisplayTest => 'Test display';
+  String get customerDisplayTest => 'Gerageza icyerekana';
 
   @override
   String get customerDisplayTestSent =>
-      'Every segment (8.8.8.8.8.8.8.8) should now be lit on the back display.';
+      'Ibice byose (8.8.8.8.8.8.8.8) bigomba kuba byaka ubu ku cyerekana cy\'inyuma.';
 
   @override
-  String get customerDisplayFind => 'Find automatically';
+  String get customerDisplayFind => 'Shakisha mu buryo bwikora';
 
   @override
   String customerDisplayFindPrompt(String port, String baud) {
-    return 'Trying $port at $baud baud. Does the back display show 8.8.8.8.8.8.8.8?';
+    return 'Turagerageza $port kuri baud $baud. Ese icyerekana cy\'inyuma kirerekana 8.8.8.8.8.8.8.8?';
   }
 
   @override
-  String get customerDisplayFindYes => 'Yes, it does';
+  String get customerDisplayFindYes => 'Yego';
 
   @override
-  String get customerDisplayFindNo => 'No, try next';
+  String get customerDisplayFindNo => 'Oya, gerageza ikurikira';
 
   @override
   String customerDisplayFound(String port, String baud) {
-    return 'Customer display set to $port at $baud baud';
+    return 'Icyerekana cy\'umukiriya cyashyizwe kuri $port kuri baud $baud';
   }
 
   @override
   String get customerDisplayNotFound =>
-      'No setting lit the display. Check its cable, or pick the port and speed by hand.';
+      'Nta genamiterere ryatumye icyerekana caka. Genzura umugozi wacyo, cyangwa uhitemo porte n\'umuvuduko ubwawe.';
 }
