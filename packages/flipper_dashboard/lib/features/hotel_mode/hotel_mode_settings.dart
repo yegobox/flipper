@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/services/hotel_mode_branch_settings_service.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Hotel Mode settings — branch-synced via Ditto with a local cache
@@ -75,7 +76,9 @@ abstract final class HotelModeSettings {
       HotelModeBranchSettingsService.hydrateForActiveBranch();
 
   static void startWatchingActiveBranch() =>
-      HotelModeBranchSettingsService.startWatchingActiveBranch();
+      HotelModeBranchSettingsService.startWatchingActiveBranch(
+        onEnabledChanged: notifyServiceModeChanged,
+      );
 
   /// Flips the master toggle.
   ///

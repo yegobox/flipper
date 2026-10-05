@@ -9,14 +9,12 @@ import 'package:flipper_dashboard/features/bar_mode/widgets/bar_admin_widgets.da
 import 'package:flipper_dashboard/features/bar_mode/widgets/bar_floor_plan_editor.dart';
 import 'package:flipper_dashboard/features/hotel_mode/hotel_mode_settings.dart';
 import 'package:flipper_dashboard/features/service_mode_hotkey.dart';
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/view_models/flipperBaseModel.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
 
@@ -300,8 +298,12 @@ class _BarModeAdminSectionState extends State<BarModeAdminSection> {
                 label: l10n.barOpenPosWithBarMode,
                 onPressed: _enabled
                     ? () {
-                        BarModeSettings.setLaunchOnStart(true);
-                        locator<RouterService>().navigateTo(BarModeHostRoute());
+                        // Pin first: leaving Settings re-syncs the shell,
+                        // and an older pick must not send it straight back.
+                        if (!isPhoneLayout) {
+                          setDeviceServiceMode(ServiceMode.bar);
+                        }
+                        openServiceModeShell(ServiceMode.bar);
                       }
                     : null,
               ),

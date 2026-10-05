@@ -1,10 +1,9 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/features/service_mode_shell.dart';
 import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -111,7 +110,7 @@ Future<void> cycleServiceMode() async {
       );
       return;
     }
-    _navigateTo(target);
+    openServiceModeShell(target);
     _toast(
       FlipperL10n.current.serviceModeSwitched(
         target.label,
@@ -126,28 +125,6 @@ Future<void> cycleServiceMode() async {
     );
   } finally {
     _ServiceModeHotkeyScopeState._switching = false;
-  }
-}
-
-void _navigateTo(ServiceMode mode) {
-  final router = locator<RouterService>();
-  final wanted = switch (mode) {
-    ServiceMode.bar => BarModeHostRoute.name,
-    ServiceMode.hotel => HotelModeHostRoute.name,
-    ServiceMode.pos => FlipperAppRoute.name,
-  };
-  // Already on the right surface (the modes also render inside the POS sales
-  // pane, which rebuilds off [serviceModeRevision]) — remounting it would
-  // throw away the operator's place for nothing.
-  if (router.router.current.name == wanted) return;
-
-  switch (mode) {
-    case ServiceMode.bar:
-      router.replaceWith(BarModeHostRoute());
-    case ServiceMode.hotel:
-      router.replaceWith(HotelModeHostRoute());
-    case ServiceMode.pos:
-      router.replaceWith(FlipperAppRoute());
   }
 }
 

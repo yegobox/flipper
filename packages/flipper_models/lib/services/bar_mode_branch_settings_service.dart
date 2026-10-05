@@ -132,7 +132,10 @@ abstract final class BarModeBranchSettingsService {
   }
 
   /// Live-sync remote changes into the local cache while the app runs.
-  static void startWatchingActiveBranch() {
+  ///
+  /// [onEnabledChanged] fires when a remote change turns the service on or
+  /// off, so the UI can re-resolve which surface this terminal shows.
+  static void startWatchingActiveBranch({void Function()? onEnabledChanged}) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return;
 
@@ -141,7 +144,9 @@ abstract final class BarModeBranchSettingsService {
         .barBranchSettingsStream(branchId: branchId)
         .listen((settings) {
       if (settings != null) {
+        final wasEnabled = _readLocalEnabled();
         _applyToLocalCache(settings);
+        if (settings.enabled != wasEnabled) onEnabledChanged?.call();
       }
     }, onError: (Object e, StackTrace s) {
       talker.warning('Bar branch settings watch error: $e\n$s');

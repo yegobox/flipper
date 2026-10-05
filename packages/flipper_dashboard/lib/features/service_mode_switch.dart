@@ -199,6 +199,23 @@ ServiceMode get startupServiceMode => resolveStartupServiceMode(
   deviceMode: deviceServiceMode,
 );
 
+/// Which shell an automatic sync should move this device to, or null to leave
+/// it where it is.
+///
+/// [currentShell] is the surface the top route shows: the POS dashboard or a
+/// mode host. It is null when anything else is on top (Settings, Reports, a
+/// payment screen), and a sync never pulls the operator out of those — the
+/// switch happens once they come back to a shell. A phone is never moved by
+/// itself: it opens a service mode only when someone asks for it.
+ServiceMode? serviceModeShellTarget({
+  required ServiceMode? currentShell,
+  required ServiceMode wanted,
+  required bool isPhone,
+}) {
+  if (isPhone || currentShell == null || currentShell == wanted) return null;
+  return wanted;
+}
+
 /// Services the branch offers, in the order the pickers show them.
 List<ServiceMode> availableServiceModes({
   required bool hotelEnabled,

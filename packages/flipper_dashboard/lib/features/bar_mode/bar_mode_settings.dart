@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/services/bar_mode_branch_settings_service.dart';
+import 'package:flipper_dashboard/features/service_mode_switch.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Bar Mode settings — branch-synced via Ditto with a local cache ([ProxyService.box]).
@@ -35,7 +36,9 @@ abstract final class BarModeSettings {
       BarModeBranchSettingsService.hydrateForActiveBranch();
 
   static void startWatchingActiveBranch() =>
-      BarModeBranchSettingsService.startWatchingActiveBranch();
+      BarModeBranchSettingsService.startWatchingActiveBranch(
+        onEnabledChanged: notifyServiceModeChanged,
+      );
 
   /// Flips the master toggle.
   ///
