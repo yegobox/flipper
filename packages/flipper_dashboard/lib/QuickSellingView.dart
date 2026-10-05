@@ -59,6 +59,7 @@ import 'package:flipper_dashboard/providers/checkout_cart_mode_provider.dart';
 import 'package:flipper_dashboard/services/branch_transfer_service.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/helperModels/talker.dart' as tv_talk;
+import 'package:flipper_services/customer_display/customer_display_service.dart';
 import 'package:flipper_services/digital_receipt_service.dart';
 
 /// Compact label for correlating QuickSellingView with [pendingTransactionStream] logs.
@@ -803,6 +804,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       }
     });
 
+    // Mirror the cart total to the customer display on the back of the till.
+    // Listen-only (no rebuild); fired immediately so a resumed cart shows too.
+    ref.listenManual<double>(posCartPaymentRefreshSignalProvider, (_, total) {
+      if (ProxyService.box.isOrdering() ?? false) return;
+      CustomerDisplayService.instance.showTotal(total);
+    }, fireImmediately: true);
+
     // Listen to discount changes to trigger update
     widget.discountController.addListener(_onDiscountChanged);
 
@@ -1116,7 +1124,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     super.dispose();
   }
 
-  Future<void> _onQuickSellComplete(ITransaction transaction) async {
+  /// Total and tender for the customer display, read when Pay is tapped:
+  /// completion clears the tender field before [_onQuickSellComplete] runs.
+  ({double total, double? tendered}) _customerDisplaySaleSnapshot() => (
+    total: totalAfterDiscountAndShipping,
+    tendered: double.tryParse(
+      widget.receivedAmountController.text.trim().replaceAll(',', ''),
+    ),
+  );
+
+  Future<void> _onQuickSellComplete(
+    ITransaction transaction, {
+    ({double total, double? tendered})? displaySale,
+  }) async {
+    // Change (or amount paid) on the back display. Only Pay passes a snapshot,
+    // so branch transfers, which also finish here, leave the display alone.
+    if (displaySale != null && !(ProxyService.box.isOrdering() ?? false)) {
+      CustomerDisplayService.instance.showSaleResult(
+        total: displaySale.total,
+        tendered: displaySale.tendered,
+      );
+    }
     final startTime = transaction.createdAt ?? DateTime.now().toUtc();
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
@@ -2529,6 +2557,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                               key: 'transactionCompleting',
                                               value: true,
                                             );
+                                            final displaySale =
+                                                _customerDisplaySaleSnapshot();
                                             bool waitingForPayment = false;
                                             try {
                                               waitingForPayment =
@@ -2538,6 +2568,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                                     completeTransaction: () async {
                                                       await _onQuickSellComplete(
                                                         transaction,
+                                                        displaySale:
+                                                            displaySale,
                                                       );
                                                     },
                                                     transactionId:
@@ -3248,12 +3280,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   key: 'transactionCompleting',
                   value: true,
                 );
+                final displaySale = _customerDisplaySaleSnapshot();
                 bool waitingForPayment = false;
                 try {
                   waitingForPayment = await startCompleteTransactionFlow(
                     immediateCompletion: false,
                     completeTransaction: () async {
-                      await _onQuickSellComplete(transaction);
+                      await _onQuickSellComplete(
+                        transaction,
+                        displaySale: displaySale,
+                      );
                     },
                     transactionId: transaction.id,
                     transactionHint: transaction,

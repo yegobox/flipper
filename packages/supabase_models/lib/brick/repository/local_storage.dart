@@ -198,6 +198,13 @@ class SharedPreferenceStorage implements LocalStorage {
     // Which service surface THIS device runs. Deliberately never synced: a
     // property runs the front desk on one terminal and the bar on another.
     'deviceServiceMode',
+    // Receipt printer and customer (pole) display wired to THIS till. Device
+    // hardware, so never synced. Without 'defaultPrinter' here the picked
+    // printer was silently dropped and the picker came back on every sale.
+    'defaultPrinter',
+    'customerDisplayType',
+    'customerDisplayPort',
+    'customerDisplayBaud',
     // Cash book form defaults: last category per direction + last method.
     'cashbookLastCategoryIn',
     'cashbookLastCategoryOut',

@@ -24,6 +24,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helpers/desktop_pdf_open.dart';
 import 'package:flipper_models/helpers/receipt_pdf_filename.dart';
+import 'package:flipper_models/helpers/receipt_printer_autoselect.dart';
 import 'package:flipper_models/widgets/printer_picker_dialog.dart';
 import 'package:universal_platform/universal_platform.dart';
 
@@ -314,7 +315,10 @@ mixin TransactionMixinOld {
           );
           final onCompleteSw = Stopwatch()..start();
           await _awaitPossibleFuture(onComplete());
-          logSaleCompletionStage('on_complete', onCompleteSw.elapsedMilliseconds);
+          logSaleCompletionStage(
+            'on_complete',
+            onCompleteSw.elapsedMilliseconds,
+          );
 
           // Print before heavy Ditto writes (createReceipt/updateCounters) so PDF
           // generation is not stuck behind a congested store queue.
@@ -333,7 +337,10 @@ mixin TransactionMixinOld {
           } catch (e, s) {
             talker.error('Receipt print after sale failed: $e', s);
           }
-          logSaleCompletionStage('present_receipt', printSw.elapsedMilliseconds);
+          logSaleCompletionStage(
+            'present_receipt',
+            printSw.elapsedMilliseconds,
+          );
 
           scheduleDeferredSaleReceiptPersist(signOutcome.deferredPersist);
           logSaleCompletionStage(
@@ -412,17 +419,18 @@ mixin TransactionMixinOld {
           final plainReceiptSw = Stopwatch()..start();
           unawaited(() async {
             try {
-              final items = preloadedLineItemsForCollectPayment ??
+              final items =
+                  preloadedLineItemsForCollectPayment ??
                   await ProxyService.getStrategy(
                     Strategy.capella,
                   ).transactionItems(transactionId: transaction.id);
               if (items.isNotEmpty) {
                 final bytes = await TaxController(object: transaction)
                     .buildNonFiscalReceiptPdfBytes(
-                  transaction: transaction,
-                  transactionItems: items,
-                  deferPresentation: true,
-                );
+                      transaction: transaction,
+                      transactionItems: items,
+                      deferPresentation: true,
+                    );
                 if (bytes != null) {
                   try {
                     formKey.currentState?.reset();
@@ -505,7 +513,10 @@ mixin TransactionMixinOld {
         ebm?.taxServerUrl != null &&
         hasUser &&
         !isTaxServiceStoped) {
-      ProxyService.box.writeString(key: "getServerUrl", value: ebm!.taxServerUrl!);
+      ProxyService.box.writeString(
+        key: "getServerUrl",
+        value: ebm!.taxServerUrl!,
+      );
       ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
 
       // Persist invoice/receipt/sarNo to Capella/Ditto even on signOnly so
@@ -545,10 +556,10 @@ mixin TransactionMixinOld {
       try {
         final bytes = await TaxController(object: transaction)
             .buildNonFiscalReceiptPdfBytes(
-          transaction: transaction,
-          transactionItems: items,
-          deferPresentation: true,
-        );
+              transaction: transaction,
+              transactionItems: items,
+              deferPresentation: true,
+            );
         if (bytes != null) {
           await printing(
             bytes,
@@ -569,15 +580,16 @@ mixin TransactionMixinOld {
     BuildContext context, {
     ITransaction? transaction,
     List<TransactionItem>? transactionItems,
+
     /// When true, always show the branded picker even if a default printer
     /// is saved or only one printer is available.
     bool alwaysShowPicker = false,
+
     /// Defaults to `<customer>-<yyyyMMdd_HHmmss>.pdf` derived from the sale, so
     /// saved receipts don't all collide on a single `receipt.pdf`.
     String? pdfFilename,
   }) async {
-    final resolvedPdfFilename =
-        pdfFilename ?? receiptPdfFilename(transaction);
+    final resolvedPdfFilename = pdfFilename ?? receiptPdfFilename(transaction);
     if (Platform.isAndroid || Platform.isIOS) {
       talker.info(
         '[receipt_presentation] no printer UI on iOS/Android — receipt not '
@@ -623,23 +635,34 @@ mixin TransactionMixinOld {
             'default exists',
           );
         } catch (e) {
-          talker.warning("Default printer not found in available printers");
+          // Renamed driver or removed printer: forget it so the auto-pick
+          // below can adopt whatever is attached now. Not when the list is
+          // empty — that is usually enumeration timing out (see above), and
+          // the saved printer is still fine.
+          talker.warning(
+            '[receipt_presentation] saved default printer "$savedPrinterName" '
+            'is not among the ${printers.length} listed',
+          );
+          if (printers.isNotEmpty) {
+            ProxyService.box.remove(key: 'defaultPrinter');
+          }
         }
       }
 
       if (!alwaysShowPicker && selectedPrinter == null) {
-        // If only one printer is available, use it by default
-        if (printers.length == 1) {
-          selectedPrinter = printers.first;
+        // Windows always lists software printers (PDF/XPS writers, OneNote,
+        // Fax, AnyDesk) beside the real one, so "exactly one printer" never
+        // held on a till. Ignore those and adopt the one real printer (or the
+        // OS default among several).
+        final auto = pickAutoReceiptPrinter(printers);
+        if (auto != null) {
+          selectedPrinter = auto;
           talker.info(
-            '[receipt_presentation] only one printer attached '
-            '("${selectedPrinter.name}"); adopting it as the default, so no '
-            'picker will be shown for later sales either',
+            '[receipt_presentation] receipt printer "${auto.name}" picked '
+            'automatically from ${printers.length} listed; adopting it as the '
+            'default, so no picker will be shown for later sales either',
           );
-          ProxyService.box.writeString(
-            key: 'defaultPrinter',
-            value: selectedPrinter.name,
-          );
+          ProxyService.box.writeString(key: 'defaultPrinter', value: auto.name);
         }
       }
 
@@ -693,10 +716,7 @@ mixin TransactionMixinOld {
             filename: resolvedPdfFilename,
           );
         } else {
-          await Printing.sharePdf(
-            bytes: bytes,
-            filename: resolvedPdfFilename,
-          );
+          await Printing.sharePdf(bytes: bytes, filename: resolvedPdfFilename);
         }
         return;
       }
@@ -930,7 +950,10 @@ mixin TransactionMixinOld {
         transactionItems: transactionItems,
       );
     } catch (e, s) {
-      talker.error('[receipt_presentation] deferred receipt print failed: $e', s);
+      talker.error(
+        '[receipt_presentation] deferred receipt print failed: $e',
+        s,
+      );
     }
   }
 
@@ -942,11 +965,10 @@ mixin TransactionMixinOld {
   Future<bool> _printOnSavedDefaultPrinter(Uint8List bytes) async {
     if (Platform.isAndroid || Platform.isIOS) return false;
     final savedPrinterName = ProxyService.box.readString(key: 'defaultPrinter');
-    if (savedPrinterName == null || savedPrinterName.trim().isEmpty) {
-      return false;
-    }
     try {
-      final printers = await Printing.listPrinters();
+      final printers = await Printing.listPrinters().timeout(
+        _printerEnumerateTimeout,
+      );
       Printer? match;
       for (final printer in printers) {
         if (printer.name == savedPrinterName) {
@@ -954,6 +976,7 @@ mixin TransactionMixinOld {
           break;
         }
       }
+      match ??= pickAutoReceiptPrinter(printers);
       if (match == null) return false;
       await Printing.directPrintPdf(
         printer: match,
@@ -1073,7 +1096,8 @@ mixin TransactionMixinOld {
         return (t == null || t.isEmpty) ? null : t;
       }
 
-      final finalCustomerName = nonEmpty(ProxyService.box.customerName()) ??
+      final finalCustomerName =
+          nonEmpty(ProxyService.box.customerName()) ??
           nonEmpty(customer?.custNm) ??
           nonEmpty(customerName) ??
           nonEmpty(transaction.customerName);
@@ -1154,7 +1178,8 @@ mixin TransactionMixinOld {
         paymentType: paymentType,
         discount: discount,
         directlyHandleReceipt: false,
-        customerPhone: nonEmpty(customer?.telNo) ??
+        customerPhone:
+            nonEmpty(customer?.telNo) ??
             nonEmpty(ProxyService.box.currentSaleCustomerPhoneNumber()) ??
             nonEmpty(transaction.customerPhone),
         preloadedLineItems: items,

@@ -24588,4 +24588,100 @@ class FlipperAppLocalizationsRw extends FlipperAppLocalizations {
   @override
   String get webSignupNetworkCheckCode =>
       'Ikibazo cy\'umuyoboro mu kugenzura kode. Ongera ugerageze.';
+
+  @override
+  String get tillHardwareTitle => 'Icapiro n\'icyerekana cy\'umukiriya';
+
+  @override
+  String get tillHardwareSubtitle =>
+      'Ibikoresho by\'iyi mashini yo kwishyuriraho gusa. Ntibisangizwa ibindi bikoresho.';
+
+  @override
+  String get receiptPrinterLabel => 'Icapiro ry\'inyemezabwishyu';
+
+  @override
+  String get receiptPrinterAuto =>
+      'Inyemezabwishyu zisohokera hano ubwazo nyuma ya buri gicuruzwa.';
+
+  @override
+  String get receiptPrinterAutomatic => 'Hitamo mu buryo bwikora';
+
+  @override
+  String receiptPrinterNotPaper(String name) {
+    return '$name (si icapiro ry\'impapuro)';
+  }
+
+  @override
+  String get receiptPrinterNoneFound =>
+      'Windows ntigaragaza icapiro na rimwe. Shyiramo porogaramu y\'icapiro, hanyuma wongere ufungure iyi paji.';
+
+  @override
+  String get receiptPrinterTest => 'Gerageza gucapa';
+
+  @override
+  String receiptPrinterTestSent(String printer) {
+    return 'Paji y\'igerageza yoherejwe kuri $printer';
+  }
+
+  @override
+  String receiptPrinterTestFailed(String printer, String error) {
+    return '$printer ntiyakiriye paji y\'igerageza: $error';
+  }
+
+  @override
+  String get customerDisplayLabel => 'Icyerekana cy\'umukiriya';
+
+  @override
+  String get customerDisplayHint =>
+      'Yerekana igiteranyo, hanyuma amafaranga yo kugarura, ku cyerekana gito kiri inyuma y\'imashini.';
+
+  @override
+  String get customerDisplayOff => 'Kizimije';
+
+  @override
+  String get customerDisplaySerial => 'Kuri porte ya COM';
+
+  @override
+  String get customerDisplayPort => 'Porte';
+
+  @override
+  String get customerDisplayBaud => 'Umuvuduko (baud)';
+
+  @override
+  String get customerDisplayNoPorts =>
+      'Iyi mashini ntigaragaza porte ya COM na imwe.';
+
+  @override
+  String get customerDisplayWindowsOnly =>
+      'Ibyerekana by\'umukiriya bikora ku mashini za Windows.';
+
+  @override
+  String get customerDisplayTest => 'Gerageza icyerekana';
+
+  @override
+  String get customerDisplayTestSent =>
+      'Ibice byose (8.8.8.8.8.8.8.8) bigomba kuba byaka ubu ku cyerekana cy\'inyuma.';
+
+  @override
+  String get customerDisplayFind => 'Shakisha mu buryo bwikora';
+
+  @override
+  String customerDisplayFindPrompt(String port, String baud) {
+    return 'Turagerageza $port kuri baud $baud. Ese icyerekana cy\'inyuma kirerekana 8.8.8.8.8.8.8.8?';
+  }
+
+  @override
+  String get customerDisplayFindYes => 'Yego';
+
+  @override
+  String get customerDisplayFindNo => 'Oya, gerageza ikurikira';
+
+  @override
+  String customerDisplayFound(String port, String baud) {
+    return 'Icyerekana cy\'umukiriya cyashyizwe kuri $port kuri baud $baud';
+  }
+
+  @override
+  String get customerDisplayNotFound =>
+      'Nta genamiterere ryatumye icyerekana caka. Genzura umugozi wacyo, cyangwa uhitemo porte n\'umuvuduko ubwawe.';
 }

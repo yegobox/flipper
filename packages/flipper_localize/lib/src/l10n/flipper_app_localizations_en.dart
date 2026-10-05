@@ -24331,4 +24331,99 @@ class FlipperAppLocalizationsEn extends FlipperAppLocalizations {
   @override
   String get webSignupNetworkCheckCode =>
       'Network error while checking the code. Please try again.';
+
+  @override
+  String get tillHardwareTitle => 'Printer & customer display';
+
+  @override
+  String get tillHardwareSubtitle =>
+      'Hardware on this till only. Not shared with other devices.';
+
+  @override
+  String get receiptPrinterLabel => 'Receipt printer';
+
+  @override
+  String get receiptPrinterAuto =>
+      'Receipts print here automatically after every sale.';
+
+  @override
+  String get receiptPrinterAutomatic => 'Choose automatically';
+
+  @override
+  String receiptPrinterNotPaper(String name) {
+    return '$name (not a paper printer)';
+  }
+
+  @override
+  String get receiptPrinterNoneFound =>
+      'Windows reports no printers. Install the printer driver, then reopen this page.';
+
+  @override
+  String get receiptPrinterTest => 'Test print';
+
+  @override
+  String receiptPrinterTestSent(String printer) {
+    return 'Test page sent to $printer';
+  }
+
+  @override
+  String receiptPrinterTestFailed(String printer, String error) {
+    return '$printer did not accept the test page: $error';
+  }
+
+  @override
+  String get customerDisplayLabel => 'Customer display';
+
+  @override
+  String get customerDisplayHint =>
+      'Shows the total, then the change, on the small display on the back of the till.';
+
+  @override
+  String get customerDisplayOff => 'Off';
+
+  @override
+  String get customerDisplaySerial => 'On a COM port';
+
+  @override
+  String get customerDisplayPort => 'Port';
+
+  @override
+  String get customerDisplayBaud => 'Speed (baud)';
+
+  @override
+  String get customerDisplayNoPorts => 'This till reports no COM ports.';
+
+  @override
+  String get customerDisplayWindowsOnly =>
+      'Customer displays are supported on Windows tills.';
+
+  @override
+  String get customerDisplayTest => 'Test display';
+
+  @override
+  String get customerDisplayTestSent =>
+      'Every segment (8.8.8.8.8.8.8.8) should now be lit on the back display.';
+
+  @override
+  String get customerDisplayFind => 'Find automatically';
+
+  @override
+  String customerDisplayFindPrompt(String port, String baud) {
+    return 'Trying $port at $baud baud. Does the back display show 8.8.8.8.8.8.8.8?';
+  }
+
+  @override
+  String get customerDisplayFindYes => 'Yes, it does';
+
+  @override
+  String get customerDisplayFindNo => 'No, try next';
+
+  @override
+  String customerDisplayFound(String port, String baud) {
+    return 'Customer display set to $port at $baud baud';
+  }
+
+  @override
+  String get customerDisplayNotFound =>
+      'No setting lit the display. Check its cable, or pick the port and speed by hand.';
 }
